@@ -35,6 +35,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *  04/19/12     #606       Greg Hull    add attributeName attribute for resource parameters 
  *  04/23/12     #606       Greg Hull    add ConditionalFilter as a shortcut for the classname.
  *  -            -          S.Gurung     Code formatter changes only
+ *  11/04/14     R4508      S. Gurung    Add XAxisScale as a shortcut for the classname
+ * 
  * </pre>
  * 
  * @author
@@ -403,6 +405,8 @@ public class ResourceExtPointMngr {
             return "gov.noaa.nws.ncep.viz.ui.display.ColorBar";
         } else if (clzName.equalsIgnoreCase("conditionalFilter")) {
             return "gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter";
+        } else if (clzName.equalsIgnoreCase("XAxisScale")) {
+            return "gov.noaa.nws.ncep.viz.common.tsScaleMngr.XAxisScale";
         }
         return clzName;
     }

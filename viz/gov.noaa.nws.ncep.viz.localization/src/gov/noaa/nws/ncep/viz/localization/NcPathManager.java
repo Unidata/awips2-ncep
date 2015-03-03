@@ -53,6 +53,7 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
  * 06/18/2014     #1131     qzhou        Added DFLT_GRAPH_RBD
  * 05/14/2014     R4078     S. Gurung    Added DFLT_RTKP_RBD (T1122)
  * 09/15/2014     R4508     S. Gurung    Added TIME_SERIES_DIR
+ * 10/15/2014     R4508     S. Gurung    Added XAXIS_SCALE_DIR and XAXIS_SCALE_HELP_FILE
  * </pre>
  * 
  * @author ghull
@@ -332,6 +333,12 @@ public class NcPathManager {
                 + File.separator + "nsharpConfig.xml";
 
         public static final String TIME_SERIES_DIR = NCEP_ROOT + "TimeSeries";
+
+        public static final String XAXIS_SCALE_DIR = TIME_SERIES_DIR
+                + File.separator + "xAxisScales";
+
+        public static final String XAXIS_SCALE_HELP_FILE = XAXIS_SCALE_DIR
+                + File.separator + "XAxisScalesHelp.txt";
 
     }
 

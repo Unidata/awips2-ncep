@@ -12,7 +12,6 @@
  * 06/2009		128			T. Lee		Creation
  * 07/2009		128			T. Lee		Migrated to TO11
  * 06/2010		128			T. Lee		Migrated to TO11DR11
- * May 14, 2014 2536        bclement    moved WMO Header to common
  * 07/2014                  T. Lee      Enhanced DM for Atlantic Basin
  * </pre>
  * 
@@ -34,10 +33,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.wmo.WMOHeader;
-
-
+import com.raytheon.uf.edex.wmo.message.WMOHeader;
 
 public class TcmParser {
     private static Scanner sc = null;

@@ -17,7 +17,6 @@
  * 10/2011                  S. Gurung       Added changes related to getting stid/lat/lon/elev 
  * 										    from database instead of snstns.xml file
  *  6/2014                  T.Lee        Added support XXAA, XXBB, XXCC, XXDD
- * Jul 30, 2014 3410        bclement        dataURI no longer stored in hdf5
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system. 
@@ -370,6 +369,7 @@ public class NcUairToPointData {
                     .getTime());
         if (record.getIssueTime() != null)
             pdv.setLong(ISSUE_TIME, record.getIssueTime().getTime().getTime());
+        pdv.setString(DATAURI, record.getDataURI());
         pdv.setString(DATA_TYPE, record.getDataType());
         pdv.setString(REPORT_TYPE, record.getReportType());
         pdv.setString(WMO_HEADER, record.getWmoHeader());

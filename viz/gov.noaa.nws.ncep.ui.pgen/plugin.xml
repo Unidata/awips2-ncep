@@ -322,6 +322,11 @@
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteAction"
             commandId="gov.noaa.nws.ncep.ui.pgen.palette">
+         <enabledWhen>
+            <reference
+                  definitionId="gov.noaa.nws.ncep.viz.ui.display.isMapEditor">
+            </reference>
+         </enabledWhen>
        </handler>       
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenSinglePointDrawingTool"
@@ -572,56 +577,15 @@
             name="NMAP Views"/>
            <view
             category="gov.noaa.nws.ncep.viz.ui.nmap"
-            allowMultiple="true"
+            allowMultiple="false"
             restorable="true"
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow"
             id="gov.noaa.nws.ncep.ui.PGEN"
             name="PGEN"/>
-           <!--stickyView
-                 closeable="true"
-                 id="gov.noaa.nws.ncep.ui.PGEN"
-                 location="RIGHT"
-                 moveable="true">
-           </stickyView-->
    </extension>
- 
- 
+   
    <extension
        point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?after=lapsTools">
-			<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-				label="PGEN">
-				<visibleWhen>
-					<reference
-						definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-					</reference>						
-				</visibleWhen>
-			</command>
-		</menuContribution>
- <!--menuContribution
-			locationURI="toolbar:org.eclipse.ui.main.toolbar?after=plugins">
-			<toolbar
-				id="plugins">
-				<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-					label="PGEN">
-					<visibleWhen>
-					    <and>
-							<reference
-								definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-							</reference>
-							<test
-	        					args="WFO"
-	        					forcePluginActivation="true"
-	        					property="com.raytheon.viz.warngen.site.SiteMode">
-	                      	</test>
-                       </and>
-					</visibleWhen>
-				</command>
-			</toolbar>
-		</menuContribution-->      
-       
        <menuContribution
            locationURI="toolbar:gov.noaa.nws.ncep.ui.PGEN">
            <command
@@ -2289,7 +2253,7 @@
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
              icon="icons/wxsym105.gif" />
          <object
-             name="PRESENT_WX_107"
+             name="PRESENT_WX_106"
              label="Heavy thunderstorm without hail and snow at observation time"
              className="Symbol"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
@@ -2312,8 +2276,7 @@
              className="Symbol"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
              icon="icons/wxsym203.gif" />
-             
-         <object
+          <object
              name="ICING_00"
              label="No Icing"
              className="Symbol"
@@ -3426,14 +3389,4 @@
              </contextId>
          </classContext>
    </extension>
-  <extension point="org.eclipse.ui.perspectiveExtensions">
-  <perspectiveExtension 
-	targetID="com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane">
-    	<view id="gov.noaa.nws.ncep.ui.PGEN"
-    		relative="org.eclipse.ui.editorss" 
-    		relationship="right"
-    		ratio="0.8"
-    		visible="false"/>
-  </perspectiveExtension> 
-</extension>
 </plugin>

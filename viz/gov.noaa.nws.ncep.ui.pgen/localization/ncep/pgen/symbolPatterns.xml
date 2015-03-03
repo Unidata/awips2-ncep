@@ -2113,7 +2113,7 @@
             <pathPart isFilled="true">
                 <path>-3.0,2.0 0.0,4.0 3.0,2.0 -3.0,2.0</path>
             </pathPart>
-            <pathPart isFilled="false">
+            <pathPart isFilled="true">
                 <path>0.0,4.0 0.0,2.0</path>
             </pathPart>
         </symbolPattern>
@@ -2262,7 +2262,7 @@
         <patternId>PRESENT_WX_099</patternId>
         <symbolPattern name="Heavy thunderstorm with hail at observation time">
             <pathPart isFilled="false">
-                <path>-2.0,1.0 2.0,1.0 0.0,-1.0 3.0,-4.0 3.0,-3.0 3.0,-4.0 2.0,-4.0</path>
+                <path>-3.0,1.0 2.0,1.0 0.0,-1.0 2.0,-2.0 0.0,-4.0 0.0,-3.0 0.0,-4.0 1.0,-4.0</path>
             </pathPart>
             <pathPart isFilled="false">
                 <path>-1.0,-4.0 -1.0,1.0</path>
@@ -2348,7 +2348,7 @@
         </symbolPattern>
     </patternEntry>
     <patternEntry>
-        <patternId>PRESENT_WX_107</patternId>
+        <patternId>PRESENT_WX_106</patternId>
         <symbolPattern name="Heavy thunderstorm without hail and snow at observation time">
             <pathPart isFilled="false">
                 <path>-3.0,1.0 2.0,1.0 0.0,-1.0 2.0,-2.0 0.0,-4.0 0.0,-3.0 0.0,-4.0 1.0,-4.0</path>

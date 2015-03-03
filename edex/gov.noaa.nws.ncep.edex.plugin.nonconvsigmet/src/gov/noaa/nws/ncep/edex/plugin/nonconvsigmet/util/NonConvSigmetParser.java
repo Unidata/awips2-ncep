@@ -1,5 +1,5 @@
 /*
- * Non-Convective Significant Meteorological Information DecoderUtil
+ * NonConvsigmet DecoderUtil
  * 
  * This java class intends to serve as a decoder utility for NonConvsigmet.
  * 
@@ -11,8 +11,7 @@
  * 07/2011		F. J. Yen	Fix for RTN TTR 9973--ConvSigment Decoder Ignoring
  * 							time range (NonConvsigmet, too).  Set the rangeEnd
  * 							time to the endTime
- * Jan 17, 2014         njensen         Handle if one or more locations not found in LatLonLocTbl	
- * May 14, 2014 2536    bclement        moved WMO Header to common, removed TimeTools usage						
+ * Jan 17, 2014         njensen         Handle if one or more locations not found in LatLonLocTbl							
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
@@ -27,6 +26,7 @@ import gov.noaa.nws.ncep.edex.util.UtilN;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,9 +34,8 @@ import java.util.regex.Pattern;
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class NonConvSigmetParser {
 
@@ -75,9 +74,8 @@ public class NonConvSigmetParser {
             currentRecord.setDesignatorBBB(theMatcher.group(5));
 
             // Decode the issue time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = TimeTools.findDataTime(theMatcher.group(3),
+                    headers);
             currentRecord.setIssueTime(issueTime);
 
             /* 999999999999999999999999999999
@@ -115,13 +113,11 @@ public class NonConvSigmetParser {
 
         NonConvSigmetRecord currentRecord = nconvRecord;
 
-        String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-
         // Calculate the startTime
         Matcher theMatcher = starttimePattern.matcher(theBullMsg);
         if (theMatcher.find()) {
             currentRecord.setForecastRegion(theMatcher.group(1));
-            stTime = WMOTimeParser.findDataTime(theMatcher.group(2), fileName);
+            stTime = TimeTools.findDataTime(theMatcher.group(2), headers);
         }
         if (stTime == null) {
             currentRecord.setStartTime(currentRecord.getIssueTime());
@@ -133,7 +129,7 @@ public class NonConvSigmetParser {
         theMatcher = endtimePattern.matcher(theBullMsg);
 
         if (theMatcher.find()) {
-            endTime = WMOTimeParser.findDataTime(theMatcher.group(1), fileName);
+            endTime = TimeTools.findDataTime(theMatcher.group(1), headers);
         }
         if (endTime == null) {
             endTime = currentRecord.getIssueTime();

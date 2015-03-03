@@ -44,10 +44,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Image;
@@ -73,19 +69,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Contains all the PGEN Products, layers, and Elements behind the PgenResource.
  * Also holds the command manager to undo/redo changes to the data in the
  * productlist
- * <pre>
- * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/15		#5413		B. Yin   	Close PGEN palette in cleanup
- * 
- * </pre>
  * 
  * @author sgilbert
+ * 
  */
-
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.NONE)
 public class PgenResourceData extends AbstractResourceData implements
         CommandStackListener {
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -129,8 +116,6 @@ public class PgenResourceData extends AbstractResourceData implements
     private boolean needsDisplay = false;
 
     private int numberOfResources = 0;
-    
-    private ArrayList<PgenResource> rscList = new ArrayList<PgenResource>();
 
     // private static final String PRD_GRAPHIC = "xml";
 
@@ -157,9 +142,7 @@ public class PgenResourceData extends AbstractResourceData implements
     public PgenResource construct(LoadProperties loadProperties,
             IDescriptor descriptor) throws VizException {
         numberOfResources++;
-        PgenResource rsc = new PgenResource(this, loadProperties);
-        rscList.add(rsc);
-        return rsc;
+        return new PgenResource(this, loadProperties);
     }
 
     /*
@@ -757,15 +740,10 @@ public class PgenResourceData extends AbstractResourceData implements
      */
     public synchronized void cleanup(BufferedImage paneImage) {
 
-        closeDialogs();
-        PgenSession.getInstance().closePalette();
-
         numberOfResources--;
-        if (numberOfResources != 0){
+        if (numberOfResources != 0)
             return; // not ready yet
 
-        }
-        
         commandMgr.flushStacks();
         commandMgr.removeStackListener(this);
 
@@ -773,21 +751,19 @@ public class PgenResourceData extends AbstractResourceData implements
          * remove Temp recovery file
          */
         removeTempFile();
-        
-        if (needsSaving) {
-            promptToSave(paneImage);
-        }
-        
+
         if (autosave)
             storeAllProducts();
         // saveProducts(autoSaveFilename, multiSave);
 
-        if (PgenUtil.getPgenMode() == PgenMode.SINGLE){
-            PgenUtil.resetResourceData();
+        if (needsSaving) {
+            promptToSave(paneImage);
         }
-        
+
+        if (PgenUtil.getPgenMode() == PgenMode.SINGLE)
+            PgenUtil.resetResourceData();
         deactivatePgenTools();
-        
+
     }
 
     /**

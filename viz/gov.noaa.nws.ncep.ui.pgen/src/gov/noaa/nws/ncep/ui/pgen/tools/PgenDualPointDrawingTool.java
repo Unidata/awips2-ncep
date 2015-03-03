@@ -135,6 +135,21 @@ public class PgenDualPointDrawingTool extends AbstractPgenDrawingTool {
             }
             else if ( button == 3 ) {          
             	
+            	drawingLayer.removeGhostLine();   
+    	        mapEditor.refresh();
+          		          	
+            	if ( points.size() == 0 ) {
+            		
+//            		NmapUiUtils.setPanningMode();
+            		PgenUtil.setSelectingMode();
+           		
+            	}
+            	else {            		
+                    
+            		points.clear();
+       	        
+            	}
+            	
             	return true;
             	
             }
@@ -190,6 +205,7 @@ public class PgenDualPointDrawingTool extends AbstractPgenDrawingTool {
            	
             }
             
+            
         	return false;
         	
         }
@@ -200,36 +216,7 @@ public class PgenDualPointDrawingTool extends AbstractPgenDrawingTool {
 			else return true;
 		}
 		
-	     /*
-         * overrides the function in selecting tool
-         */
-        @Override
-        public boolean handleMouseUp(int x, int y, int button){
-            if (!isResourceEditable())
-                return false;
-
-            if (button == 3) {
-                drawingLayer.removeGhostLine();   
-                mapEditor.refresh();
-                            
-                if ( points.size() == 0 ) {
-                    
-                    PgenUtil.setSelectingMode();
-                
-                }
-                else {                  
-                    
-                    points.clear();
-                
-                }
-                
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        
+		
 		/*
 		 * Check if the given starting angle is less than the ending angle
 		 */

@@ -48,6 +48,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Apr 03, 2012            X. Guo       Added createWireFrame
  * May 23, 2012            X. Guo       Loaded ncgrib logger
  * Apr 26, 2013			   B. Yin		Don't plot missing values.
+ * Dec.12, 2014  R5113     J. Wu        Detect real change in view extent to avoid 
+ *                                           re-creation of the wireframeShape.
  * </pre>
  * 
  * @author bsteffen
@@ -173,11 +175,21 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             return;
         }
 
-        if (lastExtent == null
-                || !lastExtent.equals(paintProps.getView().getExtent())) {
+        /*
+         * R5113 - Check the view extent using a 1 pixel sentinel instead of
+         * using "equals" check. "equals" checks the equality of two doubles,
+         * which is not quite reliable. This helps avoid re-creating the
+         * wireframeShape unless a "real" change in view extent happens, e.g.,
+         * simply clicking or moving mouse won't cause the shape to be
+         * re-created.
+         */
+        // if (lastExtent == null
+        // || !lastExtent.equals(paintProps.getView().getExtent())) {
+        if (viewExtentChanged(lastExtent, paintProps.getView().getExtent())) {
             disposeImages();
             lastExtent = paintProps.getView().getExtent().clone();
         }
+
         if (lastShape == null) {
             lastShape = target.createWireframeShape(false, descriptor);
             super.paint(gridRscData, target, paintProps);
@@ -185,6 +197,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         target.drawWireframeShape(lastShape, color, lineWidth, lineStyle);
+
     }
 
     public void createWireFrame(NcgridResourceData gridRscData,
@@ -192,6 +205,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
         if (lastShape == null) {
             try {
+
+                /*
+                 * Save this viewExtent so we do not need to recreate the
+                 * wireframeShape unless the view extent changes.
+                 */
+                lastExtent = paintProps.getView().getExtent().clone();
+
                 long t1 = System.currentTimeMillis();
                 lastShape = target.createWireframeShape(false, descriptor);
                 super.paint(gridRscData, target, paintProps);
@@ -201,6 +221,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                     logger.info("--GriddedVectorDisplay: create wireframe took:"
                             + (t4 - t1));
                 }
+
             } catch (VizException e) {
                 lastShape = null;
             }
@@ -713,5 +734,24 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         this.isPlotted[idx] = true;
+    }
+
+    /*
+     * Check if two PixelExtents has significant changes - R5113.
+     */
+    private boolean viewExtentChanged(IExtent origExt, IExtent newExt) {
+        double sentinel = 1.0;
+        if (origExt == null || newExt == null) {
+            return true;
+        } else {
+            if (Math.abs(origExt.getMinX() - newExt.getMinX()) > sentinel
+                    || Math.abs(origExt.getMaxX() - newExt.getMaxX()) > sentinel
+                    || Math.abs(origExt.getMinY() - newExt.getMinY()) > sentinel
+                    || Math.abs(origExt.getMaxY() - newExt.getMaxY()) > sentinel) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }

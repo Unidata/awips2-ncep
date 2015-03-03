@@ -19,7 +19,7 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.util.TimeUtil;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 /**
  * Provides a transform from NcScdRecords to PointDataContainer and vice versa.
@@ -33,7 +33,6 @@ import com.raytheon.uf.common.time.util.TimeUtil;
  * Sep 08, 2011 294        G. Hull     Use SurfaceObsLocation to set lat/lon
  * Sep 13, 2011 457        S. Gurung   Renamed H5 to Nc and h5 to nc
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
- * Jul 23, 2014 3410       bclement    location changed to floats
  * 
  * </pre>
  * 
@@ -210,15 +209,15 @@ public class NcScdPointDataTransform {
 
         SurfaceObsLocation loc = new SurfaceObsLocation(
                 pdv.getString(STATION_NAME));
-        float lat = pdv.getNumber(LATITUDE).floatValue();
-        float lon = pdv.getNumber(LONGITUDE).floatValue();
+        Double lat = pdv.getNumber(LATITUDE).doubleValue();
+        Double lon = pdv.getNumber(LONGITUDE).doubleValue();
         loc.assignLocation(lat, lon);
         loc.setElevation(pdv.getNumber(ELEVATION).intValue());
 
         long tmptime = pdv.getNumber(ISSUE_TIME).longValue();
-        nar.setIssueTime(TimeUtil.newGmtCalendar(new Date(tmptime)));
+        nar.setIssueTime(TimeTools.newCalendar(tmptime));
         tmptime = pdv.getNumber(OBS_TIME).longValue();
-        nar.setObsTime(TimeUtil.newGmtCalendar(new Date(tmptime)));
+        nar.setObsTime(TimeTools.newCalendar(tmptime));
 
         nar.setTDXC(pdv.getNumber(TDXC).floatValue());
         nar.setTDNC(pdv.getNumber(TDNC).floatValue());

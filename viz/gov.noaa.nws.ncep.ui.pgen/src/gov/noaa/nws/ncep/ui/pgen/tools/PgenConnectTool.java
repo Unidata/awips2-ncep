@@ -306,7 +306,32 @@ public class PgenConnectTool extends AbstractPgenDrawingTool {
 
             } else if (button == 3) {
 
-                return true;
+                if (secondEl != null) {
+                    // reselect the second element
+                    ghostEl = createGhostElement(firstEl, nearPt, loc);
+                    drawingLayer.setGhostLine(ghostEl);
+
+                    secondEl = null;
+                    secondJet = null;
+                } else {
+
+                    if (firstEl != null) {
+                        // unselect the first element but stay in "Connect" mode
+                        drawingLayer.removeGhostLine();
+                        drawingLayer.removeSelected();
+                        nearPt = 0;
+                        firstEl = null;
+                        firstJet = null;
+                    } else {
+                        // Exit "Connect" mode & set selecting mode
+                        PgenUtil.setSelectingMode();
+                    }
+
+                }
+
+                mapEditor.refresh();
+
+                return false;
 
             } else { // Button 2 - ignore
 
@@ -358,40 +383,6 @@ public class PgenConnectTool extends AbstractPgenDrawingTool {
             if (!isResourceEditable()) {
                 return false;
             }
-            
-            Coordinate loc = mapEditor.translateClick(x, y);
-            if (loc == null) {
-                return true;
-            }
-            
-            if (button == 3) {
-
-                if (secondEl != null) {
-                    // reselect the second element
-                    ghostEl = createGhostElement(firstEl, nearPt, loc);
-                    drawingLayer.setGhostLine(ghostEl);
-
-                    secondEl = null;
-                    secondJet = null;
-                } else {
-
-                    if (firstEl != null) {
-                        // unselect the first element but stay in "Connect" mode
-                        drawingLayer.removeGhostLine();
-                        drawingLayer.removeSelected();
-                        nearPt = 0;
-                        firstEl = null;
-                        firstJet = null;
-                    } else {
-                        // Exit "Connect" mode & set selecting mode
-                        PgenUtil.setSelectingMode();
-                    }
-
-                }
-
-                mapEditor.refresh();
-            }
-            
             return true;
         }
 

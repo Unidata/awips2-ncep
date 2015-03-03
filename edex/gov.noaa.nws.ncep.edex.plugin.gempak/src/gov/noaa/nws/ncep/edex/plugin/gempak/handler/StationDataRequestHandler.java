@@ -11,22 +11,6 @@ import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.serialization.comm.IRequestHandler;
 import com.raytheon.uf.edex.pointdata.PointDataQuery;
 
-/**
- * Executes point data queries for station data
- * 
- * <pre>
- * 
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * ???          ???         ???        Initial creation
- * Aug 07, 2014 3478       bclement    removed PointDataDescription.Type.Double
- * 
- * </pre>
- * 
- * @version 1.0
- */
 public class StationDataRequestHandler implements
         IRequestHandler<StationDataRequest> {
 
@@ -75,6 +59,7 @@ public class StationDataRequestHandler implements
                 Type t = pdv.getType(param);
                 switch (t) {
                 case FLOAT:
+                case DOUBLE:
                 case INT:
                 case LONG:
                     if (dimensions == 2) {

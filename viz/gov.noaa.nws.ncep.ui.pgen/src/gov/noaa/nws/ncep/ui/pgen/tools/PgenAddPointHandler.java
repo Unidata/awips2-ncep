@@ -154,9 +154,6 @@ public class PgenAddPointHandler extends InputHandlerDefaultImpl {
             return preempt;
             
         }
-    	else if ( button == 3 ){
-    	    return true;
-    	}
         else{
         	
            	return false;

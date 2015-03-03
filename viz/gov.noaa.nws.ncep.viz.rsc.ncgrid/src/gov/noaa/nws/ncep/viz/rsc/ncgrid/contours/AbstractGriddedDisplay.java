@@ -63,6 +63,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Dec 07, 2010			   M. Li		Modified wind plot algorithm
  * Nov 02, 2011            X. Guo       Added nx/ny parameters
  * Feb 06, 2012  #538      Q. Zhou      Changed density to filter. Get filter from resource attribute
+ * Dec 11, 2014  R5113     J. Wu        Set default filter to 0.3 for higher grids to speed loading.
+ * 
  * </pre>
  * 
  * @author bsteffen
@@ -144,89 +146,15 @@ public abstract class AbstractGriddedDisplay<T> { // implements IRenderable
         /**
          * Get filter attribute
          */
-        String den = gridRscData.getFilter();
-        String noFilter = "";
-        if (den != null) {
-            try {
-                if (den.equalsIgnoreCase("YES") || den.equalsIgnoreCase("Y")) {
-                    filter = 1.0;
-                } else if (den.equalsIgnoreCase("NO")
-                        || den.equalsIgnoreCase("N")
-                        || den.equalsIgnoreCase("")) {
-                    filter = 0.0;
-                    noFilter = "NO";
-                } else {
-                    filter = Double.parseDouble(den);
-                }
+        filter = parseFilter(gridRscData.getFilter());
 
-                if (filter == 0)
-                    noFilter = "NO";
-                if (filter < 0.1)
-                    filter = 0.1;
-            } catch (NumberFormatException e) {
-                System.out.println("The filter is not a double number");
-                filter = 1.0;
-            }
-        } else {
-            filter = 1.0;
-        }
-
-        // /**
-        // * Get skip attribute
-        // */
-        //
-        // String[] skip = null;
-        // int skipx = 0;
-        // int skipy = 0;
-        //
-        // String skipString = gridRscData.getSkip(); //now for positive skip
-        // if (skipString != null && noFilter.equalsIgnoreCase("NO")) {
-        // int ind = skipString.indexOf("/");
-        // if (ind != -1) {
-        // skipString = skipString.substring(ind +1);
-        //
-        // if (skipString.trim().startsWith("-")) //temp fix for negative value
-        // skipString = skipString.substring(1);
-        //
-        // skip = skipString.split(";");
-        //
-        // if (skip != null && skip.length !=0){
-        // try {
-        // skipx = Integer.parseInt(skip[0]);
-        // }
-        // catch (NumberFormatException e) {
-        // System.out.println("The skip is not an interger");
-        // skipx = 0;
-        // }
-        //
-        // if (skip.length ==1 ) {
-        // skipy = skipx;
-        // }
-        // if (skip.length >1 && skip[0] != skip[1]) {
-        // try {
-        // skipy = Integer.parseInt(skip[1]);
-        // }
-        // catch (NumberFormatException e) {
-        // System.out.println("The skip is not an interger");
-        // skipy = skipx;
-        // }
-        // }
-        // }
-        // else {
-        // skipx = 0;
-        // skipy = 0;
-        // }
-        // }
-        // else {
-        // skipx = 0;
-        // skipy = 0;
-        // }
-        // }
-        // else {
-        // skipx = 0;
-        // skipy = 0;
-        // }
-        //
+        /**
+         * Get skip attribute
+         */
+        // String noFilterStr = gridRscData.getFilter().trim().toUpperCase();
+        // boolean noFilter = (noFilterStr.startsWith("N") || noFilterStr
+        // .equals("0")) ? true : false;
+        // int[] skipf = parseSkip( gridRscData.getSkip(), true );
 
         for (int i = 0; i < (gridDims[0] * gridDims[1]); i++)
             isPlotted[i] = false;
@@ -250,6 +178,7 @@ public abstract class AbstractGriddedDisplay<T> { // implements IRenderable
         TreeMap<Double, Double> thisRow = new TreeMap<Double, Double>();
         thisRow.put(viewPixelExtent.getMinY(), viewPixelExtent.getMinX()
                 - interval);
+
         boolean stop = false;
         // Only used for debuging.
         int icount = 0;
@@ -266,7 +195,6 @@ public abstract class AbstractGriddedDisplay<T> { // implements IRenderable
 
                 for (double j = viewPixelExtent.getMinY(); j < viewPixelExtent
                         .getMaxY(); j += interval) {
-                    // find a value of i larger than the last outer loop.
                     Entry<Double, Double> ceilingEntry = lastRow
                             .ceilingEntry(j);
                     Entry<Double, Double> floorEntry = lastRow.floorEntry(j);
@@ -576,6 +504,105 @@ public abstract class AbstractGriddedDisplay<T> { // implements IRenderable
             return running;
         }
 
+    }
+
+    /*
+     * Parse "filter" value.
+     * 
+     * Note: R5113 - By default, a minimum of 0.1 is enforced. But for dense
+     * grids, a minimum filter value of 0.3 is forced to ensure a reasonable
+     * loading time.
+     */
+    private double parseFilter(String filterStr) {
+        double fil = 0.0;
+        String den = filterStr;
+        if (den != null) {
+            try {
+                if (den.equalsIgnoreCase("YES") || den.equalsIgnoreCase("Y")) {
+                    fil = 1.0;
+                } else if (den.equalsIgnoreCase("NO")
+                        || den.equalsIgnoreCase("N")
+                        || den.equalsIgnoreCase("")) {
+                    fil = 0.0;
+                } else {
+                    fil = Double.parseDouble(den);
+                }
+
+                if (fil < 0.1)
+                    fil = 0.1;
+            } catch (NumberFormatException e) {
+                System.out.println("The filter is not a double number");
+                fil = 1.0;
+            }
+        } else {
+            fil = 1.0;
+        }
+
+        // Set a higher miminum filter value of 0.3 for performance.
+        if (fil < 0.3 && gridDims[0] * gridDims[1] > 10000) {
+            fil = 0.3;
+        }
+
+        return fil;
+
+    }
+
+    /*
+     * Parse skip factor.
+     */
+    private int[] parseSkip(String skipStr, boolean noFilter) {
+
+        String[] skip = null;
+        int skipx = 0;
+        int skipy = 0;
+
+        String skipString = skipStr; // now for positive skip
+        // if (skipString != null && noFilter.equalsIgnoreCase("NO")) {
+        if (skipString != null && noFilter) {
+            int ind = skipString.indexOf("/");
+            if (ind != -1) {
+                skipString = skipString.substring(ind + 1);
+
+                if (skipString.trim().startsWith("-")) // temp fix for negative
+                                                       // value
+                    skipString = skipString.substring(1);
+
+                skip = skipString.split(";");
+
+                if (skip != null && skip.length != 0) {
+                    try {
+                        skipx = Integer.parseInt(skip[0]);
+                    } catch (NumberFormatException e) {
+                        System.out.println("The skip is not an interger");
+                        skipx = 0;
+                    }
+
+                    if (skip.length == 1) {
+                        skipy = skipx;
+                    }
+
+                    if (skip.length > 1 && skip[0] != skip[1]) {
+                        try {
+                            skipy = Integer.parseInt(skip[1]);
+                        } catch (NumberFormatException e) {
+                            System.out.println("The skip is not an interger");
+                            skipy = skipx;
+                        }
+                    }
+                } else {
+                    skipx = 0;
+                    skipy = 0;
+                }
+            } else {
+                skipx = 0;
+                skipy = 0;
+            }
+        } else {
+            skipx = 0;
+            skipy = 0;
+        }
+
+        return new int[] { skipx, skipy };
     }
 
 }

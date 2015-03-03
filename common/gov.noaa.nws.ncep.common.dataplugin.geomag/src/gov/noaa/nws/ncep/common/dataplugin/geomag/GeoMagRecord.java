@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.raytheon.uf.common.dataplugin.IDecoderGettable;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.IHDFFilePathProvider;
@@ -34,8 +35,6 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Jul 22, 2013 1977       rjpeter            Added getDataURI and annotations.
  * Jul 26, 2013 989        qzhou              Added lots of fields.
  * Aug 30, 2013 2298       rjpeter            Make getPluginName abstract
- * Jun 11, 2014 2061       bsteffen           Remove IDecoderGettable
- * 
  * </pre>
  * 
  * @author sgurung
@@ -461,6 +460,11 @@ public class GeoMagRecord extends PersistablePluginDataObject {
 
     public void setCadenceId(int cadenceId) {
         this.cadenceId = cadenceId;
+    }
+
+    @Override
+    public IDecoderGettable getDecoderGettable() {
+        return null;
     }
 
     @Override

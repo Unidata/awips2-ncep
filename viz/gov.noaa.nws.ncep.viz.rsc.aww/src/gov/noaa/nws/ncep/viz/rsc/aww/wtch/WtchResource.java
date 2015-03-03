@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -27,8 +26,6 @@ import java.util.logging.Logger;
 
 import org.eclipse.swt.graphics.RGB;
 
-import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
-import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.IExtent;
@@ -41,7 +38,6 @@ import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -60,7 +56,6 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     Fixed label colorCode not change problem. Fixed colorCode not change back problem.
  * 08/14/13     1028    G. Hull      Move to aww project. Use AwwReportType enum.
  * 06/27/14      ???       D. Sushon   fix endTime selection issue, investigating why watches never display
- * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
  * 
  * </pre>
  * 
@@ -747,17 +742,25 @@ public class WtchResource extends
         HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint> queryList = new HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint>(
                 resourceData.getMetadataMap());
 
+        com.raytheon.uf.viz.core.catalog.LayerProperty prop = new com.raytheon.uf.viz.core.catalog.LayerProperty();
+        prop.setDesiredProduct(com.raytheon.uf.viz.core.rsc.ResourceType.PLAN_VIEW);
+        prop.setEntryQueryParameters(queryList, false);
+        prop.setNumberOfImages(15000);
 
-        DbQueryRequest request = new DbQueryRequest();
-        request.setConstraints(queryList);
+        String script = null;
+        script = com.raytheon.uf.viz.core.catalog.ScriptCreator
+                .createScript(prop);
 
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+        if (script == null) {
+            return; // notify something??
+        }
 
-        for (Map<String, Object> result : response.getResults()) {
-            for (Object pdo : result.values()) {
-                for (IRscDataObject dataObject : processRecord(pdo)) {
-                    newRscDataObjsQueue.add(dataObject);
-                }
+        Object[] pdoList = com.raytheon.uf.viz.core.comm.Connector
+                .getInstance().connect(script, null, 60000);
+
+        for (Object pdo : pdoList) {
+            for (IRscDataObject dataObject : processRecord(pdo)) {
+                newRscDataObjsQueue.add(dataObject);
             }
         }
 

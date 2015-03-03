@@ -1,5 +1,5 @@
 /**
- * International Significant Meteorological Information DecoderUtil
+ * IntlSigmet DecoderUtil
  * 
  * This java class intends to serve as a decoder utility for INTLSIGMET.
  * 
@@ -13,7 +13,6 @@
  * 09/2009      113             L. Lin      Convert station ID to lat/lon
  *                                          if any exists.
  * 11/2011      512             S. Gurung   Fixed NullPointerException bug while processing lat/lon (from vors)
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -38,9 +37,8 @@ import java.util.regex.Pattern;
 
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class IntlSigmetParser {
 
@@ -79,9 +77,9 @@ public class IntlSigmetParser {
             record.setIssueOffice(theMatcher.group(2));
 
             // Decode the issue time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar mndTime = null;
+            Calendar issueTime = TimeTools.findDataTime(theMatcher.group(3),
+                    headers);
             record.setIssueTime(issueTime);
 
             DataTime dataTime = new DataTime(issueTime);
@@ -704,8 +702,7 @@ public class IntlSigmetParser {
         }
         if (time != "???") {
             // Get start time
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            return WMOTimeParser.findDataTime(time, fileName);
+            return TimeTools.findDataTime(time, headers);
         } else {
             return null;
         }
@@ -778,8 +775,8 @@ public class IntlSigmetParser {
 
         if (time != "???") {
             // Get end time
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            return WMOTimeParser.findDataTime(time, fileName);
+            Calendar mndTime = null;
+            return TimeTools.findDataTime(time, headers);
         } else {
             return null;
         }

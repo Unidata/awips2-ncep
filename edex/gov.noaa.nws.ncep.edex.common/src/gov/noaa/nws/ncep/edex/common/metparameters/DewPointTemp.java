@@ -11,7 +11,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.units.UnitAdapter;
 
 //import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
 /**

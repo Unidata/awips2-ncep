@@ -51,7 +51,7 @@ public class CustomLambertConformalCoverage extends CustomCoverage {
 
     public boolean build() {
         crs = MapUtil.constructLambertConformal(majorAxis, minorAxis, latin1,
-                latin2, lov, latin1);
+                latin2, lov);
         try {
             Unit<?> spacingUnitObj = Unit.valueOf(spacingUnit);
             if (spacingUnitObj.isCompatible(SI.METRE)) {

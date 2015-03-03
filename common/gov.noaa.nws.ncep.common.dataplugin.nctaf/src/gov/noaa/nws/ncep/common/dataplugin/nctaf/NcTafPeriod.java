@@ -3,6 +3,7 @@
  * NOAA/NWS/NCEP/NCO in order to output point data in HDF5.
  **/
 
+
 package gov.noaa.nws.ncep.common.dataplugin.nctaf;
 
 import java.io.Serializable;
@@ -14,10 +15,11 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
+import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.common.time.util.TimeUtil;
-import com.raytheon.uf.common.wmo.WMOHeader;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
+import com.raytheon.uf.edex.wmo.message.WMOHeader;
 
 /**
  * 
@@ -30,7 +32,6 @@ import com.raytheon.uf.common.wmo.WMOHeader;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 09/09/2011   458			sgurung	    Initial Creation from Raytheon's taf plugin
- * May 14, 2014 2536        bclement    moved WMO Header to common, removed TimeTools usage
  * 
  * </pre>
  * 
@@ -40,7 +41,7 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 @Embeddable
 @DynamicSerialize
 @XmlAccessorType(XmlAccessType.NONE)
-public class NcTafPeriod implements Serializable {
+public class NcTafPeriod implements Serializable, ISerializableObject {
 
     /**
      * 
@@ -102,9 +103,9 @@ public class NcTafPeriod implements Serializable {
      */
     public static NcTafPeriod copy(NcTafPeriod period) {
         NcTafPeriod periodCopy = new NcTafPeriod();
-        periodCopy.startDate = TimeUtil.newCalendar(period.startDate);
-        periodCopy.transitionEndDate = TimeUtil.newCalendar(period.transitionEndDate);
-        periodCopy.endDate = TimeUtil.newCalendar(period.endDate);
+        periodCopy.startDate = TimeTools.copy(period.startDate);
+        periodCopy.transitionEndDate = TimeTools.copy(period.transitionEndDate);
+        periodCopy.endDate = TimeTools.copy(period.endDate);
 
         return periodCopy;
     }
@@ -132,7 +133,7 @@ public class NcTafPeriod implements Serializable {
         int hour2 = Integer.parseInt(aValidPeriod.substring(4, 6).trim());
 
         // Get the current time : In GMT!
-        Calendar startTime = TimeUtil.newGmtCalendar(header.getYear(),
+        Calendar startTime = TimeTools.getSystemCalendar(header.getYear(),
                 header.getMonth(), header.getDay());
 
         return NcTafPeriod.determineValidPeriod(startTime, day, hour1, hour2);
@@ -151,7 +152,7 @@ public class NcTafPeriod implements Serializable {
     public static NcTafPeriod determineValidPeriod(Calendar baseTime, int day,
             int hour1, int hour2) {
 
-        Calendar sTime = (Calendar) baseTime.clone();
+        Calendar sTime = TimeTools.copy(baseTime);
 
         // get start time day
         int startTimeDay = sTime.get(Calendar.DAY_OF_MONTH);
@@ -178,7 +179,7 @@ public class NcTafPeriod implements Serializable {
         sTime.set(Calendar.SECOND, 0);
 
         // Set the ending time for the period
-        Calendar eTime = (Calendar) sTime.clone();
+        Calendar eTime = TimeTools.copy(sTime);
 
         // Add a day to ending time if the hour is less than or equal
         // to the the start hour
@@ -212,7 +213,7 @@ public class NcTafPeriod implements Serializable {
     public static NcTafPeriod determineValidPeriod(Calendar baseTime, int day1,
             int hour1, int day2, int hour2) {
 
-        Calendar sTime = (Calendar) baseTime.clone();
+        Calendar sTime = TimeTools.copy(baseTime);
 
         // get start time day
         int startTimeDay = sTime.get(Calendar.DAY_OF_MONTH);
@@ -239,7 +240,7 @@ public class NcTafPeriod implements Serializable {
         sTime.set(Calendar.SECOND, 0);
 
         // Set the ending time for the period
-        Calendar eTime = (Calendar) sTime.clone();
+        Calendar eTime = TimeTools.copy(sTime);
 
         // Add a day to ending time if the hour is less than or equal
         // to the the start hour
@@ -277,7 +278,7 @@ public class NcTafPeriod implements Serializable {
 
         Calendar tafStartTime = aTAFValidPeriod.getStartDate();
 
-        Calendar sDate = (Calendar) tafStartTime.clone();
+        Calendar sDate = TimeTools.copy(tafStartTime);
         if (hour1 < tafStartTime.get(Calendar.HOUR_OF_DAY)) {
             sDate.add(Calendar.DAY_OF_MONTH, 1);
         }
@@ -286,7 +287,7 @@ public class NcTafPeriod implements Serializable {
         sDate.set(Calendar.SECOND, 0);
         sDate.set(Calendar.MILLISECOND, 0);
 
-        Calendar eDate = (Calendar) tafStartTime.clone();
+        Calendar eDate = TimeTools.copy(tafStartTime);
         if (hour2 <= tafStartTime.get(Calendar.HOUR_OF_DAY)) {
             eDate.add(Calendar.DAY_OF_MONTH, 1);
         }
@@ -361,7 +362,7 @@ public class NcTafPeriod implements Serializable {
     public static NcTafPeriod determineChangeGroupPeriodSSss(int hour, int min,
             NcTafPeriod aTAFValidPeriod) {
 
-        Calendar startDate = (Calendar) aTAFValidPeriod.getStartDate().clone();
+        Calendar startDate = TimeTools.copy(aTAFValidPeriod.getStartDate());
         if (hour <= startDate.get(Calendar.HOUR_OF_DAY)) {
             startDate.add(Calendar.DAY_OF_MONTH, 1);
         }
@@ -386,8 +387,8 @@ public class NcTafPeriod implements Serializable {
      * @param aTAFValidPeriod
      * @return
      */
-    public static NcTafPeriod determineChangeGroupPeriodDDhhmm(int day,
-            int hour, int min, NcTafPeriod aTAFValidPeriod) {
+    public static NcTafPeriod determineChangeGroupPeriodDDhhmm(int day, int hour,
+            int min, NcTafPeriod aTAFValidPeriod) {
 
         Calendar sDate = setDayHourMin(aTAFValidPeriod.getStartDate(), day,
                 hour, min);
@@ -483,7 +484,7 @@ public class NcTafPeriod implements Serializable {
             int min) {
 
         Calendar cal = null;
-        Calendar target = (Calendar) base.clone();
+        Calendar target = TimeTools.copy(base);
         target.set(Calendar.SECOND, 0);
         target.set(Calendar.MILLISECOND, 0);
 
@@ -491,7 +492,7 @@ public class NcTafPeriod implements Serializable {
 
             int sDay = target.get(Calendar.DAY_OF_MONTH);
             if (sDay == day) {
-                cal = (Calendar) target.clone();
+                cal = TimeTools.copy(target);
                 cal.set(Calendar.HOUR_OF_DAY, hour);
                 cal.set(Calendar.MINUTE, min);
                 break;

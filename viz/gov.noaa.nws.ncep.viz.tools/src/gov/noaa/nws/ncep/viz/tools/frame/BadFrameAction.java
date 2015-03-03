@@ -127,6 +127,7 @@ public class BadFrameAction  extends AbstractTool {
 					fi = new FramesInfo(fi.getFrameTimes(), nxtIdx);
 				}catch(Throwable t){
 					
+					THE_LOG.setLevel(Level.INFO);	
 					THE_LOG.info(ERROR_MESSAGE);				
 					
 					return null;

@@ -15,6 +15,7 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -32,8 +33,7 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  * ------------ ---------- ----------------   --------------------------
  * 08/14/2013   T989       qzhou              Initial creation.
  * 03/03/2014   #1110      qzhou              Added method getRangeK1min(), Cleaned code 
- * 03/13/2014              sgurung            Added method purgeDataByRefTime()
- * 10/16/2014   3454       bphillip           Upgrading to Hibernate 4
+ * 03/13/2014              sgurung            Added method purgeDataByRefTime() * 
  * 04/05/2014   R4078      sgurung            Added methods getEstKIndex1min(), getEstKpIndex1min(), 
  *                                            getLatestEstKIndex() and getLastDataDate().
  * </pre>
@@ -67,7 +67,9 @@ public class GeoMagK1minDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        Session sess = getCurrentSession();
+                        HibernateTemplate ht = getHibernateTemplate();
+                        Session sess = ht.getSessionFactory()
+                                .getCurrentSession();
                         Criteria crit = sess.createCriteria(GeoMagK1min.class);
                         Criterion where1 = Restrictions.eq("stationCode",
                                 stationCode);
@@ -91,7 +93,9 @@ public class GeoMagK1minDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        Session sess = getCurrentSession();
+                        HibernateTemplate ht = getHibernateTemplate();
+                        Session sess = ht.getSessionFactory()
+                                .getCurrentSession();
                         Criteria crit = sess.createCriteria(GeoMagK1min.class);
                         Criterion where1 = Restrictions.eq("stationCode",
                                 stationCode);
@@ -111,7 +115,9 @@ public class GeoMagK1minDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        Session sess = getCurrentSession();
+                        HibernateTemplate ht = getHibernateTemplate();
+                        Session sess = ht.getSessionFactory()
+                                .getCurrentSession();
                         Criteria crit = sess.createCriteria(GeoMagK1min.class);
                         if (stations != null) {
                             Criterion where1 = Restrictions.in("stationCode",

@@ -151,9 +151,6 @@ public class PgenAddPointAltHandler extends InputHandlerDefaultImpl {
 			return preempt;
 
 		}
-		else if ( button == 3 ){
-		    return true;
-		}
 
 		else{
 

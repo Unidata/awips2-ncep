@@ -163,11 +163,32 @@ public class PgenWatchBoxDrawingTool extends AbstractPgenDrawingTool {
                 
             }
             else if ( button == 3 ) {
+            	
+            	if ( points.size() == 0 ) {
+            		
+            		attrDlg.close();
+            		attrDlg = null; 
+            		PgenUtil.setSelectingMode();
+
+            	}
+            	else if ( points.size() < 2 ){
+            		
+                    drawingLayer.removeGhostLine();
+                    points.clear();
+                    
+        	        mapEditor.refresh();
+        	        
+            	}
+            	
             	return true;
+            	
             }
             else{
+            	
                	return false;
+               	
             }
+        	
         }
         
         /*
@@ -225,35 +246,12 @@ public class PgenWatchBoxDrawingTool extends AbstractPgenDrawingTool {
             		points.clear();
 
             		mapEditor.refresh();
-        		}
-        		return true;
-        	}
-        	 else if ( button == 3 ) {
-                 
-                 if ( points.size() == 0 ) {
-                     
-                     attrDlg.close();
-                     attrDlg = null; 
-                     PgenUtil.setSelectingMode();
+            		
 
-                 }
-                 else if ( points.size() < 2 ){
-                     
-                     drawingLayer.removeGhostLine();
-                     points.clear();
-                     
-                     mapEditor.refresh();
-                     
-                 }
-                 
-                 return true;
-                 
-             }
-             else{
-                 
-                 return false;
-                 
-             }
+        		}
+        	}
+        	
+        	return true;
         }
         
         /*

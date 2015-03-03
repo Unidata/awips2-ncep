@@ -14,7 +14,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.measure.converter.ConversionException;
 import javax.measure.quantity.Quantity;
@@ -23,8 +27,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.common.serialization.ISerializableObject;
+import com.raytheon.uf.common.serialization.adapters.UnitAdapter;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
@@ -36,10 +40,10 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
  * 
  * TODO : add support for the Level/Layer at which the value applies. The level
  * could be a PressureLevel, a Height or 'Surface' or other defined layer. This
- * would allow the derive methods to remove the PressureLevel derive()
- * arguements and do a compatibility check on the other arguements to make sure
- * they are all from the same level. Could also add support for the time or
- * duration for which the value applies.
+ * would allow the derive methods to remove the PressureLevel derive() arguments
+ * and do a compatibility check on the other arguments to make sure they are all
+ * from the same level. Could also add support for the time or duration for
+ * which the value applies.
  * 
  * 
  * TODO : make this a generic for a Quantity? ... AbstractMetParameter<Q extents Quantity>
@@ -56,6 +60,9 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
  * 10/14/2011              Greg Hull    add setValueFromString
  * 11/14/2011              B. Hebbard   remove standardUnit
  * 06/17/2014              S. Russell   TTR 923: added member, get/set methods associatedMetParam
+ * 12/04/2014    R5437     B. Hebbard   Add/enhance recursive getDeriveMethod(..) variants to return
+ *                                      ('bubble up') bottom-level (non-derived) params from the
+ *                                      given set that are actually needed in the derivation.
  * 
  * </pre>
  * 
@@ -65,7 +72,8 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public abstract class AbstractMetParameter extends Amount implements Quantity, ISerializableObject {
+public abstract class AbstractMetParameter extends Amount implements Quantity,
+        ISerializableObject {
 
     /**
 	 * 
@@ -76,7 +84,7 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
 
     public AbstractMetParameter() {
         super();
-        listOfInputMetPrmNamesForDerivingThisMetPrm = new ArrayList<String>(0);
+        dbParamNamesForDerivingThisMetPrm = new HashSet<String>(0);
     }
 
     @DynamicSerializeElement
@@ -85,28 +93,34 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
     @DynamicSerializeElement
     protected DataTime dataTime;
 
-    //	@DynamicSerializeElement
-    //    @XmlJavaTypeAdapter(value = UnitAdapter.class)
-    //    private Unit<?> standardUnit;
+    // @DynamicSerializeElement
+    // @XmlJavaTypeAdapter(value = UnitAdapter.class)
+    // private Unit<?> standardUnit;
 
-    //    public Unit<?> getStandardUnit() {
-    //        return standardUnit;
-    //    }
+    // public Unit<?> getStandardUnit() {
+    // return standardUnit;
+    // }
 
-    // TTR 923, Holds the second MetParameter in a combination 
-    // AbstractMetParameter uch as the PTND "button" 
-    // (PressPressureChange3HrAndTendency MetParameter )
+    // TTR 923, Holds the second MetParameter in a combination
+    // AbstractMetParameter uch as the PTND "button"
+    // (PressPressureChange3HrAndTendency MetParameter)
     @DynamicSerializeElement
     private AbstractMetParameter associatedMetParam = null;
 
-    protected List<String> listOfInputMetPrmNamesForDerivingThisMetPrm;
+    protected Set<String> dbParamNamesForDerivingThisMetPrm;
 
-    public final List<String> getListOfInputMetPrmNamesForDerivingThisMetParameter() {
-        return listOfInputMetPrmNamesForDerivingThisMetPrm;
+    public final Set<String> getDbParamNamesForDerivingThisMetParameter() {
+        return dbParamNamesForDerivingThisMetPrm;
+    }
+
+    public void setDbParamNamesForDerivingThisMetPrm(
+            Set<String> dbParamNamesForDerivingThisMetPrm) {
+        this.dbParamNamesForDerivingThisMetPrm = dbParamNamesForDerivingThisMetPrm;
     }
 
     // TTR 923
     public void setAssociatedMetParam(AbstractMetParameter amp) {
+        // TODO remove following?
         if (this.associatedMetParam != null)
             this.associatedMetParam = null;
 
@@ -159,18 +173,21 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
      * @param standardUnit
      *            the standardUnit to set
      */
+    //  @formatter:off
     //	public final void setStandardUnit(Unit<?> standardUnit) {
     //		this.standardUnit = standardUnit;
     //	}
+    //  @formatter:on
+
     // only one of these may be set at a time. In order to hold a string value
     // the Quantity of the parameter must be Dimensionless
     @DynamicSerializeElement
     protected String valueString; // "" is MISSING, null for non-string values
 
-    // if this list is set then derive() will first look for a derive method using
-    // just these parameters.
+    // if this list is set then derive() will first look for a derive method
+    // using just these parameters.
     @DynamicSerializeElement
-    protected ArrayList<String> preferedDeriveParameters;
+    protected ArrayList<String> preferredDeriveParameters;
 
     /**
      * @return the useStringValue
@@ -182,23 +199,22 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
     protected AbstractMetParameter(Unit<?> u) {
         super(u);
         valueString = null;
-        //standardUnit = u;
+        // standardUnit = u;
     }
 
     protected AbstractMetParameter(Unit<?> u, DataTime dt) {
         super(u);
         valueString = null;
-        //standardUnit = u;
+        // standardUnit = u;
         dataTime = dt;
     }
 
     protected AbstractMetParameter(String unitStr) { // String ncPrmName ) {
-
         super(unitStr);
         try {
             valueString = null;
             Unit<?> newUnit = new UnitAdapter().unmarshal(unitStr);
-            //standardUnit = newUnit;
+            // standardUnit = newUnit;
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -215,16 +231,18 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         useStringValue = true;
     }
 
-    //To be removed
+    // To be removed
     public boolean isUnitCompatible(Unit<?> u) {
-        //return standardUnit.isCompatible( u );
+        // return standardUnit.isCompatible( u );
         return getUnit().isCompatible(u);
     }
 
     public boolean isUnitCompatible(String unitName) {
         try {
-            //return getStandardUnit().isCompatible( new UnitAdapter().unmarshal(unitName) );
-            return getUnit().isCompatible(new UnitAdapter().unmarshal(unitName));
+            // return getStandardUnit().isCompatible( new
+            // UnitAdapter().unmarshal(unitName) );
+            return getUnit()
+                    .isCompatible(new UnitAdapter().unmarshal(unitName));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -237,7 +255,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
 
     public String getStringValue() {
         return (valueString == null ? "" : valueString);
-
     }
 
     public Boolean hasValidTime() {
@@ -254,7 +271,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         }
 
         if (dataTime.getUtilityFlags().contains(FLAG.PERIOD_USED)) {
-            return dataTime.getValidPeriod().contains(dt.getValidTime().getTime());
+            return dataTime.getValidPeriod().contains(
+                    dt.getValidTime().getTime());
         } else {
             return dataTime.compareTo(dt) == 0;
         }
@@ -267,19 +285,20 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
     @Override
     public boolean hasValidValue() {
         if (useStringValue) {
-            return (valueString == null ? false : true);
+            return (valueString != null);
         } else {
             return super.hasValidValue();
         }
     }
 
     // ?throw exceptions for invalid value or for incompatible units?
-    //TODO remove this method
+    // TODO remove this method
     public Number getValueAs(Unit<?> unitNeeded) {
         if (!hasValidValue()) {
             return null;
         } else if (!isUnitCompatible(unitNeeded)) {
-            System.out.println("getValueAs() : asking for incompatible units. " + getUnit().toString() + ", " + unitNeeded.toString());
+            System.out.println("getValueAs() : asking for incompatible units. "
+                    + getUnit().toString() + ", " + unitNeeded.toString());
             return null;
         }
 
@@ -297,7 +316,9 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         try {
 
             if (!isUnitCompatible(unitName)) {
-                System.out.println("getValueAs() : asking for incompatible units. " + getUnit().toString() + " , " + unitName);
+                System.out
+                        .println("getValueAs() : asking for incompatible units. "
+                                + getUnit().toString() + " , " + unitName);
                 return null;
             }
 
@@ -315,12 +336,12 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
 
     }
 
-    // this will work off of the current units so if we need to
-    // format at string using different units the value must be 
+    // This will work off of the current units so if we need to
+    // format at string using different units the value must be
     // changed before calling this method.
-    // the formatStr can be a 'printf' style string or a 
-    // parameter-specific tag for abbreviating, triming or 
-    // converting the parameter value. In the latter case this 
+    // The formatStr can be a 'printf' style string or a
+    // parameter-specific tag for abbreviating, trimming or
+    // converting the parameter value. In the latter case this
     // method must be overridden.
     //
     public String getFormattedString(String formatStr) {
@@ -336,35 +357,39 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         if (formatStr == null) {
             return formattedValueStr;
         } else if (formatStr.startsWith("%")) {
-            //			double formattedValue = valueAs.doubleValue();
+            // double formattedValue = valueAs.doubleValue();
             StringBuilder sb = new StringBuilder();
             Formatter fmtr = new Formatter(sb);
             fmtr.format(formatStr, getValue()); // formattedValue
 
             formattedValueStr = sb.toString();
 
-            //	sValue = sValue.substring( trim );
+            // sValue = sValue.substring( trim );
 
             return formattedValueStr;
         } else {
-            System.out.println("Sanity Check: Unrecognized format string (" + formatStr + ") for metParameter " + getMetParamName());
+            System.out.println("Sanity Check: Unrecognized format string ("
+                    + formatStr + ") for metParameter " + getMetParamName());
             return formattedValueStr;
         }
     }
 
-    // if this 
+    // if this
     public void setStringValue(String sv) throws ConversionException {
+        // @formatter:off
         // the units must be dimensionless
         //		if( isUnitCompatible( Unit.ONE ) ) {
         //			throw new ConversionException("Incompatible unit in setStringValue the Quantity "					
         //					+" for this parameter must be Dimensionless." );
         //		}
+        // @formatter:on
         setValueToMissing();
 
         valueString = sv;
     }
 
-    // This is intended for numeric params that may need to parse their values from a string
+    // This is intended for numeric params that may need to parse their values
+    // from a string
     //
     public void setValueFromString(String valStr, Unit<?> u) {
         if (hasStringValue()) {
@@ -384,151 +409,277 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         if (useStringValue) {
             valueString = null;
         }
-
         super.setValueToMissing();
     }
 
-    public Boolean derivable(ArrayList<String> checkedParams, Collection<AbstractMetParameter> inputParams) {
-
-        return (getDeriveMethod(checkedParams, inputParams) != null);
+    /**
+     * Returns true iff "this" parameter can be derived from (some subset of)
+     * the given availableParams minus the checkedParams. (The checkedParams are
+     * used in recursive descent to narrow the search space.) If true, also
+     * returns the base set of (non-derived) usedParams needed for the
+     * derivation.
+     * 
+     * @param checkedParams
+     *            members of availableParams to ignore (b/c already used at
+     *            higher recursion level)
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @param usedParams
+     *            RETURN set of non-derived params used at this level or below
+     * @return true if derivable from availableParams, and false otherwise
+     */
+    private Boolean derivable(ArrayList<String> checkedParams,
+            Collection<AbstractMetParameter> availableParams,
+            Collection<AbstractMetParameter> usedParams) {
+        return (getDeriveMethod(checkedParams, availableParams, usedParams) != null);
     }
 
-    public Method getDeriveMethod(Collection<AbstractMetParameter> inputParams) {
+    /**
+     * Returns a Method to derive "this" parameter from (some subset of) the
+     * given availableParams, or returns null if not derivable from them.
+     * 
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @return Method to derive "this" parameter at the top level
+     */
+    public Method getDeriveMethod(
+            Collection<AbstractMetParameter> availableParams) {
+        Collection<AbstractMetParameter> usedParams = new HashSet<AbstractMetParameter>();
+        // return getDeriveMethod(availableParams, usedParams);
+        Method returnMethod = getDeriveMethod(availableParams, usedParams);
+        // discard usedParams (as this variant doesn't care about returning
+        // them)
+        return returnMethod;
+    }
+
+    /**
+     * Returns a Method to derive "this" parameter from (some subset of) the
+     * given availableParams, or returns null if not derivable. If derivable,
+     * also returns the base set of (non-derived) usedParams needed for the
+     * derivation.
+     * 
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @param usedParams
+     *            RETURN set of non-derived params used at this level or below
+     * @return Method to derive "this" parameter at the top level
+     */
+    public Method getDeriveMethod(
+            Collection<AbstractMetParameter> availableParams,
+            Collection<AbstractMetParameter> usedParams) {
 
         ArrayList<String> checkedParams = new ArrayList<String>();
 
-        // if the preferredDeriveParameters list is set then only use these 
+        // if the preferredDeriveParameters list is set then only use these
         // parameters.
-        if (preferedDeriveParameters != null) {
+        if (preferredDeriveParameters != null) {
 
-            ArrayList<AbstractMetParameter> inputParamsList = new ArrayList<AbstractMetParameter>();
+            ArrayList<AbstractMetParameter> availableParamsList = new ArrayList<AbstractMetParameter>();
 
-            for (AbstractMetParameter prm : inputParams) {
-                if (preferedDeriveParameters.contains(prm.getMetParamName())) {
-                    inputParamsList.add(prm);
+            for (AbstractMetParameter prm : availableParams) {
+                if (preferredDeriveParameters.contains(prm.getMetParamName())) {
+                    availableParamsList.add(prm);
                 }
             }
-            return getDeriveMethod(checkedParams, inputParamsList);
+            return getDeriveMethod(checkedParams, availableParamsList,
+                    usedParams);
         } else {
-            return getDeriveMethod(checkedParams, inputParams);
+            return getDeriveMethod(checkedParams, availableParams, usedParams);
         }
     }
 
-    // check each of the methods named 'derive' and check to see if the 
-    // given inputParams are sufficient to derive this ncParameter.  
-    // 
-    public Method getDeriveMethod(ArrayList<String> checkedParams, Collection<AbstractMetParameter> inputParams) {
+    /**
+     * Returns a Method to derive "this" parameter from (some subset of) the
+     * given availableParams minus the checkedParams, or returns null if not
+     * derivable. (The checkedParams are used in recursive descent to narrow the
+     * search space.) If derivable, also returns the base set of (non-derived)
+     * usedParams needed for the derivation.
+     * 
+     * @param checkedParams
+     *            members of availableParams to ignore (b/c already used at
+     *            higher recursion level)
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @param usedParams
+     *            RETURN set of non-derived params used at this level or below
+     * @return Method to derive "this" parameter at the top level
+     */
+    private Method getDeriveMethod(ArrayList<String> checkedParams,
+            Collection<AbstractMetParameter> availableParams,
+            Collection<AbstractMetParameter> usedParams) {
+
+        // check each of the methods named 'derive' and check to see if the
+        // given availableParams are sufficient to derive this ncParameter.
 
         Method[] deriveMthds = this.getClass().getDeclaredMethods();
-        ArrayList<Method> foundDeriveMthds = new ArrayList<Method>();
 
-        // check each derive method to see if its arguments are in the inputParams
+        // map containing derive methods which have been found to be applicable
+        // given the set of availableParams, and for each method, the associated
+        // subset of non-derived availableParams actually used in the derivation
+        Map<Method, Set<AbstractMetParameter>> foundDeriveMthds = new HashMap<Method, Set<AbstractMetParameter>>();
+
+        // check each derive method to see if its arguments are in the
+        // availableParams
         for (Method m : deriveMthds) {
             boolean derivable = true;
+            Set<AbstractMetParameter> baseParamsForThisMethod = new HashSet<AbstractMetParameter>();
 
             if (m.getAnnotation(DeriveMethod.class) != null) {
 
                 Class<?> rtype = m.getReturnType();
-                //				if( rtype.getSimpleName().compareTo(AbstractMetParameter.class.getName())  != 0  ) { // sanity check
-                //					continue;
-                //				}
+                // @formatter:off
+                //	if (rtype.getSimpleName().equals(AbstractMetParameter.class.getName()) { // sanity check
+                //		continue;
+                //	}
+                // @formatter:on
                 Class<?>[] deriveMthdArgs = m.getParameterTypes();
 
                 // loop thru the list of args for this derive() method and check
-                // if it is in the inputParams list. 
+                // if it is in the availableParams list.
                 for (Class<?> argClass : deriveMthdArgs) {
                     boolean prmFound = false;
                     boolean prmIsDerivable = false;
 
-                    for (AbstractMetParameter inputPrm : inputParams) {
-
-                        // if we have this input parameter or we can 
-                        // derive this input parameter 
+                    for (AbstractMetParameter inputPrm : availableParams) {
+                        // if we have this input parameter...
                         if (inputPrm.getClass() == argClass) {
                             prmFound = true;
+                            baseParamsForThisMethod.add(inputPrm);
                             break;
                         }
                     }
 
-                    // if not in the list and if we have already checked this parameter 
-                    // then see if it is derivable
-                    // 
-                    if (!prmFound && !checkedParams.contains(this.getMetParamName())) {
+                    // ...or if in the list and if we have not already checked
+                    // this parameter (at higher level) then see if it is
+                    // derivable
+                    if (!prmFound
+                            && !checkedParams.contains(this.getMetParamName())) {
 
                         AbstractMetParameter argParam;
                         try {
-                            argParam = (AbstractMetParameter) argClass.getConstructor().newInstance();
+                            argParam = (AbstractMetParameter) argClass
+                                    .getConstructor().newInstance();
 
-                            String metPrmName = argParam.getMetParamName();
-                            checkedParams.add(metPrmName);
+                            checkedParams.add(argParam.getMetParamName());
 
-                            prmIsDerivable = argParam.derivable(checkedParams, inputParams);
+                            prmIsDerivable = argParam.derivable(checkedParams,
+                                    availableParams, usedParams);
 
-                            if (prmIsDerivable) {
-                                if (listOfInputMetPrmNamesForDerivingThisMetPrm == null)
-                                    listOfInputMetPrmNamesForDerivingThisMetPrm = new ArrayList<String>(0);
-
-                                listOfInputMetPrmNamesForDerivingThisMetPrm.add(metPrmName);
-                            }
-                            checkedParams.remove(metPrmName);
+                            checkedParams.remove(argParam.getMetParamName());
 
                         } catch (Exception e) {
-                            System.out.println("error getting newInstance for metParam " + argClass.getSimpleName());
+                            System.out
+                                    .println("error getting newInstance for metParam "
+                                            + argClass.getSimpleName());
                         }
                     }
 
                     if (!prmFound && !prmIsDerivable) {
                         derivable = false;
-                        //						break;
+                        // break;
                     }
-                } // end loop thru derive() args					
+                } // end loop thru derive() args
 
                 if (derivable) {
-                    foundDeriveMthds.add(m);
+                    // remember this derive Method and its associated set of
+                    // base (non-derived) parameters
+                    foundDeriveMthds.put(m, baseParamsForThisMethod);
                 }
             }
         }
 
-        // 
+        //
         if (foundDeriveMthds.isEmpty()) {
             return null;
         } else if (foundDeriveMthds.size() > 1) {
-            // If this happens then the caller should set the preferredDeriveParameters
-            // list to tell this method which arguements to use.
-            System.out.println("Sanity Check: metParameter " + getMetParamName() + " has multiple derive() methods for " + "the given input parameters.");
+            // If this happens then the caller should set the
+            // preferredDeriveParameters list to tell this method which
+            // arguments to use.
+            System.out.println("Sanity Check: metParameter "
+                    + getMetParamName() + " has multiple derive() methods for "
+                    + "the given input parameters.");
             return null;
         } else {
-            return foundDeriveMthds.get(0);
+            if (usedParams == null) {
+                usedParams = new HashSet<AbstractMetParameter>();
+            }
+            for (Set<AbstractMetParameter> ampSet : foundDeriveMthds.values()) {
+                usedParams.addAll(ampSet);
+            }
+            return (Method) foundDeriveMthds.keySet().toArray()[0];
         }
     }
 
-    public AbstractMetParameter derive(Collection<AbstractMetParameter> inputParams) throws NotDerivableException {
+    /**
+     * Returns an AbstractMetParameter derived from (some subset of) the given
+     * availableParams.
+     * 
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @return AbstractMetParameter as derived
+     * @throws NotDerivableException
+     *             if "this" parameter cannot be derived from the
+     *             availableParams
+     */
+    public AbstractMetParameter derive(
+            Collection<AbstractMetParameter> availableParams)
+            throws NotDerivableException {
+        Collection<AbstractMetParameter> usedParams = null;
+        // this variant (overload) doesn't return usedParams; we just discard
+        // the ones passed up to us from below
+        return derive(availableParams, usedParams);
+    }
 
-        Method deriveMthd = getDeriveMethod(inputParams);
+    /**
+     * Returns an AbstractMetParameter derived from (some subset of) the given
+     * availableParams. If derivable, also returns the base set of (non-derived)
+     * usedParams needed for the derivation.
+     * 
+     * @param availableParams
+     *            set of params (some possibly derived themselves) from which to
+     *            derive "this" param
+     * @param usedParams
+     *            RETURN set of non-derived params used at this level or below
+     * @return AbstractMetParameter as derived
+     * @throws NotDerivableException
+     *             if "this" parameter cannot be derived from the
+     *             availableParams
+     */
+    public AbstractMetParameter derive(
+            Collection<AbstractMetParameter> availableParams,
+            Collection<AbstractMetParameter> usedParams)
+            throws NotDerivableException {
+
+        Method deriveMthd = getDeriveMethod(availableParams, usedParams);
 
         if (deriveMthd == null) {
             setValueToMissing();
             return this;
-            //		throw new NotDerivableException("can't derive param from given parameters.");
+            // throw new
+            // NotDerivableException("can't derive param from given parameters.");
         }
         String errMsg = "";
 
         try {
-            // check each derive method to see if its arguments are in the input 
+            // check each derive method to see if its arguments are in the input
             Class<?>[] deriveMthdArgs = deriveMthd.getParameterTypes();
 
-            // a list of the parameter args (actual values) that will be passed to 
-            // the derive() method. 
-            List<AbstractMetParameter> mthdArgs = new ArrayList<AbstractMetParameter>(0);
+            // a list of the parameter args (actual values) that will be passed
+            // to the derive() method.
+            List<AbstractMetParameter> mthdArgs = new ArrayList<AbstractMetParameter>(
+                    0);
 
             for (Class<?> argClass : deriveMthdArgs) {
                 boolean prmFound = false;
 
-                for (AbstractMetParameter inputPrm : inputParams) {
-                    // if we don't have this input parameter, derive it  
-                    // 
+                for (AbstractMetParameter inputPrm : availableParams) {
+                    // if we don't have this input parameter, derive it
                     if (inputPrm.getClass() == argClass) {
-
                         if (!inputPrm.hasValidValue()) {
                             setValueToMissing();
                             return this;
@@ -540,11 +691,13 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
                     }
                 }
                 if (!prmFound) {
-                    // create an object for this parameter and then set/derive 
-                    // the value 
+                    // create an object for this parameter and then set/derive
+                    // the value
                     Constructor constr = argClass.getConstructor();
-                    AbstractMetParameter derivedArgPrm = (AbstractMetParameter) constr.newInstance();
-                    derivedArgPrm = derivedArgPrm.derive(inputParams);
+                    AbstractMetParameter derivedArgPrm = (AbstractMetParameter) constr
+                            .newInstance();
+                    derivedArgPrm = derivedArgPrm.derive(availableParams,
+                            usedParams);
                     mthdArgs.add(derivedArgPrm);
                 }
             }
@@ -557,31 +710,17 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
                 derivedParam = deriveMthd.invoke(this, mthdArgs.get(0));
                 break;
             case 2:
-                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0), mthdArgs.get(1));
+                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0),
+                        mthdArgs.get(1));
                 break;
             case 3:
-                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0), mthdArgs.get(1), mthdArgs.get(2));
+                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0),
+                        mthdArgs.get(1), mthdArgs.get(2));
                 break;
             case 4:
-                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0), mthdArgs.get(1), mthdArgs.get(2), mthdArgs.get(3));
+                derivedParam = deriveMthd.invoke(this, mthdArgs.get(0),
+                        mthdArgs.get(1), mthdArgs.get(2), mthdArgs.get(3));
                 break;
-            }
-
-            if (derivedParam != null) {
-                if (listOfInputMetPrmNamesForDerivingThisMetPrm == null)
-                    listOfInputMetPrmNamesForDerivingThisMetPrm = new ArrayList<String>(0);
-                //            	 String metPrmName = derivedParam.getClass().getSimpleName();
-                //            	 int size = mthdArgs.size();
-                for (AbstractMetParameter thisPrm : mthdArgs) {
-                    String metParamName = thisPrm.getMetParamName();
-                    if (metParamName.compareTo(derivedParam.getClass().getSimpleName()) == 0) {
-                        if (!listOfInputMetPrmNamesForDerivingThisMetPrm.contains(metParamName)) {
-                            listOfInputMetPrmNamesForDerivingThisMetPrm.add(metParamName);
-                        }
-                    }
-                }
-                //            	 if(listOfInputMetPrmNamesForDerivingThisMetPrm.contains(metPrmName))
-                //            		 listOfInputMetPrmNamesForDerivingThisMetPrm.remove(metPrmName);
             }
 
             return (AbstractMetParameter) derivedParam;
@@ -607,26 +746,29 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
         return this.getClass().getSimpleName();
     }
 
-    public ArrayList<String> getPreferedDeriveParameters() {
-        return preferedDeriveParameters;
+    public ArrayList<String> getPreferredDeriveParameters() {
+        return preferredDeriveParameters;
     }
 
-    // Assume that the caller has already called isValidMetParameterName() to 
+    // Assume that the caller has already called isValidMetParameterName() to
     // validate the names in the list.
-    public void setPreferedDeriveParameters(ArrayList<String> preferedDeriveParameters) {
-        this.preferedDeriveParameters = preferedDeriveParameters;
+    public void setPreferredDeriveParameters(
+            ArrayList<String> preferredDeriveParameters) {
+        this.preferredDeriveParameters = preferredDeriveParameters;
     }
 
     @Override
     public String toString() {
-        //String 
+        // String
         if (hasStringValue()) {
             return getClass().getSimpleName() + " " + getStringValue();
         } else {
-            return getClass().getSimpleName() + " " + getValue().toString() + " " + getUnit().toString();
+            return getClass().getSimpleName() + " " + getValue().toString()
+                    + " " + getUnit().toString();
         }
     }
 
+    //  @formatter:off
     //	@Override
     //	public Object clone(){
     //		AbstractMetParameter metParam = null;
@@ -673,5 +815,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity, I
     //		
     //		return metParam;
     //	}
+    //  @formatter:on
 
 }

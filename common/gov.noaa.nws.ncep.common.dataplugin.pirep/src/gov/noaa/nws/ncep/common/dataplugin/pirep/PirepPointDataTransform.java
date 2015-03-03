@@ -55,7 +55,6 @@ import com.raytheon.uf.common.time.DataTime;
  * 										Fixed visibility  .
  * Sep 05, 2013 2316        bsteffen    Unify pirep and ncpirep.
  * Jan 20, 2014             njensen     Fix storage of turbulence top height
- * Jul 30, 2014 3410       bclement     lat, lon moved to database point data desc
  * </pre>
  * 
  * @author qzhou
@@ -206,6 +205,8 @@ public class PirepPointDataTransform {
         }else{
         	pdv.setString(CORRECTION_CODE," ");
         }
+        pdv.setFloat(LATITUDE, (float) record.getLatitude());
+        pdv.setFloat(LONGITUDE, (float) record.getLongitude());
         pdv.setFloat(FLIGHT_LEVEL, record.getFlightLevel());
         pdv.setLong(TIME_OBS, record.getDataTime().getRefTime().getTime());
         //pdv.setString(DATAURI, record.getDataURI());

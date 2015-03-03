@@ -85,6 +85,7 @@ import com.vividsolutions.jts.geom.Point;
  *                                      symbol's label should not change the symbol;
  *                                      Both issues fixed.
  * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool..
+ * 12/14     R5198/TTR1057  J. Wu       Select a label over a line for Contours.
  * 
  * </pre>
  * 
@@ -222,7 +223,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 return false;
             }
 
-            // Get the nearest element and set it as the selected element.
+            /*
+             * Get the nearest element and set it as the selected element. For
+             * contour lines, if a line and a label are both "close" to the
+             * click point (the difference is within MaxDistToSelect/5), the
+             * label will be selected first.
+             */
             DrawableElement elSelected = pgenrsc.getNearestElement(loc);
 
             if (elSelected instanceof SinglePointElement) {
@@ -230,19 +236,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                    // dragging too fast.
             }
 
-            // AbstractDrawableComponent adc = drawingLayer.getNearestComponent(
-            // loc );
-
             AbstractDrawableComponent adc = null;
             if (elSelected != null && elSelected.getParent() != null
                     && !elSelected.getParent().getName().equals("Default")) {
-
                 adc = pgenrsc
                         .getNearestComponent(loc, new AcceptFilter(), true);
             }
-
-            // AbstractDrawableComponent adc = drawingLayer.getNearestComponent(
-            // loc, new AcceptFilter(), true );
 
             if (elSelected == null) {
                 return false;
@@ -261,10 +260,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                                 .getShell()).setWatchBox((WatchBox) elSelected);
                 PgenUtil.loadWatchBoxModifyTool(elSelected);
-                return false;
             } else if (elSelected instanceof Tcm) {
                 PgenUtil.loadTcmTool(elSelected);
             }
+
             /*
              * Select from within a given Contours or within the PgenResource
              */
@@ -273,7 +272,21 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 DECollection dec = ((PgenContoursTool) tool)
                         .getCurrentContour();
                 if (dec != null) {
+
                     elSelected = pgenrsc.getNearestElement(loc, (Contours) dec);
+
+                    /*
+                     * If a contour line is selected, check if a label is also
+                     * close to the click point.
+                     */
+                    if (elSelected instanceof Line
+                            && elSelected.getParent() != null
+                            && elSelected.getParent() instanceof ContourLine) {
+                        elSelected = pgenrsc.getNearestElement(loc,
+                                (ContourLine) elSelected.getParent(),
+                                elSelected);
+                    }
+
                     if (elSelected instanceof MultiPointElement) {
                         // ptSelected could be set to true if there is a
                         // SiglePointElement near the click, which is not part
@@ -282,6 +295,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
 
                     adc = dec;
+
                 }
 
                 pgCategory = "MET";
@@ -475,11 +489,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         }
 
-        else if (button == 3 && pgenrsc.getSelectedDE() != null) {
-            // Right button click does not fall through to other handlers if
-            // there is pgen element is selected
-            return true;
-        } else {
+        else {
 
             return false;
 
@@ -1051,16 +1061,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             }
             trackExtrapPointInfoDlg = null;
 
-            if (pgenrsc.getSelectedDE() != null) {
-                preempt = true;
-            }
-
             pgenrsc.removeGhostLine();
             ptSelected = false;
             pgenrsc.removeSelected();
             mapEditor.refresh();
 
-            return preempt;
+            // return false;
 
         }
 

@@ -15,7 +15,6 @@
  * 10/2011                 S. Gurung    Added changes related to getting stid/lat/lon/elev 
  * 									from database instead of snstns.xml file
  * 6/2014                  T.Lee        Added support XXAA, XXBB, XXCC, XXDD
- * Jul 23, 2014 3410       bclement    location changed to floats
  * 10/2014                 B. Hebbard   Allow subsetting XXAA/TTAA params only for faster
  *                                      retrieval in cases where other params not needed
  * </pre>
@@ -43,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class NcUairToRecord {
 
@@ -211,13 +211,16 @@ public class NcUairToRecord {
                 record.setUTC(pdv.getInt("UTC"));
             }
             if (parameters.contains("OBSTIME")) {
-                record.setObsTime(pdv.getCalendar("OBSTIME"));
+                long vt = pdv.getNumber("OBSTIME").longValue();
+                record.setObsTime(TimeTools.newCalendar(vt));
             }
             if (parameters.contains("ISSUETIME")) {
-                record.setIssueTime(pdv.getCalendar("ISSUETIME"));
+                long vt = pdv.getNumber("ISSUETIME").longValue();
+                record.setIssueTime(TimeTools.newCalendar(vt));
             }
             if (parameters.contains("SYNOPTIME")) {
-                record.setSynopticTime(pdv.getCalendar("SYNOPTIME"));
+                long vt = pdv.getNumber("SYNOPTIME").longValue();
+                record.setSynopticTime(TimeTools.newCalendar(vt));
             }
             if (parameters.contains("WMOHEADER"))
                 record.setWmoHeader(pdv.getString("WMOHEADER"));
@@ -233,8 +236,8 @@ public class NcUairToRecord {
             SurfaceObsLocation location = new SurfaceObsLocation();
             int elev = pdv.getNumber("ELEVATION").intValue();
             location.setElevation(elev);
-            float lat = pdv.getNumber("LATITUDE").floatValue();
-            float lon = pdv.getNumber("LONGITUDE").floatValue();
+            double lat = pdv.getNumber("LATITUDE").doubleValue();
+            double lon = pdv.getNumber("LONGITUDE").doubleValue();
             location.assignLocation(lat, lon);
             String sta = pdv.getString("STATIONID");
             location.setStationId(sta);

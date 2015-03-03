@@ -17,7 +17,6 @@
  * 										Changed type of suspectTimeFlag from Boolean to
  * 										String since undefined in PointDataDescription.
  * 09/2011      457         S. Gurung   Renamed H5 to Nc and h5 to nc
- * Jul 23, 2014 3410       bclement    location changed to floats
  * </pre>
  *
  * @author T. Lee
@@ -26,10 +25,6 @@
  */
 package gov.noaa.nws.ncep.edex.plugin.ncscd.util;
 
-import gov.noaa.nws.ncep.common.dataplugin.ncscd.NcScdRecord;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.util.UtilN;
-
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,8 +32,12 @@ import java.util.regex.Pattern;
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.util.TimeUtil;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncscd.NcScdRecord;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.util.UtilN;
 
 public class NcScdParser {
  
@@ -97,8 +96,8 @@ public class NcScdParser {
             
             if (station != null) {
                 SurfaceObsLocation obsLoc = new SurfaceObsLocation(icao);
-                float lat = (float) station.getGeometry().getY();
-                float lon = (float) station.getGeometry().getX();
+                Double lat = station.getGeometry().getY();
+                Double lon = station.getGeometry().getX();
                 obsLoc.assignLocation(lat, lon);
                 obsLoc.setElevation(station.getElevation());
 
@@ -137,7 +136,7 @@ public class NcScdParser {
     		 * i.e., obs time = 240245.
     		 */
     		Calendar issue = record.getIssueTime();
-            Calendar obs = TimeUtil.newCalendar(issue);
+    		Calendar obs = TimeTools.copy(issue);
     		int indx;
     		if ( !Character.isDigit(xxx[2].charAt(0)) ) {
     			indx = 3;

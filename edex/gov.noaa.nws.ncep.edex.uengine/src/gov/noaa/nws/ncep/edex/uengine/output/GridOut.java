@@ -10,7 +10,8 @@ import java.util.UUID;
 import com.raytheon.edex.uengine.exception.MicroEngineException;
 import com.raytheon.edex.uengine.tasks.ScriptTask;
 import com.raytheon.uf.common.util.StringUtil;
-import com.raytheon.uf.edex.core.EDEXUtil;
+import com.raytheon.uf.edex.core.props.EnvProperties;
+import com.raytheon.uf.edex.core.props.PropertiesFactory;
 
 public class GridOut extends ScriptTask {
 
@@ -55,19 +56,24 @@ public class GridOut extends ScriptTask {
     }
 
     private void init() {
+        EnvProperties envProperties = PropertiesFactory.getInstance()
+                .getEnvProperties();
+
+        String uengineOutDir = envProperties.getEnvValue("UENGINEOUTDIR");
+        String defaultDataDir = envProperties.getEnvValue("DEFAULTDATADIR");
 
         /*
          * make sure there is an output directory defined
          */
         if (StringUtil.isEmptyString(destDir)) {
             // default to uengineOutDir
-            destDir = EDEXUtil.getEdexData() + File.separator + "uEngine";
+            destDir = uengineOutDir;
             // logger.debug("Defaulting destDir to: " + destDir);
         } else {
             // If the ignore default data dir flag is not true then
             // prepend the default data dir to the destination directory.
             if (!ignoreDefaultDataDir) {
-                destDir = EDEXUtil.getEdexData() + File.separator + destDir;
+                destDir = defaultDataDir + destDir;
             }
         }
     }

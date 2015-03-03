@@ -530,6 +530,10 @@ public class NcgridResourceData extends
         }
     }
 
+    public boolean isEnsemble() {
+        return this.gdfile.startsWith("{") && this.gdfile.endsWith("}");
+    }
+
     // set metadataMap with the modelName constraint and return it
     // (This is overridden by the NcEnsembleResourceData
     //

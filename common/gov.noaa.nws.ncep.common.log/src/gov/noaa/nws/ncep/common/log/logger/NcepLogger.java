@@ -13,4 +13,5 @@ public interface NcepLogger {
 	void error(Object message); 
 	void error(Object message, Throwable t); 
 	
+	void setLogLevel(String logLevel); 
 }

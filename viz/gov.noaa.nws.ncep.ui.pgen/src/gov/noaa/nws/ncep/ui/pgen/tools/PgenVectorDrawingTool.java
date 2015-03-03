@@ -154,6 +154,20 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
             }
             else if ( button == 3 ) {
 
+            	drawingLayer.removeGhostLine();
+	            mapEditor.refresh();
+           	    
+            	if ( points.size() > 0 ) {
+            		
+        		    points.clear();
+        		          		
+            	}
+            	else {
+         		    
+            		attrDlg.close();
+        		
+    	            PgenUtil.setSelectingMode();           		          		
+            	}
             	return true;
             	
             }
@@ -199,37 +213,7 @@ public class PgenVectorDrawingTool extends AbstractPgenDrawingTool {
         	return false;
         	
         }
-        
-        /*
-         * overrides the function in selecting tool
-         */
-        @Override
-        public boolean handleMouseUp(int x, int y, int button){
-            if ( !drawingLayer.isEditable() || shiftDown ) return false;
 
-            if (button == 3) {
-
-                drawingLayer.removeGhostLine();
-                mapEditor.refresh();
-                
-                if ( points.size() > 0 ) {
-                    
-                    points.clear();
-                                
-                }
-                else {
-                    
-                    attrDlg.close();
-                
-                    PgenUtil.setSelectingMode();                                
-                }
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        
 		@Override
 		public boolean handleMouseDownMove(int x, int y, int mouseButton) {
 			if (!isResourceEditable() || shiftDown ) return false;

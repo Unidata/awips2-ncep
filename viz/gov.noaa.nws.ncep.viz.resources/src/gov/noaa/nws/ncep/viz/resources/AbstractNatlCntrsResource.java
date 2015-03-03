@@ -13,28 +13,28 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IRenderableDisplayChangedListener;
+import com.raytheon.uf.viz.core.catalog.LayerProperty;
+import com.raytheon.uf.viz.core.catalog.ScriptCreator;
+import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.ResourceType;
 
 /**
  * <pre>
@@ -54,7 +54,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                        set frame to LAST and issueRefresh() to force paint (per legacy; TTR 520).
  * 06 Feb 2013     #972      G. Hull      define on IDescriptor instead of IMapDescriptor
  * 06/16/2014      #1136     qzhou        remove final for paintInternal, since paintFrame does not work for Graph
- * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
  * </pre>
  * 
  * @author ghull
@@ -755,19 +754,26 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
                 resourceData.getMetadataMap());
 
-        DbQueryRequest request = new DbQueryRequest();
-        request.setConstraints(queryList);
-      
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+        LayerProperty prop = new LayerProperty();
+        prop.setDesiredProduct(ResourceType.PLAN_VIEW);
+        prop.setEntryQueryParameters(queryList, false);
+        prop.setNumberOfImages(15000); // TODO: max # records ?? should we cap
+                                       // this ?
+        String script = null;
+        script = ScriptCreator.createScript(prop);
 
-        for (Map<String, Object> result : response.getResults()) {
-            for (Object pdo : result.values()) {
-                for (IRscDataObject dataObject : processRecord(pdo)) {
-                    newRscDataObjsQueue.add(dataObject);
-                }
+        if (script == null)
+            return;
+
+        Object[] pdoList = Connector.getInstance().connect(script, null, 60000);
+
+        for (Object pdo : pdoList) {
+            for (IRscDataObject dataObject : processRecord(pdo)) {
+                newRscDataObjsQueue.add(dataObject);
             }
         }
 
+        //
         setAllFramesAsPopulated();
     }
 

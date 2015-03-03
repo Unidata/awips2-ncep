@@ -1,5 +1,5 @@
 /**
- * Airmen's Meteorological Information DecoderUtil
+ * Airmet DecoderUtil
  * 
  * This java class intends to serve as a decoder utility for AIRMET.
  * 
@@ -10,7 +10,6 @@
  * 05/2009      39				L. Lin     	Initial coding
  * 07/2009		39				L. Lin		Migration to TO11
  * 09/2009		39				L. Lin		Add latitude/longitude to location table
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -38,9 +37,8 @@ import org.apache.commons.logging.LogFactory;
 
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class AirmetParser {
 
@@ -81,9 +79,7 @@ public class AirmetParser {
             record.setDesignatorBBB(theMatcher.group(5));
 
             // Decode the issue time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = TimeTools.findDataTime(theMatcher.group(3), headers);
 
             record.setIssueTime(issueTime);
             DataTime dataTime = new DataTime(issueTime);
@@ -426,8 +422,7 @@ public class AirmetParser {
 
         if (theMatcher.find()) {
             // Get start time
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            return WMOTimeParser.findDataTime(theMatcher.group(4), fileName);
+            return TimeTools.findDataTime(theMatcher.group(4), headers);
         } else {
             return null;
         }
@@ -535,8 +530,7 @@ public class AirmetParser {
 
         if (theMatcher.find()) {
             // get the end time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            return WMOTimeParser.findDataTime(theMatcher.group(1), fileName);
+            return TimeTools.findDataTime(theMatcher.group(1), headers);
         } else {
             return null;
         }
@@ -564,13 +558,12 @@ public class AirmetParser {
 
         if (theMatcher.find()) {
             // Decode the start time and end time; then set them.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            startTime = WMOTimeParser.findDataTime(
-                    validDay.concat(theMatcher.group(1)), fileName);
+            startTime = TimeTools.findDataTime(validDay.concat(theMatcher.group(1)),
+                    headers);
 
             currentOutLook.setStartTime(startTime);
-            endTime = WMOTimeParser.findDataTime(
-                    validDay.concat(theMatcher.group(2)), fileName);
+            endTime = TimeTools.findDataTime(validDay.concat(theMatcher.group(2)),
+                    headers);
 
             if (endTime.before(startTime)) {
                 endTime.add(Calendar.DAY_OF_MONTH, 1);

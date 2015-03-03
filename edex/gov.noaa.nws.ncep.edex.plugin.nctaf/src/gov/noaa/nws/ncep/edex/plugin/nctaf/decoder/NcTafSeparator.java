@@ -20,8 +20,9 @@ import org.apache.commons.logging.LogFactory;
 
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.plugin.AbstractRecordSeparator;
-import com.raytheon.uf.common.wmo.WMOHeader;
+import gov.noaa.nws.ncep.edex.plugin.nctaf.decoder.NcTafDecoder;
 import com.raytheon.uf.edex.decodertools.core.DecoderTools;
+import com.raytheon.uf.edex.wmo.message.WMOHeader;
 
 /**
  * 
@@ -32,7 +33,6 @@ import com.raytheon.uf.edex.decodertools.core.DecoderTools;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 09/09/2011   458		    sgurung	    Initial Creation from Raytheon's taf plugin
- * May 14, 2014 2536        bclement    moved WMO Header to common
  * 
  * </pre>
  * 
@@ -131,8 +131,7 @@ public class NcTafSeparator extends AbstractRecordSeparator {
         byte[] data = DecoderTools.cleanData(message);
         if (data != null) {
 
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            wmoHeader = new WMOHeader(data, fileName);
+            wmoHeader = new WMOHeader(data, headers);
             if (wmoHeader.isValid()) {
 
                 int dStart = wmoHeader.getMessageDataStart();

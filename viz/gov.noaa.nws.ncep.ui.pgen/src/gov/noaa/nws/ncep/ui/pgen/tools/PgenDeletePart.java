@@ -242,7 +242,15 @@ public class PgenDeletePart extends PgenSelectingTool {
                 
             }
             else if ( button == 3 ) {
-            
+            	
+            	// reset
+        		ptSelected = false;
+        		drawingLayer.removeGhostLine();
+            	drawingLayer.removeSelected();
+            	lil = null;
+      	        mapEditor.refresh();
+      	        PgenUtil.setSelectingMode();
+      	        
             	return true;
             	
             }
@@ -273,23 +281,7 @@ public class PgenDeletePart extends PgenSelectingTool {
          */
         @Override
         public boolean handleMouseUp(int x, int y, int button){
-            if (!isResourceEditable())
-                return false;
-
-            if (button == 3) {
-                // reset
-                ptSelected = false;
-                drawingLayer.removeGhostLine();
-                drawingLayer.removeSelected();
-                lil = null;
-                mapEditor.refresh();
-                PgenUtil.setSelectingMode();
-                
-                return true;
-            }
-            else {
-                return false;
-            }
+        	return false;
         }
 
         /**

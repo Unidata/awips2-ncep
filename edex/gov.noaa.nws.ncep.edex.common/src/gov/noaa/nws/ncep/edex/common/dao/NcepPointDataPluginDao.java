@@ -48,7 +48,8 @@ public abstract class NcepPointDataPluginDao<T extends PluginDataObject> extends
 					+ " plugin. EDEX will not purge data for "
 					+ this.pluginName + " plugin");
 		} else {
-			Session s = getSession();
+			Session s = this.getHibernateTemplate().getSessionFactory()
+					.openSession();
 			
 			Transaction tx = s.beginTransaction();
 			try {

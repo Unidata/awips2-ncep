@@ -1,5 +1,5 @@
 /**
- * Convective Significant Meteorological Information DecoderUtil
+ * Convsigmet DecoderUtil
  * 
  * This java class intends to serve as a decoder utility for Convsigmet.
  * 
@@ -13,8 +13,7 @@
  * 09/2009		87/114			L. Lin		Add latitude/longitude to location table
  * 07/2011		87/114			F. J. Yen	Fix the day of the end time when it is 
  * 											not the same as the day of the start time.
- * Jan 07, 2014                     njensen	Handle if one or more locations not found in LatLonLocTbl	
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage			
+ * Jan 07, 2014                     njensen	Handle if one or more locations not found in LatLonLocTbl				
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -39,9 +38,8 @@ import java.util.regex.Pattern;
 
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.wmo.WMOHeader;
-import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class ConvSigmetParser {
 
@@ -80,9 +78,8 @@ public class ConvSigmetParser {
             record.setDesignatorBBB(theMatcher.group(5));
 
             // Decode the issue time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = TimeTools.findDataTime(theMatcher.group(3),
+                    headers);
             record.setIssueTime(issueTime);
 
             DataTime dataTime = new DataTime(issueTime);
@@ -169,7 +166,7 @@ public class ConvSigmetParser {
              * if no end time available, end time will be the issue time plus a
              * valid period; the default is one hour for now.
              */
-            endTime = (Calendar) issueTime.clone();
+            endTime = TimeTools.copy(issueTime);
             endTime.add(Calendar.HOUR, validPeriod);
             currentSection.setEndTime(endTime);
         } else {
@@ -258,8 +255,8 @@ public class ConvSigmetParser {
 
         if (theMatcher.find()) {
             // Get start time
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            return WMOTimeParser.findDataTime(theMatcher.group(4), fileName);
+            Calendar mndTime = null;
+            return TimeTools.findDataTime(theMatcher.group(4), headers);
         } else {
             return null;
         }
@@ -354,9 +351,7 @@ public class ConvSigmetParser {
                 endTimeGroup = "0".concat(endTimeGroup);
             }
             // Determine the end time.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar endTime = WMOTimeParser.findDataTime(endTimeGroup,
-                    fileName);
+            Calendar endTime = TimeTools.findDataTime(endTimeGroup, headers);
             int startHrMn = startTime.get(Calendar.HOUR_OF_DAY) * 100 +
             				startTime.get(Calendar.MINUTE);
             int endHrMn = Integer.parseInt(theMatcher.group(1));
@@ -500,11 +495,9 @@ public class ConvSigmetParser {
 
         if (theMatcher.find()) {
             // Decode the start time and end time; then set them.
-            String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            startTime = WMOTimeParser.findDataTime(theMatcher.group(1),
-                    fileName);
+            startTime = TimeTools.findDataTime(theMatcher.group(1), headers);
             currentOutLook.setStartTime(startTime);
-            endTime = WMOTimeParser.findDataTime(theMatcher.group(2), fileName);
+            endTime = TimeTools.findDataTime(theMatcher.group(2), headers);
 
             int startMonth = startTime.get(Calendar.MONTH);
             int endMonth = endTime.get(Calendar.MONTH);

@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.aww.dao;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -11,13 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.springframework.orm.hibernate4.SessionFactoryUtils;
+import org.hibernate.Transaction;
 
 import com.raytheon.uf.common.dataquery.db.QueryResult;
 import com.raytheon.uf.common.dataquery.db.QueryResultRow;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
+
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
 
 public class AwwVtecDao extends CoreDao {
 
@@ -72,7 +73,7 @@ public class AwwVtecDao extends CoreDao {
 
         try {
             session = getSession(true);
-            conn = SessionFactoryUtils.getDataSource(getSessionFactory()).getConnection();
+            conn = session.connection();
             stmt = conn.createStatement();
 
         } catch (SQLException e) {

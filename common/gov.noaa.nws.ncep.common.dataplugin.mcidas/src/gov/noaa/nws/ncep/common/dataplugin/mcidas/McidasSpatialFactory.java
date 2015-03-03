@@ -11,7 +11,6 @@
  * 12/2009		144			T. Lee		Migrated to TO11D6
  * 11/2013      1066        G. Hull     constructCRSfromWKT (from McidasMapCoverage)
  * 03/2014      TTR957      B. Yin      Moved constructCRSfromWKT to McidasCRSBuilder
- * 06/2014      3243        bsteffen    Remove deprecated lambert conformal call.
  * 
  * </pre>
  * 
@@ -175,7 +174,7 @@ public class McidasSpatialFactory {
                     clon);
         } else if (mapProjection == 3) {
             crs = MapUtil.constructLambertConformal(earthRadius, earthRadius,
-                    stdlat1, stdlat2, clon, stdlat1);
+                    stdlat1, stdlat2, clon);
         } else {
             if (stdlat1 >= 0.)
                 crs = MapUtil.constructNorthPolarStereo(earthRadius,
@@ -343,6 +342,7 @@ public class McidasSpatialFactory {
             // Check the database to see if a coverage already exists
             mapCoverage = satDao.getSatCoverage(iproj, nx, ny,
                     upperLeftElement, upperLeftLine, xres, yres, encodedNav);
+            // TODO
 
             // If the database does not contain an existing sat map coverage for
             // the given values, create one

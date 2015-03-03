@@ -18,7 +18,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 import gov.noaa.nws.ncep.ui.pgen.elements.labeledlines.LabeledLine;
 import gov.noaa.nws.ncep.ui.pgen.elements.tcm.Tcm;
 import gov.noaa.nws.ncep.ui.pgen.gfa.Gfa;
-import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 
 /**
@@ -36,10 +35,6 @@ public class CategoryFilter implements ElementFilter {
 	 */
 	public CategoryFilter(String category) {
 		this.category = category;
-	}
-	
-	public CategoryFilter(){
-	    this.category = PgenPaletteWindow.CATEGORY_ANY;
 	}
 
 	@Override
@@ -93,14 +88,14 @@ public class CategoryFilter implements ElementFilter {
 			      (adc.getParent() instanceof LabeledLine ||
 			       adc.getParent().getParent() instanceof LabeledLine )) {
 				//cannot select individual from LabeledLine collection
-			 	if ( category.equalsIgnoreCase(PgenPaletteWindow.CATEGORY_ANY)){
+			 	if ( category.equalsIgnoreCase("ANY")){
 			 		return true;
 			 	}
 			 	else {
 			 		return false;
 			 	}
 		}
-		else if ( category.equalsIgnoreCase(PgenPaletteWindow.CATEGORY_ANY) || 
+		else if ( category.equalsIgnoreCase("any") || 
 				adc.getPgenCategory().equalsIgnoreCase(category) ) {
 			if ( category.equalsIgnoreCase("Lines") ) {
 				if ( 	adc.getParent() instanceof Jet ||

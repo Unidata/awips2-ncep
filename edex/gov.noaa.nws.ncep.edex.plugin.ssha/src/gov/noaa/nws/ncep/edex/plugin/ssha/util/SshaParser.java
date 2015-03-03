@@ -1,5 +1,5 @@
 /**
- * process sea surface height anomaly
+ * processSsha
  * <pre>
  * 
  * SOFTWARE HISTORY
@@ -7,7 +7,6 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	--------	-----------
  * 09/11					Chin J Chen	Initial coding from BufrSshaParser
- * May 14, 2014 2536        bclement    moved WMO Header to common, removed TimeTools usage
  * </pre>
  * 
  * @author Chin J. Chen
@@ -16,17 +15,17 @@
 
 package gov.noaa.nws.ncep.edex.plugin.ssha.util;
 
-import gov.noaa.nws.ncep.common.dataplugin.ssha.SshaRecord;
-import gov.noaa.nws.ncep.edex.plugin.ssha.decoder.SshaSeparator;
-
 import java.util.Calendar;
 import java.util.List;
 
+import gov.noaa.nws.ncep.edex.plugin.ssha.decoder.SshaSeparator;
+import gov.noaa.nws.ncep.common.dataplugin.ssha.SshaRecord;
+
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.util.TimeUtil;
-import com.raytheon.uf.edex.bufrtools.BUFRDataDocument;
-import com.raytheon.uf.edex.bufrtools.descriptors.BUFRDescriptor;
-import com.raytheon.uf.edex.bufrtools.packets.IBUFRDataPacket;
+import com.raytheon.uf.edex.decodertools.bufr.BUFRDataDocument;
+import com.raytheon.uf.edex.decodertools.bufr.descriptors.BUFRDescriptor;
+import com.raytheon.uf.edex.decodertools.bufr.packets.IBUFRDataPacket;
+import com.raytheon.uf.edex.decodertools.time.TimeTools;
 
 public class SshaParser {
 
@@ -477,12 +476,12 @@ public class SshaParser {
 				 * Create time stamp.
 				 */
 				if ((year > 0) && (month > 0) && (day > 0) && (hour >= 0)) {
-                    Calendar baseTime = TimeUtil.newGmtCalendar(year, month,
+					Calendar baseTime = TimeTools.getBaseCalendar(year, month,
 							day);
 					baseTime.set(Calendar.HOUR_OF_DAY, hour);
 					baseTime.set(Calendar.MINUTE, min);
 					baseTime.set(Calendar.SECOND, sec) ;
-                    Calendar obstime = (Calendar) baseTime.clone();
+					Calendar obstime = TimeTools.copy(baseTime);
 					sshaRec.setObsTime(obstime);
 					DataTime dt = new DataTime(obstime);
 					sshaRec.setDataTime(dt);

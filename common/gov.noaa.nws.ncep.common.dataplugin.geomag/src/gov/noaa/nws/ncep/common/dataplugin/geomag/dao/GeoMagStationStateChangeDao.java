@@ -17,6 +17,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -68,7 +69,9 @@ public class GeoMagStationStateChangeDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        Session sess = getCurrentSession();
+                        HibernateTemplate ht = getHibernateTemplate();
+                        Session sess = ht.getSessionFactory()
+                                .getCurrentSession();
                         Criteria crit = sess
                                 .createCriteria(GeoMagStationStateChange.class);
                         return crit.list();
@@ -91,7 +94,9 @@ public class GeoMagStationStateChangeDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        Session sess = getCurrentSession();
+                        HibernateTemplate ht = getHibernateTemplate();
+                        Session sess = ht.getSessionFactory()
+                                .getCurrentSession();
                         Criteria crit = sess
                                 .createCriteria(GeoMagStationStateChange.class);
                         Criterion where1 = Restrictions.eq("stationCode",

@@ -110,6 +110,13 @@ public class PgenFromTool extends AbstractPgenDrawingTool {
              */          	
             else if ( button == 3 ) {
 	            	            
+             	/*
+            	 * return to Pgen Select mode
+            	 */
+        		drawingLayer.removeSelected();
+            	PgenUtil.setSelectingMode();         
+
+            	mapEditor.refresh();		    
             	return true;          
             
             } 
@@ -123,29 +130,6 @@ public class PgenFromTool extends AbstractPgenDrawingTool {
 		public boolean handleMouseDownMove(int x, int y, int mouseButton) {
         	if ( !isResourceEditable() ) return false;
 			return preempt;
-		}
-		
-		/*
-		 * overrides the function in selecting tool
-		 */
-		@Override
-		public boolean handleMouseUp(int x, int y, int button){
-		    if (!isResourceEditable())
-		        return false;
-
-		    if (button == 3) {
-		        /*
-		         * return to Pgen Select mode
-		         */
-		        drawingLayer.removeSelected();
-		        PgenUtil.setSelectingMode();         
-
-		        mapEditor.refresh();        
-		        return true;
-		    }
-		    else {
-		        return false;
-		    }
 		}
     }
     

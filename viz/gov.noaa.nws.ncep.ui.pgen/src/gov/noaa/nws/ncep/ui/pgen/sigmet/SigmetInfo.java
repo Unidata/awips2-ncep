@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.geotools.data.DefaultQuery;
+import org.geotools.data.Query;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.referencing.GeodeticCalculator;
@@ -60,6 +60,7 @@ import com.vividsolutions.jts.geom.Polygon;
  * 02/2012      #597        S. Gurung   Moved snap functionalities to SnapUtil. Removed GUI snapping for Non ConvSigmet.
  * 02/2012                  S. Gurung   Moved back isSnapADC() and getNumOfCompassPts() to SigmetInfo from SnapUtil
  * 11/12		#893		J. Wu		TTR635 - Fix volcano in alphabetical breakdown order.
+ * Mar 11, 2014 #2718       randerso    Changes for GeoTools 10.5
  * </pre>
  * 
  * @author	gzhang
@@ -287,7 +288,7 @@ public class SigmetInfo {
 	public static Polygon getIsolatedPolygon(Coordinate vertex, double widthInNautical, IMapDescriptor mapDescriptor){  
 		Coordinate[] isolated = getIsolated(vertex, widthInNautical, mapDescriptor);
 		Coordinate[] ip = new Coordinate[isolated.length+1];
-		ip = Arrays.copyOf(isolated, isolated.length);
+		ip = (Coordinate[]) Arrays.copyOf(isolated, isolated.length);
 		ip[ip.length-1] = isolated[0];
 		return getPolygon( ip,mapDescriptor );
 	}
@@ -295,7 +296,7 @@ public class SigmetInfo {
 	public static Polygon getSOLPolygon(Coordinate[] coors, String line, double width, IMapDescriptor mapDescriptor){		
 		Coordinate[] ip = getSOLCoors(coors, line, width, mapDescriptor);
 		Coordinate[] ipPlus = new Coordinate[ip.length+1];
-		ipPlus = Arrays.copyOf(ip, ipPlus.length);
+		ipPlus = (Coordinate[]) Arrays.copyOf(ip, ipPlus.length);
 		ipPlus[ipPlus.length-1] = ip[0];
 		return getPolygon( ipPlus,mapDescriptor );		
 	}
@@ -535,18 +536,13 @@ public class SigmetInfo {
 				
 		FeatureIterator<SimpleFeature> featureIterator = null;	        
         HashMap<String,Coordinate[]> firGeoMap = new HashMap<String,Coordinate[]>();
-        ShapefileDataStore shapefileDataStore = null;
+        ShapefileDataStore shapefileDataStore=null;
         String shapeField=null;
         
         try{
-            File file = PgenStaticDataProvider.getProvider().getFirBoundsFile();
-            shapefileDataStore = new ShapefileDataStore(file.toURI().toURL());
-            shapefileDataStore.setMemoryMapped(false);
-            shapefileDataStore.setIndexCreationEnabled(true);
-
-            // shapefileDataStore = new IndexedShapefileDataStore(file.toURI()
-            // .toURL(), null, false, true,
-            // org.geotools.data.shapefile.indexed.IndexType.QIX);
+        	File file = PgenStaticDataProvider.getProvider().getFirBoundsFile();          
+            shapefileDataStore = new ShapefileDataStore(file.toURI()
+                    .toURL());
             
             shapeField = shapefileDataStore.getFeatureSource().getSchema().getGeometryDescriptor().getLocalName();   
         }catch(Exception e){
@@ -558,7 +554,7 @@ public class SigmetInfo {
         try {	        	
             
             String[] types = shapefileDataStore.getTypeNames();
-            DefaultQuery query = new DefaultQuery();
+            Query query = new Query();
             query.setTypeName(types[0]);
 
             String[] fields = new String[labelFields.length+1];

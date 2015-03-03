@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+   <!--
+      Define the root level element "dataset". For now each XML
+      message must have one and only one "dataset" element. This
+      root element contains one child element to specify the
+      data resolution and zero or more elements containing the
+      time tagged Magnetometer data.
+   -->
+   <xs:element name="dataset">
+   
+      <xs:complexType>
+      
+         <!-- The ordered sequence of child elements -->
+         <xs:sequence>
+         
+            <!-- required element specifying the data resolution -->
+            <xs:element name="data-resolution" type="data-resolution-type"/>
+            
+            <xs:element name="data-field-definitions" type="field-description-list"/>
+            
+            <!-- the optional description -->
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            
+            <!-- The data elements (zero or more) of type "time-tagged-data" -->
+            <xs:element name="data-item" type="time-tagged-data" minOccurs="0" maxOccurs="unbounded"/>
+            
+         </xs:sequence>
+         
+         <!--
+              The "source" attribute (e.g. goes-12, goes-r). This attribute
+              is of type "data-sources" which is a simple type enumerating
+              the valid string values for "source".
+         -->
+         <xs:attribute name="source" type="data-sources" use="required"/>
+        
+         <!--
+               The "entry-count" attribute is an optional non-negative
+               integer which specifies the number of data-item entries
+               in the dataset.
+         -->
+         <xs:attribute name="entry-count" type="xs:nonNegativeInteger"/>
+      </xs:complexType>
+   </xs:element>
+
+   <!--
+         The complexType "time-tagged-data" encodes the time tagged
+         mag data for the goes mag instrument. The time tag for all
+         of the child elements is specified as a required argument.
+         
+         The child elements may appear in any order. A missing or empty
+         child element may be interpreted as a missing value.
+   -->
+   <xs:complexType name="time-tagged-data">
+      <xs:all>
+         <xs:element name="hp" type="hp-data-item" minOccurs="0"/>
+         <xs:element name="he" type="he-data-item"  minOccurs="0"/>
+         <xs:element name="hn" type="hn-data-item"  minOccurs="0"/>
+         <xs:element name="ht" type="ht-data-item"  minOccurs="0"/>
+      </xs:all>
+      <xs:attribute name="time-tag" type="xs:dateTime" use="required"/>
+   </xs:complexType>
+   
+   <!-- An enumeration of valid data source values for this XML message -->
+   <xs:simpleType name="data-sources">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="goes-13"/>
+         <xs:enumeration value="goes-14"/>
+         <xs:enumeration value="goes-15"/>
+         <xs:enumeration value="goes-r"/>
+         <xs:enumeration value="goes-16"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!-- An enumeration of valid instruments for this XML message -->
+   <xs:simpleType name="instruments">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="mag"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+      <!-- An enumeration of valid data type values for this XML message -->
+   <xs:simpleType name="data-types">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="magnetometer"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <!-- An enumeration of valid data resolution units -->
+   <xs:simpleType name="data-resolution-units">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="seconds"/>
+         <xs:enumeration value="minutes"/>
+         <xs:enumeration value="hours"/>
+         <xs:enumeration value="days"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!--
+        A complex type used to specify the data sampling resolution
+        for the contents of the data set.
+   -->
+   <xs:complexType name="data-resolution-type">
+      <xs:simpleContent>
+         <xs:extension base="xs:positiveInteger">
+            <xs:attribute name="units" type="data-resolution-units" use="required"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+      
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the hp data.
+   -->
+   <xs:simpleType name="hp-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="-1400."/>
+         <xs:maxInclusive value="1400."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="hp-data-item">
+      <xs:simpleContent>
+         <xs:extension base="hp-type">
+            <xs:attribute name="units" fixed="nT"/>
+            <xs:attribute name="description" fixed="Magnetic parallel component"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the he data.
+   -->
+   <xs:simpleType name="he-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="-1400."/>
+         <xs:maxInclusive value="1400."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="he-data-item">
+      <xs:simpleContent>
+         <xs:extension base="he-type">
+            <xs:attribute name="units" fixed="nT"/>
+            <xs:attribute name="description" fixed="Magnetic earthward component"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the hn data.
+   -->   
+   <xs:simpleType name="hn-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="-1400."/>
+         <xs:maxInclusive value="1400."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="hn-data-item">
+      <xs:simpleContent>
+         <xs:extension base="hn-type">
+            <xs:attribute name="units" fixed="nT"/>
+            <xs:attribute name="description" fixed="Magnetic normal eastward component"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the ht data.
+   -->
+   <xs:simpleType name="ht-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="-1400."/>
+         <xs:maxInclusive value="1400."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="ht-data-item">
+      <xs:simpleContent>
+         <xs:extension base="ht-type">
+            <xs:attribute name="units" fixed="nT"/>
+            <xs:attribute name="description" fixed="Magnetic total field component"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   
+   
+   <!--
+         Meta-data field description line
+   -->
+   
+   <xs:complexType name="field-description-list">
+      <xs:sequence>
+         <xs:element name="field-def" type="field-definition" minOccurs="0" maxOccurs="unbounded"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+              
+      <!--
+            The "instrument" attribute (e.g. xrs, eps). This attribute
+            is of type "instruments" which is a simple type enumerating
+            the valid string values for "instrument".
+      -->
+      <xs:attribute name="instrument" type="instruments" use="required"/>
+        
+      <xs:attribute name="data-type" type="data-types" use="required"/>
+
+   </xs:complexType>
+   
+   <xs:attribute name="field-name" type="xs:token"/>
+   <xs:attribute name="type" type="xs:string"/>
+   
+   <xs:complexType name="field-definition">
+      <xs:all>
+         <xs:element name="units" type="xs:string" minOccurs="0"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+         <xs:element name="data-range" minOccurs="0">
+            <xs:complexType>
+                  <xs:attribute name="minInclusive" type="xs:float"/>
+                  <xs:attribute name="minExclusive" type="xs:float"/>
+                  <xs:attribute name="maxInclusive" type="xs:float"/>
+                  <xs:attribute name="maxExclusive" type="xs:float"/>
+            </xs:complexType>
+         </xs:element>
+      </xs:all>
+      <xs:attribute ref="field-name" use="required"/>
+      <xs:attribute ref="type" use="required"/>
+
+   </xs:complexType>
+   
+</xs:schema>

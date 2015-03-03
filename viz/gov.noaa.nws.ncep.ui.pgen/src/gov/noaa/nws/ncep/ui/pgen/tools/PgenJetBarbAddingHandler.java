@@ -14,7 +14,6 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 
 
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 //import gov.noaa.nws.ncep.ui.display.InputHandlerDefaultImpl;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.display.IText.DisplayType;
@@ -111,7 +110,12 @@ public class PgenJetBarbAddingHandler extends InputHandlerDefaultImpl {
     	}
     	else if ( button == 3 ) {
 
-    	
+    		drawingLayer.removeGhostLine();
+    		mapEditor.refresh();
+
+    		if ( jetDlg != null )((JetAttrDlg)jetDlg).closeBarbDlg();
+
+    		prevTool.resetMouseHandler();
     		return true;
 
     	}
@@ -153,27 +157,6 @@ public class PgenJetBarbAddingHandler extends InputHandlerDefaultImpl {
     	else return true;
 	}
 
-    /*
-     * overrides the function in selecting tool
-     */
-    @Override
-    public boolean handleMouseUp(int x, int y, int button){
-        if ( !drawingLayer.isEditable() || shiftDown ) return false;
-
-        if (button == 3) {
-            drawingLayer.removeGhostLine();
-            mapEditor.refresh();
-
-            if ( jetDlg != null )((JetAttrDlg)jetDlg).closeBarbDlg();
-
-            prevTool.resetMouseHandler();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    
 	/**
      * Create the wind info(barb and FL text) at location loc.
      * @param loc

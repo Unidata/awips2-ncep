@@ -15,6 +15,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.hibernate.annotations.Index;
 
+import com.raytheon.uf.common.dataplugin.IDecoderGettable;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
@@ -42,7 +43,6 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * May 07, 2013 1869       bsteffen           Remove dataURI column from
  *                                            PluginDataObject.
  * Aug 30, 2013 2298       rjpeter            Make getPluginName abstract
- * Jun 11, 2014 2061       bsteffen           Remove IDecoderGettable
  * 
  * </pre>
  * 
@@ -256,6 +256,11 @@ public class SolarImageRecord extends PersistablePluginDataObject {
      */
     public void setImageHDUNum(int hduId) {
         this.imageHDUNum = hduId;
+    }
+
+    @Override
+    public IDecoderGettable getDecoderGettable() {
+        return null;
     }
 
     /**

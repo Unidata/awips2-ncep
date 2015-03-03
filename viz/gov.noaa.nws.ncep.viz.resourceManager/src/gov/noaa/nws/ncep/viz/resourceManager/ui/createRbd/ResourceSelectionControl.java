@@ -5,6 +5,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
@@ -14,10 +15,13 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -1324,6 +1328,34 @@ public class ResourceSelectionControl extends Composite {
                 // Integer frameIntvl = rscDefn.getFrameSpan() *
                 availableTimes = rscDefn.getNormalizedDataTimes(
                         seldResourceName, 24 * 60);
+            } else if (rscDefn.getTimelineGenMethod() == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION) {
+                int startTime = Integer.parseInt(rscDefn.getCycleReference());
+                Calendar cal = Calendar
+                        .getInstance(TimeZone.getTimeZone("GMT"));
+                cal.setTime(new Date());
+                // cal.set(2014, 8, 11); ********jbernier for testing
+                DayReference day = (rscDefn.getDayReference() != null ? rscDefn
+                        .getDayReference() : DayReference.TODAY);
+                switch (day) {
+                case TOMORROW:
+                    cal.add(Calendar.DAY_OF_MONTH, 1);
+                    break;
+                case TODAY:
+                    break;
+                case YESTERDAY:
+                    cal.add(Calendar.DAY_OF_MONTH, -1);
+                    break;
+                default:
+                    cal = null;
+                }
+                if (cal != null) {
+                    cal.set(Calendar.HOUR_OF_DAY, startTime);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    availableTimes = new ArrayList<DataTime>();
+                    availableTimes.add(new DataTime(cal));
+                }
             } else {
                 availableTimes = rscDefn.getDataTimes(seldResourceName);
             }

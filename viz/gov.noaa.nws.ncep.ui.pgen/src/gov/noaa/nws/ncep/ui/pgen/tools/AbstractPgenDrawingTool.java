@@ -18,10 +18,8 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.viz.core.IDisplayPaneContainer;
-import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.EditorUtil;
-import com.raytheon.viz.ui.editor.AbstractEditor;
 
 //import gov.noaa.nws.ncep.viz.ui.display.NCMapEditor;
 
@@ -77,11 +75,9 @@ public abstract class AbstractPgenDrawingTool extends AbstractPgenTool {
     protected void activateTool() {
         IEditorPart ep = EditorUtil.getActiveEditor();
 
-        if (!PgenUtil.isNatlCntrsEditor(ep) && !(ep instanceof VizMapEditor)) {
+        if (!PgenUtil.isNatlCntrsEditor(ep)) {
             // mapEditor = null;
-           // drawingLayer =  PgenUtil.findPgenResource((AbstractEditor)ep);
-           // if ( drawingLayer == null )
-             return;
+            return;
         }
 
         if (!super.isDelObj()) {

@@ -54,6 +54,8 @@ import com.raytheon.uf.viz.core.rsc.ResourceType;
  *                                        set frame to LAST and issueRefresh() to force paint (per legacy; TTR 520).
  * 06 Feb 2013     #972      G. Hull      define on IDescriptor instead of IMapDescriptor
  * 06/16/2014      #1136     qzhou        remove final for paintInternal, since paintFrame does not work for Graph
+ * 25 Aug 2014     RM4097    kbugenhagen  Added EVENT_BEFORE_OR_AFTER time matching
+ * 
  * </pre>
  * 
  * @author ghull
@@ -156,6 +158,13 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 startTime = new DataTime(frameTime.getValidTime());
                 endTime = new DataTime(frameTime.getValidTime());
             }
+            case EVENT_BEFORE_OR_AFTER: {
+                startTime = new DataTime(new Date(frameMillis - frameInterval
+                        * 1000 * 60 / 2));
+                endTime = new DataTime(new Date(frameMillis + frameInterval
+                        * 1000 * 60 / 2 - 1000));
+                break;
+            }            
             case CLOSEST_BEFORE_OR_AFTER: {
                 startTime = new DataTime(new Date(frameMillis - frameInterval
                         * 1000 * 60 / 2));
@@ -226,6 +235,16 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                     return (frameTimeMillis == dataTimeMillis ? 0 : -1);
                 }
             }
+            case EVENT_BEFORE_OR_AFTER: {
+                if (startTimeMillis >= dataTimeMillis
+                        || dataTimeMillis > endTimeMillis) {
+                    return -1;
+                } else {
+                    return Math.abs(frameTime.getValidTime().getTime()
+                            .getTime()
+                            - dataTimeMillis) / 1000;
+                }
+            }            
             // mainly (only?) for lightning. Might be able to remove this
             // timeMatchMethod
             // if lighting resource is modified?

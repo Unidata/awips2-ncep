@@ -429,20 +429,20 @@
          version="0.0.0"
          unpack="false"/>
 
-    <plugin
+   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.gpd"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
-	<plugin
+   <plugin
          id="gov.noaa.nws.ncep.edex.plugin.gpd"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-   
+
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.gempak"
          download-size="0"
@@ -456,8 +456,8 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
-  <plugin
+
+   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.ghcd"
          download-size="0"
          install-size="0"
@@ -466,6 +466,20 @@
 
    <plugin
          id="gov.noaa.nws.ncep.edex.plugin.ghcd"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.modis"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ncep.edex.plugin.modis"
          download-size="0"
          install-size="0"
          version="0.0.0"

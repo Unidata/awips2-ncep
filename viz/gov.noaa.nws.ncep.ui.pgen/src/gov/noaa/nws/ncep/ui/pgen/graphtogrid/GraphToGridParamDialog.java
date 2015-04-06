@@ -75,6 +75,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 12/13        1090        J. Wu       Allow either table or element applied to g2g.
  * 05/14        TTR989      J. Wu       Find current contour via contour parameters.
  * 08/14        ?           J. Wu       build gdoutf & cycle from contours' time.
+ * 10/14        R5712       J. Wu       Fixed index-out-of-bound issue for productNames.
  * 
  * </pre>
  * 
@@ -187,6 +188,10 @@ public class GraphToGridParamDialog extends CaveJFACEDialog {
                 }
 
             }
+
+            // Reset the "productNames" to keys in productMaps;
+            productNames.clear();
+            productNames.addAll(productMaps.keySet());
 
         }
 

@@ -117,6 +117,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/14        TTR990      J. Wu       Set default attributes for different contour labels.
  * 08/14        ?           J. Wu       "Edit" line color should go to contoursAttrSettings to take effect..
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
+ * 01/15        R5200/T1059 J. Wu       Add setSettings(de) to remember last-used attributes.
+ * 01/15        R5201/T1060 J. Wu       Add getLabelTempKey(adc).
  * 
  * </pre>
  * 
@@ -953,6 +955,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     DrawableElement de = drawingLayer.getSelectedDE();
 
                     if (de != null) {
+
                         if (de.getParent() instanceof ContourLine
                                 && ((ContourLine) (de.getParent())).getLabels()
                                         .size() > 0) {
@@ -1855,6 +1858,29 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     + labelSuffix);
         } else if (drawCircle()) {
             tempKey = new String("Circle" + labelSuffix);
+        }
+
+        return tempKey;
+
+    }
+
+    /*
+     * @de generate a string key from a contour label.
+     */
+    private String getLabelTempKey(AbstractDrawableComponent de) {
+
+        String tempKey = "General Text";
+        AbstractDrawableComponent dp = de.getParent();
+        if (dp != null) {
+            if (dp instanceof ContourLine) {
+                tempKey = new String(((ContourLine) dp).getLine().getPgenType()
+                        + labelSuffix);
+            } else if (dp instanceof ContourMinmax) {
+                tempKey = new String(((ContourMinmax) dp).getSymbol()
+                        .getPgenType() + labelSuffix);
+            } else if (dp instanceof ContourCircle) {
+                tempKey = new String("Circle" + labelSuffix);
+            }
         }
 
         return tempKey;
@@ -4071,6 +4097,17 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         int op = super.open();
 
         return op;
+    }
+
+    /*
+     * Update the contours components' attribute settings.
+     */
+    public void setSettings(AbstractDrawableComponent de) {
+        if (de instanceof gov.noaa.nws.ncep.ui.pgen.elements.Text) {
+            contoursAttrSettings.put(getLabelTempKey(de), de);
+        } else {
+            contoursAttrSettings.put(de.getPgenType(), de);
+        }
     }
 
 }

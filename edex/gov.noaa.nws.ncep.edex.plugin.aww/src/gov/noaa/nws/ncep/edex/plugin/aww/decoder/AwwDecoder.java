@@ -132,41 +132,49 @@ public class AwwDecoder extends AbstractDecoder {
             if (record == null) {
                 throw new AwwDecoderException("Error on decoding Aww Record");
             }  else {
-
-            boolean isWtchFlag = AwwDecoder.isWtch(record);// Ticket 456
-
-            // Get report type
-            String reportType = AwwParser.getReportType(theBulletin);
-
-            ArrayList<String> segmentList = new ArrayList<String>();
-            segmentList.clear();
-
-            // Break the bulletin message into segments by a "$$"
-            Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
-
-            boolean isWCN = false;
-            String wcnLbl = AwwRecord.AwwReportType.WATCH_COUNTY_NOTIFICATION
-                    .name();
-            wcnLbl = wcnLbl.replace("_", " ");
-            if (reportType.equals(wcnLbl)) {
-                isWCN = true;
-            }
-
-            while (sc.hasNext()) {
-                String segment = sc.next();
-                Matcher ugcMatcher = ugcPattern.matcher(segment);
-                // discard if the segment did not have an UGC line.
-                if (ugcMatcher.find() || isWtchFlag) { // ????? not sure if this
-                                                       // logic is correct
-                    segmentList.add(segment);
+            	// Set MND remark before the URI is constructed
+                if ((mt.getMndTimeString() == null)
+                		|| mt.getMndTimeString().trim().isEmpty()) {
+                    record.setMndTime("unknown");
+                } else {
+                    record.setMndTime(mt.getMndTimeString());
                 }
-            }
+                boolean isWtchFlag = AwwDecoder.isWtch(record);// Ticket 456
+
+                // Get report type
+                String reportType = AwwParser.getReportType(theBulletin);
+
+                ArrayList<String> segmentList = new ArrayList<String>();
+                segmentList.clear();
+
+                // Break the bulletin message into segments by a "$$"
+                Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
+
+                boolean isWCN = false;
+                String wcnLbl = AwwRecord.AwwReportType.WATCH_COUNTY_NOTIFICATION
+                		.name();
+                wcnLbl = wcnLbl.replace("_", " ");
+                if (reportType.equals(wcnLbl)) {
+                	isWCN = true;
+                }
+
+                while (sc.hasNext()) {
+                	String segment = sc.next();
+                	Matcher ugcMatcher = ugcPattern.matcher(segment);
+                	boolean ugcMatch = ugcMatcher.find();
+                	// discard if the segment did not have an UGC line.
+                	if (ugcMatch || isWtchFlag || isWCN) { // ????? not sure if this
+                                                       // logic is correct
+                		segmentList.add(segment);
+                	}
+                }
 
                 try {
                     // process each segment in a order of UGC, VTEC, H-VTEC,
                     // FIPS, LATLON...
                     for (String segment : segmentList) {
                         Matcher ugcMatcher = ugcPattern.matcher(segment);
+                        boolean ugcMatch = ugcMatcher.find();
                         AwwUgc ugc = null;
                                             
                         // TRAC 1112
@@ -193,7 +201,7 @@ public class AwwDecoder extends AbstractDecoder {
                                     .processUgcToRetrieveWatchNumberForThunderstormOrTornado(segment);
                             record.setWatchNumber(watchNumber);
 
-                        } else if (ugcMatcher.find()) {
+                        } else if (ugcMatch) {
                             ugc = AwwParser.processUgc(ugcMatcher.group(),
                                     segment, mndTime, watchesList);
                         }
@@ -231,18 +239,10 @@ public class AwwDecoder extends AbstractDecoder {
                             }
 
                         }
-                        record.setReportType(reportType.trim());
-                        record.setTraceId(traceId);
-                        // Set MND remark before the URI is constructed
-                        if ((mt.getMndTimeString() == null)
-                                || mt.getMndTimeString().trim().isEmpty()) {
-                            record.setMndTime("unknown");
-                        } else {
-                            record.setMndTime(mt.getMndTimeString());
-                        }
-
-                        record.getDataURI();
                     }
+                    record.setReportType(reportType.trim());
+                    record.setTraceId(traceId);
+                    
 
                 } catch (Exception e) {
                     logger.error("Error processing decoded segment", e);

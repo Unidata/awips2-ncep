@@ -147,6 +147,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 08/14        TTR972      J. Wu       Draw filled object as filled only if either its layer's "filled" flag
  *                                      "true" or they are on the active layer,  .
  * 09/14        TTR750      J. Wu       Draw track label with specified font styles.
+ * 03/15        R4862       M. Kean     changes related to new point reduced data
  * </pre>
  * 
  * @author sgilbert
@@ -197,6 +198,11 @@ public class DisplayElementFactory {
     double screenToWorldRatio = 1.0;
 
     private ArrowHead arrow;
+
+    // IDisplayable list (from an IWatchBox)
+    ArrayList<IDisplayable> dlisti = null;
+
+    private float zoomLevel = 0;
 
     /**
      * Color mode, color, and fill mode used to draw all elements in a layer
@@ -644,9 +650,16 @@ public class DisplayElementFactory {
             PaintProperties paintProps) {
 
         /*
+         * Return existing list if display is zooming
+         */
+        if (dlisti != null && zoomEvent(paintProps)) {
+            return dlisti;
+        }
+
+        /*
          * Create the List to be returned
          */
-        ArrayList<IDisplayable> dlist = new ArrayList<IDisplayable>();
+        dlisti = new ArrayList<IDisplayable>();
 
         List<SPCCounty> counties = watchBox.getOriginalCountyList();
         if (counties == null || counties.isEmpty()) { // if the watch is not
@@ -665,6 +678,8 @@ public class DisplayElementFactory {
 
                 Collection<Geometry> gCollection = new ArrayList<Geometry>();
 
+                GeometryFactory gf = new GeometryFactory();
+
                 // draw county border
                 for (SPCCounty cnty : counties) {
                     Geometry countyGeo = cnty.getShape();
@@ -673,26 +688,34 @@ public class DisplayElementFactory {
                     colors[1] = watchBox.getFillColor();
 
                     for (int ii = 0; ii < countyGeo.getNumGeometries(); ii++) {
-                        Polygon poly = (Polygon) countyGeo.getGeometryN(ii);
+                        // R4862 - remove extra lines to cities by adding only
+                        // exterior coordinate polygon
+                        // Polygon poly = (Polygon) countyGeo.getGeometryN(ii);
+                        Polygon poly = gf.createPolygon(((Polygon) countyGeo
+                                .getGeometryN(ii)).getExteriorRing()
+                                .getCoordinates());
+
                         List<Coordinate> pts = new ArrayList<Coordinate>(
                                 Arrays.asList(poly.getCoordinates()));
-
                         Line cntyBorder = new Line(null, colors, .5f, .5, true,
                                 false, pts, 0, FillPattern.FILL_PATTERN_6,
                                 "Lines", "LINE_SOLID");
                         ArrayList<IDisplayable> cntyLine = createDisplayElements(
                                 cntyBorder, paintProps);
-                        dlist.addAll(cntyLine);
+                        dlisti.addAll(cntyLine);
+
+                        // R4862 - add small buffer,
+                        // due to non-noded intersection exceptions
+                        gCollection.add(poly.buffer(.0001));
                     }
 
-                    if (countyGeo != null) {
-                        gCollection.add(countyGeo.buffer(.02));
-                    }
+                    // R4862 - moved above to fill only exterior polygons
+                    // if (countyGeo != null) {
+                    // gCollection.add(countyGeo.buffer(.02));
+                    // }
                 }
 
                 // Merge counties together and fill the whole area
-                GeometryFactory gf = new GeometryFactory();
-
                 if (gCollection.size() > 1) {
                     GeometryCollection geometryCollection = (GeometryCollection) gf
                             .buildGeometry(gCollection);
@@ -726,7 +749,7 @@ public class DisplayElementFactory {
                     // theWireframeShape.compile();
                     // dlist.add(new LineDisplayElement(theWireframeShape,
                     // colors[1], .5f));
-                    dlist.add(new FillDisplayElement(theShadedShape, 1f));
+                    dlisti.add(new FillDisplayElement(theShadedShape, 1f));
 
                 } catch (VizException e) {
                     // TODO Auto-generated catch block
@@ -742,7 +765,7 @@ public class DisplayElementFactory {
                             watchBox.getWatchSymbolType());
                     ArrayList<IDisplayable> cList = createDisplayElements(
                             cSymbol, paintProps);
-                    dlist.addAll(cList);
+                    dlisti.addAll(cList);
                 }
             }
         }
@@ -759,7 +782,7 @@ public class DisplayElementFactory {
                             cnty.getCentriod(), "Marker", "OCTAGON");
                     ArrayList<IDisplayable> cList = createDisplayElements(
                             cSymbol, paintProps);
-                    dlist.addAll(cList);
+                    dlisti.addAll(cList);
                 }
             }
         }
@@ -775,7 +798,7 @@ public class DisplayElementFactory {
         Line box = new Line(null, watchBox.getColors(), 3.0f, 3.0, true, false,
                 ptsList, 0, FillPattern.SOLID, "Lines", "LINE_SOLID");
         ArrayList<IDisplayable> dBox = createDisplayElements(box, paintProps);
-        dlist.addAll(dBox);
+        dlisti.addAll(dBox);
 
         // get displayElements for the center line in the watch box
         ptsList.clear();
@@ -790,7 +813,12 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> dLine = createDisplayElements(centerLine,
                 paintProps);
-        dlist.addAll(dLine);
+        dlisti.addAll(dLine);
+
+        // R4862 -
+        // dont want centerLine IWireframeShape to be part of draw reset();
+        // so remove from instance wfs
+        wfs = null;
 
         Station[] anchors = watchBox.getAnchors();
         Symbol anchor1 = new Symbol(null, watchBox.getColors(), 1.5f, 0.7,
@@ -799,7 +827,7 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> aList1 = createDisplayElements(anchor1,
                 paintProps);
-        dlist.addAll(aList1);
+        dlisti.addAll(aList1);
 
         Symbol anchor2 = new Symbol(null, watchBox.getColors(), 1.5f, 0.7,
                 false, new Coordinate(anchors[1].getLongitude(),
@@ -807,7 +835,7 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> aList2 = createDisplayElements(anchor2,
                 paintProps);
-        dlist.addAll(aList2);
+        dlisti.addAll(aList2);
 
         // Add watch number if the watch is issued
         if (watchBox.getIssueFlag() != 0) {
@@ -823,10 +851,10 @@ public class DisplayElementFactory {
             ArrayList<IDisplayable> tList = createDisplayElements(
                     (IText) wNumber, paintProps);
 
-            dlist.addAll(tList);
+            dlisti.addAll(tList);
         }
 
-        return dlist;
+        return dlisti;
 
     }
 
@@ -5796,6 +5824,17 @@ public class DisplayElementFactory {
     public PgenRangeRecord findTextBoxRange(IText txt,
             PaintProperties paintProps) {
 
+        /*
+         * For AvnText and MidCloudText, getString() is not defined and may
+         * cause exception if the xml is converted from VGF. So a default range
+         * record is added here. We may need to write a method to find the true
+         * range record for both.
+         */
+        if ((txt instanceof IAvnText || txt instanceof IMidCloudText)
+                && txt.getString() == null) {
+            return new PgenRangeRecord();
+        }
+
         setScales(paintProps);
 
         double[] tmp = { txt.getPosition().x, txt.getPosition().y, 0.0 };
@@ -6397,5 +6436,20 @@ public class DisplayElementFactory {
         }
 
         return new PgenRangeRecord(allpts, false);
+    }
+
+    /*
+     * Check if PaintProperties indicate the display is zooming
+     * 
+     * @param paintProps The paint properties associated with the target
+     * 
+     * @return A boolean indicating a zoom event
+     */
+    private boolean zoomEvent(PaintProperties paintProps) {
+        boolean zoomChk = paintProps.isZooming()
+                || paintProps.getZoomLevel() != zoomLevel;
+        zoomLevel = paintProps.getZoomLevel();
+
+        return zoomChk;
     }
 }

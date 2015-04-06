@@ -308,6 +308,8 @@
     			type="xsd:string">
     		</xsd:attribute>
     		<xsd:attribute name="rotation" type="xsd:double"></xsd:attribute>
+            <xsd:attribute name="ithw" type="xsd:int"></xsd:attribute>
+            <xsd:attribute name="iwidth" type="xsd:int"></xsd:attribute>    		
     		<xsd:attribute name="justification" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="style" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="fontName" type="xsd:string"></xsd:attribute>
@@ -328,6 +330,8 @@
     		<xsd:attribute name="avnTextType" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="topValue" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="bottomValue" type="xsd:string"></xsd:attribute>
+            <xsd:attribute name="ithw" type="xsd:int"></xsd:attribute>
+            <xsd:attribute name="iwidth" type="xsd:int"></xsd:attribute>    		
     		<xsd:attribute name="justification" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="style" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="fontName" type="xsd:string"></xsd:attribute>
@@ -354,6 +358,8 @@
     		<xsd:attribute name="icingLevels" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="tstormTypes" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="tstormLevels" type="xsd:string"></xsd:attribute>
+            <xsd:attribute name="ithw" type="xsd:int"></xsd:attribute>
+            <xsd:attribute name="iwidth" type="xsd:int"></xsd:attribute>    		
     		<xsd:attribute name="justification" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="style" type="xsd:string"></xsd:attribute>
     		<xsd:attribute name="fontName" type="xsd:string"></xsd:attribute>

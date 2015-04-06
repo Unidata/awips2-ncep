@@ -1578,6 +1578,9 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="VIIRS">
 <filters>VIIRS</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="MODIS">
+<filters>MODIS</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="DayNightTerminator">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>

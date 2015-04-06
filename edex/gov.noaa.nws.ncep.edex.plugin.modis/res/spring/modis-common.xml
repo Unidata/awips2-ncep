@@ -1,0 +1,21 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<bean id="modisPluginName" class="java.lang.String">
+		<constructor-arg type="java.lang.String" value="modis" />
+	</bean>
+
+	<bean id="modisProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+		<property name="pluginName" ref="modisPluginName" />
+		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.modis" />
+		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao" />
+		<property name="record" value="gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord" />
+	</bean>	
+
+	<bean factory-bean="pluginRegistry" factory-method="register">
+		<constructor-arg ref="modisPluginName" />
+		<constructor-arg ref="modisProperties" />
+	</bean>
+
+</beans>

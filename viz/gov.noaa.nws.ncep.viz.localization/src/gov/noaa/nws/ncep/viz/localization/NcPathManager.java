@@ -53,6 +53,7 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
  * 06/18/2014     #1131     qzhou        Added DFLT_GRAPH_RBD
  * 05/14/2014     R4078     S. Gurung    Added DFLT_RTKP_RBD (T1122)
  * 09/15/2014     R4508     S. Gurung    Added TIME_SERIES_DIR
+ * 10/01/2014     R5116     K.Bugenhagen Added MODIS style rules constant
  * 10/15/2014     R4508     S. Gurung    Added XAXIS_SCALE_DIR and XAXIS_SCALE_HELP_FILE
  * </pre>
  * 
@@ -228,6 +229,9 @@ public class NcPathManager {
         // "Radar"+File.separator+"mosaicInfo.txt";
         public static final String MCIDAS_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "mcidasSatelliteImageryStyleRules.xml";
+
+        public static final String MODIS_IMG_STYLE_RULES = STYLE_RULES_DIR
+                + "modisSatelliteImageryStyleRules.xml";
 
         public static final String GINI_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "giniSatelliteImageryStyleRules.xml";

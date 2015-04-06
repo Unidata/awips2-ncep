@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlgFactory;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.GfaAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
@@ -84,8 +85,9 @@ import com.vividsolutions.jts.geom.Point;
  *                                      main Contour tool window on Cancel, changing a
  *                                      symbol's label should not change the symbol;
  *                                      Both issues fixed.
- * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool..
+ * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool.
  * 12/14     R5198/TTR1057  J. Wu       Select a label over a line for Contours.
+ * 01/15    R5201/TTR1060   J. Wu       Update settings when an element is selected.
  * 
  * </pre>
  * 
@@ -239,6 +241,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             AbstractDrawableComponent adc = null;
             if (elSelected != null && elSelected.getParent() != null
                     && !elSelected.getParent().getName().equals("Default")) {
+
                 adc = pgenrsc
                         .getNearestComponent(loc, new AcceptFilter(), true);
             }
@@ -263,7 +266,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             } else if (elSelected instanceof Tcm) {
                 PgenUtil.loadTcmTool(elSelected);
             }
-
             /*
              * Select from within a given Contours or within the PgenResource
              */
@@ -272,7 +274,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 DECollection dec = ((PgenContoursTool) tool)
                         .getCurrentContour();
                 if (dec != null) {
-
                     elSelected = pgenrsc.getNearestElement(loc, (Contours) dec);
 
                     /*
@@ -295,7 +296,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
 
                     adc = dec;
-
                 }
 
                 pgCategory = "MET";
@@ -394,10 +394,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     if (elSelected != null) {
                         updateContoursAttrDlg(elSelected);
                         ((ContoursAttrDlg) attrDlg).setSelectMode();
+                        // Update the settings.
+                        ((ContoursAttrDlg) attrDlg).setSettings(elSelected
+                                .copy());
                     }
 
                 } else {
                     attrDlg.setAttrForDlg(elSelected);
+                    // Update the settings.
+                    AttrSettings.getInstance().setSettings(elSelected);
                 }
 
                 if (elSelected instanceof SinglePointElement

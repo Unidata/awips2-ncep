@@ -1602,4 +1602,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-R">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NCOM">
+<filters>Analysis,SBN</filters>
+</ResourceDefinitionFilter>
 </ResourceDefinitionFilters>

@@ -56,6 +56,7 @@ import com.raytheon.uf.viz.core.rsc.ResourceType;
  * 06/16/2014      #1136     qzhou        remove final for paintInternal, since paintFrame does not work for Graph
  * 25 Aug 2014     RM4097    kbugenhagen  Added EVENT_BEFORE_OR_AFTER time matching
  * 
+ * 09 Feb 2015     RM4980    srussell     Updated timeMatch() & constructor. Added closestToFrame()
  * </pre>
  * 
  * @author ghull
@@ -164,8 +165,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 endTime = new DataTime(new Date(frameMillis + frameInterval
                         * 1000 * 60 / 2 - 1000));
                 break;
-            }            
-            case CLOSEST_BEFORE_OR_AFTER: {
+            }
+            case CLOSEST_BEFORE_OR_AFTER:
+            case BINNING_FOR_GRID_RESOURCES: {
                 startTime = new DataTime(new Date(frameMillis - frameInterval
                         * 1000 * 60 / 2));
                 endTime = new DataTime(new Date(frameMillis + frameInterval
@@ -205,12 +207,50 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return (dataTime == null ? false : timeMatch(dataTime) >= 0);
         }
 
+        // Redmine 4980
+        public int closestToFrame(IRscDataObject rscDataObj1,
+                IRscDataObject rscDataObj2) {
+
+            // Check for null objects
+            if (rscDataObj1 != null && rscDataObj2 == null)
+                return 1;
+            if (rscDataObj1 == null && rscDataObj2 != null)
+                return 2;
+            else if (rscDataObj1 == null && rscDataObj2 == null)
+                return -1;
+
+            int iReturn = 0;
+            long obj1MinusFrameT = 0;
+            long obj2MinusFrameT = 0;
+
+            long rdo1Millis = rscDataObj1.getDataTime().getValidTime()
+                    .getTimeInMillis();
+            long rdo2Millis = rscDataObj2.getDataTime().getValidTime()
+                    .getTimeInMillis();
+            long frameTimeMillis = frameTime.getValidTime().getTimeInMillis();
+
+            obj1MinusFrameT = Math.abs(rdo1Millis - frameTimeMillis);
+            obj2MinusFrameT = Math.abs(rdo2Millis - frameTimeMillis);
+
+            if (obj1MinusFrameT < obj2MinusFrameT) {
+                iReturn = 1;
+            } else if (obj2MinusFrameT < obj1MinusFrameT) {
+                iReturn = 2;
+            } else if (obj1MinusFrameT == obj2MinusFrameT) {
+                iReturn = 0;
+            }
+
+            return iReturn;
+        }
+
         // return -1 if the data doesn't match. if the return value is 0 or
         // positive
         // then this is the number of seconds from the perfect match.
         public long timeMatch(DataTime dataTime) {
 
             long dataTimeMillis = dataTime.getValidTime().getTimeInMillis();
+            long frameTimeMillis = frameTime.getValidTime().getTimeInMillis();
+
             TimeRange dataTimeRange = dataTime.getValidPeriod();
 
             switch (resourceData.getTimeMatchMethod()) {
@@ -220,9 +260,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 return 0;
             case EXACT:
             case EVENT: {
-                long frameTimeMillis = frameTime.getValidTime()
-                        .getTimeInMillis();
-
                 if (dataTimeRange.isValid()) {
                     if (dataTimeRange.getStart().getTime() <= frameTimeMillis
                             && frameTimeMillis <= dataTimeRange.getEnd()
@@ -244,7 +281,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                             .getTime()
                             - dataTimeMillis) / 1000;
                 }
-            }            
+            }
             // mainly (only?) for lightning. Might be able to remove this
             // timeMatchMethod
             // if lighting resource is modified?
@@ -298,7 +335,16 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                             - dataTimeMillis) / 1000;
                 }
             }
+            case BINNING_FOR_GRID_RESOURCES: {
+                // If Data Time >= Frame Time, It Is A Match
+                if (dataTimeMillis >= frameTimeMillis) {
+                    return 1;
+                } else {
+                    return -1;
+                }
             }
+
+            }// end switch
             return -1;
         }
 
@@ -359,7 +405,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
     protected DataTime currFrameTime;
 
-    private boolean autoUpdateReady = false;
+    // Redmine 4980 private => protected
+    protected boolean autoUpdateReady = false;
 
     // if the frameGenMthd is USE_FRAME_INTERVAL then this is the time
     // when the next frame will be created if autoupdate is on.
@@ -766,8 +813,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             int frameInterval);
 
     // This method can be used as a convenience if the MetadataMap constraints
-    // are
-    // all that is needed to query the data.
+    // are all that is needed to query the data.
     public void queryRecords() throws VizException {
 
         HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(

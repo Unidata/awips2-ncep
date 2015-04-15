@@ -1,5 +1,7 @@
-! Parameters and Attributes for the default UAIR Resource
+! Parameters and Attributes for the UAIR Resource, at 700 mb level
+!
 levelKey=700
 plotModel=@PlotModels/ncuair/standard.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=30
 conditionalFilter=

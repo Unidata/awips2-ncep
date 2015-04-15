@@ -1,7 +1,8 @@
-! Parameters and Attributes for the default METAR Resource
+! Parameters and Attributes for the SYNOP Resource, for Ship reports
 !
 legendString=Ship Synop
 plotModel=@PlotModels/sfcobs/ship_standard.xml
 reportType=1003
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=15
 conditionalFilter=

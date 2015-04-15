@@ -148,6 +148,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  *                                      "true" or they are on the active layer,  .
  * 09/14        TTR750      J. Wu       Draw track label with specified font styles.
  * 03/15        R4862       M. Kean     changes related to new point reduced data
+ * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * </pre>
  * 
  * @author sgilbert
@@ -203,6 +204,12 @@ public class DisplayElementFactory {
     ArrayList<IDisplayable> dlisti = null;
 
     private float zoomLevel = 0;
+
+    /*
+     * R6520 - a factor to adjust the front pip size (scaleFactor) to visually
+     * match those in NMAP2.
+     */
+    private static double frontPatternFactor = 0.80;
 
     /**
      * Color mode, color, and fill mode used to draw all elements in a layer
@@ -379,6 +386,31 @@ public class DisplayElementFactory {
             double[][] smoothpts, PaintProperties paintProps) {
 
         /*
+         * R6520 - Adjust line width/pattern size for fronts.
+         * 
+         * If line width is 1,2 or 3, it is weak front, draw with line width 1.
+         * If line width is 4,5 or 6, it is moderate front, draw with line width
+         * 4. If line width is 7,8 or 9, it is strong front, draw with line
+         * width 7.
+         * 
+         * Also, the pip size (sizeScale) needs to be adjusted to match NMAP2.
+         */
+        float drawLineWidth = de.getLineWidth();
+        double drawSizeScale = de.getSizeScale();
+        if (de instanceof Line
+                && ((Line) de).getPgenCategory().equalsIgnoreCase("Front")) {
+            if (drawLineWidth <= 3.0) {
+                drawLineWidth = 1.0f;
+            } else if (drawLineWidth > 6.0) {
+                drawLineWidth = 7.0f;
+            } else {
+                drawLineWidth = 4.0f;
+            }
+
+            drawSizeScale *= frontPatternFactor;
+        }
+
+        /*
          * Get color for creating displayables.
          */
         Color[] dspClr = getDisplayColors(elem.getColors());
@@ -405,8 +437,10 @@ public class DisplayElementFactory {
          * the desired line width, update the pattern now
          */
         if ((pattern != null) && pattern.needsLengthUpdate()) {
-            pattern = pattern.updateLength(screenToExtent * de.getLineWidth()
-                    / (de.getSizeScale() * deviceScale));
+            // pattern = pattern.updateLength(screenToExtent * de.getLineWidth()
+            // / (de.getSizeScale() * deviceScale));
+            pattern = pattern.updateLength(screenToExtent * drawLineWidth
+                    / (drawSizeScale * deviceScale));
         }
 
         /*
@@ -444,8 +478,9 @@ public class DisplayElementFactory {
         ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
 
         list.addAll(createDisplayElementsFromPts(smoothpts, dspClr, pattern,
-                scaleType, getDisplayFillMode(de.isFilled()),
-                ((ILine) de).getLineWidth(), isCCFP, ccfp, paintProps));
+                scaleType, getDisplayFillMode(de.isFilled()), drawLineWidth,
+                isCCFP, ccfp, paintProps));
+        // ((ILine) de).getLineWidth(), isCCFP, ccfp, paintProps));
 
         /*
          * Draw labels for contour lines.
@@ -489,6 +524,17 @@ public class DisplayElementFactory {
              * Get scale size from drawable element.
              */
             double scale = elem.getSizeScale();
+
+            /*
+             * R6520 - adjust pip size for fronts to match NMAP2's size
+             * visually.
+             */
+            if (elem instanceof Line
+                    && ((Line) elem).getPgenCategory()
+                            .equalsIgnoreCase("Front")) {
+                scale *= frontPatternFactor;
+            }
+
             if (scale <= 0.0)
                 scale = 1.0;
             double sfactor = deviceScale * scale;
@@ -819,7 +865,6 @@ public class DisplayElementFactory {
         // dont want centerLine IWireframeShape to be part of draw reset();
         // so remove from instance wfs
         wfs = null;
-
         Station[] anchors = watchBox.getAnchors();
         Symbol anchor1 = new Symbol(null, watchBox.getColors(), 1.5f, 0.7,
                 false, new Coordinate(anchors[0].getLongitude(),
@@ -3270,6 +3315,15 @@ public class DisplayElementFactory {
          * Get scale size and colors from drawable element.
          */
         double scale = elem.getSizeScale();
+
+        /*
+         * R6520 - adjust pip size for fronts to match NMAP2's size visually.
+         */
+        if (elem instanceof Line
+                && ((Line) elem).getPgenCategory().equalsIgnoreCase("Front")) {
+            scale *= frontPatternFactor;
+        }
+
         if (scale <= 0.0)
             scale = 1.0;
         double sfactor = deviceScale * scale;
@@ -3311,6 +3365,9 @@ public class DisplayElementFactory {
          * Calculate number of patterns that can fit on path
          */
         double psize = pattern.getLength() * sfactor;
+
+        // psize = psize * 0.8;
+
         double numPatterns = Math.floor(totalDist / psize);
 
         /*

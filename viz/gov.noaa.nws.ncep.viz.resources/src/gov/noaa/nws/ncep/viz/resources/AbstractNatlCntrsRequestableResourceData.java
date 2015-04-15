@@ -85,6 +85,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 06/16/2014      TTR1026 jwu         sort data time for local radar in getAvailableDataTimes()
  * 05/15/2014      #1131   qzhou       Added GraphRscCategory.  Added dfltGraphRange
  * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
+ * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
  * </pre>
  * 
  * *
@@ -182,7 +183,13 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         // data that exactly matches on the frame boundary. This is the same as
         // CLOSEST_BEFORE_OR_AFTER match but will NOT do the time range validity
         // check.
-        EVENT_BEFORE_OR_AFTER
+        EVENT_BEFORE_OR_AFTER,
+        // This is used for grid resource types. It will likely require
+        // modification to the particular rescource classes run method loop. For
+        // an exmaple please see NcGridResource. This time matching method
+        // imitates NMAP behavior in that it ignores frameSpans, finding the
+        // closes match in the data, after or before the frame time.
+        BINNING_FOR_GRID_RESOURCES
     }
 
     public static enum TimelineGenMethod {

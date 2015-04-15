@@ -1,7 +1,8 @@
-! Parameters and Attributes for the default METAR Resource
+! Parameters and Attributes for the SYNOP Resource, for Drifting Buoy reports
 !
 legendString=Drifting Buoy Synop
 plotModel=@PlotModels/sfcobs/bouys.xml
 reportType=1006
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=15
 conditionalFilter=

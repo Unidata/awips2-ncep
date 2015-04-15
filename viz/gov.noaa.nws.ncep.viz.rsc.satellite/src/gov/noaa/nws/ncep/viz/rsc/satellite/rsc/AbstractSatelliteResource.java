@@ -7,7 +7,6 @@ import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
@@ -20,7 +19,6 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 import java.awt.Rectangle;
-import java.io.File;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
@@ -46,19 +44,17 @@ import com.raytheon.uf.common.dataplugin.satellite.units.counts.DerivedWVPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.generic.GenericPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.goes.PolarPrecipWaterPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.water.BlendedTPWPixel;
+import com.raytheon.uf.common.derivparam.library.DerivedParameterRequest;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
-import com.raytheon.uf.common.serialization.SerializationException;
-import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
-import com.raytheon.uf.common.style.MatchCriteria;
 import com.raytheon.uf.common.style.ParamLevelMatchCriteria;
 import com.raytheon.uf.common.style.StyleException;
+import com.raytheon.uf.common.style.StyleManager;
 import com.raytheon.uf.common.style.StyleRule;
-import com.raytheon.uf.common.style.StyleRuleset;
 import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.style.image.SamplePreferences;
@@ -74,7 +70,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
-import com.raytheon.uf.common.derivparam.library.DerivedParameterRequest;
 import com.raytheon.viz.core.gl.IGLTarget;
 import com.raytheon.viz.core.rsc.hdf5.AbstractTileSet;
 import com.raytheon.viz.core.rsc.hdf5.FileBasedTileSet;
@@ -117,6 +112,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  05/20/2013      862      ghull       implement IAreaProviderCapable
  *  Nov 14, 2013    2393     bclement    changed how numLevels is calculated for mcidas
  *  03/12/2014      920      pswamy      Implemented changes to fix GINI VIS image display problems.
+ *  03/23/2015      R6944    mkean       use new style rule manager
  * </pre>
  * 
  * @author chammack
@@ -299,10 +295,10 @@ public abstract class AbstractSatelliteResource extends
 
                     List<String> paramList = getParameterList(satRec);
                     String unitStr = getDataUnitsFromRecord(satRec);
-                    String locFileName = getLocFilePathForImageryStyleRule();
+                    // String locFileName = getLocFilePathForImageryStyleRule();
                     int imgNum = getImageTypeNumber(satRec);
                     generateAndStoreColorBarLabelingInformation(paramList,
-                            unitStr, imgNum, locFileName);
+                            unitStr, imgNum);
 
                 } catch (VizException e) {
                     System.out.println("Error processing SatelliteRecord. "
@@ -847,7 +843,7 @@ public abstract class AbstractSatelliteResource extends
 
     public void generateAndStoreColorBarLabelingInformation(
             List<String> parameterList, String dataUnitString,
-            int imageTypeNumber, String localizationFileName) {
+            int imageTypeNumber) {
 
         double minPixVal = Double.NaN;
         double maxPixVal = Double.NaN;
@@ -864,65 +860,45 @@ public abstract class AbstractSatelliteResource extends
         }
         matchCriteria.setParameterName(parameterList);
 
-        File file = NcPathManager.getInstance().getStaticFile(
-                localizationFileName);
         try {
-            StyleRuleset styleSet = (StyleRuleset) SerializationUtil
-                    .jaxbUnmarshalFromXmlFile(file);
+            /*
+             * R6944 - use new style rule manager
+             */
+            StyleRule sr = StyleManager.getInstance().getStyleRule(
+                    StyleManager.StyleType.IMAGERY, matchCriteria);
 
-            if (styleSet != null) {
-                List<StyleRule> styleRuleList = styleSet.getStyleRules();
+            if (sr != null) {
 
-                for (StyleRule sr : styleRuleList) {
-                    MatchCriteria styleMatchCriteria = sr.getMatchCriteria();
-                    if (styleMatchCriteria.matches(matchCriteria) > 0) {
-
-                        AbstractStylePreferences stylePref = sr
-                                .getPreferences();
-                        if (stylePref != null
-                                && stylePref instanceof ImagePreferences) {
-                            imgPref = (ImagePreferences) stylePref;
-                            /*
-                             * Might need to change this if/when we use the
-                             * data-scaling
-                             */
-                            SamplePreferences samplePref = imgPref
-                                    .getSamplePrefs();
-                            if (samplePref != null) {
-                                minPixVal = imgPref.getSamplePrefs()
-                                        .getMinValue();
-                                maxPixVal = imgPref.getSamplePrefs()
-                                        .getMaxValue();
-                            } else if (imgPref.getDataScale() != null) {
-                                DataScale ds = imgPref.getDataScale();
-                                if (ds.getMaxValue() != null)
-                                    maxPixVal = ds.getMaxValue().doubleValue();
-                                if (ds.getMinValue() != null)
-                                    minPixVal = ds.getMinValue().doubleValue();
-                            }
-
-                            colorBar.setImagePreferences(imgPref);
-                            if (imgPref.getDisplayUnitLabel() != null) {
-                                colorBar.setDisplayUnitStr(imgPref
-                                        .getDisplayUnitLabel());
-
-                            }
-                            break;
-                        }
-
+                AbstractStylePreferences stylePref = sr.getPreferences();
+                if (stylePref != null && stylePref instanceof ImagePreferences) {
+                    imgPref = (ImagePreferences) stylePref;
+                    /*
+                     * Might need to change this if/when we use the data-scaling
+                     */
+                    SamplePreferences samplePref = imgPref.getSamplePrefs();
+                    if (samplePref != null) {
+                        minPixVal = imgPref.getSamplePrefs().getMinValue();
+                        maxPixVal = imgPref.getSamplePrefs().getMaxValue();
+                    } else if (imgPref.getDataScale() != null) {
+                        DataScale ds = imgPref.getDataScale();
+                        if (ds.getMaxValue() != null)
+                            maxPixVal = ds.getMaxValue().doubleValue();
+                        if (ds.getMinValue() != null)
+                            minPixVal = ds.getMinValue().doubleValue();
                     }
 
+                    colorBar.setImagePreferences(imgPref);
+                    if (imgPref.getDisplayUnitLabel() != null) {
+                        colorBar.setDisplayUnitStr(imgPref
+                                .getDisplayUnitLabel());
+                    }
                 }
-
             }
-        } catch (SerializationException e1) {
-
-            e1.printStackTrace();
         } catch (StyleException e1) {
-
             e1.printStackTrace();
         } catch (NullPointerException e1) {
-
+            e1.printStackTrace();
+        } catch (Exception e1) {
             e1.printStackTrace();
         }
         // these label value calculations are from legacy imlabl.f

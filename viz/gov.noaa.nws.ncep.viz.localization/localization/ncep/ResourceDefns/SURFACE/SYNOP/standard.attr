@@ -1,7 +1,8 @@
-! Parameters and Attributes for the default METAR Resource
+! Parameters and Attributes for the SYNOP Resource, for all reports
 !
 legendString=Synop (All Reports)
 plotModel=@PlotModels/sfcobs/synop_standard.xml
 reportType=1001,1002,1003,1004,1005,1006,1007
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=

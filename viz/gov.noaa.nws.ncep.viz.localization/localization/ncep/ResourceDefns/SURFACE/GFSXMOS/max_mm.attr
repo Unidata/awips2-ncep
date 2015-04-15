@@ -1,6 +1,7 @@
 ! Attributes for the GFSXMOS resource with "max_mm" plot model
 !
 plotModel=@PlotModels/bufrmosMRF/max_mm.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=GFSXMOS Day Temperature Forecast and Anomaly (F)

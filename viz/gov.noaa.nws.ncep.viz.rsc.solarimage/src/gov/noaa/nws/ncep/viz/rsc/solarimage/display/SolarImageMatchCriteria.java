@@ -93,21 +93,22 @@ public class SolarImageMatchCriteria extends MatchCriteria {
         int rval = -1;
         if (aCriteria instanceof SolarImageMatchCriteria) {
             rval = 0;
-
             SolarImageMatchCriteria criteria = (SolarImageMatchCriteria) aCriteria;
 
             if (instrument != null
-                    && (instrument.contains(criteria.instrument) || (criteria.instrument != null && criteria.instrument
-                            .contains(instrument)))) {
+                    && criteria.instrument != null
+                    && (instrument.contains(criteria.instrument) || criteria.instrument
+                            .contains(instrument))) {
                 rval++;
             }
 
-            if (wavelength != null
+            if (wavelength != null && criteria.wavelength != null
                     && wavelength.equalsIgnoreCase(criteria.wavelength)) {
                 rval++;
             }
 
-            if (intTime != null && intTime.equalsIgnoreCase(criteria.intTime)) {
+            if (intTime != null && criteria.intTime != null
+                    && intTime.equalsIgnoreCase(criteria.intTime)) {
                 rval++;
             }
 
@@ -116,26 +117,15 @@ public class SolarImageMatchCriteria extends MatchCriteria {
              * detector.equalsIgnoreCase(criteria.detector)) { rval++; }
              */
 
-            if (rval == getTotalNotNullValues()) {
-                rval = 1;
-            } else {
-                rval = 0;
-            }
+            /*
+             * R6944 - use ranking (...remove override)
+             * 
+             * if (rval == getTotalNotNullValues(criteria)) { rval = 1; } else {
+             * rval = 0; }
+             */
+
         }
         return rval;
-    }
-
-    public int getTotalNotNullValues() throws StyleException {
-
-        int tval = 0;
-        if (instrument != null)
-            tval++;
-        if (wavelength != null)
-            tval++;
-        if (intTime != null)
-            tval++;
-
-        return tval;
     }
 
     /**

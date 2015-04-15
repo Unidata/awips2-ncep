@@ -1,6 +1,7 @@
 ! Alternative standard with PTSY and P03C together METAR Resource
 !
 plotModel=@PlotModels/obs/standard2.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=METAR Standard2

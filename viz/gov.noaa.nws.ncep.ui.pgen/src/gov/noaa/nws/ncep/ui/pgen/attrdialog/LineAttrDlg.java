@@ -62,6 +62,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 									    Added cancelPressed() to go back to selecting mode.
  * 04/13		TTR399		J. Wu		make the dialog smaller.
  * 04/13        1065        J. Wu       Added KINK_POSITION.
+ * 04/15        R6520       J. Wu       Set width/pattern size range to match NMAP2.
  * </pre>
  * 
  * @author B. Yin
@@ -75,7 +76,7 @@ public class LineAttrDlg extends AttrDlg implements ILine {
 
     protected static int MIN_LINE_WIDTH = 1;
 
-    protected static int MAX_LINE_WIDTH = 20;
+    protected static int MAX_LINE_WIDTH = 10;
 
     protected static int DEFAULT_LINE_WIDTH = 2;
 
@@ -504,9 +505,9 @@ public class LineAttrDlg extends AttrDlg implements ILine {
                 inCmp, SWT.HORIZONTAL, 1);
         widthSpinnerSlider.setLayoutData(new GridData(148, 25));
         widthSpinnerSlider.setMinimum(1);
-        widthSpinnerSlider.setMaximum(20);
+        widthSpinnerSlider.setMaximum(10);
         widthSpinnerSlider.setIncrement(1);
-        widthSpinnerSlider.setPageIncrement(3);
+        widthSpinnerSlider.setPageIncrement(1);
         widthSpinnerSlider.setDigits(0);
 
     }

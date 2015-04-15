@@ -1,4 +1,6 @@
-! Parameters and Attributes for the default AMDAR Resource
+! Parameters and Attributes for the AMDAR Resource, with "standard" plot model
+!
 plotModel=@PlotModels/amdar/standard.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=

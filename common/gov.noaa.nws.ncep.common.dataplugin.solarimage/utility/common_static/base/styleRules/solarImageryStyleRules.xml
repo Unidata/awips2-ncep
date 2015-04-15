@@ -343,7 +343,7 @@
 </styleRule>
 <styleRule>
   <solarImageMatches>
-     <!--  <instrument>SXI-FM3</instrument>-->
+     <instrument>SXI-FM3</instrument>
      <wavelength>PTHNA</wavelength>
      <intTime>0.4</intTime>
   </solarImageMatches>

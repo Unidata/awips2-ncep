@@ -1,6 +1,7 @@
 ! Attributes for the GFSXMOS resource with "12hrpop" plot model
 !
 plotModel=@PlotModels/bufrmosMRF/12hrpop.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=GFSXMOS 12hr POP

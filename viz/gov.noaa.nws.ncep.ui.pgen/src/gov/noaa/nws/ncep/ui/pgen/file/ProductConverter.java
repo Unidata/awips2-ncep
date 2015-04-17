@@ -136,6 +136,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/14        TTR995      J. Wu       Set Text's 'auto" flag to false.
  * 09/14        TTR716      J. Wu       Use "-" for GFA Outlook's Vor text.
  * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
+ * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
  * 
  * </pre>
  * 
@@ -170,6 +171,14 @@ public class ProductConverter {
 
             if (fPrd.getCenter() != null) {
                 p.setCenter(fPrd.getCenter());
+            }
+
+            if (fPrd.getForecaster() != null) {
+                p.setForecaster(fPrd.getForecaster());
+            }
+
+            if (fPrd.getStatus() != null) {
+                p.setStatus(fPrd.getStatus());
             }
 
             if (fPrd.isSaveLayers() != null) {
@@ -878,6 +887,14 @@ public class ProductConverter {
             p.setForecaster(prd.getForecaster());
             p.setCenter(prd.getCenter());
 
+            if (prd.getForecaster() != null) {
+                p.setForecaster(prd.getForecaster());
+            }
+
+            if (prd.getStatus() != null) {
+                p.setStatus(prd.getStatus());
+            }
+
             String outFile = prd.getOutputFile();
             if (outFile != null) {
                 p.setOutputFile(outFile);
@@ -1344,8 +1361,6 @@ public class ProductConverter {
                     atext.setBottomValue(((AvnText) de).getBottomValue());
 
                     atext.setIthw(((AvnText) de).getIthw());
-                    System.out.println("set file el iwidth to "
-                            + ((AvnText) de).getIwidth());
 
                     atext.setIwidth(((AvnText) de).getIwidth());
 

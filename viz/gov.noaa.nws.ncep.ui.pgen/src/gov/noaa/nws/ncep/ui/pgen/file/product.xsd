@@ -23,6 +23,7 @@
 			<xsd:attribute name="useFile" type="xsd:boolean"></xsd:attribute>
             <xsd:attribute name="saveLayers" type="xsd:boolean"></xsd:attribute>
             <xsd:attribute name="onOff" type="xsd:boolean"></xsd:attribute>
+            <xsd:attribute name="status" type="xsd:string"></xsd:attribute>
 			<xsd:attribute name="center" type="xsd:string"></xsd:attribute>
 			<xsd:attribute name="forecaster" type="xsd:string"></xsd:attribute>
 			<xsd:attribute name="type" type="xsd:string"></xsd:attribute>

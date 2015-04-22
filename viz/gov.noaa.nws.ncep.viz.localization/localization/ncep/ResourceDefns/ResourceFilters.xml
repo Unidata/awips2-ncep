@@ -327,6 +327,9 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="ICEACCR_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ICEACCR">
+<filters>Forecast,NTRANS</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="JMAP_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>

@@ -29,7 +29,7 @@ import java.util.TreeMap;
  * 07/2014      TTR1034+    J. Wu       Added "startTime" & "endTime" to
  *                                      force range for timeline regardless 
  *                                      of data availability.
- * 09/2014      R4508       sgurung     Added null check
+ * 
  * </pre>
  * 
  * @author sgilbert
@@ -148,8 +148,6 @@ public class TimelineData {
      * Checks if the specified time is selected
      */
     public boolean isSelected(Calendar cal) {
-        if (times.get(cal) == null)
-            return false;
         return times.get(cal);
     }
 
@@ -401,8 +399,9 @@ public class TimelineData {
      * @param skip
      */
     private void addToFirst(int numFrames, int skip) {
-        int count = 0;
+
         while (numSelected() < numFrames) {
+
             Calendar cal = getFirstSelected();
             for (int j = 0; j <= skip; j++) {
                 cal = getPreviousTime(cal);
@@ -411,9 +410,6 @@ public class TimelineData {
             }
             select(cal);
 
-            count++;
-            if (count == numFrames)
-                break;
         }
     }
 
@@ -461,19 +457,14 @@ public class TimelineData {
         if (num * (skip + 1) < avail)
             num++;
 
-        try {
-            if (first.before(second)) {
-                select(first);
-                addToLast(num, skip);
-            } else if (first.after(second)) {
-                select(first);
-                addToFirst(num, skip);
-            } else {
-                select(first);
-            }
-        } catch (Exception e) {
-            System.out.println(" TimelineData.updateRange(), exception = "
-                    + e.getMessage());
+        if (first.before(second)) {
+            select(first);
+            addToLast(num, skip);
+        } else if (first.after(second)) {
+            select(first);
+            addToFirst(num, skip);
+        } else {
+            select(first);
         }
 
     }

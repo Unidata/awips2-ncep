@@ -5,7 +5,7 @@
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
-    <timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
     <frameSpan>60</frameSpan>
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>

@@ -587,7 +587,6 @@ public class GraphTimelineControl extends TimelineControl {
     private void updateTimeline() {
 
         if (timeMatcher.getFrameTimes().isEmpty()) {
-
             if (timeMatcher.getDominantResource() == null) {
                 setTimelineState("No Dominant Resource Selected", true);
             } else if (!timeMatcher.isDataAvailable()) {
@@ -619,9 +618,10 @@ public class GraphTimelineControl extends TimelineControl {
                 setControlsEnabled(true);
             }
 
-            timeData = new TimelineData(availTimes);
             // append data at the end to fill the snap peried
             snapAvailtimes(availTimes);
+
+            timeData = new TimelineData(availTimes);
 
             /*
              * TTR 1034+: Force the timeline to start from a given time and
@@ -928,16 +928,13 @@ public class GraphTimelineControl extends TimelineControl {
                 switch (e.type) {
 
                 case SWT.MouseDown:
+
                     if (e.button == 1) {
 
                         /*
-                         * If click on an available time OUTSIDE of the slider
-                         * rectangle, toggle it's status between selected and
-                         * not selected.
+                         * If click on an available time, toggle it's status
+                         * between selected and not selected
                          */
-                        if (!isInSlider(e.x, e.y) && toggleATime(e.x, e.y)) {
-                            return;
-                        }
                         // Disable now. May need in some case
                         // for (Rectangle rect : availableTimes.keySet()) {
                         // if (rect.contains(e.x, e.y)) {
@@ -1059,7 +1056,6 @@ public class GraphTimelineControl extends TimelineControl {
 
                         if (saveX == e.x) { // mouse did not move. reset
                             saveX = 0;
-                            toggleATime(e.x, e.y);
                             return;
                         }
 
@@ -1098,35 +1094,29 @@ public class GraphTimelineControl extends TimelineControl {
                                         .getFirstSelected();
                                 Calendar lastSelected = timeData
                                         .getLastSelected();
+                                lastSelected = GraphTimelineUtil
+                                        .snapTimeToNext(lastSelected, snap);
 
-                                if (firstSelected != null
-                                        && lastSelected != null) {
-                                    lastSelected = GraphTimelineUtil
-                                            .snapTimeToNext(lastSelected, snap);
+                                int firstSelectedX = currPositionFromTime(firstSelected);//
+                                int lastSelectedX = currPositionFromTime(lastSelected);
 
-                                    int firstSelectedX = currPositionFromTime(firstSelected);//
-                                    int lastSelectedX = currPositionFromTime(lastSelected);
+                                Calendar snapped = null;
 
-                                    Calendar snapped = null;
-
-                                    if (e.x <= saveX) {
-                                        snapped = (Calendar) firstSelected
-                                                .clone();
-                                        snapped.add(Calendar.HOUR_OF_DAY, -snap
-                                                * snapNumRound);
-                                        snapX = currPositionFromTime(snapped);
-                                        xdiff = snapX - firstSelectedX;
-                                    } else if (e.x > saveX) {
-                                        snapped = (Calendar) lastSelected
-                                                .clone();
-                                        snapped.add(Calendar.HOUR_OF_DAY, snap
-                                                * snapNumRound);
-                                        snapX = currPositionFromTime(snapped);
-                                        xdiff = snapX - lastSelectedX;
-                                    }
-
-                                    moveSlider(sliderStart, xdiff);
+                                if (e.x <= saveX) {
+                                    snapped = (Calendar) firstSelected.clone();
+                                    snapped.add(Calendar.HOUR_OF_DAY, -snap
+                                            * snapNumRound);
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - firstSelectedX;
+                                } else if (e.x > saveX) {
+                                    snapped = (Calendar) lastSelected.clone();
+                                    snapped.add(Calendar.HOUR_OF_DAY, snap
+                                            * snapNumRound);
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - lastSelectedX;
                                 }
+
+                                moveSlider(sliderStart, xdiff);
                                 break;
                             }
                             case MOVE_LEFT: {
@@ -1491,7 +1481,7 @@ public class GraphTimelineControl extends TimelineControl {
         Calendar time1 = timeData.getFirstSelected();
         Calendar time2 = timeData.getLastSelected();
 
-        if (time1 == null || time2 == null)
+        if (time1 == null)
             return new Rectangle(0, 0, 0, 0);
 
         Calendar prev = timeData.getPreviousTime(time1);
@@ -1710,7 +1700,6 @@ public class GraphTimelineControl extends TimelineControl {
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-    
         Calendar first = timeData.getStartTime();
         Calendar last = timeData.getEndTime();
 
@@ -2086,7 +2075,6 @@ public class GraphTimelineControl extends TimelineControl {
         } else {
             timeData.updateRange(last, first, 0);
         }
-
         // List<Calendar> cals = new ArrayList<Calendar>();
         // cals.add(timeData.getFirstSelected());
         timeMatcher.setFrameTimes(toDataTimes(timeData.getSelectedTimes())); // getSelectedTimes()));
@@ -2121,78 +2109,6 @@ public class GraphTimelineControl extends TimelineControl {
 
         resetSlider();
         canvas.redraw();
-    }
-
-    /*
-     * Find if a click within slider or hits a data time rectangle in the
-     * slider.
-     * 
-     * Note that the slider box may fall in the middle of a data time rectangle,
-     * while the click is outside of the slider box. This should be considered
-     * still within the slider box!
-     */
-    private boolean isInSlider(int xpos, int ypos) {
-
-        if (slider.contains(xpos, ypos)) {
-            return true;
-        }
-
-        // Handle specical case when slider box hits in the middle of a data
-        // time rectangle.
-        Rectangle selected = findATime(xpos, ypos);
-
-        if (selected == null || !slider.intersects(selected)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /*
-     * Find if a click hits a data time rectangle on the timeline.
-     */
-    private Rectangle findATime(int xpos, int ypos) {
-        Rectangle selected = null;
-
-        for (Rectangle rect : availableTimes.keySet()) {
-            if (rect.contains(xpos, ypos)) {
-                selected = rect;
-                break;
-            }
-        }
-
-        return selected;
-    }
-
-    /*
-     * Toggle a datatime's status between selected and not selected when
-     * clicked.
-     */
-    private boolean toggleATime(int xpos, int ypos) {
-        boolean selected = false;
-
-        for (Rectangle rect : availableTimes.keySet()) {
-            if (rect.contains(xpos, ypos)) {
-                timeData.toggle(availableTimes.get(rect));
-
-                /*
-                 * can't turn off only selected time...turn back on
-                 */
-                if (timeData.numSelected() == 0) {
-                    timeData.toggle(availableTimes.get(rect));
-                }
-
-                resetSlider();
-                canvas.redraw();
-                // numFramesSpnr.setSelection(timeData.numSelected());
-                timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
-
-                selected = true;
-                break;
-            }
-        }
-
-        return selected;
     }
 
 }

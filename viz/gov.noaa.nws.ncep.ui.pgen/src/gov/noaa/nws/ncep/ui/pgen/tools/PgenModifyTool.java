@@ -22,7 +22,7 @@ import gov.noaa.nws.ncep.ui.pgen.gfa.GfaReducePoint;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import com.raytheon.uf.viz.core.map.IMapDescriptor;
+import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -46,6 +46,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/12        TTR 998     J. Wu       Use mapDescriptor's pixelToWorld instead of PaneManager's
  *                                      translateClick() to convert point - translateClick() may 
  *                                      fail to convert if a point is outside of Grid coverage.
+ * 04/15        R6879       J. Wu       Make a local translateClick() without grid range check to 
+ *                                      fix TTR 998 and make modification work on screen pixels 
+ *                                      instead of canvas pixels.
  * 
  * </pre>
  * 
@@ -362,7 +365,7 @@ public class PgenModifyTool extends AbstractPgenTool {
          *            An array of points in lat/lon coordinates
          * @return The array of points in pixel coordinates
          */
-        private double[][] latlonToPixelOld(Coordinate[] pts) {
+        private double[][] latlonToPixel(Coordinate[] pts) {
 
             double[] point = new double[2];
             double[][] pixels = new double[pts.length][2];
@@ -387,16 +390,58 @@ public class PgenModifyTool extends AbstractPgenTool {
          *            An array of points in pixel coordinates
          * @return The array of points in Lat/Lons
          */
-        private ArrayList<Coordinate> pixelToLatlonOld(double[][] pixels) {
+        private ArrayList<Coordinate> pixelToLatlon(double[][] pixels) {
 
             ArrayList<Coordinate> crd = new ArrayList<Coordinate>();
-
             for (int ii = 0; ii < pixels.length; ii++) {
-                crd.add(mapEditor.translateClick(pixels[ii][0], pixels[ii][1]));
+                // Coordinate pp = mapEditor.translateClick(pixels[ii][0],
+                // pixels[ii][1]);
+                Coordinate pp = translateClick(pixels[ii][0], pixels[ii][1]);
+                crd.add(pp);
             }
 
             return crd;
 
+        }
+
+        /**
+         * Translate a current (x,y) screen coordinate to world coordinates.
+         * 
+         * Note: R6879 - this method is the same as PaneManager.translateClick()
+         * but without the check for grid range. The check for grid range turns
+         * points outside of grid range to null and causes exceptions (TTR998).
+         * 
+         * @param x
+         *            a visible x screen coordinate
+         * @param y
+         *            a visible y screen coordinate
+         * @return the lat lon value of the cooordinate
+         */
+        private Coordinate translateClick(double x, double y) {
+            IDisplayPane pane = mapEditor.getActiveDisplayPane();
+
+            // Convert the screen coordinates to grid space
+            double[] world = pane.screenToGrid(x, y, 0);
+
+            // GridEnvelope ge =
+            // pane.getDescriptor().getGridGeometry().getGridRange();
+            // IExtent extent = new PixelExtent(ge);
+            // Verify grid space is within the extent, otherwise return null
+            // if (world == null || extent.contains(world) == false) {
+
+            if (world == null) {
+                return null;
+            }
+
+            // use descriptor to convert pixel world to CRS world space
+            world = pane.getDescriptor().pixelToWorld(world);
+
+            // Check for null
+            if (world == null) {
+                return null;
+            }
+
+            return new Coordinate(world[0], world[1], world[2]);
         }
 
         /**
@@ -421,34 +466,6 @@ public class PgenModifyTool extends AbstractPgenTool {
                     }
                 }
             }
-        }
-
-        /**
-         * Converts an array of pixel coordinates to lat/lons
-         * 
-         * @param pts
-         *            An array of points in pixel coordinates
-         * @return The array of points in Lat/Lons
-         */
-        private ArrayList<Coordinate> pixelToLatlon(double[][] pixels) {
-
-            return PgenUtil.pixelToLatlon(pixels, (IMapDescriptor) mapEditor
-                    .getActiveDisplayPane().getRenderableDisplay()
-                    .getDescriptor());
-
-        }
-
-        /**
-         * Converts an array of lat/lons to pixel coordinates
-         * 
-         * @param pts
-         *            An array of points in lat/lon coordinates
-         * @return The array of points in pixel coordinates
-         */
-        private double[][] latlonToPixel(Coordinate[] pts) {
-            return PgenUtil.latlonToPixel(pts, (IMapDescriptor) mapEditor
-                    .getActiveDisplayPane().getRenderableDisplay()
-                    .getDescriptor());
         }
 
     }

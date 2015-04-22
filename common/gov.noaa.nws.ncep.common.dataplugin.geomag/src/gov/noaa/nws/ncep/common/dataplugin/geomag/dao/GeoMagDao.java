@@ -14,7 +14,6 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -328,9 +327,7 @@ public class GeoMagDao extends PluginDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        HibernateTemplate ht = getHibernateTemplate();
-                        Session sess = ht.getSessionFactory()
-                                .getCurrentSession();
+                        Session sess = getCurrentSession();
                         Criteria crit = sess.createCriteria(GeoMagRecord.class);
                         Criterion where1 = Restrictions.eq("stationCode",
                                 stationCode);
@@ -354,8 +351,7 @@ public class GeoMagDao extends PluginDao {
         return (Integer) txTemplate.execute(new TransactionCallback() {
             @Override
             public Object doInTransaction(TransactionStatus status) {
-                HibernateTemplate ht = getHibernateTemplate();
-                Session sess = ht.getSessionFactory().getCurrentSession();
+                Session sess = getCurrentSession();
                 Criteria crit = sess.createCriteria(GeoMagRecord.class);
                 Criterion where1 = Restrictions.eq("stationCode", stationCode);
                 crit.add(where1);

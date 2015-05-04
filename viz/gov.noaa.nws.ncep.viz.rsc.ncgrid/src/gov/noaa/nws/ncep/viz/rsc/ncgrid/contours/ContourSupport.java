@@ -78,6 +78,7 @@ import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IFont.Style;
 import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
+import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.viz.core.contours.util.StreamLineContainer;
 import com.raytheon.viz.core.contours.util.StreamLineContainer.StreamLinePoint;
@@ -134,6 +135,8 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  *    Apr 23,  2014  #856      pswamy      Missing color fill in grid diagnostics.
  *    Apr 30, 2014   862       pswamy      Grid Precipitable Water Contour Labels needs two decimal points
  *    Jun 26, 2014             sgilbert    Change world wrap processing.
+ *    Apr 08, 2015   R7296     J. Wu       use JTSComplier for clipping against view area.
+ * 
  * </pre>
  * 
  * @author chammack
@@ -179,6 +182,8 @@ public class ContourSupport {
     private MathTransform rastPosToLatLon = null;
 
     private MathTransform rastPosLatLonToWorldGrid = null;
+
+    private MathTransform worldGridToLatlon = null;
 
     private int zoomLevelIndex;
 
@@ -947,6 +952,8 @@ public class ContourSupport {
                     rastGridToCrs, rastCrsToLatLon);
             rastPosLatLonToWorldGrid = factory.createConcatenatedTransform(
                     rastCrsToWorldGrid, mapCrsToGrid);
+            worldGridToLatlon = factory.createConcatenatedTransform(
+                    rastPosToWorldGrid.inverse(), rastPosToLatLon);
         } catch (Exception e) {
             // throw new VizException("Error building Transforms", e);
             logger.error("Error building Transforms:" + e);
@@ -1059,6 +1066,9 @@ public class ContourSupport {
                 }
             }
 
+            JTSCompiler jtsCompiler = new JTSCompiler(null,
+                    contourGroup.negValueShape, descriptor);
+
             int n = 0;
 
             for (Double cval : contourGroup.cvalues) {
@@ -1089,8 +1099,33 @@ public class ContourSupport {
 
                 for (int i = 0; i < correctedGeom.getNumGeometries(); i++) {
                     Geometry gn = correctedGeom.getGeometryN(i);
-                    contourGroup.negValueShape.addLineSegment(gn
-                            .getCoordinates());
+
+                    /*
+                     * R7296 - clip against view area to remove pole points and
+                     * extra lines outside of view area.
+                     * 
+                     * addLineSegment() does not work anymore after clipping
+                     * being removed from GLGeometryObject2D. The clipping is
+                     * moved to JTSCompiler.
+                     */
+                    // contourGroup.negValueShape.addLineSegment(gn
+                    // .getCoordinates());
+                    try {
+                        if (gn instanceof Polygon) {
+                            jtsCompiler
+                                    .handle(((Polygon) gn).getExteriorRing());
+                            for (int ii = 0; ii < ((Polygon) gn)
+                                    .getNumInteriorRing(); ii++) {
+                                jtsCompiler.handle(((Polygon) gn)
+                                        .getInteriorRingN(ii));
+                            }
+                        } else {
+                            jtsCompiler.handle(gn);
+                        }
+                    } catch (VizException e) { // TODO Auto-generated catch
+                                               // block
+                        e.printStackTrace();
+                    }
 
                     if (toLabel) {
                         long tl0 = System.currentTimeMillis();
@@ -1186,13 +1221,13 @@ public class ContourSupport {
                         }
                         for (int j = 0; j < fillPolys.getNumGeometries(); j++) {
                             Geometry g = fillPolys.getGeometryN(j);
+
                             if (g instanceof Polygon) {
                                 // g = polyToLine((Polygon) g);
                                 Geometry llgeom = transformGeometry(g,
                                         rastPosToLatLon);
                                 jts.handle(llgeom, color, true);
                             }
-
                         }
                     } catch (FillException e) {
                         // e.printStackTrace();
@@ -1334,7 +1369,14 @@ public class ContourSupport {
         ;
 
         long tAccum = 0;
+
+        GeometryFactory gf = new GeometryFactory();
+
+        JTSCompiler jtsCompiler = new JTSCompiler(null,
+                contourGroup.posValueShape, descriptor);
+
         try {
+
             for (List<StreamLinePoint> line : streamLines.streamLines) {
                 for (StreamLinePoint point : line) {
                     double[] out = new double[2];
@@ -1354,9 +1396,13 @@ public class ContourSupport {
                         if (f > 180)
                             f = f - 360;
 
-                        rastPosToWorldGrid.transform(
-                                new double[] { f, point.getY() + minY }, 0,
-                                out, 0, 1);
+                        try {
+                            rastPosToWorldGrid.transform(new double[] { f,
+                                    point.getY() + minY }, 0, out, 0, 1);
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            // e.printStackTrace();
+                        }
 
                         pts.add(new Coordinate(f, point.getY() + minY));
 
@@ -1369,24 +1415,33 @@ public class ContourSupport {
 
                     vals.add(out);
                 }
+
                 if (pts.size() > 0) {
 
                     if (worldWrap) {
                         screen = toScreenRightOfZero(
                                 pts.toArray(new Coordinate[pts.size()]),
                                 rastPosToWorldGrid, minX, minY);
-                        if (screen != null)
-                            contourGroup.posValueShape.addLineSegment(screen);
+                        if (screen != null) {
+                            // contourGroup.posValueShape.addLineSegment(screen);
+                            addStreamLineToJTS(screen, gf, worldGridToLatlon,
+                                    jtsCompiler, corrector);
+                        }
 
                         screenx = toScreenLeftOfZero(
                                 pts.toArray(new Coordinate[pts.size()]),
                                 rastPosToWorldGrid, minX, minY);
-                        if (screenx != null)
-                            contourGroup.posValueShape.addLineSegment(screenx);
+                        if (screenx != null) {
+                            // contourGroup.posValueShape.addLineSegment(screenx);
+                            addStreamLineToJTS(screenx, gf, worldGridToLatlon,
+                                    jtsCompiler, corrector);
+                        }
                     } else {
                         double[][] valsArr = vals.toArray(new double[vals
                                 .size()][2]);
-                        contourGroup.posValueShape.addLineSegment(valsArr);
+                        // contourGroup.posValueShape.addLineSegment(valsArr);
+                        addStreamLineToJTS(valsArr, gf, worldGridToLatlon,
+                                jtsCompiler, corrector);
                     }
 
                     vals.clear();
@@ -1401,21 +1456,30 @@ public class ContourSupport {
             if (vals.size() > 0) {
 
                 double[][] valsArr = vals.toArray(new double[vals.size()][2]);
-                contourGroup.posValueShape.addLineSegment(valsArr);
+                // contourGroup.posValueShape.addLineSegment(valsArr);
+                addStreamLineToJTS(valsArr, gf, worldGridToLatlon, jtsCompiler,
+                        corrector);
 
                 if (worldWrap) {
                     screen = toScreenRightOfZero(
                             pts.toArray(new Coordinate[pts.size()]),
                             rastPosToWorldGrid, minX, minY);
-                    if (screen != null)
-                        contourGroup.posValueShape.addLineSegment(screen);
+                    if (screen != null) {
+                        // contourGroup.posValueShape.addLineSegment(screen);
+                        addStreamLineToJTS(screen, gf, worldGridToLatlon,
+                                jtsCompiler, corrector);
+                    }
 
                     screenx = toScreenLeftOfZero(
                             pts.toArray(new Coordinate[pts.size()]),
                             rastPosToWorldGrid, minX, minY);
-                    if (screenx != null)
-                        contourGroup.posValueShape.addLineSegment(screenx);
+                    if (screenx != null) {
+                        // contourGroup.posValueShape.addLineSegment(screenx);
+                        addStreamLineToJTS(screenx, gf, worldGridToLatlon,
+                                jtsCompiler, corrector);
+                    }
                 }
+
                 vals.clear();
             }
         } catch (Throwable e) {
@@ -1809,4 +1873,51 @@ public class ContourSupport {
         }
         return newFillColors;
     }
+
+    /*
+     * Adds a stream line to JTSCompiler for clipping against view area.
+     * 
+     * R7296 - addLineSegment() does not work anymore after clipping being
+     * removed from GLGeometryObject2D and the clipping is moved to JTSCompiler.
+     * So we use this method to clip against view area to remove pole points and
+     * extra lines outside of view area.
+     * 
+     * @param points - The point location in world grid coordinates
+     * 
+     * @param gf - Geometry factory.
+     * 
+     * @param mf - math transform to convert points into map coordinates.
+     * 
+     * @param jtsCompiler - A JTS compiler to accept/handle the LineString.
+     * 
+     * @param wcr - A WorldWrapCorrector to handle world wrap.
+     * 
+     * @return
+     */
+    private void addStreamLineToJTS(double[][] points, GeometryFactory gf,
+            MathTransform mf, JTSCompiler jtsCompiler, WorldWrapCorrector wcr) {
+        // Put points in world grid into a coordinate array.
+        Coordinate[] crds = new Coordinate[points.length];
+        for (int ii = 0; ii < points.length; ii++) {
+            crds[ii] = new Coordinate(points[ii][0], points[ii][1]);
+        }
+
+        // Transform points into map coordinates.
+        Coordinate[] mapCrds = transformCoordinates(crds, mf);
+
+        // Create a LineString
+        LineString lnst = gf.createLineString(mapCrds);
+
+        // Do world wrap correction
+        Geometry correctedLnst = wcr.correct(lnst);
+
+        // Add into a JTSCompiler to handle.
+        try {
+            jtsCompiler.handle(correctedLnst);
+        } catch (VizException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -20,7 +20,9 @@ package gov.noaa.nws.ncep.edex.uengine.tasks.profile;
  * 03/2014		1116		T. Lee		Added DpD
  * 01/2015      DR#16959    Chin Chen   Added DpT support to fix DR 16959 NSHARP freezes when loading a sounding from 
  *                                      HiRes-ARW/NMM models
- * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites                                     
+ * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites        
+ * 02/27/2015   RM#6641     Chin Chen   Retrieving model 2m FHAG Dew Point
+ *                         
  * </pre>
  * 
  * @author Chin Chen
@@ -646,7 +648,7 @@ public class MdlSoundingQuery {
             	query.addParameter(GridConstants.LEVEL_ONE, "2.0");
             	query.addParameter(GridConstants.LEVEL_TWO, "-999999.0");
             	query.addParameter(GridConstants.MASTER_LEVEL_NAME, "FHAG");
-            	query.addList(GridConstants.PARAMETER_ABBREVIATION, "T, RH");
+            	query.addList(GridConstants.PARAMETER_ABBREVIATION, "T, RH, DpT");
             	query.addParameter(GridConstants.DATASET_ID, modelName);
             	query.addParameter("dataTime.refTime", refTime);
             	query.addParameter("dataTime.validPeriod.start", validTime);
@@ -661,10 +663,16 @@ public class MdlSoundingQuery {
             				if(parm.equals("T")){
             					soundingLy.setTemperature((float) kelvinToCelsius
             							.convert(fdata));
-            				} if(parm.equals("RH")){
+            				} 
+            				//#6641
+            				else if(parm.equals("DpT")){
+            					soundingLy.setDewpoint((float) kelvinToCelsius
+                                        .convert(fdata));
+            				} 
+            				else if(parm.equals("RH")){
             					soundingLy.setRelativeHumidity(fdata);
             				} 
-            				//System.out.println("prm="+rec.getParameter().getAbbreviation()+" value="+fdata);
+            				System.out.println("prm="+rec.getParameter().getAbbreviation()+" value="+fdata);
 
             			} catch (PluginException e) {
             				// TODO Auto-generated catch block
@@ -694,7 +702,7 @@ public class MdlSoundingQuery {
             				if(parm.equals("vW")){
             					soundingLy.setWindV((float) metersPerSecondToKnots
             							.convert(fdata));
-            				} if(parm.equals("uW")){
+            				}else if(parm.equals("uW")){
             					soundingLy.setWindU((float) metersPerSecondToKnots
             							.convert(fdata));
             				} 
@@ -1169,7 +1177,8 @@ public class MdlSoundingQuery {
             pnt = PointUtil.determineIndex(coord, crs, geom);
             Integer nx = spatialArea.getNx();
             Integer ny = spatialArea.getNy();
-
+            //System.out.println("point.x="+ pnt.x +
+            //	             " .y="+pnt.y + " NumX="+nx+" NumY="+ny);
             if (pnt.x > nx || pnt.y > ny) {
                 return null;
             }

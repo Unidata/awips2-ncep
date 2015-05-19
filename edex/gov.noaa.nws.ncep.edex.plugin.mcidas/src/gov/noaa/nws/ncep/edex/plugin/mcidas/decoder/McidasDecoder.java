@@ -176,12 +176,12 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Nominal year and Julian day
              */
-            int yyddd = byteArrayToInt(area, 12, endian);
+            int yyddd = byteArrayToInt(area, 12, endian);				// W4
 
             /*
              * Nominal image time
              */
-            int hhmmss = byteArrayToInt(area, 16, endian);
+            int hhmmss = byteArrayToInt(area, 16, endian);				// W5
 
             /*
              * Set nominal time as data time and set seconds/millid
@@ -194,22 +194,22 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Upper-left line in satellite coordinates
              */
-            int ulline = byteArrayToInt(area, 20, endian);
+            int ulline = byteArrayToInt(area, 20, endian);				// W6
 
             /*
              * Upper-left element in satellite coordinates
              */
-            int ulelem = byteArrayToInt(area, 24, endian);
+            int ulelem = byteArrayToInt(area, 24, endian);				// W7
 
             /*
              * Number of lines in y-axis
              */
-            Integer ny = byteArrayToInt(area, 32, endian);
+            Integer ny = byteArrayToInt(area, 32, endian);				// W9
 
             /*
              * Number of pixels in x-axis
              */
-            Integer nx = byteArrayToInt(area, 36, endian);
+            Integer nx = byteArrayToInt(area, 36, endian);				// W10
 
             /*
              * Number of bytes each element (1, 2 or 4) int zdim =
@@ -219,12 +219,12 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Line resolution
              */
-            int yres = byteArrayToInt(area, 44, endian);
+            int yres = byteArrayToInt(area, 44, endian);				// W12
 
             /*
              * Element (pixel) resolution
              */
-            int xres = byteArrayToInt(area, 48, endian); //W13
+            int xres = byteArrayToInt(area, 48, endian); 				// W13
 
             /*
              * Maximum number of bands per scan line int zres = byteArrayToInt
@@ -234,7 +234,7 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Length of the data block line prefix
              */
-            int prefix = byteArrayToInt(area, 56, endian); //W15
+            int prefix = byteArrayToInt(area, 56, endian); 				// W15
             record.setPrefix(prefix);
 
             /*
@@ -245,8 +245,8 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Get and set the area creation time
              */
-            yyddd = byteArrayToInt(area, 64, endian); //W46
-            hhmmss = byteArrayToInt(area, 68, endian); //W47
+            yyddd = byteArrayToInt(area, 64, endian); 					// W46
+            hhmmss = byteArrayToInt(area, 68, endian); 					// W47
 
             if (hhmmss != 0) {
                 cal = convertJulianToCalendar(yyddd, hhmmss);
@@ -257,7 +257,7 @@ public class McidasDecoder extends AbstractDecoder {
              * Get and set image type, e.g., VIS, IR, IR2 from satellite name
              * and image type number
              */
-            int imageTypeNumber = byteArrayToInt(area, 72, endian); //W52
+            int imageTypeNumber = byteArrayToInt(area, 72, endian); 	// W52
             record.setImageTypeNumber(imageTypeNumber);
             if (imageTypeNumber <= 0) {
                 imageTypeNumber = -1;

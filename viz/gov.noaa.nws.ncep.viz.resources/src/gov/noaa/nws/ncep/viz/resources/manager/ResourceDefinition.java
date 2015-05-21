@@ -1,9 +1,9 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
 import static java.lang.System.out;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryDefinition;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryRequestMsg;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
@@ -1538,7 +1538,20 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
             }
 
-            getDataTimes(rscName); // this will add the times to the cache.
+            // Start R7785 : New thread added to load in background
+            final ResourceName rscName2 = rscName;
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        getDataTimes(rscName2);
+                    } catch (VizException e) {
+                        // TODO Auto-generated catch block. Please revise as
+                        // appropriate.
+                    } // this will add the times to the cache.
+                }
+            };
+            t.start();
+            // End R7785 : New thread added to load in background
 
             if (availTimesCache.containsKey(resourceConstraints)) {
                 latestTime = availTimesCache.get(resourceConstraints)
@@ -1763,8 +1776,8 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 String[] subParams = getSubTypeGenParamsList();
 
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
-                
-                if ( !(getResourceCategory() == ResourceCategory.PGENRscCategory )){
+
+                if (!(getResourceCategory() == ResourceCategory.PGENRscCategory)) {
                     request.addFields(subParams);
                     request.setDistinct(true);
                 }
@@ -1800,48 +1813,42 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                         }
                     }
 
-                    if( getResourceCategory() == ResourceCategory.PGENRscCategory ) {
-                        
-                        for ( Object pdo : result.values() ){
-                        PgenRecord pgenRec = (PgenRecord) pdo;
-                        if( subTypeGenerator.indexOf("dataTime") > -1 ) {
-                            subType = pgenRec.getDataTime().toString();
-                        }
-                        else if( subTypeGenerator.indexOf("activitySubtype") > -1 ) {
-                            subType = pgenRec.getActivitySubtype();
-                        }
-                        else if( subTypeGenerator.indexOf("activityLabel") > -1 ) {
-                            subType = pgenRec.getActivityLabel();
-                        }
-                        else if( subTypeGenerator.indexOf("activityName") > -1 ) {
-                            subType = pgenRec.getActivityName();
-                        }
-                        else if( subTypeGenerator.indexOf("activityType") > -1 ) {
-                            subType = pgenRec.getActivityType();
-                        }
-                        else if( subTypeGenerator.indexOf("site") > -1 ) {
-                            subType = pgenRec.getSite();
-                        }
-                        else if( subTypeGenerator.indexOf("desk") > -1 ) {
-                            subType = pgenRec.getDesk();
-                        }
-                        else if( subTypeGenerator.indexOf("forecaster") > -1 ) {
-                            subType = pgenRec.getForecaster();
-                        }
-                        else {
-                            System.out.println("Unrecognized PGEN rsc generating subType"+
-                                    subTypeGenerator );
-                        }
-                        
-                        if (subType != null && !subType.trim().isEmpty()) {
-                            if (!generatedSubTypesList.contains(subType)) {
-                                generatedSubTypesList.add(subType);
+                    if (getResourceCategory() == ResourceCategory.PGENRscCategory) {
+
+                        for (Object pdo : result.values()) {
+                            PgenRecord pgenRec = (PgenRecord) pdo;
+                            if (subTypeGenerator.indexOf("dataTime") > -1) {
+                                subType = pgenRec.getDataTime().toString();
+                            } else if (subTypeGenerator
+                                    .indexOf("activitySubtype") > -1) {
+                                subType = pgenRec.getActivitySubtype();
+                            } else if (subTypeGenerator
+                                    .indexOf("activityLabel") > -1) {
+                                subType = pgenRec.getActivityLabel();
+                            } else if (subTypeGenerator.indexOf("activityName") > -1) {
+                                subType = pgenRec.getActivityName();
+                            } else if (subTypeGenerator.indexOf("activityType") > -1) {
+                                subType = pgenRec.getActivityType();
+                            } else if (subTypeGenerator.indexOf("site") > -1) {
+                                subType = pgenRec.getSite();
+                            } else if (subTypeGenerator.indexOf("desk") > -1) {
+                                subType = pgenRec.getDesk();
+                            } else if (subTypeGenerator.indexOf("forecaster") > -1) {
+                                subType = pgenRec.getForecaster();
+                            } else {
+                                System.out
+                                        .println("Unrecognized PGEN rsc generating subType"
+                                                + subTypeGenerator);
+                            }
+
+                            if (subType != null && !subType.trim().isEmpty()) {
+                                if (!generatedSubTypesList.contains(subType)) {
+                                    generatedSubTypesList.add(subType);
+                                }
                             }
                         }
-                        }
-                        
-                    }
-                    else {
+
+                    } else {
 
                         subType = sb.toString();
                         if (subType != null && !subType.trim().isEmpty()) {

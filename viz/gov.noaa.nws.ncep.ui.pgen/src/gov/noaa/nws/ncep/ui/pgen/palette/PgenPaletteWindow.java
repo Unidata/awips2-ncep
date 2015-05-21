@@ -110,6 +110,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 01/10		?		    S. Gilbert  Initial Creation.
  * 08/13		TTR696/774	J. Wu		Reset title/Close product manage dialog.
  * 11/13		#1081		B. Yin		Get selected DE to change front/line type.
+ * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
  * 
  * </pre>
  * 
@@ -612,11 +613,14 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
              */
             Button btn = (Button) se.getSource();
             IConfigurationElement elem = itemMap.get(btn.getData());
+            System.out
+                    .println("palettle - button selected is " + btn.getData());
 
             /*
              * get the section of the palette that this item was registered with
              */
             String point = elem.getName();
+            System.out.println("palettle - button selected is at " + point);
 
             /*
              * If the button selected is in the "control", "action", or "object"
@@ -641,6 +645,18 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     elem = itemMap.get("MultiSelect");
                 } else if (currentObject != null) {
                     resetIcon(currentObject);
+                }
+
+                /*
+                 * R7805 - reset current action if it is different from the
+                 * newly-selected one.
+                 */
+                if (point.equals(ACTION_SECTION)) {
+                    if (!btn.getData().toString().equals(currentAction)) {
+                        System.out.println("reset currentAction "
+                                + currentAction);
+                        resetIcon(currentAction);
+                    }
                 }
 
                 // change front/line type
@@ -671,10 +687,12 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
                 if (selTool != null) {
                     selTool.changeSelectedLineType(elem.getAttribute("name"));
+                    System.out.println("!seltool......");
                 } else {
                     // clean up
                     PgenResource pgen = PgenUtil
                             .findPgenResource((AbstractEditor) editor);
+                    System.out.println("!non -- seltool......");
                     if (pgen != null) {
                         pgen.removeGhostLine();
                         pgen.removeSelected();

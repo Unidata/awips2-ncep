@@ -509,6 +509,9 @@ public abstract class AbstractSatelliteResource extends
             McidasRecord mcidas = (McidasRecord) record;
             McidasMapCoverage cov = mcidas.getCoverage();
             try {
+            	// this is where the last .getGridGeometry() is made in the sequence 
+            	// of events required to load McIDAS product to the NCP.
+            	// this is the THIRD instance of .getGridGeometry() being called...
                 Rectangle[] downscaleSizes = GridDownscaler
                         .getDownscaleSizes(cov.getGridGeometry());
                 numLevels = downscaleSizes.length;

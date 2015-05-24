@@ -44,10 +44,9 @@ public class McidasCRSBuilder {
         if (m.groupCount() == 1) {
             String type = m.group(1);
             // System.out.println("FOUND PROJCS:"+m.group(0)+":"+type);
-            p = Pattern.compile("\\[\"NAV_BLOCK_BASE64\",\\s\"(.*)\"\\]");
+            p = Pattern.compile("\\[\"NAV_BLOCK_BASE64\",\\s\"(.*)\"\\],");
             m = p.matcher(crsWKT);
             boolean found = m.find();
-
             // System.out.println(m.group());
             // System.out.println(m.groupCount()+m.group(1));
             if (found) {

@@ -3,5 +3,4 @@
    <regex>^MCIDAS.*</regex>
    <regex>^pnga2area.*</regex> 
    <regex>.*uniwisc.*</regex>
-   <!-- <regex>^MANUAL INGEST.*</regex>  -->
 </requestPatterns>

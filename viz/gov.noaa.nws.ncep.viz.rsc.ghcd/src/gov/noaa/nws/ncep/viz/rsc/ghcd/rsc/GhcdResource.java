@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -42,7 +43,9 @@ import java.util.TreeSet;
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
+import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
@@ -54,6 +57,7 @@ import com.raytheon.uf.viz.core.catalog.ScriptCreator;
 import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
@@ -79,7 +83,7 @@ import com.raytheon.viz.core.graphing.xy.XYDataList;
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- --------------------------
  * Sep 5, 2014   R4508       sgurung     Initial creation
- * 
+ * Jun 6, 2015	 R5413		 jhuber		 Remove Script Creator and use Thrift Client
  * </pre>
  * 
  * @author sgurung
@@ -234,8 +238,8 @@ public class GhcdResource extends
     @Override
     public void queryRecords() throws VizException {
 
-        HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
-                resourceData.getMetadataMap());
+        HashMap<String, RequestConstraint> reqConstraints = new HashMap<String, RequestConstraint>();
+        reqConstraints.put("pluginName", new RequestConstraint(resourceData.getPluginName()));
         RequestConstraint reqConstr = new RequestConstraint();
 
         String startTimeStr = timelineStart.toString().substring(0, 19);
@@ -245,26 +249,21 @@ public class GhcdResource extends
         reqConstr.setBetweenValueList(constraintList);
         reqConstr.setConstraintType(RequestConstraint.ConstraintType.BETWEEN);
 
-        queryList.put("dataTime.refTime", reqConstr);
-
-        LayerProperty prop = new LayerProperty();
-        prop.setDesiredProduct(ResourceType.PLAN_VIEW);
-        prop.setEntryQueryParameters(queryList, false);
-        prop.setNumberOfImages(100000);
-
-        String script = null;
-        script = ScriptCreator.createScript(prop);
-
-        if (script == null)
-            return;
-
+        reqConstraints.put("dataTime.refTime", reqConstr);
+        DbQueryRequest request = new DbQueryRequest();
+        request.setConstraints( reqConstraints );
+        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
         ghcdRecords = new ArrayList<GenericHighCadenceDataRecord>();
-        Object[] pdoList = Connector.getInstance().connect(script, null, 60000);
-
-        for (Object pdo : pdoList) {
-            for (IRscDataObject dataObject : processRecord(pdo)) {
-                newRscDataObjsQueue.add(dataObject);
-                ghcdRecords
+        List<Object> pdoList = new ArrayList<Object>();
+        for (int i = 0; i < response.getResults().size(); i++) {
+        	for( Map.Entry<String, Object> result : response.getResults().get(i).entrySet() )  {
+        		pdoList.add(result);
+        	}
+        }
+        	for (Object pdo : pdoList) {
+        		for (IRscDataObject dataObject : processRecord(pdo)) {
+        			newRscDataObjsQueue.add(dataObject);
+        			ghcdRecords
                         .add((GenericHighCadenceDataRecord) ((DfltRecordRscDataObj) dataObject)
                                 .getPDO());
             }

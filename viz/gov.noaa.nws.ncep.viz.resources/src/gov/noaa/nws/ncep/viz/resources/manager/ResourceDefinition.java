@@ -1538,20 +1538,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
             }
 
-            // Start R7785 : New thread added to load in background
-            final ResourceName rscName2 = rscName;
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        getDataTimes(rscName2);
-                    } catch (VizException e) {
-                        // TODO Auto-generated catch block. Please revise as
-                        // appropriate.
-                    } // this will add the times to the cache.
-                }
-            };
-            t.start();
-            // End R7785 : New thread added to load in background
+            getDataTimes(rscName); // this will add the times to the cache.
 
             if (availTimesCache.containsKey(resourceConstraints)) {
                 latestTime = availTimesCache.get(resourceConstraints)

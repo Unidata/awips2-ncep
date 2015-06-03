@@ -71,6 +71,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * May 07, 2013 1869            bsteffen    Remove dataURI column from
  *                                          PluginDataObject.
  * Aug 06, 2013 2228            njensen     Use deserialize(byte[])
+ * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
  * Sep 08, 2014                 sgilbert    Correct CONUS image projection
  * 
  * </pre>

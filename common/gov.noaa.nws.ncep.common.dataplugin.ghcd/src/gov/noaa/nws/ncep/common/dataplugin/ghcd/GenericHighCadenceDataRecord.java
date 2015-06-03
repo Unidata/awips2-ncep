@@ -36,7 +36,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.hibernate.annotations.Index;
 
-import com.raytheon.uf.common.dataplugin.IDecoderGettable;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
@@ -80,7 +79,7 @@ import com.raytheon.uf.common.time.DataTime;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement
 public class GenericHighCadenceDataRecord extends PersistablePluginDataObject
-        implements IDecoderGettable, IPointData, IPersistable {
+        implements IPointData, IPersistable {
 
     private static final long serialVersionUID = 1L;
 
@@ -165,11 +164,6 @@ public class GenericHighCadenceDataRecord extends PersistablePluginDataObject
     }
 
     @Override
-    public IDecoderGettable getDecoderGettable() {
-        return null;
-    }
-
-    @Override
     public PointDataView getPointDataView() {
         return this.pointDataView;
     }
@@ -177,26 +171,6 @@ public class GenericHighCadenceDataRecord extends PersistablePluginDataObject
     @Override
     public void setPointDataView(PointDataView pointDataView) {
         this.pointDataView = pointDataView;
-    }
-
-    @Override
-    public Amount getValue(String paramName) {
-        return null;
-    }
-
-    @Override
-    public Collection<Amount> getValues(String paramName) {
-        return null;
-    }
-
-    @Override
-    public String getString(String paramName) {
-        return null;
-    }
-
-    @Override
-    public String[] getStrings(String paramName) {
-        return null;
     }
 
     public String getSource() {

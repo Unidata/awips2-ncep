@@ -138,6 +138,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     reduces 'trickling in' of stations after pan/zoom.  Also changed resourceAttrsModified()
  *                                     to remove all stations' met parameter data if requeryDataAndReCreateAllStnImages true,
  *                                     to force re-query (now that we're bypassing stations that already have data).
+ *  Aug 08, 2014  3477     bclement    changed plot info locations to floats
  *  09/03/2014    1009     kbugenhagen Reload Framedata.stationMap if all stations' dist values are null
  * 
  * </pre>
@@ -274,8 +275,8 @@ public class NcPlotResource2 extends
                         synchronized (stationList) {
                             for (Station station : stationList) {
                                 String stnKey = getStationMapKey(
-                                        station.info.latitude.doubleValue(),
-                                        station.info.longitude.doubleValue());
+                                        station.info.latitude,
+                                        station.info.longitude);
 
                                 if (trialKey == null)
                                     trialKey = new String(stnKey);
@@ -532,10 +533,8 @@ public class NcPlotResource2 extends
              * stored in the database with missing/invalid lat/lon values
              */
 
-            if (plotInfo.latitude.doubleValue() < -90
-                    || plotInfo.latitude.doubleValue() > 90
-                    || plotInfo.longitude.doubleValue() < -180
-                    || plotInfo.longitude.doubleValue() > 180) {
+            if (plotInfo.latitude < -90 || plotInfo.latitude > 90
+                    || plotInfo.longitude < -180 || plotInfo.longitude > 180) {
                 return false;
             }
 
@@ -563,9 +562,9 @@ public class NcPlotResource2 extends
                         out.println("2 stations " + stn.info.stationId
                                 + " and " + plotInfo.stationId
                                 + " have the same location?" + "\nLat = "
-                                + stn.info.latitude.doubleValue() + ",Lon = "
-                                + stn.info.longitude.doubleValue()
-                                + " for the time: " + stn.info.dataTime);
+                                + stn.info.latitude + ",Lon = "
+                                + stn.info.longitude + " for the time: "
+                                + stn.info.dataTime);
                     }
                     // if these are the same time, should we check which one
                     // should be used,
@@ -1672,9 +1671,8 @@ public class NcPlotResource2 extends
                     .addAll(collectionOfStationsToBeRendered);
 
             for (Station stn : collectionOfStationsToBeRendered) {
-                String stnKey = getStationMapKey(
-                        stn.info.latitude.doubleValue(),
-                        stn.info.longitude.doubleValue());
+                String stnKey = getStationMapKey(stn.info.latitude,
+                        stn.info.longitude);
                 synchronized (fd.stationMap) {
                     fd.stationMap.put(stnKey, stn);
                 }
@@ -1752,7 +1750,7 @@ public class NcPlotResource2 extends
 
     // generate a string used as the key for the StationMap
 
-    private String getStationMapKey(Double lat, Double lon) {
+    private String getStationMapKey(Float lat, Float lon) {
         return new String("" + Math.round(lat * 1000.0) + ","
                 + Math.round(lon * 1000.0));
     }

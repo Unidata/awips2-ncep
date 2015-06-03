@@ -18,7 +18,6 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Index;
 
-import com.raytheon.uf.common.dataplugin.IDecoderGettable;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
@@ -56,6 +55,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *                                          PluginDataObject.
  * July 29, 2013 1028           ghull       add AwwReportType enum
  * Feb 11, 2014 2784            rferrel     Remove override of setIdentifier.
+ * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
  * July 07, 2014 ???            D. Sushon   add handling for TORNADO_WATCH in getReportType(..)
  * November 07, 2014 5125       J. Huber    added WINTER_WEATHER reportType to enum and removed 
  *                                          WINTER_STORM_WARNING, WINTER_STORM_WATCH, and
@@ -208,12 +208,6 @@ public class AwwRecord extends PluginDataObject {
      */
     public AwwRecord(String uri) {
         super(uri);
-    }
-
-    @Override
-    public IDecoderGettable getDecoderGettable() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     /**

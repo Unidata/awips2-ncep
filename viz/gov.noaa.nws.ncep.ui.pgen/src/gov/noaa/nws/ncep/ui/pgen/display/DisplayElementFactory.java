@@ -147,6 +147,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 08/14        TTR972      J. Wu       Draw filled object as filled only if either its layer's "filled" flag
  *                                      "true" or they are on the active layer,  .
  * 09/14        TTR750      J. Wu       Draw track label with specified font styles.
+ * 12/14		R5413		B. Yin		Dispose image and font in find*Ranges methods
  * 03/15        R4862       M. Kean     changes related to new point reduced data
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * </pre>
@@ -5880,8 +5881,8 @@ public class DisplayElementFactory {
      */
     public PgenRangeRecord findTextBoxRange(IText txt,
             PaintProperties paintProps) {
-
-        /*
+    	
+    	 /*	
          * For AvnText and MidCloudText, getString() is not defined and may
          * cause exception if the xml is converted from VGF. So a default range
          * record is added here. We may need to write a method to find the true
@@ -5891,7 +5892,7 @@ public class DisplayElementFactory {
                 && txt.getString() == null) {
             return new PgenRangeRecord();
         }
-
+        
         setScales(paintProps);
 
         double[] tmp = { txt.getPosition().x, txt.getPosition().y, 0.0 };
@@ -6023,6 +6024,10 @@ public class DisplayElementFactory {
         List<Coordinate> textPos = new ArrayList<Coordinate>();
         textPos.add(new Coordinate(loc[0], loc[1]));
 
+        if ( font != null ){
+        	font.dispose();
+        }
+        
         return new PgenRangeRecord(rngBox, textPos, false);
     }
 
@@ -6096,6 +6101,10 @@ public class DisplayElementFactory {
         List<Coordinate> symPos = new ArrayList<Coordinate>();
         symPos.add(sym.getLocation());
 
+        if ( pic != null ){
+        	pic.dispose();
+        }
+        
         return new PgenRangeRecord(rngBox, symPos, false);
 
     }
@@ -6494,19 +6503,19 @@ public class DisplayElementFactory {
 
         return new PgenRangeRecord(allpts, false);
     }
-
-    /*
-     * Check if PaintProperties indicate the display is zooming
-     * 
-     * @param paintProps The paint properties associated with the target
-     * 
-     * @return A boolean indicating a zoom event
-     */
-    private boolean zoomEvent(PaintProperties paintProps) {
-        boolean zoomChk = paintProps.isZooming()
-                || paintProps.getZoomLevel() != zoomLevel;
-        zoomLevel = paintProps.getZoomLevel();
-
-        return zoomChk;
-    }
+    
+        /*
+         * Check if PaintProperties indicate the display is zooming
+         * 
+         * @param paintProps The paint properties associated with the target
+         * 
+         * @return A boolean indicating a zoom event
+         */
+        private boolean zoomEvent(PaintProperties paintProps) {
+            boolean zoomChk = paintProps.isZooming()
+                    || paintProps.getZoomLevel() != zoomLevel;
+            zoomLevel = paintProps.getZoomLevel();
+    
+            return zoomChk;
+        }
 }

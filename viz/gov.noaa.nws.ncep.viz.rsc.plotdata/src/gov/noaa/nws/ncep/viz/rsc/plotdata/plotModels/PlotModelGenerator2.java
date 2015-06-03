@@ -94,7 +94,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 
 import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
-import com.raytheon.uf.common.serialization.adapters.UnitAdapter;
+import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -645,9 +645,9 @@ public class PlotModelGenerator2 extends Job {
                     		metPrm.setMissingDataSentinel( 
                     				pDesc.getFillValue().floatValue() );
                     		break;
-                    	case DOUBLE :
-                    		metPrm.setMissingDataSentinel( 
-                    				pDesc.getFillValue() );
+                            case LONG:
+                                metPrm.setMissingDataSentinel(pDesc
+                                        .getFillValue().longValue());
                     		break;
                     	case INT :
                     		metPrm.setMissingDataSentinel( 

@@ -42,8 +42,8 @@ import javax.measure.unit.UnitFormat;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 
-import com.raytheon.uf.common.serialization.adapters.UnitAdapter;
 import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.viz.core.DrawableBasics;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IDisplayPane;
@@ -80,6 +80,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/17/2014    923         S. Russell   altered method setUpSymbolMappingTables()
  * 06/17/2014    923         S. Russell   altered method createRenderableData()
  * 07/08/2014    TTR1027     B. Hebbard   Force createRenderableData to recreate wind vectors each time.
+ * Aug 08, 2014  3477        bclement     changed plot info locations to floats
  * 09/10/2014    Redmine 4230 S. Russell  Fix wind barb/brbk menu option in plot model dialog box
  * 11/03/2014    Redmine 4830 S. Russell  Added elements to presWxSymbolNames
  * 11/03/2014    Redmine 5156 B. Hebbard  Allow use of system fonts in addition to file-based 3
@@ -981,7 +982,7 @@ public class NcPlotImageCreator {
          * @param lon
          * @return
          */
-        private String createStationMapKey(Double lon, Double lat) {
+        private String createStationMapKey(Float lon, Float lat) {
             return new String("" + Math.round(lon * 1000.0) + ","
                     + Math.round(lat * 1000.0));
 

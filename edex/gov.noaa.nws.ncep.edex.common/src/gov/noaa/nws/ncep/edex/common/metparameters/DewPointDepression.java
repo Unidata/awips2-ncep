@@ -9,9 +9,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
-import com.raytheon.uf.common.serialization.adapters.UnitAdapter;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-
+import com.raytheon.uf.common.units.UnitAdapter;
 /**
  * Maps to any of  the GEMPAK parameters DPDC or DPDK or DPDF 
  * depending on the unit used to measure the dewpoint depression.

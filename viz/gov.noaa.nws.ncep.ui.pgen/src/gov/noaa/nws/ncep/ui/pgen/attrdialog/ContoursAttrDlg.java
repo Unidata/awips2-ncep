@@ -119,6 +119,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
  * 01/15        R5200/T1059 J. Wu       Add setSettings(de) to remember last-used attributes.
  * 01/15        R5201/T1060 J. Wu       Add getLabelTempKey(adc).
+ * 01/15        R5413       B. Yin      Added open methods for circle and line dialogs.
  * 
  * </pre>
  * 
@@ -2313,6 +2314,19 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         }
 
         /**
+         * Open the dialog if it doesn't exist.
+         */
+        @Override
+        public int open() {
+
+            if (this.getShell() == null || this.getShell().isDisposed()) {
+                return super.open();
+            } else {
+                return CANCEL;
+            }
+        }
+
+        /**
          * closes the line attribute dialog only
          */
         @Override
@@ -2480,6 +2494,19 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                 updateCircleAttributes();
             }
             this.close();
+        }
+        
+        /**
+         * Open the dialog if it doesn't exist.
+         */
+        @Override
+        public int open() {
+
+            if (this.getShell() == null || this.getShell().isDisposed()) {
+                return super.open();
+            } else {
+                return CANCEL;
+            }
         }
 
         /**

@@ -46,6 +46,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/12        TTR 998     J. Wu       Use mapDescriptor's pixelToWorld instead of PaneManager's
  *                                      translateClick() to convert point - translateClick() may 
  *                                      fail to convert if a point is outside of Grid coverage.
+ * 12/14		R5413		B. Yin		PGEN in D2D changes.
  * 04/15        R6879       J. Wu       Make a local translateClick() without grid range check to 
  *                                      fix TTR 998 and make modification work on screen pixels 
  *                                      instead of canvas pixels.
@@ -180,6 +181,67 @@ public class PgenModifyTool extends AbstractPgenTool {
 
             } else if (button == 3) {
 
+                return true;
+            }
+
+            else {
+                return false;
+            }
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseMove(int,
+         * int)
+         */
+        @Override
+        public boolean handleMouseMove(int x, int y) {
+            if (!isResourceEditable())
+                return false;
+
+            // Check if mouse is in geographic extent
+            Coordinate loc = mapEditor.translateClick(x, y);
+            if (loc == null)
+                return false;
+
+            // create the ghost element and put it in the drawing layer
+            if (clickPts != null && clickPts.size() >= 1) {
+
+                ArrayList<Coordinate> newPts = new ArrayList<Coordinate>(
+                        clickPts);
+                newPts.add(loc);
+
+                pml.setClickPts(latlonToPixel(newPts
+                        .toArray(new Coordinate[newPts.size()])));
+
+                ModifyLine();
+
+                ghostEl.setColors(new Color[] { ghostColor,
+                        new java.awt.Color(255, 255, 255) });
+                drawingLayer.setGhostLine(ghostEl);
+                mapEditor.refresh();
+
+            }
+
+            return true;
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int,
+         * int)
+         */
+        @Override
+        public boolean handleMouseUp(int x, int y, int button) {
+            if (!isResourceEditable() || shiftDown)
+                return false;
+            
+            if ( button == 3 ) {
+
                 if (drawingLayer.getSelectedDE() != null) {
 
                     if (clickPts != null && !clickPts.isEmpty()) {
@@ -275,58 +337,6 @@ public class PgenModifyTool extends AbstractPgenTool {
             else {
                 return false;
             }
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseMove(int,
-         * int)
-         */
-        @Override
-        public boolean handleMouseMove(int x, int y) {
-            if (!isResourceEditable())
-                return false;
-
-            // Check if mouse is in geographic extent
-            Coordinate loc = mapEditor.translateClick(x, y);
-            if (loc == null)
-                return false;
-
-            // create the ghost element and put it in the drawing layer
-            if (clickPts != null && clickPts.size() >= 1) {
-
-                ArrayList<Coordinate> newPts = new ArrayList<Coordinate>(
-                        clickPts);
-                newPts.add(loc);
-
-                pml.setClickPts(latlonToPixel(newPts
-                        .toArray(new Coordinate[newPts.size()])));
-
-                ModifyLine();
-
-                ghostEl.setColors(new Color[] { ghostColor,
-                        new java.awt.Color(255, 255, 255) });
-                drawingLayer.setGhostLine(ghostEl);
-                mapEditor.refresh();
-
-            }
-
-            return true;
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseUp(int, int,
-         * int)
-         */
-        @Override
-        public boolean handleMouseUp(int x, int y, int button) {
-
-            return false;
 
         }
 

@@ -42,6 +42,8 @@ import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
+import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
@@ -61,6 +63,7 @@ import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
@@ -88,7 +91,8 @@ import com.vividsolutions.jts.io.WKBReader;
  * 09/11/12      852        Q. Zhou     Modified time string and alignment in drawLabel().
  * 02/01/13      972        G. Hull     define on NcMapDescriptor instead of IMapDescriptor
  * 08/14/13     1028        G. Hull     Move to aww project. Use AwwReportType enum.
- * 1/15/2013     5770       Kris K      Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
+ * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 1/15/2015     5770       Kris K      Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
  * 
  * </pre>
  * 
@@ -955,37 +959,28 @@ public class FFAResource extends
     // Area change flag
     private boolean areaChangeFlag = false;
 
-    @Override
-    public void queryRecords() throws VizException {
-        // this method is almost similar to its super class's queryRecords(),
-        // may need to be modified later
-        // to use the super class's version for the common part
+	@Override
+	public void queryRecords() throws VizException {
+		// this method is almost similar to its super class's queryRecords(), may need to be modified later
+		// to use the super class's version for the common part
+		
+		HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint> queryList = 
+			new HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint>(resourceData.getMetadataMap());
+		
 
-        HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint> queryList = new HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint>(
-                resourceData.getMetadataMap());
-
-        com.raytheon.uf.viz.core.catalog.LayerProperty prop = new com.raytheon.uf.viz.core.catalog.LayerProperty();
-        prop.setDesiredProduct(com.raytheon.uf.viz.core.rsc.ResourceType.PLAN_VIEW);
-        prop.setEntryQueryParameters(queryList, false);
-        prop.setNumberOfImages(15000); // TODO: max # records ?? should we cap
-                                       // this ?
-
-        String script = null;
-        script = com.raytheon.uf.viz.core.catalog.ScriptCreator
-                .createScript(prop);
-
-        if (script == null)
-            return;
-
-        Object[] pdoList = com.raytheon.uf.viz.core.comm.Connector
-                .getInstance().connect(script, null, 60000);
-
+        DbQueryRequest request = new DbQueryRequest();
+        request.setConstraints(queryList);
+      
+        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+       
         queryResult = new FfaZoneQueryResult();
-
-        for (Object pdo : pdoList) {
-            for (IRscDataObject dataObject : processRecord(pdo)) {
-                newRscDataObjsQueue.add(dataObject);
-                queryResult.buildQueryPart2(dataObject);
+        
+        for (Map<String, Object> result : response.getResults()) {
+            for (Object pdo : result.values()) {
+                for( IRscDataObject dataObject : processRecord( pdo ) )	{	
+                    newRscDataObjsQueue.add(dataObject);
+                    queryResult.buildQueryPart2(dataObject);
+                }
             }
         }
 

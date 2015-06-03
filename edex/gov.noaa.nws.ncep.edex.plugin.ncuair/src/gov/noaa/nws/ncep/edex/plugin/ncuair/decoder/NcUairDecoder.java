@@ -20,9 +20,9 @@ import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
-import com.raytheon.uf.edex.wmo.message.WMOHeader;
 
 //import gov.noaa.nws.ncep.edex.tools.decoder.SnsTnsLocTbl;
 
@@ -48,6 +48,7 @@ import com.raytheon.uf.edex.wmo.message.WMOHeader;
  * 11/2011              Q. Zhou     Handle multi-record for stationId, eliminate
  *                                  number-id if there is a non-number-id.
  * Aug 30, 2013 2298    rjpeter     Make getPluginName abstract
+ * Jul 23, 2014 3410    bclement    location changed to floats
  * 09/02/2014           Chin Chen   fix surface height missing on some stations issue
  * </pre>
  * 
@@ -214,8 +215,8 @@ public class NcUairDecoder extends AbstractDecoder {
                 SurfaceObsLocation obsLoc = new SurfaceObsLocation(
                         station.getStationId());
                 if (station.getGeometry() != null) {
-                    Double lat = station.getGeometry().getY();
-                    Double lon = station.getGeometry().getX();
+                    float lat = (float) station.getGeometry().getY();
+                    float lon = (float) station.getGeometry().getX();
                     obsLoc.assignLocation(lat, lon);
                     Integer elev = station.getElevation();
                     // Chin: sfcElevSolution
@@ -225,8 +226,8 @@ public class NcUairDecoder extends AbstractDecoder {
                     obsLoc.setElevation(elev);
                     record.setLocation(obsLoc);
                 } else if (station.getUpperAirGeometry() != null) {
-                    Double lat = station.getUpperAirGeometry().getY();
-                    Double lon = station.getUpperAirGeometry().getX();
+                    float lat = (float) station.getUpperAirGeometry().getY();
+                    float lon = (float) station.getUpperAirGeometry().getX();
                     obsLoc.assignLocation(lat, lon);
                     Integer elev = station.getUpperAirElevation();
                     if (elev == null) {
@@ -336,15 +337,10 @@ public class NcUairDecoder extends AbstractDecoder {
          * Return the UairRecord record object.
          */
         if (record != null) {
-            try {
-                if (headers != null) {
-                    traceId = (String) headers.get("traceId");
-                }
-                record.setTraceId(traceId);
-                record.constructDataURI();
-            } catch (PluginException e) {
-                throw new DecoderException("Unable to construct dataURI", e);
+            if (headers != null) {
+                traceId = (String) headers.get("traceId");
             }
+            record.setTraceId(traceId);
         }
 
         /*
@@ -449,8 +445,8 @@ public class NcUairDecoder extends AbstractDecoder {
                     SurfaceObsLocation obsLoc = new SurfaceObsLocation(
                             station.getStationId());
                     if (station.getGeometry() != null) {
-                        Double lat = station.getGeometry().getY();
-                        Double lon = station.getGeometry().getX();
+                        float lat = (float) station.getGeometry().getY();
+                        float lon = (float) station.getGeometry().getX();
                         obsLoc.assignLocation(lat, lon);
                         Integer elev = station.getElevation();
                         // Chin: sfcElevSolution
@@ -460,8 +456,10 @@ public class NcUairDecoder extends AbstractDecoder {
                         obsLoc.setElevation(elev);
                         record.setLocation(obsLoc);
                     } else if (station.getUpperAirGeometry() != null) {
-                        Double lat = station.getUpperAirGeometry().getY();
-                        Double lon = station.getUpperAirGeometry().getX();
+                        float lat = (float) station.getUpperAirGeometry()
+                                .getY();
+                        float lon = (float) station.getUpperAirGeometry()
+                                .getX();
                         obsLoc.assignLocation(lat, lon);
                         Integer elev = station.getUpperAirElevation();
                         if (elev == null) {
@@ -572,8 +570,8 @@ public class NcUairDecoder extends AbstractDecoder {
             // set dataTime
             if (record != null) {
                 if (obsTime != null) {
-                    if (Math.abs(obsTime.getTime().getDate()
-                            - issueTime.getTime().getDate()) >= 2) {
+                    if (Math.abs(obsTime.get(Calendar.DAY_OF_MONTH)
+                            - issueTime.get(Calendar.DAY_OF_MONTH)) >= 2) {
                         // Chin, not a good record, should just skip it
                         System.out.println("Nc uair record bad issue time "
                                 + issueTime.getTime().toString() + " obs Time "
@@ -593,16 +591,11 @@ public class NcUairDecoder extends AbstractDecoder {
              * Return the UairRecord record object.
              */
             if (record != null) {
-                try {
-                    if (headers != null) {
-                        traceId = (String) headers.get("traceId");
-                    }
-                    record.setTraceId(traceId);
-                    record.constructDataURI();
-                    recordList.add(record);
-                } catch (PluginException e) {
-                    throw new DecoderException("Unable to construct dataURI", e);
+                if (headers != null) {
+                    traceId = (String) headers.get("traceId");
                 }
+                record.setTraceId(traceId);
+                recordList.add(record);
             }
 
         }// end while loop

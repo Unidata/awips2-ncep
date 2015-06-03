@@ -13,6 +13,7 @@ import java.util.Iterator;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.WatchBox;
@@ -34,7 +35,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 02/12                    S. Gurung   Moved isSnapADC() and getNumOfCompassPts() to SigmeInfo.
  * 05/11			#808	J. Wu		Update Gfa vor text
  * 05/12		    #610	J. Wu   	Add warning when GFA FROM lines > 3
- *
+ * 12/14			R5413	B. Yin		PGEN in D2D Changes.
  * </pre>
  * 
  * @author	B. Yin
@@ -74,9 +75,27 @@ public class PgenMoveElement extends PgenCopyElement {
 	    @Override
 	    public boolean handleMouseUp(int x, int y, int button) {
 	      	
-	    	if (  !isResourceEditable() || shiftDown || simulate ) return false;
-	    	
-	     	if ( ghostEl != null ) {
+	        if (  !isResourceEditable() || shiftDown || simulate ) return false;
+
+	        if ( button == 3 ) {
+
+	            if (  drawingLayer.getSelectedComp() != null ){
+	                // de-select element
+	                drawingLayer.removeSelected();
+	                drawingLayer.removeGhostLine();
+	                ghostEl = null;
+	                mapEditor.refresh();
+	            }
+	            else {
+	                // set selecting mode
+	                PgenUtil.setSelectingMode();
+	            }
+
+	            return true;
+
+	        }
+
+	        if ( ghostEl != null ) {
 
 	     		AbstractDrawableComponent comp = drawingLayer.getSelectedComp();
 	       		// reset color for the el and add it to PGEN resource

@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -82,9 +81,7 @@ public class GeoMagK3hrStateDao extends CoreDao {
                 .execute(new TransactionCallback() {
                     @Override
                     public Object doInTransaction(TransactionStatus status) {
-                        HibernateTemplate ht = getHibernateTemplate();
-                        Session sess = ht.getSessionFactory()
-                                .getCurrentSession();
+                        Session sess = getCurrentSession();
                         Criteria crit = sess
                                 .createCriteria(GeoMagK3hrState.class);
                         return crit.list();

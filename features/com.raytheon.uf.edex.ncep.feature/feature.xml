@@ -394,7 +394,6 @@
          version="0.0.0"
          unpack="false"/>
 
-<<<<<<< HEAD
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.ghcd"
          download-size="0"
@@ -423,8 +422,6 @@
          version="0.0.0"
          unpack="false"/>
          
-=======
->>>>>>> a0fe9e193c008b1887fa074023d5bfbfe13929b6
    <plugin
          id="gov.noaa.nws.ncep.edex.plugin.airep"
          download-size="0"

@@ -274,7 +274,7 @@ public class GempakGrid {
             double dx = 12.191;
             double dy = 12.191;
             crs = MapUtil.constructLambertConformal(majorAxis, minorAxis,
-                    latin1, latin2, lov);
+                    latin1, latin2, lov, latin1);
             crsWKT = crs.toWKT();
             try {
                 Unit<?> spacingUnitObj = Unit.valueOf(spacingUnit);

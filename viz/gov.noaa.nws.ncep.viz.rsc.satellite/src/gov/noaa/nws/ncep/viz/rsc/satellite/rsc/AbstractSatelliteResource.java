@@ -562,8 +562,6 @@ public abstract class AbstractSatelliteResource extends
             this.viewType = target.getViewType();
             this.grphTarget = target;
 
-            //grphTarget.setUseBuiltinColorbar(false);
-
             // create the colorBar Resource and add it to the resourceList for
             // this descriptor.
             cbarRscPair = ResourcePair

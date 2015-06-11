@@ -16,6 +16,7 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * 08/12/2014               Chin Chen   fixed issue that "load archive file with wrong time line displayed"
  * 12/17/2014   Task#5694   Chin Chen   added nsharpParseAndLoadTextFile() to be used by both NCP and D2D perspectives,
  *                                      also modified openArchiveFile() to use it.
+ * 02/05/2015   Task#5694   Chin Chen   add code to support previous version archived file format 
  *
  * </pre>
  * 
@@ -66,9 +67,12 @@ public class NsharpHandleArchiveFile {
      * PRESSURE HGHT TEMP DWPT WDIR WSPD OMEG 
      * 997.500000 129.000000 -3.250006 -3.381190 10.619656 1.627882 -9999.000
      * ........
+     * 
+     * NOTE: For backward compatible we also handle previous version text file 
+     * A typical previous version of saved file contents is as following....
      */
-	public static boolean nsharpTextfileParser(String textFilePath, List<NcSoundingLayer> sndLyList, 
-			NsharpStationInfo stninfo) throws FileNotFoundException {
+	private static boolean nsharpTextfileParser(String textFilePath, List<NcSoundingLayer> sndLyList, 
+			NsharpStationInfo stninfo) throws FileNotFoundException{
 		StringBuilder strContent = new StringBuilder("");
 		InputStream is = new FileInputStream(textFilePath);
 		int byteread;
@@ -81,34 +85,72 @@ public class NsharpHandleArchiveFile {
 				is.close();
 				return false;
 			}
+			//task#5694
+			String pStr = "PRESSURE";
+			int pIndex = strContent.indexOf(pStr);
+			String headerString = strContent.substring(0, pIndex);
+			
+			String omegaStr = "OMEG";
+			int omegaIndex = strContent.indexOf(omegaStr);
+			int omegaLength = omegaStr.length();
+			String dataString = strContent.substring(omegaIndex+omegaLength);
+			dataString = dataString.trim();
+			
+			String lonStr="yy",latStr="yy";
 			// System.out.println(strContent);
-			int lat = strContent.indexOf("LAT=");
+			int lat = headerString.indexOf("LAT=");
 			if (lat > 0) {
 				lat = lat + 4;
-				int endIndex = strContent.substring(lat).indexOf(";");
+				int endIndex = headerString.substring(lat).indexOf(";");
 				if (endIndex > 0) {
-					String latStr = strContent.substring(lat, lat
+					latStr = headerString.substring(lat, lat
 							+ endIndex);
 					// stninfo.setLatitude(Float.parseFloat(latStr));
 					stninfo.setLatitude(Double.parseDouble(latStr));
 				}
+				else{
+					//backward compatible handling
+					// get up to 4 digits for lon
+					try {
+						latStr = headerString.substring(lat, lat
+								+ 4);
+						stninfo.setLatitude(Double.parseDouble(latStr));
+					}
+					catch (IndexOutOfBoundsException e) {
+						e.printStackTrace();
+					}
+
+				}
 			}
-			int lon = strContent.indexOf("LON=");
+			int lon = headerString.indexOf("LON=");
 			if (lon > 0) {
 				lon = lon + 4;
-				int endIndex = strContent.substring(lon).indexOf(";");
+				int endIndex = headerString.substring(lon).indexOf(";");
 				if (endIndex > 0) {
-					String lonStr = strContent.substring(lon, lon
+					lonStr = headerString.substring(lon, lon
 							+ endIndex);
 					stninfo.setLongitude(Double.parseDouble(lonStr));
 				}
+				else{
+					//backward compatible handling
+					// get up to 4 digits for lon
+					try {
+						lonStr = headerString.substring(lon, lon
+								+ 4);
+						stninfo.setLongitude(Double.parseDouble(lonStr));
+					}
+					catch (IndexOutOfBoundsException e) {
+						e.printStackTrace();
+					} 
+
+				}
 			}
-			int snd = strContent.indexOf("SNDTYPE=");
+			int snd = headerString.indexOf("SNDTYPE=");
 			if (snd >= 0) {
 				snd = snd + 8;
-				int endIndex = strContent.substring(snd).indexOf(";");
+				int endIndex = headerString.substring(snd).indexOf(";");
 				if (endIndex > 0) {
-					String sndStr = strContent.substring(snd, snd
+					String sndStr = headerString.substring(snd, snd
 							+ endIndex);
 					stninfo.setSndType(sndStr);
 					if (NsharpLoadDialog.getAccess() != null) {
@@ -127,12 +169,13 @@ public class NsharpHandleArchiveFile {
 					}
 				}
 			}
-			int title = strContent.indexOf("TITLE=");
+			
+			int title = headerString.indexOf("TITLE=");
 			if (title > 0) {
 				title = title + 6;
-				int endIndex = strContent.substring(title).indexOf(";");
+				int endIndex = headerString.substring(title).indexOf(";");
 				if (endIndex > 0) {
-					String titleStr = strContent.substring(title, title
+					String titleStr = headerString.substring(title, title
 							+ endIndex);
 					stninfo.setStnDisplayInfo(titleStr);
 				}
@@ -142,67 +185,102 @@ public class NsharpHandleArchiveFile {
 				}
 			}
 			else {
-				is.close();
-				return false;
+				//backward compatible handling
+				//Two possible header formats supported here.
+				//format 1,
+				//BUFRUA  PTPN 06.12(Fri) BUFRUA  LAT=6.966670036315918 LON=158.2166748046875
+				// title is "PTPN 06.12(Fri) BUFRUA"
+				//format 2.
+				//NAM ETA218  PointA 150125/03(Sun) ETA218  LAT=39.66764519797457 LON=-105.92044834352876
+				// title is "PointA 150125/03(Sun) ETA218"
+				StringTokenizer hdrst = new StringTokenizer(strContent.toString());
+				int j =0;
+				int titleIndex =0;
+				
+				while (hdrst.hasMoreTokens()) {
+					j++;
+					String tok = hdrst.nextToken();
+					if(tok.contains("LAT")){
+						titleIndex = j-3;
+					}
+				}
+				String tStr="";
+				boolean titleFound = false;
+				j=0;
+				hdrst = new StringTokenizer(strContent.toString());
+				if(titleIndex >0){
+					while (hdrst.hasMoreTokens()) {
+						j++;
+						String tok = hdrst.nextToken();
+
+						if(j == titleIndex){
+							tStr = tok;
+							stninfo.setStnId(tok);
+						}
+						if(j > titleIndex && j < titleIndex+3){
+							tStr =tStr + " "+ tok;
+						}
+						if (j == titleIndex+3 ){
+							titleFound = true;
+							stninfo.setStnDisplayInfo(tStr);
+							break;
+						}
+					}
+				}
+				if(titleFound == false){
+					stninfo.setStnDisplayInfo(latStr+"/"+lonStr+" ----NA N/A");
+					stninfo.setStnId(latStr+"/"+lonStr);
+				}
 			}
 			NcSoundingLayer sndLy = null;
-			StringTokenizer st = new StringTokenizer(
-					strContent.toString());
+			StringTokenizer st = new StringTokenizer(dataString);
 			int i = 0;
-			int dataStartIndex = 15;
-			int dataCycleLength = 7;
-			while (st.hasMoreTokens()) {
-				i++;
+			//seven parameters: PRESSURE  HGHT	   TEMP	  DWPT    WDIR     WSPD    OMEG
+			int dataCycleLength = 7; 
+			while (st.hasMoreTokens()) {				
 				String tok = st.nextToken();
-				if (tok.equals("OMEG")) {
-					dataStartIndex = i + 1;
-				}
-				if (i >= dataStartIndex) {
+				if (i % dataCycleLength == 0) {
+					sndLy = new NcSoundingLayer();
+					sndLyList.add(sndLy);
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setPressure(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setPressure(Float.parseFloat(tok));
 
-					if ((i - dataStartIndex) % dataCycleLength == 0) {
-						sndLy = new NcSoundingLayer();
-						sndLyList.add(sndLy);
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setPressure(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setPressure(Float.parseFloat(tok));
-
-					} else if ((i - dataStartIndex) % dataCycleLength == 1) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setGeoHeight(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setGeoHeight(Float.parseFloat(tok));
-					} else if ((i - dataStartIndex) % dataCycleLength == 2) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setTemperature(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setTemperature(Float.parseFloat(tok));
-					} else if ((i - dataStartIndex) % dataCycleLength == 3) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setDewpoint(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setDewpoint(Float.parseFloat(tok));
-					} else if ((i - dataStartIndex) % dataCycleLength == 4) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setWindDirection(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setWindDirection(Float
-									.parseFloat(tok));
-					} else if ((i - dataStartIndex) % dataCycleLength == 5) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setWindSpeed(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setWindSpeed(Float.parseFloat(tok));
-					} else if ((i - dataStartIndex) % dataCycleLength == 6) {
-						if (Float.isNaN(Float.parseFloat(tok)))
-							sndLy.setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-						else
-							sndLy.setOmega(Float.parseFloat(tok));
-
-					}
+				} else if (i % dataCycleLength == 1) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setGeoHeight(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setGeoHeight(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 2) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setTemperature(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setTemperature(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 3) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setDewpoint(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setDewpoint(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 4) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setWindDirection(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setWindDirection(Float
+								.parseFloat(tok));
+				} else if (i % dataCycleLength == 5) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setWindSpeed(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setWindSpeed(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 6) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setOmega(Float.parseFloat(tok));
 
 				}
-
+				i++;
 			}
 			is.close();
 			if (sndLyList.size() > 0) {
@@ -222,13 +300,21 @@ public class NsharpHandleArchiveFile {
 			return false;
 		}
 	}
+	//Task#5694
+	private static void displayMessage(String msg){
+		Shell shell = new Shell();
+    	MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
+    			| SWT.OK);
+    	mb.setMessage(msg);
+    	mb.open();
+	}
 	public static boolean nsharpParseAndLoadTextFile(String textFilePath) throws FileNotFoundException{
 		List<NcSoundingLayer> sndLyList = new ArrayList<NcSoundingLayer>();
         NsharpStationInfo stninfo = new NsharpStationInfo();
         if(nsharpTextfileParser(textFilePath,sndLyList,stninfo) == false)
         {
-        	return false;
-        
+        	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
+        	return false;        
         }
         else {
         	// minimum rtnSndList size will be 2 (50 & 75 mb layers),
@@ -247,12 +333,14 @@ public class NsharpHandleArchiveFile {
             	NsharpEditor.bringEditorToTop();
             	
             } 
-            else 
+            else{
+            	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
             	return false;
+            }
         }
         return true;
 	}
-
+	//end Task#5694
     public static void openArchiveFile(Shell shell) {
          FileDialog fd = new FileDialog(shell, SWT.MULTI);
         fd.setText("Open");
@@ -276,18 +364,13 @@ public class NsharpHandleArchiveFile {
                     }
                     selectedFilePath = selectedFilePath + selecteds[j];
                     //Task#5694
-                    if( nsharpParseAndLoadTextFile(selectedFilePath) == false) {
-                    	MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
-                    			| SWT.OK);
-                    	mb.setMessage("Invalid sounding data retrieved from archive file "+ selectedFilePath+ "!!");
-                    	mb.open();
-                    	//continue;
-                    }
-                }
+                    nsharpParseAndLoadTextFile(selectedFilePath);
+                 }
             } catch (FileNotFoundException e) {
+            	displayMessage("File not found!!");
                 e.printStackTrace();
             } catch (NumberFormatException e) {
-                System.out.println("number format exception happened");
+                displayMessage("Parsing file and number format exception happened!!");
                 e.printStackTrace();
             } 
         }

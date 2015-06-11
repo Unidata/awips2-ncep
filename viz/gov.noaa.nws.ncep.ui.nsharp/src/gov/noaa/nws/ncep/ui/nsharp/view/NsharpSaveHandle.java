@@ -12,6 +12,8 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
  * 12/17/2014   Task#5694   Chin Chen   consolidate saved file format for both NCP and D2D perspectives
+ * 02/23/2015   Task#5694   Chin Chen   let NCP and D2D use same text file format 
+ *
  * </pre>
  * 
  * @author Chin Chen
@@ -121,62 +123,124 @@ public class NsharpSaveHandle {
                     String textToSave = new String("");
 
                     if (rsc != null && rsc.getSoundingLys() != null) {
-                    	List<NcSoundingLayer> soundLyList = rsc
-                    			.getSoundingLys();
-                    	String latlonstr;
-                    	NsharpStationInfo stnInfo = rsc.getPickedStnInfo();
-                    	if (stnInfo != null) {
-                    		latlonstr = "LAT=" + stnInfo.getLatitude()
-                    				+ "; LON=" + stnInfo.getLongitude()
-                    				+ ";";
-                    	} else {
-                    		latlonstr = "LAT=; LON=; ";
-                    	}
-                    	int loadsoundingType = NsharpLoadDialog.OBSER_SND;
-                    	String loadsoundingTypeStr = "OBS";
-                    	;
-                    	if (NsharpLoadDialog.getAccess() != null) {
-                    		loadsoundingType = NsharpLoadDialog.getAccess()
-                    				.getActiveLoadSoundingType();
-                    		switch (loadsoundingType) {
-                    		case NsharpLoadDialog.PFC_SND:
-                    			loadsoundingTypeStr = "PFC";
-                    			break;
-                    		case NsharpLoadDialog.MODEL_SND:
-                    			loadsoundingTypeStr = "MDL";
-                    			break;
-                    		case NsharpLoadDialog.OBSER_SND:
-                    		default:
-                    			loadsoundingTypeStr = "OBS";
-                    			break;
-                    		}
-                    	}
-                    	textToSave = "SNDTYPE="
-                    			+ loadsoundingTypeStr
-                    			+ ";  TITLE="
-                    			+ rsc.getPickedStnInfoStr()
-                    			+ "; STNID="
-                    			+ rsc.getPickedStnInfo().getStnId()
-                    			+ "; "
-                    			+ latlonstr
-                    			+ "\n "
-                    			+ "PRESSURE  HGHT\t   TEMP\t  DWPT    WDIR     WSPD    OMEG \n";
-                    	String tempText = "";
-                    	for (NcSoundingLayer layer : soundLyList) {
-                    		tempText = String.format(
-                    				"%f  %f  %f  %f  %f  %f  %f\n",
-                    				layer.getPressure(),
-                    				layer.getGeoHeight(),
-                    				layer.getTemperature(),
-                    				layer.getDewpoint(),
-                    				layer.getWindDirection(),
-                    				layer.getWindSpeed(), layer.getOmega());
-                    		textToSave = textToSave + tempText;
-                    	}
+
+                    	//Task#5694
+                        /*if (VizPerspectiveListener
+                                .getCurrentPerspectiveManager() != null
+                                && VizPerspectiveListener
+                                        .getCurrentPerspectiveManager()
+                                        .getPerspectiveId()
+                                        .equals(D2D5Pane.ID_PERSPECTIVE)) {
+                            List<NcSoundingLayer> soundLyList = rsc
+                                    .getSoundingLys();
+                            String latlonstr;
+                            NsharpStationInfo stnInfo = rsc.getPickedStnInfo();
+                            if (stnInfo != null) {
+                                latlonstr = "  LAT=" + stnInfo.getLatitude()
+                                        + " LON=" + stnInfo.getLongitude();
+                            } else {
+                                latlonstr = "  LAT=  LON=  ";
+                            }
+                            int loadsoundingType = NsharpLoadDialog.OBSER_SND;
+                            String loadsoundingTypeStr = "OBS";
+                            ;
+                            if (NsharpLoadDialog.getAccess() != null) {
+                                loadsoundingType = NsharpLoadDialog.getAccess()
+                                        .getActiveLoadSoundingType();
+                                switch (loadsoundingType) {
+                                case NsharpLoadDialog.PFC_SND:
+                                    loadsoundingTypeStr = "PFC";
+                                    break;
+                                case NsharpLoadDialog.MODEL_SND:
+                                    loadsoundingTypeStr = "MDL";
+                                    break;
+                                case NsharpLoadDialog.OBSER_SND:
+                                default:
+                                    loadsoundingTypeStr = "OBS";
+                                    break;
+                                }
+                            }
+                            textToSave = loadsoundingTypeStr
+                                    + " "
+                                    + rsc.getPickedStnInfo().getSndType()
+                                    + "  "
+                                    + rsc.getPickedStnInfoStr()
+                                    + latlonstr
+                                    + "\n"
+                                    + "PRESSURE  HGHT\t   TEMP\t  DWPT    WDIR     WSPD    OMEG\n";
+                            String tempText = "";
+                            for (NcSoundingLayer layer : soundLyList) {
+                                tempText = String.format(
+                                        "%f  %f  %f  %f  %f  %f  %f\n",
+                                        layer.getPressure(),
+                                        layer.getGeoHeight(),
+                                        layer.getTemperature(),
+                                        layer.getDewpoint(),
+                                        layer.getWindDirection(),
+                                        layer.getWindSpeed(), layer.getOmega());
+                                textToSave = textToSave + tempText;
+                            }
+                        } else */
+                    	{
+                            List<NcSoundingLayer> soundLyList = rsc
+                                    .getSoundingLys();
+                            String latlonstr;
+                            NsharpStationInfo stnInfo = rsc.getPickedStnInfo();
+                            if (stnInfo != null) {
+                                latlonstr = "LAT=" + stnInfo.getLatitude()
+                                        + "; LON=" + stnInfo.getLongitude()
+                                        + ";";
+                            } else {
+                                latlonstr = "LAT=; LON=; ";
+                            }
+                            int loadsoundingType;// = NsharpLoadDialog.OBSER_SND;
+                            String loadsoundingTypeStr = "NA";//OBS";
+                            
+                            if (NsharpLoadDialog.getAccess() != null) {
+                                loadsoundingType = NsharpLoadDialog.getAccess()
+                                        .getActiveLoadSoundingType();
+                                switch (loadsoundingType) {
+                                case NsharpLoadDialog.PFC_SND:
+                                    loadsoundingTypeStr = "PFC";
+                                    break;
+                                case NsharpLoadDialog.MODEL_SND:
+                                    loadsoundingTypeStr = "MDL";
+                                    break;
+                                case NsharpLoadDialog.OBSER_SND:
+                                	loadsoundingTypeStr = "OBS";
+                                	break;
+                                default:
+                                    loadsoundingTypeStr = "NA";
+                                    break;
+                                }
+                            }
+                            textToSave = "SNDTYPE="
+                                    + loadsoundingTypeStr
+                                    + ";  TITLE="
+                                    + rsc.getPickedStnInfoStr()
+                                    + "; STNID="
+                                    + rsc.getPickedStnInfo().getStnId()
+                                    + "; "
+                                    + latlonstr
+                                    + "\n "
+                                    + "PRESSURE  HGHT\t   TEMP\t  DWPT    WDIR     WSPD    OMEG \n";
+                            String tempText = "";
+                            for (NcSoundingLayer layer : soundLyList) {
+                                tempText = String.format(
+                                        "%f  %f  %f  %f  %f  %f  %f\n",
+                                        layer.getPressure(),
+                                        layer.getGeoHeight(),
+                                        layer.getTemperature(),
+                                        layer.getDewpoint(),
+                                        layer.getWindDirection(),
+                                        layer.getWindSpeed(), layer.getOmega());
+                                textToSave = textToSave + tempText;
+                            }
+                        }
+                        out.write(textToSave);
+                        // Close the output stream
+                        out.close();
                     }
-                    out.write(textToSave);
-                    // Close the output stream
-                    out.close();
 
                 } catch (Exception e) {// Catch exception if any
                 	System.err.println("Error: " + e.getMessage());

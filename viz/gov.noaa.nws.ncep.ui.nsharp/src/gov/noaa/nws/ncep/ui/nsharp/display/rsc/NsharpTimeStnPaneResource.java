@@ -12,6 +12,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
  * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
+ * 02/23/2015   Task#5694   Chin Chen   add code to support previous time line format
  *
  * </pre>
  * 
@@ -372,7 +373,8 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
                 RGB tmLnColor = rscHandler.getElementColorMap().get(sta.name());
                 String tmDesStr = elm.getElementDescription();
                 // DR17079: convert timeDesStr for GUI display
-                tmDesStr = convertTimeLineForDisplay(tmDesStr);
+                if(tmDesStr.contains("/")) // if time string is YYMMDD/HH format
+                	tmDesStr = convertTimeLineForDisplay(tmDesStr);
                 double tmX = x;
 
                 if (compareTmIsOn

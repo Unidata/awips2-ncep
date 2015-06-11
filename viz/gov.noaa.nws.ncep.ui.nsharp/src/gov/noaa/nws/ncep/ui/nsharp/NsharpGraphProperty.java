@@ -13,6 +13,7 @@ package gov.noaa.nws.ncep.ui.nsharp;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 03/21/2012	229			Chin Chen	Initial coding
+ * 03/09/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option                       
  *
  * </pre>
  * 
@@ -127,7 +128,10 @@ public class NsharpGraphProperty implements ISerializableObject {
     private boolean showFilteredWindInCircle = false;
 
     @XmlAttribute
-    private int sndCompRadius = 0; // FixMark:nearByStnCompSnd
+    private int sndCompRadius = 0; 
+    
+    @XmlAttribute
+    private boolean gridInterpolation = true;
 
     public boolean isTemp() {
         return temp;
@@ -372,4 +376,13 @@ public class NsharpGraphProperty implements ISerializableObject {
         this.showFilteredWindInCircle = showFilteredWindInCircle;
     }
 
+	public boolean isGridInterpolation() {
+		return gridInterpolation;
+	}
+
+	public void setGridInterpolation(boolean gridInterpolation) {
+		this.gridInterpolation = gridInterpolation;
+	}
+
+    
 }

@@ -17,6 +17,7 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  * 09/13/2010	 229		Chin Chen	Initial coding
  * 11/2010		 301		T. Lee		Moved Comparator to SoundingUtil
  * 03/2014      1116        T. Lee      Added constructor argument for DPD
+ * 04/20/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option                       
  *
  * </pre>
  * 
@@ -371,6 +372,18 @@ public class NcSoundingLayer implements ISerializableObject, Cloneable {
         computeSpdDir();
     }
 
+    //RM#6674
+    public void updateWindV(float windV){
+    	this.windV = windV;
+    }
+    public void updateWindU(float windU){
+    	this.windU = windU;
+    }
+    public void updateWindSpdDir(float windV,float windU){
+    	this.windU = windU;
+    	this.windV = windV;
+        computeSpdDir();
+    }
     /**
      * @return the vertical velocity in millibars/sec??
      */
@@ -596,10 +609,37 @@ public class NcSoundingLayer implements ISerializableObject, Cloneable {
 
     public static Coordinate speedDir(float u, float v) {
         double spd = Math.hypot(u, v);
-        double dir = Math.toDegrees(Math.atan2(-u, -v));
-        if (dir < 0) {
-            dir += 360;
+//        double dir = Math.toDegrees(Math.atan2(-u, -v));
+//        if (dir < 0) {
+//            dir += 360;
+//        }
+        
+//        double dir = Math.atan2(-u, -v) * 57.29578; // 180/pi = 57.29578
+//        if (dir < 0) {
+//            dir += 360;
+//        }
+        
+        // based on wind.c angle(), 29 March 2011 RLT */
+        double dir;
+        double PI = 3.14159265;
+        double sc = PI/180;
+        if ((u == 0) && (v == 0)) dir= 0;
+        else if ((u == 0) && (v < 0)) dir= 360;
+        else if ((u == 0) && (v > 0)) dir= 180;
+        else { //Bigsharp
+        	double t1 = Math.atan(-v / -u) / sc;
+        	if (u <= 0)
+        		dir = (90 - t1);
+        	else
+        		dir = (270 - t1);
         }
+//        else{ //legacy 
+//    	double t1 = Math.atan(v / u) / sc;
+//    	if (u >= 0)
+//    	   {dir=(90 - t1);}
+//    	else
+//    	   {dir=(270 - t1);}
+//    	}
         return new Coordinate(spd, dir);
     }
 

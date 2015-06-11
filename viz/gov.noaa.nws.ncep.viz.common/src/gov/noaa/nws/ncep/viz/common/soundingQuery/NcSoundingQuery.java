@@ -16,7 +16,7 @@ package gov.noaa.nws.ncep.viz.common.soundingQuery;
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * 02/15/2012               Chin Chen   modify several sounding query algorithms for better performance
  * Oct 15, 2012 2473        bsteffen    Remove ncgrib
-
+ * 03/04/2015   RM#6674     Chin Chen   support data interpolation configuration for model sounding query 
  * </pre>
  * 
  * @author Chin Chen
@@ -443,16 +443,16 @@ public class NcSoundingQuery {
 				latLon[i][0]= (float)coords.get(i).y; //lat
 				latLon[i][1]= (float)coords.get(i).x; //lon
 			}	
-			return (mdlSoundingQueryByLatLon(refTimeStr, validTimeStr, latLon, pluginName, mdlName, merge, level));
+			return (mdlSoundingQueryByLatLon(refTimeStr, validTimeStr, latLon, pluginName, mdlName, merge, level, true)); 
 		}
 		return null;
 	}	
-	public static NcSoundingCube mdlSoundingQueryByLatLon(String refTimeStr, String validTimeStr, float[][] latLon, String pluginName, String mdlName, boolean merge, String level) {
-		//if(latLon.length <=0 )
-		//	return null;
-		//convert refTimeStr to in msec unit and query
-		//long refTime = convertRefTimeStr(refTimeStr);
-		//long validTime = convertRefTimeStr(validTimeStr);
+	
+	/*
+	 * RM#6674: add interpolation parameter
+	 */
+	public static NcSoundingCube mdlSoundingQueryByLatLon(String refTimeStr, String validTimeStr, float[][] latLon, String pluginName, String mdlName, 
+			boolean merge, String level, boolean interpolation) {
 		NcSoundingCube cube = null;
 		StringBuilder query = new StringBuilder();
 
@@ -468,6 +468,10 @@ public class NcSoundingQuery {
 			query.append("sndRq.setMerge(1)\n");
 		else
 			query.append("sndRq.setMerge(0)\n");
+		if(interpolation == true) //RM#6674
+			query.append("sndRq.setInterpolation(1)\n");
+		else
+			query.append("sndRq.setInterpolation(0)\n");
 
 		query.append("sndRq.setLevel('" + level + "')\n");
 		//query.append("sndRq.setLat(" + lat + ")\n");
@@ -476,14 +480,17 @@ public class NcSoundingQuery {
 		String latLonStr = "[";
 		for(int i=0; i < latLon.length; i ++){
 			latLonStr = latLonStr +  latLon[i][0] + ","+ latLon[i][1] ;
+				//testcode	+ ","+ (latLon[i][0]+1) + ","+ (latLon[i][1]+1);  
+			
 			if(i+1 < latLon.length)
 				latLonStr = latLonStr + ",";
 		}
 		latLonStr = latLonStr + "]";
 		/* Chin's Note:
 		 *  This chunk of code is for testing query multiple grid Points with same query parameters
+		 *  
 		String latLonStr = "[";
-		float limit = 20;
+		float limit = 3;
 		for(float i=0; i <limit; i=i+1f){
 			for(float j=0; j < limit; j=j+1f){
 			latLonStr = latLonStr +  (latLon[0][0]+i) + ","+ (latLon[0][1]+j) ;
@@ -491,7 +498,8 @@ public class NcSoundingQuery {
 				latLonStr = latLonStr + ",";
 			}
 		}
-		latLonStr = latLonStr + "]";*/
+		latLonStr = latLonStr + "]";
+	  */
 		
 		query.append("return sndRq.getSoundingDataByLatLonArray("+latLonStr+")");
 

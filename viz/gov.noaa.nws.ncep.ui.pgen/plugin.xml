@@ -322,11 +322,6 @@
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteAction"
             commandId="gov.noaa.nws.ncep.ui.pgen.palette">
-         <enabledWhen>
-            <reference
-                  definitionId="gov.noaa.nws.ncep.viz.ui.display.isMapEditor">
-            </reference>
-         </enabledWhen>
        </handler>       
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenSinglePointDrawingTool"
@@ -577,11 +572,17 @@
             name="NMAP Views"/>
            <view
             category="gov.noaa.nws.ncep.viz.ui.nmap"
-            allowMultiple="false"
+            allowMultiple="true"
             restorable="true"
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow"
             id="gov.noaa.nws.ncep.ui.PGEN"
             name="PGEN"/>
+           <!--stickyView
+                 closeable="true"
+                 id="gov.noaa.nws.ncep.ui.PGEN"
+                 location="RIGHT"
+                 moveable="true">
+           </stickyView-->
    </extension>
    
    <extension

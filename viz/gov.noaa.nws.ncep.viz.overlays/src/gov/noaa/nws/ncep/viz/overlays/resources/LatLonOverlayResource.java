@@ -36,6 +36,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
  *   11/04/13    #880        Xiaochuan   set one wireframeShape for one lat or Lon lines.
  *                                       Set spatialChopFlag to be false.
  *   05/23/2014  #970        P.Swamy     Lat/lon label sizes need to be larger
+ *   Jul 28, 2014  3397      bclement    switched to non deprecated version of createWireframeShape()
+ *                                          removed unneeded clearCoodrinatePointArrayList() method
  * </pre>
  * 
  * @author mgao
@@ -44,10 +46,9 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 public class LatLonOverlayResource extends
         AbstractVizResource<LatLonOverlayResourceData, IMapDescriptor>
         implements INatlCntrsResource {
-
+	
     private final static org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(LatLonOverlayResource.class);
-
     private LatLonOverlayResourceData latLonOverlayResourceData;
 
     /** The wireframe object for drawing Latitude lines */

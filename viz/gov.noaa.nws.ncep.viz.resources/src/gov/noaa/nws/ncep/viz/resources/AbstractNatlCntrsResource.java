@@ -35,7 +35,6 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 
 /**
  * <pre>
@@ -833,7 +832,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             }
         }
 
-        //
         setAllFramesAsPopulated();
     }
 

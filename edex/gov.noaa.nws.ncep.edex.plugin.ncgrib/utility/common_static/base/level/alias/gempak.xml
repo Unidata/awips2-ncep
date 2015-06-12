@@ -30,7 +30,6 @@
 	<alias base="BLS">DPTH</alias>
 	<alias base="BSS">DPTH</alias>
 	<alias base="CBL">CLDL</alias>
-	<alias base="CCBL">CCBL</alias>
 	<alias base="CCL">CCLY</alias>
 	<alias base="CCLY">CCLY</alias>
 	<alias base="CCTL">CCTL</alias>
@@ -55,7 +54,6 @@
 	<alias base="FH">HGHT</alias>
 	<alias base="FHAG">HGHT</alias>
 	<alias base="FRZ">FRZL</alias>
-	<alias base="GCBL">GSCBL</alias>
 	<alias base="GCTL">GSCTL</alias>
 	<alias base="GSCBL">GSCBL</alias>
 	<alias base="GSCTL">GSCTL</alias>
@@ -116,10 +114,8 @@
 	<alias base="PLBL">PLBL</alias>
 	<alias base="PV">POTV</alias>
 	<alias base="PVL">POTV</alias>
-	<alias base="SCBL">SCCBT</alias>
 	<alias base="SCCBT">SCCBT</alias>
 	<alias base="SCCTL">SCCTL</alias>
-	<alias base="SCTL">SCCTL</alias>
 	<alias base="SEAB">SEAB</alias>
 	<alias base="SFC">NONE</alias>
 	<alias base="SIG">SGMA</alias>

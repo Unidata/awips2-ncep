@@ -186,6 +186,7 @@
 	<alias base="HPBL">ZPBL</alias>
 	<alias base="ICAHT">ICAHT</alias>
 	<alias base="ICEC">ICEC</alias>
+	<alias base="ICEG">IGRO</alias>
 	<alias base="ICETK">ICET</alias>
 	<alias base="LAND">LAND</alias>
 	<alias base="LAPR">LAPS</alias>
@@ -403,4 +404,7 @@
 	<alias base="WVDIR">DRCTWW</alias>
 	<alias base="WVHGT">HGHTWW</alias>
 	<alias base="WVPER">PERDWW</alias>
+    <alias base="TEMPWTR">TEMPWTR</alias>
+    <alias base="UOGRD">UWND</alias>
+    <alias base="VOGRD">VWND</alias>
 </aliasList>

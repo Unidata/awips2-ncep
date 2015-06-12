@@ -64,6 +64,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Nov 02, 2011            X. Guo       Added nx/ny parameters
  * Feb 06, 2012  #538      Q. Zhou      Changed density to filter. Get filter from resource attribute
  * Dec 11, 2014  R5113     J. Wu        Set default filter to 0.3 for higher grids to speed loading.
+ * May 14, 2015  R7058     S. Russell   added a call to save target in paint()
  * 
  * </pre>
  * 
@@ -140,6 +141,9 @@ public abstract class AbstractGriddedDisplay<T> { // implements IRenderable
     // @Override
     public void paint(NcgridResourceData gridRscData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
+
+        // Redmine 7058
+        this.target = target;
 
         boolean globalModel = isGlobalModel();
 

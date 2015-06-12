@@ -88,6 +88,7 @@ import com.vividsolutions.jts.geom.Point;
  * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool.
  * 12/14     R5198/TTR1057  J. Wu       Select a label over a line for Contours.
  * 01/15    R5201/TTR1060   J. Wu       Update settings when an element is selected.
+ * 05/14     Redmine 7804   S. Russell  Updated handleMouseDownMove()
  * 
  * </pre>
  * 
@@ -263,7 +264,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                                 .getShell()).setWatchBox((WatchBox) elSelected);
                 PgenUtil.loadWatchBoxModifyTool(elSelected);
-                return false;
             } else if (elSelected instanceof Tcm) {
                 PgenUtil.loadTcmTool(elSelected);
             }
@@ -495,11 +495,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         }
 
-        else if (button == 3 && pgenrsc.getSelectedDE() != null) {
-            // Right button click does not fall through to other handlers if
-            // there is pgen element is selected
-            return true;
-        } else {
+        else {
 
             return false;
 
@@ -515,6 +511,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
      */
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
+
         if (!tool.isResourceEditable()) {
             return false;
         }
@@ -539,27 +536,40 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             return false;
         }
 
-        //
         if (loc != null) {
             tempLoc = loc;
         }
 
+        // Redmine 7804
+        boolean drawElmSelected = false;
+        if (firstDown == null) {
+            firstDown = loc;
+        }
+
         if (loc != null && inOut == 1) {
-            // make sure the click is close enough to the element
-            if (pgenrsc.getDistance(tmpEl, loc) > pgenrsc.getMaxDistToSelect()
-                    && !ptSelected) {
-                // if (( firstDown != null && pgenrsc.getDistance(tmpEl,
-                // firstDown) > drawingLayer.getMaxDistToSelect() &&
-                // !ptSelected) ||
-                // tmpEl instanceof SinglePointElement ){
-                if (firstDown != null
-                        && pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
-                                .getMaxDistToSelect()) {
-                    firstDown = null;
-                } else {
+
+            // Redmine 7804 - is user's intent selection or panning?
+            // return false to send control to the panning handlers, if user's
+            // actions indicate they are panning and not trying to manipulate
+            // a selected drawable element
+            if (tmpEl instanceof SinglePointElement) {
+                if (pgenrsc.getDistance(tmpEl, firstDown) > pgenrsc
+                        .getMaxDistToSelect()) {
+                    return false;
+                } else if (pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
+                        .getMaxDistToSelect()) {
+                    firstDown = loc;
+                }
+            } else { // Multipoint Element
+                if (pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
+                        .getMaxDistToSelect()) {
+                    drawElmSelected = true;
+                }
+                if (!drawElmSelected) {
                     return false;
                 }
             }
+
         } else if (loc != null && inOut == 0) {
             inOut = 1;
         } else {
@@ -1071,16 +1081,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             }
             trackExtrapPointInfoDlg = null;
 
-            if (pgenrsc.getSelectedDE() != null) {
-                preempt = true;
-            }
-
             pgenrsc.removeGhostLine();
             ptSelected = false;
             pgenrsc.removeSelected();
             mapEditor.refresh();
 
-            return preempt;
+            // return false;
 
         }
 

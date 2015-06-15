@@ -21,8 +21,6 @@ import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageException;
-import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
-import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 import com.raytheon.uf.edex.database.purge.PurgeLogger;
@@ -248,28 +246,28 @@ public class GeoMagDao extends PluginDao {
         /*
          * Write component1 data to HDF5.
          */
-        if (magRecord.getComp1Data() != null) {
-            AbstractStorageRecord storageRecord = new FloatDataRecord(
-                    GeoMagRecord.component1, magRecord.getDataURI(),
-                    (float[]) magRecord.getComp1Data(), 1,
-                    new long[] { magRecord.getComp1Data().length });
-            storageRecord.setCorrelationObject(magRecord);
-            dataStore.addDataRecord(storageRecord);
-            // StorageStatus ss = dataStore.store(StoreOp.APPEND);
-        }
+        // if (magRecord.getComp1Data() != null) {
+        // AbstractStorageRecord storageRecord = new FloatDataRecord(
+        // GeoMagRecord.component1, magRecord.getDataURI(),
+        // (double[]) magRecord.getComp1Data(), 1,
+        // new long[] { magRecord.getComp1Data().length });
+        // storageRecord.setCorrelationObject(magRecord);
+        // dataStore.addDataRecord(storageRecord);
+        // // StorageStatus ss = dataStore.store(StoreOp.APPEND);
+        // }
 
         /*
          * Write component2 data to HDF5.
          */
-        if (magRecord.getComp2Data() != null) {
-            AbstractStorageRecord storageRecord = new FloatDataRecord(
-                    GeoMagRecord.component2, magRecord.getDataURI(),
-                    (float[]) magRecord.getComp2Data(), 1,
-                    new long[] { magRecord.getComp2Data().length });
-            storageRecord.setCorrelationObject(magRecord);
-            dataStore.addDataRecord(storageRecord);
-
-        }
+        // if (magRecord.getComp2Data() != null) {
+        // AbstractStorageRecord storageRecord = new FloatDataRecord(
+        // GeoMagRecord.component2, magRecord.getDataURI(),
+        // (float[]) magRecord.getComp2Data(), 1,
+        // new long[] { magRecord.getComp2Data().length });
+        // storageRecord.setCorrelationObject(magRecord);
+        // dataStore.addDataRecord(storageRecord);
+        //
+        // }
 
         return dataStore;
     }

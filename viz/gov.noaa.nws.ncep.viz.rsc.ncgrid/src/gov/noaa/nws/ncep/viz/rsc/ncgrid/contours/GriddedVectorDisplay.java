@@ -28,7 +28,7 @@ import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormapShadedShapeExten
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.DisplayType;
-import com.raytheon.viz.core.contours.util.VectorGraphicsConfig;
+import com.raytheon.uf.viz.core.point.display.VectorGraphicsConfig;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.GeometryFactory;

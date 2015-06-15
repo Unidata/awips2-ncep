@@ -14,6 +14,8 @@ import gov.noaa.nws.ncep.common.dataplugin.geomag.dao.GeoMagK1minDao;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.dao.GeoMagK3hrDao;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.dao.GeoMagK3hrStateDao;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.request.DatabaseUtil;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.ReportGenerator;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.TestCondition;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
@@ -23,8 +25,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.dataplugin.message.DataURINotificationMessage;
@@ -32,6 +36,8 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.edex.database.plugin.PluginFactory;
 
 /**
@@ -46,6 +52,7 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
  * 03/18/2014   #1123       qzhou       Move some functions to common. Modified FillAvgTimeGap in the moved functions
  * 06/26/2014   #1136       qzhou       Calculate hourly average when min>=55 instead of min=59
  * 07/16/2014   R4078       sgurung     Modified method calcK3hr() to add states when a k3hr record is inserted
+ * 12/23/2014   R5412       sgurung     Change float to double, add code changes related to "debug mode"
  * 
  * </pre>
  * 
@@ -55,9 +62,12 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
 
 public class TrigKCalculation {
 
+    private static final IUFStatusHandler theHandler = UFStatus
+            .getHandler(TrigKCalculation.class);
+
     private static final String GeoMag = "geomag";
 
-    private static final float MISSING_VAL = 99999.99f;
+    private static final double MISSING_VAL = 99999.99;
 
     private static final int HOURS = 24;
 
@@ -69,7 +79,7 @@ public class TrigKCalculation {
 
     private GeoMagDao dao; // PluginDao dao;
 
-    private float[] defLength = new float[HOURS];
+    private double[] defLength = new double[HOURS];
 
     String format = "yyyy-MM-dd'_'HH:mm:ss.s";
 
@@ -150,8 +160,8 @@ public class TrigKCalculation {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public List<List> getBestObserv(List<?> dataList) {
 
-        List<Float> comp1List = new ArrayList<Float>();
-        List<Float> comp2List = new ArrayList<Float>();
+        List<Double> comp1List = new ArrayList<Double>();
+        List<Double> comp2List = new ArrayList<Double>();
         List<Integer> badPointList = new ArrayList<Integer>();
         List<Date> dateList = new ArrayList<Date>();
         List<Integer> sourceList = new ArrayList<Integer>();
@@ -163,8 +173,8 @@ public class TrigKCalculation {
 
                 Object[] row = (Object[]) dataList.get(i);
 
-                comp1List.add((Float) row[0]);
-                comp2List.add((Float) row[1]);
+                comp1List.add((Double) row[0]);
+                comp2List.add((Double) row[1]);
                 dateList.add((Date) row[2]);
                 badPointList.add((Integer) row[3]);
                 sourceList.add((Integer) row[4]);
@@ -238,12 +248,7 @@ public class TrigKCalculation {
                     count++;
                 }
 
-                if (newList.get(2) == null || newList.get(2).isEmpty()) // newList.get(0)=
-                                                                        // [3281750,
-                                                                        // 2013-05-06
-                                                                        // 00:00:00.0,
-                                                                        // 20829.85,
-                                                                        // -297.05]
+                if (newList.get(2) == null || newList.get(2).isEmpty())
                     newList.remove(2);
                 if (newList.get(1) == null || newList.get(1).isEmpty())
                     newList.remove(1);
@@ -253,23 +258,23 @@ public class TrigKCalculation {
                 // Now only check if comp2 (...get(2)) is MISSING_VAL. Could
                 // check both
                 if (newList.get(0).get(2) != null
-                        && (Float) newList.get(0).get(2) != MISSING_VAL) {
+                        && (Double) newList.get(0).get(2) != MISSING_VAL) {
                     bestList.add(newList.get(0));
                 } else if (newList.size() > 1
-                        && (Float) newList.get(0).get(2) == MISSING_VAL
+                        && (Double) newList.get(0).get(2) == MISSING_VAL
                         && i + 1 < size) {
                     // if date i = date(i+1) && comp1 (i+1) != missing
                     if ((Date) newList.get(0).get(1) == (Date) newList.get(1)
                             .get(1)
                             && newList.get(1).get(2) != null
-                            && (Float) newList.get(1).get(2) != MISSING_VAL) {
+                            && (Double) newList.get(1).get(2) != MISSING_VAL) {
                         bestList.add(newList.get(1));
                     } else if (newList.size() > 2
-                            && (Float) newList.get(1).get(2) == MISSING_VAL
+                            && (Double) newList.get(1).get(2) == MISSING_VAL
                             && i + 2 < size) {
                         if ((Date) newList.get(0).get(1) == (Date) newList.get(
                                 2).get(1)
-                                && (Float) newList.get(2).get(2) != MISSING_VAL) {
+                                && (Double) newList.get(2).get(2) != MISSING_VAL) {
                             bestList.add(newList.get(2));
                         } else {
                             bestList.add(newList.get(0));
@@ -354,8 +359,8 @@ public class TrigKCalculation {
     }
 
     /*
-     * when uri time is 59 min past the hour, calculate the averages and write
-     * to geomat_houravg
+     * when uri time is 35 min past the hour, calculate the averages and write
+     * to geomag_houravg
      */
     public void calcSimpleHourAvg(String[] dataURIs) throws StorageException {
 
@@ -376,12 +381,11 @@ public class TrigKCalculation {
                 List<?> dataList = null;
 
                 // Ideally we want to calculate hourly average for each min=59
-                // ingest. But MEA and OTT stations only have 23:56 available.
-                // Calculate hourly average when min>=30 will not miss any
-                // average data. That might make the performance low.
-                // Currently we calculate hourly average when min>=55. (i.e.
-                // write to db 5 times each hour)
-                if (min >= 55)
+                // ingest. But some stations may not have data available until
+                // minute 23:59.
+                // Calculating hourly average when min>=35 will not miss any
+                // average data.
+                if (min >= 35)
                     dataList = DatabaseUtil.retrieveUriForAvg(dao, dataURI,
                             time);
                 else
@@ -390,7 +394,7 @@ public class TrigKCalculation {
                 if (dataList != null && dataList.size() != 0) {
                     List<List> bestList = getBestObserv(dataList);
 
-                    float[] hrAvg = CalcEach3hr.getSimpleHourAvg(bestList);
+                    double[] hrAvg = CalcEach3hr.getSimpleHourAvg(bestList);
 
                     GeoMagAvg recAvg = new GeoMagAvg();
 
@@ -399,12 +403,13 @@ public class TrigKCalculation {
                     List<GeoMagAvg> avgList = DatabaseUtil.retrieveSingleAvg(
                             dataURI, time);
 
+                    Integer recId = null;
+
                     if (avgList != null && avgList.size() != 0) {
                         for (int i = 0; i < avgList.size(); i++) { // 1
                             GeoMagAvg row = avgList.get(i);
-                            List<Integer> idList = new ArrayList<Integer>();
-                            idList.add((Integer) row.getId());
-                            recAvg.setId((int) idList.get(0));
+                            recId = row.getId();
+                            recAvg.setId(recId);
 
                         }
                     }
@@ -429,11 +434,14 @@ public class TrigKCalculation {
      */
     public void calcK(String[] dataURIs) {
 
+        TestCondition tc = null;
+        ReportGenerator rg = null;
+        Hashtable<String, String> testComponents = new Hashtable<String, String>();
+
+        boolean debug = false;
+
         if (dataURIs != null) {
             for (String dataURI : dataURIs) {
-
-                String stationCode = CalcUtil.getStationFromUri(dataURI);
-                String source = CalcUtil.getSourceFromUri(dataURI);
 
                 Date timeBy3 = null;
 
@@ -446,6 +454,34 @@ public class TrigKCalculation {
                 int hour = timeBy3.getHours();
                 int min = timeBy3.getMinutes();
 
+                String stationCode = CalcUtil.getStationFromUri(dataURI);
+                String source = CalcUtil.getSourceFromUri(dataURI);
+
+                debug = CalcUtil.isDebugModeRequired(dataURI, hour, min);
+
+                if (debug) {
+                    testComponents = CalcUtil.getTestComponents(dataURI);
+
+                    // define and initialize the test condition
+                    // parameters
+                    tc = new TestCondition();
+                    tc.setCal(timeBy3.getTime());
+                    tc.setHourOfInterest(Integer.valueOf(
+                            testComponents.get("HOUR")).intValue());
+                    tc.setMinuteOfInterest(Integer.valueOf(
+                            testComponents.get("MINUTE")).intValue());
+                    tc.setStationCd(stationCode);
+                    tc.setTestNumber(testComponents.get("TEST_NUMBER"));
+
+                    try {
+                        rg = new ReportGenerator(tc);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        debug = false;
+                    }
+
+                }
+
                 /*
                  * Read average
                  */
@@ -456,98 +492,102 @@ public class TrigKCalculation {
                 dataList = DatabaseUtil.retrieveUriBy3hr(dataURI,
                         CalcUtil.getSPTime(timeBy3));
 
+                if (debug) {
+                    rg.generateDataListReport(0, dataList);
+                }
+
                 // dataList size (avg) < 24, can't calculate dB[j]
                 if (dataList.size() <= HOURS)
                     continue;
 
-                // test code:
-                // String teststr = "";
-                // try {
-                // Date d = CalcUtil.getTimeFromUri(dataURI);
-                // int day = d.getDate();
-                // int h = d.getHours();
-                // int m = d.getMinutes();
-                // if (h == 10 && m == 41) { // && day == 14
-                // System.out.println("***********dataURI " + dataURI);
-                // teststr = dataURI;
-                // }
-                // } catch (ParseException e1) {
-                // }
-
                 if (dataList != null && dataList.size() >= 5) {
                     List<Date> dateListFinal = new ArrayList<Date>();
-                    List<Float> hHrAvgListFinal = new ArrayList<Float>();
-                    List<Float> dHrAvgListFinal = new ArrayList<Float>();
+                    List<Double> hHrAvgListFinal = new ArrayList<Double>();
+                    List<Double> dHrAvgListFinal = new ArrayList<Double>();
 
                     DatabaseUtil.fillHrAvgTimeGaps(dataList, dateListFinal,
                             hHrAvgListFinal, dHrAvgListFinal, spTime);
 
-                    float[] hHrAvgs = CalcUtil.toFloatArray(hHrAvgListFinal);
-                    float[] dHrAvgs = CalcUtil.toFloatArray(dHrAvgListFinal);
+                    double[] hHrAvgs = CalcUtil.toDoubleArray(hHrAvgListFinal);
+                    double[] dHrAvgs = CalcUtil.toDoubleArray(dHrAvgListFinal);
 
-                    float[] dB = CalcEach3hr.getDisturbanceLevel(hHrAvgs,
+                    double[] dB = CalcEach3hr.getDisturbanceLevel(hHrAvgs,
                             dHrAvgs);
 
                     @SuppressWarnings("unchecked")
-                    Map<Integer, Float> dBsmall = CalcEach3hr
+                    Map<Integer, Double> dBsmall = CalcEach3hr
                             .getSmallDisturbanceLevel(dB);
 
-                    float[] quietHHrAvg = CalcEach3hr.getQuietLevelHourAvg(
+                    if (debug) {
+                        rg.generateReport(ReportGenerator.ReportType.HHRAVGS,
+                                0, hHrAvgs);
+                        rg.generateReport(ReportGenerator.ReportType.DHRAVGS,
+                                0, dHrAvgs);
+                        rg.generateReport(ReportGenerator.ReportType.DB, 0, dB);
+                        Set<Integer> qDayKeys = dBsmall.keySet();
+                        double[] qDays = new double[qDayKeys.size()];
+                        int i = 0;
+                        for (Integer val : qDayKeys) {
+                            qDays[i] = val;
+                            i++;
+                        }
+                        rg.generateReport(ReportGenerator.ReportType.QDAYS, 0,
+                                qDays);
+                    }
+
+                    double[] qhravg_h = CalcEach3hr.getQuietLevelHourAvg(
                             dBsmall, hHrAvgs);
-                    float[] quietDHrAvg = CalcEach3hr.getQuietLevelHourAvg(
+                    double[] qhravg_d = CalcEach3hr.getQuietLevelHourAvg(
                             dBsmall, dHrAvgs);
 
                     // added from FMIQDCRT11_3hr.pro
-                    for (int k = 0; k < quietHHrAvg.length; k++) {
-                        if (quietHHrAvg[k] == MISSING_VAL
-                                || quietDHrAvg[k] == MISSING_VAL) {
-                            quietHHrAvg[k] = CalcUtil.getMedian(quietHHrAvg);
-                            quietDHrAvg[k] = CalcUtil.getMedian(quietDHrAvg);
+                    for (int k = 0; k < qhravg_h.length; k++) {
+                        // if (qhravg_h[k] == MISSING_VAL
+                        // || qhravg_d[k] == MISSING_VAL) {
+                        // qhravg_h[k] = CalcUtil.getMedian(qhravg_h);
+                        // qhravg_d[k] = CalcUtil.getMedian(qhravg_d);
+                        // }
+                        if (qhravg_h[k] == MISSING_VAL) {
+                            qhravg_h[k] = CalcUtil.getMedian(qhravg_h);
+                        }
+                        if (qhravg_d[k] == MISSING_VAL) {
+                            qhravg_d[k] = CalcUtil.getMedian(qhravg_d);
                         }
                     }
 
-                    float[] qha = CalcEach3hr.getQHA(quietHHrAvg);
-                    float[] qda = CalcEach3hr.getQHA(quietDHrAvg);
-                    // test qha
-                    // if (!teststr.equals("")) {
-                    // System.out.println("**qha length " + teststr);
-                    // for (int i = 0; i < qha.length; i++)
-                    // System.out.print((float) qha[i] + "  ");
-                    // System.out.println("\n**qda length " + qda.length);
-                    // for (int i = 0; i < qda.length; i++)
-                    // System.out.print((float) qda[i] + "  ");
-                    //
-                    // }
+                    double[] qhavgShifted = CalcEach3hr.getQHA(qhravg_h);
+                    double[] qdavgShifted = CalcEach3hr.getQHA(qhravg_d);
 
-                    float[] hQdc = CalcEach1min.getHarmonicFit(qha);// [1440]
-                    float[] dQdc = CalcEach1min.getHarmonicFit(qda);
-                    // if (!teststr.equals("")) {
-                    // System.out.println("\n**hQdc length " + teststr);
-                    // for (int i = 0; i < hQdc.length; i++)
-                    // System.out.print((float) hQdc[i] + "  ");
-                    // System.out.println("\n**dQdc length " + dQdc.length);
-                    // for (int i = 0; i < dQdc.length; i++)
-                    // System.out.print((float) dQdc[i] + "  ");
-                    // }
+                    if (debug) {
+                        rg.generateReport(ReportGenerator.ReportType.QHRAVGH,
+                                0, qhravg_h);
+                        rg.generateReport(ReportGenerator.ReportType.QHRAVGD,
+                                0, qhravg_d);
+                        rg.generateReport(
+                                ReportGenerator.ReportType.QHAVG_SHIFTED, 0,
+                                qhavgShifted);
+                        rg.generateReport(
+                                ReportGenerator.ReportType.QDAVG_SHIFTED, 0,
+                                qdavgShifted);
+                    }
 
-                    float[] qhaQdc = CalcEach1min.getQHAQDC(hQdc);// [1440]
-                    float[] qdaQdc = CalcEach1min.getQHAQDC(dQdc);
-                    // test hQdc
-                    // if (!teststr.equals("")) {
-                    // System.out.println("\n**qhaQdctest2 length "
-                    // + qhaQdc.length);
-                    // for (int i = 0; i < qhaQdc.length; i++)
-                    // System.out.print((float) qhaQdc[i] + "  ");
-                    // System.out.println("\n**qdaQdctest2 length "
-                    // + qdaQdc.length);
-                    // for (int i = 0; i < qdaQdc.length; i++)
-                    // System.out.print((float) qdaQdc[i] + "  ");
-                    // teststr = "";
-                    // }
+                    double[] hQdc = CalcEach1min.getHarmonicFit(qhavgShifted);// [1440]
+                    double[] dQdc = CalcEach1min.getHarmonicFit(qdavgShifted);
+
+                    double[] qhaQdc = CalcEach1min.getQHAQDC(hQdc);// [1440]
+                    double[] qdaQdc = CalcEach1min.getQHAQDC(dQdc);
+
+                    if (debug) {
+                        rg.generateReport(ReportGenerator.ReportType.QHAQDC, 0,
+                                qhaQdc);
+                        rg.generateReport(ReportGenerator.ReportType.QDAQDC, 0,
+                                qdaQdc);
+                    }
+
                     /*
                      * Read H and D
                      */
-                    Map<String, List<float[]>> kIndexMap = new HashMap<String, List<float[]>>();
+                    Map<String, List<double[]>> kIndexMap = new HashMap<String, List<double[]>>();
 
                     Date timeBy1 = null;
                     try {
@@ -579,16 +619,16 @@ public class TrigKCalculation {
                         List<List> bestListFull = fillHDTimeGaps(bestList);
 
                         // get hdata, ddata
-                        float[] hdata = new float[HD_DATA_RANGE * HOURS
+                        double[] hdata = new double[HD_DATA_RANGE * HOURS
                                 * MINUTES];
-                        float[] ddata = new float[HD_DATA_RANGE * HOURS
+                        double[] ddata = new double[HD_DATA_RANGE * HOURS
                                 * MINUTES];
 
                         Arrays.fill(hdata, MISSING_VAL);
                         Arrays.fill(ddata, MISSING_VAL);
 
                         for (int i = 0; i < bestListFull.size(); i++) {
-                            List<Float> list = (List<Float>) bestListFull
+                            List<Double> list = (List<Double>) bestListFull
                                     .get(i);
                             if (list != null && !list.isEmpty()) {
                                 hdata[i] = list.get(1);
@@ -599,44 +639,105 @@ public class TrigKCalculation {
                         defLength = CalcEach3hr.getDefLength(stationCode,
                                 epHour);
 
-                        float[] hhdata = CalcEach1min.fillGaps(hdata);
-                        float[] dddata = CalcEach1min.fillGaps(ddata);
+                        double[] hhdata = CalcEach1min.fillGaps(hdata);
+                        double[] dddata = CalcEach1min.fillGaps(ddata);
+
+                        if (debug) {
+                            rg.generateReport(ReportGenerator.ReportType.HDATA,
+                                    0, hdata);
+                            rg.generateReport(ReportGenerator.ReportType.DDATA,
+                                    0, ddata);
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.HHDATA, 0,
+                                    hhdata);
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.DDDATA, 0,
+                                    dddata);
+                        }
 
                         int currTimeIndex = CalcEach1min.getCurrTimeIndex(hour,
                                 min, epHour);
 
-                        hhdata = CalcEach1min.getExtrapolation(hhdata, qhaQdc,
-                                currTimeIndex);
-                        dddata = CalcEach1min.getExtrapolation(dddata, qdaQdc,
-                                currTimeIndex);
+                        double[] hhdataEx = CalcEach1min.getExtrapolation(
+                                hhdata, qhaQdc, currTimeIndex);
+                        double[] dddataEx = CalcEach1min.getExtrapolation(
+                                dddata, qdaQdc, currTimeIndex);
 
-                        float[] hDev = CalcEach1min.getDev(hhdata, hQdc);// [1440]
-                        float[] dDev = CalcEach1min.getDev(dddata, dQdc);
+                        if (debug) {
+
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.CURRTIMEINDEX,
+                                    0, currTimeIndex);
+                            rg.generateReport(ReportGenerator.ReportType.HQDC0,
+                                    0, hQdc);
+                            rg.generateReport(ReportGenerator.ReportType.DQDC0,
+                                    0, dQdc);
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.HDATAEX, 0,
+                                    hhdataEx);
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.DDATAEX, 0,
+                                    dddataEx);
+                        }
+
+                        double[] hDev = CalcEach1min.getDev(hhdataEx, hQdc);// [1440]
+                        double[] dDev = CalcEach1min.getDev(dddataEx, dQdc);
+
+                        if (debug) {
+                            rg.generateReport(ReportGenerator.ReportType.HDEV,
+                                    0, hDev);
+                            rg.generateReport(ReportGenerator.ReportType.DDEV,
+                                    0, dDev);
+                        }
 
                         // already considered missing in getDev
 
                         int[] kLimit = CalcUtil.getKLimit(stationCode);
 
                         int missingFlag = 0;
-                        List<float[]> kList = CalcEach1min.getKIndex(hDev,
+                        List<double[]> kList = CalcEach1min.getKIndex(hDev,
                                 dDev, kLimit, missingFlag);// [8]
 
-                        float[] kIndex = kList.get(0);
-                        float[] gamma = kList.get(1);
+                        if (debug) {
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.KINDEX, 0, kList);
+                        }
 
-                        float[] kLength = CalcUtil.geKLength();// [8]
-                        float[] fitLength = CalcEach1min.getFitLength(
+                        double[] kIndex = kList.get(0);
+                        double[] kGamma = kList.get(1);
+                        double[] hGamma = kList.get(3);
+                        double[] dGamma = kList.get(5);
+
+                        double[] kLength = CalcUtil.geKLength();// [8]
+                        double[] fitLength = CalcEach1min.getFitLength(
                                 defLength, kIndex, kLength);// [24]
 
-                        float[] hcA = CalcEach1min.getCentHourAvg(hhdata,
-                                fitLength, kIndex);// middle [24]
-                        float[] dcA = CalcEach1min.getCentHourAvg(dddata,
-                                fitLength, kIndex);
+                        double[] hcA = CalcEach1min.getCentHourAvg(hhdataEx,
+                                fitLength);// middle [24]
+                        double[] dcA = CalcEach1min.getCentHourAvg(dddataEx,
+                                fitLength);
 
-                        hcA = CalcEach1min.adjustHrCentAvg(hcA, qha, gamma,
-                                kLimit);
-                        dcA = CalcEach1min.adjustHrCentAvg(dcA, qda, gamma,
-                                kLimit);
+                        if (debug) {
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.FITLENGTH, 0,
+                                    fitLength);
+                            rg.generateReport(ReportGenerator.ReportType.HA1,
+                                    0, hcA);
+                            rg.generateReport(ReportGenerator.ReportType.DA1,
+                                    0, dcA);
+                        }
+
+                        hcA = CalcEach1min.adjustHrCentAvg(hcA, qhavgShifted,
+                                hGamma, kLimit);
+                        dcA = CalcEach1min.adjustHrCentAvg(dcA, qdavgShifted,
+                                dGamma, kLimit);
+
+                        if (debug) {
+                            rg.generateReport(ReportGenerator.ReportType.HA2,
+                                    0, hcA);
+                            rg.generateReport(ReportGenerator.ReportType.DA2,
+                                    0, dcA);
+                        }
 
                         // Harmonic Fit to derive the qdc
                         int foundMiss = 0;
@@ -659,12 +760,19 @@ public class TrigKCalculation {
                         if (foundMiss == 0)
                             dQdc = CalcEach1min.getHarmonicFit(dcA);
 
+                        if (debug) {
+                            rg.generateReport(ReportGenerator.ReportType.HQDC,
+                                    0, hQdc);
+                            rg.generateReport(ReportGenerator.ReportType.DQDC,
+                                    0, dQdc);
+                        }
+
                         /*
                          * Do a few iterations. check for convergence of k_index
                          * and exit loop Done before ITERATIONS if you see two
                          * passes with identical values for k_index
                          */
-                        float[] last_kindex = new float[8];
+                        double[] last_kindex = new double[8];
                         Arrays.fill(last_kindex, -1);
 
                         /*
@@ -673,40 +781,77 @@ public class TrigKCalculation {
                          * identical values for k_index
                          */
                         for (int num = 0; num < ITERATIONS; num++) {
-                            float kchange = 0;
-                            hDev = CalcEach1min.getDev(hhdata, hQdc);
-                            dDev = CalcEach1min.getDev(dddata, dQdc);
+
+                            double kchange = 0;
+                            hDev = CalcEach1min.getDev(hhdataEx, hQdc);
+                            dDev = CalcEach1min.getDev(dddataEx, dQdc);
+
+                            if (debug) {
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.HDEV,
+                                        num + 1, hDev);
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.DDEV,
+                                        num + 1, dDev);
+                            }
 
                             kList = CalcEach1min.getKIndex(hDev, dDev, kLimit,
                                     missingFlag);
                             kIndex = kList.get(0);
-                            gamma = kList.get(1);
+                            kGamma = kList.get(1);
+                            hGamma = kList.get(3);
+                            dGamma = kList.get(5);
+
+                            if (debug) {
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.KINDEX,
+                                        num + 1, kList);
+                            }
 
                             // Check for convergence of k_index
                             if (kIndex.length == 8 && last_kindex.length == 8)
                                 for (int i = 0; i < last_kindex.length; i++) {
-                                    kchange += Math.abs(kIndex[i]
-                                            - last_kindex[i]);
-                                    // System.out.println("**kchange "+
-                                    // kIndex[i] +" "
-                                    // +last_kindex[i]+" "+(kIndex[i]
-                                    // -last_kindex[i]));
+                                    kchange = kchange
+                                            + Math.abs(kIndex[i]
+                                                    - last_kindex[i]);
                                 }
+
                             if (kchange == 0)
                                 break;
 
                             fitLength = CalcEach1min.getFitLength(defLength,
                                     kIndex, kLength);
 
-                            hcA = CalcEach1min.getCentHourAvg(hhdata,
-                                    fitLength, kIndex);
-                            dcA = CalcEach1min.getCentHourAvg(dddata,
-                                    fitLength, kIndex);
+                            hcA = CalcEach1min.getCentHourAvg(hhdataEx,
+                                    fitLength);
+                            dcA = CalcEach1min.getCentHourAvg(dddataEx,
+                                    fitLength);
 
-                            hcA = CalcEach1min.adjustHrCentAvg(hcA, qha, gamma,
-                                    kLimit);
-                            dcA = CalcEach1min.adjustHrCentAvg(dcA, qda, gamma,
-                                    kLimit);
+                            if (debug) {
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.FITLENGTH,
+                                        num + 1, fitLength);
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.HA1,
+                                        num + 1, hcA);
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.DA1,
+                                        num + 1, dcA);
+                            }
+
+                            hcA = CalcEach1min.adjustHrCentAvg(hcA,
+                                    qhavgShifted, hGamma, kLimit);
+                            dcA = CalcEach1min.adjustHrCentAvg(dcA,
+                                    qdavgShifted, dGamma, kLimit);
+
+                            if (debug) {
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.HA2,
+                                        num + 1, hcA);
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.DA2,
+                                        num + 1, dcA);
+                            }
 
                             // Harmonic Fit to derive the qdc
                             foundMiss = 0;
@@ -730,46 +875,75 @@ public class TrigKCalculation {
                                 dQdc = CalcEach1min.getHarmonicFit(dcA);
 
                             last_kindex = kIndex.clone();
-                        }
+
+                            if (debug) {
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.HQDC,
+                                        num + 1, hQdc);
+                                rg.generateReport(
+                                        ReportGenerator.ReportType.DQDC,
+                                        num + 1, dQdc);
+                            }
+
+                        } // END LOOP
 
                         // Now do the calculation using the original data
                         // (hdata, ddata)
                         hDev = CalcEach1min.getDev(hdata, hQdc);// [1440]
                         dDev = CalcEach1min.getDev(ddata, dQdc);
 
+                        if (debug) {
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.HDEV_FINAL, 0,
+                                    hDev);
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.DDEV_FINAL, 0,
+                                    dDev);
+                        }
+
+                        // Calculate the K-index and gamma values
                         kList = CalcEach1min.getKIndex(hDev, dDev, kLimit,
                                 missingFlag);
                         kIndex = kList.get(0);
-                        gamma = kList.get(1);
+                        kGamma = kList.get(1);
 
-                        float[] hkIndex = kList.get(2);
-                        float[] hGamma = kList.get(3);
-                        float[] dkIndex = kList.get(4);
-                        float[] dGamma = kList.get(5);
+                        double[] hkIndex = kList.get(2);
+                        hGamma = kList.get(3);
+                        double[] dkIndex = kList.get(4);
+                        dGamma = kList.get(5);
+
+                        if (debug) {
+                            rg.generateReport(
+                                    ReportGenerator.ReportType.KINDEX_FINAL, 0,
+                                    kList);
+                        }
+
                         int lastHCount = 0;
                         int lastDCount = 0;
 
+                        // Count the number of non-missing points for the last 3
+                        // hours (180 values)
                         for (int i = 2700; i < 2880; i++) {
                             if (hdata[i] != MISSING_VAL)
                                 lastHCount++;
-                            if (hdata[i] != MISSING_VAL)
+                            if (ddata[i] != MISSING_VAL)
                                 lastDCount++;
                         }
 
-                        float[] count = new float[2];
+                        double[] count = new double[2];
                         count[0] = lastHCount;
                         count[1] = lastDCount;
                         kList.add(6, count);
                         kIndexMap.put(stationCode + source, kList);
 
-                        // float[] kest = CalcKp.getKest(stationCode,
+                        // double[] kest = CalcKp.getKest(stationCode,
                         // kList.get(0), kList.get(1));
 
-                        float ks = 0;
+                        double ks = 0;
                         try {
                             ks = CalcKp.getKs(stationCode, (int) kIndex[7],
                                     (Date) timeBy1.clone()); // 7 is last point
-                                                             // kIndex
+                            // kIndex
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -779,20 +953,23 @@ public class TrigKCalculation {
 
                         // 1 min
                         int kest_index = (int) kIndex[7];
-                        float kest_real = CalcKp.getKest(stationCode,
-                                (int) kIndex[7], gamma[7]);
-                        float kest_gamma = gamma[7];
-                        float hk_real = CalcKp.getKest(stationCode,
-                                (int) hkIndex[7], hGamma[7]);
-                        float hgamma = hGamma[7];
-                        float dk_real = CalcKp.getKest(stationCode,
-                                (int) dkIndex[7], dGamma[7]);
-                        float dgamma = dGamma[7];
+                        double kest_real = CalcKp.getKest(stationCode,
+                                (int) kIndex[7], kGamma[7]);
+                        double kest_gamma = kGamma[7];
+
+                        double hgamma = hGamma[7];
+                        double hk_real = CalcKp.getKest(stationCode,
+                                (int) hkIndex[7], hgamma);
+
+                        double dgamma = dGamma[7];
+                        double dk_real = CalcKp.getKest(stationCode,
+                                (int) dkIndex[7], dgamma);
+
                         int hkindex = (int) hkIndex[7];
                         int dkindex = (int) dkIndex[7];
                         int countH = (int) count[0];
                         int countD = (int) count[1];
-                        float ksArray = ks;
+                        double ksArray = ks;
                         int aestArray = a_est;
 
                         GeoMagK1min recK1min = new GeoMagK1min();
@@ -841,12 +1018,12 @@ public class TrigKCalculation {
     /*
      * write to geomag_k3hr
      */
-    public void calcK3h(String dataURI, int kest_index, float kest_real,
-            float kest_gamma) {
+    public void calcK3h(String dataURI, int kest_index, double kest_real,
+            double kest_gamma) {
         List<Integer> idDb = new ArrayList<Integer>();
         List<Date> dateDb = new ArrayList<Date>();
         List<Integer> kIndexDb = new ArrayList<Integer>();
-        List<Float> kGammaDb = new ArrayList<Float>();
+        List<Double> kGammaDb = new ArrayList<Double>();
         List<Integer> kestIndexDb = new ArrayList<Integer>();
 
         int aRun = 0;
@@ -923,8 +1100,8 @@ public class TrigKCalculation {
             GeoMagK3hr row = (GeoMagK3hr) k3hrAtPoint.get(0);
             int idCurr = row.getId();
             int kIndexCurr = row.getKIndex();
-            float kGammaCurr = row.getKGamma();
-            float kRealCurr = row.getKReal();
+            double kGammaCurr = row.getKGamma();
+            double kRealCurr = row.getKReal();
             int aFinalRunCurr = row.getAFinalRunning();
             int manualCurr = row.getIsManual();
 
@@ -997,4 +1174,5 @@ public class TrigKCalculation {
         }
 
     }
+
 }

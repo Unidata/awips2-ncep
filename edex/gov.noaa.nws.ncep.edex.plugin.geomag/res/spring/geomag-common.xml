@@ -23,16 +23,5 @@
         <constructor-arg ref="geomagPluginName"/>
         <constructor-arg ref="geomagProperties"/>
     </bean>
-	
 
-    <!-- Register the edex specific database tables -->
-	<!-- bean id="satelliteEdexDbPluginProperties" class="com.raytheon.uf.edex.database.DatabasePluginProperties">
-		<property name="pluginFQN" value="com.raytheon.edex.plugin.satellite" />
-		<property name="database" value="metadata" />
-	</bean>
-	<bean id="satelliteEdexDbRegistered" factory-bean="dbPluginRegistry" factory-method="register"
-				depends-on="satelliteRegistered">
-		<constructor-arg value="com.raytheon.edex.plugin.satellite"/>
-		<constructor-arg ref="satelliteEdexDbPluginProperties"/>
-	</bean -->
 </beans>

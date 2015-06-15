@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.edex.plugin.geomag;
 
 import gov.noaa.nws.ncep.common.dataplugin.geomag.GeoMagRecord;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.calculation.CalcUtil;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.dao.GeoMagDao;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.exception.GeoMagException;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.GeoMagSource;
@@ -57,6 +58,8 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  *                                      Added handles for same stations but with or without header
  *                                      Fixed HAD, NGK, CNB default value
  * Aug 30, 2013 2298       rjpeter      Make getPluginName abstract
+ * Dec 23, 2014 R5412      sgurung      Change float to double, add code changes for "debug mode"
+ * 
  * </pre>
  * 
  * @author sgurung, qzhou
@@ -99,7 +102,7 @@ public class GeoMagDecoder extends AbstractDecoder {
 
     private static final String UNIT = "unit";
 
-    private static final float MISSING_VAL = 99999.99f;
+    private static final double MISSING_VAL = 99999.99;
 
     public PluginDataObject[] decode(File file) throws Exception {
         List<PluginDataObject> retData = new ArrayList<PluginDataObject>();
@@ -112,17 +115,19 @@ public class GeoMagDecoder extends AbstractDecoder {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
 
         List<Date> obsTimesList = new ArrayList<Date>();
-        List<Float> comp1List = new ArrayList<Float>();
-        List<Float> comp2List = new ArrayList<Float>();
-        List<Float> comp3List = new ArrayList<Float>();
-        List<Float> comp4List = new ArrayList<Float>();
+        List<Double> comp1List = new ArrayList<Double>();
+        List<Double> comp2List = new ArrayList<Double>();
+        List<Double> comp3List = new ArrayList<Double>();
+        List<Double> comp4List = new ArrayList<Double>();
 
-        logger.info("******** Start meganetometer decoder.");
+        logger.info("******** Start magnetometer decoder.");
 
         if ((file == null) || (file.length() < 1)) {
             return new PluginDataObject[0];
         }
 
+        String dataUriSuffix = CalcUtil.parseFileName(file.getName());
+     
         BufferedReader in = null;
 
         try {
@@ -132,8 +137,6 @@ public class GeoMagDecoder extends AbstractDecoder {
             // get station code from the file name
             String fileName = file.getName();
             stationCode = fileName.substring(0, 3).toUpperCase();
-            suffix = fileName.substring(fileName.indexOf(".") + 1,
-                    fileName.length());
 
             // for Hartland (HAD), Korea (JEJ) data, filename does not have full
             // station code
@@ -149,7 +152,7 @@ public class GeoMagDecoder extends AbstractDecoder {
             // File has header & end with min. File has no header & end with
             // min. File has no header & not end with min.
             GeoMagStation station = null;
-            if (!suffix.equals("min")) {
+            if (!fileName.endsWith(".min")) {
                 station = getStationDetail(stationCode, false);
             } else {
                 station = getStationDetail(stationCode, true);
@@ -293,10 +296,10 @@ public class GeoMagDecoder extends AbstractDecoder {
 
                         firstLine = false;
 
-                        Float comp1Val = null;
-                        Float comp2Val = null;
-                        Float comp3Val = null;
-                        Float comp4Val = null;
+                        Double comp1Val = null;
+                        Double comp2Val = null;
+                        Double comp3Val = null;
+                        Double comp4Val = null;
 
                         String comp1RefersTo = null;
                         String comp2RefersTo = null;
@@ -314,7 +317,7 @@ public class GeoMagDecoder extends AbstractDecoder {
                         if (groupId != -1) {
                             comp1RefersTo = dataGroupMap.get(COMPONENT_1)
                                     .getRefersTo();
-                            comp1Val = Float.parseFloat(dataMatcher
+                            comp1Val = Double.parseDouble(dataMatcher
                                     .group(groupId));
                         }
 
@@ -323,7 +326,7 @@ public class GeoMagDecoder extends AbstractDecoder {
                         if (groupId != -1) {
                             comp2RefersTo = dataGroupMap.get(COMPONENT_2)
                                     .getRefersTo();
-                            comp2Val = Float.parseFloat(dataMatcher
+                            comp2Val = Double.parseDouble(dataMatcher
                                     .group(groupId));
                         }
 
@@ -332,7 +335,7 @@ public class GeoMagDecoder extends AbstractDecoder {
                         if (groupId != -1) {
                             // comp3RefersTo =
                             // dataGroupMap.get(COMPONENT_3).getRefersTo();
-                            comp3Val = Float.parseFloat(dataMatcher
+                            comp3Val = Double.parseDouble(dataMatcher
                                     .group(groupId));
                             if (comp3Val == null) {
                                 comp3Val = MISSING_VAL;
@@ -344,7 +347,7 @@ public class GeoMagDecoder extends AbstractDecoder {
                         if (groupId != -1) {
                             // comp4RefersTo =
                             // dataGroupMap.get(COMPONENT_4).getRefersTo();
-                            comp4Val = Float.parseFloat(dataMatcher
+                            comp4Val = Double.parseDouble(dataMatcher
                                     .group(groupId)); // for BGS
                             if (comp4Val == null) {
                                 comp4Val = MISSING_VAL;
@@ -360,49 +363,46 @@ public class GeoMagDecoder extends AbstractDecoder {
                             comp4Val = comp4Val / 100;
                         }
 
-                        if (stationCode.equals("HAD")) { // HAD missing are
-                                                         // 99999.9 and 999.999
-                            if (comp1Val == 99999.9f) {
+                        if (stationCode.equals("HAD")) { // HAD missing values are 99999.9 and 999.999
+                            if (comp1Val == 99999.9) {
                                 comp1Val = MISSING_VAL;
                             }
-                            if (comp2Val == 999.999f) {
+                            if (comp2Val == 999.999) {
                                 comp2Val = MISSING_VAL;
                             }
-                            if (comp3Val == 99999.9f) {
+                            if (comp3Val == 99999.9) {
                                 comp3Val = MISSING_VAL;
                             }
                         }
 
-                        if (stationCode.equals("CNB")) { // HAD missing are
-                                                         // 99999.9 and 999.999
-                            if (comp1Val == 99999.90f) {
+                        if (stationCode.equals("CNB")) { // CNB missing values 99999.90
+                            if (comp1Val == 99999.90) {
                                 comp1Val = MISSING_VAL;
                             }
-                            if (comp2Val == 99999.90f) {
+                            if (comp2Val == 99999.90) {
                                 comp2Val = MISSING_VAL;
                             }
-                            if (comp3Val == 99999.90f) {
+                            if (comp3Val == 99999.90) {
                                 comp3Val = MISSING_VAL;
                             }
-                            if (comp4Val == 99999.90f) {
+                            if (comp4Val == 99999.90) {
                                 comp4Val = MISSING_VAL;
                             }
                         }
 
                         if (stationCode.equals("NGK")
                                 || stationCode.equals("WNG")
-                                || stationCode.equals("MEA")) { // NGK missing
-                                                                // are 99999.00
-                            if (comp1Val == 99999.00f) {
+                                || stationCode.equals("MEA")) { // NGK, WNG and MEA missing values is 99999.00
+                            if (comp1Val == 99999.00) {
                                 comp1Val = MISSING_VAL;
                             }
-                            if (comp2Val == 99999.00f) {
+                            if (comp2Val == 99999.00) {
                                 comp2Val = MISSING_VAL;
                             }
-                            if (comp3Val == 99999.00f) {
+                            if (comp3Val == 99999.00) {
                                 comp3Val = MISSING_VAL;
                             }
-                            if (comp4Val == 99999.00f) {
+                            if (comp4Val == 99999.00) {
                                 comp4Val = MISSING_VAL;
                             }
                         }
@@ -419,8 +419,8 @@ public class GeoMagDecoder extends AbstractDecoder {
                                  * (Y) in nT using the general formula: X = H
                                  * Cos D; Y = H Sin D;
                                  */
-                                Float h = null;
-                                Float d = null;
+                                Double h = null;
+                                Double d = null;
 
                                 if ("H".equalsIgnoreCase(comp1RefersTo)
                                         && (comp1Val != null)) {
@@ -439,10 +439,8 @@ public class GeoMagDecoder extends AbstractDecoder {
                                 }
 
                                 if ((h != null) && (d != null)) {
-                                    comp1Val = (float) (h * Math.cos(Math
-                                            .toRadians(d)));
-                                    comp2Val = (float) (h * Math.sin(Math
-                                            .toRadians(d)));
+                                    comp1Val = (h * Math.cos(Math.toRadians(d)));
+                                    comp2Val = (h * Math.sin(Math.toRadians(d)));
                                 }
 
                             }
@@ -484,8 +482,15 @@ public class GeoMagDecoder extends AbstractDecoder {
             String newUriTime = new String(sdf.format(time));
             // System.out.println("**time "+obsTimesList.get(i)+" "+stationCode
             // +" "+sourceId);
-            String newUri = "/geomag/" + newUriTime + "/" + stationCode + "/"
-                    + sourceId + "/GEOMAG";
+            String newUri = null;
+
+            if (dataUriSuffix == null) {
+                newUri = "/geomag/" + newUriTime + "/" + stationCode + "/"
+                        + sourceId + "/GEOMAG";
+            } else {
+                newUri = "/geomag/" + newUriTime + "/" + stationCode + "/"
+                        + sourceId + "/GEOMAG" + dataUriSuffix;
+            }
 
             List<?> resultsList = findUriFromDb(newUri);
 
@@ -509,7 +514,12 @@ public class GeoMagDecoder extends AbstractDecoder {
                 }
                 record.setDataTime(new DataTime(time));
 
-                record.setReportType("GEOMAG");
+                if (dataUriSuffix == null) {
+                    record.setReportType("GEOMAG");
+                } else {
+                    record.setReportType("GEOMAG" + dataUriSuffix);
+                }
+
                 record.setOverwriteAllowed(false);
                 record.constructDataURI();
                 // System.out.println("record.getDataURI() "+record.getDataURI()+" "+record.getDataTime().getRefTime()+" "+retData.size()

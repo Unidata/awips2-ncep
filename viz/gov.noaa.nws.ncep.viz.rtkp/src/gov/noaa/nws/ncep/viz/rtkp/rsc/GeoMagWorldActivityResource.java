@@ -486,7 +486,9 @@ public class GeoMagWorldActivityResource extends
             Color[] colors = new Color[points.size()];
 
             HashMap<String, Map<String, Object>> latestStnsKMap = new HashMap<String, Map<String, Object>>();
-            for (int i = 0; i < latestStnKLst.size(); i++) {
+            int latestStnKLstSize = (latestStnKLst != null) ? latestStnKLst
+                    .size() : 0;
+            for (int i = 0; i < latestStnKLstSize; i++) {
                 latestStnsKMap.put(
                         (String) latestStnKLst.get(i).get("stationcode"),
                         latestStnKLst.get(i));
@@ -504,7 +506,7 @@ public class GeoMagWorldActivityResource extends
                         .getStationCode());
                 if (stnKMap != null) {
                     Integer k = (Integer) stnKMap.get("kestindex");
-                    Float ks = (Float) stnKMap.get("ks");
+                    Double ks = (Double) stnKMap.get("ks");
 
                     if (RTKpUtil.KS_PLOT.equals(dataBlock.getkType())) {
                         k = ks.intValue();
@@ -801,7 +803,7 @@ public class GeoMagWorldActivityResource extends
 
             if (stn != null) {
                 Integer k = (Integer) map.get("kestindex");
-                Float ks = (Float) map.get("ks");
+                Double ks = (Double) map.get("ks");
                 Date reftime = (Date) map.get("reftime");
 
                 String displayStr = k.toString();

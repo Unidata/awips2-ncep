@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.common.dataplugin.geomag.calculation;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.KFitTime;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.util.KStationCoefficientLookup;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,10 +11,14 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/*
+/**
  * The k index and decoder calculation utility.
  * 
  * <pre>
@@ -23,6 +28,7 @@ import java.util.Map;
  * -----------  ----------  ---------- --------------------------
  * 05/14/2013   #989        qzhou      Initial Creation
  * 06/23/2014   R4152       qzhou      Touched up 3 functions
+ * 12/23/2014   R5412       sgurung    Change float to double, added methods related to "debug mode"
  * </pre>
  * 
  * @author qzhou
@@ -30,9 +36,9 @@ import java.util.Map;
  */
 
 public class CalcUtil {
-    private static final float MISSING_VAL = 99999.99f;
+    public static final double MISSING_VAL = 99999.99;
 
-    private static final float K_EXPONENT = 3.3f;
+    private static final double K_EXPONENT = 3.3;
 
     private static KStationCoefficientLookup stationCoeff = KStationCoefficientLookup
             .getInstance();
@@ -127,13 +133,13 @@ public class CalcUtil {
         return k9;
     }
 
-    public static float getLongitude(String station)
+    public static double getLongitude(String station)
             throws NumberFormatException {
-        float lon = 0;
+        double lon = 0;
         if (station != null && !station.equalsIgnoreCase("")) {
             String longitude = getStationCoeff().getStationByCode(station)
                     .getLongitude();
-            lon = Float.parseFloat(longitude);
+            lon = Double.parseDouble(longitude);
         }
         return lon;
     }
@@ -141,8 +147,8 @@ public class CalcUtil {
     /*
      * map of the A and the B values in the order of 00-03, 03-06...
      */
-    public static Map<Float, Float> getCoeffAandB(String station) {
-        Map<Float, Float> abCoeff = new HashMap<Float, Float>();
+    public static Map<Double, Double> getCoeffAandB(String station) {
+        Map<Double, Double> abCoeff = new HashMap<Double, Double>();
 
         List<KFitTime> fitTime = getStationCoeff().getStationByCode(station)
                 .getKFitTime();
@@ -150,8 +156,8 @@ public class CalcUtil {
             return abCoeff;
 
         for (int i = 0; i < 8; i++) {
-            float a = fitTime.get(i).getCoeffA();
-            float b = fitTime.get(i).getCoeffB();
+            double a = fitTime.get(i).getCoeffA();
+            double b = fitTime.get(i).getCoeffB();
             abCoeff.put(a, b);
         }
 
@@ -161,8 +167,8 @@ public class CalcUtil {
     /*
      * map of the time period and the W values in the order of 00-03, 03-06...
      */
-    public static Map<String, Float> getCoeffW(String station) {
-        Map<String, Float> wCoeff = new HashMap<String, Float>();
+    public static Map<String, Double> getCoeffW(String station) {
+        Map<String, Double> wCoeff = new HashMap<String, Double>();
 
         List<KFitTime> fitTime = getStationCoeff().getStationByCode(station)
                 .getKFitTime();
@@ -171,7 +177,7 @@ public class CalcUtil {
 
         for (int i = 0; i < 8; i++) {
             String a = fitTime.get(i).getKey();
-            float b = fitTime.get(i).getCoeffW();
+            double b = fitTime.get(i).getCoeffW();
             wCoeff.put(a, b);
         }
 
@@ -182,12 +188,12 @@ public class CalcUtil {
         int[] kLimit = new int[10];
         int k9Limit = getK9Limit(station);
         for (int i = 0; i < kLimit.length; i++) {
-            kLimit[i] = Math.round(k9Limit * getKConst(i) / 500.0f);
+            kLimit[i] = k9Limit * getKConst(i) / 500;
         }
         return kLimit;
     }
 
-    // public static int[] getAIndex(String station, float[] k-index) {
+    // public static int[] getAIndex(String station, double[] k-index) {
     // int[] aIndex = new int[10];
     // //int k9Limit = getK9Limit(station);
     // for (int i = 0; i < kLimit.length; i++) {
@@ -196,7 +202,7 @@ public class CalcUtil {
     // return aIndex;
     // }
 
-    public static int getKfromTable(int[] kLimit, float gamma) {
+    public static int getKfromTable(int[] kLimit, double gamma) {
         int kIndex;
 
         int i = 0;
@@ -291,7 +297,7 @@ public class CalcUtil {
         return epTime;
     }
 
-    public static boolean isHalfMissing(float[] items) {
+    public static boolean isHalfMissing(double[] items) {
         boolean halfMissaing = false;
 
         int i = 0;
@@ -305,9 +311,9 @@ public class CalcUtil {
         return halfMissaing;
     }
 
-    public static float getThird(float kpEst) {
-        float half = 0.333333f / 2;
-        float x = kpEst - (int) kpEst; // get decimal fraction
+    public static double getThird(double kpEst) {
+        double half = 0.333333f / 2;
+        double x = kpEst - (int) kpEst; // get decimal fraction
 
         if (x >= 0 && x <= half)
             x = 0;
@@ -325,8 +331,8 @@ public class CalcUtil {
         return x;
     }
 
-    public static float maxValue(float[] dev) {
-        float max = -99999;
+    public static double maxValue(double[] dev) {
+        double max = -99999;
         for (int i = 0; i < dev.length; i++) {
             if (dev[i] > max && dev[i] < MISSING_VAL) {
                 max = dev[i];
@@ -335,8 +341,8 @@ public class CalcUtil {
         return max;
     }
 
-    public static float minValue(float[] dev) {
-        float min = 99999;
+    public static double minValue(double[] dev) {
+        double min = 99999;
         for (int i = 0; i < dev.length; i++) {
             if (dev[i] < min && dev[i] > -MISSING_VAL) {
                 min = dev[i];
@@ -346,14 +352,14 @@ public class CalcUtil {
     }
 
     /*
-     * 10 element floating point array
+     * 10 element double array
      */
-    public static float[] geKLength() {
-        float[] kLength = new float[10];
+    public static double[] geKLength() {
+        double[] kLength = new double[10];
 
         kLength[0] = 0;
         for (int i = 1; i < 10; i++) {
-            kLength[i] = (float) Math.exp(K_EXPONENT * Math.log(i));
+            kLength[i] = Math.exp(K_EXPONENT * Math.log(i));
             if (kLength[i] > 1080)
                 kLength[i] = 1080;
         }
@@ -396,11 +402,11 @@ public class CalcUtil {
             return "";
     }
 
-    public static float[] toFloatArray(List<Float> list) {
-        float[] ret = new float[list.size()];
+    public static double[] toDoubleArray(List<Double> list) {
+        double[] ret = new double[list.size()];
         int i = 0;
-        for (Float e : list)
-            ret[i++] = e.floatValue();
+        for (Double e : list)
+            ret[i++] = e.doubleValue();
         return ret;
     }
 
@@ -524,17 +530,17 @@ public class CalcUtil {
         return time;
     }
 
-    public static float getMedian(float[] array) {
-        float median = 0;
+    public static double getMedian(double[] array) {
+        double median = 0;
         if (array.length <= 1)
             return array[0];
 
-        float[] arraySort = array.clone();
+        double[] arraySort = array.clone();
         Arrays.sort(arraySort);
 
         // remove missing data
-        List<Float> newArray = new ArrayList<Float>();
-        for (int k = 0; k < arraySort.length - 1; k++)
+        List<Double> newArray = new ArrayList<Double>();
+        for (int k = 0; k < arraySort.length; k++)
             if (arraySort[k] != MISSING_VAL)
                 newArray.add(arraySort[k]);
             else
@@ -547,6 +553,152 @@ public class CalcUtil {
             median = newArray.get((size - 1) / 2);
 
         return median;
+    }
+
+    public static Double round(int decimalPlace, Double d) {
+
+        BigDecimal bd = new BigDecimal(Double.toString(d));
+        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_EVEN);
+        return bd.doubleValue();
+    }
+
+    public static Hashtable<String, String> getTestComponents(String dataURI) {
+
+        String regexIncludingHourAndMin = ".*GEOMAG\\.TEST\\.\\d{3}\\.[0-2][0-9]\\.[0-5][0-9]";
+
+        Pattern p = Pattern.compile(regexIncludingHourAndMin);
+        Matcher m = p.matcher(dataURI);
+
+        Hashtable<String, String> results = new Hashtable<String, String>();
+
+        if (m.matches()) { // we have the hour and minutes included
+
+            int startIndex = dataURI.indexOf("GEOMAG") + 12;
+            String dataURIComponent = dataURI.substring(startIndex);
+
+            StringTokenizer st = new StringTokenizer(dataURIComponent, ".");
+
+            String testNumber = st.nextToken();
+            String hour = st.nextToken();
+            String minute = st.nextToken();
+
+            results.put("TEST_NUMBER", testNumber);
+            results.put("HOUR", hour);
+            results.put("MINUTE", minute);
+
+        }
+
+        return results;
+
+    }
+
+    public static String parseFileName(String fileName) {
+
+        StringBuffer sb = new StringBuffer();
+        String regexIncludingHourAndMin = ".*\\.test\\.\\d{3}\\.[0-2][0-9]\\.[0-5][0-9].*";
+        String regexNoHourAndMin = ".*\\.test\\.\\d{3}.*";
+        String result = null;
+
+        Pattern p = Pattern.compile(regexIncludingHourAndMin);
+        Matcher m = p.matcher(fileName);
+
+        if (m.matches()) { // we have the hour and minutes included
+
+            StringTokenizer st = new StringTokenizer(fileName, ".");
+
+            while (st.hasMoreElements()) {
+
+                if (st.countTokens() == 6) {
+                    st.nextElement();
+                    continue;
+                }
+
+                if (st.countTokens() == 1) {
+
+                    st.nextElement();
+
+                } else if (st.countTokens() == 2) {
+
+                    sb.append(st.nextElement());
+
+                } else {
+
+                    sb.append(st.nextElement() + ".");
+
+                }
+
+            }
+
+            result = "." + sb.toString().toUpperCase().trim();
+
+        } else {
+
+            p = Pattern.compile(regexNoHourAndMin);
+            m = p.matcher(fileName);
+
+            if (m.matches()) { // no hour and minutes included
+
+                StringTokenizer st = new StringTokenizer(fileName, ".");
+
+                while (st.hasMoreElements()) {
+
+                    if (st.countTokens() == 4) {
+                        st.nextElement();
+                        continue;
+                    }
+
+                    if (st.countTokens() == 1) {
+
+                        st.nextElement();
+
+                    } else if (st.countTokens() == 2) {
+
+                        sb.append(st.nextElement());
+
+                    } else {
+
+                        sb.append(st.nextElement() + ".");
+
+                    }
+                }
+
+                result = "." + sb.toString().toUpperCase().trim();
+
+            }
+        }
+
+        return result;
+
+    }
+
+    public static boolean isDebugModeRequired(String dataURI, int hour,
+            int minute) {
+
+        boolean debugModeRequired = false;
+
+        String regexIncludingHourAndMin = ".*GEOMAG\\.TEST\\.\\d{3}\\.[0-2][0-9]\\.[0-5][0-9]";
+
+        Pattern p = Pattern.compile(regexIncludingHourAndMin);
+        Matcher m = p.matcher(dataURI);
+
+        if (m.matches()) { // we have the hour and minutes included
+
+            int startIndex = dataURI.indexOf("GEOMAG") + 12;
+            String dataURIComponent = dataURI.substring(startIndex);
+
+            StringTokenizer st = new StringTokenizer(dataURIComponent, ".");
+
+            st.nextToken();
+            int testHour = Integer.valueOf(st.nextToken()).intValue();
+            int testMinute = Integer.valueOf(st.nextToken()).intValue();
+
+            if (testHour == hour && testMinute == minute) {
+                debugModeRequired = true;
+            }
+        }
+
+        return debugModeRequired;
+
     }
 
 }

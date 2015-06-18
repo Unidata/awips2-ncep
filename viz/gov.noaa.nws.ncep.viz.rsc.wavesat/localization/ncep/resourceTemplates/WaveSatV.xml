@@ -29,7 +29,7 @@
         <mapping key="pluginName">
           <constraint constraintValue="${pluginName}" constraintType="EQUALS" />
         </mapping>
-        <mapping key="said">
+        <mapping key="satelliteId">
           <constraint constraintValue="${satelliteId}" constraintType="EQUALS" />
         </mapping>
       </metadataMap>

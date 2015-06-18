@@ -1,0 +1,9 @@
+! Parameters and Attributes for the default WaveSatV SGWHVC (CryoSat-2) Resource
+!
+colorBarForMeters=@ColorBars/WaveSat/waveSatColorBarMeters.xml
+colorBarForFeet=@ColorBars/WaveSat/waveSatColorBarFeet.xml
+useFeetInsteadOfMeters=true
+fontSize=12
+fontName=Courier
+timeDisplayInterval=1
+timeDisplayColor=RGB {255, 255, 0}

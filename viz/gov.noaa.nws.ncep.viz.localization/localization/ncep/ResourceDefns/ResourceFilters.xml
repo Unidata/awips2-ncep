@@ -189,7 +189,19 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="FFA">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH_AltiKa">
+<filters>Satellite</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH_CryoSat-2">
+<filters>Satellite</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH_Jason-1">
+<filters>Satellite</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH_Jason-2">
+<filters>Satellite</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH_Jason-3">
 <filters>Satellite</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="OSCT">
@@ -325,9 +337,6 @@
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="ICEACCR_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="ICEACCR">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="JMAP_NT">
@@ -1054,9 +1063,6 @@
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAEFS_AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAEFSALL">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="QPE_XNAV_TUA">

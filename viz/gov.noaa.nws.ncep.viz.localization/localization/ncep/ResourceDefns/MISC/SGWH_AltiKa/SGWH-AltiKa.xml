@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>SGWH</resourceDefnName>
+    <resourceDefnName>SGWH_AltiKa</resourceDefnName>
     <resourceCategory>MISC</resourceCategory>
     <resourceParameters>
-pluginName=sgwh
-satelliteId=260
-legendColor=RGB {33,100,255}
+pluginName=sgwhv
+satelliteId=441
+legendColor=RGB {255, 0, 255}
     </resourceParameters>
-    <rscImplementation>WaveSat</rscImplementation>
+    <rscImplementation>WaveSatV</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>

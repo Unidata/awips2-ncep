@@ -1,9 +1,9 @@
 package gov.noaa.nws.ncep.viz.rsc.wavesat.rsc;
 
+import gov.noaa.nws.ncep.viz.rsc.wavesat.rsc.AbstractWaveSatResource.WaveSatRscDataObj;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-
-import gov.noaa.nws.ncep.viz.rsc.wavesat.rsc.WaveSatResource.WaveSatRscDataObj;
 
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.alerts.AbstractAlertMessageParser;
@@ -11,8 +11,7 @@ import com.raytheon.uf.viz.core.alerts.AlertMessage;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractRequestableResourceData;
 
-
-// Since WaveSat is using PointDataRequests to retreive its data
+// Since WaveSat is using PointDataRequests to retrieve its data
 // because a normal BaseRequest script for SgwhRecords does not contain the
 // data from hdf5. But this also means that the default ParseNatlCntrsAlertMessage
 // also will not work for the same reason. 
@@ -21,7 +20,7 @@ import com.raytheon.uf.viz.core.rsc.AbstractRequestableResourceData;
 // can use later to decide if it needs to make another query. 
 
 // This would be much easier and more efficient if the sgwh, windSpeed.... parameters
-// were in the URI (or at least in the postgress DB) so we wouldn't have to make
+// were in the URI (or at least in the postgres DB) so we wouldn't have to make
 // another PointDataRequest.
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -33,16 +32,27 @@ public class WaveSatAlertParser extends AbstractAlertMessageParser {
 
         WaveSatRscDataObj waveSatData = new WaveSatRscDataObj();
         waveSatData.dataTime = (DataTime) message.decodedAlert.get("dataTime");
-        waveSatData.lat = (Double) message.decodedAlert.get("clath");
-        waveSatData.lon = (Double) message.decodedAlert.get("clonh");
-    	waveSatData.satelliteId = Long.toString( (Long) message.decodedAlert.get("said") );
-    	
-    	// TODO : get the waveHeight, windSpeed, windDir from the message
-    	// til then, set a flag to let the resource know that it needs to 
-    	// requery the data.
-    	waveSatData.createdFromAutoUpdate = true;
-    	
-        return waveSatData; 
+        if (resourceData instanceof WaveSatResourceData) {
+            // For LAT, LON, and SAT_ID, the param names depend on which EDEX
+            // plugin -- and therefore which resource class -- we're using
+            AbstractWaveSatResource resource = ((WaveSatResourceData) resourceData)
+                    .getResource();
+            waveSatData.lat = (Double) message.decodedAlert
+                    .get(resource.latParamInPdo);
+            waveSatData.lon = (Double) message.decodedAlert
+                    .get(resource.lonParamInPdo);
+            waveSatData.satelliteId = Long.toString((Long) message.decodedAlert
+                    .get(resource.satIdParamInPdo));
+        } else {
+            // TODO error!
+        }
+
+        // TODO: Get the waveHeight, windSpeed, windDir from the message.
+        // Until then, set a flag to let the resource know that it needs to
+        // requery the data.
+        waveSatData.createdFromAutoUpdate = true;
+
+        return waveSatData;
     }
 
 }

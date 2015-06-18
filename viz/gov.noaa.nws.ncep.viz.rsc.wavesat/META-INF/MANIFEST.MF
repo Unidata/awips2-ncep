@@ -17,6 +17,7 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  com.raytheon.uf.common.message;bundle-version="1.11.7",
  gov.noaa.nws.ncep.common.dataplugin.sgwh,
+ gov.noaa.nws.ncep.common.dataplugin.sgwhv,
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
  javax.measure;bundle-version="1.0.0",
  com.raytheon.viz.pointdata,
@@ -25,6 +26,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wavesat,
  gov.noaa.nws.ncep.viz.rsc.wavesat.rsc
-Import-Package: gov.noaa.nws.ncep.viz.ui.display,
+Import-Package: com.raytheon.uf.viz.core.alerts,
  com.raytheon.viz.alerts,
- com.raytheon.uf.viz.core.alerts
+ gov.noaa.nws.ncep.gempak.parameters.colorbar,
+ gov.noaa.nws.ncep.viz.ui.display

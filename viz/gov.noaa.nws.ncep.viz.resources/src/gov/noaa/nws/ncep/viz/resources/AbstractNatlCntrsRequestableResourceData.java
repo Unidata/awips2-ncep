@@ -86,6 +86,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 05/15/2014      #1131   qzhou       Added GraphRscCategory.  Added dfltGraphRange
  * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
  * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
+ * 06/16/2015      RM6580  kvepuri     Updated PGEN latest file logic
  * </pre>
  * 
  * *
@@ -502,6 +503,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     public List<DataTime> getAvailableDataTimes() {
         List<DataTime> availTimesList = null;
 
+        DataTime[] availTimes = null;
+
         try {
             ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
                     .getResourceDefinition(getResourceName());
@@ -520,7 +523,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 availTimesList = rscDefn.getDataTimes(getResourceName());
             } else {
                 try {
-                    DataTime[] availTimes = null;
                     availTimes = getAvailableTimes();
                     if (availTimes == null) {
                         return new ArrayList<DataTime>();
@@ -533,6 +535,17 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                     return null;
                 }
             }
+
+            // RM6580 : PGEN needs to display Latest file, don't display
+            // multiple available files.
+            // availTimesList is already sorted, pick the latest
+            if (rscDefn.getResourceCategory().isPgenCategory()
+                    && availTimesList.size() > 1) {
+                availTimesList = Arrays
+                        .asList(availTimes[availTimes.length - 1]);
+            }
+            // RM6580 : Fix end
+
         } catch (VizException e1) {
             return availTimesList;
         }

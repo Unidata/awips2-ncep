@@ -449,6 +449,16 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+<<<<<<< HEAD
+=======
+
+   <plugin
+         id="gov.nasa.gsfc.fits"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+>>>>>>> 486e8093f8f0eb2cb3122289048b2c1ea63934aa
 
    <plugin
          id="gov.nasa.gsfc.fits"

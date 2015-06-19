@@ -254,21 +254,16 @@ public class GhcdResource extends
         request.setConstraints( reqConstraints );
         DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
         ghcdRecords = new ArrayList<GenericHighCadenceDataRecord>();
-        List<Object> pdoList = new ArrayList<Object>();
-        for (int i = 0; i < response.getResults().size(); i++) {
-        	for( Map.Entry<String, Object> result : response.getResults().get(i).entrySet() )  {
-        		pdoList.add(result);
+        
+        for( Map<String, Object> result : response.getResults())  {
+        	for (Object pdo : result.values()) {
+        		for (IRscDataObject dataObject : processRecord(pdo)) {		
+        			newRscDataObjsQueue.add((IRscDataObject) dataObject);
+        			ghcdRecords.add((GenericHighCadenceDataRecord) ((DfltRecordRscDataObj) dataObject)
+                                .getPDO());
+        		}
         	}
         }
-        	for (Object pdo : pdoList) {
-        		for (IRscDataObject dataObject : processRecord(pdo)) {
-        			newRscDataObjsQueue.add(dataObject);
-        			ghcdRecords
-                        .add((GenericHighCadenceDataRecord) ((DfltRecordRscDataObj) dataObject)
-                                .getPDO());
-            }
-        }
-
         sortRecord();
         data = loadInternal(ghcdRecords);
 

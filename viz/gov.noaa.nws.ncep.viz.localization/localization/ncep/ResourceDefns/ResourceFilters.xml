@@ -171,6 +171,24 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="Atlantic_Surface">
 <filters>Atlantic,Surface</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Atlantic_HS_Wave">
+<filters>Atlantic,HighSeas,Wave</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Gulf_Stream">
+<filters>GulfStream</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Ice_Edge">
+<filters>IceEdge</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Pacific_HS_500mb">
+<filters>Pacific,HighSeas,500mb</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Pacific_HS_Surface">
+<filters>Pacific,HighSeas,Surface</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Pacific_HS_Wave">
+<filters>Pacific,HighSeas,Wave</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="VOLCANO">
 <filters>VOLCANO</filters>
 </ResourceDefinitionFilter>

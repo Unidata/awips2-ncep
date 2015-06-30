@@ -751,6 +751,15 @@
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeleteElement"
              actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteElementHandler"
              icon="icons/delete.gif" />
+             
+         <action
+             name="Delete Label"
+             label="Delete Label"
+             alwaysVisible="false"
+             commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteLabel"
+             actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteLabelHandler"
+             icon="icons/delete.gif" />    
+             
          <action
              name="Copy"
              label="copy Object"
@@ -868,7 +877,7 @@
          <class
              name="Symbol"
              label="Symbol"    
-             actions="Delete"
+             actions="Delete, Delete Label"
              icon="icons/symbol.gif" />
          <class
              name="Any"

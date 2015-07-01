@@ -55,6 +55,7 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
  * 09/15/2014     R4508     S. Gurung    Added TIME_SERIES_DIR
  * 10/01/2014     R5116     K.Bugenhagen Added MODIS style rules constant
  * 10/15/2014     R4508     S. Gurung    Added XAXIS_SCALE_DIR and XAXIS_SCALE_HELP_FILE
+ * 05/14/2015     R7656     A. Su        Added LCL_RDA_DIR.
  * </pre>
  * 
  * @author ghull
@@ -344,6 +345,8 @@ public class NcPathManager {
         public static final String XAXIS_SCALE_HELP_FILE = XAXIS_SCALE_DIR
                 + File.separator + "XAxisScalesHelp.txt";
 
+        public static final String LCL_RDA_DIR = NCEP_ROOT
+                + "localRadarStations";
     }
 
     public static synchronized NcPathManager getInstance() {

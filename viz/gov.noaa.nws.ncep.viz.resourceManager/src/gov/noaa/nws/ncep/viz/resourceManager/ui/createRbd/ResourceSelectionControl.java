@@ -8,6 +8,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
+import gov.noaa.nws.ncep.viz.resources.manager.LocalRadarStationManager;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
@@ -32,6 +33,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -88,6 +90,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 10/24/2013     #1043      G. Hull     init Select Resource GUI to highlighted rsc
  * 07/23/2014		?		 B. Yin		 Handle grid analysis 
  * 07/23/2014       ?        B. Hebbard  Make extensible for NTRANS-specific subclass
+ * 05/18/2015     R7656      A. Su       Displayed the aliases of local radar stations in the menu.
+ * 06/10/2015     R7656      A. Su       Rewrote the displaying logic for LocalRadar for clarity.
  * 
  * </pre>
  * 
@@ -499,8 +503,74 @@ public class ResourceSelectionControl extends Composite {
 
         rscTypeLViewer.setLabelProvider(new LabelProvider() {
             public String getText(Object element) {
+                if (element == null)
+                    return "null"; // Defensive programming.
+
                 ResourceDefinition rd = (ResourceDefinition) element;
-                return (rd == null ? "null" : rd.getResourceDefnName());
+                String rdName = rd.getResourceDefnName();
+
+                // R7656: Display aliases for LocalRadar.
+                if (rd.getResourceCategory().equals(
+                        ResourceCategory.RadarRscCategory)) {
+
+                    String displayedName = LocalRadarStationManager
+                            .getInstance().getDisplayedName(rdName);
+
+                    if (displayedName != null)
+                        rdName = displayedName;
+                }
+
+                return rdName;
+            }
+        });
+
+        // R7656: Override the method "compare" in the class "ViewerSorter" to
+        // properly sort the menu items (aliases) of local radar stations.
+        rscTypeLViewer.setSorter(new ViewerSorter() {
+
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+
+                // If it is not for LocalRadar,
+                // then do not override the compare() method,
+                // i.e. use super's compare() method.
+                boolean isItForLocalRadar = (e1 != null && ((ResourceDefinition) e1)
+                        .getResourceCategory().equals(
+                                ResourceCategory.RadarRscCategory))
+                        || (e2 != null && ((ResourceDefinition) e2)
+                                .getResourceCategory().equals(
+                                        ResourceCategory.RadarRscCategory));
+
+                if (!isItForLocalRadar)
+                    return super.compare(viewer, e1, e2);
+
+                // Defensive programming for null input parameters.
+                if (e1 == null)
+                    return 1;
+
+                if (e2 == null)
+                    return -1;
+
+                final String firstOnRadarMenu = "NatlMosaic";
+                String label1 = ((ResourceDefinition) e1).getResourceDefnName();
+                if (label1.equals(firstOnRadarMenu))
+                    return -1;
+
+                String label2 = ((ResourceDefinition) e2).getResourceDefnName();
+                if (label2.equals(firstOnRadarMenu))
+                    return 1;
+
+                String displayedName1 = LocalRadarStationManager.getInstance()
+                        .getDisplayedName(label1);
+                if (displayedName1 != null)
+                    label1 = displayedName1;
+
+                String displayedName2 = LocalRadarStationManager.getInstance()
+                        .getDisplayedName(label2);
+                if (displayedName2 != null)
+                    label2 = displayedName2;
+
+                return (label1.compareTo(label2));
             }
         });
 

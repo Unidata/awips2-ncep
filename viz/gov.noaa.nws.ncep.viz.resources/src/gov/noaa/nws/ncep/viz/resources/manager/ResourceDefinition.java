@@ -89,6 +89,8 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *                                        changed uEngine request to ThriftClinet
  *  12/24/14      R4508      S. Gurung    Add special handling for GHCD (generic high-cadence data) compound subType
  *  01/21/15	  R4646	  	 B. Yin       Handle PGEN resource group (subtype)
+ *  05/14/15      R7656      A. Su        Retrieved the resource definitions of LocalRadar from an xml file.
+ *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
  * 
  * </pre>
  * 
@@ -225,6 +227,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     // processing alert notifications.
     //
     private Map<Map<String, RequestConstraint>, DataTimesCacheEntry> availTimesCache = null;
+
+    // This variable is specific for the resource definition of LocalRadar.
+    private static boolean isLocalRadarProcessed = false;
+
+    // The name of resource definition for LocalRadar.
+    private static String localRadarResourceDefnName = LocalRadarStationManager.ResourceDefnName;
 
     // Set this to true and store the latestTimes in the URICatalog.
     // Some RscDefns have a lot of possible constraints (i.e. radar and some
@@ -1727,6 +1735,24 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         generatedSubTypesList.clear();
         generatedTypesList.clear();
+
+        // R7656: Special case for LocalRadar:
+        // Retrieve the station IDs of radar stations from an XML file,
+        // bypassing its original CatalogQuery.performQuery.
+
+        if (!isLocalRadarProcessed
+                && getResourceDefnName().equals(localRadarResourceDefnName)) {
+
+            List<String> stationIDs = LocalRadarStationManager.getInstance()
+                    .getStationIDs();
+
+            if (stationIDs != null)
+                for (String id : stationIDs)
+                    generatedTypesList.add(id);
+
+            isLocalRadarProcessed = true;
+            return;
+        }
 
         try {
             // the parameters used to define the data that gets stored in the

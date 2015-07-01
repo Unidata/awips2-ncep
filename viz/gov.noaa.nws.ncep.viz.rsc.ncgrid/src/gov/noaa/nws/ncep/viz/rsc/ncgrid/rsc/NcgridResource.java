@@ -262,45 +262,24 @@ public class NcgridResource extends
                 logger.info("==from init to run loadNcgridData took: "
                         + (t1 - initTime));
 
-            boolean frameMatched = false;
-            IRscDataObject lastDataObj = null;
-            int closestMatch = 0;
-
             for (AbstractFrameData fd : frameDataMap.values()) {
                 FrameData frameData = (FrameData) fd;
 
-                frameMatched = false;
                 for (DataTime dt : dataTimesForDgdriv) {
 
                     IRscDataObject[] dataObject = processRecord(dt);
                     if (frameData.isRscDataObjInFrame(dataObject[0])) {
-
-                        closestMatch = frameData.closestToFrame(dataObject[0],
-                                lastDataObj);
-
-                        if (closestMatch == 1) {
-                            newRscDataObjsQueue.add(dataObject[0]);
-                        } else if (closestMatch == 2) {
-                            newRscDataObjsQueue.add(lastDataObj);
-                        } else if (closestMatch == 0) {
-                            newRscDataObjsQueue.add(lastDataObj);
-                        }
-
-                        frameMatched = true;
-                        // lastDataObj = dataObject[0];
+                    	newRscDataObjsQueue.add(dataObject[0]);
                         break;
                     }
-                    lastDataObj = dataObject[0];
-                }
-
-                if (!frameMatched && lastDataObj != null) {
-                    newRscDataObjsQueue.add(lastDataObj);
                 }
 
                 if (cancel) {
                     return Status.CANCEL_STATUS;
                 }
 
+                processNewRscDataList();
+                
                 if (isFirst) {
                     isFirst = false;
                     int cnt = 0;
@@ -3003,8 +2982,8 @@ public class NcgridResource extends
                 }
             } else {
                 // Redmine 4980: use cycle time (ctime) instead
-                // cal = currFrameTm.getValidTime();
-                cal = cTime.getValidTime();
+                cal = currFrameTm.getValidTime();
+                //cal = cTime.getValidTime();
                 timestampFormat = "%02d%02d%02d/%02d%02dV%s";
             }
             String forecastTime = CommonDateFormatUtil
@@ -3201,7 +3180,7 @@ public class NcgridResource extends
      * 
      * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
      * processNewRscDataList()
-     */
+     
     protected synchronized boolean processNewRscDataList() {
 
         // allow resources to pre process the data before it is added to the
@@ -3265,5 +3244,5 @@ public class NcgridResource extends
         postProcessFrameUpdate();
         autoUpdateReady = false;
         return true;
-    }
+    }*/
 }

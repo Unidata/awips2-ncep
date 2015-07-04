@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd;
 
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
+import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
@@ -38,7 +38,7 @@ public class EditRbdDialog extends Dialog {
 
     private RscBundleDisplayMngr rbdMngr = null;
 
-    private CreateRbdControl createRbdCntr = null;
+    private LoadGempakControl createRbdCntr = null;
 
     public EditRbdDialog(Shell parShell, AbstractRBD<?> seldRbd)
             throws VizException {
@@ -60,7 +60,7 @@ public class EditRbdDialog extends Dialog {
 
         rbdMngr.initFromRbdBundle(seldRbd);
 
-        createRbdCntr = new CreateRbdControl(shell, rbdMngr);
+        createRbdCntr = new LoadGempakControl(shell, rbdMngr);
 
         createRbdCntr.configureForEditRbd();
 

@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd.LoadRbdControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
@@ -202,8 +201,8 @@ public class ResourceManagerDialog extends Dialog {
        			if( seldTab[0].getControl() instanceof LoadRbdControl ) {       				
        				((LoadRbdControl)seldTab[0].getControl()).updateDialog();
        			}
-       			else if( seldTab[0].getControl() instanceof CreateRbdControl ) {       				
-       				((CreateRbdControl)seldTab[0].getControl()).updateDialog();
+       			else if( seldTab[0].getControl() instanceof LoadGempakControl ) {       				
+       				((LoadGempakControl)seldTab[0].getControl()).updateDialog();
        			}
        			else if( seldTab[0].getControl() instanceof ManageSpfControl ) {       				
        				((ManageSpfControl)seldTab[0].getControl()).updateDialog();

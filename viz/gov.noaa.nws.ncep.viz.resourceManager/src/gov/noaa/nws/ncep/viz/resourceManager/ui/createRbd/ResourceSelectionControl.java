@@ -239,7 +239,6 @@ public class ResourceSelectionControl extends Composite {
 
         sel_rsc_comp = parent;
 
-        
         GridData gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -251,13 +250,11 @@ public class ResourceSelectionControl extends Composite {
 
         sel_rsc_comp.setLayout(new FormLayout());
         
-
-
         // first create the lists and then attach the label to the top of them
         rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
         FormData fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd.height = 180;
     	fd.top = new FormAttachment( 0, 20 );
         fd.left = new FormAttachment(0, 10);
         fd.right = new FormAttachment( 15, 0 );
@@ -275,7 +272,7 @@ public class ResourceSelectionControl extends Composite {
         rscGroupLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd.height = 180;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
     	fd.width = 120;
@@ -292,7 +289,7 @@ public class ResourceSelectionControl extends Composite {
         rscAttrSetLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE
                 | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();// 260, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd.height = 180;
         fd.top = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 8, SWT.RIGHT);
         fd.right = new FormAttachment(100, -10);
@@ -374,6 +371,10 @@ public class ResourceSelectionControl extends Composite {
         setContentProviders();
         addSelectionListeners();
         initWidgets(initRscName);
+        
+        for (IResourceSelectedListener lstnr : rscSelListeners) {
+            this.addResourceSelectionListener(lstnr);
+        }
     }
 
     public ResourceSelectionControl(Composite parent) throws VizException {
@@ -460,7 +461,6 @@ public class ResourceSelectionControl extends Composite {
         fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
         fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
-
     	
     	filterCombo = new Combo( sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY );
         fd = new FormData();
@@ -476,48 +476,20 @@ public class ResourceSelectionControl extends Composite {
     	fd.bottom = new FormAttachment( filterCombo, -3, SWT.TOP );
     	filt_lbl.setLayoutData( fd );
     	
-    	
        	seldRscNameTxt = new Text( sel_rsc_comp, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
-//    	fd = new FormData(360,20);
     	fd = new FormData(200,20);
-    	//   	fd.bottom = new FormAttachment( 100, -50 ); // change to addResourceBtn
     	fd.top = new FormAttachment( rscTypeLViewer.getList(), 40, SWT.BOTTOM );
     	fd.left = new FormAttachment( filterCombo, 10, SWT.RIGHT );
         seldRscNameTxt.setLayoutData(fd);
     	seldRscNameTxt.setEnabled( false );
-
 
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
 
         fd = new FormData();
         fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
         fd.right = new FormAttachment( 100, -10 );
-        // fd.left = new FormAttachment( seldRscNameTxt, 75, SWT.RIGHT );
-        // fd.bottom = new FormAttachment( 100, -10 );
         addResourceBtn.setLayoutData(fd);
     	addResourceBtn.setText( "   Add   " ); // Add To RBD
-    	
-    	
-        /*
-        can_btn = new Button( sel_rsc_comp, SWT.PUSH );
-        can_btn.setText("  Cancel  ");
-        fd = new FormData();    	
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-        fd.right = new FormAttachment( addResourceBtn, -10, SWT.LEFT  );
-    	can_btn.setLayoutData( fd );
-    	*/
-    	/*
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-    	replaceResourceBtn.setText( " Replace " ); // ie Modify 
-
-        // both for now unless we change it to be one or the other
-        // addResourceBtn.setVisible( !replaceBtnVisible );
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-    	*/
 
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
         fd = new FormData();
@@ -531,23 +503,16 @@ public class ResourceSelectionControl extends Composite {
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
-        // fd.left = new FormAttachment( addResourceBtn, 30, SWT.RIGHT );
-    	//fd.left = new FormAttachment( 55, 0 );
-        //fd.right = new FormAttachment( can_btn, -10, SWT.LEFT  );
         fd.width = 130;
         fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
     	fd.right = new FormAttachment( 100, -20 );
-        // fd.bottom = new FormAttachment( 100, -10 );
 
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
         cycleTimeLbl.setText("Cycle Time");
         fd = new FormData();
-    	//fd.left = new FormAttachment( cycleTimeCombo, 0, SWT.LEFT );
         fd.right = new FormAttachment( cycleTimeCombo, -10, SWT.LEFT  );
-        //fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-
     	fd.bottom = new FormAttachment( cycleTimeCombo, -5, SWT.BOTTOM );
         cycleTimeLbl.setLayoutData(fd);
     }
@@ -781,28 +746,7 @@ public class ResourceSelectionControl extends Composite {
                 //
                 if (rscName.isValid() && rscDefn.usesInventory()
                         && rscDefn.getInventoryEnabled()) {
-
                     try {
-                        // this call will query just for the inventory params
-                        // needed to instantiate the resource
-                        // (ie imageType, productCode...) and not the actual
-                        // dataTimes.
-                        // rscDefnsMngr.verifyParametersExist( rscName );
-                        // if( rscDefn.isForecast() ) {
-                        // List<DataTime> availableTimes = rscDefn.getDataTimes(
-                        // rscName );
-                        // if( availableTimes.isEmpty() ) {
-                        // attrSetName = attrSetName + " (No Data)";
-                        // }
-                        // else {
-                        // DataTime dt = availableTimes.get(
-                        // availableTimes.size()-1 );
-                        // DataTime refTime = new DataTime( dt.getRefTime() );
-                        // String latestTime
-                        // =NmapCommon.getTimeStringFromDataTime( dt, "_" );
-                        //
-                        // attrSetName = attrSetName + " ("+latestTime+")";
-                        // }
                         DataTime latestTime = rscDefn
                                 .getLatestDataTime(rscName);
 
@@ -817,21 +761,6 @@ public class ResourceSelectionControl extends Composite {
                             attrSetName = attrSetName + " (" + latestTimeStr
                                     + ")";
                         }
-                        // }
-                        // else {
-                        //
-                        // DataTime latestTime = rscDefn.getLatestDataTime(
-                        // rscName );
-                        //
-                        // if( latestTime == null ) {
-                        // attrSetName = attrSetName + " (No Data)";
-                        // }
-                        // else {
-                        // attrSetName = attrSetName +
-                        // " ("+NmapCommon.getTimeStringFromDataTime(
-                        // latestTime, "_" )+")";
-                        // }
-                        // }
                     } catch (VizException vizex) {
                         out.println(vizex.getMessage());
                     }
@@ -919,28 +848,13 @@ public class ResourceSelectionControl extends Composite {
         		selectResource( false, true );
         	}
        	});
-
-        // TODO : do we want replace to pop down the dialog?
-       	/*
-        replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                selectResource(true, false);
-            }
-        });
-       	*/
-
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
                     public void handleEvent(Event event) {
-                        if (addResourceBtn.isVisible()) {
-                            selectResource(false, true);
-                        } else {
-                            selectResource(true, true);
-                        }
+                    	selectResource(false, true);
                     }
                 });
-
         cycleTimeCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 updateSelectedResource();
@@ -1264,15 +1178,12 @@ public class ResourceSelectionControl extends Composite {
     // on the list
     public void selectResource(boolean replaceRsc, boolean done) {
 
-        boolean addToAllPanes = (addToAllPanesBtn.isVisible() && addToAllPanesBtn
-                .getSelection());
         if (seldResourceName.isValid()) {
             for (IResourceSelectedListener lstnr : rscSelListeners) {
                 lstnr.resourceSelected(seldResourceName, replaceRsc,
-                        addToAllPanes, done);
+                        false, done);
             }
-        } else {
-        } // sanity check failed
+        } 
     }
 
     public ResourceName getCurrentlySelectedResource() {

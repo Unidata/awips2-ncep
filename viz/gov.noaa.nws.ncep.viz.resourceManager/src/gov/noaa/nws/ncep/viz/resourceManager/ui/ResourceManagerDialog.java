@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.viz.resourceManager.ui;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
+import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd.LoadRbdControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf.ManageSpfControl;
@@ -67,7 +68,9 @@ public class ResourceManagerDialog extends Dialog {
 
     protected Control activeMngr = null;
     
-    protected  CreateRbdControl createRbdCntrl = null;
+    //protected CreateRbdControl createRbdCntrl = null;
+    
+    protected LoadGempakControl loadGempakCntrl = null;
     
     protected  LoadRbdControl loadRbdCntrl = null;
 
@@ -135,7 +138,7 @@ public class ResourceManagerDialog extends Dialog {
 			}
 		}        
 
-    	createRbdCntrl = new CreateRbdControl( mngrTabFolder, rbd_mngr );
+		loadGempakCntrl = new LoadGempakControl( mngrTabFolder, rbd_mngr );
     	
     	final TabItem manageSPFTabItem = new TabItem( mngrTabFolder, SWT.NONE );
     	manageSPFTabItem.setText( "Manage Bundles" );
@@ -147,7 +150,7 @@ public class ResourceManagerDialog extends Dialog {
 
     	manageRscCntrl = new ManageResourceControl( mngrTabFolder );
 
-    	mngrTabItem.setControl( createRbdCntrl );
+    	mngrTabItem.setControl( loadGempakCntrl );
     	loadTabItem.setControl( loadRbdCntrl );
     	manageSPFTabItem.setControl(  manageRbdsCntrl );
     	cnfgTabItem.setControl( manageRscCntrl );
@@ -177,7 +180,7 @@ public class ResourceManagerDialog extends Dialog {
     	}
     	else if( mode.equals("CREATE_RBD") ) {
     		mngrTabFolder.setSelection(1);
-    		createRbdCntrl.updateDialog();
+    		loadGempakCntrl.updateDialog();
     	}
     	else if( mode.equals("MANAGE_RBDS") ) {
     		mngrTabFolder.setSelection(2);

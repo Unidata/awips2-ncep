@@ -174,7 +174,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * @author ghull
  * @version 1
  */
-public class CreateRbdControl extends Composite implements IPartListener2 {
+public class LoadGempakControl extends Composite implements IPartListener2 {
 
     private ResourceSelectionDialog rscSelDlg = null;
 
@@ -186,6 +186,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private Group rbd_grp = null;
 
+    private Group add_grp = null;
+
+    private ResourceSelectionControl sel_rsc_cntrl = null;
+    
     private String rbd_name_txt = null;
 
     private Button sel_rsc_btn = null;
@@ -208,13 +212,13 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private int curGrp = -1;
 
-    private Button replace_rsc_btn = null;
+    //private Button replace_rsc_btn = null;
 
-    private Button edit_rsc_btn = null;
+    //private Button edit_rsc_btn = null;
 
-    private Button del_rsc_btn = null;
+    //private Button del_rsc_btn = null;
 
-    private Button disable_rsc_btn = null;
+    //private Button disable_rsc_btn = null;
 
     private ToolItem areaTItm;
 
@@ -276,7 +280,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     // the rbdMngr will be used to set the gui so it should either be
     // initialized/cleared or set with the initial RBD.
-    public CreateRbdControl(Composite parent, RscBundleDisplayMngr mngr)
+    public LoadGempakControl(Composite parent, RscBundleDisplayMngr mngr)
             throws VizException {
         super(parent, SWT.NONE);
         shell = parent.getShell();
@@ -299,7 +303,17 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         sash_form.setLayoutData(gd);
         sash_form.setSashWidth(10);
+        
+        /*
+         * Add Grid Group
+         */
+        
+        createAddGroup();
 
+        /*
+         * Create RBD Group
+         */
+        /*
         rbd_grp = new Group(sash_form, SWT.SHADOW_NONE);
         rbd_grp.setText("Create Bundle");
         gd = new GridData();
@@ -311,9 +325,14 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         rbd_grp.setLayoutData(gd);
 
         rbd_grp.setLayout(new FormLayout());
+        */
 
-        createRBDGroup();
+        //createRBDGroup();
+        
 
+        /*
+         * Timeline Control Group
+         */
         timeline_grp = new Group(sash_form, SWT.SHADOW_NONE);
         timeline_grp.setText("Select Timeline");
         gd = new GridData();
@@ -346,7 +365,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         timelineControl.setTimeMatcher(new NCTimeMatcher());
 
-        Composite loadSaveComp = new Composite(top_comp, SWT.NONE);
+        Composite loadSaveComp = new Composite(top_comp, SWT.SHADOW_NONE);
         gd = new GridData();
         gd.minimumHeight = 40;
         gd.grabExcessHorizontalSpace = true;
@@ -414,10 +433,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                                            // configureForEditRbd is called
         ok_edit_btn.setVisible(false);
 
-        sash_form.setWeights(new int[] { 50, 35 });
+        sash_form.setWeights(new int[] { 60, 40 });
 
         // set up the content providers for the ListViewers
-        setContentProviders();
+        //setContentProviders();
         addSelectionListeners();
 
         initWidgets();
@@ -430,9 +449,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 try {
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                             .getActivePage()
-                            .removePartListener(CreateRbdControl.this);
+                            .removePartListener(LoadGempakControl.this);
 
-                    CreateRbdControl.this.dispose(); // now mark for disposal
+                    LoadGempakControl.this.dispose(); // now mark for disposal
                 } catch (NullPointerException npe) {
                     // do nothing if already disposed, another thread already
                     // swept it up..
@@ -444,6 +463,37 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     }
 
+    
+    // create all the widgets in the Resource Bundle Definition (bottom) section
+    // of the sashForm.
+    //
+    private void createAddGroup() {
+    	ResourceName initRscName = null;
+    	
+        add_grp = new Group(sash_form, SWT.SHADOW_NONE);
+        add_grp.setText("Load Grid");
+        
+        
+        GridLayout mainLayout = new GridLayout(1, true);
+        mainLayout.marginHeight = 1;
+        mainLayout.marginWidth = 1;
+
+        shell.setLayout(mainLayout);
+
+        try {
+            sel_rsc_cntrl = new ResourceSelectionControl(add_grp,
+                    false, false, initRscName,
+                    false);
+
+        } catch (VizException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        add_grp.pack(true);
+    }
+
+    
     // create all the widgets in the Resource Bundle Definition (bottom) section
     // of the sashForm.
     //
@@ -481,57 +531,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     	form_data.bottom = new FormAttachment( 100, -10 );
         seld_rscs_lviewer.getList().setLayoutData(form_data);
 
-
-
-    	// Edit
-    	edit_rsc_btn = new Button( rbd_grp, SWT.PUSH ); 
-    	edit_rsc_btn.setText("Edit");
-        form_data = new FormData();
-        form_data.width = 100;
-        form_data.top = new FormAttachment( sel_rsc_btn, 8, SWT.BOTTOM );
-        form_data.left = new FormAttachment( 0, 10 );
-        edit_rsc_btn.setLayoutData( form_data );
-    	edit_rsc_btn.setEnabled(false);
-
-    	// Remove
-   		del_rsc_btn = new Button( rbd_grp, SWT.PUSH ); 
-        del_rsc_btn.setText("Remove");
-        form_data = new FormData();
-        form_data.width = 100;
-    	form_data.top = new FormAttachment( edit_rsc_btn, 8, SWT.BOTTOM );
-    	form_data.left = new FormAttachment( 0, 10 );
-        del_rsc_btn.setLayoutData(form_data);
-        del_rsc_btn.setEnabled(false);
-
-        disable_rsc_btn = new Button(rbd_grp, SWT.TOGGLE);
-        disable_rsc_btn.setText("Turn Off");
-        form_data = new FormData();
-        form_data.width = 100;
-        form_data.left = new FormAttachment( 0, 10 );
-    	form_data.top = new FormAttachment( del_rsc_btn, 8, SWT.BOTTOM );
-        disable_rsc_btn.setLayoutData(form_data);
-
-        Button move_down_btn = new Button(rbd_grp, SWT.ARROW | SWT.DOWN);
-        move_down_btn.setToolTipText("Move Down");
-        form_data = new FormData();
-        form_data.width = 35;
-    	form_data.top = new FormAttachment( disable_rsc_btn, 8, SWT.BOTTOM );
-    	form_data.left = new FormAttachment( 0, 10 );
-        move_down_btn.setLayoutData(form_data);
-        move_down_btn.setEnabled(false);
-
-        Button move_up_btn = new Button(rbd_grp, SWT.ARROW | SWT.UP);
-        move_up_btn.setToolTipText("Move Up");
-        form_data = new FormData();
-        form_data.width = 35;
-        form_data.top = new FormAttachment(move_down_btn, 0, SWT.TOP);
-    	form_data.right  = new FormAttachment( disable_rsc_btn, 0, SWT.RIGHT);
-        move_up_btn.setLayoutData(form_data);
-        move_up_btn.setEnabled(false);
-
         rbd_grp.pack(true);
     }
-
+    
+   
     private void setContentProviders() {
 
         seld_rscs_lviewer.setContentProvider(new IStructuredContentProvider() {
@@ -578,6 +581,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     // add all of the listeners for widgets on this dialog
     void addSelectionListeners() {
 
+    	/*
         sel_rsc_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
@@ -598,32 +602,19 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                         initRscName = rscSel.getResourceName();
                     }
                 }
-
-                // the replace button is enabled if there is only 1 resource
-                // selected and
-                // it is not the base resource
-                if (rscSelDlg.isOpen()) {
-                    if (initRscName != null) {
-                        rscSelDlg.setSelectedResource(initRscName);
-                    }
-                } else {
-                	// TODO: here we should have the timeline and select composite together and forgo 
-                	// the stack.  if the scope is NCGRID GEMPAK displays, the practice is to construct
-                	// a localization attribute file in GEMPAK/NTS syntax.  that is to say, it's so unlikely
-                	// that users will STACK multiple NTS bundles, we should remove the stack from this view 
-                	// (D2D).  so the createRBD control will be changed/moved to something like 
-                	// LoadGempakControl.java
-                    rscSelDlg.open(
-                            true, // Replace button is visible
-                            (numSeldRscs == 1 && !isBaseLevelRscSeld), // replace
-                                                                       // enabled
-                            initRscName, false,
-                            rbdMngr.getRbdType(), SWT.DIALOG_TRIM | SWT.RESIZE
-                                    | SWT.MODELESS);
-                }
+            	// TODO: here we should have the timeline and select composite together and forgo 
+            	// the stack.  if the scope is NCGRID GEMPAK displays, the practice is to construct
+            	// a localization attribute file in GEMPAK/NTS syntax.  that is to say, it's so unlikely
+            	// that users will STACK multiple NTS bundles, we should remove the stack from this view 
+            	// (D2D).
+                rscSelDlg.open(
+                        false, false, initRscName, false,
+                        rbdMngr.getRbdType(), SWT.DIALOG_TRIM | SWT.RESIZE
+                                | SWT.MODELESS);
             }
         });
-
+		*/
+    	
         rscSelDlg.addResourceSelectionListener(new IResourceSelectedListener() {
             @Override
             public void resourceSelected(ResourceName rscName, boolean replace,
@@ -702,16 +693,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                             ResourceSelection sel = (ResourceSelection) sel_elems
                                     .getFirstElement();
 
-                            /*
-                            if (sel != null
-                                    && ((GroupResourceData) sel
-                                            .getResourcePair()
-                                            .getResourceData()).getGroupName()
-                                            .equalsIgnoreCase(ungrpStr)) {
-                                sel = null;
-                            }
-                            */
-
                             if (!rbdMngr.addSelectedResource(rbt, sel)) {
                                 if (sel != null) {
                                     seld_rscs_lviewer.setInput(rbdMngr
@@ -771,12 +752,14 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         // only 1 should be selected or this button should be greyed out
+        /*
         edit_rsc_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 editResourceData();
             }
         });
-
+        */
+        /*
         del_rsc_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
@@ -814,7 +797,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 updateSelectedResourcesView(false); // true
             }
         });
-
+		*/
         clear_rbd_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 clearRBD();
@@ -839,60 +822,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
         });
 
-        import_rbd_btn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                importRBD(import_rbd_btn.getText());
-                AbstractEditor seldEditor = NcDisplayMngr
-                        .findDisplayByID(NcDisplayName
-                                .parseNcDisplayNameString(import_rbd_btn
-                                        .getText()));
-
-                if (seldEditor != null) {
-                    NcDisplayMngr.bringToTop(seldEditor);
-                }
-
-            }
-        });
-
-        // TODO : Currently we can't detect if the user clicks on the import
-        // combo and then clicks on the currently selected
-        // item which means the users can't re-import the current selection (or
-        // import another from an spf.) The following may
-        // allow a hackish work around later.... (I tried virtually every
-        // listener and these where the only ones to trigger.)
-        // ....update...with new Eclipse this seems to be working; ie.
-        // triggering a selection when
-        // combo is clicked on but selection isn't changed.
-        import_rbd_btn.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                // System.out.println("focusGained: ");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                // System.out.println("focusLost: " );
-            }
-        });
-        import_rbd_btn.addListener(SWT.MouseDown, new Listener() { // and
-                                                                     // SWT.MouseUp
-                    @Override
-                    public void handleEvent(Event event) {
-                        // System.out.println("SWT.MouseDown: " );
-                    }
-                });
-        import_rbd_btn.addListener(SWT.Activate, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                //updateImportCombo();
-            }
-        });
-        import_rbd_btn.addListener(SWT.Deactivate, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                // System.out.println("SWT.Deactivate: " );
-            }
-        });
     }
 
     // import the current editor or initialize the widgets.
@@ -1239,7 +1168,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         int numRscs = seld_rscs_lviewer.getList().getItemCount();
 
         // the edit button is enabled iff there is only one selected resource.
-        edit_rsc_btn.setEnabled(numSeldRscs == 1);
+        //edit_rsc_btn.setEnabled(numSeldRscs == 1);
 
         StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                 .getSelection();
@@ -1257,27 +1186,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             allRscsAreVisible &= rscSel.isVisible();
         }
 
-        // the replace button is enabled if there is only 1 resource selected
-        // and it is not the base resource
-        rscSelDlg.setReplaceEnabled((numSeldRscs == 1 && !isBaseLevelRscSeld));
 
-        // the delete button is only disabled if there is one the one base
-        // resource selected.
-        //
-        del_rsc_btn.setEnabled(numSeldRscs > 1
-                || (numSeldRscs == 1 && !isBaseLevelRscSeld));
-
-        // the disable_rsc_btn is always enabled.
-        disable_rsc_btn.setEnabled((numSeldRscs > 0));
-
-        // but the state is
-        if (allRscsAreVisible) {
-            disable_rsc_btn.setSelection(false);
-            disable_rsc_btn.setText("Turn Off");
-        } else {
-            disable_rsc_btn.setSelection(true);
-            disable_rsc_btn.setText("Turn On");
-        }
     }
 
     // This will load the currently configured RBD (all panes) into
@@ -1470,8 +1379,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             if (close) {
                 shell.dispose();
             } else {
-                //import_rbd_combo.add(editor.getPartName());
-                import_rbd_btn.setText(editor.getPartName());
                 rbdMngr.setRbdModified(false);
                 importRBD(editor.getPartName());
             }

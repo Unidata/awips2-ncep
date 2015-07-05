@@ -843,36 +843,6 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="VAAC">
 <filters>McIdas</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="CONDUCTIVITY">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="DRAP20">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="ENLIL">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="EPFLUX">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="IONTEMP">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="IRGF">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="OVATION">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="SXI">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="SOLARFLUX">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="GEOMAG">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="DayNightTerminator">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>

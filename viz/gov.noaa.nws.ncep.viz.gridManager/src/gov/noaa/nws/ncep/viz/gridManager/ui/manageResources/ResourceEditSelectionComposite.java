@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageResources;
 
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
@@ -77,7 +77,6 @@ public class ResourceEditSelectionComposite extends Composite {
     private Label rscTypeLbl = null;
     private Label rscTypeGroupLbl = null;
 
-    private ListViewer rscCatLViewer = null;
     private ListViewer rscTypeLViewer = null;
     private ListViewer rscGroupLViewer = null;
     private ListViewer rscAttrSetLViewer = null;
@@ -157,7 +156,7 @@ public class ResourceEditSelectionComposite extends Composite {
         rscActionListener = editActionListener;
         
         seldResourceName = new ResourceName();
-        
+		seldResourceName.setRscCategory(ResourceCategory.GridRscCategory);
         if( prevCatSeldRscNames == null ) {
             prevCatSeldRscNames = new HashMap<ResourceCategory,ResourceName>();        	        
         }
@@ -174,11 +173,9 @@ public class ResourceEditSelectionComposite extends Composite {
     	sel_rsc_comp.setLayout( new FormLayout() );
                     	   		                
         createSelectResourceGroup();
-
         // set up the content providers for the ListViewers
         setContentProviders();
         addSelectionListeners();
-
         initWidgets();        
     }
     
@@ -186,32 +183,15 @@ public class ResourceEditSelectionComposite extends Composite {
     // 
     private void createSelectResourceGroup() {
     	
-    	rscCatLViewer = new ListViewer( sel_rsc_comp, 
-    			             SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
-    	FormData fd = new FormData();//100, rscListViewerHeight);
+    	// first create the lists and then attach the label to the top of them
+        rscTypeLViewer = new ListViewer( sel_rsc_comp, 
+        		                  SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+    	FormData fd = new FormData();//150, rscListViewerHeight);
     	fd.height = rscListViewerHeight;
     	fd.top = new FormAttachment( 0, 35 );
     	fd.left = new FormAttachment( 0, 10 );
     	fd.bottom = new FormAttachment( 100, -130 );
-    	fd.right = new FormAttachment( 17, -3 );
-    	rscCatLViewer.getList().setLayoutData( fd );
-
-    	Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
-    	rscCatLbl.setText("Category");
-    	fd = new FormData();
-    	fd.left = new FormAttachment( rscCatLViewer.getList(), 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( rscCatLViewer.getList(), -5, SWT.TOP );
-    	rscCatLbl.setLayoutData( fd );
-
-        
-    	// first create the lists and then attach the label to the top of them
-        rscTypeLViewer = new ListViewer( sel_rsc_comp, 
-        		                  SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
-    	fd = new FormData();//150, rscListViewerHeight);
-    	fd.top = new FormAttachment( rscCatLViewer.getList(), 0, SWT.TOP );
-    	fd.left = new FormAttachment( 17, 3 );//rscCatLViewer.getList(), 10, SWT.RIGHT );
-    	fd.bottom = new FormAttachment( rscCatLViewer.getList(), 0, SWT.BOTTOM );
-    	fd.right = new FormAttachment( 50, -3 );
+    	fd.right = new FormAttachment( 25, -3 );
     	rscTypeLViewer.getList().setLayoutData( fd );
 
         rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -222,6 +202,42 @@ public class ResourceEditSelectionComposite extends Composite {
     	
     	rscTypeLbl.setLayoutData( fd );
     	
+    	
+    	// first create the lists and then attach the label to the top of them
+        rscGroupLViewer = new ListViewer( sel_rsc_comp, 
+        		                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+    	fd = new FormData(); //150, rscListViewerHeight);
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.TOP );
+    	fd.left = new FormAttachment( rscTypeLViewer.getList(), 5, SWT.RIGHT );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
+    	fd.bottom = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.BOTTOM );
+    	fd.right = new FormAttachment( 60, -3);
+    	rscGroupLViewer.getList().setLayoutData( fd );
+
+        rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
+        rscTypeGroupLbl.setText("Group"); // changed later depending on type
+    	fd = new FormData();
+    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.LEFT );
+    	fd.bottom = new FormAttachment( rscGroupLViewer.getList(), -5, SWT.TOP );
+    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 5, SWT.RIGHT );
+    	rscTypeGroupLbl.setLayoutData( fd );
+    	
+    	
+    	 rscAttrSetLViewer = new ListViewer( sel_rsc_comp, 
+                 SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+     	 fd = new FormData();//150, rscListViewerHeight);
+         fd.top = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.TOP );
+         fd.left = new FormAttachment( rscGroupLViewer.getList(), 5, SWT.RIGHT  ); //rscGroupLViewer.getList(), 7, SWT.RIGHT );
+         fd.right = new FormAttachment( 100, -10 );
+         fd.bottom = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.BOTTOM );
+         rscAttrSetLViewer.getList().setLayoutData( fd );
+
+         Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
+         rscAttrsLbl.setText("Attributes");
+         fd = new FormData();
+         fd.left = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.LEFT );
+         fd.bottom = new FormAttachment( rscAttrSetLViewer.getList(), -5, SWT.TOP );
+         rscAttrsLbl.setLayoutData( fd );
+    	
     	rscTypeLocLbl = new Label(sel_rsc_comp, SWT.NONE);
     	rscTypeLocLbl.setText("Loc");
     	fd = new FormData();
@@ -231,24 +247,24 @@ public class ResourceEditSelectionComposite extends Composite {
     	rscTypeLocLbl.setLayoutData( fd );
     	
         copyRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        copyRscTypeBtn.setText("Copy ...");
+        copyRscTypeBtn.setText("Copy");
         fd = new FormData(80,25);
     	fd.top = new FormAttachment( rscTypeLocLbl, 10, SWT.BOTTOM );
     	fd.left = new FormAttachment( rscTypeLViewer.getList(),  25, SWT.LEFT );
     	copyRscTypeBtn.setLayoutData( fd );
         
     	editRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        editRscTypeBtn.setText("Edit ...");
+        editRscTypeBtn.setText("Edit");
         fd = new FormData(80,25);
-        fd.top = new FormAttachment( copyRscTypeBtn, 0, SWT.TOP );
-    	fd.right = new FormAttachment( rscTypeLViewer.getList(), -25, SWT.RIGHT );
+        fd.top = new FormAttachment( copyRscTypeBtn, 7, SWT.BOTTOM );
+    	fd.left = new FormAttachment( copyRscTypeBtn, 0, SWT.LEFT );
     	editRscTypeBtn.setLayoutData( fd );
 
     	removeRscTypeBtn = new Button( sel_rsc_comp, SWT.PUSH );
     	removeRscTypeBtn.setText("Remove");
         fd = new FormData(80,25);
-        fd.top = new FormAttachment( copyRscTypeBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( copyRscTypeBtn, 0, SWT.LEFT );
+        fd.top = new FormAttachment( editRscTypeBtn, 7, SWT.BOTTOM );
+    	fd.left = new FormAttachment( editRscTypeBtn, 0, SWT.LEFT );
     	removeRscTypeBtn.setLayoutData( fd );
     	//removeRscTypeBtn.setEnabled( false ); // TODO : not implemented
             	
@@ -260,23 +276,7 @@ public class ResourceEditSelectionComposite extends Composite {
     	enableRscTypeBtn.setLayoutData( fd );
     	
     	
-    	// first create the lists and then attach the label to the top of them
-        rscGroupLViewer = new ListViewer( sel_rsc_comp, 
-        		                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
-    	fd = new FormData(); //150, rscListViewerHeight);
-    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.TOP );
-    	fd.left = new FormAttachment( 50, 3 );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
-    	fd.bottom = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.BOTTOM );
-    	fd.right = new FormAttachment( 75, -3);
-    	rscGroupLViewer.getList().setLayoutData( fd );
-
-        rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscTypeGroupLbl.setText("Group"); // changed later depending on type
-    	fd = new FormData();
-    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( rscGroupLViewer.getList(), -5, SWT.TOP );
-    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
-    	rscTypeGroupLbl.setLayoutData( fd );
+    	
        	
     	rscGroupLocLbl = new Label(sel_rsc_comp, SWT.NONE);
     	rscGroupLocLbl.setText("Loc");
@@ -311,21 +311,7 @@ public class ResourceEditSelectionComposite extends Composite {
         
 
     	
-        rscAttrSetLViewer = new ListViewer( sel_rsc_comp, 
-                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
-    	fd = new FormData();//150, rscListViewerHeight);
-        fd.top = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.TOP );
-        fd.left = new FormAttachment( 75, 3 ); //rscGroupLViewer.getList(), 7, SWT.RIGHT );
-        fd.right = new FormAttachment( 100, -10 );
-        fd.bottom = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.BOTTOM );
-        rscAttrSetLViewer.getList().setLayoutData( fd );
-
-        Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscAttrsLbl.setText("Attributes");
-        fd = new FormData();
-        fd.left = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.LEFT );
-        fd.bottom = new FormAttachment( rscAttrSetLViewer.getList(), -5, SWT.TOP );
-        rscAttrsLbl.setLayoutData( fd );
+       
         
     	attrSetLocLbl = new Label(sel_rsc_comp, SWT.NONE);
     	attrSetLocLbl.setText("Loc");
@@ -361,38 +347,13 @@ public class ResourceEditSelectionComposite extends Composite {
 
     private void setContentProviders() {
     	
-    	// input is the rscDefnsMngr and output is a list of categories based
-    	// on the forecast flag
-   		rscCatLViewer.setContentProvider( new IStructuredContentProvider() {
-			@Override
-			public Object[] getElements(Object inputElement) {
-				
-				return ResourceCategory.values();//rscDefnsMngr.getAllResourceCategories();
-			}
-
-			@Override
-			public void dispose() { }
-
-			@Override
-			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { }    			
-   		});
-   		
    		// The Elements of the ListViewer are ResourceDefinitions.
    		//
     	rscTypeLViewer.setContentProvider( new IStructuredContentProvider() {
 			@Override
 			public Object[] getElements(Object inputElement) {
-				
-				if( seldResourceName.getRscCategory() == ResourceCategory.NullCategory ) {
-					rscTypeLbl.setText("");
-					return new ResourceDefinition[]{};
-				}
-				else if( seldResourceName.getRscCategory().equals("PGEN" ) ) {
-					rscTypeLbl.setText("PGEN");
-				}
-				else {
-					rscTypeLbl.setText(seldResourceName.getRscCategory()+" Resources");
-				}
+				seldResourceName.setRscCategory(ResourceCategory.GridRscCategory);
+				rscTypeLbl.setText("Available Grids");
 				
 				try {
 					List<ResourceDefinition> rscTypes = 
@@ -419,12 +380,6 @@ public class ResourceEditSelectionComposite extends Composite {
 			@Override
 			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { }    			
    		});
-    	
-    	rscCatLViewer.setLabelProvider( new LabelProvider() {
-	    	public String getText( Object element ) {
-	    		return ((ResourceCategory)element).getCategoryName();
-	    	}
-    	});
     	
     	rscTypeLViewer.setLabelProvider(  new LabelProvider() {
 	    	public String getText( Object element ) {
@@ -478,82 +433,41 @@ public class ResourceEditSelectionComposite extends Composite {
     	
    		// The Elements of the ListViewer are AttrSetGroups.
    		//
-    	rscGroupLViewer.setContentProvider(  new IStructuredContentProvider() {
+    	rscGroupLViewer.setContentProvider(new IStructuredContentProvider() {
 			@Override
 			public Object[] getElements(Object inputElement) {
-				if( inputElement == null ) {
-					return new String[0];
-				}
-
-				//String rscType = (String)inputElement;
+				if( inputElement == null ) return new String[0];
 				String rscType = seldResourceName.getRscType();
-				
 				if( !rscType.isEmpty() ) {
-					
 					// if this resource uses attrSetGroups then get get the list of 
 					// groups. (PGEN uses groups but we will list the subTypes (products) and not the group)
 					if( rscDefnsMngr.doesResourceUseAttrSetGroups( rscType ) ) {
-
-						// for PGEN there is only 1 'default' attrSetGroup 
-//						if( seldResourceName.isPgenResource() ) {
-//							rscTypeGroupLbl.setText("PGEN Attribute Group");
-////							return new String[]{"PGEN"};
-//							rscDefnsMngr.getAttrSetGroupsForResource(rscType)
-//						}
-
-//						List<String> rscAttrSetsList = rscDefnsMngr.getAttrSetGroupNamesForResource( rscType );
-
 						List<AttrSetGroup> rscAttrSetGroupsList = 
 							    rscDefnsMngr.getAttrSetGroupsForResource( rscType );
-						
 						if( rscAttrSetGroupsList != null &&
 								!rscAttrSetGroupsList.isEmpty() ) {
 							if( rscType.length() < 8 ) {
 								rscTypeGroupLbl.setText( rscType+" Attribute Groups " );
-							}
-							else { 
+							} else { 
 								rscTypeGroupLbl.setText( rscType+" Attr Groups " );
 							}
-
 							return rscAttrSetGroupsList.toArray();
 						}
-					}
-					else {
+					} else {
 						ResourceDefinition rd = rscDefnsMngr.getResourceDefinition( rscType );
-						
 						if( rd != null ) {
 							if( rd.getSubTypeGenParamsList().length > 0 ) {
 								rscTypeGroupLbl.setText( "Sub-Types Generated from\n"+ rd.getSubTypeGenerator() );
-							}
-							else {								
+							} else {								
 								rscTypeGroupLbl.setText("N/A");
 							}
-							
+
 						}
-						return new String[0];
-//						try {
-//							String[] rscGroups = rscDefnsMngr.getResourceSubTypes( rscType );
-//
-//							rscTypeGroupLbl.setText( rscType+" Sub-Types");
-//
-//							if( rscGroups != null && rscGroups.length != 0 ) {
-//								return rscGroups;//.toArray();
-//							}
-//						}
-//						catch ( VizException e ) {
-//				        	MessageDialog errDlg = new MessageDialog( 
-//				        			NcDisplayMngr.getCaveShell(), 
-//				        			"Error", null, 
-//				        			"Error getting sub-types\n"+ e.getMessage(),
-//				        			MessageDialog.ERROR, new String[]{"OK"}, 0);
-//				        	errDlg.open();
-//						}						
+						return new String[0];						
 					}
-				}
-				else {
+				} else {
 					rscTypeGroupLbl.setText("");
 				}				
-
 				return new String[]{};
 			}
 
@@ -600,7 +514,7 @@ public class ResourceEditSelectionComposite extends Composite {
 				if( inputElement == null ) {
 					return new String[0];
 				}
-				
+				seldResourceName.setRscCategory( "GRID" );
 				// if an attrSetGroup is selected, return the attrSets in the group
 				if( !seldResourceName.getRscType().isEmpty() ) {
 					List<AttributeSet> attrSetsList = rscDefnsMngr.getAttrSetsForResource( seldResourceName, false );
@@ -701,26 +615,6 @@ public class ResourceEditSelectionComposite extends Composite {
     	removeRscAttrSetBtn.addSelectionListener( editActionBtnSelectionListener );
     	editButtonMap.put( EditResourceAction.REMOVE_RESOURCE_ATTR_SET, removeRscAttrSetBtn);
 
-
-    	rscCatLViewer.addSelectionChangedListener( new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-            	StructuredSelection seld_elem = (StructuredSelection) event.getSelection();            	
-            	ResourceCategory seldCat = (ResourceCategory)seld_elem.getFirstElement();            	
-            	
-            	// get the previously selected resource for this category
-
-        		seldResourceName = new ResourceName( );
-        		seldResourceName.setRscCategory( seldCat );
-            	
-        		// if a resource was previously selected for this category, select it
-        		if( prevCatSeldRscNames.containsKey( seldCat ) ) {
-        			seldResourceName = prevCatSeldRscNames.get( seldCat );
-        		}
-
-            	updateResourceTypes();
-			}
-    	});
-
        	rscTypeLViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
             	StructuredSelection seld_elem = (StructuredSelection) event.getSelection();               
@@ -808,7 +702,7 @@ public class ResourceEditSelectionComposite extends Composite {
 //    	}
     	
     	if( seldResourceName != null ) {
-    		updateResourceCategories();
+            updateResourceTypes();
     	}
     }
     
@@ -820,49 +714,9 @@ public class ResourceEditSelectionComposite extends Composite {
 			
    		seldResourceName = new ResourceName();
 
-		updateResourceCategories( );
+   		updateResourceTypes( );
 	}
 	
-	// set the cat list based on the fcst flag and then 
-	// use seldResourceName to select the category 
-	private void updateResourceCategories( ) {
-		
-		// update the cat list
-		rscCatLViewer.setInput( rscDefnsMngr );
-		rscCatLViewer.refresh( true );
-		
-		rscCatLViewer.getList().deselectAll();
-
-		// 
-		if( seldResourceName.getRscCategory() != ResourceCategory.NullCategory ) {
-			for( int itmIndx=0 ; 
-					 itmIndx < rscCatLViewer.getList().getItemCount() ; itmIndx++ )  {
-				
-				if( rscCatLViewer.getList().getItem(itmIndx).equals( 
-						seldResourceName.getRscCategory() ) ) {
-					rscCatLViewer.getList().select( itmIndx );
-					break;
-				}
-			}
-			
-			if( rscCatLViewer.getList().getSelectionCount() == 0 ) {
-				seldResourceName = new ResourceName();
-			}
-		}
-
-		// if no cat is selected or it is not found for some reason, select the first 
-		if( seldResourceName.getRscCategory() ==  ResourceCategory.NullCategory && 
-			rscCatLViewer.getList().getItemCount() > 0 ) {
-
-			rscCatLViewer.getList().select(0);
-			StructuredSelection seld_elem = (StructuredSelection)rscCatLViewer.getSelection();
-			
-			seldResourceName = new ResourceName( );
-			seldResourceName.setRscCategory( (ResourceCategory)seld_elem.getFirstElement() );
-		}
-
-		updateResourceTypes();		
-	}
 
 	// refresh the types list based on the type in the seldResourceName 
 	// use seldResourceName to select the type 

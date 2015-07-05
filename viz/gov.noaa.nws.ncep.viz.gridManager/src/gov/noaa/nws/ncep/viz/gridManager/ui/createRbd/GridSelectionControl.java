@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
+package gov.noaa.nws.ncep.viz.gridManager.ui.createRbd;
 
 import static java.lang.System.out;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
@@ -6,6 +6,7 @@ import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
+import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
@@ -94,8 +95,6 @@ public class ResourceSelectionControl extends Composite {
 
     protected ResourceDefnsMngr rscDefnsMngr;
 
-    protected Combo filterCombo = null;
-
     protected ResourceName seldResourceName = null;
 
     protected String seldFilterStr = "";
@@ -109,8 +108,6 @@ public class ResourceSelectionControl extends Composite {
     protected ArrayList<DataTime> cycleTimes = new ArrayList<DataTime>();
 
     protected Composite sel_rsc_comp = null;
-
-    protected Text seldRscNameTxt = null;
 
     protected Label availDataTimeLbl = null;
 
@@ -130,13 +127,11 @@ public class ResourceSelectionControl extends Composite {
 
     protected Boolean replaceBtnEnabled;
 
-    protected Button addToAllPanesBtn = null;
-
     protected Label rscTypeLbl = null;
 
     private Label rscTypeGroupLbl = null;
 
-    protected ListViewer rscCatLViewer = null;
+    //protected ListViewer rscCatLViewer = null;
 
     protected ListViewer rscTypeLViewer = null;
 
@@ -209,12 +204,143 @@ public class ResourceSelectionControl extends Composite {
         });
 
         createSelectResourceGroup(multiPane);
-
         // set up the content providers for the ListViewers
         setContentProviders();
         addSelectionListeners();
-
         initWidgets(initRscName);
+    }
+    
+    public ResourceSelectionControl(Composite parent, Boolean replaceVisible,
+            Boolean replaceEnabled, ResourceName initRscName,
+            Boolean multiPane ) throws VizException {
+        super(parent, SWT.SHADOW_NONE);
+
+        seldDisplayType = NcDisplayType.NMAP_DISPLAY;
+
+        showLatestTimes = NmapCommon.getNcepPreferenceStore().getBoolean(
+                NcepGeneralPreferencesPage.ShowLatestResourceTimes);
+        onlyShowResourcesWithData = false; // NmapCommon.getNcepPreferenceStore().getBoolean(
+                                           // NcepGeneralPreferencesPage.OnlyShowResourcesWithData
+                                           // );
+
+        rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
+        replaceBtnVisible = replaceVisible;
+        replaceBtnEnabled = replaceEnabled;
+
+        if (prevCatSeldRscNames == null) {
+            prevCatSeldRscNames = new HashMap<ResourceCategory, ResourceName>();
+        }
+
+        sel_rsc_comp = parent;
+
+        GridData gd = new GridData();
+        gd.grabExcessHorizontalSpace = true;
+        gd.grabExcessVerticalSpace = true;
+        gd.horizontalAlignment = SWT.FILL;
+        gd.verticalAlignment = SWT.FILL;
+        gd.widthHint = prevShellBounds.width;
+        gd.heightHint = prevShellBounds.height;
+        sel_rsc_comp.setLayoutData(gd);
+
+        sel_rsc_comp.setLayout(new FormLayout());
+        
+        // first create the lists and then attach the label to the top of them
+        rscTypeLViewer = new ListViewer( sel_rsc_comp, 
+                SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+		FormData fd = new FormData();//150, rscListViewerHeight);
+		fd.height = rscListViewerHeight;
+		fd.top = new FormAttachment( 0, 35 );
+		fd.left = new FormAttachment( 0, 10 );
+		fd.bottom = new FormAttachment( 100, -130 );
+		fd.right = new FormAttachment( 25, -3 );
+		rscTypeLViewer.getList().setLayoutData( fd );
+
+        rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
+    	rscTypeLbl.setText("Source");
+        fd = new FormData();
+        fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
+        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -2, SWT.TOP);
+
+        rscTypeLbl.setLayoutData(fd);
+
+        // first create the lists and then attach the label to the top of them
+        rscGroupLViewer = new ListViewer( sel_rsc_comp, 
+                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+		fd = new FormData(); //150, rscListViewerHeight);
+		fd.top = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.TOP );
+		fd.left = new FormAttachment( rscTypeLViewer.getList(), 5, SWT.RIGHT );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
+		fd.bottom = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.BOTTOM );
+		fd.right = new FormAttachment( 60, -3);
+		rscGroupLViewer.getList().setLayoutData( fd );
+
+        rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
+        rscTypeGroupLbl.setText("Group");
+        fd = new FormData();
+        fd.left = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.LEFT);
+        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -2, SWT.TOP);
+        rscTypeGroupLbl.setLayoutData(fd);
+
+        rscAttrSetLViewer = new ListViewer( sel_rsc_comp, 
+                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
+    	 fd = new FormData();//150, rscListViewerHeight);
+        fd.top = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.TOP );
+        fd.left = new FormAttachment( rscGroupLViewer.getList(), 5, SWT.RIGHT  ); //rscGroupLViewer.getList(), 7, SWT.RIGHT );
+        fd.right = new FormAttachment( 100, -10 );
+        fd.bottom = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.BOTTOM );
+        rscAttrSetLViewer.getList().setLayoutData( fd );
+
+
+        Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
+        rscAttrsLbl.setText("Attributes");
+        fd = new FormData();
+        fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
+        fd.bottom = new FormAttachment(rscAttrSetLViewer.getList(), -3, SWT.TOP);
+        rscAttrsLbl.setLayoutData(fd);
+
+        availDataTimeLbl = new Label(sel_rsc_comp, SWT.None);
+        availDataTimeLbl.setText("");
+        fd = new FormData();
+        fd.width = 400;
+        fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
+        //fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
+        availDataTimeLbl.setLayoutData(fd);
+
+        addResourceBtn = new Button(sel_rsc_comp, SWT.None);
+
+        fd = new FormData();
+        //fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
+        fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
+        addResourceBtn.setLayoutData(fd);
+    	addResourceBtn.setText( "   Add   " ); // Add To RBD
+
+        // allow the user to enter any previous datatime
+        cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
+        fd = new FormData();
+        fd.width = 130;
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 10, SWT.BOTTOM );
+    	fd.right = new FormAttachment( 100, -20 );
+
+        cycleTimeCombo.setLayoutData(fd);
+
+        cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
+        cycleTimeLbl.setText("Cycle Time");
+        fd = new FormData();
+        fd.right = new FormAttachment( cycleTimeCombo, -10, SWT.LEFT  );
+
+    	fd.bottom = new FormAttachment( cycleTimeCombo, -5, SWT.BOTTOM );
+        cycleTimeLbl.setLayoutData(fd);
+        
+        // set up the content providers for the ListViewers
+        setContentProviders();
+        addSelectionListeners();
+        initWidgets(initRscName);
+        
+        for (IResourceSelectedListener lstnr : rscSelListeners) {
+            this.addResourceSelectionListener(lstnr);
+        }
     }
 
     public ResourceSelectionControl(Composite parent) throws VizException {
@@ -239,37 +365,14 @@ public class ResourceSelectionControl extends Composite {
     //
     private void createSelectResourceGroup(Boolean multiPane) {
 
-        rscCatLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
+        // first create the lists and then attach the label to the top of them
+        rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        FormData fd = new FormData();// 100, rscListViewerHeight);
+        FormData fd = new FormData();// 150, rscListViewerHeight);
         fd.height = rscListViewerHeight;
     	fd.top = new FormAttachment( 0, 20 );
         fd.left = new FormAttachment(0, 10);
         fd.right = new FormAttachment( 15, 0 );
-
-
-        // This allows a resize to change the size of the lists.
-    	fd.bottom = new FormAttachment( 100, -75 );
-        rscCatLViewer.getList().setLayoutData(fd);
-
-        Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscCatLbl.setText("Category");
-        fd = new FormData();
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscCatLViewer.getList(), -2, SWT.TOP);
-        rscCatLbl.setLayoutData(fd);
-
-        // first create the lists and then attach the label to the top of them
-        rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
-        fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
-    	fd.right = new FormAttachment( 37, 0 );
-    	//fd.width = 150;
-
-        fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0, SWT.BOTTOM);
         rscTypeLViewer.getList().setLayoutData(fd);
 
         rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -324,122 +427,33 @@ public class ResourceSelectionControl extends Composite {
         fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
         fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
-
-    	
-    	filterCombo = new Combo( sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY );
-        fd = new FormData();
-    	fd.width = 130;
-        fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-    	filterCombo.setLayoutData( fd );
-
-    	Label filt_lbl = new Label(sel_rsc_comp, SWT.NONE);
-    	filt_lbl.setText("Type Filter:");
-    	fd = new FormData();
-    	fd.left = new FormAttachment( filterCombo, 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( filterCombo, -3, SWT.TOP );
-    	filt_lbl.setLayoutData( fd );
-    	
-    	
-       	seldRscNameTxt = new Text( sel_rsc_comp, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
-//    	fd = new FormData(360,20);
-    	fd = new FormData(200,20);
-    	//   	fd.bottom = new FormAttachment( 100, -50 ); // change to addResourceBtn
-    	fd.top = new FormAttachment( rscCatLViewer.getList(), 40, SWT.BOTTOM );
-    	fd.left = new FormAttachment( filterCombo, 10, SWT.RIGHT );
-        seldRscNameTxt.setLayoutData(fd);
-    	seldRscNameTxt.setEnabled( false );
-
-
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
 
         fd = new FormData();
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 40, SWT.BOTTOM );
         fd.right = new FormAttachment( 100, -10 );
-        // fd.left = new FormAttachment( seldRscNameTxt, 75, SWT.RIGHT );
-        // fd.bottom = new FormAttachment( 100, -10 );
         addResourceBtn.setLayoutData(fd);
     	addResourceBtn.setText( "   Add   " ); // Add To RBD
-    	
-    	
-        /*
-        can_btn = new Button( sel_rsc_comp, SWT.PUSH );
-        can_btn.setText("  Cancel  ");
-        fd = new FormData();    	
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-        fd.right = new FormAttachment( addResourceBtn, -10, SWT.LEFT  );
-    	can_btn.setLayoutData( fd );
-    	*/
-    	/*
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-    	replaceResourceBtn.setText( " Replace " ); // ie Modify 
-
-        // both for now unless we change it to be one or the other
-        // addResourceBtn.setVisible( !replaceBtnVisible );
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-    	*/
-
-        addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
-        fd = new FormData();
-        fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
-    	fd.top  = new FormAttachment( addResourceBtn, 0, SWT.TOP );
-        addToAllPanesBtn.setLayoutData(fd);
-        addToAllPanesBtn.setText("Add To All Panes");
-
-        addToAllPanesBtn.setVisible(multiPane);
 
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
-        // fd.left = new FormAttachment( addResourceBtn, 30, SWT.RIGHT );
-    	//fd.left = new FormAttachment( 55, 0 );
-        //fd.right = new FormAttachment( can_btn, -10, SWT.LEFT  );
         fd.width = 130;
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 40, SWT.BOTTOM );
     	fd.right = new FormAttachment( 100, -20 );
-        // fd.bottom = new FormAttachment( 100, -10 );
 
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
         cycleTimeLbl.setText("Cycle Time");
         fd = new FormData();
-    	//fd.left = new FormAttachment( cycleTimeCombo, 0, SWT.LEFT );
         fd.right = new FormAttachment( cycleTimeCombo, -10, SWT.LEFT  );
-        //fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-
     	fd.bottom = new FormAttachment( cycleTimeCombo, -5, SWT.BOTTOM );
         cycleTimeLbl.setLayoutData(fd);
     }
 
     private void setContentProviders() {
-
-        // input is the rscDefnsMngr and output is a list of categories based
-        // on the forecast flag
-        rscCatLViewer.setContentProvider(new IStructuredContentProvider() {
-            @Override
-            public Object[] getElements(Object inputElement) {
-
-                return rscDefnsMngr.getResourceCategories(false,
-                        new NcDisplayType[] { seldDisplayType }); // don't show
-                                                                  // disabled
-                                                                  // dfns
-            }
-
-            @Override
-            public void dispose() {
-            }
-
-            @Override
-            public void inputChanged(Viewer viewer, Object oldInput,
-                    Object newInput) {
-            }
-        });
-
+    	
         // order the Categories according to the
 
         rscTypeLViewer.setContentProvider(new IStructuredContentProvider() {
@@ -510,25 +524,25 @@ public class ResourceSelectionControl extends Composite {
         rscGroupLViewer.setContentProvider(new IStructuredContentProvider() {
             @Override
             public Object[] getElements(Object inputElement) {
-                String rscType = seldResourceName.getRscType();
-
+				if( inputElement == null ) return new String[0];
+				String rscType = seldResourceName.getRscType();
                 if (!rscType.isEmpty()) {
-                    // if this resource uses attrSetGroups then get get the list
-                    // of
-                    // groups. (PGEN uses groups but we will list the subTypes
-                    // (products)
+                    // if this resource uses attrSetGroups then get get the list of
+                    // groups. (PGEN uses groups but we will list the subTypes (products)
                     // and not the single PGEN attr set group)
-                    if (rscDefnsMngr.doesResourceUseAttrSetGroups(rscType)
-                            && !seldResourceName.isPgenResource()) {
-
-                        List<String> rscAttrSetsList = rscDefnsMngr
-                                .getAttrSetGroupNamesForResource(rscType);
-
-                        if (rscAttrSetsList != null
-                                && !rscAttrSetsList.isEmpty()) {
-                            return rscAttrSetsList.toArray();
-                        }
-                    } else {
+                	if( rscDefnsMngr.doesResourceUseAttrSetGroups( rscType ) ) {
+						List<AttrSetGroup> rscAttrSetGroupsList = 
+							    rscDefnsMngr.getAttrSetGroupsForResource( rscType );
+						if( rscAttrSetGroupsList != null &&
+								!rscAttrSetGroupsList.isEmpty() ) {
+							if( rscType.length() < 8 ) {
+								rscTypeGroupLbl.setText( rscType+" Attribute Groups " );
+							} else { 
+								rscTypeGroupLbl.setText( rscType+" Attr Groups " );
+							}
+							return rscAttrSetGroupsList.toArray();
+						}
+					} else {
                         try {
                             String[] rscGroups = rscDefnsMngr
                                     .getResourceSubTypes(rscType);
@@ -667,28 +681,7 @@ public class ResourceSelectionControl extends Composite {
                 //
                 if (rscName.isValid() && rscDefn.usesInventory()
                         && rscDefn.getInventoryEnabled()) {
-
                     try {
-                        // this call will query just for the inventory params
-                        // needed to instantiate the resource
-                        // (ie imageType, productCode...) and not the actual
-                        // dataTimes.
-                        // rscDefnsMngr.verifyParametersExist( rscName );
-                        // if( rscDefn.isForecast() ) {
-                        // List<DataTime> availableTimes = rscDefn.getDataTimes(
-                        // rscName );
-                        // if( availableTimes.isEmpty() ) {
-                        // attrSetName = attrSetName + " (No Data)";
-                        // }
-                        // else {
-                        // DataTime dt = availableTimes.get(
-                        // availableTimes.size()-1 );
-                        // DataTime refTime = new DataTime( dt.getRefTime() );
-                        // String latestTime
-                        // =NmapCommon.getTimeStringFromDataTime( dt, "_" );
-                        //
-                        // attrSetName = attrSetName + " ("+latestTime+")";
-                        // }
                         DataTime latestTime = rscDefn
                                 .getLatestDataTime(rscName);
 
@@ -703,21 +696,6 @@ public class ResourceSelectionControl extends Composite {
                             attrSetName = attrSetName + " (" + latestTimeStr
                                     + ")";
                         }
-                        // }
-                        // else {
-                        //
-                        // DataTime latestTime = rscDefn.getLatestDataTime(
-                        // rscName );
-                        //
-                        // if( latestTime == null ) {
-                        // attrSetName = attrSetName + " (No Data)";
-                        // }
-                        // else {
-                        // attrSetName = attrSetName +
-                        // " ("+NmapCommon.getTimeStringFromDataTime(
-                        // latestTime, "_" )+")";
-                        // }
-                        // }
                     } catch (VizException vizex) {
                         out.println(vizex.getMessage());
                     }
@@ -729,54 +707,6 @@ public class ResourceSelectionControl extends Composite {
 
     // add all of the listeners for widgets on this dialog
     private void addSelectionListeners() {
-
-        rscCatLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
-                                .getSelection();
-                        ResourceCategory seldCat = (ResourceCategory) seld_elem
-                                .getFirstElement();
-
-                        // get the previously selected resource for this
-                        // category
-
-                        seldResourceName = new ResourceName();
-                        seldResourceName.setRscCategory(seldCat);
-
-                        prevSeldCat = seldResourceName.getRscCategory();
-
-                        // if a resource was previously selected for this
-                        // category, select it
-                        //
-                        if (prevCatSeldRscNames.containsKey(seldCat)) {
-                            seldResourceName = prevCatSeldRscNames.get(seldCat);
-                        }
-
-                        updateResourceFilters();
-
-                        updateResourceTypes();
-                    }
-                });
-
-        filterCombo.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                String filtStr = null; // init to no filter
-
-                if (filterCombo.getSelectionIndex() == 0) { // "All"
-                    filtStr = "";
-                } else {
-                    filtStr = filterCombo.getText();
-                }
-
-                if (filtStr.equals(seldFilterStr)) {
-                    return;
-                }
-                seldFilterStr = filtStr;
-
-                updateResourceTypes();
-            }
-        });
 
         rscTypeLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
@@ -831,31 +761,16 @@ public class ResourceSelectionControl extends Composite {
         //
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-        		selectResource( false, true );
+        		selectResource( true, true );
         	}
        	});
-
-        // TODO : do we want replace to pop down the dialog?
-       	/*
-        replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                selectResource(true, false);
-            }
-        });
-       	*/
-
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
                     public void handleEvent(Event event) {
-                        if (addResourceBtn.isVisible()) {
-                            selectResource(false, true);
-                        } else {
-                            selectResource(true, true);
-                        }
+                    	selectResource(true, true);
                     }
                 });
-
         cycleTimeCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 updateSelectedResource();
@@ -873,85 +788,9 @@ public class ResourceSelectionControl extends Composite {
         if (seldResourceName != null) {
             prevSeldCat = seldResourceName.getRscCategory();
         }
-
-        filterCombo.setItems(new String[] { "All" });
-        filterCombo.select(0);
-
-        seldFilterStr = "";
-
-        // update the cat list
-        rscCatLViewer.setInput(rscDefnsMngr);
-        rscCatLViewer.refresh();
-        rscCatLViewer.getList().deselectAll();
-
-        //
-        addToAllPanesBtn.setSelection(false);
-
-        // if
-        if (seldResourceName == null
-                || seldResourceName.getRscCategory() == ResourceCategory.NullCategory) {
-            return;
-        }
-
-        for (int itmIndx = 0; itmIndx < rscCatLViewer.getList().getItemCount(); itmIndx++) {
-
-            if (rscCatLViewer.getList().getItem(itmIndx)
-                    .equals(seldResourceName.getRscCategory().toString())) {
-
-                rscCatLViewer.getList().select(itmIndx);
-                break;
-            }
-        }
-
-        if (rscCatLViewer.getList().getSelectionCount() == 0) {
-            seldResourceName = new ResourceName();
-        }
-
-        updateResourceFilters();
-
+        seldResourceName = new ResourceName();
+        seldResourceName.setRscCategory(ResourceCategory.GridRscCategory);
         updateResourceTypes();
-    }
-
-    //
-    public void filterResourceTypes(String filterStr) {
-
-        // if the value hasn't changed then do nothing
-        // if( seldFilterStr.equals( filterStr ) ) {
-        // return;
-        // }
-        // get the previously selected resourceName
-
-        // }
-        // else { // was obs, now fcst
-        // if( seldResourceName.isValid() ) {
-        // prevSeldObsCat = seldResourceName.getRscCategory();
-        // }
-        //
-        // if( prevSeldFcstCat.isEmpty() ) {
-        // seldResourceName = new ResourceName();
-        // }
-        // else if( prevFcstCatSeldRscNames.containsKey( prevSeldFcstCat )){
-        // seldResourceName = prevFcstCatSeldRscNames.get( prevSeldFcstCat );
-        // }
-        // }
-
-        // cycleTimeLbl.setVisible( fcstCatSelected );
-        // cycleTimeCombo.setVisible( fcstCatSelected );
-
-    }
-
-    // get a list of all the possible filter labels from all of the resources
-    // in this category
-    protected void updateResourceFilters() {
-        ResourceCategory seldCat = seldResourceName.getRscCategory();
-
-        // TODO : add code to save the prev seld filter for each cat
-        List<String> filtLabels = rscDefnsMngr.getAllFilterLabelsForCategory(
-                seldCat, seldDisplayType);
-        filtLabels.add(0, "All");
-        filterCombo.setItems(filtLabels.toArray(new String[0]));
-        filterCombo.select(0);
-        seldFilterStr = "";
     }
 
     // refresh the types list based on the type in the seldResourceName
@@ -1203,15 +1042,10 @@ public class ResourceSelectionControl extends Composite {
 
             // For now, don't let the user select 'Latest'
             if (seldResourceName.isLatestCycleTime()) {
-
                 addResourceBtn.setEnabled(false);
                 replaceResourceBtn.setEnabled(false);
-                seldRscNameTxt.setText("");
-            } else {
-                seldRscNameTxt.setText(seldResourceName.toString());
             }
         } else {
-            seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
 			//replaceResourceBtn.setEnabled( false );	
 
@@ -1230,15 +1064,12 @@ public class ResourceSelectionControl extends Composite {
     // on the list
     public void selectResource(boolean replaceRsc, boolean done) {
 
-        boolean addToAllPanes = (addToAllPanesBtn.isVisible() && addToAllPanesBtn
-                .getSelection());
         if (seldResourceName.isValid()) {
             for (IResourceSelectedListener lstnr : rscSelListeners) {
                 lstnr.resourceSelected(seldResourceName, replaceRsc,
-                        addToAllPanes, done);
+                        false, done);
             }
-        } else {
-        } // sanity check failed
+        } 
     }
 
     public ResourceName getCurrentlySelectedResource() {
@@ -1383,10 +1214,6 @@ public class ResourceSelectionControl extends Composite {
         }
 
         return;
-    }
-
-    public void setMultiPaneEnabled(Boolean multPaneEnable) {
-        addToAllPanesBtn.setVisible(multPaneEnable);
     }
 
     public void setReplaceEnabled(Boolean rplEnbld) {

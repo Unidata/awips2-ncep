@@ -1,9 +1,9 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageResources;
 
 import java.util.List;
 
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ResourceEditSelectionComposite.EditResourceAction;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ResourceEditSelectionComposite.IEditResourceListener;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageResources.ResourceEditSelectionComposite.EditResourceAction;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageResources.ResourceEditSelectionComposite.IEditResourceListener;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
@@ -106,8 +106,8 @@ public class ManageResourceControl extends Composite {
         sashForm.setLayoutData( gd );
         sashForm.setSashWidth(10);
                 
-        selRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
-        selRscGrp.setText("Select Resource");
+        selRscGrp = new Group( sashForm, SWT.NONE );
+        selRscGrp.setText("");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;

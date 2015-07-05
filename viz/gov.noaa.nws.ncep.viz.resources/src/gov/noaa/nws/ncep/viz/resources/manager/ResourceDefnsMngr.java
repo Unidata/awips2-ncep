@@ -368,8 +368,7 @@ public class ResourceDefnsMngr {
         Collection<String> supportedPlugins = RecordFactory.getInstance()
                 .getSupportedPlugins();
 
-        // this was used to maintain the order in the resourceDefnsTable but now
-        // that
+        // this was used to maintain the order in the resourceDefnsTable but now that
         // these are separate files, I don't know that this will work. Need to
         // find another way to get these in the right order for the GUI.
         long t0 = System.currentTimeMillis();
@@ -401,15 +400,7 @@ public class ResourceDefnsMngr {
                                 + message.getFileName()
                                 + " has been updated.\n"
                                 + "To get these changes you will need to restart cave.");
-                        // VizApp.runAsync(new Runnable() {
-                        // @Override
-                        // public void run() {
-                        // MessageDialog warnDlg = new MessageDialog(
-                        // .getShell(), "WARNING", null, , MessageDialog.,
-                        // new String[] { "OK" }, 0);
-                        // warnDlg.open();
-                        // }
-                        // });
+
                     }
                 });
             } catch (VizException e) {

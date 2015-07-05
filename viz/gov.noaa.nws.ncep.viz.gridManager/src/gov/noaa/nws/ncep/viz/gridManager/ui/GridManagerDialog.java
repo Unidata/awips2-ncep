@@ -1,10 +1,8 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui;
+package gov.noaa.nws.ncep.viz.gridManager.ui;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd.LoadRbdControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf.ManageSpfControl;
+import gov.noaa.nws.ncep.viz.gridManager.ui.createRbd.LoadGempakControl;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageResources.ManageResourceControl;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.NcMapRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
@@ -55,7 +53,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * @author 
  * @version 1
  */
-public class ResourceManagerDialog extends Dialog {
+public class GridManagerDialog extends Dialog {
 
 	private RscBundleDisplayMngr rbd_mngr;
 	
@@ -71,16 +69,12 @@ public class ResourceManagerDialog extends Dialog {
     
     protected LoadGempakControl loadGempakCntrl = null;
     
-    protected  LoadRbdControl loadRbdCntrl = null;
-
     protected  ManageResourceControl manageRscCntrl = null;
-
-    protected ManageSpfControl manageRbdsCntrl; 
     
     private static int prevHeight=0;
     private Point prevLocation = new Point(0,0);
     
-    public ResourceManagerDialog(Shell parShell, String title,
+    public GridManagerDialog(Shell parShell, String title,
     		          RscBundleDisplayMngr mngr, String mode )   throws VizException {
     	super(parShell);
     	rbd_mngr = mngr;
@@ -104,13 +98,8 @@ public class ResourceManagerDialog extends Dialog {
     	gd.verticalAlignment = SWT.FILL;
     	mngrTabFolder.setLayoutData( gd );
 
-    	final TabItem loadTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	loadTabItem.setText( "Load Bundle" );
-
-    	loadRbdCntrl = new LoadRbdControl( mngrTabFolder );
-
     	final TabItem mngrTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	mngrTabItem.setText( "Create Bundle" );
+    	mngrTabItem.setText( "Load Grid" );
     	
     	// get the active Display and set the rbd_mngr with it 
     	AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -139,22 +128,15 @@ public class ResourceManagerDialog extends Dialog {
 
 		loadGempakCntrl = new LoadGempakControl( mngrTabFolder, rbd_mngr );
     	
-    	final TabItem manageSPFTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	manageSPFTabItem.setText( "Manage Bundles" );
-
-    	manageRbdsCntrl = new ManageSpfControl( mngrTabFolder );
 
     	final TabItem cnfgTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	cnfgTabItem.setText( "Manage Data" );
+    	cnfgTabItem.setText( "Settings" );
 
     	manageRscCntrl = new ManageResourceControl( mngrTabFolder );
 
     	mngrTabItem.setControl( loadGempakCntrl );
-    	loadTabItem.setControl( loadRbdCntrl );
-    	manageSPFTabItem.setControl(  manageRbdsCntrl );
     	cnfgTabItem.setControl( manageRscCntrl );
 
-    	
     	Button closeBtn = new Button( shell, SWT.PUSH );
     	closeBtn.setText( "Close" );
     	gd = new GridData( );
@@ -175,7 +157,6 @@ public class ResourceManagerDialog extends Dialog {
 
     	if( mode == null || mode.equals("LOAD_RBD") ) {
     		mngrTabFolder.setSelection(0);
-    		loadRbdCntrl.updateDialog();
     	}
     	else if( mode.equals("CREATE_RBD") ) {
     		mngrTabFolder.setSelection(1);
@@ -183,7 +164,6 @@ public class ResourceManagerDialog extends Dialog {
     	}
     	else if( mode.equals("MANAGE_RBDS") ) {
     		mngrTabFolder.setSelection(2);
-    		manageRbdsCntrl.updateDialog();
     	}
     	else if( mode.equals("MANAGE_RESOURCES") ) {
     		mngrTabFolder.setSelection(3);
@@ -198,14 +178,8 @@ public class ResourceManagerDialog extends Dialog {
        		public void widgetSelected( SelectionEvent ev ) {
        			TabItem[] seldTab = mngrTabFolder.getSelection();
        			
-       			if( seldTab[0].getControl() instanceof LoadRbdControl ) {       				
-       				((LoadRbdControl)seldTab[0].getControl()).updateDialog();
-       			}
-       			else if( seldTab[0].getControl() instanceof LoadGempakControl ) {       				
+       			if( seldTab[0].getControl() instanceof LoadGempakControl ) {       				
        				((LoadGempakControl)seldTab[0].getControl()).updateDialog();
-       			}
-       			else if( seldTab[0].getControl() instanceof ManageSpfControl ) {       				
-       				((ManageSpfControl)seldTab[0].getControl()).updateDialog();
        			}
        			else if( seldTab[0].getControl() instanceof ManageResourceControl ) {       				
        				((ManageResourceControl)seldTab[0].getControl()).updateDialog();

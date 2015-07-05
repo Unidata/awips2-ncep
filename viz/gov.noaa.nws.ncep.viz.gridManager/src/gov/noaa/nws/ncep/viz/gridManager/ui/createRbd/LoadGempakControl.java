@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
+package gov.noaa.nws.ncep.viz.gridManager.ui.createRbd;
 
 import gov.noaa.nws.ncep.viz.common.area.AreaMenus.AreaMenuItem;
 import gov.noaa.nws.ncep.viz.common.area.AreaName;
@@ -10,13 +10,10 @@ import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
 import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
+import gov.noaa.nws.ncep.viz.gridManager.timeline.TimelineControl;
+import gov.noaa.nws.ncep.viz.gridManager.timeline.TimelineControl.IDominantResourceChangedListener;
+import gov.noaa.nws.ncep.viz.gridManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.EditResourceAttrsAction;
 import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.NcMapRBD;
@@ -31,7 +28,6 @@ import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,14 +39,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
@@ -66,10 +54,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPartListener2;
@@ -104,8 +90,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
     private SashForm sash_form = null;
 
-    private Group rbd_grp = null;
-
     private Group add_grp = null;
 
     private ResourceSelectionControl sel_rsc_cntrl = null;
@@ -118,17 +102,11 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     
     private Object seld_rscs_list = null;
 
-    private TableViewer groupListViewer;
-
     private MenuManager areaMenuMngr = null;
 
     private Label import_lbl = null;
         
     private Button load_rbd_btn = null;
-
-    private Button load_and_close_btn = null;
-
-    private Button save_rbd_btn = null;
 
     private Button clear_rbd_btn = null;
 
@@ -184,25 +162,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         /*
          * Add Grid Group
          */
-        
         createAddGroup();
-
-        /*
-         * Create RBD Group
-         */
-        rbd_grp = new Group(sash_form, SWT.SHADOW_NONE);
-        rbd_grp.setText("");
-        gd = new GridData();
-        gd.grabExcessHorizontalSpace = true;
-        gd.grabExcessVerticalSpace = true;
-        gd.horizontalAlignment = SWT.FILL;
-        gd.verticalAlignment = SWT.FILL;
-
-        rbd_grp.setLayoutData(gd);
-
-        rbd_grp.setLayout(new FormLayout());
-
-        //createRBDGroup();
         seld_rscs_list = rbdMngr.getUngroupedResources();
 
         /*
@@ -218,14 +178,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         timeline_grp.setLayoutData(gd);
 
         timeline_grp.setLayout(new GridLayout());
-
-        if (mngr.getRbdType().equals(NcDisplayType.GRAPH_DISPLAY)) {
-            timelineControl = (GraphTimelineControl) new GraphTimelineControl(
-                    timeline_grp);
-        } else {
-            timelineControl = new TimelineControl(timeline_grp);
-        }
-
+        timelineControl = new TimelineControl(timeline_grp);
         timelineControl
                 .addDominantResourceChangedListener(new IDominantResourceChangedListener() {
                     @Override
@@ -260,22 +213,14 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         fd.left = new FormAttachment(17, -65);
         clear_rbd_btn.setLayoutData(fd);
 
-        save_rbd_btn = new Button(loadSaveComp, SWT.PUSH);
-        save_rbd_btn.setText("Save");
+        load_rbd_btn = new Button(loadSaveComp, SWT.PUSH);
+    	load_rbd_btn.setText("Load");
         fd = new FormData();
         fd.width = 100;
         fd.top = new FormAttachment(0, 7);
-        fd.left = new FormAttachment(40, -50);
-        save_rbd_btn.setLayoutData(fd);
-
-        load_and_close_btn = new Button(loadSaveComp, SWT.PUSH);
-    	load_and_close_btn.setText("Load");
-        fd = new FormData();
-        fd.width = 120;
-        fd.top = new FormAttachment(0, 7);
         // fd.bottom = new FormAttachment( 100, -7 );
-        fd.left = new FormAttachment(63, -50);
-        load_and_close_btn.setLayoutData(fd);
+        fd.left = new FormAttachment(40, -50);
+        load_rbd_btn.setLayoutData(fd);
 
         cancel_edit_btn = new Button(loadSaveComp, SWT.PUSH);
         cancel_edit_btn.setText(" Cancel ");
@@ -285,7 +230,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         // fd.bottom = new FormAttachment( 100, -7 );
         fd.right = new FormAttachment(45, 0);
         cancel_edit_btn.setLayoutData(fd);
-
+        
         ok_edit_btn = new Button(loadSaveComp, SWT.PUSH);
         ok_edit_btn.setText("   Ok   ");
         fd = new FormData();
@@ -299,7 +244,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                                            // configureForEditRbd is called
         ok_edit_btn.setVisible(false);
 
-        sash_form.setWeights(new int[] { 50, 20, 30 });
+        sash_form.setWeights(new int[] { 50, 50 });
 
         // set up the content providers for the ListViewers
         addSelectionListeners();
@@ -369,7 +314,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
     // add all of the listeners for widgets on this dialog
     void addSelectionListeners() {
-
     	
     	sel_rsc_cntrl.addResourceSelectionListener(new IResourceSelectedListener() {
             @Override
@@ -377,21 +321,14 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                     boolean addAllPanes, boolean done) {
 
                 try {
-                	
                     ResourceSelection rbt = ResourceFactory
                             .createResource(rscName);
                     rbdMngr.getSelectedArea();
                     rbdMngr.addSelectedResource(rbt, null);
-                    
-                    // add the new resource to the timeline as a possible
-                    // dominant resource
                     if (rbt.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
                         timelineControl
                                 .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) rbt
                                         .getResourceData());
-
-                        // if there is not a dominant resource selected then
-                        // select this one
                         if (timelineControl.getDominantResource() == null) {
                             timelineControl
                                     .setDominantResource((AbstractNatlCntrsRequestableResourceData) rbt
@@ -411,23 +348,14 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                 updateSelectedResourcesView(true);
             }
         });
-    	
-    	
         clear_rbd_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 clearRBD();
             }
         });
-
-        load_and_close_btn.addSelectionListener(new SelectionAdapter() {
+        load_rbd_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                loadRBD(true);
-            }
-        });
-
-        save_rbd_btn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                saveRBD(false);
+                loadRBD(false);
             }
         });
     }
@@ -447,9 +375,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     public void configureForEditRbd() {
         import_lbl.setVisible(false);
         clear_rbd_btn.setVisible(false);
-        save_rbd_btn.setVisible(false);
         load_rbd_btn.setVisible(false);
-        load_and_close_btn.setVisible(false);
         cancel_edit_btn.setVisible(true);
         ok_edit_btn.setVisible(true);
         cancel_edit_btn.addSelectionListener(new SelectionAdapter() {
@@ -1084,119 +1010,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         updateAreaGUI();
         updateSelectedResourcesView(true);
     }
-
-    public void saveRBD(boolean new_pane) {
-        try {
-            NCTimeMatcher timeMatcher = timelineControl.getTimeMatcher();
-            boolean saveRefTime = !timeMatcher.isCurrentRefTime();
-            boolean saveTimeAsConstant = false; // TODO -- how should this be
-                                                // set???
-
-            // get the filename to save to.
-            SaveRbdDialog saveDlg = new SaveRbdDialog(shell, savedSpfGroup,
-                    savedSpfName, rbd_name_txt, saveRefTime,
-                    saveTimeAsConstant);
-
-            if ((Boolean) saveDlg.open() == false) {
-                return;
-            }
-
-            savedSpfGroup = saveDlg.getSeldSpfGroup();
-            savedSpfName = saveDlg.getSeldSpfName();
-
-            saveRefTime = saveDlg.getSaveRefTime();
-            saveTimeAsConstant = saveDlg.getSaveTimeAsConstant();
-
-            // Set the name to the name that was actually used to save the RBD.
-            // TODO : we could store a list of the RBDNames and load these
-            // as items in the combo.
-    		rbd_name_txt = saveDlg.getSeldRbdName();
-
-            AbstractRBD<?> rbdBndl = rbdMngr.createRbdBundle(
-                    saveDlg.getSeldRbdName(), timeMatcher);
-
-            // if( !checkAndSavePredefinedAreas() ) {
-            // return;
-            // }
-
-            SpfsManager.getInstance().saveRbdToSpf(savedSpfGroup, savedSpfName,
-                    rbdBndl, saveRefTime, saveTimeAsConstant);
-
-            VizApp.runSync(new Runnable() {
-                public void run() {
-                    String msg = null;
-    				msg = new String("bundle \""+
-    						rbd_name_txt + "\" saved to \""+
-    						savedSpfName+"\"");
-                    MessageBox mb = new MessageBox(shell, SWT.OK);
-                    mb.setText("Bundle Saved");
-                    mb.setMessage(msg);
-                    mb.open();
-
-                    rbdMngr.setRbdModified(false);
-                }
-            });
-        } catch (VizException e) {
-            final String msg = e.getMessage();
-            VizApp.runSync(new Runnable() {
-                public void run() {
-                    Status status = new Status(Status.ERROR,
-                            UiPlugin.PLUGIN_ID, 0, msg, null);
-                    ErrorDialog.openError(
-                            Display.getCurrent().getActiveShell(), "ERROR",
-                            "Error.", status);
-                }
-            });
-        }
-    }
-
-    // check to see if any of the selected areas are defined by another display
-    // and if so prompt the user to save them to a file before saving the RBD.
-    // (if we don't do this the area can still be saved but there is a problem
-    // of what the areaSource will be in this case. It could be
-    // INITIAL_DISPLAY_AREA but the factory for this area source is currently
-    // designed to only look for loaded displays and not displays that are saved
-    // in an RBD which is what the case will be if this RBD is imported into the
-    // ResourceManager again. There are other possible ways to fix this but the
-    // most straightforward for now is to just require the user to save the area
-    // to a file
-    // if
-    // private Boolean checkAndSavePredefinedAreas( ) {
-    //
-    // Map<String,AreaName> seldAreas = rbdMngr.getAllSelectedAreaNames();
-    // String confirmMsg = "";
-    // List<String> pids = new ArrayList<String>(seldAreas.keySet());
-    //
-    // for( String pid : pids ) {
-    // if( seldAreas.get( pid ).getSource() != AreaSource.INITIAL_DISPLAY_AREA )
-    // {
-    // seldAreas.remove( pid );
-    // }
-    // }
-    //
-    // if( seldAreas.isEmpty() ) {
-    // return true;
-    // }
-    //
-    // if( !rbdMngr.isMultiPane() ) {
-    // if( seldAreas.)
-    // MessageDialog confirmDlg = new MessageDialog(
-    // shell, "Confirm", null,
-    // "This RBD has been modified.\n\n"+
-    // "Do you want to clear the current RBD selections?",
-    // MessageDialog.QUESTION, new String[]{"Yes", "No"}, 0);
-    // confirmDlg.open();
-    //
-    // if( confirmDlg.getReturnCode() != MessageDialog.OK ) {
-    // return;
-    // }
-    //
-    // }
-    // // if geoSynced just check the first
-    // if( rbdMngr.isGeoSyncPanes() ) {
-    //
-    // }
-    // }
 
     // if Editing then save the current rbd to an AbstractRBD<?>
     private void createEditedRbd() {

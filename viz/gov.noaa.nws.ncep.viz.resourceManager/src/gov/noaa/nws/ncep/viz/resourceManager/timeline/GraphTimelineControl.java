@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.viz.resourceManager.timeline;
 import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
+import gov.noaa.nws.ncep.viz.resources.time_match.GraphTimelineUtil;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 
 import java.text.SimpleDateFormat;
@@ -18,11 +19,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 
 import org.eclipse.swt.SWT;
@@ -57,88 +56,64 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.common.time.DataTime;
 
-/** 
- * This class was previously implemented as 2 classes a TimelineControl class and a Timeline
- * class.  
- *    Previous TimelineControl class and History.....
- *    
- * An SWT Composite Control to select the timeline for an RBD. Most of the Timeline controls and 
- * selection is delegated to the Timeline class and the timeline generation is now done in the 
- * NCTimeMatcher. A Timeline object is created and set with an NCTimeMatcher object. When the
- * user modifies the timeline this NCTimeMatcher is updated and may be called on to generate a new
- * list of times using the new timeRange, or frameInterval or refTime. 
- *   This class is only responsible for the selection of the dominant resource.  
- * Since multiple resources with the same name may be made available for selection, (because
- * different panes may contain different instances of the same resource), this class needs 
- * to manage which resources are available at a given time. 
- *    When a dominant resource is selected, the timeMatcher is updated with the new dominant 
- * resource and the the Timeline is called to update from the modified timeMatcher.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/26/10       #226      Greg Hull    refactored for from resourceManager Dialog
- * 09/01/10       #307      Greg Hull    added dominantResourceChanged listener
- * 09/21/10       #307      Greg Hull    pass timeMatcher to Timeline 
- * 10/04/10       #307      Greg Hull    add Manual Timeline selection
- * 01/27/11       #408      Greg Hull    add an avail dom rsc without setting the GUI
- * 02/11/11       #408      Greg Hull    combined with Timeline class (now TimelineControl)
- * 06/19/12       #657      Greg Hull    removeSpinnerListeners() before setting the 
- *                                       spinner maxvalues.
- * 04/30/2014     #1131     qzhou        Add construct for Graph to create graph widgets.
- * 06/24/14       TTR1029   J. Wu        Distinguish clicks in/outside of the slider box.
- * 07/11/14       TTR1032   J. Wu        reload data times as necessary to keep timeline current.
- * 
- * </pre>
- * 
- * @author 
- * @version 1
- */
-
 /**
+ * This class is an override on the TimelineControl for display graph time line.
+ * The main difference are removing numFrames, and numSkip, and adding
+ * graphRange and hourSnap.
+ * 
+ * For non-graph, we have many frames and each data is in a frame. But for
+ * graph, we only have one frame and many data in the frame.
+ * 
+ * The numFrames and frameTimes are basic criteria for timeline control. we
+ * change a concept here. We put data in frameTimes, so the timeline and
+ * timeMatcher classes still work, but there is only one frame, not "frameTimes"
+ * frames.
+ * 
  * Timeline: A graphical view of available data times, that allows users to
  * select any or all data times from the available list.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	    Description
- * ------------	----------	---------------	--------------------------
- *                          Steve Gilbert   created
- * 09/06/10       #307      Greg Hull       added range, frame Interval, refTime,
- * 											and timelineStateMessage
- * 02/11/11       #408      Greg Hull       combine with previous TimelineControl 
- * 02/14/11       #408      Greg Hull       add Ref. Time Selection 
- * 02/22/11       #408      Greg Hull       update timeMatcher with frameTimes and 
- * 	                                        numFrames to keep them in sync.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 04/28/2014     #1131     qzhou       Initial (removed numFrames, numSkip, added graphRange, hourSnap)
+ * 05/14/2014     #1131     qzhou       Add snapAvailtimes to append data at the end to fill the snap period.
+ *                                      Change MourseUp function to handle snap.
+ *                                      Add functions to get position from time and vice versa
+ *                                      Modified updateTimeline, updateSelectedTimes, calculateSlider, calculateAvailableBoxes
+ * 06/10/2014     #1136     qzhou       Modified getSelectedTimes and updateTimeline
+ * 08/13/2014     R4079     sgurung     Added code changes from TimeLineControl (related to TTR1032)
  * 
  * </pre>
  * 
- * @author sgilbert
+ * @author qzhou
  * @version 1
  */
-public class TimelineControl extends Composite {
+public class GraphTimelineControl extends TimelineControl {
 
     private final String[] noResourcesList = { "                       None Available               " };
 
     private final String manualTimelineStr = "                       Manual Timeline              ";
 
-    protected HashMap<String, ArrayList<AbstractNatlCntrsRequestableResourceData>> availDomResourcesMap = null;
+    // private HashMap<String,
+    // ArrayList<AbstractNatlCntrsRequestableResourceData>> availDomResourcesMap
+    // = null;
 
-    protected AbstractNatlCntrsRequestableResourceData domRscData = null;
+    // private AbstractNatlCntrsRequestableResourceData domRscData = null;
 
-    protected Combo dom_rsc_combo = null;
+    // private Combo dom_rsc_combo = null;
 
-    protected NCTimeMatcher timeMatcher = null;
+    // private NCTimeMatcher timeMatcher = null;
 
-    public interface IDominantResourceChangedListener {
-        public void dominantResourceChanged(
-                AbstractNatlCntrsRequestableResourceData newDomRsc);
-    }
+    // public interface IDominantResourceChangedListener {
+    // public void dominantResourceChanged(
+    // AbstractNatlCntrsRequestableResourceData newDomRsc);
+    // }
+    //
+    // private Set<IDominantResourceChangedListener>
+    // dominantResourceChangedListeners = new
+    // HashSet<IDominantResourceChangedListener>();
 
-    protected Set<IDominantResourceChangedListener> dominantResourceChangedListeners = new HashSet<IDominantResourceChangedListener>();
-
-    // public enum TimeLineBehavior { PREPEND, APPEND };
     private enum MODE {
         MOVE_LEFT, MOVE_RIGHT, MOVE_ALL
     };
@@ -161,16 +136,15 @@ public class TimelineControl extends Composite {
 
     private final int MAX_DATES = 10;
 
-    // if this is not null then the message is displayed in
-    // place of a timeline. This should only be set when no
-    // times are available.
+    // if this is not null then the message is displayed in place of
+    // a timeline. This should only be set when no times are available.
     private String timelineStateMessage = null;
 
     private Canvas canvas;
 
-    private Spinner numFramesSpnr;
+    private Combo graphRangeCombo;
 
-    private Spinner numSkipSpnr;
+    private Combo hourSnapCombo;
 
     private Spinner timeRangeDaysSpnr;
 
@@ -191,6 +165,17 @@ public class TimelineControl extends Composite {
     private int availFrameIntervalMins[] = { -1, 1, 2, 5, 10, 15, 20, 30, 60,
             90, 120, 180, 360, 720, 1440 };
 
+    private String availGraphRangeStrings[] = { "1 hr", "2 hrs", "3 hrs",
+            "6 hrs", "12 hrs", "24 hrs", "3 days", "7 days", "30 days" };
+
+    private int availGraphRangeHrs[] = { 1, 2, 3, 6, 12, 24, 72, 168, 720 };
+
+    // extend refTime to next snap point
+    private String availHourSnapStrings[] = { "0", "1", "2", "3", "6", "12",
+            "24" };
+
+    private int availHourSnapHrs[] = { 0, 1, 2, 3, 6, 12, 24 };
+
     // keep this in order since code is referencing the index into this list.
     private String refTimeSelectionOptions[] = { "Current", "Latest ",
             "Calendar ..." };
@@ -207,7 +192,7 @@ public class TimelineControl extends Composite {
 
     private int sliderMin, sliderMax;
 
-    protected TimelineData timeData;
+    // private TimelineData timeData;
 
     private Map<Rectangle, Calendar> availableTimes;
 
@@ -223,17 +208,14 @@ public class TimelineControl extends Composite {
 
     private Shell shell;
 
-    public TimelineControl(Composite parent, String rbdName) {
-        super(parent, SWT.NONE);
-        // this.rbdName = rbdName;
-    }
+    private int newGraphRange = 0;
 
-    public TimelineControl(Composite parent) {
-        super(parent, SWT.NONE);
+    public GraphTimelineControl(Composite parent) {
 
+        super(parent, "Graph");
         shell = parent.getShell();
 
-        timeMatcher = new NCTimeMatcher();
+        // timeMatcher = new NCTimeMatcher();
         availDomResourcesMap = new HashMap<String, ArrayList<AbstractNatlCntrsRequestableResourceData>>();
 
         Composite top_form = this;
@@ -251,6 +233,7 @@ public class TimelineControl extends Composite {
         fd.width = 330;
         fd.top = new FormAttachment(0, 0);
         fd.left = new FormAttachment(30, 0);
+
         dom_rsc_combo.setLayoutData(fd);
 
         Label dom_rsc_lbl = new Label(top_form, SWT.NONE);
@@ -263,11 +246,7 @@ public class TimelineControl extends Composite {
         // if changing the dominant resource then change the timeline
         dom_rsc_combo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                // TODO : add code to get the current numFrames (whole timeline
-                // actually)
-                // and save it with the current dominant resource so that we can
-                // reset
-                // the timeline if this resource is again selected as dominant.
+
                 selectDominantResource();
             }
         });
@@ -295,15 +274,13 @@ public class TimelineControl extends Composite {
         dominantResourceChangedListeners.add(lstnr);
     }
 
-    public boolean removeaddDominantResourceChangedListener(
+    public boolean removeAddDominantResourceChangedListener(
             IDominantResourceChangedListener lstnr) {
         return dominantResourceChangedListeners.remove(lstnr);
     }
 
     // set the timeMatcher and update the widgets for it.
-    //
     public boolean setTimeMatcher(NCTimeMatcher tm) {
-
         // this can happen if the user brings up the RBD Manager (usually with
         // the spacebar) before there is an editor with a timeline
         if (tm == null) {
@@ -341,7 +318,6 @@ public class TimelineControl extends Composite {
         }
 
         return true;
-
     }
 
     public NCTimeMatcher getTimeMatcher() {
@@ -385,14 +361,19 @@ public class TimelineControl extends Composite {
             }
 
             // TODO : There is a small hole in the design here in the case where
-            // Manual Timeline is selected for the EVENT type resources and
-            // there are more than one EVENT resource available. The dominant
-            // will be the first in the list. But the since the user will need
-            // to manually select a frame interval the only real problem is that
-            // the latest data will reference this resource. If the user needed
-            // the latest data of the second or other EVENT resource then they
-            // wouldn't be able to unless they removed the resources and
-            // re-selected in a new order.
+            // Manual Timeline is selected for the event type resources and
+            // there are
+            // more than one event resource available. The dominant will be the
+            // first
+            // in the list. But the since the user will need to manually select
+            // a frame
+            // interval the only real problem is that the latest data will
+            // reference
+            // this resource. If the user needed the latest data of the second
+            // or other
+            // event resource then they wouldn't be able to unless they removed
+            // the
+            // resources and re-selected in a new order.
             //
             domRscData = seldRscsList.get(0);
             return domRscData;
@@ -603,7 +584,6 @@ public class TimelineControl extends Composite {
         updateTimeline();
     }
 
-    //
     private void updateTimeline() {
 
         if (timeMatcher.getFrameTimes().isEmpty()) {
@@ -621,11 +601,6 @@ public class TimelineControl extends Composite {
             }
 
             timeData = new TimelineData(new ArrayList<Calendar>());
-
-            // No data but could update widgets from default resource
-            // definition. This is necessary when the user switches DOM.
-            updateTimelineWidgets(timeMatcher);
-
         } else {
 
             List<Calendar> availTimes = toCalendar(timeMatcher
@@ -642,6 +617,9 @@ public class TimelineControl extends Composite {
                 timelineStateMessage = null;
                 setControlsEnabled(true);
             }
+
+            // append data at the end to fill the snap peried
+            snapAvailtimes(availTimes);
 
             timeData = new TimelineData(availTimes);
 
@@ -674,17 +652,30 @@ public class TimelineControl extends Composite {
             }
             // End of TTR1034+ change.
 
+            // update widgets from default resource definition.
+            updateTimelineWidgets(timeMatcher);
+
             removeSpinnerListeners();
 
             // these can trigger the modify listeners too...
-            numFramesSpnr.setMaximum(availTimes.size());
-            numSkipSpnr.setMaximum(availTimes.size() - 1);
             hasDifferentMinutes = checkTimeMinutes(availTimes);
 
             List<Calendar> seldTimes = toCalendar(timeMatcher.getFrameTimes());
 
-            for (Calendar seldTime : seldTimes) {
+            // only one frame
+            if (!seldTimes.isEmpty()) {
+                Calendar seldTime = seldTimes.get(seldTimes.size() - 1);
+
+                seldTime = GraphTimelineUtil.snapTimeToNext(seldTime,
+                        timeMatcher.getHourSnap());
                 timeData.select(seldTime);
+
+                int graphSize = timeMatcher.getGraphRange() * 60 + 1;
+                for (int i = 0; i < graphSize; i++) {
+                    seldTime.add(Calendar.MINUTE, -1);
+                    timeData.select(seldTime);
+                }
+
             }
 
             // update widgets from default resource definition.
@@ -692,9 +683,30 @@ public class TimelineControl extends Composite {
         }
     }
 
+    private void snapAvailtimes(List<Calendar> availTimes) {
+        int snap = timeMatcher.getHourSnap();
+        if (snap != 0) {
+            // && timeMatcher.getDominantResourceName().getRscCategory()
+            // .getCategoryName().equals("TIMESERIES")) {
+            GraphTimelineUtil.sortAvailableCalendar(availTimes);
+            Calendar lastAvail = availTimes.get(availTimes.size() - 1);
+
+            int hour = lastAvail.get(Calendar.HOUR_OF_DAY);
+            int min = lastAvail.get(Calendar.MINUTE);
+            if (!(hour % snap == 0 && min == 0)) {
+                int fillSize = snap * 60 - (hour % snap * 60 + min);
+                for (int i = 0; i < fillSize; i++) {
+                    lastAvail.add(Calendar.MINUTE, 1);
+                    availTimes.add(lastAvail);
+                }
+            }
+        }
+    }
+
     private void setControlsEnabled(boolean enable) {
-        numFramesSpnr.setEnabled(enable);
-        numSkipSpnr.setEnabled(enable);
+
+        graphRangeCombo.setEnabled(enable);
+        hourSnapCombo.setEnabled(enable);
         timeRangeDaysSpnr.setEnabled(enable);
         timeRangeHrsSpnr.setEnabled(enable);
         frameIntervalCombo.setEnabled(enable);
@@ -719,16 +731,56 @@ public class TimelineControl extends Composite {
      * @return
      */
     public List<Calendar> getSelectedTimes() {
-        return timeData.getSelectedTimes();
+        ArrayList<Calendar> list = new ArrayList<Calendar>();
+        int selectedRange = timeMatcher.getGraphRange() * 60;
+
+        // Calendar lastSelected = timeData.getFirstSelected();
+        // if (lastSelected == null)
+        // return list;
+        //
+        // GraphTimelineUtil.snapTimeToNext(lastSelected,
+        // timeMatcher.getHourSnap());
+        //
+        // lastSelected.add(Calendar.HOUR_OF_DAY, -selectedRange / 60);
+        // timeData.deselectAll();
+        // list.add(lastSelected);
+        // for (int i = 0; i < selectedRange; i++) {
+        //
+        // lastSelected.add(Calendar.MINUTE, +1);
+        // Calendar cal = (Calendar) lastSelected.clone();
+        // list.add(cal);
+        // }
+        // System.out.println("**times " + list.size() + " "
+        // + list.get(0).get(Calendar.HOUR_OF_DAY));
+        Calendar firstSelected = timeData.getFirstSelected();
+        if (firstSelected == null)
+            return list;
+
+        // firstSelected = GraphTimelineUtil.snapTimeToClosest(firstSelected,
+        // timeMatcher.getHourSnap());
+
+        // firstSelected.add(Calendar.HOUR_OF_DAY, selectedRange / 60);
+        timeData.deselectAll();
+        list.add(firstSelected);
+        for (int i = 0; i < selectedRange; i++) {
+
+            firstSelected.add(Calendar.MINUTE, +1);
+            Calendar cal = (Calendar) firstSelected.clone();
+            list.add(cal);
+            timeData.select(cal);
+        }
+
+        return list;
+        // return timeData.getSelectedTimes();
     }
 
     private void removeSpinnerListeners() {
 
-        for (Listener each : numFramesSpnr.getListeners(SWT.Modify)) {
-            numFramesSpnr.removeListener(SWT.Modify, each);
+        for (Listener each : graphRangeCombo.getListeners(SWT.Modify)) {
+            graphRangeCombo.removeListener(SWT.Modify, each);
         }
-        for (Listener each : numSkipSpnr.getListeners(SWT.Modify)) {
-            numSkipSpnr.removeListener(SWT.Modify, each);
+        for (Listener each : hourSnapCombo.getListeners(SWT.Modify)) {
+            hourSnapCombo.removeListener(SWT.Modify, each);
         }
         for (Listener each : timeRangeDaysSpnr.getListeners(SWT.Modify)) {
             timeRangeDaysSpnr.removeListener(SWT.Modify, each);
@@ -739,59 +791,6 @@ public class TimelineControl extends Composite {
     }
 
     private void addSpinnerListeners() {
-
-        numFramesSpnr.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                Spinner spin = (Spinner) e.widget;
-
-                timeMatcher.setNumFrames(spin.getSelection());
-
-                if (timeData == null || timeData.isEmpty())
-                    return;
-                if (spin.getSelection() == timeData.numSelected())
-                    return;
-
-                // Add or remove times from the list of "Selected" times
-                //
-                if (timeMatcher.isForecast()) {
-                    timeData.appendTimes(spin.getSelection(),
-                            numSkipSpnr.getSelection());
-                } else {
-                    timeData.prependTimes(spin.getSelection(),
-                            numSkipSpnr.getSelection());
-                }
-
-                timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
-
-                resetSlider();
-                canvas.redraw();
-            }
-        });
-
-        // Update selected times in slider bar with new skip factor
-        numSkipSpnr.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                if (timeData == null || timeData.isEmpty())
-                    return;
-
-                Spinner spin = (Spinner) e.widget;
-                timeMatcher.setSkipValue(spin.getSelection());
-
-                int max = timeData.getSize() / (spin.getSelection() + 1);
-                if (max * (spin.getSelection() + 1) < timeData.getSize()) {
-                    max++;
-                }
-
-                updateSelectedTimes();
-                canvas.redraw();
-                numFramesSpnr.setSelection(timeData.numSelected());
-                numFramesSpnr.setMaximum(max);
-
-                timeMatcher.setNumFrames(timeData.numSelected());
-            }
-        });
 
         timeRangeDaysSpnr.addModifyListener(new ModifyListener() {
             @Override
@@ -867,7 +866,7 @@ public class TimelineControl extends Composite {
          */
         canvas = new Canvas(top_form, SWT.BORDER);
         FormData fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 10, SWT.BOTTOM);
+        fd.top = new FormAttachment(graphRangeCombo, 10, SWT.BOTTOM);
         fd.left = new FormAttachment(0, 10);
         fd.bottom = new FormAttachment(100, 0);
         fd.right = new FormAttachment(100, 0);
@@ -933,13 +932,25 @@ public class TimelineControl extends Composite {
                     if (e.button == 1) {
 
                         /*
-                         * If click on an available time OUTSIDE of the slider
-                         * rectangle, toggle it's status between selected and
-                         * not selected.
+                         * If click on an available time, toggle it's status
+                         * between selected and not selected
                          */
-                        if (!isInSlider(e.x, e.y) && toggleATime(e.x, e.y)) {
-                            return;
-                        }
+                        // Disable now. May need in some case
+                        // for (Rectangle rect : availableTimes.keySet()) {
+                        // if (rect.contains(e.x, e.y)) {
+                        // timeData.toggle(availableTimes.get(rect));
+                        // if (timeData.numSelected() == 0) {
+                        // // can't turn off only selected time...turn
+                        // // back on
+                        // timeData.toggle(availableTimes.get(rect));
+                        // }
+                        // resetSlider();
+                        // canvas.redraw();
+                        // timeMatcher
+                        // .setFrameTimes(toDataTimes(getSelectedTimes()));
+                        // return;
+                        // }
+                        // }
 
                         /*
                          * If user grabs center, top or bottom of slider bar,
@@ -1043,40 +1054,158 @@ public class TimelineControl extends Composite {
 
                     if (e.button == 1) {
 
-                        if (saveX == e.x) {
-
-                            /*
-                             * mouse did not move. reset
-                             */
+                        if (saveX == e.x) { // mouse did not move. reset
                             saveX = 0;
-                            toggleATime(e.x, e.y);
-
                             return;
                         }
 
                         if (saveX != 0) { // mouse drag is detected
-                            int xdiff = e.x - saveX;
+                            int xdiff = e.x - saveX;// before mouse up
+
+                            // get snap distance ratio
+                            int snap = timeMatcher.getHourSnap();
+
+                            Calendar first = timeData.getFirstTime();
+                            Calendar last = timeData.getLastTime();
+                            int total = (int) (last.getTimeInMillis() - first
+                                    .getTimeInMillis());
+
+                            double snapRatio = (double) (snap * 3600 * 1000)
+                                    / (double) total;
+
+                            Point size = canvas.getSize();
+                            int lineY = Math.round((float) size.y * TIME_LINE);
+                            Point beg = new Point(MARGIN, lineY);
+                            Point end = new Point(size.x - MARGIN - 1, lineY);
+
+                            double snapDist = (double) (end.x - beg.x)
+                                    * snapRatio;
+
+                            double snapNum = (double) Math.abs(xdiff)
+                                    / (double) snapDist;
+                            int snapNumRound = (int) Math.round(snapNum);
 
                             switch (mode) {
 
-                            case MOVE_ALL:
+                            case MOVE_ALL: {
+
+                                int snapX = 0;
+                                Calendar firstSelected = timeData
+                                        .getFirstSelected();
+                                Calendar lastSelected = timeData
+                                        .getLastSelected();
+                                lastSelected = GraphTimelineUtil
+                                        .snapTimeToNext(lastSelected, snap);
+
+                                int firstSelectedX = currPositionFromTime(firstSelected);//
+                                int lastSelectedX = currPositionFromTime(lastSelected);
+
+                                Calendar snapped = null;
+
+                                if (e.x <= saveX) {
+                                    snapped = (Calendar) firstSelected.clone();
+                                    snapped.add(Calendar.HOUR_OF_DAY, -snap
+                                            * snapNumRound);
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - firstSelectedX;
+                                } else if (e.x > saveX) {
+                                    snapped = (Calendar) lastSelected.clone();
+                                    snapped.add(Calendar.HOUR_OF_DAY, snap
+                                            * snapNumRound);
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - lastSelectedX;
+                                }
+
                                 moveSlider(sliderStart, xdiff);
                                 break;
-                            case MOVE_LEFT:
+                            }
+                            case MOVE_LEFT: {
+
+                                int snapX = 0;
+                                Calendar curr = currTimeFromPosition(e.x);
+
+                                Calendar snapped = (Calendar) curr.clone();
+                                if (snapNumRound == 0) {
+                                    snapped = GraphTimelineUtil.snapTimeToNext(
+                                            snapped, snap);
+                                    xdiff = 0;
+                                } else {
+                                    if (e.x <= saveX) {
+
+                                        snapped = GraphTimelineUtil
+                                                .snapTimeToClosest(snapped,
+                                                        snap);
+                                        newGraphRange = timeMatcher
+                                                .getGraphRange()
+                                                + (snap * snapNumRound);
+                                        setGraphRangeCombo(newGraphRange);
+                                    } else {
+
+                                        snapped = GraphTimelineUtil
+                                                .snapTimeToClosest(snapped,
+                                                        snap);
+                                        newGraphRange = timeMatcher
+                                                .getGraphRange()
+                                                - (snap * snapNumRound);
+                                        setGraphRangeCombo(newGraphRange);
+                                    }
+
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - saveX;
+                                }
+
                                 moveLeftSide(sliderStart, xdiff);
-                                break;
-                            case MOVE_RIGHT:
-                                moveRightSide(sliderStart, xdiff);
+
                                 break;
                             }
-                            saveX = 0; // reset
+                            case MOVE_RIGHT: {
 
-                            updateSelectedTimes();
-                            numFramesSpnr.setSelection(timeData.numSelected());
-                            // timeMatcher.setNumFrames( timeData.numSelected()
-                            // );
+                                int snapX = 0;
+                                Calendar curr = currTimeFromPosition(e.x);
+
+                                Calendar snapped = (Calendar) curr.clone();
+
+                                if (snapNumRound == 0) {
+                                    snapped = GraphTimelineUtil
+                                            .snapTimeToPrevious(snapped, snap);
+                                    xdiff = 0;
+                                } else {
+                                    if (e.x <= saveX) {
+
+                                        snapped = GraphTimelineUtil
+                                                .snapTimeToClosest(snapped,
+                                                        snap);
+                                        newGraphRange = timeMatcher
+                                                .getGraphRange()
+                                                - (snap * snapNumRound);
+                                        setGraphRangeCombo(newGraphRange);
+                                    } else {
+
+                                        snapped = GraphTimelineUtil
+                                                .snapTimeToClosest(snapped,
+                                                        snap);
+                                        newGraphRange = timeMatcher
+                                                .getGraphRange()
+                                                + (snap * snapNumRound);
+                                        setGraphRangeCombo(newGraphRange);
+                                    }
+
+                                    snapX = currPositionFromTime(snapped);
+                                    xdiff = snapX - saveX;
+                                }
+
+                                moveRightSide(sliderStart, xdiff);
+
+                                break;
+                            }
+                            }
+
+                            saveX = 0; // reset
+                            updateSelectedTimes(xdiff);
+
                             canvas.redraw();
                         }
+
                     }
 
                     break;
@@ -1087,6 +1216,37 @@ public class TimelineControl extends Composite {
         canvas.addListener(SWT.MouseDown, mouse);
         canvas.addListener(SWT.MouseMove, mouse);
         canvas.addListener(SWT.MouseUp, mouse);
+
+        graphRangeCombo.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                for (int i = 0; i < availGraphRangeStrings.length; i++) {
+                    if (availGraphRangeStrings[i].equals(graphRangeCombo
+                            .getText())) {
+                        timeMatcher.setGraphRange(availGraphRangeHrs[i]);
+                        break;
+                    }
+                }
+
+                timeMatcher.generateTimeline();
+
+                updateTimeline();
+            }
+        });
+
+        hourSnapCombo.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                for (int i = 0; i < availHourSnapStrings.length; i++) {
+                    if (availHourSnapStrings[i].equals(hourSnapCombo.getText())) {
+                        timeMatcher.setHourSnap(availHourSnapHrs[i]);
+                        break;
+                    }
+                }
+
+                timeMatcher.generateTimeline();
+
+                updateTimeline();
+            }
+        });
 
         frameIntervalCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
@@ -1135,52 +1295,48 @@ public class TimelineControl extends Composite {
      * Creates control widgets above the timeline canvas
      */
     private void createControlWidgets(Composite top_form) {
-
-        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
         FormData fd = new FormData();
+
+        graphRangeCombo = new Combo(top_form, SWT.DROP_DOWN);
+        fd = new FormData();
         fd.width = 20;
         fd.top = new FormAttachment(dom_rsc_combo, 50, SWT.BOTTOM);
         fd.left = new FormAttachment(5, 0);
-        // fd.right = new FormAttachment( 5, 40 );
-        numFramesSpnr.setLayoutData(fd);
+        fd.right = new FormAttachment(5, 80);
+        graphRangeCombo.setLayoutData(fd);
 
-        numFramesSpnr.setMinimum(1);
-        numFramesSpnr.setDigits(0);
-        numFramesSpnr.setTextLimit(3);
+        graphRangeCombo.setItems(availGraphRangeStrings);
 
-        Label numFramesLbl = new Label(top_form, SWT.NONE);
-        numFramesLbl.setText("Num\nFrames");
+        Label graphRangeLbl = new Label(top_form, SWT.NONE);
+        graphRangeLbl.setText("Selected\nRange");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
-        numFramesLbl.setLayoutData(fd);
+        fd.bottom = new FormAttachment(graphRangeCombo, -3, SWT.TOP);
+        fd.left = new FormAttachment(graphRangeCombo, 0, SWT.LEFT);
+        graphRangeLbl.setLayoutData(fd);
 
-        numSkipSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+        hourSnapCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(20, 0);
-        fd.right = new FormAttachment(20, 40);
-        numSkipSpnr.setLayoutData(fd);
+        fd.top = new FormAttachment(graphRangeCombo, 0, SWT.TOP);
+        fd.left = new FormAttachment(20, 20);
+        fd.right = new FormAttachment(20, 70);
+        hourSnapCombo.setLayoutData(fd);
+        hourSnapCombo.setItems(availHourSnapStrings);
 
-        numSkipSpnr.setMinimum(0);
-        numSkipSpnr.setDigits(0);
-        numSkipSpnr.setTextLimit(2);
-
-        Label skipLbl = new Label(top_form, SWT.NONE);
-        skipLbl.setText("Skip\nFrames");
+        Label hourSnapLbl = new Label(top_form, SWT.NONE);
+        hourSnapLbl.setText("Snap\nHours");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numSkipSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numSkipSpnr, 0, SWT.LEFT);
-        skipLbl.setLayoutData(fd);
+        fd.bottom = new FormAttachment(hourSnapCombo, -3, SWT.TOP);
+        fd.left = new FormAttachment(hourSnapCombo, 0, SWT.LEFT);
+        hourSnapLbl.setLayoutData(fd);
 
         timeRangeDaysSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
+        fd.top = new FormAttachment(graphRangeCombo, 0, SWT.TOP);
         fd.left = new FormAttachment(36, 0);
         timeRangeDaysSpnr.setLayoutData(fd);
 
         Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
-        dfltTimeRangeLbl.setText("Time Range\n(Days / Hours)");
+        dfltTimeRangeLbl.setText("Timeline Range\n(Days / Hours)");
         fd = new FormData();
         fd.bottom = new FormAttachment(timeRangeDaysSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(timeRangeDaysSpnr, 0, SWT.LEFT);
@@ -1207,14 +1363,14 @@ public class TimelineControl extends Composite {
 
         frameIntervalCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
+        fd.top = new FormAttachment(graphRangeCombo, 0, SWT.TOP);
         fd.left = new FormAttachment(59, 0);
         frameIntervalCombo.setLayoutData(fd);
 
         frameIntervalCombo.setItems(availFrameIntervalStrings);
 
         Label frameIntLbl = new Label(top_form, SWT.NONE);
-        frameIntLbl.setText("Frame\nInterval");
+        frameIntLbl.setText("Data\nInterval");
         fd = new FormData();
         fd.bottom = new FormAttachment(frameIntervalCombo, -3, SWT.TOP);
         fd.left = new FormAttachment(frameIntervalCombo, 0, SWT.LEFT);
@@ -1222,7 +1378,7 @@ public class TimelineControl extends Composite {
 
         refTimeCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
+        fd.top = new FormAttachment(graphRangeCombo, 0, SWT.TOP);
         fd.left = new FormAttachment(80, 0);
         refTimeCombo.setLayoutData(fd);
 
@@ -1242,6 +1398,7 @@ public class TimelineControl extends Composite {
     protected void drawTimeline(Canvas canvas, GC gc) {
 
         Point size = canvas.getSize();
+
         int textHeight = gc.getFontMetrics().getHeight();
 
         if (timelineStateMessage != null) {
@@ -1258,9 +1415,11 @@ public class TimelineControl extends Composite {
         /*
          * draw date line that separates month/days and the hours of day
          */
+
         int dateY = Math.round((float) size.y * DATE_LINE);
         Point begDateLine = new Point(MARGIN, dateY);
         Point endDateLine = new Point(size.x - MARGIN - 1, dateY);
+
         gc.drawLine(begDateLine.x, begDateLine.y, endDateLine.x, endDateLine.y);
 
         /*
@@ -1272,6 +1431,7 @@ public class TimelineControl extends Composite {
         /*
          * draw time line
          */
+
         int lineY = Math.round((float) size.y * TIME_LINE);
         Point begTimeLine = new Point(MARGIN, lineY);
         Point endTimeLine = new Point(size.x - MARGIN - 1, lineY);
@@ -1289,6 +1449,7 @@ public class TimelineControl extends Composite {
          */
         if (slider == null)
             slider = calculateSlider(begTimeLine, endTimeLine);
+
         gc.setLineWidth(2);
         gc.drawRectangle(slider);
         gc.setLineWidth(1);
@@ -1298,12 +1459,12 @@ public class TimelineControl extends Composite {
         gc.fillRectangle(5, size.y - MARKER_HEIGHT - 5, MARKER_WIDTH,
                 MARKER_HEIGHT);
         gc.setBackground(canvasColor);
-        gc.drawText("available frame", 15, size.y - textHeight, true);
+        gc.drawText("available data", 15, size.y - textHeight, true);
         gc.setBackground(selectedColor);
         gc.fillRectangle(150, size.y - MARKER_HEIGHT - 5, MARKER_WIDTH,
                 MARKER_HEIGHT);
         gc.setBackground(canvasColor);
-        gc.drawText("selected frame", 160, size.y - textHeight, true);
+        gc.drawText("selected data", 160, size.y - textHeight, true);
 
     }
 
@@ -1324,22 +1485,75 @@ public class TimelineControl extends Composite {
             return new Rectangle(0, 0, 0, 0);
 
         Calendar prev = timeData.getPreviousTime(time1);
-        if (prev != null)
+        if (prev != null && timeLocations.get(prev) != null
+                && timeLocations.get(time1) != null)
             ulX = (timeLocations.get(prev) + timeLocations.get(time1)) / 2;
         else
-            ulX = sliderMin;
+            ulX = sliderMin + 5;
 
         Calendar next = timeData.getNextTime(time2);
-        if (next != null)
+        if (next != null && timeLocations.get(next) != null) {
             lastX = (timeLocations.get(time2) + timeLocations.get(next)) / 2;
-        else
-            lastX = sliderMax;
+        } else
+            lastX = sliderMax - 5; // ?
 
         int ulY = beg.y - SLIDER;
         int width = lastX - ulX;
         int height = 2 * SLIDER;
 
         return new Rectangle(ulX, ulY, width, height);
+    }
+
+    private Calendar currTimeFromPosition(int posX) {
+        Point size = canvas.getSize();
+        int lineY = Math.round((float) size.y * TIME_LINE);
+        Point beg = new Point(MARGIN, lineY);
+        Point end = new Point(size.x - MARGIN - 1, lineY);
+        int lineLength = end.x - beg.x;
+
+        double dist = (double) (posX - beg.x) / (double) lineLength;
+
+        Calendar first = timeData.getFirstTime();
+        first.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Calendar last = timeData.getLastTime();
+        last.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        long timeLength = last.getTimeInMillis() - first.getTimeInMillis();
+
+        long currMills = Math.round(dist * (double) timeLength)
+                + first.getTimeInMillis();
+
+        Calendar curr = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+        curr.setTimeInMillis(currMills);
+
+        curr.set(Calendar.SECOND, 0);
+        curr.set(Calendar.MILLISECOND, 0);
+
+        return curr;
+    }
+
+    private int currPositionFromTime(Calendar curr) {
+        Calendar first = timeData.getFirstTime();
+        first.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Calendar last = timeData.getLastTime();
+        last.setTimeZone(TimeZone.getTimeZone("UTC"));
+        long timeLength = last.getTimeInMillis() - first.getTimeInMillis();
+
+        Point size = canvas.getSize();
+        int lineY = Math.round((float) size.y * TIME_LINE);
+        Point beg = new Point(MARGIN, lineY);
+        Point end = new Point(size.x - MARGIN - 1, lineY);
+        int lineLength = end.x - beg.x;
+
+        curr.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        double dist = (double) (curr.getTimeInMillis() - first
+                .getTimeInMillis()) / (double) timeLength;
+
+        int currX = (int) Math.round(dist * (double) lineLength) + beg.x;
+
+        return currX;
     }
 
     /*
@@ -1353,8 +1567,6 @@ public class TimelineControl extends Composite {
         dayLocation = new ArrayList<Integer>();
         int lineLength = end.x - beg.x;
 
-        // Calendar first = timeData.getFirstTime();
-        // Calendar last = timeData.getLastTime();
         Calendar first = timeData.getStartTime();
         Calendar last = timeData.getEndTime();
         long timeLength = timeData.getTotalMillis();
@@ -1488,8 +1700,6 @@ public class TimelineControl extends Composite {
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        // Calendar first = timeData.getFirstTime();
-        // Calendar last = timeData.getLastTime();
         Calendar first = timeData.getStartTime();
         Calendar last = timeData.getEndTime();
 
@@ -1583,21 +1793,25 @@ public class TimelineControl extends Composite {
 
         int lineLength = end.x - beg.x;
 
-        // Calendar first = timeData.getFirstTime();
         Calendar first = timeData.getStartTime();
 
         long timeLength = timeData.getTotalMillis();
 
         for (Calendar curr : timeData.getTimes()) {
-            double dist = (double) (curr.getTimeInMillis() - first
-                    .getTimeInMillis()) / (double) timeLength;
-            long lineDist = Math.round(dist * (double) lineLength);
-            int locX = beg.x + (int) lineDist - (MARKER_WIDTH / 2);
-            int locY = beg.y - (MARKER_HEIGHT / 2);
-            Rectangle box = new Rectangle(locX, locY, MARKER_WIDTH,
-                    MARKER_HEIGHT);
-            availableTimes.put(box, curr);
-            timeLocations.put(curr, beg.x + (int) lineDist);
+            // the last data is next snap 00:00, so don't put it to
+            // availableTimes.
+            if (timeData.getNextTime(curr) != null) {
+                double dist = (double) (curr.getTimeInMillis() - first
+                        .getTimeInMillis()) / (double) timeLength;
+                long lineDist = Math.round(dist * (double) lineLength);
+                int locX = beg.x + (int) lineDist - (MARKER_WIDTH / 2);
+                int locY = beg.y - (MARKER_HEIGHT / 2);
+
+                Rectangle box = new Rectangle(locX, locY, MARKER_WIDTH,
+                        MARKER_HEIGHT);
+                availableTimes.put(box, curr);
+                timeLocations.put(curr, beg.x + (int) lineDist);
+            }
         }
     }
 
@@ -1610,10 +1824,13 @@ public class TimelineControl extends Composite {
         gc.setBackground(availableColor);
         for (Rectangle rect : availableTimes.keySet()) {
             gc.setBackground(availableColor);
-            if (timeData.isSelected(availableTimes.get(rect)))
+            if (timeData.isSelected(availableTimes.get(rect))) {
                 gc.setBackground(selectedColor);
+
+            }
             gc.fillRectangle(rect);
         }
+
         gc.setBackground(canvasColor);
     }
 
@@ -1650,27 +1867,58 @@ public class TimelineControl extends Composite {
      * 
      * @param num
      */
-    public void setNumberofFrames(int num) {
-        numFramesSpnr.setSelection(Math.min(num,
-                (timeData != null ? timeData.getSize() : 0)));
-    }
+    // public void setNumberofFrames(int num) {
+    // numFramesSpnr.setSelection(Math.min(num,
+    // (timeData != null ? timeData.getSize() : 0)));
+    // }
 
     /**
      * Retuns the current skip factor used
      * 
      * @return
      */
-    public int getSkipValue() {
-        return numSkipSpnr.getSelection();
+    public int getHourSnapCombo() {
+        return timeMatcher.getHourSnap(); // hourSnapCombo.getSelectionIndex();
     }
 
     /**
-     * Sets the skip factor
+     * Sets the snap factor
      * 
      * @param num
      */
-    public void setSkipValue(int num) {
-        numSkipSpnr.setSelection(num);
+    public void setHourSnapCombo(int num) {
+        timeMatcher.setHourSnap(num);
+
+        hourSnapCombo.deselectAll();
+
+        for (int i = 0; i < availHourSnapHrs.length; i++) {
+            if (availHourSnapHrs[i] == num) {
+                hourSnapCombo.select(i);
+                break;
+            }
+        }
+    }
+
+    public int getGraphRangeCombo() {
+        return timeMatcher.getGraphRange();
+    }
+
+    public void setGraphRangeCombo(int num) {
+        timeMatcher.setGraphRange(num);
+
+        graphRangeCombo.deselectAll();
+        boolean isInCombo = false;
+        for (int i = 0; i < availGraphRangeHrs.length; i++) {
+            if (availGraphRangeHrs[i] == num) {
+                graphRangeCombo.select(i);
+                isInCombo = true;
+                break;
+            }
+        }
+
+        if (!isInCombo) {
+            graphRangeCombo.setText(String.valueOf(num) + " hrs");
+        }
     }
 
     public void setFrameInterval(int fInt) {
@@ -1705,6 +1953,15 @@ public class TimelineControl extends Composite {
         timeRangeHrsSpnr.setSelection(timeRangeHrs % 24);
     }
 
+    /**
+     * Sets the number of times that should be selected
+     * 
+     * @param num
+     */
+    public void setNumberofFrames(int num) {
+        timeMatcher.setNumFrames(num);
+    }
+
     /*
      * resets the slider bar so that it is recalculated using the selected times
      */
@@ -1722,6 +1979,7 @@ public class TimelineControl extends Composite {
         start.x += pos;
         slider = whole.intersection(start);
         start.x -= pos;
+
     }
 
     /*
@@ -1729,6 +1987,9 @@ public class TimelineControl extends Composite {
      * (pos)
      */
     private void moveLeftSide(Rectangle start, int pos) {
+        /*
+         * deal with snap
+         */
         int startX = start.x + pos;
         int width = start.width - pos;
         if (startX < sliderMin) {
@@ -1753,7 +2014,7 @@ public class TimelineControl extends Composite {
      * update the selected status of each available time that is currently in
      * the slider bar based on current behavior and skip factor
      */
-    private void updateSelectedTimes() {
+    private void updateSelectedTimes(int xdiff) {
 
         if (availableTimes == null || slider == null)
             return; // canvas not yet ready
@@ -1766,6 +2027,7 @@ public class TimelineControl extends Composite {
          */
         for (Rectangle rect : availableTimes.keySet()) {
             if (slider.intersects(rect)) {
+
                 Calendar cal = availableTimes.get(rect);
                 if (first == null)
                     first = cal;
@@ -1800,85 +2062,23 @@ public class TimelineControl extends Composite {
         /*
          * reset status of each data time in slider bar.
          */
+        // System.out.println("**first " + first.toString() + " "
+        // + last.toString());
+        // int snap = timeMatcher.getHourSnap();
+        // first = GraphTimelineUtil.snapTimeToClosest(first, snap);
+        // last = (Calendar) first.clone();
+        // last.add(Calendar.HOUR_OF_DAY, newGraphRange);
+        // System.out.println("first " + first.get(Calendar.HOUR_OF_DAY) + " "
+        // + first.get(Calendar.MINUTE) + " " + last.get(Calendar.MINUTE));
         if (timeMatcher.isForecast()) {
-            timeData.updateRange(first, last, numSkipSpnr.getSelection());
+            timeData.updateRange(first, last, 0);
         } else {
-            timeData.updateRange(last, first, numSkipSpnr.getSelection());
+            timeData.updateRange(last, first, 0);
         }
+        // List<Calendar> cals = new ArrayList<Calendar>();
+        // cals.add(timeData.getFirstSelected());
+        timeMatcher.setFrameTimes(toDataTimes(timeData.getSelectedTimes())); // getSelectedTimes()));
 
-        timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
-    }
-
-    /*
-     * Toggle a datatime's status between selected and not selected when
-     * clicked.
-     */
-    private boolean toggleATime(int xpos, int ypos) {
-        boolean selected = false;
-
-        for (Rectangle rect : availableTimes.keySet()) {
-            if (rect.contains(xpos, ypos)) {
-                timeData.toggle(availableTimes.get(rect));
-
-                /*
-                 * can't turn off only selected time...turn back on
-                 */
-                if (timeData.numSelected() == 0) {
-                    timeData.toggle(availableTimes.get(rect));
-                }
-
-                resetSlider();
-                canvas.redraw();
-                numFramesSpnr.setSelection(timeData.numSelected());
-                timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
-
-                selected = true;
-                break;
-            }
-        }
-
-        return selected;
-    }
-
-    /*
-     * Find if a click hits a data time rectangle on the timeline.
-     */
-    private Rectangle findATime(int xpos, int ypos) {
-        Rectangle selected = null;
-
-        for (Rectangle rect : availableTimes.keySet()) {
-            if (rect.contains(xpos, ypos)) {
-                selected = rect;
-                break;
-            }
-        }
-
-        return selected;
-    }
-
-    /*
-     * Find if a click within slider or hits a data time rectangle in the
-     * slider.
-     * 
-     * Note that the slider box may fall in the middle of a data time rectangle,
-     * while the click is outside of the slider box. This should be considered
-     * still within the slider box!
-     */
-    private boolean isInSlider(int xpos, int ypos) {
-
-        if (slider.contains(xpos, ypos)) {
-            return true;
-        }
-
-        // Handle specical case when slider box hits in the middle of a data
-        // time rectangle.
-        Rectangle selected = findATime(xpos, ypos);
-
-        if (selected == null || !slider.intersects(selected)) {
-            return false;
-        } else {
-            return true;
-        }
     }
 
     /*
@@ -1897,7 +2097,9 @@ public class TimelineControl extends Composite {
 
         setNumberofFrames(tm.getNumFrames());
 
-        setSkipValue(tm.getSkipValue());
+        setGraphRangeCombo(tm.getGraphRange());
+
+        setHourSnapCombo(tm.getHourSnap());
 
         setFrameInterval(tm.getFrameInterval());
 

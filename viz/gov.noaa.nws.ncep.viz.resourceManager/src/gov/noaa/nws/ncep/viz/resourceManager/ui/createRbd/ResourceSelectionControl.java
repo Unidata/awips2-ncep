@@ -845,14 +845,14 @@ public class ResourceSelectionControl extends Composite {
         //
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-        		selectResource( false, true );
+        		selectResource( true, true );
         	}
        	});
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
                     public void handleEvent(Event event) {
-                    	selectResource(false, true);
+                    	selectResource(true, true);
                     }
                 });
         cycleTimeCombo.addSelectionListener(new SelectionAdapter() {

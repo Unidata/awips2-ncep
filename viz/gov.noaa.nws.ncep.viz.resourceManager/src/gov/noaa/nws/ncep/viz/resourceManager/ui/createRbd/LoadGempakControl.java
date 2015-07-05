@@ -201,9 +201,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     private MenuManager areaMenuMngr = null;
 
     private Label import_lbl = null;
-    
-    private Button import_rbd_btn = null;
-    
+        
     private Button load_rbd_btn = null;
 
     private Button load_and_close_btn = null;
@@ -462,25 +460,15 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     //
     private void createRBDGroup() {
         import_lbl = new Label(rbd_grp, SWT.None);
-    	rbd_name_txt = "";
-        
-    	// Import
-    	import_rbd_btn = new Button( rbd_grp, SWT.PUSH );
-    	import_rbd_btn.setText("Import");
-    	FormData form_data = new FormData();
-    	form_data.width = 100;
-    	form_data.top = new FormAttachment( 0, 10 );
-    	form_data.left = new FormAttachment( 0, 10 );
-    	import_rbd_btn.setLayoutData( form_data );
-    	import_rbd_btn.setEnabled(true);    
+    	rbd_name_txt = ""; 
 
         // This is multi-select to make Deleting resources easier.
         seld_rscs_lviewer = new ListViewer(rbd_grp, SWT.MULTI
                 | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        form_data = new FormData();
+        FormData form_data = new FormData();
     	form_data.top = new FormAttachment( 0, 10 );
     	form_data.right = new FormAttachment( 100, -10 );
-    	form_data.left = new FormAttachment( import_rbd_btn, 10, SWT.RIGHT);
+    	form_data.left = new FormAttachment( 0, 10 );
     	form_data.bottom = new FormAttachment( 100, -10 );
         seld_rscs_lviewer.getList().setLayoutData(form_data);
 
@@ -613,61 +601,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         save_rbd_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 saveRBD(false);
-            }
-        });
-
-        import_rbd_btn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                importRBD(import_rbd_btn.getText());
-                AbstractEditor seldEditor = NcDisplayMngr
-                        .findDisplayByID(NcDisplayName
-                                .parseNcDisplayNameString(import_rbd_btn
-                                        .getText()));
-
-                if (seldEditor != null) {
-                    NcDisplayMngr.bringToTop(seldEditor);
-                }
-
-            }
-        });
-
-        // TODO : Currently we can't detect if the user clicks on the import
-        // combo and then clicks on the currently selected
-        // item which means the users can't re-import the current selection (or
-        // import another from an spf.) The following may
-        // allow a hackish work around later.... (I tried virtually every
-        // listener and these where the only ones to trigger.)
-        // ....update...with new Eclipse this seems to be working; ie.
-        // triggering a selection when
-        // combo is clicked on but selection isn't changed.
-        import_rbd_btn.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                // System.out.println("focusGained: ");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                // System.out.println("focusLost: " );
-            }
-        });
-        import_rbd_btn.addListener(SWT.MouseDown, new Listener() { // and
-                                                                     // SWT.MouseUp
-                    @Override
-                    public void handleEvent(Event event) {
-                        // System.out.println("SWT.MouseDown: " );
-                    }
-                });
-        import_rbd_btn.addListener(SWT.Activate, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                //updateImportCombo();
-            }
-        });
-        import_rbd_btn.addListener(SWT.Deactivate, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                // System.out.println("SWT.Deactivate: " );
             }
         });
     }
@@ -1115,7 +1048,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
             if (editor == null) {
                 NcDisplayName importDisplayName = NcDisplayName
-                        .parseNcDisplayNameString(import_rbd_btn.getText());
+                        .parseNcDisplayNameString("tmp");
 
                 if (importDisplayName.getName().equals(rbdName)) {
                     // get by ID since the rbd name doesn't have to be unique
@@ -1212,7 +1145,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                 shell.dispose();
             } else {
                 //import_rbd_combo.add(editor.getPartName());
-                import_rbd_btn.setText(editor.getPartName());
                 rbdMngr.setRbdModified(false);
                 importRBD(editor.getPartName());
             }

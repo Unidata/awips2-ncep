@@ -278,7 +278,7 @@ public class TimelineControl extends Composite {
         canvasColor = new Color(getDisplay(), 255, 255, 255);
         availableColor = new Color(getDisplay(), 0, 0, 255);
         selectedColor = new Color(getDisplay(), 255, 0, 0);
-        canvasFont = new Font(getDisplay(), "Times", 11, SWT.BOLD);
+        canvasFont = new Font(getDisplay(), "Times", 9, SWT.NONE);
         pointerCursor = new Cursor(getDisplay(), SWT.CURSOR_ARROW);
         resizeCursor = new Cursor(getDisplay(), SWT.CURSOR_SIZEW);
         grabCursor = new Cursor(getDisplay(), SWT.CURSOR_HAND);
@@ -1139,7 +1139,7 @@ public class TimelineControl extends Composite {
         numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
         FormData fd = new FormData();
         fd.width = 20;
-        fd.top = new FormAttachment(dom_rsc_combo, 50, SWT.BOTTOM);
+        fd.top = new FormAttachment(dom_rsc_combo, 15, SWT.BOTTOM);
         fd.left = new FormAttachment(5, 0);
         // fd.right = new FormAttachment( 5, 40 );
         numFramesSpnr.setLayoutData(fd);
@@ -1149,7 +1149,7 @@ public class TimelineControl extends Composite {
         numFramesSpnr.setTextLimit(3);
 
         Label numFramesLbl = new Label(top_form, SWT.NONE);
-        numFramesLbl.setText("Num\nFrames");
+        numFramesLbl.setText("Frames");
         fd = new FormData();
         fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
@@ -1167,7 +1167,7 @@ public class TimelineControl extends Composite {
         numSkipSpnr.setTextLimit(2);
 
         Label skipLbl = new Label(top_form, SWT.NONE);
-        skipLbl.setText("Skip\nFrames");
+        skipLbl.setText("Skip");
         fd = new FormData();
         fd.bottom = new FormAttachment(numSkipSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(numSkipSpnr, 0, SWT.LEFT);
@@ -1180,7 +1180,7 @@ public class TimelineControl extends Composite {
         timeRangeDaysSpnr.setLayoutData(fd);
 
         Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
-        dfltTimeRangeLbl.setText("Time Range\n(Days / Hours)");
+        dfltTimeRangeLbl.setText("Time");
         fd = new FormData();
         fd.bottom = new FormAttachment(timeRangeDaysSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(timeRangeDaysSpnr, 0, SWT.LEFT);
@@ -1214,7 +1214,7 @@ public class TimelineControl extends Composite {
         frameIntervalCombo.setItems(availFrameIntervalStrings);
 
         Label frameIntLbl = new Label(top_form, SWT.NONE);
-        frameIntLbl.setText("Frame\nInterval");
+        frameIntLbl.setText("Interval");
         fd = new FormData();
         fd.bottom = new FormAttachment(frameIntervalCombo, -3, SWT.TOP);
         fd.left = new FormAttachment(frameIntervalCombo, 0, SWT.LEFT);

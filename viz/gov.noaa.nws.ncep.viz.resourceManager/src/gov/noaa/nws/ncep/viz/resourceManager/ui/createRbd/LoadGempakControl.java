@@ -10,8 +10,6 @@ import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
 import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
@@ -33,34 +31,18 @@ import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EventObject;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.ICellModifier;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -68,45 +50,28 @@ import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerEditor;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PlatformUI;
@@ -125,52 +90,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
- * 01/26/10		  #226		 Greg Hull	 Broke out and refactored from ResourceMngrDialog
- * 04/27/10       #245       Greg Hull   Added Apply Button
- * 06/13/10       #273       Greg Hull   RscBndlTemplate->ResourceSelection, use ResourceName
- * 07/14/10       #273       Greg Hull   remove Select Overlay list (now in ResourceSelection)
- * 07/21/10       #273       Greg Hull   add un-implemented Up/Down/OnOff buttons
- * 08/18/10       #273       Greg Hull   implement Clear RBD button
- * 08/23/10       #303       Greg Hull   changes from workshop
- * 09/01/10       #307       Greg Hull   implement auto update
- * 01/25/11                  Greg Hull   fix autoImport of current Display, autoImport
- *                                       of reprojected SAT area, 
- * 02/11/11       #408       Greg Hull   Move Clear to Clear Pane; Add Load&Close btn                                 
- * 02/22/11       #408       Greg Hull   allow for use by EditRbdDialog
- * 06/07/11       #445       Xilin Guo   Data Manager Performance Improvements
- * 07/11/11                  Greg Hull   Rm code supporting 'Save All to SPF' capability.
- * 08/20/11       #450       Greg Hull   Use new SpfsManager
- * 10/22/11       #467       Greg Hull   Add Modify button
- * 11/03/11       #???       B. Hebbard  Add "Save Source Timestamp As:" Constant / Latest 
- * 02/15/2012     627        Archana      Updated the call to addRbd() to accept 
- *                                      a NCMapEditor object as one of the arguments
- * 04/26/2012     #766       Quan Zhou   Modified rscSelDlg listener for double click w. existing rsc--close the dlg.
- * 04/03/2012     #765       S. Gurung   Modified method importRBD to change the display when a RBD is imported
- * 05/17/2012     #791       Quan Zhou   Added getDefaultRbdRsc() to get name and rsc from original defaultRbd.xml
- * 										 Modified LoadRBD to check if default editor is empty, then replace it.
- * 										 findCloseEmptyEdotor() is ready but not used now.
- * 06/18/2012     #624       Greg Hull   set size correctly when initially importing mult-pane
- * 06/18/2012     #713       Greg Hull   clone the RbdBundl when importing
- * 06/20/2012     #647       Greg Hull   dont call selectDominantResource() after importRbd.
- * 06/20/2012                S. Gurung   Fix for TTR# 539 (Auto-update checkbox gets reset to OFF)
- * 06/21/2012     #646       Greg Hull   import full PredefinedArea instead of just the name.
- * 06/28/2012     #824       Greg Hull   update the importRbdCombo in the ActivateListener.
- * 08/01/2012     #836       Greg Hull   check for paneLayout when using empty editor
- * 08/02/2012     #568       Greg Hull   Clear Rbd -> Reset Rbd. get the Default RBD
- * 11/16/2012     #630       Greg Hull   Allow selection of resource-defined areas.
- * 12/02/2012     #630       Greg Hull   add zoomLevel combo
- * 01/24/2013     #972       Greg Hull   add NcDisplayType to support NonMap and solar based RBDs
- * 05/24/2013     #862       Greg Hull   get areas from menus file and change combo to a cascading menu
- * 06/03/2013     #1001      Greg Hull   allow multiple Remove/TurnOff of resources
- * 10/22/2013     #1043      Greg Hull   setSelectedResource() if rsc sel dlg is already up.
- * 11/25/2013     #1079      Greg Hull   adjust size/font of area toolbar based on the text
- * 05/07/2014   TTR991       D. Sushon   if a different NCP editor is selected, the CreateRDB tab should now adjust.
- * 05/29/2014     #1131      qzhou       Added NcDisplayType
- *                                       Modified creating new timelineControl in const and updateGUI
- * 08/14/2014		?		 B. Yin		 Added power legend (resource group) support.
- * 09/092014		?		 B. Yin		 Fixed NumPad enter issue and the "ResetToDefault" issue for groups. 
- * 07/28/2014     R4079      sgurung     Fixed the issue related to CreateRbd dialog size (bigger than usual).
- *                                       Also, added code to set geosync to true for graphs.
+ * 07/04/15		    		mjames@ucar	Copied and modified from CreateRbdControl
  * </pre>
  * 
  * @author ghull
@@ -194,7 +114,9 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     
     private String rbd_name_txt = null;
 
-    private ListViewer seld_rscs_lviewer = null;
+    //private ListViewer seld_rscs_lviewer = null;
+    
+    private Object seld_rscs_list = null;
 
     private TableViewer groupListViewer;
 
@@ -269,7 +191,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
          * Create RBD Group
          */
         rbd_grp = new Group(sash_form, SWT.SHADOW_NONE);
-        rbd_grp.setText("Create Bundle");
+        rbd_grp.setText("");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -280,14 +202,14 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
         rbd_grp.setLayout(new FormLayout());
 
-        createRBDGroup();
-        
+        //createRBDGroup();
+        seld_rscs_list = rbdMngr.getUngroupedResources();
 
         /*
          * Timeline Control Group
          */
         timeline_grp = new Group(sash_form, SWT.SHADOW_NONE);
-        timeline_grp.setText("Select Timeline");
+        timeline_grp.setText("");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -331,7 +253,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         loadSaveComp.setLayout(new FormLayout());
 
         clear_rbd_btn = new Button(loadSaveComp, SWT.PUSH);
-    	clear_rbd_btn.setText("Clear All");
+    	clear_rbd_btn.setText("Clear");
         FormData fd = new FormData();
         fd.width = 130;
         fd.top = new FormAttachment(0, 7);
@@ -346,22 +268,13 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         fd.left = new FormAttachment(40, -50);
         save_rbd_btn.setLayoutData(fd);
 
-        load_rbd_btn = new Button(loadSaveComp, SWT.PUSH);
-    	load_rbd_btn.setText("Load");
-        fd = new FormData();
-        fd.width = 100;
-        fd.top = new FormAttachment(0, 7);
-        // fd.bottom = new FormAttachment( 100, -7 );
-        fd.left = new FormAttachment(63, -50);
-        load_rbd_btn.setLayoutData(fd);
-
         load_and_close_btn = new Button(loadSaveComp, SWT.PUSH);
-    	load_and_close_btn.setText("Load and Close");
+    	load_and_close_btn.setText("Load");
         fd = new FormData();
         fd.width = 120;
         fd.top = new FormAttachment(0, 7);
         // fd.bottom = new FormAttachment( 100, -7 );
-        fd.left = new FormAttachment(83, -50);
+        fd.left = new FormAttachment(63, -50);
         load_and_close_btn.setLayoutData(fd);
 
         cancel_edit_btn = new Button(loadSaveComp, SWT.PUSH);
@@ -386,10 +299,9 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                                            // configureForEditRbd is called
         ok_edit_btn.setVisible(false);
 
-        sash_form.setWeights(new int[] { 50, 30, 20 });
+        sash_form.setWeights(new int[] { 50, 20, 30 });
 
         // set up the content providers for the ListViewers
-        setContentProviders();
         addSelectionListeners();
 
         initWidgets();
@@ -424,7 +336,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     	ResourceName initRscName = null;
     	
         add_grp = new Group(sash_form, SWT.SHADOW_NONE);
-        add_grp.setText("Load Grid");
+        add_grp.setText("");
         
         
         GridLayout mainLayout = new GridLayout(1, true);
@@ -455,70 +367,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         rscSelListeners.add(lstnr);
     }
 
-    // create all the widgets in the Resource Bundle Definition (bottom) section
-    // of the sashForm.
-    //
-    private void createRBDGroup() {
-        import_lbl = new Label(rbd_grp, SWT.None);
-    	rbd_name_txt = ""; 
-
-        // This is multi-select to make Deleting resources easier.
-        seld_rscs_lviewer = new ListViewer(rbd_grp, SWT.MULTI
-                | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        FormData form_data = new FormData();
-    	form_data.top = new FormAttachment( 0, 10 );
-    	form_data.right = new FormAttachment( 100, -10 );
-    	form_data.left = new FormAttachment( 0, 10 );
-    	form_data.bottom = new FormAttachment( 100, -10 );
-        seld_rscs_lviewer.getList().setLayoutData(form_data);
-
-        rbd_grp.pack(true);
-    }
-    
-   
-    private void setContentProviders() {
-
-        seld_rscs_lviewer.setContentProvider(new IStructuredContentProvider() {
-            public void dispose() {
-            }
-
-            public void inputChanged(Viewer viewer, Object oldInput,
-                    Object newInput) {
-            }
-
-            public Object[] getElements(Object inputElement) {
-                return ((ResourceSelection[]) inputElement);
-            }
-        });
-
-        // get the full path of the attr file and then remove .prm extension
-        // and the prefix path up to the cat directory.
-        seld_rscs_lviewer.setLabelProvider(new LabelProvider() {
-            public String getText(Object element) {
-                ResourceSelection rscSel = (ResourceSelection) element;
-                return rscSel.getRscLabel();
-            }
-        });
-
-        updateSelectedResourcesView(true);
-
-        // enable/disable the Edit/Delete/Clear buttons...
-        seld_rscs_lviewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        updateSelectedResourcesView(false);
-                    }
-                });
-
-        seld_rscs_lviewer.getList().addListener(SWT.MouseDoubleClick,
-                new Listener() {
-                    public void handleEvent(Event event) {
-                        editResourceData();
-                    }
-                });
-
-    }
-
     // add all of the listeners for widgets on this dialog
     void addSelectionListeners() {
 
@@ -533,23 +381,8 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                     ResourceSelection rbt = ResourceFactory
                             .createResource(rscName);
                     rbdMngr.getSelectedArea();
-                	StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
-                            .getSelection();
-                    ResourceSelection sel = (ResourceSelection) sel_elems
-                            .getFirstElement();
-                    if (!rbdMngr.addSelectedResource(rbt, sel)) {
-                        if (sel != null) {
-                            seld_rscs_lviewer.setInput(rbdMngr
-                                    .getResourcesInGroup(groupListViewer
-                                            .getTable().getSelection().length == 0 ? null
-                                            : groupListViewer
-                                                    .getTable()
-                                                    .getSelection()[0]
-                                                    .getText()));
-
-                            seld_rscs_lviewer.refresh(true);
-                        }
-                    }
+                    rbdMngr.addSelectedResource(rbt, null);
+                    
                     // add the new resource to the timeline as a possible
                     // dominant resource
                     if (rbt.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
@@ -586,12 +419,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
             }
         });
 
-        load_rbd_btn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                loadRBD(false);
-            }
-        });
-
         load_and_close_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 loadRBD(true);
@@ -611,7 +438,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     	rbd_name_txt = "";
         updateAreaGUI();// should be the default area
         shell.setSize(initDlgSize);
-        timelineControl.clearTimeline();
+        //timelineControl.clearTimeline();
     }
 
     // if this is called from the Edit Rbd Dialog (from the LoadRbd tab), then
@@ -726,7 +553,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         }
     }
 
-    // called when the user switches to this tab in the ResourceManagerDialog or
+    // called when the user switches to this tab in the GridManagerDialog or
     // when the EditRbd Dialog initializes
     //
     public void updateDialog() {
@@ -742,14 +569,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
         // create new GraphTimelineControl if loading a Graph Display
         timelineControl.dispose();
-        if (rbdMngr.getRbdType().equals(NcDisplayType.GRAPH_DISPLAY)) {
-
-            timelineControl = (GraphTimelineControl) new GraphTimelineControl(
-                    timeline_grp);
-        } else {
-            timelineControl = new TimelineControl(timeline_grp);
-        }
-
+        timelineControl = new TimelineControl(timeline_grp);
         timelineControl
                 .addDominantResourceChangedListener(new IDominantResourceChangedListener() {
                     @Override
@@ -774,23 +594,12 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
             for (ResourceSelection rscSel : rbdMngr
                     .getRscsForPane((NcPaneID) paneLayout
                             .createPaneId(paneIndx))) {
-
-                if (rscSel.getResourceData() instanceof GroupResourceData) {
-                    for (ResourcePair pair : ((GroupResourceData) rscSel
-                            .getResourceData()).getResourceList()) {
-                        if (pair.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                            timelineControl
-                                    .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) pair
-                                            .getResourceData());
-                        }
-                    }
-                } else if (rscSel.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+                if (rscSel.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
                     timelineControl
                             .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) rscSel
                                     .getResourceData());
                 }
             }
-            // }
         }
 
         NCTimeMatcher timeMatcher = rbdMngr.getInitialTimeMatcher();
@@ -807,32 +616,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         }
     }
 
-    // Listener callback for the Edit Resource button and dbl click on the list
-    public void editResourceData() {
-        StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
-                .getSelection();
-        ResourceSelection rscSel = (ResourceSelection) sel_elems
-                .getFirstElement();
-
-        if (rscSel == null) {
-            System.out.println("sanity check: no resource is selected");
-            return;
-        }
-        INatlCntrsResourceData rscData = rscSel.getResourceData();
-
-        if (rscData == null) {
-            System.out
-                    .println("sanity check: seld resource is not a INatlCntrsResource");
-            return;
-        }
-        EditResourceAttrsAction editAction = new EditResourceAttrsAction();
-        if (editAction.PopupEditAttrsDialog(shell,
-                (INatlCntrsResourceData) rscData, false)) {
-            rbdMngr.setRbdModified(true);
-        }
-
-        seld_rscs_lviewer.refresh(true); // display modified (ie edited*) name
-    }
 
     public void clearSeldResources() {
         // remove the requestable resources from the timeline
@@ -889,68 +672,16 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         }
 
         updateGUI();
-
-        //groupListViewer.setInput(rbdMngr.getGroupResources());
-        seld_rscs_lviewer.setInput(rbdMngr.getUngroupedResources());
-        seld_rscs_lviewer.refresh();
-        //setGroupButtons();
+        seld_rscs_list = rbdMngr.getUngroupedResources();
 
     }
 
     // reset the ListViewer's input and update all of the buttons
     // TODO; get the currently selected resources and reselect them.
     private void updateSelectedResourcesView(boolean updateList) {
-
         if (updateList) {
-
-            StructuredSelection orig_sel_elems = (StructuredSelection) seld_rscs_lviewer
-                    .getSelection();
-            System.out.println("BEFORE: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
-            List<ResourceSelection> origSeldRscsList = (List<ResourceSelection>) orig_sel_elems
-                    .toList();
-
-            System.out.println("MID: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
-
-            // this is where list is reset to default BaseOverlay (GeoPolitical) rather than default RBD (State/County boundaries)
-            seld_rscs_lviewer.setInput(rbdMngr.getUngroupedResources());
-
-            seld_rscs_lviewer.refresh(true);
-
-            List<ResourceSelection> newSeldRscsList = new ArrayList<ResourceSelection>();
-
-            // create a new list of selected elements
-            for (ResourceSelection rscSel : origSeldRscsList) {
-                for (int r = 0; r < seld_rscs_lviewer.getList().getItemCount(); r++) {
-                    if (rscSel == seld_rscs_lviewer.getElementAt(r)) {
-                        newSeldRscsList.add(rscSel);
-                        break;
-                    }
-                }
-            }
-
-            seld_rscs_lviewer.setSelection(new StructuredSelection(
-                    newSeldRscsList.toArray()), true);
-            System.out.println("AFTER: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
-
-        }
-
-        int numSeldRscs = seld_rscs_lviewer.getList().getSelectionCount();
-        int numRscs = seld_rscs_lviewer.getList().getItemCount();
-
-        StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
-                .getSelection();
-        List<ResourceSelection> seldRscsList = (List<ResourceSelection>) sel_elems
-                .toList();
-
-        // Can't delete, replace or turn off the base overlay.
-        //
-        Boolean isBaseLevelRscSeld = false;
-        Boolean allRscsAreVisible = true;
-
-        for (ResourceSelection rscSel : seldRscsList) {
-            isBaseLevelRscSeld |= rscSel.isBaseLevelResource();
-
-            allRscsAreVisible &= rscSel.isVisible();
+            seld_rscs_list = rbdMngr.getUngroupedResources();
+            Object newList = seld_rscs_list;
         }
     }
 
@@ -962,7 +693,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     	String rbdName = rbd_name_txt.trim();
 
         if (rbdName == null || rbdName.isEmpty()) {
-            rbdName = "Preview";
+            rbdName = "Ncgrid";
         }
 
         // Since rbdLoader uses the same resources in the rbdBundle to load in
@@ -1100,12 +831,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
             // Assign hot keys to group resources.
             // Set visible for the selected group.
-            //ResourceSelection rsel = getGroupResourceSelection();
-            StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
-                    .getSelection();
-           
-            ResourceSelection rsel = (ResourceSelection) sel_elems
-                    .getFirstElement();
+
             for (AbstractRenderableDisplay rendDisp : rbdBndl.getDisplays()) {
                 int funKey = 1;
                 for (ResourcePair rp : rendDisp.getDescriptor()
@@ -1120,13 +846,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
                         // If nothing selected, turn on all groups.
                         rp.getProperties().setVisible(true);
-
-                        if (rsel != null
-                                && !((GroupResourceData) rsel.getResourcePair()
-                                        .getResourceData()).getGroupName()
-                                        .equals(grd.getGroupName())) {
-                            rp.getProperties().setVisible(false);
-                        }
 
                     }
                 }

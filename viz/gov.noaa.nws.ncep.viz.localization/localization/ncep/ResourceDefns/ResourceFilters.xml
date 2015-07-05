@@ -690,9 +690,6 @@
 <ResourceDefinitionFilter isEnabled="false" rscDefnName="USAK">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="WRF-NMM-East">
-<filters>Mesoscale</filters>
-</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS-40km">
 <filters>NCEP</filters>
 </ResourceDefinitionFilter>
@@ -701,12 +698,6 @@
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="MOS">
 <filters>NCEP</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS-95km">
-<filters>CONUS,NCEP</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="WRF-NMM-West">
-<filters>Mesoscale</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="false" rscDefnName="RAP-40km">
 <filters>CONUS,NCEP</filters>
@@ -720,9 +711,6 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="HRRR">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="Hawaii-WRF-NMM">
-<filters>Hawaii,NCEP</filters>
-</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-40km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
@@ -735,9 +723,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS-NH">
 <filters>NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="WRF-ARW-West">
-<filters>Mesoscale</filters>
-</ResourceDefinitionFilter>
+<!--
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="CMC">
 <filters>CONUS</filters>
 </ResourceDefinitionFilter>
@@ -753,6 +739,16 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NDFD">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WRF-NMM-East">
+<filters>Mesoscale</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS-95km">
+<filters>CONUS,NCEP</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WRF-NMM-West">
+<filters>Mesoscale</filters>
+</ResourceDefinitionFilter>
+-->
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-12km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
@@ -762,6 +758,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-40km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
+<!--
 <ResourceDefinitionFilter isEnabled="false" rscDefnName="NAM-90km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
@@ -780,13 +777,11 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="RCM">
 <filters>NCEP</filters>
 </ResourceDefinitionFilter>
+-->
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA-2p5km">
 <filters>Analysis,NCEP</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA">
-<filters>Analysis,NCEP</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="AK-RTMA">
 <filters>Analysis,NCEP</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NIDS">
@@ -795,9 +790,11 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="FNEXRAD">
 <filters>Radar</filters>
 </ResourceDefinitionFilter>
+<!-- 
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM_00">
 <filters>Forecast,Ensemble</filters>
 </ResourceDefinitionFilter>
+-->
 <ResourceDefinitionFilter isEnabled="false" rscDefnName="GEFS_ENS">
 <filters>Ensemble,Global</filters>
 </ResourceDefinitionFilter>
@@ -879,7 +876,9 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="DayNightTerminator">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
+<!--
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="DGEX_US">
 <filters>CONUS</filters>
 </ResourceDefinitionFilter>
+ -->
 </ResourceDefinitionFilters>

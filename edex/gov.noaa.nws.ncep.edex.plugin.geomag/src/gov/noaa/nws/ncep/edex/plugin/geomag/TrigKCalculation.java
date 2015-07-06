@@ -53,6 +53,8 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
  * 06/26/2014   #1136       qzhou       Calculate hourly average when min>=55 instead of min=59
  * 07/16/2014   R4078       sgurung     Modified method calcK3hr() to add states when a k3hr record is inserted
  * 12/23/2014   R5412       sgurung     Change float to double, add code changes related to "debug mode"
+ * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit
+ * 
  * 
  * </pre>
  * 
@@ -692,7 +694,7 @@ public class TrigKCalculation {
 
                         // already considered missing in getDev
 
-                        int[] kLimit = CalcUtil.getKLimit(stationCode);
+                        double[] kLimit = CalcUtil.getKLimit(stationCode);
 
                         int missingFlag = 0;
                         List<double[]> kList = CalcEach1min.getKIndex(hDev,

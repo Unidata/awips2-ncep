@@ -1,12 +1,14 @@
 package gov.noaa.nws.ncep.common.dataplugin.geomag.calculation;
 
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.KsThree;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.KStationCoefficientLookup;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +23,15 @@ import java.util.Map;
  * -----------  ----------  ---------- --------------------------
  * 05/14/2013   #989        qzhou      Initial Creation
  * 03/18/2014   #1123       qzhou      default k to 99999
- * 12/23/2014   R5412       sgurung    Change float to double
+ * 12/23/2014   R5412       sgurung    Change float to double 
+ * 06/08/2015   R8416       sgurung    Added new methods, fixed bug in method getKs()
+ * 
  * </pre>
  * 
  * @author qzhou
  * @version 1
  */
+//@formatter:off  
 public class CalcKp {
 
     public CalcKp() {
@@ -38,16 +43,16 @@ public class CalcKp {
         double[] kest = new double[8];
 
         for (int i = 0; i < 8; i++) {
-            int[] gammaLimit = CalcUtil.getKLimit(station); // .getGammaFromK(station,
-                                                            // gamma);
+            double[] gammaLimit = CalcUtil.getKLimit(station);
             if (kIndex[i] < 9) {
                 kest[i] = kIndex[i]
                         + (gamma[i] - gammaLimit[(int) kIndex[i]])
                         / (gammaLimit[(int) kIndex[i] + 1] - gammaLimit[(int) kIndex[i]]);
-            } else if (kIndex[i] < 999)
+            } else if (kIndex[i] < 999) {
                 kest[i] = 9.0;
-            else
+            } else {
                 kest[i] = 99999;
+            }
 
         }
 
@@ -57,12 +62,13 @@ public class CalcKp {
     public static double getKest(String station, int kIndex, double gamma) {
         double kest = 99999;
 
-        int[] gammaLimit = CalcUtil.getKLimit(station);
-        if (kIndex < 9)
-            kest = kIndex + (gamma - gammaLimit[kIndex])
-                    / (gammaLimit[kIndex + 1] - gammaLimit[kIndex]);
-        else if (kIndex < 999)
+        double[] kLimit = CalcUtil.getKLimit(station);
+        if (kIndex < 9) {
+            kest = kIndex + (gamma - kLimit[kIndex])
+                    / (kLimit[kIndex + 1] - kLimit[kIndex]);
+        } else if (kIndex < 999) {
             kest = 9.0;
+        }
 
         return kest;
     }
@@ -78,10 +84,9 @@ public class CalcKp {
         return threeKsList;
     }
 
-    public static List<Integer> getKsThree(Date time, String station, int k) {
+    public static List<Integer> getKsThree(Date time, String station, int kIndex) {
         List<Integer> ks = new ArrayList<Integer>();
 
-        // KsThree ksThree = null;
         ArrayList<KsThree> ksThreeList = getKsThreeList(station);
 
         if (ksThreeList != null && !ksThreeList.isEmpty()) {
@@ -91,17 +96,21 @@ public class CalcKp {
 
             KsThree ksThree = ksThreeList.get(period);
 
-            if (ksThree != null)
-                ks.add(getKsOfKsThree(k, ksThree));
+            if (ksThree != null) {
+                ks.add(getKsOfKsThree(kIndex, ksThree));
+            }
 
             ksThree = ksThreeList.get(period + 8);
 
-            if (ksThree != null)
-                ks.add(getKsOfKsThree(k, ksThree));
+            if (ksThree != null) {
+                ks.add(getKsOfKsThree(kIndex, ksThree));
+            }
 
             ksThree = ksThreeList.get(period + 16);
-            if (ksThree != null)
-                ks.add(getKsOfKsThree(k, ksThree));
+
+            if (ksThree != null) {
+                ks.add(getKsOfKsThree(kIndex, ksThree));
+            }
 
         }
 
@@ -111,181 +120,251 @@ public class CalcKp {
     private static int getKsOfKsThree(int k, KsThree ksThree) {
         int ks = 99999;
 
-        if (k == 0)
+        if (k == 0) {
             ks = ksThree.getK0();
-        else if (k == 1)
+        } else if (k == 1) {
             ks = ksThree.getK1();
-        else if (k == 2)
+        } else if (k == 2) {
             ks = ksThree.getK2();
-        else if (k == 3)
+        } else if (k == 3) {
             ks = ksThree.getK3();
-        else if (k == 4)
+        } else if (k == 4) {
             ks = ksThree.getK4();
-        else if (k == 5)
+        } else if (k == 5) {
             ks = ksThree.getK5();
-        else if (k == 6)
+        } else if (k == 6) {
             ks = ksThree.getK6();
-        else if (k == 7)
+        } else if (k == 7) {
             ks = ksThree.getK7();
-        else if (k == 8)
+        } else if (k == 8) {
             ks = ksThree.getK8();
-        else if (k == 9)
+        } else if (k == 9) {
             ks = ksThree.getK9();
+        }
 
         return ks;
     }
 
-    public static double getKs(String station, int k, Date time)
+    /**
+     * Get Date range for Leap Years
+     * 
+     * @param time
+     * @return Hashtable<String, Date>
+     * @throws ParseException
+     */
+    private static Hashtable<String, Date> getDateForLeapYears(Date time)
             throws ParseException {
-        double a = 0;
-        double b = 0;
-        double ks = 0;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Hashtable<String, Date> leapYearDates = new Hashtable<String, Date>();
 
-        // int year = time.getYear();113
         Calendar cal = Calendar.getInstance();
         cal.setTime(time);
         int year = cal.get(Calendar.YEAR);
 
-        Date date1 = sdf.parse(year + "-01-01");
-        Date date2 = sdf.parse(year + "-02-14");
-        Date date3 = sdf.parse(year + "-02-24");
-        Date date4 = sdf.parse(year + "-03-06");
-        Date date5 = sdf.parse(year + "-03-16");
-        Date date6 = sdf.parse(year + "-04-16");
-        Date date7 = sdf.parse(year + "-04-26");
-        Date date8 = sdf.parse(year + "-05-06");
-        Date date9 = sdf.parse(year + "-05-16");
-        Date date10 = sdf.parse(year + "-08-17");
-        Date date11 = sdf.parse(year + "-08-27");
-        Date date12 = sdf.parse(year + "-09-06");
-        Date date13 = sdf.parse(year + "-09-16");
-        Date date14 = sdf.parse(year + "-10-17");
-        Date date15 = sdf.parse(year + "-10-27");
-        Date date16 = sdf.parse(year + "-11-06");
-        Date date17 = sdf.parse(year + "-11-16");
-        Date date18 = sdf.parse(year + "-12-31");
+        if (KStationCoefficientLookup.getInstance().useDefaultKsDateRange) {
+            
+            leapYearDates.put("Range2Start", sdf.parse(year + "-02-15"));  // Start Range: Feb 15 – Feb 24
+            leapYearDates.put("Range3Start", sdf.parse(year + "-02-25"));  // Start Range: Feb 25 – Mar 05
+            
+        } else { // Read Ks Date Ranges from the properties file   
+            
+            leapYearDates.put("Range2Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.LEAP_YEAR_START_RANGE_2)));
+            leapYearDates.put("Range3Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.LEAP_YEAR_START_RANGE_3)));
+        }
 
-        Date date2Leep = sdf.parse(year + "-02-15");
-        Date date3Leep = sdf.parse(year + "-02-25");
+        return leapYearDates;
+    }
+
+    
+    /**
+     * Get Date range for Non-Leap Years
+     * 
+     * @param time
+     * @return Hastable<String, Date>
+     * @throws ParseException
+     */
+    private static Hashtable<String, Date> getDateForNonLeapYears(Date time)
+            throws ParseException {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Hashtable<String, Date> nonLeapYearDates = new Hashtable<String, Date>();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(time);
+        int year = cal.get(Calendar.YEAR);
+
+        if (KStationCoefficientLookup.getInstance().useDefaultKsDateRange) {
+            
+            nonLeapYearDates.put("Range1Start", sdf.parse(year + "-01-01")); // Start Range Jan 01 – Feb 13
+            nonLeapYearDates.put("Range2Start", sdf.parse(year + "-02-14")); // Start Range Feb 14 – Feb 23
+            nonLeapYearDates.put("Range3Start", sdf.parse(year + "-02-24")); // Start Range Feb 24 – Mar 05
+            nonLeapYearDates.put("Range4Start", sdf.parse(year + "-03-06")); // Start Range Mar 06 – Mar 15
+            nonLeapYearDates.put("Range5Start", sdf.parse(year + "-03-16")); // Start Range Mar 16 – Apr 15
+            nonLeapYearDates.put("Range6Start", sdf.parse(year + "-04-16")); // Start Range Apr 16 – Apr 25
+            nonLeapYearDates.put("Range7Start", sdf.parse(year + "-04-26")); // Start Range Apr 26 – May 05
+            nonLeapYearDates.put("Range8Start", sdf.parse(year + "-05-06")); // Start Range May 06 – May 15
+            nonLeapYearDates.put("Range9Start", sdf.parse(year + "-05-16")); // Start Range May 16 – Aug 16
+            nonLeapYearDates.put("Range10Start", sdf.parse(year + "-08-17")); // Start Range Aug 17 – Aug 26
+            nonLeapYearDates.put("Range11Start", sdf.parse(year + "-08-27")); // Start Range Aug 27 – Sep 05
+            nonLeapYearDates.put("Range12Start", sdf.parse(year + "-09-06")); // Start Range Sep 06 – Sep 15
+            nonLeapYearDates.put("Range13Start", sdf.parse(year + "-09-16")); // Start Range Sep 16 – Oct 16
+            nonLeapYearDates.put("Range14Start", sdf.parse(year + "-10-17")); // Start Range Oct 17 – Oct 26
+            nonLeapYearDates.put("Range15Start", sdf.parse(year + "-10-27")); // Start Range Oct 27 – Nov 05
+            nonLeapYearDates.put("Range16Start", sdf.parse(year + "-11-06")); // Start Range Nov 06 – Nov 15
+            nonLeapYearDates.put("Range17Start", sdf.parse(year + "-11-16")); // Start Range Nov 16 – Dec 31
+            nonLeapYearDates.put("Range17End", sdf.parse(year + "-12-31")); // End of Range Nov 16 – Dec 31
+            
+        } else {      // Read Ks Date Ranges from the properties file      
+            
+            nonLeapYearDates.put("Range1Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_1)));
+            nonLeapYearDates.put("Range2Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_2)));
+            nonLeapYearDates.put("Range3Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_3)));
+            nonLeapYearDates.put("Range4Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_4)));
+            nonLeapYearDates.put("Range5Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_5)));
+            nonLeapYearDates.put("Range6Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_6)));
+            nonLeapYearDates.put("Range7Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_7)));
+            nonLeapYearDates.put("Range8Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_8)));
+            nonLeapYearDates.put("Range9Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_9)));
+            nonLeapYearDates.put("Range10Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_10)));
+            nonLeapYearDates.put("Range11Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_11)));
+            nonLeapYearDates.put("Range12Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_12)));
+            nonLeapYearDates.put("Range13Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_13)));
+            nonLeapYearDates.put("Range14Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_14)));
+            nonLeapYearDates.put("Range15Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_15)));
+            nonLeapYearDates.put("Range16Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_16)));
+            nonLeapYearDates.put("Range17Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_17)));
+            nonLeapYearDates.put("Range17End", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_END_RANGE_17)));
+        }
+
+        return nonLeapYearDates;
+
+    }
+
+    /**
+     * Calculate the ks value for a given station with a known k value
+     * and known time accounting for leap year vs non-leap years
+     * 
+     * @param station
+     * @param k
+     * @param time
+     * @return double
+     * @throws ParseException
+     */
+    public static double getKs(String station, int k, Date time)
+            throws ParseException {
+
+        double ks = 0;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(time);
+        int year = cal.get(Calendar.YEAR);
+
+        // For non-leap years
+        //
+        // Range1Start - Jan 01 – Feb 13: Ks = ThreeKs(JFND)/3.0
+        // Range2Start - Feb 14 – Feb 23: Ks = [0.75*ThreeKs(JFND) +
+        // 0.25*ThreeKs(MASO)]/3.0
+        // Range3Start - Feb 24 – Mar 05: Ks = [0.50*ThreeKs(JFND) +
+        // 0.50*ThreeKs(MASO)]/3.0
+        // Range4Start - Mar 06 – Mar 15: Ks = [0.25*ThreeKs(JFND) +
+        // 0.75*ThreeKs(MASO)]/3.0
+        // Range5Start - Mar 16 – Apr 15: Ks = ThreeKs(MASO)/3.0
+        // Range6Start - Apr 16 – Apr 25: Ks = [0.75*ThreeKs(MASO) +
+        // 0.25*ThreeKs(MJJA)]/3.0
+        // Range7Start - Apr 26 – May 05: Ks = [0.50*ThreeKs(MASO) +
+        // 0.50*ThreeKs(MJJA)]/3.0
+        // Range8Start - May 06 – May 15: Ks = [0.25*ThreeKs(MASO) +
+        // 0.75*ThreeKs(MJJA)]/3.0
+        // Range9Start - May 16 – Aug 16: Ks = ThreeKs(MJJA)/3.0
+        // Range10Start - Aug 17 – Aug 26: Ks = [0.75*ThreeKs(MJJA) +
+        // 0.25*ThreeKs(MASO)]/3.0
+        // Range11Start - Aug 27 – Sep 05: Ks = [0.50*ThreeKs(MJJA) +
+        // 0.50*ThreeKs(MASO)]/3.0
+        // Range12Start - Sep 06 – Sep 15: Ks = [0.25*ThreeKs(MJJA) +
+        // 0.75*ThreeKs(MASO)]/3.0
+        // Range13Start - Sep 16 – Oct 16: Ks = ThreeKs(MASO)/3.0
+        // Range14Start - Oct 17 – Oct 26: Ks = [0.75*ThreeKs(MASO) +
+        // 0.25*ThreeKs(JFND)]/3.0
+        // Range15Start - Oct 27 – Nov 05: Ks = [0.50*ThreeKs(MASO) +
+        // 0.50*ThreeKs(JFND)]/3.0
+        // Range16Start - Nov 06 – Nov 15: Ks = [0.25*ThreeKs(MASO) +
+        // 0.75*ThreeKs(JFND)]/3.0
+        // Range17End - Nov 16 – Dec 31: Ks = ThreeKs(JFND)/3.0
+        //
+        Hashtable<String, Date> nonLeapYearDates = getDateForNonLeapYears(time);
+
+        // For leap years
+        //
+        // Jan 01 – Feb 14: Ks = ThreeKs(JFND)/3.0
+        // Range2Start - Feb 15 – Feb 24: Ks = [0.75*ThreeKs(JFND) +
+        // 0.25*ThreeKs(MASO)]/3.0
+        // Range3Start - Feb 25 – Mar 05: Ks = [0.50*ThreeKs(JFND) +
+        // 0.50*ThreeKs(MASO)]/3.0
+        //
+        Hashtable<String, Date> leapYearDates = getDateForLeapYears(time);
 
         List<Integer> ksThree = getKsThree(time, station, k);
 
-        if (time.compareTo(date1) >= 0 && time.compareTo(date2) < 0) {
-            ks = (double) ksThree.get(0) / 3;
-        } else if (time.compareTo(date4) >= 0 && time.compareTo(date5) < 0) {
-            ks = (double) (0.25f * ksThree.get(0) + 0.75f * ksThree.get(1)) / 3;
-        } else if (time.compareTo(date5) >= 0 && time.compareTo(date6) < 0) {
-            ks = (double) ksThree.get(1) / 3;
-        } else if (time.compareTo(date6) >= 0 && time.compareTo(date7) < 0) {
-            ks = (double) (0.75f * ksThree.get(1) + 0.25f * ksThree.get(2)) / 3;
-        } else if (time.compareTo(date7) >= 0 && time.compareTo(date8) < 0) {
-            ks = (double) (0.5f * ksThree.get(1) + 0.5f * ksThree.get(2)) / 3;
-        } else if (time.compareTo(date8) >= 0 && time.compareTo(date9) < 0) {
-            ks = (double) (0.25f * ksThree.get(1) + 0.75f * ksThree.get(2)) / 3;
-        } else if (time.compareTo(date9) >= 0 && time.compareTo(date10) < 0) {
-            ks = (double) ksThree.get(2) / 3;
-        } else if (time.compareTo(date10) >= 0 && time.compareTo(date11) < 0) {
-            ks = (double) (0.75f * ksThree.get(2) + 0.25f * ksThree.get(1)) / 3;
-        } else if (time.compareTo(date11) >= 0 && time.compareTo(date12) < 0) {
-            ks = (double) (0.5f * ksThree.get(2) + 0.5f * ksThree.get(1)) / 3;
-        } else if (time.compareTo(date12) >= 0 && time.compareTo(date13) < 0) {
-            ks = (double) (0.25f * ksThree.get(2) + 0.75f * ksThree.get(1)) / 3;
-        } else if (time.compareTo(date13) >= 0 && time.compareTo(date14) < 0) {
-            ks = (double) ksThree.get(1) / 3;
-        } else if (time.compareTo(date14) >= 0 && time.compareTo(date15) < 0) {
-            ks = (double) (0.75f * ksThree.get(1) + 0.25f * ksThree.get(0)) / 3;
-        } else if (time.compareTo(date15) >= 0 && time.compareTo(date16) < 0) {
-            ks = (double) (0.5f * ksThree.get(1) + 0.5f * ksThree.get(0)) / 3;
-        } else if (time.compareTo(date16) >= 0 && time.compareTo(date17) < 0) {
-            ks = (double) (0.25f * ksThree.get(1) + 0.75f * ksThree.get(0)) / 3;
-        } else if (time.compareTo(date17) >= 0 && time.compareTo(date18) <= 0) {
-            ks = (double) ksThree.get(0) / 3;
+        if (time.compareTo(nonLeapYearDates.get("Range1Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range2Start")) < 0) {
+            ks = ksThree.get(0) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range2Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range3Start")) < 0) {
+            ks = (0.75 * ksThree.get(0) + 0.25 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range3Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range4Start")) < 0) {
+            ks = (0.5 * ksThree.get(0) + 0.5 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range4Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range5Start")) < 0) {
+            ks = (0.25 * ksThree.get(0) + 0.75 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range5Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range6Start")) < 0) {
+            ks = ksThree.get(1) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range6Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range7Start")) < 0) {
+            ks = (0.75 * ksThree.get(1) + 0.25 * ksThree.get(2)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range7Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range8Start")) < 0) {
+            ks = (0.5 * ksThree.get(1) + 0.5 * ksThree.get(2)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range8Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range9Start")) < 0) {
+            ks = (0.25 * ksThree.get(1) + 0.75 * ksThree.get(2)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range9Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range10Start")) < 0) {
+            ks = ksThree.get(2) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range10Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range11Start")) < 0) {
+            ks = (0.75 * ksThree.get(2) + 0.25 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range11Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range12Start")) < 0) {
+            ks = (0.5 * ksThree.get(2) + 0.5 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range12Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range13Start")) < 0) {
+            ks = (0.25 * ksThree.get(2) + 0.75 * ksThree.get(1)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range13Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range14Start")) < 0) {
+            ks = ksThree.get(1) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range14Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range15Start")) < 0) {
+            ks = (0.75 * ksThree.get(1) + 0.25 * ksThree.get(0)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range15Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range16Start")) < 0) {
+            ks = (0.5 * ksThree.get(1) + 0.5 * ksThree.get(0)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range16Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range17Start")) < 0) {
+            ks = (0.25 * ksThree.get(1) + 0.75 * ksThree.get(0)) / 3.0;
+        } else if (time.compareTo(nonLeapYearDates.get("Range17Start")) >= 0
+                && time.compareTo(nonLeapYearDates.get("Range17End")) < 0) {
+            ks = ksThree.get(0) / 3.0;
         } else if (CalcUtil.isLeapYear(year)) {
-            if (time.compareTo(date2Leep) >= 0 && time.compareTo(date3Leep) < 0) {
-                ks = (double) (0.75f * ksThree.get(0) + 0.25f * ksThree.get(1)) / 3;
-            } else if (time.compareTo(date3Leep) >= 0
-                    && time.compareTo(date4) < 0) {
-                ks = (double) (0.5f * ksThree.get(0) + 0.5f * ksThree.get(1)) / 3;
-            }
-        } else {
-            if (time.compareTo(date2) >= 0 && time.compareTo(date3) < 0) {
-                ks = (double) (0.75f * ksThree.get(0) + 0.25f * ksThree.get(1)) / 3;
-            } else if (time.compareTo(date3) >= 0 && time.compareTo(date4) < 0) {
-                ks = (double) (0.5f * ksThree.get(0) + 0.5f * ksThree.get(1)) / 3;
+            if (time.compareTo(leapYearDates.get("Range2Start")) >= 0
+                    && time.compareTo(leapYearDates.get("Range3Start")) < 0) {
+                ks = (0.75 * ksThree.get(0) + 0.25 * ksThree.get(1)) / 3.0;
+            } else if (time.compareTo(leapYearDates.get("Range3Start")) >= 0
+                    && time.compareTo(nonLeapYearDates.get("Range4Start")) < 0) {
+                ks = (0.5 * ksThree.get(0) + 0.5 * ksThree.get(1)) / 3.0;
             }
         }
 
-        return ks;
-    }
-
-    // protected double[] getKs(String station, double[] kest) {
-    // double a = 0;
-    // double b = 0;
-    // double[] ks = new double[8];
-    //
-    // Map<Double, Double> abCoeff = CalcUtil.getCoeffAandB(station);
-    // if (abCoeff.size() != 8)
-    // return ks;
-    //
-    // int i = 0;
-    // Iterator<?> iter = abCoeff.entrySet().iterator();
-    // while (iter.hasNext()) {
-    // @SuppressWarnings("unchecked")
-    // Map.Entry<Double, Double> mEntry = (Map.Entry<Double, Double>)
-    // iter.next();
-    //
-    // a = mEntry.getKey();
-    // b = mEntry.getValue();
-    // ks[i] = a + b * kest[i];
-    // i++;
-    // }
-    //
-    // return ks;
-    // }
-
-    public static double getKs(String station, double kest, String timePrd) {
-        double a = 0;
-        double b = 0;
-        double ks = 0;
-
-        Map<Double, Double> abCoeff = CalcUtil.getCoeffAandB(station);
-        if (abCoeff.size() != 8)
-            return ks;
-
-        int j = 0;
-        if (timePrd.equalsIgnoreCase("00-03"))
-            j = 0;
-        else if (timePrd.equalsIgnoreCase("03-06"))
-            j = 1;
-        else if (timePrd.equalsIgnoreCase("06-09"))
-            j = 2;
-        else if (timePrd.equalsIgnoreCase("09-12"))
-            j = 3;
-        else if (timePrd.equalsIgnoreCase("12-15"))
-            j = 4;
-        else if (timePrd.equalsIgnoreCase("15-18"))
-            j = 5;
-        else if (timePrd.equalsIgnoreCase("18-21"))
-            j = 6;
-        else if (timePrd.equalsIgnoreCase("21-24"))
-            j = 7;
-
-        int i = 0;
-        Iterator<?> iter = abCoeff.entrySet().iterator();
-        while (iter.hasNext()) {
-            @SuppressWarnings("unchecked")
-            Map.Entry<Double, Double> mEntry = (Map.Entry<Double, Double>) iter
-                    .next();
-
-            if (i == j) {
-                a = mEntry.getKey();
-                b = mEntry.getValue();
-                ks = a + b * kest;
-                break;
-            }
-            i++;
-        }
         return ks;
     }
 
@@ -381,4 +460,6 @@ public class CalcKp {
 
         return kp + kpModifier;
     }
+
 }
+//@formatter:on 

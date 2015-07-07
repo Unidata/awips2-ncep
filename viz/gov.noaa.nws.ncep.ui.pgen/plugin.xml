@@ -227,6 +227,11 @@
       <command
           id="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
           name="Manage Product Store">
+          <commandParameter
+               id="action"
+               name="action"
+               optional="false">
+          </commandParameter>                             
       </command>
       <command
           id="gov.noaa.nws.ncep.ui.pgen.productRetrieveManage"
@@ -587,40 +592,6 @@
    
    <extension
        point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?after=lapsTools">
-			<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-				label="PGEN">
-				<visibleWhen>
-					<reference
-						definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-					</reference>						
-				</visibleWhen>
-			</command>
-		</menuContribution>
- <!--menuContribution
-			locationURI="toolbar:org.eclipse.ui.main.toolbar?after=plugins">
-			<toolbar
-				id="plugins">
-				<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-					label="PGEN">
-					<visibleWhen>
-					    <and>
-							<reference
-								definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-							</reference>
-							<test
-	        					args="WFO"
-	        					forcePluginActivation="true"
-	        					property="com.raytheon.viz.warngen.site.SiteMode">
-	                      	</test>
-                       </and>
-					</visibleWhen>
-				</command>
-			</toolbar>
-		</menuContribution-->      
-       
        <menuContribution
            locationURI="toolbar:gov.noaa.nws.ncep.ui.PGEN">
            <command
@@ -3193,7 +3164,7 @@
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
-                sequence="M1+U">
+                sequence="M1+Z">
                 <parameter  id="action" value="Undo" />
          </key>         
 
@@ -3201,7 +3172,7 @@
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
-                sequence="M1+R">
+                sequence="M1+Y">
                 <parameter  id="action" value="Redo" />
          </key>  
          <!-- Hot keys to activate layers 1-10-->
@@ -3385,6 +3356,16 @@
                 sequence="M1+A">
                 <parameter  id="action" value="SELECTALL" />
          </key> 
+          
+         <!-- Hot key to save PGEN elements -->       
+         <key
+                commandId="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                schemeId="com.raytheon.viz.ui.awips.scheme"
+                sequence="M1+S">
+                <parameter  id="action" value="Save" />
+         </key>         
+          
          <!-- Hot keys to move contour level up/down -->       
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
@@ -3424,14 +3405,4 @@
              </contextId>
          </classContext>
    </extension>
-  <extension point="org.eclipse.ui.perspectiveExtensions">
-  <perspectiveExtension 
-	targetID="com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane">
-    	<view id="gov.noaa.nws.ncep.ui.PGEN"
-    		relative="org.eclipse.ui.editorss" 
-    		relationship="right"
-    		ratio="0.8"
-    		visible="false"/>
-  </perspectiveExtension> 
-</extension>
 </plugin>

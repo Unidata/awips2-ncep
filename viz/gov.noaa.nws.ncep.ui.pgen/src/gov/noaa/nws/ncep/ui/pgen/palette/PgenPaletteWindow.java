@@ -114,6 +114,8 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 12/14        R5413       B. Yin      Removed unused variables, loops.
  * 01/15        R5413       B. Yin      Set perspective ID and editor for PGEN session.
  * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
+ * 06/15        R8354       J. Wu       Deactivate Pgen Context when palette is closed, 
+ *                                      hidden, or deactivated.
  * 
  * </pre>
  * 
@@ -207,7 +209,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     private IContextActivation pgenContextActivation;
 
     private AbstractEditor currentIsMultiPane = null;
-    
+
     public static final String CATEGORY_ANY = "Any";
 
     /**
@@ -396,9 +398,11 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         if (current != null) {
             PgenSession.getInstance().setResource(current);
             PgenUtil.setSelectingMode();
-            
+
             AbstractEditor actEditor = PgenUtil.getActiveEditor();
-            if ( actEditor != null && !PgenSession.getInstance().getEditors().contains(actEditor)){
+            if (actEditor != null
+                    && !PgenSession.getInstance().getEditors()
+                            .contains(actEditor)) {
                 PgenSession.getInstance().getEditors().add(actEditor);
             }
         }
@@ -608,16 +612,18 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         IEditorPart editor = VizWorkbenchManager.getInstance()
                 .getActiveEditor();
-        
-        //Set perspective ID in session
-        if ( PgenSession.getInstance().getPerspectiveId() == null ||
-                PgenSession.getInstance().getPerspectiveId().isEmpty()){
-            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener.getCurrentPerspectiveManager();
-            if ( pMngr != null ){
-                PgenSession.getInstance().setPerspectiveId(pMngr.getPerspectiveId());
+
+        // Set perspective ID in session
+        if (PgenSession.getInstance().getPerspectiveId() == null
+                || PgenSession.getInstance().getPerspectiveId().isEmpty()) {
+            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener
+                    .getCurrentPerspectiveManager();
+            if (pMngr != null) {
+                PgenSession.getInstance().setPerspectiveId(
+                        pMngr.getPerspectiveId());
             }
         }
-        
+
         if (editor instanceof AbstractEditor) {// && ((NCMapEditor)
                                                // editor).getApplicationName().equals("NA")
                                                // ) {
@@ -896,12 +902,15 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         if (PgenUtil.isNatlCntrsEditor(part) || part instanceof VizMapEditor) {
 
-            //Prevent PGEN going to another perspective
-            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener.getCurrentPerspectiveManager();
-            if ( pMngr != null && pMngr.getPerspectiveId() != PgenSession.getInstance().getPerspectiveId() ){
+            // Prevent PGEN going to another perspective
+            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener
+                    .getCurrentPerspectiveManager();
+            if (pMngr != null
+                    && pMngr.getPerspectiveId() != PgenSession.getInstance()
+                            .getPerspectiveId()) {
                 return;
             }
-            
+
             PgenResource rsc = PgenUtil.findPgenResource((AbstractEditor) part);
 
             // if ( PgenSession.getInstance().getPgenResource().getDescriptor()
@@ -913,7 +922,8 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
             if (rsc != null) {
                 rsc.setCatFilter(new CategoryFilter(
-                        (currentCategory == null) ? CATEGORY_ANY : currentCategory));
+                        (currentCategory == null) ? CATEGORY_ANY
+                                : currentCategory));
             }
 
             PgenSession.getInstance().setResource(rsc);
@@ -1009,8 +1019,11 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                         .getEditors()) {
                     unloadPgenResource(editor);
                 }
-                
+
                 PgenSession.getInstance().endSession();
+
+                // R8354.
+                deactivatePGENContext();
             }
 
             // if ( currentIsMultiPane != null )
@@ -1024,6 +1037,10 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     .findPgenResource((AbstractEditor) part);
             if (pgen != null) {
                 pgen.closeDialogs();
+
+                // R8354
+                deactivatePGENContext();
+                ((AbstractEditor) part).refresh();
             }
         }
     }
@@ -1095,8 +1112,15 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             if (pgen != null) {
                 pgen.closeDialogs();
                 pgen.deactivatePgenTools();
+
+                // R8354
+                deactivatePGENContext();
+                ((AbstractEditor) part).refresh();
             }
+        } else if (part instanceof PgenPaletteWindow) { // R8354
+            deactivatePGENContext();
         }
+
     }
 
     @Override

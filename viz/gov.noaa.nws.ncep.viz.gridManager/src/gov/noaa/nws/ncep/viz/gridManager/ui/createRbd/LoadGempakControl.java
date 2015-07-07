@@ -179,18 +179,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
         timeline_grp.setLayout(new GridLayout());
         timelineControl = new TimelineControl(timeline_grp);
-        timelineControl
-                .addDominantResourceChangedListener(new IDominantResourceChangedListener() {
-                    @Override
-                    public void dominantResourceChanged(
-                            AbstractNatlCntrsRequestableResourceData newDomRsc) {
-                        if (rbdMngr.getRbdType().equals(
-                                NcDisplayType.GRAPH_DISPLAY)) {
-                            rbdMngr.syncPanesToArea();
-                        }
-                    }
-                });
-
         timelineControl.setTimeMatcher(new NCTimeMatcher());
 
         Composite loadSaveComp = new Composite(top_comp, SWT.SHADOW_NONE);
@@ -496,17 +484,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         // create new GraphTimelineControl if loading a Graph Display
         timelineControl.dispose();
         timelineControl = new TimelineControl(timeline_grp);
-        timelineControl
-                .addDominantResourceChangedListener(new IDominantResourceChangedListener() {
-                    @Override
-                    public void dominantResourceChanged(
-                            AbstractNatlCntrsRequestableResourceData newDomRsc) {
-                        if (rbdMngr.getRbdType().equals(
-                                NcDisplayType.GRAPH_DISPLAY)) {
-                            rbdMngr.syncPanesToArea();
-                        }
-                    }
-                });
 
         timeline_grp.pack();
         shell.pack();
@@ -791,7 +768,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
             } else {
                 //import_rbd_combo.add(editor.getPartName());
                 rbdMngr.setRbdModified(false);
-                importRBD(editor.getPartName());
             }
 
         } catch (VizException e) {
@@ -893,95 +869,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                 }
             });
         }
-    }
-
-    public void importRBD(String seldDisplayName) {
-
-        AbstractRBD<?> impRbd;
-        if (seldDisplayName.equals(ImportFromSPF)) {
-
-            SelectRbdsDialog impDlg = new SelectRbdsDialog(shell, "Import Bundle",
-                    false, false, false);
-
-            if (!impDlg.open()) {
-                return;
-            }
-
-            impRbd = impDlg.getSelectedRBD();
-
-            impRbd.resolveLatestCycleTimes();
-        } else {
-            // get NcMapRBD from selected display
-            AbstractEditor seldEditor = NcDisplayMngr
-                    .findDisplayByID(NcDisplayName
-                            .parseNcDisplayNameString(seldDisplayName));
-
-            if (seldEditor == null) {
-                System.out.println("Unable to load Display :"
-                        + seldDisplayName.toString());
-                return;
-            }
-
-            try {
-                impRbd = AbstractRBD.createRbdFromEditor(seldEditor);
-
-                // impRbd.initFromEditor(seldEditor);
-
-                impRbd = AbstractRBD.clone(impRbd);
-            } catch (VizException e) {
-                MessageDialog errDlg = new MessageDialog(shell, "Error", null,
-                        "Error Importing Bundle from Display, "
-                                + seldDisplayName.toString() + ".\n"
-                                + e.getMessage(), MessageDialog.ERROR,
-                        new String[] { "OK" }, 0);
-                errDlg.open();
-                return;
-            }
-
-        }
-
-        // boolean confirm = ( rbdMngr.getSelectedRscs().length > 1 ) ||
-        // rbdMngr.isMultiPane();
-
-        // if any selections have been made then popup a confirmation msg
-        if (rbdMngr.isRbdModified()) { // confirm ) {
-            MessageDialog confirmDlg = new MessageDialog(
-                    shell,
-                    "Confirm",
-                    null,
-                    "You are about to replace the entire contents of this dialog. There is no 'undo'.\n\n"
-                            + "Do you want to continue the import and clear the current Bundle selections?",
-                    MessageDialog.QUESTION, new String[] { "Yes", "No" }, 0);
-            confirmDlg.open();
-
-            if (confirmDlg.getReturnCode() != MessageDialog.OK) {
-                return;
-            }
-        }
-
-        NcDisplayType curDispType = rbdMngr.getRbdType();
-
-        try {
-            rbdMngr.initFromRbdBundle(impRbd);
-
-        } catch (VizException e) {
-            rbdMngr.init(curDispType);
-
-            MessageDialog errDlg = new MessageDialog(shell, "Error", null,
-                    "Error Importing Bundle:" + impRbd.getRbdName() + "\n\n"
-                            + e.getMessage(), MessageDialog.ERROR,
-                    new String[] { "OK" }, 0);
-            errDlg.open();
-        }
-
-        updateGUI();
-
-        // updateGUI triggers the spinner which ends up calling
-        // rbdMngr.setPaneLayout(),
-        // so we need to reset this here.
-        rbdMngr.setRbdModified(false);
-
-        // timelineControl.setTimeMatcher( impRbd.getTimeMatcher() );
     }
 
     // import just the given pane in the rbdBndl into the dialog's

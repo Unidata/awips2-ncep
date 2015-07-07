@@ -57,7 +57,7 @@
              localizationType="CAVE_STATIC"
              name="Resource Definitions"
              recursive="true"
-             value="ncep/ResourceDefns"
+             value="ncep/ResourceDefns/GRID"
 	         extensionFilter=".xml,.attr">
        </path>
     </extension>
@@ -68,7 +68,7 @@
              localizationType="CAVE_STATIC"
              name="Attribute Set Groups"
              recursive="true"
-             value="ncep/AttributeSetGroups"
+             value="ncep/AttributeSetGroups/ModelFcstGridContours"
 	         extensionFilter=".xml,.attr">
        </path>
     </extension>

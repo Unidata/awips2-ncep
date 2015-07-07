@@ -1,8 +1,7 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd.LoadRbdControl;
+import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf.ManageSpfControl;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
@@ -69,11 +68,7 @@ public class ResourceManagerDialog extends Dialog {
     
     protected  CreateRbdControl createRbdCntrl = null;
     
-    protected  LoadRbdControl loadRbdCntrl = null;
-
     protected  ManageResourceControl manageRscCntrl = null;
-
-    protected ManageSpfControl manageRbdsCntrl; 
     
     private static int prevHeight=0;
     private Point prevLocation = new Point(0,0);
@@ -102,11 +97,6 @@ public class ResourceManagerDialog extends Dialog {
     	gd.verticalAlignment = SWT.FILL;
     	mngrTabFolder.setLayoutData( gd );
 
-    	final TabItem loadTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	loadTabItem.setText( "Load Bundle" );
-
-    	loadRbdCntrl = new LoadRbdControl( mngrTabFolder );
-
     	final TabItem mngrTabItem = new TabItem( mngrTabFolder, SWT.NONE );
     	mngrTabItem.setText( "Create Bundle" );
     	
@@ -134,25 +124,14 @@ public class ResourceManagerDialog extends Dialog {
 				rbd_mngr.init( NcDisplayType.NMAP_DISPLAY ); 
 			}
 		}        
-
-    	createRbdCntrl = new CreateRbdControl( mngrTabFolder, rbd_mngr );
-    	
-    	final TabItem manageSPFTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	manageSPFTabItem.setText( "Manage Bundles" );
-
-    	manageRbdsCntrl = new ManageSpfControl( mngrTabFolder );
+		loadGempakCntrl = new LoadGempakControl( mngrTabFolder, rbd_mngr );
 
     	final TabItem cnfgTabItem = new TabItem( mngrTabFolder, SWT.NONE );
     	cnfgTabItem.setText( "Manage Data" );
-
     	manageRscCntrl = new ManageResourceControl( mngrTabFolder );
-
-    	mngrTabItem.setControl( createRbdCntrl );
-    	loadTabItem.setControl( loadRbdCntrl );
-    	manageSPFTabItem.setControl(  manageRbdsCntrl );
+    	mngrTabItem.setControl( loadGempakCntrl );
     	cnfgTabItem.setControl( manageRscCntrl );
 
-    	
     	Button closeBtn = new Button( shell, SWT.PUSH );
     	closeBtn.setText( "Close" );
     	gd = new GridData( );
@@ -171,20 +150,12 @@ public class ResourceManagerDialog extends Dialog {
 
 //    	shell.pack();
 
-    	if( mode == null || mode.equals("LOAD_RBD") ) {
+    	if( mode.equals("CREATE_RBD") ) {
     		mngrTabFolder.setSelection(0);
-    		loadRbdCntrl.updateDialog();
-    	}
-    	else if( mode.equals("CREATE_RBD") ) {
-    		mngrTabFolder.setSelection(1);
-    		createRbdCntrl.updateDialog();
-    	}
-    	else if( mode.equals("MANAGE_RBDS") ) {
-    		mngrTabFolder.setSelection(2);
-    		manageRbdsCntrl.updateDialog();
+    		loadGempakCntrl.updateDialog();
     	}
     	else if( mode.equals("MANAGE_RESOURCES") ) {
-    		mngrTabFolder.setSelection(3);
+    		mngrTabFolder.setSelection(1);
 		    manageRscCntrl.updateDialog();
     	}
     	else {
@@ -196,16 +167,9 @@ public class ResourceManagerDialog extends Dialog {
        		public void widgetSelected( SelectionEvent ev ) {
        			TabItem[] seldTab = mngrTabFolder.getSelection();
        			
-       			if( seldTab[0].getControl() instanceof LoadRbdControl ) {       				
-       				((LoadRbdControl)seldTab[0].getControl()).updateDialog();
-       			}
-       			else if( seldTab[0].getControl() instanceof CreateRbdControl ) {       				
-       				((CreateRbdControl)seldTab[0].getControl()).updateDialog();
-       			}
-       			else if( seldTab[0].getControl() instanceof ManageSpfControl ) {       				
-       				((ManageSpfControl)seldTab[0].getControl()).updateDialog();
-       			}
-       			else if( seldTab[0].getControl() instanceof ManageResourceControl ) {       				
+       			if( seldTab[0].getControl() instanceof LoadGempakControl ) {       				
+       				((LoadGempakControl)seldTab[0].getControl()).updateDialog();
+       			} else if( seldTab[0].getControl() instanceof ManageResourceControl ) {       				
        				((ManageResourceControl)seldTab[0].getControl()).updateDialog();
        			}
        		}

@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.palette;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
@@ -108,14 +109,15 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
- * 01/10		?		    S. Gilbert  Initial Creation.
- * 08/13		TTR696/774	J. Wu		Reset title/Close product manage dialog.
- * 11/13		#1081		B. Yin		Get selected DE to change front/line type.
- * 12/14        R5413       B. Yin      Removed unused variables, loops.
- * 01/15        R5413       B. Yin      Set perspective ID and editor for PGEN session.
+ * 01/10        ?           S. Gilbert  Initial Creation.
+ * 08/13        TTR696/774  J. Wu       Reset title/Close product manage dialog.
+ * 11/13        #1081       B. Yin      Get selected DE to change front/line type.
  * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
  * 06/15        R8354       J. Wu       Deactivate Pgen Context when palette is closed, 
  *                                      hidden, or deactivated.
+ * 06/15        R8199       S. Russell  Updated createPaletteSection() to suppress
+ *                                      unwanted button creation. Converted literals
+ *                                      from the legacy into constants there.
  * 
  * </pre>
  * 
@@ -439,6 +441,9 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      */
     private void createPaletteSection(Composite parent, String section) {
 
+        // Should attribute always be displayed in palette
+        boolean isAlwaysVisible = true;
+
         /*
          * Create label for the section
          */
@@ -478,12 +483,16 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             /*
              * determine if button should be added to palette
              */
-            String always = element.getAttribute("alwaysVisible");
-            if ((always == null) || always.equalsIgnoreCase("false")) {
-                if (buttonList != null) {
-                    if (!buttonList.contains(bname))
-                        continue;
-                }
+            String always = element.getAttribute(PgenConstant.ALWAYS_VISIBLE);
+            if (always == null)
+                isAlwaysVisible = true;
+            else if (always.equalsIgnoreCase(PgenConstant.FALSE))
+                isAlwaysVisible = false;
+            else if (always.equalsIgnoreCase(PgenConstant.TRUE))
+                isAlwaysVisible = true;
+
+            if (!isAlwaysVisible) {
+                continue;
             }
 
             Button item = new Button(box, SWT.PUSH);
@@ -491,16 +500,16 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             /*
              * set label of button
              */
-            if (element.getAttribute("label") != null)
-                item.setToolTipText(element.getAttribute("label"));
+            if (element.getAttribute(PgenConstant.LABEL) != null)
+                item.setToolTipText(element.getAttribute(PgenConstant.LABEL));
 
             /*
              * create an icon image for the button, if an icon was specified in
              * the registered item.
              */
-            if (element.getAttribute("icon") != null) {
+            if (element.getAttribute(PgenConstant.ICON) != null) {
 
-                Image icon = getIcon(element.getAttribute("icon"));
+                Image icon = getIcon(element.getAttribute(PgenConstant.ICON));
 
                 if (icon != null) {
 
@@ -510,13 +519,13 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                 } else {
 
                     // No icon available. Set text to display on button
-                    item.setText(element.getAttribute("name"));
+                    item.setText(element.getAttribute(PgenConstant.NAME));
 
                 }
             } else {
 
                 // No icon available. Set text to display on button
-                item.setText(element.getAttribute("name"));
+                item.setText(element.getAttribute(PgenConstant.NAME));
 
             }
 
@@ -524,20 +533,20 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
              * set the ConfigurationElement name in the button, so that all the
              * endpoint info can be accessed by the widgetSelected listener
              */
-            item.setData(element.getAttribute("name"));
+            item.setData(element.getAttribute(PgenConstant.NAME));
             item.addSelectionListener(this);
 
             // Add button name to map of all buttons currently displayed in the
             // palette
-            buttonMap.put(element.getAttribute("name"), item);
+            buttonMap.put(element.getAttribute(PgenConstant.NAME), item);
 
             /*
              * Save references to Undo and Redo buttons for future use
              */
-            if (item.getData().equals("Undo")) {
+            if (item.getData().equals(PgenConstant.UNDO)) {
                 undoButton = item;
             }
-            if (item.getData().equals("Redo")) {
+            if (item.getData().equals(PgenConstant.REDO)) {
                 redoButton = item;
             }
 

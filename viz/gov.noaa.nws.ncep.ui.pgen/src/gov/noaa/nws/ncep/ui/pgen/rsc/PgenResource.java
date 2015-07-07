@@ -9,6 +9,7 @@
 package gov.noaa.nws.ncep.ui.pgen.rsc;
 
 import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -103,55 +104,56 @@ import com.vividsolutions.jts.geom.Point;
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
- * 02/09					B. Yin   	Initial Creation.
- * 04/09					S. Gilbert  Added PgenCommand for undo/redo.
- * 04/09		#88			J. Wu  		Added Text.
- * 04/09		#89			J. Wu  		Added Arc.
- * 05/09		#79			B. Yin		Added a List for points selected
- * 05/09		#89			J. Wu  		Added Vector
- * 06/09		#116		B. Yin		Use AbstractDrawableComponent
- * 07/09		#131		J. Wu		Made all commands work only on active layer
- * 07/09		#131		J. Wu		Drew layers in mono color & filled mode.
- * 07/09		#131		J. Wu		Initialize product list when a PgenResource
- * 										is created.
- * 07/09		#141		J. Wu		Added "replaceElements"
- * 08/09        #142		S. Gilbert  
- * 09/09		#151		J. Wu		Added product management dialog
- * 09/30/09     #169        Greg Hull   NCMapEditor
- * 12/09		#167		J. Wu		Made getNearestElement work for a given DECollection
- * 12/09		#267		B. Yin		Fixed the delObj bug
- * 03/10		#223		M.Laryukhin	Added Gfa
- * 04/10		#165		G.Zhang		Added the two setSelected( ) null arguments handling
- * 03/10		#223		M.Laryukhin	Added Gfa
- * 04/10		#165		G.Zhang		Added the two setSelected( ) null arguments handling
- * 03/10		#265		B. Yin		Added filters for forecast hours
- * 09/10		#290		B. Yin		Calculate distance from line segment
- * 09/10		#151		J. Wu		Save product in LPF-style
- * 10/10 		#310        S. Gilbert  Modified to support PGEN SINGLE mode
- * 02/11		?			B. Yin		Select elements only in certain distance.
- * 04/11		?			B. Yin		Re-factor IAttribute
- * 09/11		?			B. Yin		Added Circle symbol for Inc/Dec selection.			
- * 01/12		?			J. Wu		TTR 444-Always display active product's active layer.			
- * 03/12		?			B. Yin		Make VAA text editable
- * 04/12		?			B. Hebbard	Per B. Yin; in paintInternal(), add makeContextCurrent()
- * 										on IGLTarget after screenshot to avoid GLException:
- * 										"No OpenGL context current on this thread"; 
- * 										workaround pending RTS regression fix.
- * 04/12		#705		J. Wu		TTR 542 - Draw elements in specific sequences.
- * 05/12		#610		J. Wu		TTR 397 - Select GFA by text box.
- * 07/12		#695		B. Yin		TTR 261 - Add Pgen resource editable capability.
- * 08/12		#655		B. Hebbard	TTR 382 - Add paintProps as parameter to IDisplayable draw
- * 09/12					B. Hebbard  Merge out RTS changes from OB12.9.1
- * 03/13		#927		B. Yin		Implemented IContextMenuProvider interface
- * 04/13		#874		B. Yin		Added a method replaceElements with parameter parent.
+ * 02/09                    B. Yin      Initial Creation.
+ * 04/09                    S. Gilbert  Added PgenCommand for undo/redo.
+ * 04/09        #88         J. Wu       Added Text.
+ * 04/09        #89         J. Wu       Added Arc.
+ * 05/09        #79         B. Yin      Added a List for points selected
+ * 05/09        #89         J. Wu       Added Vector
+ * 06/09        #116        B. Yin      Use AbstractDrawableComponent
+ * 07/09        #131        J. Wu       Made all commands work only on active layer
+ * 07/09        #131        J. Wu       Drew layers in mono color & filled mode.
+ * 07/09        #131        J. Wu       Initialize product list when a PgenResource
+ *                                      is created.
+ * 07/09        #141        J. Wu       Added "replaceElements"
+ * 08/09        #142        S. Gilbert  
+ * 09/09        #151        J. Wu       Added product management dialog
+ * 09/30/09     #169         Greg Hull  NCMapEditor
+ * 12/09        #167        J. Wu       Made getNearestElement work for a given DECollection
+ * 12/09        #267        B. Yin      Fixed the delObj bug
+ * 03/10        #223        M.Laryukhin Added Gfa
+ * 04/10        #165        G.Zhang     Added the two setSelected( ) null arguments handling
+ * 03/10        #223        M.Laryukhin Added Gfa
+ * 04/10        #165        G.Zhang     Added the two setSelected( ) null arguments handling
+ * 03/10        #265        B. Yin      Added filters for forecast hours
+ * 09/10        #290        B. Yin      Calculate distance from line segment
+ * 09/10        #151        J. Wu       Save product in LPF-style
+ * 10/10        #310        S. Gilbert  Modified to support PGEN SINGLE mode
+ * 02/11        ?	        B. Yin      Select elements only in certain distance.
+ * 04/11        ?	        B. Yin      Re-factor IAttribute
+ * 09/11        ?	        B. Yin      Added Circle symbol for Inc/Dec selection.			
+ * 01/12        ?	        J. Wu       TTR 444-Always display active product's active layer.			
+ * 03/12        ?	        B. Yin      Make VAA text editable
+ * 04/12        ?	        B. Hebbard  Per B. Yin; in paintInternal(), add makeContextCurrent()
+ *                                       on IGLTarget after screenshot to avoid GLException:
+ *                                      "No OpenGL context current on this thread"; 
+ *                                      workaround pending RTS regression fix.
+ * 04/12        #705        J. Wu       TTR 542 - Draw elements in specific sequences.
+ * 05/12        #610        J. Wu       TTR 397 - Select GFA by text box.
+ * 07/12        #695        B. Yin      TTR 261 - Add Pgen resource editable capability.
+ * 08/12        #655        B. Hebbard  TTR 382 - Add paintProps as parameter to IDisplayable draw
+ * 09/12        	        B. Hebbard  Merge out RTS changes from OB12.9.1
+ * 03/13        #927        B. Yin      Implemented IContextMenuProvider interface
+ * 04/13        #874        B. Yin      Added a method replaceElements with parameter parent.
  * 04/13        #977        S. Gilbert  PGEN Database support
  * 11/13        TTR 752     J. Wu       Add methods for CCFP text auto placement.
  * 09/14        TTR972      J. Wu       "Filled" object on the active layer should be 
  *                                      drawn as "filled" even if the "filled" flag for
  *                                      the layer is "false".
- * 11/14		R5413		B. Yin		Display PGEN in side view in D2D
+ * 11/14        R5413       B. Yin      Display PGEN in side view in D2D
  * 12/14     R5198/TTR1057  J. Wu       Adding a method to select label over a line for Contours.
- * 12/14        R5413       B. Yin      Added resetAllElements(), reset ghost, removed "Any".
+ * 06/15        R8199       S. Russell  Alter fillContextMenu() to NOT add a 
+ *                                      "Delete Label" option where not appropriate
  * </pre>
  * 
  * @author B. Yin
@@ -160,9 +162,6 @@ import com.vividsolutions.jts.geom.Point;
 public class PgenResource extends
         AbstractVizResource<PgenResourceData, MapDescriptor> implements
         RemoveListener, IResourceDataChanged, IContextMenuProvider {
-
-    // private final static org.apache.log4j.Logger log =
-    // org.apache.log4j.Logger.getLogger(PgenResource.class);
 
     /**
      * Ghost line for multi-point element.
@@ -1393,20 +1392,19 @@ public class PgenResource extends
         }
     }
 
-
     /**
-     * Releases the resources held by all DEs to refresh all. 
+     * Releases the resources held by all DEs to refresh all.
      * 
      * @param adc
      */
-    public void resetAllElements(){
-        for ( Product prd : this.resourceData.getProductList() ){
-            for ( Layer layer : prd.getLayers()) {
+    public void resetAllElements() {
+        for (Product prd : this.resourceData.getProductList()) {
+            for (Layer layer : prd.getLayers()) {
                 this.resetADC(layer);
             }
         }
     }
-    
+
     /**
      * Finds the nearest element in the a DECollection to the input point.
      * 
@@ -2190,12 +2188,67 @@ public class PgenResource extends
                 && !(getSelectedDE() instanceof Jet.JetLine)) { // ignore jet
             List<String> actList = getActionList(this.getSelectedDE()
                     .getPgenType());
+
             if (actList != null) {
                 for (String act : actList) {
+
+                    if (act.equalsIgnoreCase(PgenConstant.DELETE_LABEL)) {
+                        if (!addActToContextMenu(act))
+                            continue;
+                    }
                     menuManager.add(new PgenAction(act.trim()));
                 }
             }
         }
+    }
+
+    /**
+     * Only add "Delete Label" to a context menu if the element selected is a
+     * labled symbol with a label
+     * 
+     * @param String
+     *            act ( a label for an entry on a context menu )
+     */
+    private boolean addActToContextMenu(String act) {
+        DrawableElement de = getSelectedDE();
+        Text label = getDELabel((DECollection) de.getParent());
+
+        if (label == null)
+            return false;
+
+        // Only labeled symbols get a "Delete Label" option on the context menu
+        if (act.equalsIgnoreCase(PgenConstant.DELETE_LABEL)
+                && !de.isLabeledSymbol()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Retrieve the 1st Text object that holds a label from a DECollection
+     * object that typically holds both the symbol and the label ( as a Text obj
+     * )
+     * 
+     * @param DECollection
+     *            labeledSymbol
+     */
+    private Text getDELabel(DECollection labeledSymbol) {
+
+        Text label = null;
+        Iterator<AbstractDrawableComponent> it = labeledSymbol
+                .getComponentIterator();
+
+        while (it.hasNext()) {
+            AbstractDrawableComponent item = it.next();
+            if (item instanceof Text) {
+                label = (Text) item;
+                return label;
+            }
+        }
+
+        return label;
+
     }
 
     /**

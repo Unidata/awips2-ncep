@@ -7,7 +7,7 @@
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
     <frameSpan>60</frameSpan>
-    <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+    <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>
     <dfltTimeRange>24</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>

@@ -3,7 +3,6 @@ package gov.noaa.nws.ncep.viz.resourceManager.ui;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf.ManageSpfControl;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.NcMapRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
@@ -62,12 +61,12 @@ public class ResourceManagerDialog extends Dialog {
     private String dlgTitle;
     private static boolean isOpen = false;
 
+    private LoadGempakControl loadGempakCntrl;
+    
 	private TabFolder mngrTabFolder = null;
 
     protected Control activeMngr = null;
-    
-    protected  CreateRbdControl createRbdCntrl = null;
-    
+        
     protected  ManageResourceControl manageRscCntrl = null;
     
     private static int prevHeight=0;

@@ -178,9 +178,9 @@ public class TimelineControl extends Composite {
 
     private Combo frameIntervalCombo;
 
-    private Combo refTimeCombo;
+    //private Combo refTimeCombo;
 
-    private Label refTimeLbl;
+    //private Label refTimeLbl;
 
     private int timeRangeHrs = 0; //
 
@@ -278,7 +278,7 @@ public class TimelineControl extends Composite {
         canvasColor = new Color(getDisplay(), 255, 255, 255);
         availableColor = new Color(getDisplay(), 0, 0, 255);
         selectedColor = new Color(getDisplay(), 255, 0, 0);
-        canvasFont = new Font(getDisplay(), "Times", 11, SWT.BOLD);
+        canvasFont = new Font(getDisplay(), "Times", 9, SWT.NONE);
         pointerCursor = new Cursor(getDisplay(), SWT.CURSOR_ARROW);
         resizeCursor = new Cursor(getDisplay(), SWT.CURSOR_SIZEW);
         grabCursor = new Cursor(getDisplay(), SWT.CURSOR_HAND);
@@ -591,15 +591,6 @@ public class TimelineControl extends Composite {
 
     public void updateTimeline(NCTimeMatcher tm) {
         timeMatcher = tm;
-
-        if (timeMatcher.isCurrentRefTime()) {
-            refTimeCombo.select(0);
-        } else if (timeMatcher.isLatestRefTime()) {
-            refTimeCombo.select(1);
-        } else {
-            refTimeCombo.select(2);
-        }
-
         updateTimeline();
     }
 
@@ -698,7 +689,6 @@ public class TimelineControl extends Composite {
         timeRangeDaysSpnr.setEnabled(enable);
         timeRangeHrsSpnr.setEnabled(enable);
         frameIntervalCombo.setEnabled(enable);
-        refTimeCombo.setEnabled(enable);
         canvas.setEnabled(enable);
     }
 
@@ -1103,32 +1093,6 @@ public class TimelineControl extends Composite {
                 updateTimeline();
             }
         });
-
-        refTimeCombo.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                if (refTimeCombo.getSelectionIndex() == 0) {
-                    timeMatcher.setCurrentRefTime();
-                } else if (refTimeCombo.getSelectionIndex() == 1) {
-                    timeMatcher.setLatestRefTime();
-                } else if (refTimeCombo.getSelectionIndex() == 2) {
-
-                    CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
-                            shell);
-
-                    DataTime newRefTime = calSelDlg.open(timeMatcher
-                            .getRefTime());
-                    if (newRefTime != null) {
-                        timeMatcher.setRefTime(newRefTime);
-                    } else {
-                        return;
-                    }
-
-                }
-
-                timeMatcher.generateTimeline();
-                updateTimeline();
-            }
-        });
     }
 
     /*
@@ -1136,55 +1100,57 @@ public class TimelineControl extends Composite {
      */
     private void createControlWidgets(Composite top_form) {
 
-        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+        Label numFramesLbl = new Label(top_form, SWT.NONE);
+        numFramesLbl.setText("Frames");
         FormData fd = new FormData();
+        fd.top = new FormAttachment(dom_rsc_combo, 30, SWT.BOTTOM);
+        fd.left = new FormAttachment(1, 0);
+        numFramesLbl.setLayoutData(fd);
+        
+        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+         fd = new FormData();
         fd.width = 20;
-        fd.top = new FormAttachment(dom_rsc_combo, 50, SWT.BOTTOM);
-        fd.left = new FormAttachment(5, 0);
+        fd.top = new FormAttachment(numFramesLbl, -5, SWT.TOP);
+        fd.left = new FormAttachment(numFramesLbl, 5, SWT.RIGHT);
         // fd.right = new FormAttachment( 5, 40 );
         numFramesSpnr.setLayoutData(fd);
 
         numFramesSpnr.setMinimum(1);
         numFramesSpnr.setDigits(0);
         numFramesSpnr.setTextLimit(3);
-
-        Label numFramesLbl = new Label(top_form, SWT.NONE);
-        numFramesLbl.setText("Num\nFrames");
+        
+        Label skipLbl = new Label(top_form, SWT.NONE);
+        skipLbl.setText("Skip");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
-        numFramesLbl.setLayoutData(fd);
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(numFramesSpnr, 20, SWT.RIGHT);
+        skipLbl.setLayoutData(fd);
 
         numSkipSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(20, 0);
-        fd.right = new FormAttachment(20, 40);
+        fd.left = new FormAttachment(skipLbl, 5, SWT.RIGHT);
+        fd.width = 20;
         numSkipSpnr.setLayoutData(fd);
 
         numSkipSpnr.setMinimum(0);
         numSkipSpnr.setDigits(0);
         numSkipSpnr.setTextLimit(2);
 
-        Label skipLbl = new Label(top_form, SWT.NONE);
-        skipLbl.setText("Skip\nFrames");
+        Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
+        dfltTimeRangeLbl.setText("Time");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numSkipSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numSkipSpnr, 0, SWT.LEFT);
-        skipLbl.setLayoutData(fd);
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(numSkipSpnr, 10, SWT.RIGHT);
+        dfltTimeRangeLbl.setLayoutData(fd);
 
         timeRangeDaysSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(36, 0);
+        fd.left = new FormAttachment(dfltTimeRangeLbl, 10, SWT.RIGHT);
         timeRangeDaysSpnr.setLayoutData(fd);
 
-        Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
-        dfltTimeRangeLbl.setText("Time Range\n(Days / Hours)");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(timeRangeDaysSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(timeRangeDaysSpnr, 0, SWT.LEFT);
-        dfltTimeRangeLbl.setLayoutData(fd);
+       
 
         timeRangeDaysSpnr.setMinimum(0);
         timeRangeDaysSpnr.setMaximum(999);
@@ -1205,35 +1171,23 @@ public class TimelineControl extends Composite {
         timeRangeHrsSpnr.setIncrement(1);
         timeRangeHrsSpnr.setTextLimit(2);
 
+        
+        Label frameIntLbl = new Label(top_form, SWT.NONE);
+        frameIntLbl.setText("Interval");
+        fd = new FormData();
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(timeRangeHrsSpnr, 10, SWT.RIGHT);
+        frameIntLbl.setLayoutData(fd);
+        
         frameIntervalCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(59, 0);
+        fd.left = new FormAttachment(frameIntLbl, 10, SWT.RIGHT);
         frameIntervalCombo.setLayoutData(fd);
 
         frameIntervalCombo.setItems(availFrameIntervalStrings);
 
-        Label frameIntLbl = new Label(top_form, SWT.NONE);
-        frameIntLbl.setText("Frame\nInterval");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(frameIntervalCombo, -3, SWT.TOP);
-        fd.left = new FormAttachment(frameIntervalCombo, 0, SWT.LEFT);
-        frameIntLbl.setLayoutData(fd);
 
-        refTimeCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(80, 0);
-        refTimeCombo.setLayoutData(fd);
-
-        refTimeCombo.setItems(refTimeSelectionOptions);
-
-        refTimeLbl = new Label(top_form, SWT.NONE);
-        refTimeLbl.setText("Ref. Time");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(refTimeCombo, -3, SWT.TOP);
-        fd.left = new FormAttachment(refTimeCombo, 0, SWT.LEFT);
-        refTimeLbl.setLayoutData(fd);
     }
 
     /*
@@ -1885,15 +1839,6 @@ public class TimelineControl extends Composite {
      * Re-draws timeline-related widgets based on a given NCTimeMatcher.
      */
     private void updateTimelineWidgets(NCTimeMatcher tm) {
-
-        if (tm.getDominantResource() != null && tm.isForecast()) {
-            refTimeCombo.setVisible(false);
-
-            refTimeLbl.setVisible(false);
-        } else {
-            refTimeCombo.setVisible(true);
-            refTimeLbl.setVisible(true);
-        }
 
         setNumberofFrames(tm.getNumFrames());
 

@@ -1,6 +1,6 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids;
 
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.ManageGridControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup.RscAndGroupName;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
@@ -61,7 +61,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
 	ResourceDefnsMngr rscDefnMngr;
-	ManageResourceControl mngrControl; // the parent composite 
+	ManageGridControl mngrControl; // the parent composite 
 
 	ResourceName       seldRscName=null;
 	ResourceDefinition seldRscDefn;
@@ -125,7 +125,7 @@ class EditAttrSetGroupComp extends Composite implements IEditResourceComposite {
 	private AttrSetViewerFilter attrSetFilter = new AttrSetViewerFilter();
 
 	
-	public EditAttrSetGroupComp( Composite parent, int style, ManageResourceControl mgrCtl ) {
+	public EditAttrSetGroupComp( Composite parent, int style, ManageGridControl mgrCtl ) {
 		super( parent, style );
 		Composite top_form = this;      
 

@@ -6,7 +6,7 @@
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 
-package gov.noaa.nws.ncep.viz.resourceManager.timeline;
+package gov.noaa.nws.ncep.viz.gridManager.timeline;
 
 import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;

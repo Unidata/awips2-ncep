@@ -1,8 +1,8 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui;
+package gov.noaa.nws.ncep.viz.gridManager.ui;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.LoadGempakControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
+import gov.noaa.nws.ncep.viz.gridManager.ui.loadGrid.LoadGridControl;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.ManageGridControl;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.NcMapRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
@@ -53,7 +53,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * @author 
  * @version 1
  */
-public class ResourceManagerDialog extends Dialog {
+public class GridManagerDialog extends Dialog {
 
 	private RscBundleDisplayMngr rbd_mngr;
 	
@@ -61,18 +61,18 @@ public class ResourceManagerDialog extends Dialog {
     private String dlgTitle;
     private static boolean isOpen = false;
 
-    private LoadGempakControl loadGempakCntrl;
+    private LoadGridControl loadGempakCntrl;
     
 	private TabFolder mngrTabFolder = null;
 
     protected Control activeMngr = null;
         
-    protected  ManageResourceControl manageRscCntrl = null;
+    protected  ManageGridControl manageRscCntrl = null;
     
     private static int prevHeight=0;
     private Point prevLocation = new Point(0,0);
     
-    public ResourceManagerDialog(Shell parShell, String title,
+    public GridManagerDialog(Shell parShell, String title,
     		          RscBundleDisplayMngr mngr, String mode )   throws VizException {
     	super(parShell);
     	rbd_mngr = mngr;
@@ -123,11 +123,11 @@ public class ResourceManagerDialog extends Dialog {
 				rbd_mngr.init( NcDisplayType.NMAP_DISPLAY ); 
 			}
 		}        
-		loadGempakCntrl = new LoadGempakControl( mngrTabFolder, rbd_mngr );
+		loadGempakCntrl = new LoadGridControl( mngrTabFolder, rbd_mngr );
 
     	final TabItem cnfgTabItem = new TabItem( mngrTabFolder, SWT.NONE );
     	cnfgTabItem.setText( "Manage Data" );
-    	manageRscCntrl = new ManageResourceControl( mngrTabFolder );
+    	manageRscCntrl = new ManageGridControl( mngrTabFolder );
     	mngrTabItem.setControl( loadGempakCntrl );
     	cnfgTabItem.setControl( manageRscCntrl );
 
@@ -166,10 +166,10 @@ public class ResourceManagerDialog extends Dialog {
        		public void widgetSelected( SelectionEvent ev ) {
        			TabItem[] seldTab = mngrTabFolder.getSelection();
        			
-       			if( seldTab[0].getControl() instanceof LoadGempakControl ) {       				
-       				((LoadGempakControl)seldTab[0].getControl()).updateDialog();
-       			} else if( seldTab[0].getControl() instanceof ManageResourceControl ) {       				
-       				((ManageResourceControl)seldTab[0].getControl()).updateDialog();
+       			if( seldTab[0].getControl() instanceof LoadGridControl ) {       				
+       				((LoadGridControl)seldTab[0].getControl()).updateDialog();
+       			} else if( seldTab[0].getControl() instanceof ManageGridControl ) {       				
+       				((ManageGridControl)seldTab[0].getControl()).updateDialog();
        			}
        		}
         });    	

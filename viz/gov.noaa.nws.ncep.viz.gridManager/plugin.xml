@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-          id="gov.noaa.nws.ncep.viz.actions.resourceManager"
+          id="gov.noaa.nws.ncep.viz.actions.gridManager"
           name="Resource Manager">
          <commandParameter
                id="mode"
@@ -12,30 +12,14 @@
                optional="true">
          </commandParameter>
       </command>
-      <command
-            id="gov.noaa.nws.ncep.viz.ui.newResource"
-            name="New Resource">
-      </command>
-      <command
-            id="gov.noaa.nws.ncep.viz.ui.saveBundle"
-            name="Save Bundle">
-      </command>
    </extension>
    
       <extension
          point="org.eclipse.ui.handlers">
        <handler
-            class="gov.noaa.nws.ncep.viz.resourceManager.ui.ResourceManagerAction"
-            commandId="gov.noaa.nws.ncep.viz.actions.resourceManager">
+            class="gov.noaa.nws.ncep.viz.gridManager.ui.GridManagerAction"
+            commandId="gov.noaa.nws.ncep.viz.actions.gridManager">
        </handler>   
-      <handler
-            class="gov.noaa.nws.ncep.viz.resourceManager.ui.newResource.NewResourceAction"
-            commandId="gov.noaa.nws.ncep.viz.ui.newResource">
-      </handler>
-      <handler
-            class="gov.noaa.nws.ncep.viz.resourceManager.ui.saveBundle.SaveBundleAction"
-            commandId="gov.noaa.nws.ncep.viz.ui.saveBundle">
-      </handler>
    </extension>
 
     <extension

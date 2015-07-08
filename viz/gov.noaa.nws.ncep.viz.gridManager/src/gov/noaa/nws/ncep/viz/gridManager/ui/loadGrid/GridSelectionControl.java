@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
+package gov.noaa.nws.ncep.viz.gridManager.ui.loadGrid;
 
 import static java.lang.System.out;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
@@ -90,7 +90,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author ghull
  * @version 1
  */
-public class ResourceSelectionControl extends Composite {
+public class GridSelectionControl extends Composite {
 
     protected ResourceDefnsMngr rscDefnsMngr;
 
@@ -161,7 +161,7 @@ public class ResourceSelectionControl extends Composite {
 
     protected NcDisplayType seldDisplayType;
 
-    public ResourceSelectionControl(Composite parent, Boolean replaceVisible,
+    public GridSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
             Boolean multiPane, NcDisplayType dispType) throws VizException {
         super(parent, SWT.SHADOW_NONE);
@@ -210,7 +210,7 @@ public class ResourceSelectionControl extends Composite {
         initWidgets(initRscName);
     }
     
-    public ResourceSelectionControl(Composite parent, Boolean replaceVisible,
+    public GridSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
             Boolean multiPane ) throws VizException {
         super(parent, SWT.SHADOW_NONE);
@@ -338,7 +338,7 @@ public class ResourceSelectionControl extends Composite {
         }
     }
 
-    public ResourceSelectionControl(Composite parent) throws VizException {
+    public GridSelectionControl(Composite parent) throws VizException {
         // TODO: dorky?? This is a pass-thru constructor, just so
         // NtransSelectionControl can call the grandparent constructor, but do
         // its own version of the useful work of the main constructor above.
@@ -346,10 +346,10 @@ public class ResourceSelectionControl extends Composite {
         // http://stackoverflow.com/questions/1878558/jump-over-parent-constructor-to-call-grandparents
         // Better solution might be to do a refactor "pull"
         // AbstractResourceSelectionControl superclass out of
-        // ResourceSelectionControl
+        // GridSelectionControl
         // and have NtransSelectionControl extend the former. But that would
         // mess
-        // with existing ResourceSelectionControl, which is working and tested
+        // with existing GridSelectionControl, which is working and tested
         // with
         // non-NTRANS resources. Maybe someday...?
         super(parent, SWT.SHADOW_NONE);

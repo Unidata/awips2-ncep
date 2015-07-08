@@ -1,9 +1,9 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids;
 
 import java.util.List;
 
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ResourceEditSelectionComposite.EditResourceAction;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ResourceEditSelectionComposite.IEditResourceListener;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.GridEditSelectionComposite.EditResourceAction;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.GridEditSelectionComposite.IEditResourceListener;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
@@ -42,7 +42,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author 
  * @version 1
  */
-public class ManageResourceControl extends Composite {
+public class ManageGridControl extends Composite {
 
 	private Shell shell;
 
@@ -54,7 +54,7 @@ public class ManageResourceControl extends Composite {
     
     private Point initDlgSize = new Point( 850, 860 );
 
-    private ResourceEditSelectionComposite selectResourceComp = null;
+    private GridEditSelectionComposite selectResourceComp = null;
     
    	public interface IEditResourceComposite {
    		
@@ -76,7 +76,7 @@ public class ManageResourceControl extends Composite {
 
     private IEditResourceComposite activeEditComposite = null;
     
-    private EditResourceTypeComp editRscTypeComp;
+    private EditGridTypeComp editRscTypeComp;
     
     private EditAttrSetGroupComp editAttrSetGroupComp;
     
@@ -84,7 +84,7 @@ public class ManageResourceControl extends Composite {
     
 //    private NoEditActionComp nullEditActionComp;
     
-    public ManageResourceControl(Composite parent )   throws VizException {
+    public ManageGridControl(Composite parent )   throws VizException {
         super(parent, SWT.NONE);
         
         rscDefnMngr = ResourceDefnsMngr.getInstance();
@@ -119,7 +119,7 @@ public class ManageResourceControl extends Composite {
         selRscGrp.setLayout( new FormLayout() );
         
     	try {
-    		selectResourceComp = new ResourceEditSelectionComposite( selRscGrp, editActionListener );
+    		selectResourceComp = new GridEditSelectionComposite( selRscGrp, editActionListener );
 		} catch (VizException e) {
 			e.printStackTrace();
 		} catch ( Exception e ) {
@@ -137,7 +137,7 @@ public class ManageResourceControl extends Composite {
 		editRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
 		editRscGrp.setLayout( new FormLayout() );
 		
-		editRscTypeComp = new EditResourceTypeComp( 
+		editRscTypeComp = new EditGridTypeComp( 
 				editRscGrp, SWT.SHADOW_NONE, this );
 
 		editAttrSetGroupComp = new EditAttrSetGroupComp( 

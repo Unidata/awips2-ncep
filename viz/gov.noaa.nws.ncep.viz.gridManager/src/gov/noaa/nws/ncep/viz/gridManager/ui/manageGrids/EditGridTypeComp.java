@@ -1,8 +1,8 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids;
 
 import gov.noaa.nws.ncep.viz.common.StringListAdapter;
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.ManageGridControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
@@ -71,10 +71,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author
  * @version 1
  */
-class EditResourceTypeComp extends Composite implements IEditResourceComposite {
+class EditGridTypeComp extends Composite implements IEditResourceComposite {
     ResourceDefnsMngr rscDefnMngr;
 
-    ManageResourceControl mngrControl; // the parent composite
+    ManageGridControl mngrControl; // the parent composite
 
     ResourceName seldRscName = null;
 
@@ -149,8 +149,8 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     1, 2, 5, 10, 15, 20, 30, 60, 90, 120, 180, 360, 720, 1440,
             Integer.MAX_VALUE };
 
-    public EditResourceTypeComp(Composite parent, int style,
-            ManageResourceControl mgrCtl) {
+    public EditGridTypeComp(Composite parent, int style,
+            ManageGridControl mgrCtl) {
         super(parent, style);
         Composite top_form = this;
 

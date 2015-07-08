@@ -1,8 +1,8 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui;
+package gov.noaa.nws.ncep.viz.gridManager.ui;
 
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.Activator;
+import gov.noaa.nws.ncep.viz.gridManager.Activator;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
@@ -34,9 +34,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author 
  * @version 1
  */
-public class ResourceManagerAction extends AbstractHandler {
+public class GridManagerAction extends AbstractHandler {
 
-	static  ResourceManagerDialog id = null;
+	static  GridManagerDialog id = null;
 	
     /*
      * (non-Javadoc)
@@ -63,7 +63,7 @@ public class ResourceManagerAction extends AbstractHandler {
         	RscBundleDisplayMngr rbdMngr = new RscBundleDisplayMngr( 
         			new NcPaneLayout(3,3), NcDisplayType.NMAP_DISPLAY );
 
-            id = new ResourceManagerDialog( NcDisplayMngr.getCaveShell(),
+            id = new GridManagerDialog( NcDisplayMngr.getCaveShell(),
             		                        "Resource Manager", rbdMngr, mode );    
             id.open();
             id = null;

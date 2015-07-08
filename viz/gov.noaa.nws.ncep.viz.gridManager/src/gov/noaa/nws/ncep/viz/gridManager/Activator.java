@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager;
+package gov.noaa.nws.ncep.viz.gridManager;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -9,7 +9,7 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "gov.noaa.nws.ncep.viz.resourceManager";
+	public static final String PLUGIN_ID = "gov.noaa.nws.ncep.viz.gridManager";
 
 	// The shared instance
 	private static Activator plugin;

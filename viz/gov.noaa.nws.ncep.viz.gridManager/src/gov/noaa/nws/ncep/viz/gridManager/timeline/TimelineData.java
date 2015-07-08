@@ -6,7 +6,7 @@
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
 
-package gov.noaa.nws.ncep.viz.resourceManager.timeline;
+package gov.noaa.nws.ncep.viz.gridManager.timeline;
 
 import java.util.ArrayList;
 import java.util.Calendar;

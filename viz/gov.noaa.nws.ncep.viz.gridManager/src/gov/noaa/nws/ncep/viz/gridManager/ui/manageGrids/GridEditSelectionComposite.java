@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids;
 
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
@@ -61,7 +61,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author ghull
  * @version 1
  */
-public class ResourceEditSelectionComposite extends Composite {
+public class GridEditSelectionComposite extends Composite {
 	
 	private ResourceDefnsMngr rscDefnsMngr;
 	
@@ -148,7 +148,7 @@ public class ResourceEditSelectionComposite extends Composite {
     };
 
 	
-    public ResourceEditSelectionComposite( Composite parent, IEditResourceListener editActionListener )   throws VizException {
+    public GridEditSelectionComposite( Composite parent, IEditResourceListener editActionListener )   throws VizException {
         super(parent, SWT.SHADOW_NONE );
         
         rscDefnsMngr = ResourceDefnsMngr.getInstance();

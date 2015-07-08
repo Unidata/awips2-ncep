@@ -1,7 +1,7 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
+package gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids;
 
+import gov.noaa.nws.ncep.viz.gridManager.ui.manageGrids.ManageGridControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup.RscAndGroupName;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
@@ -65,7 +65,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 class EditAttrSetComp extends Composite implements IEditResourceComposite {
 	private ResourceDefnsMngr rscDefnMngr;
-	private ManageResourceControl mngrControl; // the parent composite 
+	private ManageGridControl mngrControl; // the parent composite 
 
 	private ResourceName       seldRscName=null;
 	private ResourceDefinition seldRscDefn=null;
@@ -87,7 +87,7 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
 	// 
 	private ArrayList<RscAndGroupName> availGroupsList;
 
-	public EditAttrSetComp( Composite parent, int style, ManageResourceControl mgrCtl ) {
+	public EditAttrSetComp( Composite parent, int style, ManageGridControl mgrCtl ) {
 		super( parent, style );
 		Composite top_form = this;      
 

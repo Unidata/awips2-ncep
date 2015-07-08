@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
+package gov.noaa.nws.ncep.viz.gridManager.ui.loadGrid;
 
 import gov.noaa.nws.ncep.viz.common.area.AreaMenus.AreaMenuItem;
 import gov.noaa.nws.ncep.viz.common.area.AreaName;
@@ -10,8 +10,8 @@ import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
 import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
+import gov.noaa.nws.ncep.viz.gridManager.timeline.TimelineControl;
+import gov.noaa.nws.ncep.viz.gridManager.ui.loadGrid.GridSelectionControl.IResourceSelectedListener;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
@@ -21,7 +21,6 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
@@ -38,7 +37,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
@@ -56,7 +54,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -82,7 +79,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * @author ghull
  * @version 1
  */
-public class LoadGempakControl extends Composite implements IPartListener2 {
+public class LoadGridControl extends Composite implements IPartListener2 {
 
     private RscBundleDisplayMngr rbdMngr;
 
@@ -90,29 +87,21 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
     private SashForm sash_form = null;
 
-    private Group rbd_grp = null;
-
     private Group add_grp = null;
 
-    private ResourceSelectionControl sel_rsc_cntrl = null;
+    private GridSelectionControl sel_rsc_cntrl = null;
     
     private Set<IResourceSelectedListener> rscSelListeners = new HashSet<IResourceSelectedListener>();
     
     private String rbd_name_txt = null;
 
-    //private ListViewer seld_rscs_lviewer = null;
-    
     private Object seld_rscs_list = null;
-
-    private TableViewer groupListViewer;
 
     private MenuManager areaMenuMngr = null;
 
     private Label import_lbl = null;
         
     private Button load_rbd_btn = null;
-
-    private Button load_and_close_btn = null;
 
     private Button clear_rbd_btn = null;
 
@@ -125,16 +114,9 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     private AbstractRBD<?> editedRbd = null; // set on OK when this is an 'Edit
                                              // Rbd' dialog
 
-    // used to initialize the Save Dialog
-    private String savedSpfGroup = null;
-
-    private String savedSpfName = null;
-
     private Point initDlgSize = new Point(850, 860);
 
     private TimelineControl timelineControl = null;
-
-    private final String ImportFromSPF = "Import";
 
     private Group timeline_grp;
 
@@ -143,7 +125,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
     // the rbdMngr will be used to set the gui so it should either be
     // initialized/cleared or set with the initial RBD.
-    public LoadGempakControl(Composite parent, RscBundleDisplayMngr mngr)
+    public LoadGridControl(Composite parent, RscBundleDisplayMngr mngr)
             throws VizException {
         super(parent, SWT.NONE);
         shell = parent.getShell();
@@ -152,8 +134,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
 
         Composite top_comp = this;
         top_comp.setLayout(new GridLayout(1, true));
-
-        // top_comp.setSize( 400, 400 );
 
         sash_form = new SashForm(top_comp, SWT.VERTICAL);
         GridData gd = new GridData();
@@ -168,9 +148,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         /*
          * Add Grid Group
          */
-        
         createAddGroup();
-
         seld_rscs_list = rbdMngr.getUngroupedResources();
 
         /*
@@ -209,14 +187,14 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         fd.left = new FormAttachment(17, -65);
         clear_rbd_btn.setLayoutData(fd);
 
-        load_and_close_btn = new Button(loadSaveComp, SWT.PUSH);
-    	load_and_close_btn.setText("Load");
+        load_rbd_btn = new Button(loadSaveComp, SWT.PUSH);
+        load_rbd_btn.setText("Load");
         fd = new FormData();
         fd.width = 120;
         fd.top = new FormAttachment(0, 7);
         // fd.bottom = new FormAttachment( 100, -7 );
         fd.left = new FormAttachment(63, -50);
-        load_and_close_btn.setLayoutData(fd);
+        load_rbd_btn.setLayoutData(fd);
 
         cancel_edit_btn = new Button(loadSaveComp, SWT.PUSH);
         cancel_edit_btn.setText(" Cancel ");
@@ -255,9 +233,9 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
                 try {
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                             .getActivePage()
-                            .removePartListener(LoadGempakControl.this);
+                            .removePartListener(LoadGridControl.this);
 
-                    LoadGempakControl.this.dispose(); // now mark for disposal
+                    LoadGridControl.this.dispose(); // now mark for disposal
                 } catch (NullPointerException npe) {
                     // do nothing if already disposed, another thread already
                     // swept it up..
@@ -287,7 +265,7 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         shell.setLayout(mainLayout);
 
         try {
-            sel_rsc_cntrl = new ResourceSelectionControl(add_grp,
+            sel_rsc_cntrl = new GridSelectionControl(add_grp,
                     false, false, initRscName,
                     false);
             for (IResourceSelectedListener lstnr : rscSelListeners) {
@@ -360,9 +338,9 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
             }
         });
 
-        load_and_close_btn.addSelectionListener(new SelectionAdapter() {
+        load_rbd_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                loadRBD(true);
+                loadRBD(false);
             }
         });
 
@@ -384,7 +362,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
         import_lbl.setVisible(false);
         clear_rbd_btn.setVisible(false);
         load_rbd_btn.setVisible(false);
-        load_and_close_btn.setVisible(false);
         cancel_edit_btn.setVisible(true);
         ok_edit_btn.setVisible(true);
         cancel_edit_btn.addSelectionListener(new SelectionAdapter() {
@@ -605,7 +582,6 @@ public class LoadGempakControl extends Composite implements IPartListener2 {
     private void updateSelectedResourcesView(boolean updateList) {
         if (updateList) {
             seld_rscs_list = rbdMngr.getUngroupedResources();
-            Object newList = seld_rscs_list;
         }
     }
 

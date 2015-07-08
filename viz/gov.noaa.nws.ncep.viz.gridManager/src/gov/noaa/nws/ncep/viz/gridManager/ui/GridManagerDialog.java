@@ -97,7 +97,7 @@ public class GridManagerDialog extends Dialog {
     	mngrTabFolder.setLayoutData( gd );
 
     	final TabItem mngrTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	mngrTabItem.setText( "Create Bundle" );
+    	mngrTabItem.setText( "Load Grid" );
     	
     	// get the active Display and set the rbd_mngr with it 
     	AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -126,7 +126,7 @@ public class GridManagerDialog extends Dialog {
 		loadGempakCntrl = new LoadGridControl( mngrTabFolder, rbd_mngr );
 
     	final TabItem cnfgTabItem = new TabItem( mngrTabFolder, SWT.NONE );
-    	cnfgTabItem.setText( "Manage Data" );
+    	cnfgTabItem.setText( "Manage Grids" );
     	manageRscCntrl = new ManageGridControl( mngrTabFolder );
     	mngrTabItem.setControl( loadGempakCntrl );
     	cnfgTabItem.setControl( manageRscCntrl );

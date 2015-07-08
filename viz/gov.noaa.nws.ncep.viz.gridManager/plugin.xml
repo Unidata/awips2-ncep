@@ -5,7 +5,7 @@
          point="org.eclipse.ui.commands">
       <command
           id="gov.noaa.nws.ncep.viz.actions.gridManager"
-          name="Resource Manager">
+          name="Ncgrid Manager">
          <commandParameter
                id="mode"
                name="mode"

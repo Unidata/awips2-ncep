@@ -64,7 +64,7 @@ public class GridManagerAction extends AbstractHandler {
         			new NcPaneLayout(3,3), NcDisplayType.NMAP_DISPLAY );
 
             id = new GridManagerDialog( NcDisplayMngr.getCaveShell(),
-            		                        "Resource Manager", rbdMngr, mode );    
+            		                        "Ncgrid Manager", rbdMngr, mode );    
             id.open();
             id = null;
 

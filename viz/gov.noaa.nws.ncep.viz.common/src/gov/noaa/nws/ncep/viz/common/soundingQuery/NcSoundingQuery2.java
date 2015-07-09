@@ -1,7 +1,9 @@
 //<<<<<<< .working
 package gov.noaa.nws.ncep.viz.common.soundingQuery;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingRequestType;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer.DataType;
@@ -13,8 +15,7 @@ import java.util.List;
 
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.viz.core.comm.Connector;
-import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.vividsolutions.jts.geom.Coordinate;
 
 /**
@@ -33,6 +34,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/25/2014              Chin Chen    support dropsonde
  * 07/23/2014              Chin Chen    Support PW
  * 08/27/2014              Chin Chen    fixed bug happened when query with empty stanid array
+ * 06/11/2015     RM#8306  Chin Chen	eliminate dependence on uEngine as message passing broker, instead, use ThriftClient 
+ *                                      for sending query request message to EDEX
  * </pre>
  * 
  * @author ghull
@@ -40,7 +43,6 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 
 public class NcSoundingQuery2 {
-
     // TODO : change this to an enum or preferably a pluginName
     private String pluginName = null;
 
@@ -252,404 +254,121 @@ public class NcSoundingQuery2 {
         this.pwRequired = pwRequired;
     }
 
-    public NcSoundingCube query() {// throws Exception {
-        // change this to allow returning all available profiles.
+    //RM#8306
+    public NcSoundingCube query(){
         if (latLonCoords == null && stationIds == null && stationNums == null) {
             System.out
                     .println("The query must have either a lat/lon, or stations constraints.");
             return null;
         }
         //
-        else if (refTime == null && timeRange == null) {
+        else if (refTime == null ) {
             System.out
-                    .println("The query must have either a timeRange, or refTime constraint.");
+                    .println("The query must have a refTime constraint.");
             return null;
         }
-
-        NcSoundingCube cube = null;
-        StringBuilder query = new StringBuilder();
-
-        query.append("import NcSoundingDataRequest\n");
-        query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-
-        // TODO : modify the uengine script to accept the pluginName instead of
-        // a soundingType
-        //
+    	NcSoundingCube cube = null;
+    	SoundingServiceRequest request = new SoundingServiceRequest();
+		request.setReqType(SoundingRequestType.GET_SOUNDING_DATA_GENERIC);
+		
         if (pluginName.equals("ncuair")) {
-            query.append("sndRq.setSndType('NCUAIR')\n");
-        } else if (pluginName.equals("uair")) {
-            query.append("sndRq.setSndType('UAIR')\n");
+        	request.setSndType(SoundingType.OBS_UAIR_SND);
         } else if (pluginName.equals("bufrua")) {
-            query.append("sndRq.setSndType('BUFRUA')\n");
-        } else if (pluginName.equals("tamdar")) {
-            query.append("sndRq.setSndType('TAMDAR')\n");
+        	request.setSndType(SoundingType.OBS_BUFRUA_SND);
         } else if (pluginName.equals("modelsounding")) {
             // the uengine script uses a soundingType which is the based
             // on the pluginName and the modelName/reportType
             if (modelName == null) {
                 System.out
                         .println("ModelName is not set for modelsounding plugin?");
+                return null;
             } else if (modelName.startsWith("NAM")
                     || modelName.startsWith("ETA")) {
-                query.append("sndRq.setSndType('NAMSND')\n");
+            	request.setSndType(SoundingType.PFC_NAM_SND);
             } else if (modelName.startsWith("GFS")) {
-                query.append("sndRq.setSndType('GFSSND')\n");
-            }
-
-            // RUC currently not supported but pass it thru anyway
-            else if (modelName.startsWith("RUC2")) {
-                query.append("sndRq.setSndType('RUC2SND')\n");
-            }
-            // ?? is this right
-            else if (modelName.startsWith("RUCPTY")) {
-                query.append("sndRq.setSndType('RUCPTYSND')\n");
+            	request.setSndType(SoundingType.PFC_GFS_SND);
             } else {
                 System.out
                         .println("Unrecognized ModelName for modelsounding plugin: "
                                 + modelName);
+                return null;
             }
         }
-        // for
         else if (pluginName.equals("ncgrib") || pluginName.equals("grib")) {
-            query.append("sndRq.setPluginName('" + pluginName + "')\n");
-
+        	request.setSndType(SoundingType.GRID_MODEL_SND);
             // sanity check that modelName is set?
             if (modelName != null) {
-                query.append("sndRq.setModelName('" + modelName + "')\n");
+            	request.setModelType(modelName);
             } else {
                 System.out
                         .println("ModelName is not set for grib or ncgrib plugin???");
+                return null;
             }
         } else {
             System.out.println("NcSoundingQuery2 doesn't support plugin: "
                     + pluginName);
+            return null;
         }
-
-        query.append("sndRq.setDataType('" + uairLevelType.toString() + "')\n");
-
+        // do not support DATA_TYPE now, as edex sounding query service does not support it now and
+        // no any applications use it.
+        
         if (refTime != null) {
-            query.append("sndRq.setRefTime(" + refTime.getTime() + "L)\n");
-
+        	long[] refTimeAry = {refTime.getTime()};
+        	request.setRefTimeAry(refTimeAry);
             // use the forecast hour to create the valid time.
-            // TODO : change the uengine script to have a separate
-            // method to set the validTime (or better, the forecast hour)
-            // instead of overloading the setValidTimeStart.
-            //
             DataTime validTime = new DataTime(refTime, forecastHour);
-            query.append("sndRq.setValidTimeStart("
-                    + validTime.getValidTime().getTimeInMillis() + "L)\n");
-
-            query.append("sndRq.setValidTimeEnd(0L)\n");
-            // System.out.println("refT=" + refTime.toString() + " StartT="
-            // + validTime.getValidTime().getTime().toString()
-            // + " StartT(GMT)="
-            // + validTime.getValidTime().getTime().toGMTString());
-        } else if (timeRange != null) {
-            // TODO : should set the refTime to 0 but since NcSoundingQuery
-            // is setting this to the startTime I am having this do the same.
-            //
-            // query.append("sndRq.setRefTime(0L)\n");
-            query.append("sndRq.setRefTime(" + timeRange.getStart().getTime()
-                    + "L)\n");
-            query.append("sndRq.setValidTimeStart("
-                    + timeRange.getStart().getTime() + "L)\n");
-            query.append("sndRq.setValidTimeEnd("
-                    + timeRange.getEnd().getTime() + "L)\n");
-            // System.out.println("refT=" + timeRange.getStart().toGMTString()
-            // + " StartT=" + timeRange.getStart().toGMTString()
-            // + " endT=" + timeRange.getEnd().toGMTString());
+            long[] rangeTimeAry = {validTime.getValidTime().getTimeInMillis()};
+            request.setRangeStartTimeAry(rangeTimeAry);
+        } else{
+        	return null;
         }
 
         if (rangeTimeList != null) {
-            String rtStr = "[";
+        	long[] rangeTimeAry = new long[rangeTimeList.size()];
             for (int i = 0; i < rangeTimeList.size(); i++) {
-                rtStr = rtStr + rangeTimeList.get(i) + "L";
-                if (i < rangeTimeList.size() - 1)
-                    rtStr = rtStr + ",";
+            	rangeTimeAry[i]= rangeTimeList.get(i) ;
             }
-            rtStr = rtStr + "]";
-            query.append("sndRq.setRangeTimeArr(" + rtStr + ")\n");
+            request.setRangeStartTimeAry(rangeTimeAry);
         }
-        query.append("sndRq.setMerge(" + (merge ? "1" : "0") + ")\n");
+        request.setMerge(merge);
         // Support PW
-        query.append("sndRq.setPwRequired(" + (pwRequired ? "1" : "0") + ")\n");
-        query.append("sndRq.setLevel('" + level + "')\n");
-        query.append("sndRq.setNcSoundingLayer2(1)\n");
+        request.setPwRequired(pwRequired);
+        if(level == null)
+        	level = "N/A";
+        request.setLevel(level);
+        request.setUseNcSoundingLayer2(true);
 
         // set either lat/lon, stationId or stationNum
         if (latLonCoords != null) {
-            String latLonStr = "[";
-            // double maxLat= 0;double minLat=0; double maxLon=0; double
-            // minLon=0;
+            Coordinate[] latLonAry= new Coordinate[latLonCoords.size()];
             for (int i = 0; i < latLonCoords.size(); i++) {
                 Coordinate latlon = latLonCoords.get(i);
-
-                if (i == latLonCoords.size() - 1) {
-                    latLonStr = latLonStr + latlon.y + "," + latlon.x;
-                } else {
-                    latLonStr = latLonStr + latlon.y + "," + latlon.x + ",";
-                }
+                latLonAry[i]= latlon;
             }
-            latLonStr = latLonStr + "]";
-            // System.out.println("1query stn siz=" + latLonCoords.size());
-
-            query.append("return sndRq.getSoundingData2ByLatLonArray("
-                    + latLonStr + ")");
+            request.setLatLonAry(latLonAry);
         } else if (stationIds != null) {
-            String stnStr = "[";
-
+        	String [] stnIdAry = new String[stationIds.size()];
             for (int i = 0; i < stationIds.size(); i++) {
-
-                if (i == stationIds.size() - 1) {
-                    stnStr = stnStr + "'" + stationIds.get(i) + "'";
-                } else {
-                    stnStr = stnStr + "'" + stationIds.get(i) + "'" + ",";
-                }
+            	stnIdAry[i]= stationIds.get(i) ;
             }
-            stnStr = stnStr + "]";
-            // System.out.println("2query stn siz="+stationIds.size());
-            query.append("return sndRq.getSoundingData2ByStnIdArray(" + stnStr
-                    + ")");
-
-        } else {
-            return cube;
-            /*
-             * if( stationNums != null ) { String stnStr = "[";
-             * 
-             * for( int i=0; i < stationNums.size(); i ++){
-             * 
-             * if( i == stationNums.size()-1 ) { stnStr = stnStr + "'" +
-             * stationNums.get(i) + "'" + "]"; } else { stnStr = stnStr + "'" +
-             * stationNums.get(i) + "'" + ","; } }
-             * //System.out.println("3query stn siz="+stationNums.size());
-             * query.
-             * append("return sndRq.getSoundingDataByStnNumArray("+stnStr+")");
-             */
+            request.setStnIdAry(stnIdAry);
         }
-
-        // System.out.println(query.toString());
-
-        Object[] pdoList;
         try {
-            // query DB from EDEX
-            NcUnits.register();
-            // long t01 = System.currentTimeMillis();
-            pdoList = Connector.getInstance().connect(query.toString(), null,
-                    60000);
-            if (pdoList[0] instanceof NcSoundingCube)
-                cube = (NcSoundingCube) pdoList[0];
-            // long t02 = System.currentTimeMillis();
-            // System.out.println("return from edex...takes "+(t02-t01)+" msec with # of profile = "+
-            // cube.getSoundingProfileList().size());
-            // for (int i = 0; i < cube.getSoundingProfileList().size(); i++) {
-            // System.out.println("lat/lon="
-            // + cube.getSoundingProfileList().get(i)
-            // .getStationLatitude()
-            // + "/"
-            // + cube.getSoundingProfileList().get(i)
-            // .getStationLongitude()
-            // + " temp="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getTemperature()
-            // + " dewp="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getDewpoint()
-            // + " press="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getPressure()
-            // + " height="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getGeoHeight()
-            // + " windSp="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getWindSpeed()
-            // + " windDir="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getWindDirection()
-            // + " omega="
-            // + cube.getSoundingProfileList().get(i)
-            // .getSoundingLyLst2().get(0).getOmega());
-            // }
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingCube)) {
+                //
+            	cube = (NcSoundingCube) rslts;
+            } else {
+                System.out.println("genericSoundingDataQuery Request Failed: ");
 
-        } catch (VizException e) {
-            System.out.println("query() failed: " + e.getMessage());
-            // e.printStackTrace();
-            return cube;
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return cube;
-
+    	return cube;
     }
 
-    // public static NcSoundingTimeLines soundingTimeLineQuery (String sndType){
-    // NcSoundingTimeLines timeLines = null;
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("sndRq.setSndType('"+sndType+"')\n");
-    // query.append("return sndRq.getSoundingTimeLine()");
-    // //System.out.println(query.toString());
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // if (pdoList[0] instanceof NcSoundingTimeLines)
-    // timeLines = (NcSoundingTimeLines) pdoList[0];
-    // //else
-    // // System.out.println((String)pdoList[0]);
-    //
-    // //System.out.println("return from edex...");
-    // return timeLines;
-    // }catch (VizException e) {
-    // System.out.println("soundingTimeLineQuery failed");
-    // return timeLines;
-    // }
-    // }
-    //
-    // public static NcSoundingTimeLines mdlSoundingTimeLineQuery (String
-    // sndType, String tableName){
-    // NcSoundingTimeLines timeLines = null;
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("sndRq.setSndType('"+sndType+"')\n");
-    // query.append("sndRq.setTableName('"+tableName+"')\n");
-    // query.append("return sndRq.getMdlSoundingTimeLine()");
-    // //System.out.println(query.toString());
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // if (pdoList[0] instanceof NcSoundingTimeLines)
-    // timeLines = (NcSoundingTimeLines) pdoList[0];
-    // //else
-    // // System.out.println((String)pdoList[0]);
-    //
-    // //System.out.println("return from edex...");
-    // return timeLines;
-    // }catch (VizException e) {
-    // System.out.println("soundingTimeLineQuery failed");
-    // return timeLines;
-    // }
-    // }
-    // public static NcSoundingTimeLines soundingRangeTimeLineQuery (String
-    // sndType, String refTime){
-    // NcSoundingTimeLines timeLines = null;
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("sndRq.setSndType('"+sndType+"')\n");
-    // query.append("sndRq.setRefTimeStr('"+refTime+"')\n");
-    // query.append("return sndRq.getSoundingRangeTimeLine()");
-    // //System.out.println(query.toString());
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // if (pdoList[0] instanceof NcSoundingTimeLines)
-    // timeLines = (NcSoundingTimeLines) pdoList[0];
-    //
-    // //System.out.println("return from edex...");
-    // return timeLines;
-    // }catch (VizException e) {
-    // System.out.println("soundingRangeTimeLineQuery failed");
-    // return timeLines;
-    // }
-    // }
-    //
-    // public static NcSoundingTimeLines mdlSoundingRangeTimeLineQuery (String
-    // sndType, String refTime, String tableName){
-    // NcSoundingTimeLines timeLines = null;
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("sndRq.setSndType('"+sndType+"')\n");
-    // query.append("sndRq.setTableName('"+tableName+"')\n");
-    // query.append("sndRq.setRefTimeStr('"+refTime+"')\n");
-    // query.append("return sndRq.getMdlSoundingRangeTimeLine()");
-    // //System.out.println(query.toString());
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // if (pdoList[0] instanceof NcSoundingTimeLines)
-    // timeLines = (NcSoundingTimeLines) pdoList[0];
-    //
-    // //System.out.println("return from edex...");
-    // return timeLines;
-    // }catch (VizException e) {
-    // System.out.println("soundingRangeTimeLineQuery failed");
-    // return timeLines;
-    // }
-    // }
-    // public static NcSoundingStnInfoCollection soundingStnInfoQuery (String
-    // sndType,String selectedSndTime){
-    // NcSoundingStnInfoCollection stnInfos = null;
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("sndRq.setSndType('"+sndType+"')\n");
-    // query.append("sndRq.setTimeLine('"+selectedSndTime+"')\n");
-    // query.append("return sndRq.getSoundingStnInfoCol()");
-    // //System.out.println(query.toString());
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // if(pdoList[0] instanceof NcSoundingStnInfoCollection)
-    // stnInfos = (NcSoundingStnInfoCollection) pdoList[0];
-    //
-    // //System.out.println("return from edex...stnInfos ");
-    // return stnInfos;
-    // } catch (VizException e) {
-    // System.out.println("soundingStnInfoQuery failed");
-    // e.printStackTrace();
-    // return stnInfos;
-    // }
-    // }
-    // public static Object[] soundingModelNameQuery(String pluginName){
-    // StringBuilder query = new StringBuilder();
-    // query.append("import NcSoundingDataRequest\n");
-    // query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-    // query.append("return sndRq.getSoundingModelNames('"+pluginName+"')");
-    // Object[] pdoList;
-    // try {
-    // pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-    // //System.out.println("return from edex...soundingModelNameQuery ");
-    // //for(Object str: pdoList){
-    // // System.out.println("model name:"+str);
-    // //}
-    // return pdoList;
-    // } catch (VizException e) {
-    // System.out.println("soundingModelNameQuery failed");
-    // e.printStackTrace();
-    // return null;
-    // }
-    // }
-    // public static Calendar convertTimeStrToCalendar(String intimeStr){
-    // int year, mon, date, hr;
-    // String timeStr = new String(intimeStr);
-    // int index = timeStr.indexOf('-');
-    //
-    // if (index >= 4 ){
-    // year = Integer.parseInt(timeStr.substring(index-4, index));
-    // timeStr = timeStr.substring(index+1);
-    // index = timeStr.indexOf('-');
-    // if(index >= 2 ){
-    // mon = Integer.parseInt(timeStr.substring(index-2, index));
-    // timeStr = timeStr.substring(index+1);
-    // index = timeStr.indexOf(' ');
-    // if(index >= 2 ){
-    // date = Integer.parseInt(timeStr.substring(index-2, index));
-    // timeStr = timeStr.substring(index+1);
-    // //index = refTimeStr.indexOf(':');
-    // if(timeStr.length() >= 2 ){
-    // hr = Integer.parseInt(timeStr.substring(0, 2));
-    // Calendar cal;
-    // cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-    // // reset time
-    // cal.setTimeInMillis(0);
-    // // set new time
-    // cal.set(year, mon-1, date, hr, 0,0);
-    // return cal;
-    // }
-    // }
-    // }
-    // }
-    // return null;
-    // }
+    //end RM#8306
+
 }

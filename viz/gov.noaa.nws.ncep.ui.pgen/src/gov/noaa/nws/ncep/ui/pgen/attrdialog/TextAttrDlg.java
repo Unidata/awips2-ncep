@@ -15,6 +15,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 import java.awt.Color;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -51,6 +52,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      the complete color matrix.
  * 04/11		#?			B. Yin		Re-factor IAttribute
  * 03/13		#928		B. Yin 		Added a separator above the button bar.
+ * 07/15        R8903       J. Lopez    Creates a pop up if the text field is left blank
  * </pre>
  * 
  * @author J. Wu
@@ -64,8 +66,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
     public static int[] FontSizeValue = { 10, 12, 14, 18, 24, 34 };
 
-    // public static String[] FontName = new String[]{ "Courier", "Helvetica",
-    // "Times" };
     public static String[] FontName = new String[] { "Courier",
             "Nimbus Sans L", "Liberation Serif" };
 
@@ -940,6 +940,23 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         northBtn = new Button(relGroup, SWT.RADIO);
         northBtn.setText("North");
+    }
+
+    @Override
+    public void okPressed() {
+
+        /*
+         * An error will pop up if the user leaves the text field blank. This
+         * prevents errors in DisplayElementsFactory.java when bounds is null
+         */
+        if (text.getText().length() == 0 || text.getText().matches("^[ \n]*$")) {
+
+            MessageDialog.openError(null, "Warning!", "No text entered");
+
+        } else {
+
+            super.okPressed();
+        }
     }
 
     @Override

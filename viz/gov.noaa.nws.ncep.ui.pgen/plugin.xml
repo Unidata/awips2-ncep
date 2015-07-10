@@ -598,7 +598,7 @@
                   commandId="gov.noaa.nws.ncep.ui.pgen.activityManage"
                   label="Start"
                   mnemonic="S"
-                  style="pulldown"
+                  style="push"
                   id="gov.noaa.nws.ncep.ui.pgen.PGEN.activityLaunch">
            </command>
                              

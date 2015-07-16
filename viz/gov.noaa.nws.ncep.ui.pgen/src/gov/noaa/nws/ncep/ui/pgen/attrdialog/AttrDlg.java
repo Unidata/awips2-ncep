@@ -280,6 +280,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
 
             if (adcList != null && !adcList.isEmpty()) {
                 DrawableElement newEl = null;
+
                 // loop through the list and update attributes
                 for (AbstractDrawableComponent adc : adcList) {
 
@@ -301,6 +302,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                             dec.add(0, newEl);
                             newList.add(dec);
                         } else {
+
                             newList.add(newEl);
                         }
                     }

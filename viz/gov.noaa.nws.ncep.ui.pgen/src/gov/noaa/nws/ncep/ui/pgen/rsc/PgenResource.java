@@ -154,6 +154,11 @@ import com.vividsolutions.jts.geom.Point;
  * 12/14     R5198/TTR1057  J. Wu       Adding a method to select label over a line for Contours.
  * 06/15        R8199       S. Russell  Alter fillContextMenu() to NOT add a 
  *                                      "Delete Label" option where not appropriate
+ *                                      
+ * 07/13/2015   R8198       S. Russell  Altered fillContextMenu(),  added an
+ *                                      argument to getActionList(). Moved
+ *                                      several methods for 8199 into a the
+ *                                      new class PgenActionXtra
  * </pre>
  * 
  * @author B. Yin
@@ -2186,69 +2191,19 @@ public class PgenResource extends
 
         if (getSelectedDE() != null
                 && !(getSelectedDE() instanceof Jet.JetLine)) { // ignore jet
+
+            AbstractDrawableComponent adc = getSelectedDE();
+            String actionsxtra = PgenActionXtra.getActionsXtra(adc);
+
             List<String> actList = getActionList(this.getSelectedDE()
-                    .getPgenType());
+                    .getPgenType(), actionsxtra);
 
             if (actList != null) {
                 for (String act : actList) {
-
-                    if (act.equalsIgnoreCase(PgenConstant.DELETE_LABEL)) {
-                        if (!addActToContextMenu(act))
-                            continue;
-                    }
                     menuManager.add(new PgenAction(act.trim()));
                 }
             }
         }
-    }
-
-    /**
-     * Only add "Delete Label" to a context menu if the element selected is a
-     * labled symbol with a label
-     * 
-     * @param String
-     *            act ( a label for an entry on a context menu )
-     */
-    private boolean addActToContextMenu(String act) {
-        DrawableElement de = getSelectedDE();
-        Text label = getDELabel((DECollection) de.getParent());
-
-        if (label == null)
-            return false;
-
-        // Only labeled symbols get a "Delete Label" option on the context menu
-        if (act.equalsIgnoreCase(PgenConstant.DELETE_LABEL)
-                && !de.isLabeledSymbol()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Retrieve the 1st Text object that holds a label from a DECollection
-     * object that typically holds both the symbol and the label ( as a Text obj
-     * )
-     * 
-     * @param DECollection
-     *            labeledSymbol
-     */
-    private Text getDELabel(DECollection labeledSymbol) {
-
-        Text label = null;
-        Iterator<AbstractDrawableComponent> it = labeledSymbol
-                .getComponentIterator();
-
-        while (it.hasNext()) {
-            AbstractDrawableComponent item = it.next();
-            if (item instanceof Text) {
-                label = (Text) item;
-                return label;
-            }
-        }
-
-        return label;
-
     }
 
     /**
@@ -2259,28 +2214,38 @@ public class PgenResource extends
      * @param objName
      * @return
      */
-    private List<String> getActionList(String objName) {
+    private List<String> getActionList(String objName, String actionsxtra) {
         HashMap<String, IConfigurationElement> itemMap = PgenSession
                 .getInstance().getPgenPalette().getItemMap();
 
         IConfigurationElement ice = itemMap.get(objName);
         if (ice != null) {
             // get actions for the object
-            String actList = ice.getAttribute("actions");
+            String actList = ice.getAttribute(PgenConstant.ACTIONS);
 
             // if no actions for the object, get actions for the class/category
             if (actList == null) {
-                String category = ice.getAttribute("className");
+                String category = ice.getAttribute(PgenConstant.CLASSNAME);
                 if (category != null) {
                     IConfigurationElement cat = itemMap.get(category);
                     if (cat != null) {
-                        actList = cat.getAttribute("actions");
+                        actList = cat.getAttribute(PgenConstant.ACTIONS);
                     }
                 }
             }
 
+            // Add conditional context menu choices to the context menu
+            if (actionsxtra != null) {
+                if (actList != null) {
+                    actList = actList + "," + actionsxtra;
+                } else {
+                    actList = actionsxtra;
+                }
+            }
+
             if (actList != null && !actList.isEmpty()) {
-                return Arrays.asList(actList.split("\\s*,\\s*"));
+                return Arrays.asList(actList
+                        .split(PgenConstant.PLUGINXML_ATTRIBUTE_DELIMETER));
             }
         }
 

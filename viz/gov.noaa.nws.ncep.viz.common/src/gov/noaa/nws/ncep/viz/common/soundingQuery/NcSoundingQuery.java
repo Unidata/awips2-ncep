@@ -17,26 +17,32 @@ package gov.noaa.nws.ncep.viz.common.soundingQuery;
  * 02/15/2012               Chin Chen   modify several sounding query algorithms for better performance
  * Oct 15, 2012 2473        bsteffen    Remove ncgrib
  * 03/04/2015   RM#6674     Chin Chen   support data interpolation configuration for model sounding query 
+ * 05272015     RM#8306		Chin Chen	eliminate dependence on uEngine as message passing broker, instead, use ThriftClient 
+ *                                      for sending query request message to EDEX
  * </pre>
  * 
  * @author Chin Chen
  * @version 1.0
  */
 
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingRequestType;
+import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingModel;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.MdlSndType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.PfcSndType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
 import java.util.Calendar;
-import java.util.List;
 import java.util.TimeZone;
 
 import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.vividsolutions.jts.geom.Coordinate;
 
 
@@ -113,657 +119,282 @@ public class NcSoundingQuery {
 		
 		return ref;
 	}
-	public static NcSoundingCube soundingQueryByLatLon(String refTimeStr,List<Coordinate> coords, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(coords.size()>0){
-			double[][] latLon = new double[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= (double)coords.get(i).y; //lat
-				latLon[i][1]= (float)coords.get(i).x; //lon
-			}	
-			return (soundingQueryByLatLon(refTimeStr, latLon, sndType, dataType, merge, level));
-		}
-		return null;
-	}
-	public static NcSoundingCube soundingQueryByLatLon(String refTimeStr, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(latLon.length <=0 )
-			return null;
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-
-		return soundingQueryByLatLon(refTime,latLon, sndType, dataType, merge, level);
-
-	}
-	public static NcSoundingCube soundingQueryByLatLon(long refTime, List<Coordinate> coords, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(coords.size()>0){
-			double[][] latLon = new double[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= coords.get(i).y; //lat
-				latLon[i][1]= coords.get(i).x; //lon
-			}	
-			return (soundingQueryByLatLon(refTime, latLon, sndType, dataType, merge, level));
-		}
-		return null;
-	}	
-	public static NcSoundingCube soundingQueryByLatLon(long refTime, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return genericSoundingQueryByLatLon(refTime, 0,0, latLon, sndType, dataType, merge, level);
-	}
-
-	public static NcSoundingCube soundingQueryByLatLonForMetParams(long refTime, List<Coordinate> coords, String sndType, NcSoundingLayer2.DataType dataType, boolean merge, String level) {
-		if(coords.size()>0){
-			float[][] latLon = new float[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= (float)coords.get(i).y; //lat
-				latLon[i][1]= (float)coords.get(i).x; //lon
-			}	
-			return (soundingQueryByLatLonForMetParams(refTime, latLon, sndType, dataType, merge, level));
-		}
-		return null;
-	}
-
-	public static NcSoundingCube soundingQueryByLatLonForMetParams(long refTime, float[][] latLon, String sndType, NcSoundingLayer2.DataType dataType, boolean merge, String level) {
-		return genericSoundingQueryByLatLonForMetParams(refTime, 0,0, latLon, sndType, dataType, merge, level);
-	}
-
-	public static NcSoundingCube soundingQueryByLatLon(long refTimeStart, long refTimeEnd,List<Coordinate> coords, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(coords.size()>0){
-			double[][] latLon = new double[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= (double)coords.get(i).y; //lat
-				latLon[i][1]= (double)coords.get(i).x; //lon
-			}	
-			return (soundingQueryByLatLon(refTimeStart,refTimeEnd, latLon, sndType, dataType, merge, level));
-		}
-		return null;
-	}
-	public static NcSoundingCube soundingQueryByLatLon(long refTimeStart,  long refTimeEnd,double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return genericSoundingQueryByLatLon(refTimeStart, refTimeStart,refTimeEnd, latLon, sndType, dataType, merge, level);
-	}
-
-	public static NcSoundingCube pfcSoundingQueryByLatLon(String refTimeStr,String validTimeStr, List<Coordinate> coords, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(coords.size()>0){
-			double[][] latLon = new double[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= (double)coords.get(i).y; //lat
-				latLon[i][1]= (double)coords.get(i).x; //lon
-			}	
-			return (pfcSoundingQueryByLatLon(refTimeStr,validTimeStr, latLon, sndType, dataType, merge, level));
-		}
-		return null;
-	}
-	public static NcSoundingCube pfcSoundingQueryByLatLon(String refTimeStr,String validTimeStr, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		if(latLon.length <=0 )
-			return null;
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-		long validTime = convertRefTimeStr(validTimeStr);
-
-		return genericSoundingQueryByLatLon(refTime,validTime,0, latLon, sndType, dataType, merge, level);
-
-	}
+	//D2D nsharp use this for pfc query for one ref time and one sounding range time of a same station using lat/lon
 	public static NcSoundingCube pfcSoundingQueryByLatLon(long refTime, long validTime, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return (genericSoundingQueryByLatLon( refTime,  validTime,  validTime,  latLon,  sndType, dataType,  merge,  level) );
+		//RM#8306
+
+		long[] refLTimeAry = {refTime};
+		long[] soundingRangeTimeArray = {validTime};
+		Coordinate[] coordArray = convertDoubleLatLonArray(latLon);
+		return(genericSoundingDataQuery( refLTimeAry,  soundingRangeTimeArray, null, null, coordArray, null, sndType,  dataType, 
+				merge,  level,null,true));
+		//end RM#8306	
 	}
-	public static NcSoundingCube pfcSoundingQueryByLatLon(long refTime, long validTimeStart, long validTimeEnd, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
 
-		return (genericSoundingQueryByLatLon( refTime,  validTimeStart,  validTimeEnd,  latLon,  sndType, dataType,  merge,  level) );
+	
+	//NCP nsharp use this for query PFC for one ref time and multiple sounding range times of a same station using lat/lon
+	public static NcSoundingCube pfcSoundingQueryByRangeTimeArray(long refTime, long[] soundingRangeTime, 
+			double lat, double lon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
+		//RM#8306
+		long[] refLTimeAry = {refTime};
+		Coordinate[] coordArray = new Coordinate[1];
+		Coordinate latlon = new Coordinate(lon,lat);
+		coordArray[0]= latlon;
+		long[] soundingRangeTimeArray = new long[soundingRangeTime.length];
+		for(int i =0; i< soundingRangeTime.length; i++) 
+			soundingRangeTimeArray[i] = soundingRangeTime[i];
 
-	}
-	//Chin: 2/14/2012: support one query for multiple sounding time of a same station lat/lon
-	public static NcSoundingCube pfcSoundingQueryByRangeTimeArray(long refTime, long[] soundingRangeTime, double lat, double lon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-
-		
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('" +sndType + "')\n");
-		query.append("sndRq.setDataType('" +dataType.toString() + "')\n");
-		query.append("sndRq.setRefTime(" +refTime+ "L)\n"); 
-		query.append("sndRq.setLatLonArr([" +lat+ ","+lon+"])\n");
-        //query.append("sndRq.setLon(" + lon + "])\n");
-        query.append("sndRq.setNcSoundingLayer2(0)\n");
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
-		else
-			query.append("sndRq.setMerge(0)\n");
-
-		query.append("sndRq.setLevel('" + level + "')\n");
-		String rtStr = "[";
-		//new way
-		for(int i=0; i < soundingRangeTime.length; i ++){
-			rtStr = rtStr +  soundingRangeTime[i]+"L";
-			if(i <soundingRangeTime.length-1)
-				rtStr = rtStr + "," ;
-		}
-		rtStr = rtStr + "]";
-		query.append("return sndRq.getSoundingDataByRangeTimeArray("+rtStr+")");
-		
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
-		try {
-			//query DB from EDEX
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			//			System.out.println( "Called genericSoundingQueryByLatLon()" );
-			if ( ( pdoList != null)  && (pdoList.length > 0 )   && (   pdoList[0] instanceof NcSoundingCube) )
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
-
-		} catch (VizException e) {
-			System.out.println("getSoundingDataByRangeTimeArray failed");
-			e.printStackTrace();
-			return cube;
-		}
-		return cube;
-
+		return(genericSoundingDataQuery( refLTimeAry,  soundingRangeTimeArray, null, null,  coordArray, null, sndType,  dataType, 
+				merge,  level,null,true));
 	}
 	
-	/*
-	 * Chin: This API used for multiple lat/lon but with only one time line query
-	 */
-	private static NcSoundingCube genericSoundingQueryByLatLon(long refTime, long validTimeStart, long validTimeEnd, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
+	//RM#8306 new
+	//used to query ncuair/bufrua/pfcnam/pfcgfs/grid  for ncep Nsharp and for
+	// d2d to query bufrua/pfc/grid
+	private static NcSoundingCube genericSoundingDataQuery(long[] refTime,long[] rangeTime,String[] refTimeStr,String[] rangeTimeStr,Coordinate[] latLonAry , String[] stnIdAry, String sndType, NcSoundingLayer.DataType dataType, 
+			boolean merge, String level, String modelType, boolean interpolation) {
+		NcSoundingCube cube = null;
+		SoundingServiceRequest request = new SoundingServiceRequest();
+		request.setReqType(SoundingRequestType.GET_SOUNDING_DATA_GENERIC);
+		if (sndType.equals(ObsSndType.NCUAIR.toString())) {
+			request.setSndType(SoundingType.OBS_UAIR_SND);
 
-		if(latLon.length <=0 )
+        }else if ( sndType.equals(ObsSndType.BUFRUA.toString())) {
+			request.setSndType(SoundingType.OBS_BUFRUA_SND);
+
+        }
+        else if (sndType.equals(PfcSndType.NAMSND.toString())) {
+        	request.setSndType(SoundingType.PFC_NAM_SND);
+        } 
+        else if ( sndType.equals(PfcSndType.GFSSND.toString())) {
+        	request.setSndType(SoundingType.PFC_GFS_SND);
+        } 
+        else if ( sndType.equals(MdlSndType.ANY.toString() )) {
+        	request.setSndType(SoundingType.GRID_MODEL_SND);
+        }
+        else
+        	return null;
+		request.setRefTimeAry(refTime);
+		request.setRangeStartTimeAry(rangeTime);
+		request.setRefTimeStrAry(refTimeStr);
+		request.setRangeStartTimeStrAry(rangeTimeStr);
+		if( latLonAry != null){
+			request.setLatLonAry(latLonAry);
+		}
+		else if (stnIdAry != null){
+			request.setStnIdAry(stnIdAry);
+		}
+		else
 			return null;
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('" +sndType + "')\n");
-		query.append("sndRq.setNcSoundingLayer2(0)\n");
-		query.append("sndRq.setDataType('" +dataType.toString() + "')\n");
-		query.append("sndRq.setRefTime(" +refTime+ "L)\n"); 
-		query.append("sndRq.setValidTimeStart(" +validTimeStart+ "L)\n"); 
-		query.append("sndRq.setValidTimeEnd(" +validTimeEnd+ "L)\n"); 
-		query.append("sndRq.setRangeTimeArr([" +validTimeStart+ "])\n"); 
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
-		else
-			query.append("sndRq.setMerge(0)\n");
-
-		query.append("sndRq.setLevel('" + level + "')\n");
-		String latLonStr = "[";
-		//new way
-		for(int i=0; i < latLon.length; i ++){
-			latLonStr = latLonStr +  latLon[i][0] + ","+ latLon[i][1] ;
-			if(i+1 < latLon.length)
-				latLonStr = latLonStr + ",";
-		}
-		latLonStr = latLonStr + "]";
-		query.append("return sndRq.getSoundingDataByLatLonArray("+latLonStr+")");
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
+		request.setLevel(level);
+		request.setMerge(merge);
+		request.setInterpolation(interpolation);
+		request.setModelType(modelType);
+		// do not support DATA_TYPE now, as edex sounding query service does not support it now and no any applications use it.
 		try {
-			//query DB from EDEX
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			//			System.out.println( "Called genericSoundingQueryByLatLon()" );
-			if ( ( pdoList != null)  && (pdoList.length > 0 )   && (   pdoList[0] instanceof NcSoundingCube) )
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingCube)) {
+                //
+            	cube = (NcSoundingCube) rslts;
+            } else {
+                System.out.println("genericSoundingDataQuery Request Failed: ");
 
-		} catch (VizException e) {
-			System.out.println("soundingQueryByLatLon failed");
-			e.printStackTrace();
-			return cube;
-		}
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 		return cube;
-
 	}
-	/*
-	 * 
-	 */
-	
+	//end RM#8306
+
+	//ncep Nsharp use this interface to query both bufrua and ncuair data
 	public static NcSoundingCube uaGenericSoundingQuery(Long[] refTime, double[][] latLon, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-
-		if(latLon.length <=0 )
-			return null;
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('" +sndType + "')\n");
-		query.append("sndRq.setNcSoundingLayer2(0)\n");
-		query.append("sndRq.setDataType('" +dataType.toString() + "')\n");
-		String refTimeStr = "[";
-		for(int i=0; i < refTime.length; i ++){
-			refTimeStr = refTimeStr+refTime[i];
-			if(i+1 < refTime.length)
-				refTimeStr= refTimeStr + ",";
+		//RM#8306
+		if(refTime!=null && refTime.length>0){
+			long[] reflTimeAry = new long[refTime.length];
+			for(int i=0; i< refTime.length; i++)
+				reflTimeAry[i]= refTime[i];
+			Coordinate[] coordArray = convertDoubleLatLonArray(latLon);
+			return(genericSoundingDataQuery( reflTimeAry, null, null, null,coordArray,  null, sndType,  dataType,  merge,  level,null,true));
 		}
-		refTimeStr= refTimeStr + "]";
-		query.append("sndRq.setRangeTimeArr(" +refTimeStr+ ")\n"); 
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
 		else
-			query.append("sndRq.setMerge(0)\n");
+			return null;
 
-		query.append("sndRq.setLevel('" + level + "')\n");
-		String latLonStr = "[";
-		
-		for(int i=0; i < latLon.length; i ++){
-			latLonStr = latLonStr +  latLon[i][0] + ","+ latLon[i][1] ;
-			if(i+1 < latLon.length)
-				latLonStr = latLonStr + ",";
-		}
-		latLonStr = latLonStr + "]";
-		query.append("return sndRq.getSoundingDataByLatLonArray("+latLonStr+")");
-		
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
-		try {
-			//query DB from EDEX
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			//			System.out.println( "Called genericSoundingQueryByLatLon()" );
-			if ( ( pdoList != null)  && (pdoList.length > 0 )   && (   pdoList[0] instanceof NcSoundingCube) )
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
-
-		} catch (VizException e) {
-			System.out.println("soundingQueryByLatLon failed");
-			e.printStackTrace();
-			return cube;
-		}
-		return cube;
 
 	}
-
-	private static NcSoundingCube genericSoundingQueryByLatLonForMetParams(long refTime, long validTimeStart, long validTimeEnd, float[][] latLon, String sndType, NcSoundingLayer2.DataType dataType, boolean merge, String level) {
-
-		if(latLon.length <=0 )
-			return null;
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('" +sndType + "')\n");
-		query.append("sndRq.setDataType('" +dataType.toString() + "')\n");
-		query.append("sndRq.setRefTime(" +refTime+ "L)\n"); 
-		query.append("sndRq.setValidTimeStart(" +validTimeStart+ "L)\n"); 
-		query.append("sndRq.setValidTimeEnd(" +validTimeEnd+ "L)\n"); 
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
-		else
-			query.append("sndRq.setMerge(0)\n");
-
-		query.append("sndRq.setLevel('" + level + "')\n");
-		String latLonStr = "[";
-		//new way
-		for(int i=0; i < latLon.length; i ++){
-			latLonStr = latLonStr +  latLon[i][0] + ","+ latLon[i][1] ;
-			if(i+1 < latLon.length)
-				latLonStr = latLonStr + ",";
-		}
-		latLonStr = latLonStr + "]";
-		query.append("return sndRq.getSoundingLayer2DataByLatLonArray("+latLonStr+")");
-		/* old way
-    	for(int i=0; i < latLon.length; i ++){
-    		latLonStr = latLonStr + "[" + latLon[i][0] + ","+ latLon[i][1] + "]";
-    		if(i+1 < latLon.length)
-    			latLonStr = latLonStr + ",";
-}
-    	latLonStr = latLonStr + "]";
-    	query.append("return sndRq.getSoundingDataByLatLonArray("+latLonStr+")");
-		 */
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
-		try {
-			//query DB from EDEX
-
-			pdoList = Connector.getInstance().connect(query.toString(), null,60000);
-			//System.out.println( "-->> Called the python script NcSoundingDataRequest " + counter + " times");
-			//counter++;
-			//			System.out.println( "Called genericSoundingQueryByLatLonForMetParams()" );
-			if ( ( pdoList != null)  && (pdoList.length > 0 )   && (   pdoList[0] instanceof NcSoundingCube) )
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
-			if ( pdoList == null )
-				System.out.println("NcSoundingCube is null");
-
-		} catch (VizException e) {
-			System.out.println("soundingQueryByLatLonForMetParams failed");
-			e.printStackTrace();
-			return cube;
-		}
-		return cube;
-
-	}
-
-
-	public static NcSoundingCube mdlSoundingQueryByLatLon(String refTimeStr, String validTimeStr, List<Coordinate> coords, String pluginName, String mdlName, boolean merge, String level) {
-		if(coords.size()>0){
-			float[][] latLon = new float[coords.size()][2];
-			for (int i=0; i< coords.size(); i++){
-				latLon[i][0]= (float)coords.get(i).y; //lat
-				latLon[i][1]= (float)coords.get(i).x; //lon
-			}	
-			return (mdlSoundingQueryByLatLon(refTimeStr, validTimeStr, latLon, pluginName, mdlName, merge, level, true)); 
-		}
-		return null;
-	}	
 	
-	/*
-	 * RM#6674: add interpolation parameter
-	 */
+	// NCP and D2D both use this interface for grid model data query, one ref time and one range start time once
 	public static NcSoundingCube mdlSoundingQueryByLatLon(String refTimeStr, String validTimeStr, float[][] latLon, String pluginName, String mdlName, 
 			boolean merge, String level, boolean interpolation) {
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setPluginName('" +pluginName + "')\n");
-		query.append("sndRq.setModelName('" +mdlName+ "')\n");
-		query.append("sndRq.setRefTimeStr('" +refTimeStr+ "')\n"); 
-		query.append("sndRq.setValidTimeStartStr('" +validTimeStr+ "')\n"); 
-		query.append("sndRq.setSndType('" +MdlSndType.ANY.toString() + "')\n");
-		query.append("sndRq.setNcSoundingLayer2(0)\n");
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
-		else
-			query.append("sndRq.setMerge(0)\n");
-		if(interpolation == true) //RM#6674
-			query.append("sndRq.setInterpolation(1)\n");
-		else
-			query.append("sndRq.setInterpolation(0)\n");
-
-		query.append("sndRq.setLevel('" + level + "')\n");
-		//query.append("sndRq.setLat(" + lat + ")\n");
-		//query.append("sndRq.setLon(" + lon + ")\n");
-		
-		String latLonStr = "[";
-		for(int i=0; i < latLon.length; i ++){
-			latLonStr = latLonStr +  latLon[i][0] + ","+ latLon[i][1] ;
-				//testcode	+ ","+ (latLon[i][0]+1) + ","+ (latLon[i][1]+1);  
-			
-			if(i+1 < latLon.length)
-				latLonStr = latLonStr + ",";
-		}
-		latLonStr = latLonStr + "]";
-		/* Chin's Note:
-		 *  This chunk of code is for testing query multiple grid Points with same query parameters
-		 *  
-		String latLonStr = "[";
-		float limit = 3;
-		for(float i=0; i <limit; i=i+1f){
-			for(float j=0; j < limit; j=j+1f){
-			latLonStr = latLonStr +  (latLon[0][0]+i) + ","+ (latLon[0][1]+j) ;
-			if(i+1f < limit || j+1f <limit)
-				latLonStr = latLonStr + ",";
-			}
-		}
-		latLonStr = latLonStr + "]";
-	  */
-		
-		query.append("return sndRq.getSoundingDataByLatLonArray("+latLonStr+")");
-
-		//query.append("return sndRq.getModelSoundingData()");
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
-		try {
-			//query DB from EDEX
-			pdoList = Connector.getInstance().connect(query.toString(), null, 30000);
-			if (pdoList[0] instanceof NcSoundingCube)
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
-
-		} catch (VizException e) {
-			System.out.println("soundingQueryByLatLon failed");
-			e.printStackTrace();
-			return cube;
-		}
-		return cube;
+		String[] refLTimeStrAry = {refTimeStr};
+		String[] soundingRangeTimeStrArray = {validTimeStr};
+		Coordinate[] coordArray = convertFloatLatLonArray(latLon);
+		return(genericSoundingDataQuery(null, null, refLTimeStrAry,  soundingRangeTimeStrArray,  coordArray, null,MdlSndType.ANY.toString() ,  NcSoundingLayer.DataType.ALLDATA, 
+				merge,  level,mdlName,interpolation));
 	}
 
-	public static NcSoundingCube soundingQueryByStnId(long refTime, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return soundingQueryByStn(refTime, 0,0,stnArray,  sndType,  dataType,  merge, false, level);
-
+	// currently, used by D2D for bufrua data query. d2d does NOT query ncuair data
+	public static NcSoundingCube soundingQueryByStnId(long refTime,  String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge,  String level) {
+		long[] refLTimeAry = new long[1];
+		refLTimeAry[0]= refTime;
+		return (genericSoundingDataQuery( refLTimeAry, null, null,null,null, stnArray,  sndType,  dataType, 
+				merge,  level,null,true) );
 	}
-	public static NcSoundingCube soundingQueryByStnId(String refTimeStr, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-
-		return soundingQueryByStn(refTime, 0, 0,stnArray,  sndType,  dataType,  merge, false, level);
-
-	}
-	public static NcSoundingCube soundingQueryByStnNum(long refTime, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return soundingQueryByStn(refTime,0, 0,stnArray,  sndType,  dataType,  merge, true, level);
-
-	}
-	public static NcSoundingCube soundingQueryByStnNum(String refTimeStr, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-
-		return soundingQueryByStn(refTime,0, 0,stnArray,  sndType,  dataType,  merge, true, level);
-
-	}
-
-	public static NcSoundingCube soundingQueryByStnId(long refTime, long validTime,String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return soundingQueryByStn(refTime, refTime,validTime,stnArray,  sndType,  dataType,  merge, false, level);
-
-	}
-	public static NcSoundingCube soundingQueryByStnId(String refTimeStr,String validTimeStr, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-		long validTime = convertRefTimeStr(validTimeStr);
-
-		return soundingQueryByStn(refTime, refTime,validTime, stnArray,  sndType,  dataType,  merge, false, level);
-
-	}
-	public static NcSoundingCube soundingQueryByStnNum(long refTime, long validTime,String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		return soundingQueryByStn(refTime,refTime,validTime, stnArray,  sndType,  dataType,  merge, true, level);
-
-	}
-	public static NcSoundingCube soundingQueryByStnNum(String refTimeStr, String validTimeStr, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, String level) {
-		//convert refTimeStr to in msec unit and query
-		long refTime = convertRefTimeStr(refTimeStr);
-		long validTime = convertRefTimeStr(validTimeStr);
-
-		return soundingQueryByStn(refTime,refTime,validTime, stnArray,  sndType,  dataType,  merge, true, level);
-
-	}
-
-	private static NcSoundingCube soundingQueryByStn(long refTime, long validTimeStart, long validTimeEnd, String[] stnArray, String sndType, NcSoundingLayer.DataType dataType, boolean merge, boolean isStnNum, String level) {
-		if(stnArray.length <=0 )
-			return null;
-		NcSoundingCube cube = null;
-		StringBuilder query = new StringBuilder();
-
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('" +sndType + "')\n");
-		query.append("sndRq.setDataType('" +dataType.toString() + "')\n");
-		query.append("sndRq.setRefTime(" +refTime+ "L)\n"); 
-		query.append("sndRq.setValidTimeStart(" +validTimeStart+ "L)\n"); 
-		query.append("sndRq.setValidTimeEnd(" +validTimeEnd+ "L)\n"); 
-		if(merge == true)
-			query.append("sndRq.setMerge(1)\n");
-		else
-			query.append("sndRq.setMerge(0)\n");
-
-		query.append("sndRq.setLevel('" + level + "')\n");
-		
-		String refTimeStr = "[" + refTime +  "]";
-		query.append("sndRq.setRangeTimeArr(" +refTimeStr+ ")\n"); 
-		
-		String stnStr = "[";
-		for(int i=0; i < stnArray.length; i ++){
-			stnStr = stnStr + "'" + stnArray[i] + "'";
-			if(i+1 < stnArray.length)
-				stnStr = stnStr + ",";
-		}
-		stnStr = stnStr + "]";
-		if(isStnNum == true)
-			query.append("return sndRq.getSoundingDataByStnNumArray("+stnStr+")");
-		else
-			query.append("return sndRq.getSoundingDataByStnIdArray("+stnStr+")");
-
-		//System.out.println(query.toString());
-
-		Object[] pdoList;
-		try {
-			//query DB from EDEX
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if (pdoList[0] instanceof NcSoundingCube)
-				cube = (NcSoundingCube) pdoList[0];
-			//System.out.println("return from edex...");
-
-		} catch (VizException e) {
-			System.out.println("soundingQueryByStn failed");
-			e.printStackTrace();
-			return cube;
-		}
-		return cube;
-	}
-	public static NcSoundingTimeLines soundingTimeLineQuery (String sndType){
+	//RM#8306
+	//USED BY NCUAIR FOR TIME LINE, BY PFC FOR AVAILABLE FILE LIST
+	//Actually, we are querying reference time.
+	//MODEL sounding USE NCInventory for this query.
+	public static NcSoundingTimeLines soundingTimeLineQuery (String sndType) {
 		NcSoundingTimeLines timeLines = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("return sndRq.getSoundingTimeLine()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if (pdoList[0] instanceof NcSoundingTimeLines)
-				timeLines = (NcSoundingTimeLines) pdoList[0];
-			//else
-			//	System.out.println((String)pdoList[0]);
+		SoundingServiceRequest request = new SoundingServiceRequest();
+		request.setReqType(SoundingRequestType.GET_SOUNDING_REF_TIMELINE);
+		if (sndType.equals(ObsSndType.NCUAIR.toString())) {
+			request.setSndType(SoundingType.OBS_UAIR_SND);
 
-			//System.out.println("return from edex...");
-			return timeLines;
-		}catch (VizException e) {
-			System.out.println("soundingTimeLineQuery failed");
-			return timeLines;
-		}	
+        }else if ( sndType.equals(ObsSndType.BUFRUA.toString())) {
+			request.setSndType(SoundingType.OBS_BUFRUA_SND);
+
+        }
+        else if (sndType.equals(PfcSndType.NAMSND.toString())) {
+        	request.setSndType(SoundingType.PFC_NAM_SND);
+        } 
+        else if ( sndType.equals(PfcSndType.GFSSND.toString())) {
+        	request.setSndType(SoundingType.PFC_GFS_SND);
+        } 
+        else 
+        	return null;
+		try {
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingTimeLines)) {
+                //
+            	timeLines = (NcSoundingTimeLines) rslts;
+            } else {
+                System.out.println("soundingTimeLineQuery Request Failed: ");
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+		return timeLines;
 	}
+	// get PFC range time line(s) per one reference time
+	//USED BY PFC TO GET TIME LINES FOR AN AVAILABLE FILE
+	//Actually we querying range start time lines
+	public static NcSoundingTimeLines soundingRangeTimeLineQuery (String sndType, String refTimeStr) {
+		NcSoundingTimeLines timeLines = null;
+		SoundingServiceRequest request = new SoundingServiceRequest();
+		String[] refTimeAry = {refTimeStr};
+		request.setRefTimeStrAry(refTimeAry);
+		request.setReqType(SoundingRequestType.GET_SOUNDING_RANGESTART_TIMELINE);
+		if (sndType.equals(PfcSndType.NAMSND.toString())) {
+        	request.setSndType(SoundingType.PFC_NAM_SND);
+        } 
+        else if ( sndType.equals(PfcSndType.GFSSND.toString())) {
+        	request.setSndType(SoundingType.PFC_GFS_SND);
+        } 
+		try {
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingTimeLines)) {
+                //
+            	timeLines = (NcSoundingTimeLines) rslts;
+            } else {
+                System.out.println("soundingRangeTimeLineQuery Request Failed: ");
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+		return timeLines;
+	}
+	//RM#8306 new
+	//USED BY MODELS FOR TIME LINES FOR AN AVAILABLE FILE
+	public static NcSoundingTimeLines mdlSoundingRangeTimeLineQuery (String mdlType, String refTimeStr, String tableName) {
+		NcSoundingTimeLines timeLines = null;
+		String[] refTimeAry = {refTimeStr};
+		SoundingServiceRequest request = new SoundingServiceRequest();
+		request.setRefTimeStrAry(refTimeAry);
+		request.setReqType(SoundingRequestType.GET_SOUNDING_RANGESTART_TIMELINE);
+		request.setSndType(SoundingType.GRID_MODEL_SND);
+		request.setModelType(mdlType);
+		try {
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingTimeLines)) {
+                //
+            	timeLines = (NcSoundingTimeLines) rslts;
+            } else {
+                System.out.println("mdlSoundingRangeTimeLineQuery Request Failed: ");
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+		return timeLines;
+	}
+	//ncep Nsharp use this interface for ncuair/bufrua, only reftime is required
+	public static NcSoundingStnInfoCollection soundingStnInfoQuery (String sndType,String selectedRefTime){
+		
+		return(genericSoundingStnInfoQuery(sndType, null, selectedRefTime) );
+		
+	}
+	//ncep nsharp use this for PFC sounding stn info query that refTime and rangeStart are required input parameters
+	public static NcSoundingStnInfoCollection soundingStnInfoQuery (String sndType,String rangeStartTimeStr, String referTimeStr){
+		
+		return(genericSoundingStnInfoQuery(sndType, rangeStartTimeStr, referTimeStr) );
+		
+	}
+	//RM#8306 new
+	// used to query OSB and PFC sounding station info
+	// referTimeStr is required for all snd type
+	// rangeStartTimeStr is required for PFC snd only, and should set to null for OBS snd
+	private static NcSoundingStnInfoCollection genericSoundingStnInfoQuery (String sndType,
+			String rangeStartTimeStr, String referTimeStr) {
+		NcSoundingStnInfoCollection stnInfos = null;
+		SoundingServiceRequest request = new SoundingServiceRequest();
+		request.setReqType(SoundingRequestType.GET_SOUNDING_STATION_INFO);
+		if (sndType.equals(ObsSndType.NCUAIR.toString())) {
+			request.setSndType(SoundingType.OBS_UAIR_SND);
+
+        }else if ( sndType.equals(ObsSndType.BUFRUA.toString())) {
+			request.setSndType(SoundingType.OBS_BUFRUA_SND);
+
+        }
+        else if (sndType.equals(PfcSndType.NAMSND.toString())) {
+        	request.setSndType(SoundingType.PFC_NAM_SND);
+        } 
+        else if ( sndType.equals(PfcSndType.GFSSND.toString())) {
+        	request.setSndType(SoundingType.PFC_GFS_SND);
+        } 
+		String[] refTimeStrAry = new String[1];
+		refTimeStrAry[0]= referTimeStr;
+		request.setRefTimeStrAry(refTimeStrAry);
+		if(rangeStartTimeStr!= null){
+			String[] rangeTimeStrAry = new String[1];
+			rangeTimeStrAry[0]= rangeStartTimeStr;
+			request.setRangeStartTimeStrAry(rangeTimeStrAry);
+		}
+		try {
+            Object rslts = ThriftClient.sendRequest(request);
+            if ((rslts instanceof NcSoundingStnInfoCollection)) {
+                //
+            	stnInfos = (NcSoundingStnInfoCollection) rslts;
+            } else {
+                System.out.println("genericSoundingStnInfoQuery Request Failed: ");
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+		return stnInfos;
+	}
+	//end RM#8306
 	
-	public static NcSoundingTimeLines mdlSoundingTimeLineQuery (String sndType, String tableName){
-		NcSoundingTimeLines timeLines = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("sndRq.setTableName('"+tableName+"')\n");
-		query.append("return sndRq.getMdlSoundingTimeLine()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if (pdoList[0] instanceof NcSoundingTimeLines)
-				timeLines = (NcSoundingTimeLines) pdoList[0];
-			//else
-			//	System.out.println((String)pdoList[0]);
-
-			//System.out.println("return from edex...");
-			return timeLines;
-		}catch (VizException e) {
-			System.out.println("soundingTimeLineQuery failed");
-			return timeLines;
-		}	
-	}
-	public static NcSoundingTimeLines soundingRangeTimeLineQuery (String sndType, String refTime){
-		NcSoundingTimeLines timeLines = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("sndRq.setRefTimeStr('"+refTime+"')\n");
-		query.append("return sndRq.getSoundingRangeTimeLine()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if (pdoList[0] instanceof NcSoundingTimeLines)
-				timeLines = (NcSoundingTimeLines) pdoList[0];
-
-			//System.out.println("return from edex...");
-			return timeLines;
-		}catch (VizException e) {
-			System.out.println("soundingRangeTimeLineQuery failed");
-			return timeLines;
-		}	
-	}
-	public static NcSoundingTimeLines mdlSoundingRangeTimeLineQuery (String sndType, String refTime, String tableName){
-		NcSoundingTimeLines timeLines = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("sndRq.setTableName('"+tableName+"')\n");
-		query.append("sndRq.setRefTimeStr('"+refTime+"')\n");
-		query.append("return sndRq.getMdlSoundingRangeTimeLine()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if (pdoList[0] instanceof NcSoundingTimeLines)
-				timeLines = (NcSoundingTimeLines) pdoList[0];
-
-			//System.out.println("return from edex...");
-			return timeLines;
-		}catch (VizException e) {
-			System.out.println("soundingRangeTimeLineQuery failed");
-			return timeLines;
-		}	
-	}
-	//for ncuair/bufrua
-	public static NcSoundingStnInfoCollection soundingStnInfoQuery (String sndType,String selectedSndTime){
-		NcSoundingStnInfoCollection stnInfos = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("sndRq.setTimeLine('"+selectedSndTime+"')\n");
-		query.append("return sndRq.getSoundingStnInfoCol()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if(pdoList[0] instanceof NcSoundingStnInfoCollection)
-				stnInfos = (NcSoundingStnInfoCollection) pdoList[0];
-
-			//System.out.println("return from edex...stnInfos ");
-			return stnInfos;
-		} catch (VizException e) {
-			System.out.println("soundingStnInfoQuery failed");
-			e.printStackTrace();
-			return stnInfos;
-		}
-	}
-	//for PFC sounding query that refTime and rangeStart are required input parameters
-	public static NcSoundingStnInfoCollection soundingStnInfoQuery (String sndType,String selectedSndTime, String referTimeStr){
-		NcSoundingStnInfoCollection stnInfos = null;
-		StringBuilder query = new StringBuilder();
-		query.append("import NcSoundingDataRequest\n");
-		query.append("sndRq = NcSoundingDataRequest.NcSoundingDataRequest()\n");
-		query.append("sndRq.setSndType('"+sndType+"')\n");
-		query.append("sndRq.setTimeLine('"+selectedSndTime+"')\n");
-		query.append("sndRq.setRefTimeStr('"+referTimeStr+"')\n");
-		query.append("return sndRq.getSoundingStnInfoCol()");
-		//System.out.println(query.toString());
-		Object[] pdoList;
-		try {
-			pdoList = Connector.getInstance().connect(query.toString(), null, 60000);
-			if(pdoList[0] instanceof NcSoundingStnInfoCollection)
-				stnInfos = (NcSoundingStnInfoCollection) pdoList[0];
-
-			//System.out.println("return from edex...stnInfos ");
-			return stnInfos;
-		} catch (VizException e) {
-			System.out.println("soundingStnInfoQuery failed");
-			e.printStackTrace();
-			return stnInfos;
-		}
-	}
+	//not used
 	public static NcSoundingModel soundingModelNameQuery(String pluginName){
 		StringBuilder query = new StringBuilder();
 		query.append("import NcSoundingDataRequest\n");
@@ -783,5 +414,30 @@ public class NcSoundingQuery {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	private static Coordinate[] convertDoubleLatLonArray(double[][] latLon){
+		if( latLon != null){
+			Coordinate[] latLonAry =  new Coordinate[latLon.length];
+			for(int i=0; i < latLon.length; i ++){
+				Coordinate latlon = new Coordinate(latLon[i][1] ,latLon[i][0] );
+				latLonAry[i]= latlon;
+			}
+			return latLonAry;
+		}
+		else
+			return null;
+	}
+	private static Coordinate[] convertFloatLatLonArray(float[][] latLon){
+		if( latLon != null){
+			Coordinate[] latLonAry =  new Coordinate[latLon.length];
+			for(int i=0; i < latLon.length; i ++){
+				Coordinate latlon = new Coordinate(latLon[i][1] ,latLon[i][0] );
+				latLonAry[i]= latlon;
+			}
+			return latLonAry;
+		}
+		else
+			return null;
 	}
 }

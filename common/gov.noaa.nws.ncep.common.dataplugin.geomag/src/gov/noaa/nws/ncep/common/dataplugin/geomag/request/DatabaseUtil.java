@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.raytheon.uf.common.dataquery.db.QueryParam;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
@@ -33,6 +34,9 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  * ------------ ---------- ----------- --------------------------
  * 2014/02/12   #1123       qzhou       Moved from edex to here
  * 2014/06/27   #1136       qzhou       Change hour avg to 0-current time
+ * 12/23/2014   R5412       sgurung     Change float to double, fix logic in fillHrAvgTimeGaps()
+ *                                      to correctly handle the case when there are missing values 
+ *                                      in the beginning of the list hourly average values
  * 
  * </pre>
  * 
@@ -43,7 +47,7 @@ public class DatabaseUtil {
 
     private static final int AVG_DATA_RANGE = 30;
 
-    private static final float MISSING_VAL = 99999.99f;
+    private static final double MISSING_VAL = 99999.99;
 
     /*
      * from geomag
@@ -236,42 +240,45 @@ public class DatabaseUtil {
      * fill time tag gaps, return fullBestList
      */
     public static void fillHrAvgTimeGaps(List<GeoMagAvg> dataList,
-            List<Date> dateListFinal, List<Float> hHrAvgListFinal,
-            List<Float> dHrAvgListFinal, Date spTime) {
+            List<Date> dateListFinal, List<Double> hHrAvgListFinal,
+            List<Double> dHrAvgListFinal, Date spTime) {
         List<Date> dateList = new ArrayList<Date>();
-        List<Float> hHrAvgList = new ArrayList<Float>();
-        List<Float> dHrAvgList = new ArrayList<Float>();
+        List<Double> hHrAvgList = new ArrayList<Double>();
+        List<Double> dHrAvgList = new ArrayList<Double>();
 
         for (int i = 0; i < dataList.size(); i++) { // 1 extra
 
             GeoMagAvg row = dataList.get(i);
 
             dateList.add((Date) row.getAvgTime());
-            hHrAvgList.add((Float) row.gethHrAvg());
-            dHrAvgList.add((Float) row.getdHrAvg());
+            hHrAvgList.add(row.gethHrAvg());
+            dHrAvgList.add(row.getdHrAvg());
 
         }
 
         DatabaseUtil.sort(dateList, hHrAvgList, dHrAvgList);
 
         /*
-         * fill missing
+         * fill missing time gaps
          */
 
         // fill missing in the beginning
-        Date date = (Date) dateList.get(0);
-        int hr0 = date.getHours();
+        Calendar startGapDate = Calendar.getInstance();
+        startGapDate.setTime(spTime);
+        startGapDate.add(Calendar.DAY_OF_YEAR, -AVG_DATA_RANGE);
 
-        if (hr0 != spTime.getHours()) {
-            for (int k = 0; k < hr0; k++) {
+        Calendar endGapDate = Calendar.getInstance();
+        endGapDate.setTime(dateList.get(0));
 
-                Date dateNew = (Date) date.clone();
-                dateNew.setHours(k); // change setMinutes to setHours
+        int hoursMissing = getMissingHours(startGapDate, endGapDate);
 
-                dateListFinal.add(dateNew);
-                hHrAvgListFinal.add(MISSING_VAL);
-                dHrAvgListFinal.add(MISSING_VAL);
-            }
+        for (int k = 0; k < hoursMissing; k++) {
+
+            startGapDate.add(Calendar.HOUR_OF_DAY, 1);
+
+            dateListFinal.add(startGapDate.getTime());
+            hHrAvgListFinal.add(MISSING_VAL);
+            dHrAvgListFinal.add(MISSING_VAL);
         }
 
         // fill missing in the middle
@@ -313,4 +320,16 @@ public class DatabaseUtil {
 
     }
 
+    public static int getMissingHours(Calendar start, Calendar end) {
+
+        long startMillis = start.getTimeInMillis();
+        long endMillis = end.getTimeInMillis();
+
+        long hours = TimeUnit.MILLISECONDS.toHours(Math.abs(endMillis
+                - startMillis));
+        int hoursMissing = Integer.valueOf(Long.toString(hours)).intValue();
+
+        return hoursMissing;
+
+    }
 }

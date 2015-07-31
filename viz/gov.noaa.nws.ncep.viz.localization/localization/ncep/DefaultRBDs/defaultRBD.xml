@@ -7,7 +7,7 @@
     <isDefaultRbd>true</isDefaultRbd>
     <timeMatcher skipValue="0" numFrames="10"/>
     <displayList>
-        <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.25" mapCenter="-96.5 38.5 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.25" mapCenter="-96.5 38.5 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <descriptor xsi:type="NCMapDescriptor">
 	            <resource>
                    <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
@@ -63,12 +63,27 @@
                                 <table>mapdata.world</table>
                                 <geomField>the_geom</geomField>
                                 <labelField>name</labelField>
+                                
                                 <color>RGB {255, 228, 220}</color>
                                 <lineWidth>1</lineWidth>
                                 <lineStyle>SOLID</lineStyle>
                             </resourceData>
                         </resource>
-                        <resource>
+
+<!--   PGEN bounds file persistence
+
+For PGEN bounds files to persist across tabs uncomment below code. Valid xml files
+can be found in the Localization Perspective under NCEP-> StaticPgenOverlays.
+Site/Desk/User overrides can be placed/found under 
+/awips2/edex/data/utility/cave_static/<site,desk,user>/<site id,desk name,username>/StaticPgenOverlays
+--> 
+        <!-- <resource>
+            <resourceData xsi:type="PgenOverlayResourceData">  
+ 		        <pgenStaticProductName>asccarrfa.xml</pgenStaticProductName>  
+		        <pgenStaticProductLocation>ncep/StaticPgenOverlays</pgenStaticProductLocation>
+            </resourceData>
+        </resource> -->
+                           <resource>
                             <loadProperties loadWithoutData="false">
                                 <resourceType>PLAN_VIEW</resourceType>
                             </loadProperties>
@@ -117,7 +132,7 @@
                                 <table>mapdata.mexico</table>
                                 <geomField>the_geom</geomField>
 
-                                <labelField>name</labelField>
+                                <labelField>name</labelField> 
                                 <color>RGB {255, 228, 220}</color>
                                 <lineWidth>1</lineWidth>
                                 <lineStyle>SOLID</lineStyle>

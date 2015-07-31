@@ -28,11 +28,13 @@ import java.util.List;
  * 11/15/2010   301         C. Chen     fix a index out of bound bug
  * 12/2010		301			T. Lee/NCEP	Re-factored for BUFRUA
  * 5/10/2011    301         C. Chen     added rhToDewpoint(), tempToVapr()
- * 02/28/2012               Chin Chen   modify several sounding query algorithms for better performance
+ * 02/28/2012               C. Chen     modify several sounding query algorithms for better performance
  * 8/2012					T. Lee/NCEP	Removed missing wind interpolation
  * 8/2012					T. Lee/NCEP	Fixed max wind merging; May fix NSHARP EL calculation
  * 12/2013	   1115		    T. Lee/NCEP	Fixed missing height at top level before sorting
  * 3/2014	   1116			T. Lee/NCEP	Added dpdToDewpoint for cmcHR (15km) data
+ * 05/06/2015  RM#7783      C. Chen     add "convertDewpoint" method to consider all dew point conversions, 
+ *                                      from RH, DpD, or SH to dew point at one place for better performance  
  * </pre>
  * 
  * @author T. Lee
@@ -329,7 +331,8 @@ public class MergeSounding {
      * convert specific humidity to dew point temperature.
      */
     float elevation;
-
+    @Deprecated
+    // functionality is moved to convertDewpoint()
     public List<NcSoundingLayer> spfhToDewpoint(List<NcSoundingLayer> sndata) {
         float spfh, pres;
         float dwpc = RMISSD;
@@ -343,7 +346,7 @@ public class MergeSounding {
                         || pres <= 0.f) {
                     continue;
                 } else {
-                    float rmix = spfh / (1.f - spfh);
+                    float rmix = spfh /(1.f - spfh);
                     float e = (pres * rmix) / (.62197f + rmix);
                     e = e / (1.001f + ((pres - 100.f) / 900.f) * .0034f);
                     dwpc = (float) (Math.log(e / 6.112) * 243.5 / (17.67 - Math
@@ -361,6 +364,8 @@ public class MergeSounding {
      * computes DWPC from TMPC and RELH Note: If DWPC is less than -190 degrees
      * C, it is treated as missing data Code is based on GEMPAK's prrhdp.f
      */
+    @Deprecated
+    // functionality is moved to convertDewpoint()
     public List<NcSoundingLayer> rhToDewpoint(List<NcSoundingLayer> sndata) {
         float rh, vapr, vaps, temp;
         float dwpc = RMISSD;
@@ -393,6 +398,8 @@ public class MergeSounding {
      * computes DWPC from TMPC and RELH Note: If DWPC is less than -190 degrees
      * C, it is treated as missing data Code is based on GEMPAK's prrhdp.f
      */
+    @Deprecated
+    // functionality is moved to convertDewpoint()
     public List<NcSoundingLayer> dpdToDewpoint(List<NcSoundingLayer> sndata) {
         float temp, dpdk;
         float dwpc = RMISSD;
@@ -1762,4 +1769,81 @@ public class MergeSounding {
         }
         return sndout;
     }
+    /**
+     * Convert RH, SH, or DpD to dew point for grid model sounding data.
+     * For better performance, the conversion order is RH first, if RH 
+     * not available then SH, and then DpD.
+     * This design choice is based on the observation from database that
+     * RH is most common provided by most grid models. 
+     * Only few models use SH, e.g NAM at x25 and x75 levels, and 
+     * DpD, e.g RUC130 at surface level.
+     * @param List<NcSoundingLayer>  : list of sounding data 
+     * @return List<NcSoundingLayer> :list of dew point converted sounding data
+     * @author cchen, created 05/01/2015
+     */
+    
+    public List<NcSoundingLayer> convertDewpoint(List<NcSoundingLayer> sndata) {
+    	float rh, vapr, vaps, temp;
+    	float dwpc = RMISSD;
+    	boolean rhFound=false;
+    	for (NcSoundingLayer layer : sndata) {
+    		//System.out.println("layer "+layer.getPressure()+ " dwpc: " + layer.getDewpoint());
+    		if (layer.getDewpoint() == RMISSD) {
+    			temp = layer.getTemperature();
+    			rh = layer.getRelativeHumidity();               
+    			if (rh == RMISSD || temp == RMISSD) {
+    				//RH or temp not available, can not convert RH, try SH
+    				float spfh, pres;
+    				spfh = layer.getSpecHumidity();
+    				pres = layer.getPressure();
+    				if (spfh == RMISSD || pres == RMISSD||temp == RMISSD || spfh <= 0.f
+    						|| pres <= 0.f) {
+    					//SH or pressure not available, try DpD
+    					float dpdk;
+    					dpdk = layer.getDpd();
+    	                if (temp == RMISSD || dpdk == RMISSD) {
+    	                	//DpD or temp not available, no hope for this level. 
+    	                    continue;
+    	                } else {
+    	                	// DpD and temp are available, perform dew point conversion for this level
+    	                    dwpc = temp - dpdk;
+    	                    layer.setDewpoint(dwpc);
+    	                    //System.out.println("dpd: "+ dpdk+" To Dewpoint dwpc: " + dwpc);
+    	                }
+    				} else {
+    					//SH, temp and pressure available, perform dew point conversion for this level
+    					// Chin note: since spfhToDewpoint() does not work properly,
+    					// convert spfh to rh first then convert to dew point.
+    					// Ues this formular, 
+    					// RH=100wws ≈ 0.263*p*spfh* /exp(17.67*T/(T0-273.16−29.65)).
+    					// where p=pressure(pa), T=temp(C), T0=reference temp(273.16)
+    					// found @http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
+    					
+    					rh =(float)( 0.263*pres*spfh / Math.exp(17.67*temp/(temp+273.16-29.65)));				
+    					//System.out.println("sh: "+spfh+" To rh: " + rh);
+    					rhFound = true;
+    				}
+    			}
+    			else {
+    				rhFound = true;
+    			}
+    			if(rhFound){
+    				//RH and Temp are available, perform dew point conversion for this level
+    				rhFound = false;
+    				vaps = tempToVapr(temp);
+    				vapr = rh * vaps / 100;
+    				if (vapr < Math.exp(-30))
+    					continue;
+    				else {
+    					dwpc = (float) (243.5 * (Math.log(6.112) - Math
+    							.log(vapr)) / (Math.log(vapr) - Math.log(6.112) - 17.67));
+    					layer.setDewpoint(dwpc);
+    					//System.out.println("rh: "+rh+" To Dewpoint dwpc: " + dwpc);
+    				}   				
+    			}
+    		}
+    	}
+    	return sndata;
+    }
 }
+

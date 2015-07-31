@@ -57,7 +57,9 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Feb 11, 2014 2784            rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
  * July 07, 2014 ???            D. Sushon   add handling for TORNADO_WATCH in getReportType(..)
- * 
+ * November 07, 2014 5125       J. Huber    added WINTER_WEATHER reportType to enum and removed 
+ *                                          WINTER_STORM_WARNING, WINTER_STORM_WATCH, and
+ *                                          WINTER_WEATHER_ADVISORY as they are now no longer needed.
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -89,17 +91,14 @@ public class AwwRecord extends PluginDataObject {
      * REPORT 27. HIGH WIND WARNING 28. FREEZE WARNING 29. ADVERTENCIA DE
      * INUNDACIONES 30. HYDROLOGIC STATEMENT 31. URGENT WEATHER MESSAGE
      */
+    
+    // RM 5125 add report types WINTER_WEATHER (for decoding purposes) and all specific winter products .
     public static enum AwwReportType {
         SEVERE_THUNDERSTORM_WARNING, SEVERE_THUNDERSTORM_WATCH, TORNADO_WARNING, TORNADO_WATCH, SEVERE_THUNDERSTORM_OUTLINE_UPDATE, TORNADO_WATCH_OUTLINE_UPDATE, FLASH_FLOOD_WARNING, FLASH_FLOOD_WATCH, FLOOD_WARNING, FLOOD_WATCH, FLOOD_STATEMENT,
-        // WINTER STORM. something is getting decoded as WINTER STORM
-        WINTER_STORM_WARNING, WINTER_STORM_WATCH, WATCH_COUNTY_NOTIFICATION, SEVERE_WEATHER_STATEMENT, WIND_ADVISORY, // ?WIND
-                                                                                                                      // CHILL
-                                                                                                                      // ADVISORY?
-        // WIND CHILL ADVISORYs getting decoded as "ADVISORY"
-        FOG_ADVISORY, HEAT_ADVISORY, FROST_ADVISORY, SMOKE_ADVISORY, WEATHER_ADVISORY, WINTER_WEATHER_ADVISORY, SIGNIGICANT_WEATHER_ADVISORY, SPECIAL_WEATHER_STATEMENT, RED_FLAG_WARNING, TORNADO_REPORT, HIGH_WIND_WARNING, FREEZE_WARNING, ADVERTENCIA_DE_INUNDACIONES, HYDROLOGIC_STATEMENT, URGENT_WEATHER_MESSAGE, UNKNOWN_AWW_REPORT_TYPE,
-        // DON"T know what this is but WTCH is looking for it
-        // (isSevereWeatherStatusNotification)?
-        STATUS_REPORT;
+        WINTER_WEATHER_ADVISORY,WINTER_STORM_WATCH,WINTER_STORM_WARNING, WATCH_COUNTY_NOTIFICATION, SEVERE_WEATHER_STATEMENT, WIND_ADVISORY, FOG_ADVISORY, HEAT_ADVISORY, FROST_ADVISORY, SMOKE_ADVISORY, WEATHER_ADVISORY, SIGNIGICANT_WEATHER_ADVISORY, SPECIAL_WEATHER_STATEMENT, 
+        RED_FLAG_WARNING, TORNADO_REPORT, HIGH_WIND_WARNING, FREEZE_WARNING, ADVERTENCIA_DE_INUNDACIONES, HYDROLOGIC_STATEMENT, URGENT_WEATHER_MESSAGE, UNKNOWN_AWW_REPORT_TYPE,
+        STATUS_REPORT,//RM5125
+        WINTER_WEATHER,BLIZZARD_WATCH,BLIZZARD_WARNING,ICE_STORM_WARNING,LAKE_EFFECT_SNOW_ADVISORY,LAKE_EFFECT_SNOW_WATCH,LAKE_EFFECT_SNOW_WARNING,FREEZING_RAIN_ADVISORY,WIND_CHILL_ADVISORY,WIND_CHILL_WARNING;
 
         public static AwwReportType getReportType(String rtStr) {
             rtStr = rtStr.trim().replace(" ", "_");

@@ -31,6 +31,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * ------------	----------	-----------	--------------------------
  * 07/10			?		B. Yin   	Initial Creation.
  * 11/13        1065        J. Wu       Adjust for changes in LineAttrDLg.
+ * 04/15        R6520        J. Wu      Set width/pattern size range to match NMAP2.
  * 
  * </pre>
  * 
@@ -38,6 +39,14 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 
 public class FrontAttrDlg extends LineAttrDlg {
+
+    protected static int MIN_LINE_WIDTH = 1;
+
+    protected static int MAX_LINE_WIDTH = 9;
+
+    protected static double MIN_PATTERN_SIZE = 0.4;
+
+    protected static double MAX_PATTERN_SIZE = 5.0;
 
     static private FrontAttrDlg INSTANCE = null;
 
@@ -93,6 +102,12 @@ public class FrontAttrDlg extends LineAttrDlg {
      */
     protected void initializeComponents() {
         super.initializeComponents();
+
+        widthSpinnerSlider.setMinimum(1);
+        widthSpinnerSlider.setMaximum(9);
+
+        patternSizeSpinnerSlider.setMinimum(4);
+        patternSizeSpinnerSlider.setMaximum(50);
 
         Composite inCmp = new Composite(top, SWT.NONE);
         inCmp.setLayout(getGridLayout(3, false, 0, 0, 0, 0));

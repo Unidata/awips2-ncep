@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+   <!--
+      Define the root level element "dataset". For now each XML
+      message must have one and only one "dataset" element. This
+      root element contains one child element to specify the
+      data resolution and zero or more elements containing the
+      time tagged ACE Solar Wind (SWEPAM) data.
+   -->
+   <xs:element name="dataset">
+   
+      <xs:complexType>
+      
+         <!-- The ordered sequence of child elements -->
+         <xs:sequence>
+         
+            <!-- required element specifying the data resolution -->
+            <xs:element name="data-resolution" type="data-resolution-type"/>
+            
+            <xs:element name="data-field-definitions" type="field-description-list"/>
+            
+            <!-- the optional description -->
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            
+            <!-- The data elements (zero or more) of type "time-tagged-data" -->
+            <xs:element name="data-item" type="time-tagged-data" minOccurs="0" maxOccurs="unbounded"/>
+            
+         </xs:sequence>
+         
+         <!--
+              The "source" attribute (e.g. goes-12, goes-r). This attribute
+              is of type "data-sources" which is a simple type enumerating
+              the valid string values for "source".
+         -->
+         <xs:attribute name="source" type="data-sources" use="required"/>
+        
+         <!--
+               The "entry-count" attribute is an optional non-negative
+               integer which specifies the number of data-item entries
+               in the dataset.
+         -->
+         <xs:attribute name="entry-count" type="xs:nonNegativeInteger"/>
+      </xs:complexType>
+   </xs:element>
+
+   <!--
+         The complexType "time-tagged-data" encodes the time tagged
+         data for the SWEPAM instrument of ACE (Advanced Composition Explorer) satellite.
+         The time tag for all of the child elements is specified as a required argument.
+         
+         The child elements may appear in any order. A missing or empty
+         child element may be interpreted as a missing value.
+   -->
+   <xs:complexType name="time-tagged-data">
+      <xs:all>
+         <xs:element name="dsflag" type="dsflag-data-item" minOccurs="0"/>
+         <xs:element name="dens" type="dens-data-item"  minOccurs="0"/>
+         <xs:element name="speed" type="speed-data-item"  minOccurs="0"/>
+         <xs:element name="temperature" type="temperature-data-item"  minOccurs="0"/>
+         <xs:element name="err_count" type="err_count-data-item"  minOccurs="0"/>
+         
+      </xs:all>
+      <xs:attribute name="time-tag" type="xs:dateTime" use="required"/>
+   </xs:complexType>
+   
+   <!-- An enumeration of valid data source values for this XML message -->
+   <xs:simpleType name="data-sources">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="goes-13"/>
+         <xs:enumeration value="goes-14"/>
+         <xs:enumeration value="goes-15"/>
+         <xs:enumeration value="goes-r"/>
+         <xs:enumeration value="goes-16"/>
+          <xs:enumeration value="ace"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!-- An enumeration of valid instruments for this XML message -->
+   <xs:simpleType name="instruments">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="swepam"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <!-- An enumeration of valid data type values for this XML message -->
+   <xs:simpleType name="data-types">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="solar-wind"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!-- An enumeration of valid data resolution units -->
+   <xs:simpleType name="data-resolution-units">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="seconds"/>
+         <xs:enumeration value="minutes"/>
+         <xs:enumeration value="hours"/>
+         <xs:enumeration value="days"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!--
+        A complex type used to specify the data sampling resolution
+        for the contents of the data set.
+   -->
+   <xs:complexType name="data-resolution-type">
+      <xs:simpleContent>
+         <xs:extension base="xs:positiveInteger">
+            <xs:attribute name="units" type="data-resolution-units" use="required"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+      
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the dsflag data.
+   -->
+   <xs:simpleType name="dsflag-type">
+      <xs:restriction base="xs:nonNegativeInteger">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="9"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="dsflag-data-item">
+      <xs:simpleContent>
+         <xs:extension base="dsflag-type">
+           <xs:attribute name="description" fixed="Data Status Flag"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+     
+    <!--
+         A simpleType specifying the type and value restrictions
+         for the density data.
+   -->   
+   <xs:simpleType name="dens-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="1.e-5"/>
+         <xs:maxInclusive value="200."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="dens-data-item">
+      <xs:simpleContent>
+         <xs:extension base="dens-type">
+            <xs:attribute name="units" fixed="particles/cm^3"/>
+            <xs:attribute name="description" fixed="Proton density"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the speed data.
+   -->   
+   <xs:simpleType name="speed-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="200."/>
+         <xs:maxInclusive value="2000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="speed-data-item">
+      <xs:simpleContent>
+         <xs:extension base="speed-type">
+            <xs:attribute name="units" fixed="km/s"/>
+            <xs:attribute name="description" fixed="Bulk wind speed"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the temperature data.
+   -->   
+   <xs:simpleType name="temperature-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="1.e+4"/>
+         <xs:maxInclusive value="1.e+7"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="temperature-data-item">
+      <xs:simpleContent>
+         <xs:extension base="temperature-type">
+            <xs:attribute name="units" fixed="Degrees K"/>
+            <xs:attribute name="description" fixed="Proton temperature"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for the error count data.
+   -->   
+   <xs:simpleType name="err_count-type">
+      <xs:restriction base="xs:nonNegativeInteger">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="99"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="err_count-data-item">
+      <xs:simpleContent>
+         <xs:extension base="err_count-type">
+            <xs:attribute name="description" fixed="Error count"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+            
+  <!--
+         Meta-data field description line
+   -->
+   
+   <xs:complexType name="field-description-list">
+      <xs:sequence>
+         <xs:element name="field-def" type="field-definition" minOccurs="0" maxOccurs="unbounded"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+              
+      <!--
+            The "instrument" attribute (e.g. xrs, eps). This attribute
+            is of type "instruments" which is a simple type enumerating
+            the valid string values for "instrument".
+      -->
+      <xs:attribute name="instrument" type="instruments" use="required"/>
+
+      <xs:attribute name="data-type" type="data-types" use="required"/>
+      
+   </xs:complexType>
+   
+   <xs:attribute name="field-name" type="xs:token"/>
+   <xs:attribute name="type" type="xs:string"/>
+   
+   <xs:complexType name="field-definition">
+      <xs:all>
+         <xs:element name="units" type="xs:string" minOccurs="0"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+         <xs:element name="data-range" minOccurs="0">
+            <xs:complexType>
+                  <xs:attribute name="minInclusive" type="xs:float"/>
+                  <xs:attribute name="minExclusive" type="xs:float"/>
+                  <xs:attribute name="maxInclusive" type="xs:float"/>
+                  <xs:attribute name="maxExclusive" type="xs:float"/>
+            </xs:complexType>
+         </xs:element>
+      </xs:all>
+      <xs:attribute ref="field-name" use="required"/>
+      <xs:attribute ref="type" use="required"/>
+
+   </xs:complexType>
+ 
+ </xs:schema>

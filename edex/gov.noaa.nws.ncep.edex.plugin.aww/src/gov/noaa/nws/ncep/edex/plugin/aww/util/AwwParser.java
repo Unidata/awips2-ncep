@@ -21,7 +21,9 @@
  * 08/01/2013   1028            G. Hull     sanity check on AwwReportType.
  * 9/15/2014    4637            J. Huber    Changed parser for WCN's to read VTEC lines to parse out the watch
  *                                          number instead of the WATCH NOTIFICATION string.
- *                                    
+ * 11/7/2014    5125            J. Huber    Changed getReportType method for winter products to search
+ *                                          for winter VTEC phenomenon and signficance strings instead
+ *                                          of random text headers.                                   
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -1218,14 +1220,23 @@ public class AwwParser {
          * add the key words "STATUS REPORT" at the beginning of the regular
          * expression string pattern
          */
-        final String REPORT_EXP = "(STATUS REPORT|SEVERE THUNDERSTORM|SEVERE TSTM|TORNADO|FLOOD|WINTER STORM|WATCH COUNTY NOTIFICATION|ADVISORY|WEATHER STATEMENT|RED FLAG WARNING)";
-
+        final String REPORT_EXP = "(STATUS REPORT|SEVERE THUNDERSTORM|SEVERE TSTM|TORNADO|FLOOD|WATCH COUNTY NOTIFICATION|ADVISORY|WEATHER STATEMENT|RED FLAG WARNING)";
+        
+        //RM 5125 Use VTEC phenomena and significance instead of searching the entire bulletin.
+        //If the report type needs to be changed in the future to support defining individual products
+        //that can be done with logic. For now we will define one type WINTER WEATHER. 
+        final String WINTER_EXP = "(\\.BZ\\.A|\\.BZ\\.W|\\.IS\\.W|\\.LE\\.A|\\.LE\\.W|\\.LE\\.Y|\\.WS\\.A|\\.WS\\.W|\\.WW\\.Y|\\.ZR\\.Y)";
+        
         // Pattern used for extracting data from the report type
+        final Pattern winterReportPattern = Pattern.compile(WINTER_EXP);
         final Pattern reportPattern = Pattern.compile(REPORT_EXP);
-
+        
+        Matcher winterReportMatcher = winterReportPattern.matcher(bull);
         Matcher reportMatcher = reportPattern.matcher(bull);
-
-        if (reportMatcher.find()) {
+              
+        if (winterReportMatcher.find()){
+            reportType = "WINTER WEATHER";
+        } else if (reportMatcher.find()) {
             String type = reportMatcher.group(1);
             if (type.compareTo("STATUS REPORT") == 0) {
                 reportType = getStatusReportType(bull);
@@ -1236,8 +1247,6 @@ public class AwwParser {
                 reportType = getTornadoType(bull);
             } else if (type.compareTo("FLOOD") == 0) {
                 reportType = getFloodType(bull);
-            } else if (type.compareTo("WINTER STORM") == 0) {
-                reportType = getWinterstormType(bull);
             } else if (type.compareTo("ADVISORY") == 0) {
                 reportType = getAdvisoryType(bull);
             } else if (type.compareTo("WATCH COUNTY NOTIFICATION") == 0) {
@@ -1347,24 +1356,6 @@ public class AwwParser {
     }
 
     /**
-     * Get report type from winter storm report.
-     * 
-     * @param bull
-     *            The bulletin message
-     * @return a report type
-     */
-    public static String getWinterstormType(String bull) {
-        String winterstormType = "WINTER STORM ";
-        final String REPORT_EXP = "WINTER STORM (WARNING|WATCH)";
-        final Pattern reportPattern = Pattern.compile(REPORT_EXP);
-        Matcher reportMatcher = reportPattern.matcher(bull);
-        if (reportMatcher.find()) {
-            winterstormType = winterstormType.concat(reportMatcher.group(1));
-        }
-        return winterstormType;
-    }
-
-    /**
      * Get report type from advisory report.
      * 
      * @param bull
@@ -1373,7 +1364,7 @@ public class AwwParser {
      */
     public static String getAdvisoryType(String bull) {
         String advisoryType = "ADVISORY";
-        final String REPORT_EXP = "(FOG|WIND|HEAT|FROST|SMOKE|WINTER WEATHER|SIGNIFICANT WEATHER|WEATHER) ADVISORY";
+        final String REPORT_EXP = "(FOG|WIND|HEAT|FROST|SMOKE|WIND CHILL|SIGNIFICANT WEATHER|WEATHER) ADVISORY";
         final Pattern reportPattern = Pattern.compile(REPORT_EXP);
         Matcher reportMatcher = reportPattern.matcher(bull);
         if (reportMatcher.find()) {
@@ -1417,7 +1408,7 @@ public class AwwParser {
         // final String REPORT_EXP =
         // "(HIGH WIND WARNING|FREEZE WARNING|ADVERTENCIA DE INUNDACIONES|HYDROLOGIC STATEMENT|RIVER STATEMENT)";
         /* add one more report type for "STATUS REPORT". Comment by M. Gao */
-        final String REPORT_EXP = "(HIGH WIND WARNING|FREEZE WARNING|ADVERTENCIA DE INUNDACIONES|HYDROLOGIC STATEMENT|RIVER STATEMENT|STATUS REPORT)";
+        final String REPORT_EXP = "(HIGH WIND WARNING|WIND CHILL WARNING|FREEZE WARNING|ADVERTENCIA DE INUNDACIONES|HYDROLOGIC STATEMENT|RIVER STATEMENT|STATUS REPORT)";
 
         // Pattern used for extracting data from the report type
         final Pattern reportPattern = Pattern.compile(REPORT_EXP);

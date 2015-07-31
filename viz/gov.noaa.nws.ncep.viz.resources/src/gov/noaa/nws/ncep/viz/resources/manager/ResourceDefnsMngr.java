@@ -89,6 +89,10 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * 12/4/13       #1074      Greg Hull    another hack for the rscName<->parameterValues mapping; check for
  *                                       'native' in satellite subType and set to 0 resolution.
  * 05/15/2014    #1131      Quan Zhou    added rparameters dfltGraphRange, dfltHourSnap
+ * 
+ * 09/18/2014    R4508      S. Gurung    Added "TIME_SERIES_DIR" to refdParamDirectories. Modified getAllResourceParameters()
+ *                                       to get params from sub-types for high-cadence data.
+ * 
  * </pre>
  * 
  * @author ghull
@@ -121,7 +125,7 @@ public class ResourceDefnsMngr {
     private static final String[] refdParamDirectories = {
             NcPathConstants.PLOT_MODELS_DIR,
             NcPathConstants.CONDITIONAL_FILTERS_DIR,
-            NcPathConstants.COLORBARS_DIR };
+            NcPathConstants.COLORBARS_DIR, NcPathConstants.TIME_SERIES_DIR };
 
     private static Map<String, LocalizationFile> refdParamFilesMap;
 
@@ -133,6 +137,7 @@ public class ResourceDefnsMngr {
         paramInfoForRscDefnParamsMap.put("dfltGraphRange", "Integer");
         paramInfoForRscDefnParamsMap.put("dfltHourSnap", "Integer");
         paramInfoForRscDefnParamsMap.put("dfltTimeRange", "Integer");
+        paramInfoForRscDefnParamsMap.put("dfltFrameTimes", "String");
         paramInfoForRscDefnParamsMap.put("timelineGenMethod",
                 "TimelineGenMethod");
         paramInfoForRscDefnParamsMap.put("isForecast", "Boolean");
@@ -1362,6 +1367,13 @@ public class ResourceDefnsMngr {
             new SelectableFrameTimeMatcher(paramsMap.get("GDATTIM"));
 
             return paramsMap.get("GDATTIM");
+        } else if (rscDefn.getDfltFrameTimes() != null
+                && !rscDefn.getDfltFrameTimes().isEmpty()) {
+
+            // check syntax
+            new SelectableFrameTimeMatcher(rscDefn.getDfltFrameTimes());
+
+            return rscDefn.getDfltFrameTimes();
         } else {
             return null;
         }
@@ -1493,6 +1505,23 @@ public class ResourceDefnsMngr {
                 String subtypeGenParam = subTypeGenParams[0];
                 paramsMap.put(subTypeGenParams[0], paramVal1);
                 paramsMap.put(subTypeGenParams[1], paramVal2);
+            }
+        }
+
+        // Note this currently only works for High cadence (ghcd) because its
+        // the only resource that uses 3 generating params,
+        // (the instrument, dataResolUnits and
+        // dataResolVal)
+        else if (subTypeGenParams.length == 3) {
+
+            String subType = rscName.getRscGroup();
+
+            String subTypeParamsArr[] = subType.split("_");
+
+            if (subTypeParamsArr != null) {
+                for (int i = 0; i < subTypeParamsArr.length; i++) {
+                    paramsMap.put(subTypeGenParams[i], subTypeParamsArr[i]);
+                }
             }
         }
 

@@ -14,6 +14,9 @@
      AreaMenus.xml as "GEMPAK" sub-menu entries are activated here (uncommented).  
      
      US and SPCUS should be activated for Graph-to-Grid. 
+     
+     AWC required to add all ICAO bounds under Area as a submenu, so we activates all 17 ICAO 
+     bounds (TTR 929, Oct., 2014).
 -->
 
 <!--
@@ -784,7 +787,7 @@
           <upper_right_lon>-160.00</upper_right_lon>
           <map_projection_string> MER//NM</map_projection_string>
      </geographical_data>
-
+-->
      <geographical_data>
           <geog_code>ICAO_A</geog_code>
           <geog_area_name>ICAO MERC AREA A  </geog_area_name>
@@ -988,7 +991,7 @@
           <upper_right_lon>60.30</upper_right_lon>
           <map_projection_string> STR/90;-20;0/NM</map_projection_string>
      </geographical_data>
-
+<!--
      <geographical_data>
           <geog_code>NHEM</geog_code>
           <geog_area_name>N HEMISPHERE 90W  </geog_area_name>

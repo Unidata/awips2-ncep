@@ -17,11 +17,18 @@ import com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
-import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
-
+/*
+* <pre>
+* 
+* SOFTWARE HISTORY
+* 
+* Date          Ticket#    Engineer    Description
+* ------------  ---------- ----------- --------------------------
+* 12/14	 			R5413   B. Yin		 Remove Script Creator and use Thrift Client
+* </pre>
+*/
 public class GiniAreaProviderFactory implements INcAreaProviderFactory {
 
 	public static class GiniAreaProvider implements IGridGeometryProvider {

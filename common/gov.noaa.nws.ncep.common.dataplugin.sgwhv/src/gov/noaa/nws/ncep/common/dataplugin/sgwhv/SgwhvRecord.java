@@ -73,9 +73,9 @@ public class SgwhvRecord extends PersistablePluginDataObject implements
     /*
      * Height of waves are from blended TOPEX/Poseidon, Jason-1, ERS 1, ERS 2m
      * GPO and Envisat ocean altimetry satellites, therefore satelliteId should
-     * be a primary key. Data is from Navoceano. SGWH is from Jason-1 and has
-     * satelliteID of 260. SGWH2 is from Jason-2 and has satelliteId of 261.
-     * SGWHE is from Envisat and has satelliteId of 60.
+     * be a primary key. Data is from Navoceano. Envisat and has satelliteId of
+     * 60. Jason-1, Jason-2, and Jason-3 have satelliteID of 260, 261, and 262,
+     * respectively. AltiKa has satelliteId of 441.
      */
     @DataURI(position = 4)
     @DynamicSerializeElement

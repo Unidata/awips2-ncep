@@ -132,7 +132,7 @@ public class EditWstmAttrDialog extends AbstractEditResourceAttrsDialog {
 		int advisorySymbolSize = 0;
 		
 		wstmWarningCheckBox =  drawCheckBox(gridComp);  	
-		wstmWarningCheckBox.setText("Winter storm warning");
+		wstmWarningCheckBox.setText("Winter Storm Warning");
 		wstmWarningCheckBox.setSelection((Boolean)wstmWarningEnableAttr.getAttrValue());    		
 		wstmWarningCheckBox.addSelectionListener(new SelectionAdapter(){
 		
@@ -191,7 +191,7 @@ public class EditWstmAttrDialog extends AbstractEditResourceAttrsDialog {
          });
          
 		wstmWatchCheckBox =  drawCheckBox(gridComp);  	
-		wstmWatchCheckBox.setText("Winter storm watch");
+		wstmWatchCheckBox.setText("Winter Storm Watch");
 		wstmWatchCheckBox.setSelection((Boolean)wstmWatchEnableAttr.getAttrValue());    		
 		wstmWatchCheckBox.addSelectionListener(new SelectionAdapter(){
 		
@@ -250,7 +250,7 @@ public class EditWstmAttrDialog extends AbstractEditResourceAttrsDialog {
         });
         
 		wstmAdvisoryCheckBox =  drawCheckBox(gridComp);  	
-		wstmAdvisoryCheckBox.setText("Winter weather advisory");
+		wstmAdvisoryCheckBox.setText("Winter Weather Advisory");
 		wstmAdvisoryCheckBox.setSelection((Boolean)wstmAdvisoryEnableAttr.getAttrValue());    		
 		wstmAdvisoryCheckBox.addSelectionListener(new SelectionAdapter(){
 		

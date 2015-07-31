@@ -19,6 +19,13 @@
  **/
 package gov.noaa.nws.ncep.viz.common.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+import com.raytheon.uf.common.time.DataTime;
+
 /**
  * Static methods to convert between AWIPS2 Date strings to GEMPAK DATTIM
  * string. Also contains helper methods to convert forecast time between time
@@ -77,6 +84,24 @@ public class CommonDateFormatUtil {
             charSeq.delete(startIndex, endIndex);
             startIndex = charSeq.indexOf(charToDelete);
         }
+    }
+
+    /**
+     * Returns date string in the format to query AWIPS2
+     * 
+     * @param queryDate
+     *            eg a date object with date and time
+     * @return eq "2011-10-09 06:20:00.0"
+     */
+    public static String dateToDbtimeQuery(Date queryDate) {
+        if (queryDate == null) {
+            return null;
+        }
+        SimpleDateFormat queryFormat = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:00.0");
+        queryFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        return queryFormat.format(queryDate);
     }
 
     /**
@@ -205,5 +230,40 @@ public class CommonDateFormatUtil {
         return String.valueOf(forecastHrs)
                 + (forecastMins > 0 ? ":" + String.format("%02d", forecastMins)
                         : "");
+    }
+
+    /**
+     * 
+     * Utility method to return a cycle time string formatted to MM/HH given a
+     * Date
+     * 
+     * @param dt
+     *            - date object for any month on the 8th day of the month at 12
+     *            midnight GMT
+     * @return eg "08/00"
+     */
+    public static String getCycleTimeString(Date dt) {
+        if (dt == null) {
+            return null;
+        }
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.setTime(dt);
+
+        return String.format("%02d/%02d", cal.get(Calendar.DAY_OF_MONTH),
+                cal.get(Calendar.HOUR_OF_DAY));
+    }
+
+    /**
+     * 
+     * Utility method to return a cycle time string formatted to MM/HH given a
+     * DataTime. This method will use the DataTime's reference time.
+     * 
+     * @param dt
+     *            - DataTime object for any month on the 8th day of the month at
+     *            12 midnight GMT
+     * @return eg "08/00"
+     */
+    public static String getCycleTimeString(DataTime dataTime) {
+        return getCycleTimeString(dataTime.getRefTime());
     }
 }

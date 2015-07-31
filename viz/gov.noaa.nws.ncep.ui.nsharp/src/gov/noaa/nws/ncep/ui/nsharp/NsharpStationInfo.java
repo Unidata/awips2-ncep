@@ -12,6 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 03/26/2010	229			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
+ * 12/17/2014   Task#5694   Chin Chen   initialize stnDisplayInfo and stnId
  *
  * </pre>
  * 
@@ -47,9 +48,9 @@ public class NsharpStationInfo {
 	protected double longitude;
 	protected Timestamp reftime;  //uair (same as Synoptictime in uair)
 	protected Timestamp rangestarttime; //rangestart used by model sounding e.g. PFC sounding, or uair (same as Synoptictime in uair) 
-	protected String stnDisplayInfo;
+	protected String stnDisplayInfo="N/A";
 	protected String sndType="N/A";
-	protected String stnId;
+	protected String stnId="N/A";
 	
 	
 	

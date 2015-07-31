@@ -9,6 +9,7 @@ package gov.noaa.nws.ncep.viz.rsc.aww.wstm;
 
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord.AwwReportType;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
 import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
@@ -18,41 +19,52 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.rsc.aww.query.WstmQueryResult;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.CountyObjectCreator;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.PreProcessDisplay;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.awt.Color;
-import java.awt.geom.Rectangle2D;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
 import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
-import com.raytheon.uf.viz.core.comm.Connector;
+import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
@@ -62,22 +74,19 @@ import com.raytheon.uf.viz.core.geom.PixelCoordinate;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
+import com.raytheon.viz.ui.UiPlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-
 
 /**
  * WstmResource - Displays Winter Storm Misc Resource
  * 
- *  
- *
+ * 
+ * 
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -87,1364 +96,1114 @@ import com.vividsolutions.jts.io.WKBReader;
  * 05/23/2012     785      Q. Zhou     Added getName for legend.
  * 17 Aug 2012    655      B. Hebbard  Added paintProps as parameter to IDisplayable draw
  * 31-Jan-2013    976      Archana         Updated paintFrame() to not render any null strings
- *                                                                Replaced the depreciated target.drawString() method with target.drawStrings().                              
- * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
- *                                  
+ *                                                                Replaced the depreciated target.drawString() method with target.drawStrings().
+ * 17-Nov-2014    RM 5125   J. Huber   Removed dead and deprecated code. Implemented use of new common object for AWW and removed local WstmRscDataObject. Implemented
+ *                                     common method to create display objects for individual counties. Broke out label display from the return of the frame data
+ *                                     because of issue found with multiple products being valid at the same time. Added DisplayLabel class to be able to create
+ *                                     a list of display labels and draw all labels at one time instead of county by county.
+ *                                                                                    
  * </pre>
  * 
  * @author archana
  * @version 1.0
  */
-public class WstmResource extends AbstractNatlCntrsResource<WstmResourceData, NCMapDescriptor >
-implements INatlCntrsResource{
-	List<String> issueOfficeList = new ArrayList<String>(0);
-	private final String BOUNDS_SCHEMA = "bounds";
-	private final String STATIONS_SCHEMA = "stns";
-	private final String DATABASE = "ncep";
-	private final String BOUNDS_TABLE = "pfzbnds";
-	private final String ZONES_TABLE = "zones";
-	private IFont font = null;
-	float  baseFontSize = 14;
-	private Rectangle2D charSize;
-	private double charHeight;
-	private double charWidth;	
-	
+public class WstmResource extends
+        AbstractNatlCntrsResource<WstmResourceData, NCMapDescriptor> implements
+        INatlCntrsResource {
+    List<String> issueOfficeList = new ArrayList<String>(0);
+
+    private IFont font = null;
+
+    int i = 0;
+
+    float baseFontSize = 14;
+
     private WstmResourceData wstmResourceDataObj;
-    
-	private enum Significance{ADVISORY,WATCH,WARNING, STATEMENT, FORECAST, OUTLOOK, SYNOPSIS, UNKNOWN};
-	
-	private enum ProductType{OPERATIONAL, TEST, EXPERIMENTAL, EXPERIMENTAL_VTEC_IN_OPERATIONAL_PRODUCT, UNKNOWN};
-	private enum PhenomenonType{BLIZZARD, WINTER_STORM, WINTER_WEATHER, SNOW, 
-		                                                                HEAVY_SNOW, LAKE_EFFECT_SNOW, BLOWING_SNOW,
-		                                                                SNOW_AND_BLOWING_SNOW, 
-		                                                                LAKE_EFFECT_SNOW_AND_BLOWING_SNOW, 
-		                                                                SLEET, FREEZING_RAIN,	ICE_STORM, 
-		                                                                WIND_CHILL, UNKNOWN};
-		                                                                
-	private enum ActionType{UPGRADE, CANCEL , CONTINUE, 
-		                                            CORRECTION, EXPIRE, EXTEND_AREA_ONLY,
-		                                            EXTEND_TIME_ONLY, EXTEND_TIME_AND_AREA,
-		                                            NEW, UNKNOWN};
-/**
- *  Constructor
- *  Invokes the base class constructor to process the incoming records.
- *  Also associates the WSTM resource with its corresponding resource data object 		                                            
- * @param resourceData - The editable attributes of the  WSTM resource.
- * @param props - the options for loading the data for this resource
- */
-	protected WstmResource(WstmResourceData resourceData, LoadProperties props) {
-		super(resourceData, props);
-		wstmResourceDataObj =  (WstmResourceData) resourceData;
-	}
 
-	
-	@Override
-	/**
-	 * Creates a new frame with the specified reference time and frame interval
-	 * @param frameTime - The refernce time for the frame to be created
-	 * @param frameInterval - The interval between the created frames
-	 * 
-	 * @return  Returns the new frame with the specified frame reference time and time interval 
-	 */
-	protected AbstractFrameData createNewFrame(
-			DataTime frameTime, int frameInterval) {
-		    return (AbstractFrameData) new FrameData( frameTime, frameInterval );
-			}
+    /**
+     * Constructor Invokes the base class constructor to process the incoming
+     * records. Also associates the WSTM resource with its corresponding
+     * resource data object
+     * 
+     * @param resourceData
+     *            - The editable attributes of the WSTM resource.
+     * @param props
+     *            - the options for loading the data for this resource
+     */
+    protected WstmResource(WstmResourceData resourceData, LoadProperties props) {
+        super(resourceData, props);
+        wstmResourceDataObj = (WstmResourceData) resourceData;
+    }
 
+    @Override
+    /**
+     * Creates a new frame with the specified reference time and frame interval
+     * @param frameTime - The reference time for the frame to be created
+     * @param frameInterval - The interval between the created frames
+     * 
+     * @return  Returns the new frame with the specified frame reference time and time interval 
+     */
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int frameInterval) {
+        return (AbstractFrameData) new FrameData(frameTime, frameInterval);
+    }
 
-	@Override
-/**
- * Overridden method. Invokes queryRecords() to fetch the records from the database
- * per the metadata map in WSTM.xml
- */
-	public void initResource(IGraphicsTarget grphTarget) throws VizException {long t1 = System.currentTimeMillis();
-    	queryRecords();		long t2 = System.currentTimeMillis(); System.out.println("__^^^__ initResource (t2-t1): "+(t2-t1));
-	}
+    @Override
+    /**
+     * Overridden method. Invokes queryRecords() to fetch the records from the database
+     * per the metadata map in WSTM.xml
+     */
+    public void initResource(IGraphicsTarget grphTarget) throws VizException {
+        long t1 = System.currentTimeMillis();
+        queryRecords();
+        long t2 = System.currentTimeMillis();
+        System.out.println("__^^^__ initResource (t2-t1): " + (t2 - t1));
+    }
 
-	@Override
-/***
- * Renders the WSTM resource on the frame
- */
-	public void paintFrame(AbstractFrameData frameData,
-			                                        IGraphicsTarget target, 
-			                                        PaintProperties paintProps)	throws VizException {
+    @Override
+    /***
+     * Renders the WSTM resource on the frame
+     */
+    public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
 
-		/*  
-		 *Calculate vertical/horizontal offset parameters 
-		 */
-		if( font == null ) {
-			font         = target.initializeFont("Monospace", 14, new IFont.Style[] { IFont.Style.BOLD});
-			charSize           = target.getStringBounds(font, "N");
-			charHeight         = charSize.getHeight();
-			charWidth          = charSize.getWidth();
-		}
-
-		double screenToWorldRatio = paintProps.getCanvasBounds().width /paintProps.getView().getExtent().getWidth(); 
-		double offsetY            = charHeight / screenToWorldRatio;
-		double offsetX            = charWidth / screenToWorldRatio; 
-
-		if( paintProps == null ) {
-			return;
-		}
-		if( areaChangeFlag ){ areaChangeFlag = false; postProcessFrameUpdate(); }//T456		
-		if(frameData != null){
-			FrameData currFrameData = (FrameData) frameData;
-			
-			Collection<WstmRscDataObject> wstmRscDataObjCollection =   currFrameData.wstmDataMap.values();
-			
-			/*For each WstmRscDataObject in this frame*/
-			for(WstmRscDataObject eachWstmRscDataObject : wstmRscDataObjCollection){
-				
-				WstmResourceAttributes<RGB, Integer, Float, Boolean> wstmRscAttr = null;
-				String symbolTypeStr = "";
-                 
-					/*Retrieve the user-configurable attributes depending on whether the WstmRscDataObject denotes an
-					 * advisory, watch or a warning*/
-                             if(eachWstmRscDataObject.significance ==Significance.ADVISORY){
-                              	 
-         						wstmRscAttr = new WstmResourceAttributes<RGB, Integer, Float, Boolean>(
-        								wstmResourceDataObj.getWstmAdvisoryEnable(),
-        								wstmResourceDataObj.getWstmAdvisoryColor(), 
-        								wstmResourceDataObj.getWstmAdvisoryLineWidth(),
-        								wstmResourceDataObj.getWstmAdvisorySymbolWidth(),
-        								wstmResourceDataObj.getWstmAdvisorySymbolSize());
-         						        symbolTypeStr = new String( EditWstmAttrDialog.advisoryMarkerData);
-                             }
-                             else if(eachWstmRscDataObject.significance ==Significance.WARNING){
-
-                            	 wstmRscAttr = new WstmResourceAttributes<RGB, Integer, Float, Boolean>(
-        								wstmResourceDataObj.getWstmWarningEnable(),
-        								wstmResourceDataObj.getWstmWarningColor(), 
-        								wstmResourceDataObj.getWstmWarningLineWidth(),
-        								wstmResourceDataObj.getWstmWarningSymbolWidth(),
-        								wstmResourceDataObj.getWstmWarningSymbolSize());  
-                            	 symbolTypeStr = new String( EditWstmAttrDialog.warningMarkerData);
-                             }
-                             else if(eachWstmRscDataObject.significance ==Significance.WATCH){
-         						wstmRscAttr = new WstmResourceAttributes<RGB, Integer, Float, Boolean>(
-        								wstmResourceDataObj.getWstmWatchEnable(),
-        								wstmResourceDataObj.getWstmWatchColor(), 
-        								wstmResourceDataObj.getWstmWatchLineWidth(),
-        								wstmResourceDataObj.getWstmWatchSymbolWidth(),
-        								wstmResourceDataObj.getWstmWatchSymbolSize());                           	 
-         						        symbolTypeStr = new String( EditWstmAttrDialog.watchMarkerData);
-                             }
-                             
-         					if ( wstmRscAttr != null && wstmRscAttr.getEventEnable()){
-         						RGB colorOfEventRGB = wstmRscAttr.getColorOfEvent();
-         						Color colorOfEvent = new Color( colorOfEventRGB.red,
-         						                                                		      colorOfEventRGB.green,
-         								                                                      colorOfEventRGB.blue);
-							
-         					  Color[] symbolColor = {colorOfEvent };
-							   /*Retrieve the FIPS zones (names and centroid) to be rendered for the current WstmRscDataObject*/	
-         					   List<FipsInfo> listOfFipsInfo =  eachWstmRscDataObject.aListOfFipsInfoObjects;
-         					  
-         					   if (listOfFipsInfo != null && listOfFipsInfo.size() > 0) {
- 								
-         						   for (FipsInfo eachFipsInfo : listOfFipsInfo) {
-         							   LatLonPoint thisPoint =  wqr.getLatLonPoint(eachFipsInfo.getFipsCode());//eachFipsInfo.getFipsCentroid();//T456
-							           Coordinate thisMarkerCoord = this.convertCentroidToWorldCoordinates(thisPoint);
-							           PixelCoordinate pixCoord = null;
-
-							           /*If the flag is enabled - Plot the duration for which the weather hazard (WstmRescDataObject) is valid*/
-							           if(wstmResourceDataObj.getTimeEnable()){
-								        	if (thisMarkerCoord != null) {
-												double worldC[] = new double[] {thisMarkerCoord.x,
-														                                                   thisMarkerCoord.y };
-												pixCoord = new PixelCoordinate(descriptor
-																             .worldToPixel(worldC));
-												pixCoord.addToY(offsetY*1.75);
-												if ( eachWstmRscDataObject.validTimePeriod != null ){
-													  
-													DrawableString validTimePeriodString = new DrawableString(eachWstmRscDataObject.validTimePeriod,colorOfEventRGB);
-													validTimePeriodString.setCoordinates(pixCoord.getX(), pixCoord.getY());
-													validTimePeriodString.textStyle = TextStyle.NORMAL;
-													validTimePeriodString.horizontalAlignment = HorizontalAlignment.LEFT;
-													validTimePeriodString.verticallAlignment = VerticalAlignment.TOP;
-													target.drawStrings(validTimePeriodString);
-//										               target.drawString(font,  eachWstmRscDataObject.validTimePeriod, pixCoord.getX(), pixCoord.getY(), 0.0, 
-//												                                       TextStyle.NORMAL, wstmRscAttr.getColorOfEvent(),HorizontalAlignment.LEFT, 
-//														                               VerticalAlignment.TOP, 0.0);  							
-												}
-
-											}
-							           }
-							           
-							           /*If the flag is enabled - Plot the name of the current FIPS zone in which this weather hazard is valid*/ 
-							          if(wstmResourceDataObj.getZoneNameEnable()){
-							        	  if(pixCoord != null){
-							        		  pixCoord.addToY(offsetY*1.75);
-							        	  }
-							        	  else{
-								        		if (thisMarkerCoord != null) {
-												double worldC[] = new double[] {thisMarkerCoord.x,
-														                                                   thisMarkerCoord.y };
-												pixCoord = new PixelCoordinate(descriptor
-																             .worldToPixel(worldC));
-												pixCoord.addToY(offsetY*1.75);
-
-											}
-							          }
-							        	  String zoneName = wqr.getZoneName(eachFipsInfo.getFipsCode());
-							        	  if ( zoneName != null ){
-												DrawableString zoneNameString = new DrawableString(zoneName,colorOfEventRGB);
-												zoneNameString.setCoordinates(pixCoord.getX(), pixCoord.getY());
-												zoneNameString.textStyle = TextStyle.NORMAL;
-												zoneNameString.horizontalAlignment = HorizontalAlignment.LEFT;
-												zoneNameString.verticallAlignment = VerticalAlignment.TOP;
-												target.drawStrings(zoneNameString);							        		  
-//											target.drawString(font, wqr.getZoneName(eachFipsInfo.getFipsCode())/*eachFipsInfo.getZoneName()*/, pixCoord.getX(), pixCoord.getY(), 0.0, 
-//													TextStyle.NORMAL, wstmRscAttr.getColorOfEvent(),HorizontalAlignment.LEFT, 
-//													VerticalAlignment.TOP, 0.0);
-							        	  }
-							           }
-							          
-							          /*If the outline flag is enabled draw the outline else plot the marker at the centroid of the zone's area*/
-									   if(wstmResourceDataObj.getOutlineEnable()){		
-drawOutlineForZone2(eachFipsInfo.getFipsCode()/*eachFipsInfo.fipsNumber*/, target, wstmRscAttr.getColorOfEvent(), wstmRscAttr.getLineWidth());
-							           }else{
-
-									/*Plot the symbol selected by the user from the marker selection panel*/
-							        	   if (thisMarkerCoord != null) {
-													DisplayElementFactory df = new DisplayElementFactory( target, getNcMapDescriptor() );
-													ArrayList<IDisplayable> displayEls = new ArrayList<IDisplayable>(0);	
-										            Symbol symbol = new Symbol(
-															null,
-															symbolColor,
-															wstmRscAttr.getSymbolWidth(),
-															wstmRscAttr.getSymbolSize(), /* scale per NMAP*/
-															false,
-															thisMarkerCoord,
-															"Symbol",
-															this.getActualSymbolName(symbolTypeStr));
-										            displayEls = df.createDisplayElements(symbol,paintProps);
-													if (displayEls != null && !displayEls.isEmpty()) {
-														for (IDisplayable each : displayEls) {
-															each.draw(target, paintProps);
-															each.dispose();
-														}
-													}
-											}									           
-							        }
-								}
-							}
-        					}
-         					wstmRscAttr = null;
-			}
-		}
-		
-	}
-
-	/**
-	 * Retrieves the geometric bounds of the zone from the database and plots it
-	 * @param fipsCode - the zone whose bounds need to be retrieved
-	 * @param target - the graphics target
-	 * @param lineColor - the color of the outline
-	 * @param lineWidth - the thickness of the outline 
-	 * @throws VizException
-	 */
-	private void drawOutlineForZone( String fipsCode, IGraphicsTarget target,RGB lineColor,int lineWidth) throws VizException{
-		StringBuilder queryString = new StringBuilder(
-		"select AsBinary(the_geom_0_001) from ");//the_geom) from ");//T456
-queryString.append("mapdata.zone");//BOUNDS_SCHEMA + "." + BOUNDS_TABLE);//T456
-		queryString.append(" where state_zone = '");//" where fips = '");//T456
-		queryString.append(fipsCode.substring(0,2)+fipsCode.substring(3));//fipsCode);//T456
-		queryString.append("'");
-		queryString.append(";");
-
-		try {
-List<Object[]> results = DirectDbQuery.executeQuery(queryString.toString(), "maps"/*DATABASE*/, QueryLanguage.SQL);//T456
-			LineStyle lineStyle = LineStyle.SOLID;
-			Geometry geometry = null;
-			WKBReader wkbReader = new WKBReader();
-			IWireframeShape newOutlineShape = target.createWireframeShape(false, descriptor, 0.0f);
-			IShadedShape newShadedShape = target.createShadedShape(false,descriptor, true);
-			JTSCompiler jtsCompiler = new JTSCompiler(newShadedShape,newOutlineShape, descriptor, PointStyle.CROSS);
-			newShadedShape.compile();
-
-			if(results != null && results.size() > 0){
-				for(Object[] result : results){
-					int k = 0;
-					try {
-						byte[] wkb = (byte[]) result[k++];    		
-						geometry = (Geometry) wkbReader.read(wkb);
-						if( ! (geometry instanceof Point) ){
-							jtsCompiler.handle(geometry);				
-						}
-					}
-					catch (VizException e) {
-						System.out.println("Error in WstmResource.drawOutlineForZone().\n Unable to reproject the zone's outline\n "+ e.getMessage());
-					}			      
-					catch(ParseException pe){
-						System.out.println("Error in WstmResource.drawOutlineForZone().\nParseException thrown while trying to read the geometry from bounds.pfzbnds table: "+pe.getMessage());
-					}
-				}
-				newOutlineShape.compile();    
-				if (newOutlineShape != null && newOutlineShape.isDrawable()) {
-					target.drawWireframeShape(newOutlineShape, lineColor, lineWidth,lineStyle);
-				}
-			}
-		} catch (VizException e) {
-			System.out.println("Error in WstmResource.drawOutlineForZone(). \n + Unable to retrieve records from the bounds table:\n"
-					+ e.getMessage());
-		}
-	}
-	
-	@Override
-	
-	/***
-	 * Overridden method to process the incoming AWW records
-	 * @param pdo - the AwwRecord
-	 * Returns an array of IRscDataObject processed from the AwwRecord
-	 */
-	protected IRscDataObject[] processRecord(Object pdo) {long t1 = System.currentTimeMillis();
-		if(! (pdo instanceof AwwRecord)) {
-			System.out.println("Error: " + "Object is of type " + pdo.getClass().getCanonicalName() + "instead of type AwwRecord");
-			return new IRscDataObject[]{};
-		}
-		AwwRecord awwRecord = (AwwRecord) pdo;
-		
-		List<WstmRscDataObject> wstmRscDataObjectList = getWstmData(awwRecord);
-		if(wstmRscDataObjectList == null || wstmRscDataObjectList.size() == 0){
-			return new IRscDataObject[]{};
-		}
-		int listSize = wstmRscDataObjectList.size();
-		IRscDataObject[] irscDataObjArray = new IRscDataObject[listSize];
-		for(int index = 0; index < listSize; index++){
-			irscDataObjArray[index] = wstmRscDataObjectList.get(index);
-		}//long t2 = System.currentTimeMillis(); System.out.println("+++___+++------------- processRecord (t2-t1): "+(t2-t1));
-		return irscDataObjArray;
-	}
-	
-	/***
-	 * 
-	 * @param latLonPt
-	 * @return
-	 */
-	private Coordinate convertCentroidToWorldCoordinates(LatLonPoint latLonPt){
-		Coordinate worldCoord = null;
-		if (latLonPt != null) {
-			double pointArr[] = new double[] {
-					latLonPt.getLongitude(LatLonPoint.INDEGREES),
-					latLonPt.getLatitude(LatLonPoint.INDEGREES) };
-			worldCoord = new Coordinate(pointArr[0], pointArr[1]);
-		}
-		return worldCoord;
-	}
-	
-	/***
-	 * 
-	 * @param iconName
-	 * @return
-	 */
-	private String getActualSymbolName(String iconName){
-	    String actualSymbolName = "ASTERISK";
-	    if(iconName.compareTo("TRIANGLE") == 0){
-	    	actualSymbolName = "FILLED_TRIANGLE"; //refer symbolPatterns.xml
-	    }
-       else if (iconName.compareTo("OCTAGON") == 0){
-    	   actualSymbolName = "FILLED_OCTAGON";
-	    }
-       else if (iconName.compareTo("SQUARE") == 0){
-    	   actualSymbolName = "FILLED_BOX";
-	    } 
-       else if (iconName.compareTo("STAR") == 0){
-    	   actualSymbolName = "FILLED_STAR";
-	    } 
-       else if (iconName.compareTo("DIAMOND") == 0){
-    	   actualSymbolName = "FILLED_DIAMOND";
-	    } 
-	    return actualSymbolName;
-	}
-	
-	/***
-	 * Returns a list of <code>WstmRscDataObject</code> 
-	 * Each  <code>WstmRscDataObject</code> in the list maps to a Vtec line from the original bulletin.
-	 * @param awwRecord - the AwwRecord retrieved from the database
-	 * @return a list of  <code>WstmRscDataObject</code>
-	 */
-	private List<WstmRscDataObject> getWstmData(AwwRecord awwRecord){
-		WstmRscDataObject wstmRscDataObject  = null;
-List<WstmRscDataObject> wstmRscDataObjectList = new ArrayList<WstmRscDataObject>(0); 
-			Set<AwwUgc>  thisAwwUgcSet =  awwRecord.getAwwUGC();
-			
-			for(AwwUgc eachAwwUgc : thisAwwUgcSet ){
-				Set<AwwVtec> aSetOfAwwVtec= new HashSet<AwwVtec>( eachAwwUgc.getAwwVtecLine());
-				Set<AwwFips> aSetOfAwwFips = new HashSet<AwwFips>( eachAwwUgc.getAwwFIPS());
-//for(AwwVtec av : eachAwwUgc.getAwwVtecLine())System.out.println("____________vtec: "+av.getVtecLine());
-				for(AwwVtec thisVtec: aSetOfAwwVtec){
-
-							wstmRscDataObject                        = new WstmRscDataObject();
-							/* (Non-Javadoc) - From each VTEC line in the bulletin
-							 * retrieve the following information about the weather hazard:
-							 * */
-							wstmRscDataObject.actionType      = wstmRscDataObject.getActionTypeForThisAction(thisVtec.getAction());
-							wstmRscDataObject.significance     =  wstmRscDataObject.getSignificanceType(thisVtec.getSignificance());
-							wstmRscDataObject.productType    = wstmRscDataObject.getVTECProductTypeForThisProduct(thisVtec.getProductClass());
-							wstmRscDataObject.phenomenonType = wstmRscDataObject.getPhenomenonType(thisVtec.getPhenomena());
-							wstmRscDataObject.eventNumber    = thisVtec.getEventTrackingNumber();
-							wstmRscDataObject.officeId             = thisVtec.getOfficeID();
-							Calendar startTimeCal =  thisVtec.getEventStartTime();
-							Calendar endTimeCal  =  thisVtec.getEventEndTime();
-							/*(Non-Javadoc)
-							 *  The startTimeCal will be null if the product is issued after the event started.
-							 * In this case, the start time is set to the issue-time.
-							 */
-							 
-							if(startTimeCal == null){
-								startTimeCal =  awwRecord.getIssueTime();
-                                wstmRscDataObject.isStartTimeSetToIssueTime = true;
-							}
-							
-							if ( startTimeCal != null  && endTimeCal != null ){
-								wstmRscDataObject.startTime = new DataTime(startTimeCal);
-								wstmRscDataObject.endTime = new DataTime(endTimeCal);
-								wstmRscDataObject.eventTime = new DataTime(startTimeCal, new TimeRange(startTimeCal, endTimeCal));								
-								wstmRscDataObject.validTimePeriod = wstmRscDataObject.getEventTimePeriodAsString(wstmRscDataObject.eventTime);
-							}	
-
-							/* (Non-Javadoc) - From the UGC line corresponding to the VTEC line (in the bulletin)
-							 * retrieve the list of zones for which the weather hazard is valid*/
-							if  (aSetOfAwwFips != null &&  aSetOfAwwFips.size() > 0 ){
-wqr.buildQueryPart(aSetOfAwwFips);	wstmRscDataObject.aListOfFipsInfoObjects=createListOfFipsInfoObjects2(aSetOfAwwFips);//T456
-//wstmRscDataObject.aListOfFipsInfoObjects = new ArrayList<FipsInfo>(wstmRscDataObject.createListOfFipsInfoObjects(aSetOfAwwFips));
-							}	
-
-							/*If the phenomenon is not unknown, add the WstmRscDataObject to the list*/
-							if(wstmRscDataObject.phenomenonType != PhenomenonType.UNKNOWN){
-								wstmRscDataObjectList.add(wstmRscDataObject);
-							}
-							
-				}
-			}
-		return wstmRscDataObjectList;
-   }
-
-
-/***
- * Contains the information about the weather hazard such as 
- * Its duration, the zones for which it is valid, the type of the phenomenon, 
- * the office that issued the bulletin, the action to be taken for this
- * event message and an event-tracking number. 
- * @author archana
- *
- */
-	public class WstmRscDataObject implements IRscDataObject{
-
-//          private Map<String, String> fipsCodeAndFipsStringMap = null;
-          List<FipsInfo>  aListOfFipsInfoObjects = null;
-          private DataTime eventTime = null;
-          private DataTime startTime = null;
-          private DataTime endTime = null;
-          private boolean isStartTimeSetToIssueTime;
-          private SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("dd/HHmm");
-          private String officeId;
-          private String eventNumber;
-  		  private ActionType actionType;
-  		  private String validTimePeriod;
-		  private Significance significance;
-		  private ProductType productType;
-		  private PhenomenonType phenomenonType;
-        
-		  /**
-		   * Constructor
-		   */
-		  public WstmRscDataObject(){
-       	       aListOfFipsInfoObjects = new ArrayList<FipsInfo>(0);
-       	       this.TIME_FORMAT.setTimeZone( TimeZone.getTimeZone("GMT"));
-      	}      
-      	
-		  /**
-		   * Returns the enumeration matching the action specified in the VTEC line
-		   * @param thisAction - the action to be matched
-		   * @return the corresponding <code> ActionType </code> enumeration 
-		   */
-        private ActionType getActionTypeForThisAction(String thisAction){
-        	ActionType thisActionType = ActionType.UNKNOWN;
-        	if(thisAction.compareTo("CAN") == 0){
-        		thisActionType = ActionType.CANCEL;
-        	}
-        	else	if(thisAction.compareTo("NEW") == 0 || thisAction.compareTo("EXA") == 0){
-        		thisActionType = ActionType.NEW;
-        	}
-        	else	if(thisAction.compareTo("UPG") == 0){
-        		thisActionType = ActionType.UPGRADE;
-        	}
-        	else	if(thisAction.compareTo("EXT") == 0 ){
-        		thisActionType = ActionType.EXTEND_TIME_ONLY;
-        	}
-
-        	else	if(thisAction.compareTo("EXA") == 0){
-        		thisActionType = ActionType.EXTEND_AREA_ONLY;
-        	}
-
-        	else	if(thisAction.compareTo("EXB") == 0){
-        		thisActionType = ActionType.EXTEND_TIME_AND_AREA;
-        	}
-        	
-        	else	if(thisAction.compareTo("EXP") == 0){
-        		thisActionType = ActionType.EXPIRE;
-        	}
-        	
-        	else	if(thisAction.compareTo("CON") == 0){
-        		thisActionType = ActionType.CONTINUE;
-        	}
-        	else	if(thisAction.compareTo("COR") == 0){
-        		thisActionType = ActionType.CORRECTION;
-        	}
-       	
-        	return thisActionType;
+        if (font == null) {
+            font = target.initializeFont("Monospace", 14,
+                    new IFont.Style[] { IFont.Style.BOLD });
         }
-          
-		  /**
-		   * Returns the enumeration matching the product type specified in the VTEC line
-		   * @param product - the product to be matched
-		   * @return the corresponding <code> ProductType </code> enumeration 
-		   */        
-        private ProductType getVTECProductTypeForThisProduct(String product){
-        	
-        	ProductType wstmProductType = ProductType.UNKNOWN;
-        	if (product.compareTo("O") == 0){
-        		wstmProductType = ProductType.OPERATIONAL;
-        	}
-        	else if(product.compareTo("T") == 0){
-        		wstmProductType = ProductType.TEST;
-        	}
-        	else if(product.compareTo("E") == 0){
-        		wstmProductType = ProductType.EXPERIMENTAL;
-        	}
-        	else if(product.compareTo("X") == 0){
-        		wstmProductType = ProductType.EXPERIMENTAL_VTEC_IN_OPERATIONAL_PRODUCT;
-        	}
-        	
-        	return wstmProductType;
-        }
-        
-        /**
-         * Creates a list of FipsInfo objects by processing the UGC line of the bulletin
-         * Each FipsInfo object contains information about the zone number, zone name and the centroid for that zone
-         * @param aSetOfAwwFips - corresponding to the UGC line of the bulletin
-         * @return a list of FipInfo objects
-         */
-        
-      	private List<FipsInfo> createListOfFipsInfoObjects ( Set<AwwFips> aSetOfAwwFips ) {long t1=System.currentTimeMillis();
-      		List<FipsInfo> thisListOfFipsInfo = new ArrayList<FipsInfo>(0);
-      		
-      		/*Create a map of the UGCs to their corresponding FIPS codes and zone names*/
-      		Map<String,String> aMapOfUGCsFIPSCodesAndZoneNames = createAMapOfAwwFipsAndFipsStrings(aSetOfAwwFips);
-      		
-      		if (aMapOfUGCsFIPSCodesAndZoneNames != Collections.EMPTY_MAP) {
-      			
-				for (String eachFipsString : aMapOfUGCsFIPSCodesAndZoneNames.values()) {
-			        
-					FipsInfo fipsInfo = new FipsInfo();
-					/*eachFipsString is of the form zoneNumber:zoneName*/
-					/*separate the zone number from the zone name*/
-					String  fipsCodeAndZoneName[] = eachFipsString.split(":");
-					
-					if (fipsCodeAndZoneName != null && fipsCodeAndZoneName.length == 2) {
-					    
-						/*Store the FIPS code and zone name in the newly created FipsInfo object*/
-						fipsInfo.setFipsCode(fipsCodeAndZoneName[0]);
-						fipsInfo.setZoneName(fipsCodeAndZoneName[1]);
-						
-						/*Create the query string to query the database for the centroid  corresponding to
-						 * the FIPS number*/
-						StringBuilder queryString = new StringBuilder("select ctrloc from ");
-						queryString.append(BOUNDS_SCHEMA + "." + BOUNDS_TABLE);
-						queryString.append(" where fips = '");
-						queryString.append(fipsInfo.getFipsCode());
-						queryString.append("'");
-						queryString.append(";");
-						try {
-							/*Execute the query*/
-							List<Object[]> results = DirectDbQuery
-									.executeQuery(queryString.toString(),
-											DATABASE, QueryLanguage.SQL);
-							/*Extract the centroid from the query results*/
-							LatLonPoint centroid = getCentroidFromDatabaseQueryResults(results);
-							
-							/*...and if it is not null, store it in the FipsInfo object*/
-							if (centroid != null) {
-								fipsInfo.setFipsCentroid(centroid);
-							}
-							
-							/*...and add the FipsInfo object to a list*/
-							thisListOfFipsInfo.add(fipsInfo);
-						} catch (VizException e) {
-							System.out
-									.println("Error in WstmResource.createListOfFipsInfoObjects()"
-											+ "Unable to retrieve records from the bounds table.\n"
-											+ e.getMessage());
-						}
-					}
-				}
-			}
-//long t2=System.currentTimeMillis();System.out.println("==================== createListOfFipsInfoObjects() t2-t1: "+(t2-t1));      		
-      		/*return the list of newly created FipsInfo objects*/
-			return thisListOfFipsInfo;
-      	}      	
 
-      	/***
-      	 * Returns a string of the form dd1/HH1mm1 - dd2/HH2mm2, such that the
-      	 * first string of the form dd/HHmm represents the start time of the event
-      	 * and the last one represents its end time.
-      	 * @param eventTime -  the <code> DataTime </code> whose start and
-      	 * end times need to be formatted and represented as a <code>String</code>.  
-      	 * @return a formatted string representing the valid time period of the event 
-      	 */
-    	private String getEventTimePeriodAsString(DataTime eventTime) {
-    		StringBuilder builder = new StringBuilder(16); 
-    		builder.append(" "); 
-    		
-    		if(eventTime != null){
-    			builder.append(this.TIME_FORMAT.format(eventTime.getValidPeriod().getStart()));
-        		builder.append("-");
-        		builder.append(this.TIME_FORMAT.format(eventTime.getValidPeriod().getEnd()));
-    		}
+        if (areaChangeFlag) {
+            areaChangeFlag = false;
+            postProcessFrameUpdate();
+        }// T456
+        if (frameData != null) {
+            FrameData currFrameData = (FrameData) frameData;
+                     
+            List<PreProcessDisplay> sortedWstmRecords = new ArrayList<PreProcessDisplay>();
 
-    		return builder.toString(); 
-    }      	
-      	
-    	/**
-    	 * Maps each FIPS code (<code>AwwFips</code>) to its corresponding zone number and zone name
-    	 *
-    	 * @param aSetOfAwwFips - the set of UGC codes from the UGC line in the AWW bulletin
-    	 * @return a map of the input UGCs and their corresponding zone numbers and names
-    	 * The key in the Map is a <code>String</code> representing the UGC and the value is a <code>String</code> of the form
-    	 * zoneNumber:zoneName
-    	*/
-      	private Map<String, String>  createAMapOfAwwFipsAndFipsStrings(Set<AwwFips> aSetOfAwwFips){
-      		Map<String, String> ugcFIPSMap = null;
-      		if(aSetOfAwwFips != null && aSetOfAwwFips.size() > 0){
-      			ugcFIPSMap = new HashMap<String, String>(0);
-      			
-      			/*For each AwwFips... */
-      			for(AwwFips eachAwwFips : aSetOfAwwFips){
-      				
-      				/*retrieve its Universal Geographic code - of the for SSZXXX
-      				 * where SS - 2 letter state code
-      				 * Z - refers to the word zone
-      				 * XXX - 3 digit zone identifier
-      				 * */      		
-      				String thisUGC = new String (eachAwwFips.getFips());
-//System.out.println("________________________________ ugc: "+thisUGC);           
-      				/*and use this UGC to retrieve the FIPS code and zone name from the stations table*/
-      				String fipsCodeAndZoneName = new String (getZoneNumberAndNameFromZonesTable(thisUGC));
-      				
-      				/* put the input UGC and its corresponding FIPS code and name into the HashMap*/
-      				ugcFIPSMap.put( thisUGC, new String(fipsCodeAndZoneName));
-      			}
-      			
-      			/*and return the HashMap*/
-      			return ugcFIPSMap;
+            //RM 5125 sort records by issue time and then send them to be processed and return
+            //with one county in each object.
+            
+            for (Map.Entry<String, PreProcessDisplay> entry : currFrameData.wstmDataMap
+                    .entrySet()) {
+                sortedWstmRecords.add(entry.getValue());
+            }
+            Collections.sort(sortedWstmRecords);            
+            HashMap<String, DisplayLabel> displayLabelMap;
+            displayLabelMap = new HashMap<String,DisplayLabel>();            
+            List<PreProcessDisplay> displayObjs = CountyObjectCreator.PreProcessDisplay(sortedWstmRecords);
 
-      		}else{
-      			return Collections.EMPTY_MAP;
-      		}
+            for (PreProcessDisplay eachPreProcessDisplayObj : displayObjs) {
+                Boolean draw = false;
+                WstmResourceAttributes wstmRscAttr = null;
+                String symbolTypeStr = "";                
+                eachPreProcessDisplayObj.zoneName = wqr.getZoneName(eachPreProcessDisplayObj.singleFipsCode);
+                
+                /*
+                 * Retrieve the user-configurable attributes depending on
+                 * whether the WstmRscDataObject denotes an advisory, watch or a
+                 * warning
+                 */
+                
+                //RM 5125 removed ENUMs and just used raw record
+                if (eachPreProcessDisplayObj.evSignificance.equalsIgnoreCase("Y")) {
+                    wstmRscAttr = new WstmResourceAttributes(
+                            wstmResourceDataObj.getWstmAdvisoryEnable(),
+                            wstmResourceDataObj.getWstmAdvisoryColor(),
+                            wstmResourceDataObj.getWstmAdvisoryLineWidth(),
+                            wstmResourceDataObj.getWstmAdvisorySymbolWidth(),
+                            wstmResourceDataObj.getWstmAdvisorySymbolSize());
+                    symbolTypeStr = new String(
+                            EditWstmAttrDialog.advisoryMarkerData);
+                } else if (eachPreProcessDisplayObj.evSignificance.equalsIgnoreCase("W")) {
 
-      	}        
+                    wstmRscAttr = new WstmResourceAttributes(
+                            wstmResourceDataObj.getWstmWarningEnable(),
+                            wstmResourceDataObj.getWstmWarningColor(),
+                            wstmResourceDataObj.getWstmWarningLineWidth(),
+                            wstmResourceDataObj.getWstmWarningSymbolWidth(),
+                            wstmResourceDataObj.getWstmWarningSymbolSize());
+                    symbolTypeStr = new String(
+                            EditWstmAttrDialog.warningMarkerData);
+                } else if (eachPreProcessDisplayObj.evSignificance.equalsIgnoreCase("A")) {
+                    wstmRscAttr = new WstmResourceAttributes(
+                            wstmResourceDataObj.getWstmWatchEnable(),
+                            wstmResourceDataObj.getWstmWatchColor(),
+                            wstmResourceDataObj.getWstmWatchLineWidth(),
+                            wstmResourceDataObj.getWstmWatchSymbolWidth(),
+                            wstmResourceDataObj.getWstmWatchSymbolSize());
+                    symbolTypeStr = new String(
+                            EditWstmAttrDialog.watchMarkerData);
+                }
 
-      	/**
-      	 * Gets the zone number and name corresponding to the input FIPS code from the zones table 
-      	 * @param fipsZone
-      	 * @return The zone number and name corresponding to the input fips code
-      	 */
-      	private String getZoneNumberAndNameFromZonesTable(String fipsZone){
-      		
-      		String zoneNumberAndName = "";
-      		
-      		/*Create the query string to retrieve the station number and name for the input station id (UGC)*/
-      		StringBuilder queryString = new StringBuilder();
-      		queryString.append("select stnum, name from "+ STATIONS_SCHEMA + "." + ZONES_TABLE + " where " + "stid = '");
-      		queryString.append(fipsZone);
-      		queryString.append("'");
-      		queryString.append(";");
-      		try {
-      			/*execute the query*/
-      			List<Object[]>  results = DirectDbQuery.executeQuery(queryString.toString(), 
-      					DATABASE, QueryLanguage.SQL);
-      			if(results != null && results.size() > 0){
-      			Object[] objArr = results.get(0);
-      			   /*From the results of the query, retrieve the station number and name*/
-      			    Integer thisInt = (Integer)objArr[0];
-      			    String zoneName = (String)objArr[1];
-      			    /*concatenate the station number and name along with a ':' character */
-      			    zoneNumberAndName = new String( thisInt.toString() + ":" + zoneName);
-      			}
-      		} catch (VizException e) {
-      		    System.out.println("Error while retrieving the state number from the stns.zones table:\n " + e.getMessage());
-      		}    	 
-      		return zoneNumberAndName;
-      	}    	
- 
-  	
-    	/**
-    	 * Parses the database query results to extract the centroid
-    	 * @param results
-    	 * @return a LatLonPoint object representing the centroid
-    	*/
-    	private LatLonPoint getCentroidFromDatabaseQueryResults(List<Object[]> results){
-    		LatLonPoint centroid = null;
-    		if(results != null && results.size() > 0){
-    			Object[]  centroidArr = results.get(0);
-    			if(centroidArr  != null ){
+                if (wstmRscAttr != null && wstmRscAttr.getEventEnable()) {
+                    RGB colorOfEventRGB = wstmRscAttr.getColorOfEvent();
+            
+                    if (getCurrentFrameTime().getValidTimeAsDate().getTime() < eachPreProcessDisplayObj.displayEnd.getValidPeriod().getEnd().getTime()
+                            || getCurrentFrameTime().getValidTimeAsDate().getTime() >= eachPreProcessDisplayObj.displayStart
+                                .getValidPeriod().getStart().getTime()) {
+                        draw = true;
+                    }
 
-    				String centroidAsStr = (String) centroidArr[0]; 
-    				String[] substring = centroidAsStr.split(",");
+                    if (getCurrentFrameTime().getValidTimeAsDate().getTime() > eachPreProcessDisplayObj.displayEnd
+                            .getValidPeriod().getEnd().getTime()) {
+                        draw = false;
+                    }
 
-    				if(substring.length == 2){
-    					String latStr = new String(substring[0].replace('(', ' ').trim());
-    					String lonStr = new String(substring[1].replace(')', ' ').trim());
-    					Double lat   =   Double.parseDouble(latStr);
-    					Double lon =  Double.parseDouble(lonStr);
-    					centroid = new LatLonPoint(lat, lon, LatLonPoint.INDEGREES);
-    				}
-    			}  			
-    		}
-         	return centroid;
-    	}      	
- 
-        @Override
-		/**
-		 * Overridden method used to time-match the resource to the frame
-		 */
-        public DataTime getDataTime() {
-			  return this.eventTime;
-		}
-        
-        /***
-         * Returns the <code>Significance</code> enumeration for the input
-         * one character length significance code from the VTEC line 
-         * @param significance - the single character code for the significance
-         * @return the equivalent enumeration for the Significance
-         */
-		private Significance getSignificanceType(String significance){
-			Significance wstmSignificanceType = Significance.UNKNOWN;
-			if ( significance.compareTo("A"  ) == 0 ){
-				wstmSignificanceType = Significance.WATCH;
-			}
-			else if ( significance.compareTo("W"  ) == 0){
-				wstmSignificanceType = Significance.WARNING;
-			} 
-			else if ( significance.compareTo("Y"  ) == 0){
-				wstmSignificanceType = Significance.ADVISORY;
-			}
-			else if ( significance.compareTo("S"  ) == 0){
-				wstmSignificanceType = Significance.STATEMENT;
-			} 
-			else if ( significance.compareTo("F"  ) == 0){
-				wstmSignificanceType = Significance.FORECAST;
-			}
-			else if ( significance.compareTo("N"  ) == 0){
-				wstmSignificanceType = Significance.SYNOPSIS;
-			} 
-			else if ( significance.compareTo("O"  ) == 0){
-				wstmSignificanceType = Significance.OUTLOOK;
-			}			
-			return wstmSignificanceType;
-		}
+                    if (getCurrentFrameTime().getValidTimeAsDate().getTime() < eachPreProcessDisplayObj.displayStart
+                            .getValidPeriod().getStart().getTime()) {
+                        draw = false;
+                    }
+                    
+                    if (getCurrentFrameTime().getValidTimeAsDate().getTime() == (eachPreProcessDisplayObj.displayEnd
+                            .getValidPeriod().getEnd().getTime())) {
+                    // do not draw endtime frame, that's what nmap2 does
+                        draw = false;
+                    }
+                    if (draw == true) {
+                        List<String> enabledText = new ArrayList<String>();
+                        String timeString = null;
+                        DisplayLabel countyZoneLabel = new DisplayLabel();
+                        
 
-		/***
-		 * Returns the PhenomenonType enumeration for input the 2-character
-		 * phenomenon code from the VTEC line.
-		 * @param phenomenon - the 2-character phenomenon code
-		 * @return the corresponding PhenomenonType enumeration
-		 */
-		private PhenomenonType getPhenomenonType(String phenomenon){
-			PhenomenonType wstmPhenomenonType = PhenomenonType.UNKNOWN;
-			if ( phenomenon.compareTo("BZ"  ) == 0 ){
-				wstmPhenomenonType = PhenomenonType.BLIZZARD;
-			}
-			else if ( phenomenon.compareTo("WS"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.WINTER_STORM;
-			} 
-			else if ( phenomenon.compareTo("WW"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.WINTER_WEATHER;
-			} 
-			else if ( phenomenon.compareTo("SN"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.SNOW;
-			}
-			else if ( phenomenon.compareTo("HS"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.HEAVY_SNOW;
-			} 
-			else if ( phenomenon.compareTo("LE"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.LAKE_EFFECT_SNOW;
-			}			
-			else if ( phenomenon.compareTo("BS"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.BLOWING_SNOW;
-			}
-			else if ( phenomenon.compareTo("SB"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.SNOW_AND_BLOWING_SNOW;
-			}
-			else if ( phenomenon.compareTo("LB"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.LAKE_EFFECT_SNOW_AND_BLOWING_SNOW;
-			}
-			else if ( phenomenon.compareTo("IP"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.SLEET;
-			}
-			else if ( phenomenon.compareTo("ZR"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.FREEZING_RAIN;
-			}
-			else if ( phenomenon.compareTo("IS"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.ICE_STORM;
-			}
-			else if ( phenomenon.compareTo("WC"  ) == 0){
-				wstmPhenomenonType = PhenomenonType.WIND_CHILL;
-			}
-			return wstmPhenomenonType;
-		}		
-		
-		/**
-		 * @param action the action to set
-		 */
-		/**
-		 * @return the phenomenon
-		 */
-		public Significance getPhenomenon() {
-			return significance;
-		}
-		/**
-		 * @param phenomenon the phenomenon to set
-		 */
-		public void setPhenomenon(Significance phenomenon) {
-			this.significance = phenomenon;
-		}
+                            /*
+                             * If the flag is enabled - Plot the name of the
+                             * current FIPS zone in which this weather hazard is
+                             * valid
+                             */
+                        int size = 0;
+                        if (wstmResourceDataObj.getZoneNameEnable()) {
+                            String zoneName = eachPreProcessDisplayObj.zoneName;
+                            countyZoneLabel.isZoneNameEnabled = true;
+                            if (zoneName != null) {
+                                enabledText.add(zoneName);
+                            }
+                        } 
+                            
+                            /*
+                             * If the flag is enabled - Plot the duration for
+                             * which the weather hazard (WstmRescDataObject) is
+                             * valid
+                             */
+                        if (wstmResourceDataObj.getTimeEnable()) {
+                            if (eachPreProcessDisplayObj.displayStart != null && eachPreProcessDisplayObj.displayEnd != null) {
+                                countyZoneLabel.isTimeEnabled = true;
+                                DataTime startTime = new DataTime(eachPreProcessDisplayObj.origStartTime
+                                        .getValidPeriod().getStart());
+                                DataTime endTime = new DataTime(eachPreProcessDisplayObj.origEndTime
+                                        .getValidPeriod().getEnd());
+                                timeString = startTime.toString()
+                                        .substring(8, 10) + "/" + startTime.toString()
+                                        .substring(11, 13)
+                                        + startTime.toString().substring(14, 16)
+                                        + "-"
+                                        + endTime.toString()
+                                        .substring(8, 10) + "/" 
+                                        + endTime.toString().substring(11, 13)
+                                        + endTime.toString().substring(14, 16);
+                                enabledText.add(timeString);
+                            }
+                       }
+                        countyZoneLabel.eventColor = wstmRscAttr.getColorOfEvent();
+                        countyZoneLabel.symbolWidth = wstmRscAttr.getSymbolWidth();
+                        countyZoneLabel.symbolSize = wstmRscAttr.getSymbolSize();
+                        countyZoneLabel.symbolTypeStr = symbolTypeStr;
+                        countyZoneLabel.lineWidth = wstmRscAttr.getLineWidth();
+                        LatLonPoint zoneLatLon = new LatLonPoint (eachPreProcessDisplayObj.singleCountyZoneLat,eachPreProcessDisplayObj.singleCountyZoneLon, LatLonPoint.INDEGREES);
+                        Coordinate thisMarkerCoord = this.convertCentroidToWorldCoordinates(zoneLatLon);
+                        countyZoneLabel.markerCoordinate = thisMarkerCoord;
+                      //RM 5125 Base the label offset on the symbol size so it is never in the middle of the marker
+                        float labelOffsetX = (float) .03 * countyZoneLabel.symbolSize;
+                        float labelOffsetY = (float) .015 * countyZoneLabel.symbolSize;
+                        PixelCoordinate pixCoord = null;
+                        double worldC[] = new double[] {
+                                thisMarkerCoord.x + labelOffsetX,
+                                thisMarkerCoord.y - labelOffsetY}; //offset label based on symbol size
+                        pixCoord = new PixelCoordinate(descriptor.worldToPixel(worldC));
+                        
+                        countyZoneLabel.displayCoords = pixCoord;
+                        //RM 5125 Since multiple products could be in affect at the same time we must build
+                        //the display label arrays and color arrays for each county prior to trying to create 
+                        //the draw string. The display color for markers, outlines, and zone names are determined by
+                        //which products are in effect. Priority for color is Warning, then Advisory, then Watch.
+                        //Labels will be drawn in the order of issue time, oldest to newest based on the frame data.
+                        
+                        //If this is the first time this zone has come through put it in the displayLabelMap
 
-	}
-	
-	private class FipsInfo{
-		
-		/**
-		 * @return the fipsName
-		 */
-		public String getFipsCode() {
-			return fipsNumber;
-		}
-		/**
-		 * @param fipsName the fipsName to set
-		 */
-		public void setFipsCode(String fipsName) {
-			this.fipsNumber = fipsName;
-		}
+                        if (!displayLabelMap.containsKey(eachPreProcessDisplayObj.singleFipsCode)){
 
-		/**
-		 * @return the fipsCentroid
-		 */
-		public LatLonPoint getFipsCentroid() {
-			return fipsCentroid;
-		}
-		/**
-		 * @param fipsCentroid the fipsCentroid to set
-		 */
-		public void setFipsCentroid(LatLonPoint fipsCentroid) {
-			this.fipsCentroid = fipsCentroid;
-		}
-		
-		/**
-		 * @param zoneName the zoneName to set
-		 */
-		private void setZoneName(String zoneName) {
-			this.zoneName = zoneName;
-		}
-		/**
-		 * @return the zoneName
-		 */
-		private String getZoneName() {
-			return zoneName;
-		}
-		private String zoneName;
-		private String fipsNumber;
-		private LatLonPoint fipsCentroid;
-	}
-	
-	
-	private class FrameData extends AbstractFrameData{
-    private Map<String, WstmRscDataObject> wstmDataMap = null;
-		/**
-		 * Overloaded Constructor
-		 * @param ftime
-		 * @param frameInterval
-		 */
-		protected FrameData(DataTime ftime, int frameInterval) {
-			super(ftime, frameInterval);
-			wstmDataMap = new HashMap<String, WstmRscDataObject>(0);
-		}
+                            countyZoneLabel.displayLabel = enabledText;
+                            List<RGB> rgbColors = new ArrayList<RGB>();
+                            for (i = 0; i < enabledText.size();i++){
+                                rgbColors.add(colorOfEventRGB);
+                            }
+                            countyZoneLabel.displayColors = rgbColors;
+                            displayLabelMap.put(eachPreProcessDisplayObj.singleFipsCode, countyZoneLabel);
+                        } else {
+                            //If this is not the first time get the object and add/change elements within as necessary
+                            DisplayLabel currentDisplayLabelObj = displayLabelMap.get(eachPreProcessDisplayObj.singleFipsCode);
+                            //add latest time string
+                            currentDisplayLabelObj.displayLabel.add(timeString);
+                            //add color of latest time string
+                            currentDisplayLabelObj.displayColors.add(colorOfEventRGB);
+                            //If the zone name is enabled it should be the RGB of the most significant event for that county.
+                            //Order is Warning, Advisory, Watch.
+                            if (currentDisplayLabelObj.isZoneNameEnabled){
+                                RGB currentZoneNameColor = currentDisplayLabelObj.displayColors.get(0);
+                                //If it is already a warning, leave it alone
+                                if(!currentZoneNameColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                    //If it is an advisory, only change it if the incoming product is a warning
+                                    if(currentZoneNameColor.equals(wstmResourceDataObj.getWstmAdvisoryColor())){
+                                        if(countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.warningMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                            currentDisplayLabelObj.displayColors.set(0, wstmResourceDataObj.getWstmWarningColor());
+                                        }
+                                        //If it is a watch change it if the incoming product is a warning or advisory
+                                    } else {
+                                        if(countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.warningMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                            currentDisplayLabelObj.displayColors.set(0, wstmResourceDataObj.getWstmWarningColor());
+                                        } else if (countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmAdvisoryColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.advisoryMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                            currentDisplayLabelObj.displayColors.set(0, wstmResourceDataObj.getWstmAdvisoryColor()); 
+                                        }
+                                    }
+                                        
+                                    }
+                            } else {
+                                RGB currentEventColor = currentDisplayLabelObj.eventColor;
+                                if(!currentEventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                    //If it is an advisory, only change it if the incoming product is a warning
+                                    if(currentEventColor.equals(wstmResourceDataObj.getWstmAdvisoryColor())){
+                                        if(countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.warningMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                        }
+                                        //If it is a watch change it if the incoming product is a warning or advisory
+                                    } else {
+                                        if(countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.warningMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                        } else if (countyZoneLabel.eventColor.equals(wstmResourceDataObj.getWstmAdvisoryColor())){
+                                            currentDisplayLabelObj.displayCoords = countyZoneLabel.displayCoords = pixCoord;
+                                            currentDisplayLabelObj.lineWidth = countyZoneLabel.lineWidth;
+                                            currentDisplayLabelObj.symbolWidth = countyZoneLabel.symbolWidth;
+                                            currentDisplayLabelObj.symbolSize = countyZoneLabel.symbolSize;
+                                            currentDisplayLabelObj.symbolTypeStr = EditWstmAttrDialog.advisoryMarkerData;
+                                            currentDisplayLabelObj.eventColor = countyZoneLabel.eventColor;
+                                        }
+                                    }
+                                        
+                                }
+                            }
+                            displayLabelMap.put(eachPreProcessDisplayObj.singleFipsCode, currentDisplayLabelObj);
+                        }
+                    }
+                }
+                wstmRscAttr = null;
+            }
 
-	 @Override
-		/**
-		 * Updates the <code> Map of WstmRscDataObject </code> in each frame, based on the action type
-		 * of the incoming <code> WstmRscDataObject </code>
-		 */
-		public boolean updateFrameData(IRscDataObject rscDataObj) {
-              if(!( rscDataObj instanceof WstmRscDataObject)){
-            	  System.out.println("Error: rscDataObj belongs to class" + rscDataObj.getClass().getCanonicalName());
-            	  return false;
-              }
-              WstmRscDataObject thisWstmRscDataObject = (WstmRscDataObject) rscDataObj;
-              String key = thisWstmRscDataObject.officeId +"." 
-                                   + thisWstmRscDataObject.eventNumber + "."
-                                   + thisWstmRscDataObject.phenomenonType + "."
-                                   + thisWstmRscDataObject.significance ;
-             
-              if (thisWstmRscDataObject.actionType == ActionType.CANCEL) {
-				if (!wstmDataMap.isEmpty()) {
-					wstmDataMap.remove(key);
-				}
-			}
-          
-              else if ( thisWstmRscDataObject.actionType == ActionType.NEW ){
-//            	 System.out.println("Action for " + key +" " + thisWstmRscDataObject.actionType); 
-             	 wstmDataMap.put(key, thisWstmRscDataObject);
-              }
-             
-             else if(thisWstmRscDataObject.actionType == ActionType.CONTINUE
-            		 || thisWstmRscDataObject.actionType == ActionType.UPGRADE
-            		 || thisWstmRscDataObject.actionType == ActionType.CORRECTION){
-            	 if( ! wstmDataMap.containsKey(key)){
-            		 wstmDataMap.put(key,thisWstmRscDataObject);
-            	 }
-            	 else{
-            		     WstmRscDataObject objToChange = wstmDataMap.get(key);
-            		     objToChange.actionType = thisWstmRscDataObject.actionType;
-            		     if(! thisWstmRscDataObject.isStartTimeSetToIssueTime){
-            		    	 objToChange.eventTime = new DataTime(thisWstmRscDataObject.eventTime.getRefTimeAsCalendar(),
-            		    			                                                                  thisWstmRscDataObject.eventTime.getValidPeriod());
-            		    	 objToChange.startTime = new DataTime( thisWstmRscDataObject.startTime.getRefTimeAsCalendar());
-            		     }
-        		    	 objToChange.endTime = new DataTime(thisWstmRscDataObject.endTime.getRefTimeAsCalendar());
-        		    	 objToChange.validTimePeriod =  new String(thisWstmRscDataObject.validTimePeriod);
-            		     wstmDataMap.put(key,objToChange);
-            	 }
-             }
-         
-             else   if(thisWstmRscDataObject.actionType == ActionType.EXPIRE ){
-            	 if(wstmDataMap.containsKey(key)){
-            		            WstmRscDataObject objToChange = wstmDataMap.get(key);
-            		            if(thisWstmRscDataObject.endTime != null)
-            		            {
-            		            	objToChange.endTime = new DataTime(thisWstmRscDataObject.endTime.getRefTimeAsCalendar());
-            		            }
-            		            objToChange.eventTime = new DataTime(objToChange.startTime.getRefTimeAsCalendar(),
-                                        new TimeRange(objToChange.startTime.getValidPeriod().getStart(),
-                                                         objToChange.endTime.getRefTime()));     
-            		            
-            		           objToChange.actionType = thisWstmRscDataObject.actionType;
-            		           objToChange.validTimePeriod = new String(objToChange.getEventTimePeriodAsString(objToChange.eventTime)); 
- //           		           System.out.println("Action match for " + key + " " +  objToChange.actionType);
-                                  wstmDataMap.put(key, objToChange);
-                     }             	 
-             }
-             
-             else if( thisWstmRscDataObject.actionType == ActionType.EXTEND_TIME_ONLY
-            		 ||  thisWstmRscDataObject.actionType == ActionType.EXTEND_TIME_AND_AREA){
-            	 if(wstmDataMap.containsKey(key)){
- //           		  System.out.println("Action match for " + key + " " +  thisWstmRscDataObject.actionType);
-  		            WstmRscDataObject objToChange = wstmDataMap.get(key);
- 		            objToChange.actionType = thisWstmRscDataObject.actionType;  		            
-	            	objToChange.endTime = new DataTime(thisWstmRscDataObject.endTime.getRefTimeAsCalendar());
-	            	if (! thisWstmRscDataObject.isStartTimeSetToIssueTime){
-	       		    	objToChange.startTime = new DataTime( thisWstmRscDataObject.startTime.getRefTimeAsCalendar());
-	            		objToChange.eventTime = new DataTime(thisWstmRscDataObject.eventTime.getRefTimeAsCalendar(),
-                                                                       new TimeRange(thisWstmRscDataObject.eventTime.getValidPeriod().getStart(),
-                                                                                objToChange.endTime.getRefTime()));  	            		
+            //RM 5125 loop through display label hashmap and draw labels.
 
-	            	}
-	            	else{
-    		            objToChange.eventTime = new DataTime(objToChange.eventTime.getRefTimeAsCalendar(),
-                                                                       new TimeRange(objToChange.eventTime.getValidPeriod().getStart(),
-                                                                                                    objToChange.endTime.getRefTime()));  	   	            		
-	            	}
- 		            wstmDataMap.put(key, objToChange);
-            	 }
+            List<DisplayLabel> outlineWarningList = new ArrayList<DisplayLabel>();
+            List<DisplayLabel> outlineAdvisoryList = new ArrayList<DisplayLabel>();
+            List<DisplayLabel> outlineWatchList = new ArrayList<DisplayLabel>();
 
-             }
-             
-             else if( thisWstmRscDataObject.actionType == ActionType.EXTEND_AREA_ONLY
-            		 ||  thisWstmRscDataObject.actionType == ActionType.EXTEND_TIME_AND_AREA){
-            	 if(wstmDataMap.containsKey(key)){
- //          		  System.out.println("Action match for " + key + " " +  thisWstmRscDataObject.actionType);
-		            WstmRscDataObject objToChange = wstmDataMap.get(key);
-		            objToChange.actionType = thisWstmRscDataObject.actionType;  	
-		            objToChange.aListOfFipsInfoObjects.addAll(thisWstmRscDataObject.aListOfFipsInfoObjects);
-		            wstmDataMap.put(key, objToChange);
-            	 }
-             }
-           
-             
-					return true;
-		}
-		
-	}
-	
-	/***
-	 * Private class to capture the attributes (such as the color, line width, symbol width etc) of each event 
-	 * from the WstmResourceData class.
-	 *  
-	 * @author archana
-	 *
-	 * @param <Boolean> - flag to check if the model is enabled
-	 * @param <RGB> - the color of the model
-	 * @param <Integer> - the width of the outline (line width)
-	 * @param <Integer> - the width of the the symbol 
-	 * @param <Float> - the size of the symbol
-	 *
-	*/
-	private class WstmResourceAttributes<RGB, Integer, Float, Boolean>{
-		Boolean eventEnable;
-		Integer    symbolWidth;
-		Float symbolSize;
-		Integer   lineWidth;
-		RGB colorOfEvent;
-
-		public WstmResourceAttributes(Boolean evEnable, RGB eventColor, Integer lineWidth, Integer symbolWidth, 
-				Float symbolSize){
-			this.colorOfEvent = eventColor;
-			this.symbolSize = symbolSize;
-			this.symbolWidth = symbolWidth;
-			this.lineWidth = lineWidth;
-			this.eventEnable = evEnable;
-}
-
-		/**
-		 * @return the eventEnable
-		*/
-		 private Boolean getEventEnable() {
-			 return eventEnable;
-}
-
-		 /**
-		  * @param EventEnable the eventEnable to set
-		 */
-		 private void setEventEnable(Boolean EventEnable) {
-			 this.eventEnable = EventEnable;
-}
-
-		 /**
-		  * @return the symbolWidth
-		 */
-		 private Integer getSymbolWidth() {
-			 return symbolWidth;
-}
-
-		 /**
-		  * @param symbolWidth the symbolWidth to set
-		 */
-		 private void setSymbolWidth(Integer symbolWidth) {
-			 this.symbolWidth = symbolWidth;
-}
-
-		 /**
-		  * @return the symbolSize
-		 */
-		 private Float getSymbolSize() {
-			 return symbolSize;
-}
-
-		 /**
-		  * @param symbolSize the symbolSize to set
-		 */
-		 private void setSymbolSize(Float symbolSize) {
-			 this.symbolSize = symbolSize;
-}
-
-		 /**
-		  * @return the lineWidth
-		 */
-		 private Integer getLineWidth() {
-			 return lineWidth;
-}
-
-		 /**
-		  * @param lineWidth the lineWidth to set
-		 */
-		 private void setLineWidth(Integer lineWidth) {
-			 this.lineWidth = lineWidth;
-}
-
-		 /**
-		  * @return the colorOfEvent
-		 */
-		 private RGB getColorOfEvent() {
-			 return colorOfEvent;
-}
-
-		 /**
-		  * @param ColorOfEvent the colorOfEvent to set
-		 */
-		 private void setColorOfEvent(RGB ColorOfEvent) {
-			 this.colorOfEvent = ColorOfEvent;
-}
-}
-	
-
-	
-	
-//---------------------------------------------------------------T456:
-	
-	
-	WstmQueryResult wqr = new WstmQueryResult();
-	
-	//for storing result of pre-calculation
-	private IWireframeShape outlineShape;
-	
-	//for pre-calculate the IWiredframeShape
-	private ZoneResultJob zrJob = new ZoneResultJob("");
-	
-	//if it is 1st round in the loop then draw outline since it pre-calculated for all zones
-	private boolean isFirstRound = true;
-	
-	//Area change flag
-	private boolean areaChangeFlag = false;
-	
-	@Override
-	public void queryRecords() throws VizException {
-		// this method is almost similar to its super class's queryRecords(), may need to be modified later
-		// to use the super class's version for the common part
-		
-		HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
-				resourceData.getMetadataMap());
-
-        DbQueryRequest request = new DbQueryRequest();
-        request.setConstraints(queryList);
-      
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
-
-        for (Map<String, Object> result : response.getResults()) {
-            for (Object pdo : result.values()) {
-                for( IRscDataObject dataObject : processRecord( pdo ) )	{	
-                    newRscDataObjsQueue.add(dataObject);
+            for (Entry<String, DisplayLabel> entry : displayLabelMap.entrySet()) {
+                DisplayLabel currentDisplayLabelObj = entry.getValue();
+                currentDisplayLabelObj.fipsCode = entry.getKey();
+                String[] textLabel = new String[currentDisplayLabelObj.displayLabel.size()];
+                textLabel = currentDisplayLabelObj.displayLabel.toArray(textLabel);
+                if (!currentDisplayLabelObj.isTimeEnabled && currentDisplayLabelObj.isZoneNameEnabled){
+                    if (currentDisplayLabelObj.displayLabel.size() > 2){
+                        for (int i = 2; i <= currentDisplayLabelObj.displayLabel.size() - 1;i++){
+                            textLabel[i] = "";
+                        }
+                    }
+                }
+                if (currentDisplayLabelObj.isTimeEnabled || currentDisplayLabelObj.isZoneNameEnabled){
+                RGB[] color = new RGB[currentDisplayLabelObj.displayColors.size()];
+                color = currentDisplayLabelObj.displayColors.toArray(color);
+                DrawableString zoneNameString = new DrawableString(
+                      textLabel, color);
+                zoneNameString.setCoordinates(currentDisplayLabelObj.displayCoords.getX(), currentDisplayLabelObj.displayCoords.getY());
+                zoneNameString.textStyle = TextStyle.NORMAL;
+                zoneNameString.horizontalAlignment = HorizontalAlignment.LEFT;
+                zoneNameString.verticallAlignment = VerticalAlignment.TOP;
+                target.drawStrings(zoneNameString);
+                }
+                if (!wstmResourceDataObj.getOutlineEnable()) {
+                    if (currentDisplayLabelObj.markerCoordinate != null) {
+                        DisplayElementFactory df = new DisplayElementFactory(
+                                target, getNcMapDescriptor());
+                        ArrayList<IDisplayable> displayEls = new ArrayList<IDisplayable>(
+                                0);
+                        Color eventColor = new Color( currentDisplayLabelObj.eventColor.red,
+                                currentDisplayLabelObj.eventColor.green,
+                                currentDisplayLabelObj.eventColor.blue);
+                        Color[] symbolColor = {eventColor};
+                        Symbol symbol = new Symbol(
+                                null,
+                                symbolColor,
+                                currentDisplayLabelObj.lineWidth,
+                                currentDisplayLabelObj.symbolSize, /*
+                                 * scale
+                                 * per
+                                 * NMAP
+                                 */
+                                false,
+                                currentDisplayLabelObj.markerCoordinate,
+                                "Symbol",
+                                this.getActualSymbolName(currentDisplayLabelObj.symbolTypeStr));
+                        displayEls = df.createDisplayElements(
+                                symbol, paintProps);
+                        if (displayEls != null
+                                && !displayEls.isEmpty()) {
+                            for (IDisplayable each : displayEls) {
+                                each.draw(target, paintProps);
+                                each.dispose();
+                            }
+                        }
+                    }
+                } else {
+                    //Build lists for outline lists to be plotted separately.
+                    if (currentDisplayLabelObj.eventColor.equals(wstmResourceDataObj.getWstmWarningColor())){
+                        outlineWarningList.add(currentDisplayLabelObj);
+                    } else if(currentDisplayLabelObj.eventColor.equals(wstmResourceDataObj.getWstmAdvisoryColor())){
+                        outlineAdvisoryList.add(currentDisplayLabelObj);
+                    } else {
+                        outlineWatchList.add(currentDisplayLabelObj);
+                    
+                }
+            }
+                //if the outline is enabled, create the outline in backward priority order such
+                //warning outlines are always on top, followed by advisory, followed by watches.
+                if (wstmResourceDataObj.getOutlineEnable()) {
+                    for (DisplayLabel watch : outlineWatchList){
+                    drawOutlineForZone2(
+                            watch.fipsCode, target,
+                            watch.eventColor,
+                            watch.lineWidth);
+                    }
+                    for (DisplayLabel advisory : outlineAdvisoryList){
+                    drawOutlineForZone2(
+                            advisory.fipsCode, target,
+                            advisory.eventColor,
+                            advisory.lineWidth);
+                    }
+                    for (DisplayLabel warning : outlineWarningList){
+                    drawOutlineForZone2(
+                            warning.fipsCode, target,
+                            warning.eventColor,
+                            warning.lineWidth);
+                    }
                 }
             }
         }
-		
-		wqr.populateFipsMap();
-		setAllFramesAsPopulated();
-	}
-	
-	private List<FipsInfo> createListOfFipsInfoObjects2 ( Set<AwwFips> aSetOfAwwFips ) {
-		
-		List<FipsInfo> thisListOfFipsInfo = new ArrayList<FipsInfo>();
-		
-		for(AwwFips af : aSetOfAwwFips){
-			FipsInfo fips = new FipsInfo();
-			fips.fipsNumber = af.getFips();
-			
-			thisListOfFipsInfo.add(fips);
-		}
-		
-		
-		return thisListOfFipsInfo;
-	}
-	
+    }
+
+    
+
+    @Override
+    /***
+     * Overridden method to process the incoming AWW records
+     * @param pdo - the AwwRecord
+     * Returns an array of IRscDataObject processed from the AwwRecord
+     */
+    protected IRscDataObject[] processRecord(Object pdo) {
+        if (!(pdo instanceof AwwRecord)) {
+            System.out.println("Error: " + "Object is of type "
+                    + pdo.getClass().getCanonicalName()
+                    + "instead of type AwwRecord");
+            return new IRscDataObject[] {};
+        }
+        AwwRecord awwRecord = (AwwRecord) pdo;
+
+        List<PreProcessDisplay> wstmRscDataObjectList = getWstmData(awwRecord);
+        if (wstmRscDataObjectList == null || wstmRscDataObjectList.size() == 0) {
+            return new IRscDataObject[] {};
+        } else {
+            return wstmRscDataObjectList.toArray(new PreProcessDisplay[0]);
+        }
+}
+
+    /***
+     * 
+     * @param latLonPt
+     * @return
+     */
+    private Coordinate convertCentroidToWorldCoordinates(LatLonPoint latLonPt) {
+        Coordinate worldCoord = null;
+        if (latLonPt != null) {
+            double pointArr[] = new double[] {
+                    latLonPt.getLongitude(LatLonPoint.INDEGREES),
+                    latLonPt.getLatitude(LatLonPoint.INDEGREES) };
+            worldCoord = new Coordinate(pointArr[0], pointArr[1]);
+        }
+        return worldCoord;
+    }
+
+    /***
+     * 
+     * @param iconName
+     * @return
+     */
+    private String getActualSymbolName(String iconName) {
+        String actualSymbolName = "ASTERISK";
+        if (iconName.compareTo("TRIANGLE") == 0) {
+            actualSymbolName = "FILLED_TRIANGLE"; // refer symbolPatterns.xml
+        } else if (iconName.compareTo("OCTAGON") == 0) {
+            actualSymbolName = "FILLED_OCTAGON";
+        } else if (iconName.compareTo("SQUARE") == 0) {
+            actualSymbolName = "FILLED_BOX";
+        } else if (iconName.compareTo("STAR") == 0) {
+            actualSymbolName = "FILLED_STAR";
+        } else if (iconName.compareTo("DIAMOND") == 0) {
+            actualSymbolName = "FILLED_DIAMOND";
+        }
+        return actualSymbolName;
+    }
+
+    /***
+     * Returns a list of <code>WstmRscDataObject</code> Each
+     * <code>WstmRscDataObject</code> in the list maps to a Vtec line from the
+     * original bulletin.
+     * 
+     * @param awwRecord
+     *            - the AwwRecord retrieved from the database
+     * @return a list of <code>WstmRscDataObject</code>
+     */
+    private List<PreProcessDisplay> getWstmData(AwwRecord awwRecord) {
+        PreProcessDisplay wstmRscDataObject = null;
+        List<PreProcessDisplay> wstmRscDataObjectList = new ArrayList<PreProcessDisplay>(
+                0);
+        Set<AwwUgc> thisAwwUgcSet = awwRecord.getAwwUGC();
+
+        for (AwwUgc eachAwwUgc : thisAwwUgcSet) {
+            Set<AwwVtec> aSetOfAwwVtec = new HashSet<AwwVtec>(
+                    eachAwwUgc.getAwwVtecLine());
+            Set<AwwFips> aSetOfAwwFips = new HashSet<AwwFips>(
+                    eachAwwUgc.getAwwFIPS());
+
+            for (AwwVtec thisVtec : aSetOfAwwVtec) {
+//RM5125 only add objects if they are a member of the winter storm family.
+                wstmRscDataObject = new PreProcessDisplay();
+                String buildReportType = thisVtec.getPhenomena() + "." + thisVtec.getSignificance();
+                if (buildReportType.equalsIgnoreCase("BZ.A")){
+                    wstmRscDataObject.reportType = AwwReportType.BLIZZARD_WATCH;
+                } else if (buildReportType.equalsIgnoreCase("BZ.W")){
+                    wstmRscDataObject.reportType = AwwReportType.BLIZZARD_WARNING;
+                } else if (buildReportType.equalsIgnoreCase("IS.W")){
+                    wstmRscDataObject.reportType = AwwReportType.ICE_STORM_WARNING; 
+                } else if (buildReportType.equalsIgnoreCase("LE.A")){
+                    wstmRscDataObject.reportType = AwwReportType.LAKE_EFFECT_SNOW_WATCH;
+                } else if (buildReportType.equalsIgnoreCase("LE.W")){
+                    wstmRscDataObject.reportType = AwwReportType.LAKE_EFFECT_SNOW_WARNING;
+                } else if (buildReportType.equalsIgnoreCase("LE.Y")){
+                    wstmRscDataObject.reportType = AwwReportType.LAKE_EFFECT_SNOW_ADVISORY;
+                } else if (buildReportType.equalsIgnoreCase("WS.A")){
+                    wstmRscDataObject.reportType = AwwReportType.WINTER_STORM_WATCH;
+                } else if (buildReportType.equalsIgnoreCase("WS.W")){
+                    wstmRscDataObject.reportType = AwwReportType.WINTER_STORM_WARNING;
+                } else if (buildReportType.equalsIgnoreCase("WW.Y")){
+                    wstmRscDataObject.reportType = AwwReportType.WINTER_WEATHER_ADVISORY;
+                } else if (buildReportType.equalsIgnoreCase("ZR.Y")){
+                    wstmRscDataObject.reportType = AwwReportType.FREEZING_RAIN_ADVISORY;
+                } else {
+                    wstmRscDataObject.reportType = null;
+                }
+                if (wstmRscDataObject.reportType != null){
+                /*
+                 * (Non-Javadoc) - From each VTEC line in the bulletin retrieve
+                 * the following information about the weather hazard:
+                 */
+                wstmRscDataObject.evSignificance = thisVtec.getSignificance();
+                wstmRscDataObject.evPhenomena = thisVtec.getPhenomena();
+
+                wstmRscDataObject.evTrack = thisVtec
+                        .getEventTrackingNumber();
+                wstmRscDataObject.evOfficeId = thisVtec.getOfficeID();
+                wstmRscDataObject.issueTime = new DataTime(awwRecord.getIssueTime());
+                wstmRscDataObject.eventType = thisVtec.getAction();
+                Calendar startTimeCal = awwRecord.getIssueTime();
+                Calendar endTimeCal = thisVtec.getEventEndTime();
+                Calendar eventStartTime = thisVtec.getEventStartTime();
+                /*
+                 * (Non-Javadoc) The startTimeCal will be null if the product is
+                 * issued after the event started. In this case, the start time
+                 * is set to the issue-time.
+                 */
+
+                if (eventStartTime == null) {
+                    eventStartTime = awwRecord.getIssueTime();
+                }         
+
+                if (startTimeCal != null && endTimeCal != null) {
+                    wstmRscDataObject.endTime = new DataTime(endTimeCal);
+                    wstmRscDataObject.eventTime = new DataTime(startTimeCal,
+                            new TimeRange(startTimeCal, endTimeCal));
+                }
+                wstmRscDataObject.origStartTime = new DataTime(eventStartTime);
+                wstmRscDataObject.origEndTime = wstmRscDataObject.endTime;
+                wstmRscDataObject.displayStart = wstmRscDataObject.issueTime;
+                wstmRscDataObject.displayEnd = wstmRscDataObject.origEndTime;
+
+                //RM 5125 if zone does not have a record in the zone table do not add it to the list of zones to be added into
+                //the list of things to eventually be drawn.
+                boolean doAdd = true;
+                if (aSetOfAwwFips != null && aSetOfAwwFips.size() > 0) {
+                    //wqr.buildQueryPart(aSetOfAwwFips);
+                    wstmRscDataObject.fipsCodesList = createListOfFipsInfoObjects2(aSetOfAwwFips);// T456
+                    //RM 5125 since we are using a common AWW object this information needs to be 
+                    //determined prior to the wqr map being populated.
+                    for (int i = 0; i < wstmRscDataObject.fipsCodesList.size();i++){
+                        Double fipsLat = getLatitude(wstmRscDataObject.fipsCodesList.get(i));
+                        Double fipsLon = getLongitude(wstmRscDataObject.fipsCodesList.get(i));
+                        if (!fipsLat.equals(0.0) && !fipsLon.equals(0.0)){
+                        wstmRscDataObject.countyZoneLatList.add(fipsLat);
+                        wstmRscDataObject.countyZoneLonList.add(fipsLon);
+                        }else {
+                            doAdd = false;
+                        }
+                    }
+                }
+                if (doAdd){
+                wstmRscDataObjectList.add(wstmRscDataObject);
+                }
+
+
+            }
+            }
+        }
+        return wstmRscDataObjectList;
+    }
+    
+    //RM 5125 since AWW resources use common data to display county by county, a common
+    //object was created thus removing the need to have a separate object for each resource.
+
+    protected class FrameData extends AbstractFrameData {
+        HashMap<String, PreProcessDisplay> wstmDataMap;
+
+        /**
+         * Overloaded Constructor
+         * 
+         * @param ftime
+         * @param frameInterval
+         */
+        protected FrameData(DataTime ftime, int frameInterval) {
+            super(ftime, frameInterval);
+            wstmDataMap = new HashMap<String, PreProcessDisplay>();
+        }
+
+        @Override
+        /**
+         * Updates the <code> Map of WstmRscDataObject </code> in each frame, based on the action type
+         * of the incoming <code> WstmRscDataObject </code>
+         */
+        public boolean updateFrameData(IRscDataObject rscDataObj) {
+            if (!(rscDataObj instanceof PreProcessDisplay)) {
+                System.out.println("Error: rscDataObj belongs to class"
+                        + rscDataObj.getClass().getCanonicalName());
+                return false;
+            }
+             PreProcessDisplay thisWstmRscDataObject = (PreProcessDisplay) rscDataObj;
+                String key = thisWstmRscDataObject.evOfficeId + "."
+                        + thisWstmRscDataObject.evTrack + "."
+                        + thisWstmRscDataObject.evPhenomena + "."
+                        + thisWstmRscDataObject.evSignificance + "."
+                        + thisWstmRscDataObject.fipsCodesList.get(0) + "."
+                        + thisWstmRscDataObject.issueTime + "." + thisWstmRscDataObject.eventType;
+
+                
+                if (wstmDataMap.containsKey(key)){
+                    String s = "";
+                    String r = "";
+                    for (int i = 0; i < thisWstmRscDataObject.fipsCodesList.size(); i++) {
+                        s = thisWstmRscDataObject.fipsCodesList.get(i);
+                        r = r + " " + s;
+                    }
+                    wstmDataMap.put(thisWstmRscDataObject.evOfficeId + "."
+                            + thisWstmRscDataObject.evTrack + "."
+                            + thisWstmRscDataObject.evPhenomena + "."
+                            + thisWstmRscDataObject.evSignificance + "."
+                            + thisWstmRscDataObject.issueTime + "." + thisWstmRscDataObject.eventType + "." + r,
+                            thisWstmRscDataObject);
+                } else {
+                wstmDataMap.put(key, thisWstmRscDataObject);
+                }
+                
+                //RM 5125 changed where display times were being handled to county by county
+                //object creation instead of when it went into the wstmDataMap.
+            return true;
+        }
+
+    }
+
+    /***
+     * Private class to capture the attributes (such as the color, line width,
+     * symbol width etc) of each event from the WstmResourceData class.
+     * 
+     * @author archana
+     * 
+     * @param <Boolean>
+     *            - flag to check if the model is enabled
+     * @param <RGB>
+     *            - the color of the model
+     * @param <Integer>
+     *            - the width of the outline (line width)
+     * @param <Integer>
+     *            - the width of the the symbol
+     * @param <Float>
+     *            - the size of the symbol
+     * 
+     */
+    
+    //RM5125 removed parameterization as it was not needed.
+    private class WstmResourceAttributes {
+        Boolean eventEnable;
+
+        Integer symbolWidth;
+
+        Float symbolSize;
+
+        Integer lineWidth;
+
+        RGB colorOfEvent;
+
+        public WstmResourceAttributes(Boolean evEnable, RGB eventColor,
+                Integer lineWidth, Integer symbolWidth, Float symbolSize) {
+            this.colorOfEvent = eventColor;
+            this.symbolSize = symbolSize;
+            this.symbolWidth = symbolWidth;
+            this.lineWidth = lineWidth;
+            this.eventEnable = evEnable;
+        }
+
+        /**
+         * @return the eventEnable
+         */
+        private Boolean getEventEnable() {
+            return eventEnable;
+        }
+
+        /**
+         * @return the symbolWidth
+         */
+        private Integer getSymbolWidth() {
+            return symbolWidth;
+        }
+
+        /**
+         * @return the symbolSize
+         */
+        private Float getSymbolSize() {
+            return symbolSize;
+        }
+
+        /**
+         * @return the lineWidth
+         */
+        private Integer getLineWidth() {
+            return lineWidth;
+        }
+
+        /**
+         * @return the colorOfEvent
+         */
+        private RGB getColorOfEvent() {
+            return colorOfEvent;
+        }
+    }
+
+    // ---------------------------------------------------------------T456:
+
+    WstmQueryResult wqr = new WstmQueryResult();
+
+    // for storing result of pre-calculation
+    private IWireframeShape outlineShape;
+
+    // for pre-calculate the IWiredframeShape
+    private ZoneResultJob zrJob = new ZoneResultJob("");
+
+    // Area change flag
+    private boolean areaChangeFlag = false;
+
+    @Override
+    public void queryRecords() throws VizException {
+        // this method is almost similar to its super class's queryRecords(),
+        // may need to be modified later
+        // to use the super class's version for the common part
+        DbQueryRequest request = new DbQueryRequest();
+        HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>();
+        RequestConstraint pluginName = new RequestConstraint("aww");
+        List<Object[]> results = null;
+        IDescriptor.FramesInfo frameTimes = this.descriptor.getFramesInfo();
+        int numberOfFramesForArray = frameTimes.getFrameCount() - 1;
+        Calendar startFrameTime = frameTimes.getFrameTimes()[0].getRefTimeAsCalendar();
+        Calendar endFrameTime = frameTimes.getFrameTimes()[numberOfFramesForArray].getRefTimeAsCalendar();
+        DataTime queryStartTime = new DataTime(startFrameTime);
+        DataTime queryEndTime = new DataTime(endFrameTime);
+        String queryString = "select distinct aww.id from aww,aww_ugc,aww_vtec where aww.id = aww_ugc.parentid and aww_ugc.recordid = aww_vtec.parentid and aww_vtec.eventendtime >='" + queryStartTime + "' and aww.reftime <= '" + queryEndTime + "' and aww.reporttype = 'WINTER WEATHER';";
+        results = DirectDbQuery.executeQuery(queryString, "metadata", QueryLanguage.SQL);
+        Collection<String> id = new ArrayList<String>();
+        for (int i = 0; i < results.size(); i++) {
+            id.add(results.get(i)[0].toString());
+        }
+        queryList.put("pluginName", pluginName);
+        queryList.put("reportType", resourceData.getMetadataMap().get("reportType"));
+        //queryList.put("dataTime.refTime", new RequestConstraint(
+          //      queryTime.toString(), ConstraintType.LESS_THAN_EQUALS));
+        queryList.put("id", new RequestConstraint(id));
+        request.setConstraints(queryList);
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
+        List<Object> pdoList = new ArrayList<Object>();
+        for (int i = 0; i < response.getResults().size(); i++) {
+            for (Map.Entry<String, Object> entry : response.getResults().get(i)
+                    .entrySet()) {
+                pdoList.add(entry.getValue());
+            }
+        }
+
+        class ProcessRecordRunnable implements Runnable {
+            //List<IRscDataObject> dataObjs = new ArrayList<IRscDataObject>();
+            Object runpdo = null;
+
+            ProcessRecordRunnable(Object pdo) {
+                runpdo = pdo;
+            }
+
+            public void run() {
+                //System.out.println(Thread.currentThread().getName());
+                for (IRscDataObject dataObject : processRecord(runpdo)) {
+                    newRscDataObjsQueue.add(dataObject);
+                    //wqr.buildQueryPart(dataObject);
+                }
+            }
+        }
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        for (Object pdo : pdoList) {
+            pool.submit(new ProcessRecordRunnable(pdo) );
+        }
+        try{
+            pool.shutdown();
+            pool.awaitTermination(60, TimeUnit.SECONDS);
+        }catch (InterruptedException e) {
+            System.out.println("Thread interrupted.");
+        }
+        
+            for (IRscDataObject dataObject : newRscDataObjsQueue) {
+                wqr.buildQueryPart(dataObject);
+                
+            }
+
+        wqr.populateFipsMap();
+        setAllFramesAsPopulated();
+    }
+
+    private List<String> createListOfFipsInfoObjects2(
+            Set<AwwFips> aSetOfAwwFips) {
+
+        List<String> thisListOfFipsInfo = new ArrayList<String>();
+
+        for (AwwFips af : aSetOfAwwFips) {
+            String fips = af.getFips();
+
+            thisListOfFipsInfo.add(fips);
+        }
+
+        return thisListOfFipsInfo;
+    }
+
     /**
      * handles the IWireframeShape pre-calculation
      * 
-     * @author gzhang     
+     * @author gzhang
      */
     private class ZoneResultJob extends org.eclipse.core.runtime.jobs.Job {
-    	
-    	private Map<String,Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<String,Result>();
-    	
-    	private IGraphicsTarget target;
-    	private IMapDescriptor descriptor;
-    	private RGB symbolColor = new RGB (155, 155, 155);
-    	
-        public class Result {
-        	
-            public IWireframeShape outlineShape;            
-            public Map<Object, RGB> colorMap;
 
-            private Result(IWireframeShape outlineShape,IWireframeShape nuShape,
-                     			IShadedShape shadedShape,Map<Object, RGB> colorMap){
-            	
-            	this.outlineShape = outlineShape;
-                
-                this.colorMap = colorMap;
+        private Map<String, Result> keyResultMap = new java.util.concurrent.ConcurrentHashMap<String, Result>();
+
+        private IGraphicsTarget target;
+
+        private IMapDescriptor descriptor;
+
+        private RGB symbolColor = new RGB(155, 155, 155);
+
+        public class Result {
+
+            public IWireframeShape outlineShape;
+
+            //public Map<Object, RGB> colorMap;
+
+            private Result(IWireframeShape outlineShape,
+                    IWireframeShape nuShape, IShadedShape shadedShape,
+                    Map<Object, RGB> colorMap) {
+
+                this.outlineShape = outlineShape;
+
+                //this.colorMap = colorMap;
             }
         }
-    	
-    	public ZoneResultJob(String name) {
-			super(name);			
-		}
-    	
-		public void setRequest(IGraphicsTarget target, IMapDescriptor descriptor,
-        		String query, boolean labeled, boolean shaded, Map<Object, RGB> colorMap){
-			
-			this.target = target;
-			this.descriptor = descriptor;					
-			this.run(null);//this.schedule();
-			
-    	}
-    	
-    	
-    	@Override
-		protected org.eclipse.core.runtime.IStatus run(org.eclipse.core.runtime.IProgressMonitor monitor){
-    		
-    		List<Object[]> results;
-    		
-    		for(AbstractFrameData afd : frameDataMap.values())	{
-    			
-    			FrameData fd = (FrameData)afd;
-    			
-    			for( WstmRscDataObject wrdo : fd.wstmDataMap.values()){    				
-    				
-    				for( FipsInfo fi : wrdo.aListOfFipsInfoObjects){
-    					
-    					Collection<Geometry> gw = new ArrayList<Geometry>();
-    					
-    					for(ArrayList<Object[]> zones : wqr.getZoneResult(fi.fipsNumber)){
-    						
-    						if( zones == null ) continue;
-    						
-    						WKBReader wkbReader = new WKBReader();
-    						
-    						for (Object[] result : zones) {
-    							
-    							int k = 0;
-								byte[] wkb1 = (byte[]) result[k];
-								
-								com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
-								
-								try{
-									
-									countyGeo= (com.vividsolutions.jts.geom.MultiPolygon)wkbReader.read(wkb1);
-									
-									if ( countyGeo != null && countyGeo.isValid() && ( ! countyGeo.isEmpty())){
-										gw.add(countyGeo);
-									}
-									
-								}catch(Exception e){
-									System.out.println("Exception in run(),ZoneResultJob: "+e.getMessage());
-								}
-    						}    						
-    					}
-    					
-    					if(gw.size() == 0)
-    						continue;
-    					else
-    						keyResultMap.put(fi.fipsNumber, new Result(getEachWrdoShape(gw),null,null,null));
-    				}
-    				
-    				
-    				
-    			}
-    			
-    			
-    		}
 
-    		
-    		return org.eclipse.core.runtime.Status.OK_STATUS;
-    	}
-    	
-    	public IWireframeShape getEachWrdoShape(Collection<Geometry> gw){
-	    	
-	    	IWireframeShape newOutlineShape = target.createWireframeShape(false, descriptor, 0.0f);
-			
-			JTSCompiler jtsCompiler = new JTSCompiler(null,newOutlineShape, descriptor, PointStyle.CROSS);
-	    	
-			com.vividsolutions.jts.geom.GeometryCollection gColl=
-				(com.vividsolutions.jts.geom.GeometryCollection) new com.vividsolutions.jts.geom.GeometryFactory().buildGeometry( gw );
-			
-			try{	
-				gColl.normalize();
-				
-				jtsCompiler.handle(gColl, symbolColor);				
-						
-				newOutlineShape.compile();	
-											
-			}catch (Exception e) {	System.out.println("_____Exception in getEachWrdoShape(), ZoneResultJob : "+e.getMessage());	}
-	    	
-	    	return newOutlineShape;
-	    }
-    }
-    
-    public String getKey(WstmRscDataObject thisWstmRscDataObject){
-    	
-    	return thisWstmRscDataObject.officeId +"." 
-                             + thisWstmRscDataObject.eventNumber + "."
-                             + thisWstmRscDataObject.phenomenonType + "."
-                             + thisWstmRscDataObject.significance ;
-    }
-    
-    
-    private void drawOutlineForZone2( String fipsCode, IGraphicsTarget target,RGB lineColor,int lineWidth) throws VizException{
-    	
-    	ZoneResultJob.Result result = zrJob.keyResultMap.get(fipsCode);
-    	
-    	if (result != null) {
-    		if (outlineShape == null) {   
-    			outlineShape = result.outlineShape;   
-    		}else{									 
-		//if ( outlineShape.hashCode() != result.outlineShape.hashCode()) { //TODO: do NOT use outlineShape.hashCode !!!   
-			//outlineShape.dispose(); 
-    			outlineShape = result.outlineShape;
-		//}
-    		}    
-    	}else {
-    		return;
-    	}
-    	
-    	if (outlineShape != null && outlineShape.isDrawable() ){
-    		try{
-    			target.drawWireframeShape(outlineShape,  lineColor,lineWidth,LineStyle.SOLID );
-    		} catch (VizException e) {
-    			System.out.println("Exception in drawCountyOutline2(), WstmResource"+e.getMessage()); 
-    			//e.printStackTrace();
-    		}
+        public ZoneResultJob(String name) {
+            super(name);
+        }
 
-    	} else if (outlineShape == null){
-		
-  		//target.setNeedsRefresh(true);
-    	}
+        public void setRequest(IGraphicsTarget target,
+                IMapDescriptor descriptor, String query, boolean labeled,
+                boolean shaded, Map<Object, RGB> colorMap) {
+
+            this.target = target;
+            this.descriptor = descriptor;
+            this.run(null);// this.schedule();
+
+        }
+
+        @Override
+        protected org.eclipse.core.runtime.IStatus run(
+                org.eclipse.core.runtime.IProgressMonitor monitor) {
+
+            for (AbstractFrameData afd : frameDataMap.values()) {
+
+                FrameData fd = (FrameData) afd;
+
+                for (PreProcessDisplay wrdo : fd.wstmDataMap.values()) {
+
+                    for (String fi : wrdo.fipsCodesList) {
+
+                        Collection<Geometry> gw = new ArrayList<Geometry>();
+
+                        for (ArrayList<Object[]> zones : wqr
+                                .getZoneResult(fi)) {
+
+                            if (zones == null)
+                                continue;
+
+                            WKBReader wkbReader = new WKBReader();
+
+                            for (Object[] result : zones) {
+
+                                int k = 0;
+                                byte[] wkb1 = (byte[]) result[k];
+
+                                com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
+
+                                try {
+
+                                    countyGeo = (com.vividsolutions.jts.geom.MultiPolygon) wkbReader
+                                            .read(wkb1);
+
+                                    if (countyGeo != null
+                                            && countyGeo.isValid()
+                                            && (!countyGeo.isEmpty())) {
+                                        gw.add(countyGeo);
+                                    }
+
+                                } catch (Exception e) {
+                                    System.out
+                                            .println("Exception in run(),ZoneResultJob: "
+                                                    + e.getMessage());
+                                }
+                            }
+                        }
+
+                        if (gw.size() == 0)
+                            continue;
+                        else
+                            keyResultMap.put(fi, new Result(
+                                    getEachWrdoShape(gw), null, null, null));
+                    }
+
+                }
+
+            }
+
+            return org.eclipse.core.runtime.Status.OK_STATUS;
+        }
+
+        public IWireframeShape getEachWrdoShape(Collection<Geometry> gw) {
+
+            IWireframeShape newOutlineShape = target.createWireframeShape(
+                    false, descriptor, 0.0f);
+
+            JTSCompiler jtsCompiler = new JTSCompiler(null, newOutlineShape,
+                    descriptor, PointStyle.CROSS);
+
+            com.vividsolutions.jts.geom.GeometryCollection gColl = (com.vividsolutions.jts.geom.GeometryCollection) new com.vividsolutions.jts.geom.GeometryFactory()
+                    .buildGeometry(gw);
+
+            try {
+                gColl.normalize();
+
+                jtsCompiler.handle(gColl, symbolColor);
+
+                newOutlineShape.compile();
+
+            } catch (Exception e) {
+                System.out
+                        .println("_____Exception in getEachWrdoShape(), ZoneResultJob : "
+                                + e.getMessage());
+            }
+
+            return newOutlineShape;
+        }
     }
-    
+
+    private void drawOutlineForZone2(String fipsCode, IGraphicsTarget target,
+            RGB lineColor, int lineWidth) throws VizException {
+
+        ZoneResultJob.Result result = zrJob.keyResultMap.get(fipsCode);
+
+        if (result != null) {
+                outlineShape = result.outlineShape;
+        } else {
+            return;
+        }
+
+        if (outlineShape != null && outlineShape.isDrawable()) {
+            try {
+                target.drawWireframeShape(outlineShape, lineColor, lineWidth,
+                        LineStyle.SOLID);
+            } catch (VizException e) {
+                System.out
+                        .println("Exception in drawCountyOutline2(), WstmResource"
+                                + e.getMessage());
+                // e.printStackTrace();
+            }
+
+        } else if (outlineShape == null) {
+
+            // target.setNeedsRefresh(true);
+        }
+    }
+
     @Override
-	protected boolean postProcessFrameUpdate() {
-    	
-    	AbstractEditor ncme = NcDisplayMngr.getActiveNatlCntrsEditor();
-    	
-    	zrJob.setRequest(ncme.getActiveDisplayPane().getTarget(), getNcMapDescriptor(), null, false, false, null); 
-    	
-    	return true;
+    protected boolean postProcessFrameUpdate() {
+
+        AbstractEditor ncme = NcDisplayMngr.getActiveNatlCntrsEditor();
+
+        zrJob.setRequest(ncme.getActiveDisplayPane().getTarget(),
+                getNcMapDescriptor(), null, false, false, null);
+
+        return true;
     }
-        
-	@Override 
+
+    @Override
     public void project(CoordinateReferenceSystem crs) throws VizException {
- 		areaChangeFlag = true;			
-	}
-	
+        areaChangeFlag = true;
+    }
+
     /**
-     * avoid null pointers exception in super class  
+     * avoid null pointers exception in super class
      */
     @Override
-	protected long getDataTimeMs(IRscDataObject rscDataObj) {
-		//			long dataTimeMs = rscDataObj.getDataTime().getValidTime().getTime().getTime();
-		if(rscDataObj == null)
-			return 0;
-		
-    	java.util.Calendar validTimeInCalendar = null; 
-		DataTime dataTime = rscDataObj.getDataTime(); 
-		if(dataTime != null) {
-			validTimeInCalendar = dataTime.getValidTime(); 
-			
-		} else {
-			System.out.println("===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!"); 
-		}
-		long dataTimeInMs = 0; 
-		if(validTimeInCalendar != null)
-			dataTimeInMs = validTimeInCalendar.getTimeInMillis(); 
-		return dataTimeInMs; 
-	}
-	
+    protected long getDataTimeMs(IRscDataObject rscDataObj) {
+        // long dataTimeMs =
+        // rscDataObj.getDataTime().getValidTime().getTime().getTime();
+        if (rscDataObj == null)
+            return 0;
+
+        java.util.Calendar validTimeInCalendar = null;
+        DataTime dataTime = rscDataObj.getDataTime();
+        if (dataTime != null) {
+            validTimeInCalendar = dataTime.getValidTime();
+
+        } else {
+            System.out
+                    .println("===== find IRscDataObject rscDataObj.getDataTime() return NULL!!!");
+        }
+        long dataTimeInMs = 0;
+        if (validTimeInCalendar != null)
+            dataTimeInMs = validTimeInCalendar.getTimeInMillis();
+        return dataTimeInMs;
+    }
+
     @Override
-	public String getName() {
-		String legendString = super.getName();
-		FrameData fd = (FrameData) getCurrentFrame();
-		if (fd == null || fd.getFrameTime() == null || fd.wstmDataMap.size() == 0) {
-			return legendString + "-No Data";
-		}
-		return legendString + " "+ NmapCommon.getTimeStringFromDataTime( fd.getFrameTime(), "/");
-	}
+    public String getName() {
+        String legendString = super.getName();
+        FrameData fd = (FrameData) getCurrentFrame();
+        if (fd == null || fd.getFrameTime() == null
+                || fd.wstmDataMap.size() == 0) {
+            return legendString + "-No Data";
+        }
+        return legendString + " "
+                + NmapCommon.getTimeStringFromDataTime(fd.getFrameTime(), "/");
+    }
+    
+    public double getLatitude(String zoneFips) {
+        List<Object[]> results = null;
+        Logger logger = Logger.getLogger("gov.noaa.nws.ncep.viz.rsc.wstm.rsc.WstmResource");
+        String queryPrefix = "select lat from mapdata.zone where state_zone =";
+        String dbZoneFips = zoneFips.substring(0, 2) + zoneFips.substring(3);
+        try{
+            String wholeQuery = queryPrefix + "'" + dbZoneFips + "'" + ";";
+            
+            results = DirectDbQuery.executeQuery(wholeQuery, "maps", QueryLanguage.SQL);
+            Double zoneFipsLat = ((Number) results.get(0)[0]).doubleValue();
+            return zoneFipsLat;
+        }catch(Exception e){ 
+            //if there is a problem with the query make a note in the the console log and skip it.
+            logger.log(Level.WARNING, "Latitude information for " + zoneFips + " was not found in the zone table. This zone will be skipped.");
+            return 0;
+        }
+    }
+    public double getLongitude(String zoneFips) {
+        List<Object[]> results = null;
+        Logger logger = Logger.getLogger("gov.noaa.nws.ncep.viz.rsc.wstm.rsc.WstmResource");
+        String queryPrefix = "select lon from mapdata.zone where state_zone =";
+        String dbZoneFips = zoneFips.substring(0, 2) + zoneFips.substring(3);
+        try{
+            String wholeQuery = queryPrefix + "'" + dbZoneFips + "'" + ";";
+            
+            results = DirectDbQuery.executeQuery(wholeQuery, "maps", QueryLanguage.SQL);
+            double zoneFipsLon = ((Number) results.get(0)[0]).doubleValue();
+            return zoneFipsLon;
+        }catch(Exception e){         
+            //if there is a problem with the query make a note in the the console log and skip it.
+            logger.log(Level.WARNING, "Longitude information for " + zoneFips + " was not found in the zone table. This zone will be skipped.");
+            return 0;
+        }
+    }
+    
+    //RM 5125 Added display label class to pass from the PreProcessDisplay label map to the display label logic.
+    public class DisplayLabel{
+        List<String> displayLabel;
+        List<RGB> displayColors;
+        PixelCoordinate displayCoords; 
+        List<String> evSignificance;
+        boolean isZoneNameEnabled;
+        boolean isTimeEnabled;
+        int lineWidth;
+        RGB eventColor;
+        Coordinate markerCoordinate;
+        Integer symbolWidth;
+        Float symbolSize;
+        String symbolTypeStr;
+        String fipsCode;
+        LatLonPoint zoneLatLon;
+    }
 }

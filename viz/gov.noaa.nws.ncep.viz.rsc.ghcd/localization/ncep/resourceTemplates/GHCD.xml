@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resourceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <resource>
+        <loadProperties loadWithoutData="true"/>                              
+        <properties isSystemResource="false"
+              isBlinking="false" isMapLayer="false" isHoverOn="false"
+              isVisible="true" />
+        <resourceData xsi:type="NC-GhcdResourceData"
+                        isUpdatingOnMetadataOnly="false" 
+                        isRequeryNecessaryOnTimeMatch="false"> 
+
+			  
+              <frameSpan>${frameSpan}</frameSpan>
+              <dfltNumFrames>${dfltNumFrames}</dfltNumFrames>
+              <dfltTimeRange>${dfltTimeRange}</dfltTimeRange>
+              <timeMatchMethod>${timeMatchMethod}</timeMatchMethod>       
+              <timelineGenMethod>${timelineGenMethod}</timelineGenMethod>  
+                          
+              <yData>${yData}</yData>
+              <dataColor>${dataColor}</dataColor>
+              <xTitle>${xTitle}</xTitle>
+              <yTitle>${yTitle}</yTitle>
+              <yTitlePosition>${yTitlePosition}</yTitlePosition>
+              <yScaleType>${yScaleType}</yScaleType>
+              <yScaleMin>${yScaleMin}</yScaleMin>
+              <yScaleMax>${yScaleMax}</yScaleMax>
+              <yInterval>${yInterval}</yInterval>
+              <yNumTicks>${yNumTicks}</yNumTicks>  
+              <yUnits>${yUnits}</yUnits>
+              <yUnitsPosition>${yUnitsPosition}</yUnitsPosition>          
+              <source>${typeInfo.source}</source>
+              <instrument>${typeInfo.instrument}</instrument>
+              <datatype>${typeInfo.datatype}</datatype>
+              <dataResolUnits>${dataResolUnits}</dataResolUnits>       
+              <dataResolVal>${dataResolVal}</dataResolVal>      
+              <graphKey>${graphKey}</graphKey>       
+              <displayXLabels>${displayXLabels}</displayXLabels>           
+              <displayLastDataDate>${displayLastDataDate}</displayLastDataDate>       
+              <graphTopTitle>${graphTopTitle}</graphTopTitle>  
+              <lineStyle>${lineStyle}</lineStyle>  
+              <lineWidth>${lineWidth}</lineWidth>  
+              <unitsFont>${unitsFont}</unitsFont>
+              <unitsStyle>${unitsStyle}</unitsStyle>
+              <unitsFontSize>${unitsFontSize}</unitsFontSize>
+              <titleFont>${titleFont}</titleFont>
+              <titleFontSize>${titleFontSize}</titleFontSize>
+              <titleStyle>${titleStyle}</titleStyle>
+               
+              ${xAxisScale}
+              
+              <metadataMap>
+                <mapping key="pluginName">
+                  <constraint constraintValue="${pluginName}" constraintType="EQUALS" />
+                </mapping>       
+                <mapping key="reportType">
+                  <constraint constraintValue="${reportType}" constraintType="EQUALS"/>
+                </mapping>   
+               <mapping key="typeInfo.source">
+                 <constraint constraintValue="${typeInfo.source}" constraintType="EQUALS" />
+               </mapping>       
+               <mapping key="typeInfo.instrument">
+                 <constraint constraintValue="${typeInfo.instrument}" constraintType="EQUALS" />
+               </mapping>       
+               <mapping key="typeInfo.datatype">
+                 <constraint constraintValue="${typeInfo.datatype}" constraintType="EQUALS" />
+               </mapping>       
+               <mapping key="dataResolUnits">
+                 <constraint constraintValue="${dataResolUnits}" constraintType="EQUALS" />
+               </mapping>       
+               <mapping key="dataResolVal">
+                 <constraint constraintValue="${dataResolVal}" constraintType="EQUALS" />
+               </mapping>                                 
+              </metadataMap>             
+        </resourceData>
+    </resource>
+</resourceGroup>        

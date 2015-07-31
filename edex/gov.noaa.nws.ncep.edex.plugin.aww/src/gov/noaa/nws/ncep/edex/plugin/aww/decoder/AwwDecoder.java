@@ -23,7 +23,6 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
 
 /**
@@ -61,6 +60,7 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * Aug 30, 2013 2298            rjpeter     Make getPluginName abstract
  * Mar 21, 2103 1112            S. Russell  *.WCN files, get the watch number
  * Aug 13, 2014 (none?)         D. Sushon   refactor to be sure all bulletins get decoded, removed some dead code, marked possibly dead code as such
+ * Nov 7, 2014 5125             J. Huber    Cleaned up unneeded logic and deprecated method calls.
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -131,48 +131,52 @@ public class AwwDecoder extends AbstractDecoder {
             AwwRecord record = AwwParser.processWMO(theBulletin, mndTime);
             if (record == null) {
                 throw new AwwDecoderException("Error on decoding Aww Record");
-            }
-
-            boolean isWtchFlag = AwwDecoder.isWtch(record);// Ticket 456
-
-            // boolean isSevereWeatherStatusFlag =
-            // AwwDecoder.isSevereWeatherStatus(record); //dead code?
-
-            // Get report type
-            String reportType = AwwParser.getReportType(theBulletin);
-
-            ArrayList<String> segmentList = new ArrayList<String>();
-            segmentList.clear();
-
-            // Break the bulletin message into segments by a "$$"
-            Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
-
-            boolean isWCN = false;
-            String wcnLbl = AwwRecord.AwwReportType.WATCH_COUNTY_NOTIFICATION
-                    .name();
-            wcnLbl = wcnLbl.replace("_", " ");
-            if (reportType.equals(wcnLbl)) {
-                isWCN = true;
-            }
-
-            while (sc.hasNext()) {
-                String segment = sc.next();
-                Matcher ugcMatcher = ugcPattern.matcher(segment);
-                // discard if the segment did not have an UGC line.
-                if (ugcMatcher.find() || isWtchFlag) { // ????? not sure if this
-                                                       // logic is correct
-                    segmentList.add(segment);
+            }  else {
+            	// Set MND remark before the URI is constructed
+                if ((mt.getMndTimeString() == null)
+                		|| mt.getMndTimeString().trim().isEmpty()) {
+                    record.setMndTime("unknown");
+                } else {
+                    record.setMndTime(mt.getMndTimeString());
                 }
-            }
+                boolean isWtchFlag = AwwDecoder.isWtch(record);// Ticket 456
 
-            if (record != null) {
+                // Get report type
+                String reportType = AwwParser.getReportType(theBulletin);
+
+                ArrayList<String> segmentList = new ArrayList<String>();
+                segmentList.clear();
+
+                // Break the bulletin message into segments by a "$$"
+                Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
+
+                boolean isWCN = false;
+                String wcnLbl = AwwRecord.AwwReportType.WATCH_COUNTY_NOTIFICATION
+                		.name();
+                wcnLbl = wcnLbl.replace("_", " ");
+                if (reportType.equals(wcnLbl)) {
+                	isWCN = true;
+                }
+
+                while (sc.hasNext()) {
+                	String segment = sc.next();
+                	Matcher ugcMatcher = ugcPattern.matcher(segment);
+                	boolean ugcMatch = ugcMatcher.find();
+                	// discard if the segment did not have an UGC line.
+                	if (ugcMatch || isWtchFlag || isWCN) { // ????? not sure if this
+                                                       // logic is correct
+                		segmentList.add(segment);
+                	}
+                }
+
                 try {
                     // process each segment in a order of UGC, VTEC, H-VTEC,
                     // FIPS, LATLON...
                     for (String segment : segmentList) {
                         Matcher ugcMatcher = ugcPattern.matcher(segment);
+                        boolean ugcMatch = ugcMatcher.find();
                         AwwUgc ugc = null;
-
+                                            
                         // TRAC 1112
                         if (isWCN) {
                             String watchNumber = AwwParser
@@ -192,67 +196,18 @@ public class AwwDecoder extends AbstractDecoder {
                                     AwwParser.WTCH_BOX_UGC_LINE, segment,
                                     mndTime, record.getIssueOffice(),
                                     watchesList);
-                            // else if(isSevereWeatherStatusFlag) ---dead code?
-                            // ugc =
-                            // AwwParser.processUgcForSereveWeatherStatus(ugcMatcher.group(),
-                            // segment, mndTime, record.getIssueOffice(),
-                            // watchesList);
+
                             String watchNumber = AwwParser
                                     .processUgcToRetrieveWatchNumberForThunderstormOrTornado(segment);
                             record.setWatchNumber(watchNumber);
-                            // } else if(isSevereWeatherStatusFlag) { dead code?
-                            // String watchNumber =
-                            // AwwParser.processUgcToRetrieveWatchNumberForStatusReport(segment);
-                            // record.setWatchNumber(watchNumber);
-                        } else if (ugcMatcher.find()) {
+
+                        } else if (ugcMatch) {
                             ugc = AwwParser.processUgc(ugcMatcher.group(),
                                     segment, mndTime, watchesList);
                         }
 
                         if (ugc != null) {
                             record.addAwwUGC(ugc);
-
-                            /*
-                             * Collect watch numbers which are the event
-                             * tracking numbers in VTEC lines as one of primary
-                             * keys in AWW record to prevent not writing raw
-                             * data to DB note: 1. each bulletin may have
-                             * multiple segments 2. each segment has one UGC
-                             * line but may have multiple VTEC lines and have
-                             * more than one watch number
-                             */
-                            /*
-                             * not quite sure the following logic is correct to
-                             * retrieve and then store the watch number. thus
-                             * comment it out now. M. Gao
-                             */
-                            // if (watchesList.size() > 0) {
-                            // String collectWatches = null;
-                            // for (int idxWatch = 0; idxWatch <
-                            // watchesList.size();
-                            // idxWatch++) {
-                            //
-                            // if (idxWatch == 0) {
-                            // collectWatches = watchesList.get(idxWatch);
-                            // } else {
-                            // collectWatches = collectWatches.concat("/")
-                            // .concat(watchesList.get(idxWatch));
-                            // }
-                            // }
-                            // // System.out.println("==collection length=" +
-                            // // collectWatches.length() );
-                            // record.setWatchNumber(collectWatches);
-                            // } else {
-                            //
-                            // // The special reports may not have VTEC line;
-                            // // given a default watch number "0000".
-                            // record.setWatchNumber("0000");
-                            // }
-
-                            /*
-                             * construct VTEC object and then add it to the
-                             * current Ugc for SevereWeatherStatus aww reocrd
-                             */
 
                             if (AwwParser.isSegmentTextValid(segment)) {
                                 /*
@@ -285,41 +240,13 @@ public class AwwDecoder extends AbstractDecoder {
 
                         }
                     }
+                    record.setReportType(reportType.trim());
+                    record.setTraceId(traceId);
+                    
 
                 } catch (Exception e) {
                     logger.error("Error processing decoded segment", e);
                     record = null;
-                }
-            }
-
-            if (record != null) {
-                // T976 - check if the record has a valid UGC. If not return an
-                // empty PluginDataObject array
-                if ((record.getAwwUGC() == null)
-                        || (record.getAwwUGC().size() == 0)) {
-                    return new PluginDataObject[0];
-                }
-
-                record.setReportType(reportType.trim());
-                record.setTraceId(traceId);
-                // Set MND remark before the URI is constructed
-                if ((mt.getMndTimeString() == null)
-                        || mt.getMndTimeString().trim().isEmpty()) {
-                    record.setMndTime("unknown");
-                } else {
-                    record.setMndTime(mt.getMndTimeString());
-                }
-
-                try {
-                    record.constructDataURI();
-                } catch (PluginException e) {
-                    throw new DecoderException(this.getClass()
-                            .getCanonicalName()
-                            + ":Error constructing dataURI:", e);
-                }
-            } else {
-                throw new DecoderException(this.getClass().getCanonicalName()
-                        + ":Error Aww Record object is NULL");
             }
 
             // Decode and set attention line
@@ -337,6 +264,7 @@ public class AwwDecoder extends AbstractDecoder {
             outPdo.add(record);
             if (cc.hasNext()) {
                 theBulletin = cc.next();
+            }
             }
         } while (cc.hasNext());
 

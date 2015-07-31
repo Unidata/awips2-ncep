@@ -3,8 +3,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
   http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd   
   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
-
-	<bean id="trig1minCalc" class="gov.noaa.nws.ncep.edex.plugin.geomag.TrigKCalculation" />
 	
     <camelContext id="geomag-camel"
 		xmlns="http://camel.apache.org/schema/spring"
@@ -21,20 +19,6 @@
 			</setHeader>
 			<to uri="jms-generic:queue:Ingest.GeoMag" />
 		</route>
-		
-		<route id="geomagCalcRoute">
-	        <from uri="jms-generic:topic:edex.alerts"/>
-	        <doTry>
-		          <pipeline>
-		          	<bean ref="serializationUtil" method="transformFromThrift" />
-		            <bean ref="trig1minCalc" method="trig1min"/>
-		          </pipeline>
-		          <doCatch>
-		             <exception>java.lang.Throwable</exception>
-		             <to uri="log:geomag?level=ERROR"/> 
-		          </doCatch>
-	        </doTry>
-	    </route> 
 	   
 	</camelContext>
 	

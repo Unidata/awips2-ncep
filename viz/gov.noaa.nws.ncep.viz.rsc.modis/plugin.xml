@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="com.raytheon.uf.viz.core.resource">
+      <resource
+            class="gov.noaa.nws.ncep.viz.rsc.modis.rsc.ModisResource"
+            name="ModisSatellite"
+            recordClass="gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord"
+            renderingOrderId="IMAGE_COUNTRY">
+      </resource>
+   </extension>
+   <extension
+         point="gov.noaa.nws.ncep.viz.resources.NC-Resource">
+      <nc-resource
+            class="gov.noaa.nws.ncep.viz.rsc.modis.rsc.ModisResourceData"
+            editDialogClass="gov.noaa.nws.ncep.viz.rsc.modis.rsc.EditModisAttrsDialog"
+            name="ModisSatellite">
+      </nc-resource>
+   </extension>
+   
+      <extension
+         point="gov.noaa.nws.ncep.viz.resources.NC-ResourceParameter">
+      <nc-resourceParameter
+            paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
+            paramName="colorBar"
+            paramType="EDITABLE_ATTRIBUTE"
+            paramRefLocation="ncep/ColorBars/Satellite"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      
+      <nc-resourceParameter
+            paramClass="String"
+            paramName="colorMapName"
+            paramType="EDITABLE_ATTRIBUTE"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="alpha"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="brightness"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>      
+            
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="contrast"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>      
+      
+      <nc-resourceParameter
+            ncResourceName="ModisSatellite"
+            paramClass="RGB"
+            paramName="legendColor"
+            defaultValue="RGB {155, 155, 155}"
+            paramType="IMPLEMENTATION_PARAM">
+      </nc-resourceParameter>     
+      
+      <nc-resourceParameter
+            ncResourceName="ModisSatellite"
+            paramClass="String"
+            paramName="displayUnitStr"
+            defaultValue="BRIT"
+            paramType="NON_EDITABLE_ATTRIBUTE">
+      </nc-resourceParameter>          
+      
+      <nc-resourceParameter
+            ncResourceName="ModisSatellite"
+            paramClass="integer"
+            paramName="resolution"
+            defaultValue="MODIS"
+            paramType="EDITABLE_ATTRIBUTE">
+      </nc-resourceParameter> 
+   </extension>      
+
+</plugin>

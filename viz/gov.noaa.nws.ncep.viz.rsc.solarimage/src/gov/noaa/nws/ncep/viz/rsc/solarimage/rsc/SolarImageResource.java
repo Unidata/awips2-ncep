@@ -2,8 +2,6 @@ package gov.noaa.nws.ncep.viz.rsc.solarimage.rsc;
 
 import gov.noaa.nws.ncep.common.dataplugin.solarimage.SolarImageRecord;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
@@ -16,20 +14,16 @@ import gov.noaa.nws.ncep.viz.rsc.solarimage.util.ImageFunctionParser;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCNonMapDescriptor;
 
-import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
-
-import javax.xml.bind.JAXBException;
 
 import org.eclipse.swt.graphics.RGB;
 import org.opengis.referencing.FactoryException;
@@ -42,9 +36,6 @@ import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingE
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.serialization.JAXBManager;
-import com.raytheon.uf.common.serialization.SerializationException;
-import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -52,20 +43,18 @@ import com.raytheon.uf.common.style.AbstractStylePreferences;
 import com.raytheon.uf.common.style.LabelingPreferences;
 import com.raytheon.uf.common.style.MatchCriteria;
 import com.raytheon.uf.common.style.StyleException;
+import com.raytheon.uf.common.style.StyleManager;
 import com.raytheon.uf.common.style.StyleRule;
-import com.raytheon.uf.common.style.StyleRuleset;
 import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.DataScale.Type;
 import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.style.image.SamplePreferences;
-import com.raytheon.uf.common.style.level.Level;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.reflect.SubClassLocator;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.IInputHandler.InputPriority;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
@@ -98,6 +87,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/27/2013    #1046     qzhou            Added getFunctioningRecords method
  * Sep 5,2013    2051       mnash           Fixed a deprecated method.
  * 02/27/2014              qzhou            Changed SerializaitionUtil to JAXBManager. Added getJaxbManager function
+ * 03/23/2015   R6944      mkean            use new Style Rules Manager
  * </pre>
  * 
  * @author qzhou, sgurung
@@ -842,35 +832,6 @@ public class SolarImageResource extends
         }
     }
 
-    private String getLocFilePathForImageryStyleRule() {
-        return NcPathConstants.SOLAR_IMG_STYLE_RULES;
-    }
-
-    public static synchronized JAXBManager getJaxbManager()
-            throws JAXBException {
-        if (jaxb == null) {
-            SubClassLocator locator = new SubClassLocator();
-            Collection<Class<?>> classes = JAXBClassLocator.getJAXBClasses(
-                    locator, StyleRuleset.class, StyleRule.class, Level.class,
-                    AbstractStylePreferences.class, MatchCriteria.class);
-
-            locator.save();
-
-            Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
-            classes.toArray(jaxbClasses);
-
-            /*
-             * Add JaxbDummyObject at the beginning so properties are loaded
-             * correctly
-             */
-            jaxbClasses[jaxbClasses.length - 1] = jaxbClasses[0];
-            jaxbClasses[0] = JaxbDummyObject.class;
-
-            jaxb = new JAXBManager(jaxbClasses);
-        }
-        return jaxb;
-    }
-
     private void setColorMapParametersAndColorBar() throws VizException {
         double minPixVal = Double.NaN;
         double maxPixVal = Double.NaN;
@@ -908,76 +869,49 @@ public class SolarImageResource extends
                 .constructFromResourceData(solarImgRscData);
 
         ImagePreferences imgPref = new ImagePreferences();
-        String locFileName = getLocFilePathForImageryStyleRule();
         // matchCriteria.setParameterName(parameterList);
 
-        File file = NcPathManager.getInstance().getStaticFile(locFileName);
         StyleRule sRule = null;
         try {
-            StyleRuleset styleSet = (StyleRuleset) getJaxbManager()
-                    .unmarshalFromXmlFile(file);
+            /*
+             * R6944 - use new Styles Rule Manager
+             */
+            StyleRule sr = StyleManager.getInstance().getStyleRule(
+                    StyleManager.StyleType.IMAGERY, matchCriteria);
 
-            // .jaxbUnmarshalFromXmlFile(StyleRuleset.class, file);
-
-            if (styleSet != null) {
-                List<StyleRule> styleRuleList = styleSet.getStyleRules();
-
-                for (StyleRule sr : styleRuleList) {
-                    MatchCriteria styleMatchCriteria = sr.getMatchCriteria();
-                    if (styleMatchCriteria.matches(matchCriteria) > 0) {
-
-                        AbstractStylePreferences stylePref = sr
-                                .getPreferences();
-                        if ((stylePref != null)
-                                && (stylePref instanceof ImagePreferences)) {
-                            imgPref = (ImagePreferences) stylePref;
-                            /*
-                             * Might need to change this if/when we use the
-                             * data-scaling
-                             */
-                            SamplePreferences samplePref = imgPref
-                                    .getSamplePrefs();
-                            if (samplePref != null) {
-                                minPixVal = imgPref.getSamplePrefs()
-                                        .getMinValue();
-                                maxPixVal = imgPref.getSamplePrefs()
-                                        .getMaxValue();
-                            } else if (imgPref.getDataScale() != null) {
-                                DataScale ds = imgPref.getDataScale();
-                                if (ds.getMaxValue() != null) {
-                                    maxPixVal = ds.getMaxValue().doubleValue();
-                                }
-                                if (ds.getMinValue() != null) {
-                                    minPixVal = ds.getMinValue().doubleValue();
-                                }
-                            }
-
-                            colorBar.setImagePreferences(imgPref);
-                            if (imgPref.getDisplayUnitLabel() != null) {
-                                colorBar.setDisplayUnitStr(imgPref
-                                        .getDisplayUnitLabel());
-
-                            }
-                            sRule = sr;
-                            break;
+            if (sr != null) {
+                AbstractStylePreferences stylePref = sr.getPreferences();
+                if ((stylePref != null)
+                        && (stylePref instanceof ImagePreferences)) {
+                    imgPref = (ImagePreferences) stylePref;
+                    /*
+                     * Might need to change this if/when we use the data-scaling
+                     */
+                    SamplePreferences samplePref = imgPref.getSamplePrefs();
+                    if (samplePref != null) {
+                        minPixVal = imgPref.getSamplePrefs().getMinValue();
+                        maxPixVal = imgPref.getSamplePrefs().getMaxValue();
+                    } else if (imgPref.getDataScale() != null) {
+                        DataScale ds = imgPref.getDataScale();
+                        if (ds.getMaxValue() != null) {
+                            maxPixVal = ds.getMaxValue().doubleValue();
                         }
-
+                        if (ds.getMinValue() != null) {
+                            minPixVal = ds.getMinValue().doubleValue();
+                        }
                     }
 
+                    colorBar.setImagePreferences(imgPref);
+                    if (imgPref.getDisplayUnitLabel() != null) {
+                        colorBar.setDisplayUnitStr(imgPref
+                                .getDisplayUnitLabel());
+                    }
+                    sRule = sr;
                 }
-
             }
-        } catch (JAXBException e) {
-            statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
-
-        } catch (SerializationException e1) {
-
-            e1.printStackTrace();
         } catch (StyleException e1) {
-
             e1.printStackTrace();
         } catch (NullPointerException e1) {
-
             e1.printStackTrace();
         }
 
@@ -989,7 +923,7 @@ public class SolarImageResource extends
                             + solarImgRscData.getWavelength()
                             + " and intTime: "
                             + solarImgRscData.getIntTime()
-                            + "). Please add it to solarImageryStyleRules.xml file located under Localization perspective -> NCEP -> Style Rules.  ");
+                            + "). Please add it to solarImageryStyleRules.xml file located under EDEX common-static.");
 
         scale = ((ImagePreferences) sRule.getPreferences()).getDataScale();
         dataMap = ((ImagePreferences) sRule.getPreferences()).getDataMapping();

@@ -395,6 +395,34 @@
          unpack="false"/>
 
    <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.ghcd"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ncep.edex.plugin.ghcd"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.modis"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ncep.edex.plugin.modis"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
+   <plugin
          id="gov.noaa.nws.ncep.edex.plugin.airep"
          download-size="0"
          install-size="0"
@@ -428,5 +456,4 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
 </feature>

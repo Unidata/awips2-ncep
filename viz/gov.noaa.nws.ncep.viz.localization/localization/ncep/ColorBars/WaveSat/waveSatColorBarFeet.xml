@@ -1,0 +1,43 @@
+   <colorBarForFeet>
+       <showLabels>true</showLabels>
+       <drawToScale>false</drawToScale>
+       <orientation>Vertical</orientation>
+       <anchorLoc>UpperRight</anchorLoc>
+       <lengthAsRatio>0.4</lengthAsRatio>
+       <widthInPixels>15</widthInPixels>
+       <numDecimals>1</numDecimals>
+       <IntervalValue>0.0</IntervalValue>
+       <IntervalValue>3.0</IntervalValue>
+       <IntervalValue>6.0</IntervalValue>
+       <IntervalValue>9.0</IntervalValue>
+       <IntervalValue>12.0</IntervalValue>
+       <IntervalValue>15.0</IntervalValue>
+       <IntervalValue>18.0</IntervalValue>
+       <IntervalValue>21.0</IntervalValue>
+       <IntervalValue>24.0</IntervalValue>
+       <IntervalValue>27.0</IntervalValue>
+       <IntervalValue>30.0</IntervalValue>
+       <IntervalValue>33.0</IntervalValue>
+       <IntervalValue>36.0</IntervalValue>
+       <IntervalValue>39.0</IntervalValue>
+       <IntervalValue>42.0</IntervalValue>
+       <IntervalValue>45.0</IntervalValue>
+       <IntervalValue>INF</IntervalValue>
+       <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+       <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+       <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+       <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+       <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+       <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+       <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+       <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+       <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+       <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+       <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+       <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+       <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+       <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+       <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+       <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+   </colorBarForFeet>
+   

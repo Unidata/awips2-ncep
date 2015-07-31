@@ -1972,14 +1972,17 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         import_rbd_combo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 importRBD(import_rbd_combo.getText());
-                AbstractEditor seldEditor = NcDisplayMngr
-                        .findDisplayByID(NcDisplayName
-                                .parseNcDisplayNameString(import_rbd_combo
-                                        .getText()));
 
-                if (seldEditor != null) {
-                    NcDisplayMngr.bringToTop(seldEditor);
-                }
+                // Ticket # 6153 comment out code
+                /*
+                 * AbstractEditor seldEditor = NcDisplayMngr
+                 * .findDisplayByID(NcDisplayName
+                 * .parseNcDisplayNameString(import_rbd_combo .getText()));
+                 * 
+                 * 
+                 * if (seldEditor != null) {
+                 * NcDisplayMngr.bringToTop(seldEditor); }
+                 */
 
             }
         });

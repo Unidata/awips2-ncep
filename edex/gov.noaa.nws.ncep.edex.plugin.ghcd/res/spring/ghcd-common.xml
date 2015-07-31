@@ -1,0 +1,36 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:amq="http://activemq.apache.org/schema/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd   
+  http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<!-- bean id="ghcdPathProvider" class="gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataPathProvider" /-->
+	<bean id="ghcdPluginName" class="java.lang.String">
+		<constructor-arg type="java.lang.String" value="ghcd" />
+	</bean>
+
+	<bean id="ghcdProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+		<property name="pluginName" ref="ghcdPluginName"  />
+		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ghcd" />
+		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.ghcd.dao.GenericHighCadenceDataDao" />
+		<property name="record"
+			value="gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataRecord" />
+		<property name="dependencyFQNs">
+			<list>
+				<value>com.raytheon.uf.common.pointdata</value>
+			</list>
+		</property>
+		<!-- property name="pathProvider">
+			<ref bean="ghcdPathProvider" />
+		</property-->
+		
+	</bean>
+
+	<bean id="ghcdRegistered" factory-bean="pluginRegistry"
+		factory-method="register"
+		depends-on="pointDataRegistered">
+		<constructor-arg ref="ghcdPluginName" />
+		<constructor-arg ref="ghcdProperties" />
+	</bean>
+
+</beans>

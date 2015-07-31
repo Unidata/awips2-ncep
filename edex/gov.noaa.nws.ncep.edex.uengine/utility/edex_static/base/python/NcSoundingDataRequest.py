@@ -5,6 +5,7 @@
  * -------        -------     --------     -----------
  * 09/13/2010    301            Chin Chen    Initial coding
  * 07/23/2014                   Chin Chen    Support PW
+ * 03/04/2015   RM#6674         Chin Chen    support interpolation configuration 
 """
 from com.raytheon.uf.common.message.response import ResponseMessageGeneric
 from gov.noaa.nws.ncep.edex.uengine.tasks.profile import NcSoundingDrv
@@ -73,6 +74,9 @@ class NcSoundingDataRequest():
     def setTableName(self, tableName):
         self.NcSoundingDrv.setTableName(tableName)
         
+    def setInterpolation(self, interpolationFlag):
+        self.NcSoundingDrv.setInterpolation(interpolationFlag)
+
     def setMerge(self, mergeFlag):
         self.NcSoundingDrv.setMerge(mergeFlag)
         

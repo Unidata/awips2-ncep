@@ -113,6 +113,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 11/13		#1081		B. Yin		Get selected DE to change front/line type.
  * 12/14        R5413       B. Yin      Removed unused variables, loops.
  * 01/15        R5413       B. Yin      Set perspective ID and editor for PGEN session.
+ * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
  * 
  * </pre>
  * 
@@ -655,6 +656,18 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     elem = itemMap.get("MultiSelect");
                 } else if (currentObject != null) {
                     resetIcon(currentObject);
+                }
+
+                /*
+                 * R7805 - reset current action if it is different from the
+                 * newly-selected one.
+                 */
+                if (point.equals(ACTION_SECTION)) {
+                    if (!btn.getData().toString().equals(currentAction)) {
+                        System.out.println("reset currentAction "
+                                + currentAction);
+                        resetIcon(currentAction);
+                    }
                 }
 
                 // change front/line type

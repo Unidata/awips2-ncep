@@ -850,10 +850,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.commands">
-      <category 
-            id="gov.noaa.nws.ncep.viz.ui.modalTool"
-            name="Modal Tool">
-      </category>
       <command
             id="gov.noaa.nws.ncep.viz.ui.actions.loadOverlay"
             name="Load Overlay">
@@ -862,11 +858,6 @@
                name="overlayName"
                optional="false">
          </commandParameter>
-      </command>
-      <command
-            description="Auto Update"
-            id="gov.noaa.nws.ncep.viz.ui.autoUpdate"
-            name="Auto Update">
       </command>
       <command
             id="sync.file.tool.command"

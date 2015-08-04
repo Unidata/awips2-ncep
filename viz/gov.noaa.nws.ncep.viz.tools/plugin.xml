@@ -4,6 +4,10 @@
       
    <extension
          point="org.eclipse.ui.commands">
+      <category 
+          id="gov.noaa.nws.ncep.viz.ui.modalTool"
+          name="Modal Tool">
+      </category>
       <command
           id="gov.noaa.nws.ncep.ui.actions.ImagePropertiesAction"
           name="Image Properties">
@@ -176,7 +180,12 @@
           id="gov.noaa.nws.ncep.viz.ui.ncInventoryControl"
           name="NcInventoryControl">
       </command>
-      
+      <command
+          description="Auto Update"
+          id="gov.noaa.nws.ncep.viz.ui.autoUpdate"
+          name="Auto Update">
+      </command>
+
    </extension>
       
    <extension

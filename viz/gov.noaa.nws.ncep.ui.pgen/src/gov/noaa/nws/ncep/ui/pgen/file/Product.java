@@ -7,9 +7,9 @@
 
 package gov.noaa.nws.ncep.ui.pgen.file;
 
-
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,11 +17,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -47,30 +49,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "layer"
-})
+@XmlType(name = "", propOrder = { "layer" })
 @XmlRootElement(name = "Product")
 public class Product {
 
     @XmlElement(name = "Layer", required = true)
     protected List<Layer> layer;
+
     @XmlAttribute
     protected String inputFile;
+
     @XmlAttribute
     protected String outputFile;
+
     @XmlAttribute
     protected Boolean useFile;
+
     @XmlAttribute
     protected Boolean saveLayers;
+
     @XmlAttribute
     protected Boolean onOff;
+
+    @XmlAttribute
+    protected String status;
+
     @XmlAttribute
     protected String center;
+
     @XmlAttribute
     protected String forecaster;
+
     @XmlAttribute
     protected String type;
+
     @XmlAttribute
     protected String name;
 
@@ -78,21 +90,21 @@ public class Product {
      * Gets the value of the layer property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the layer property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the layer property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getLayer().add(newItem);
+     * getLayer().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Layer }
+     * Objects of the following type(s) are allowed in the list {@link Layer }
      * 
      * 
      */
@@ -106,10 +118,8 @@ public class Product {
     /**
      * Gets the value of the inputFile property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getInputFile() {
         return inputFile;
@@ -119,9 +129,8 @@ public class Product {
      * Sets the value of the inputFile property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setInputFile(String value) {
         this.inputFile = value;
@@ -130,10 +139,8 @@ public class Product {
     /**
      * Gets the value of the outputFile property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getOutputFile() {
         return outputFile;
@@ -143,9 +150,8 @@ public class Product {
      * Sets the value of the outputFile property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setOutputFile(String value) {
         this.outputFile = value;
@@ -154,10 +160,8 @@ public class Product {
     /**
      * Gets the value of the useFile property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isUseFile() {
         return useFile;
@@ -167,9 +171,8 @@ public class Product {
      * Sets the value of the useFile property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setUseFile(Boolean value) {
         this.useFile = value;
@@ -178,10 +181,8 @@ public class Product {
     /**
      * Gets the value of the saveLayers property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isSaveLayers() {
         return saveLayers;
@@ -191,9 +192,8 @@ public class Product {
      * Sets the value of the saveLayers property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setSaveLayers(Boolean value) {
         this.saveLayers = value;
@@ -202,10 +202,8 @@ public class Product {
     /**
      * Gets the value of the onOff property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isOnOff() {
         return onOff;
@@ -215,21 +213,39 @@ public class Product {
      * Sets the value of the onOff property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setOnOff(Boolean value) {
         this.onOff = value;
     }
 
     /**
+     * Gets the value of the statusproperty.
+     * 
+     * @return possible object is {@link String }
+     * 
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the value of the status property.
+     * 
+     * @param value
+     *            allowed object is {@link String }
+     * 
+     */
+    public void setStatus(String value) {
+        this.status = value;
+    }
+
+    /**
      * Gets the value of the center property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getCenter() {
         return center;
@@ -239,9 +255,8 @@ public class Product {
      * Sets the value of the center property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setCenter(String value) {
         this.center = value;
@@ -250,10 +265,8 @@ public class Product {
     /**
      * Gets the value of the forecaster property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getForecaster() {
         return forecaster;
@@ -263,9 +276,8 @@ public class Product {
      * Sets the value of the forecaster property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setForecaster(String value) {
         this.forecaster = value;
@@ -274,10 +286,8 @@ public class Product {
     /**
      * Gets the value of the type property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getType() {
         return type;
@@ -287,9 +297,8 @@ public class Product {
      * Sets the value of the type property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setType(String value) {
         this.type = value;
@@ -298,10 +307,8 @@ public class Product {
     /**
      * Gets the value of the name property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getName() {
         return name;
@@ -311,9 +318,8 @@ public class Product {
      * Sets the value of the name property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setName(String value) {
         this.name = value;

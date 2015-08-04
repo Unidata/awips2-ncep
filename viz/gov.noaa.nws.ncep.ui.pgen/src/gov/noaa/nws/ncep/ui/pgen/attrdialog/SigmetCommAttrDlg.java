@@ -82,6 +82,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * 03/13		#928		B. Yin		Made the button bar smaller.
  * 04/29        #977        S. Gilbert  PGEN Database support
  * 04/29        #726        J. Wu       Remove the line breaker when saving vor list into file.
+ * 01/15        #5801       A. Su       Made tag ID part of the activity label.
  * </pre>
  * 
  * @author gzhang
@@ -803,6 +804,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             String forecaster = System.getProperty("user.name");
             ProductTime refTime = new ProductTime();
 
+            /*
             String pname = SigmetCommAttrDlg.this.drawingLayer
                     .getActiveProduct().getName();
             String ptype = SigmetCommAttrDlg.this.drawingLayer
@@ -813,19 +815,37 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
             Product defaultProduct = new Product(pname, ptype, forecaster,
                     null, refTime, layerList);
-            /*
-             * 
-             * Product defaultProduct = new Product(
-             * SigmetCommAttrDlg.this.pgenType, SigmetCommAttrDlg.this.pgenType,
-             * forecaster, null, refTime, layerList);
-             */
+            */
+            
+            // Use (hardcode) pgenType as the name and type of a new Product.
+            Product defaultProduct = new Product(
+                     SigmetCommAttrDlg.this.pgenType, SigmetCommAttrDlg.this.pgenType,
+                     forecaster, null, refTime, layerList);
+             
             String plabel = SigmetCommAttrDlg.this.drawingLayer
                     .getActiveProduct().getOutputFile();
             if (plabel == null) {
                 plabel = SigmetCommAttrDlg.this.drawingLayer
                         .buildActivityLabel(defaultProduct);
             }
-            defaultProduct.setOutputFile(plabel);
+            
+            // Construct a new label name and activity xml filename by using
+            //      (1) pgenType as the prefix, and 
+            //      (2) its tag name inserted before the filename extension "xml"
+            //      with a dot connecting each field in the filename,
+            //      e.g., "CONV_SIGMET.08012015.15.24W.xml".
+            String prefix = SigmetCommAttrDlg.this.pgenType.replaceAll("\\s", "");
+            String fromFileName = getFileName();
+            String tagName = fromFileName.substring(0, fromFileName.indexOf('.'));
+            int insertionPoint = plabel.lastIndexOf('.'); 
+            String filename = prefix
+                    + plabel.substring( plabel.indexOf('.'), insertionPoint + 1) 
+                    + tagName
+                    + plabel.substring(insertionPoint);
+            
+            // defaultProduct.setOutputFile(plabel);
+            defaultProduct.setOutputFile(filename);
+            
             // defaultProduct.setOutputFile(SigmetCommAttrDlg.this.drawingLayer
             // .buildActivityLabel(defaultProduct));
 

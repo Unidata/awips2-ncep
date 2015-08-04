@@ -141,6 +141,14 @@
           id="gov.noaa.nws.ncep.viz.conditionalFilterMngr"
           name="Conditional Filter Manager">
       </command>
+     <command
+          id="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
+          name="X-axis Scale Manager">
+      </command>
+     <command
+          id="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
+          name="Time-series X-Axis Scale Manager">
+      </command>
       <command
             id="gov.noaa.nws.ncep.viz.colorMapEditor"
             name="Colormap editor">
@@ -312,6 +320,10 @@
       <handler
             class="gov.noaa.nws.ncep.viz.tools.conditionalfilter.ConditionalFilterMngrAction"
             commandId="gov.noaa.nws.ncep.viz.conditionalFilterMngr">
+      </handler>    
+      <handler
+            class="gov.noaa.nws.ncep.viz.tools.tsScaleMngr.XAxisScaleMngrAction"
+            commandId="gov.noaa.nws.ncep.viz.xAxisScaleMngr">
       </handler>
       <handler
             class="gov.noaa.nws.ncep.viz.tools.colorMapEditor.ColormapEditAction"

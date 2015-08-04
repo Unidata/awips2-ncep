@@ -14,6 +14,9 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * -------		------- 	-------- 	-----------
  * 12/23/2010	229			Chin Chen	Initial coding
  * 08/12/2014               Chin Chen   fixed issue that "load archive file with wrong time line displayed"
+ * 12/17/2014   Task#5694   Chin Chen   added nsharpParseAndLoadTextFile() to be used by both NCP and D2D perspectives,
+ *                                      also modified openArchiveFile() to use it.
+ * 02/05/2015   Task#5694   Chin Chen   add code to support previous version archived file format 
  *
  * </pre>
  * 
@@ -44,235 +47,332 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 public class NsharpHandleArchiveFile {
+	/*
+	 * Chin 12/17/2014, this function is to parse Nsharp saved text file and return saved 
+	 * station information and sounding data information.
+	 * 
+	 * 	Input: 
+	 *  String textFilePath: file path of text file to be parsed
+	 *	List<NcSoundingLayer> sndLyList: a new created empty NcSoundingLayer List
+	 *	NsharpStationInfo stninfo: a new created NsharpStationInfo instance
+	 *	Return:
+	 *  Boolean: true if parsing successful, false otherwise
+	 *  Output:
+	 *	The nsharpTextfileParser will parse input text file and store available station 
+	 *  information using structure stninfo and sounding data using list sndLyList.
+	 *  
+	 *      
+     * A typical saved file contents is as following....
+     * SNDTYPE=OBS;  TITLE=KCHH 11.12(Thu) BUFRUA; STNID=KCHH; LAT=41.66667; LON=-69.96667;
+     * PRESSURE HGHT TEMP DWPT WDIR WSPD OMEG 
+     * 997.500000 129.000000 -3.250006 -3.381190 10.619656 1.627882 -9999.000
+     * ........
+     * 
+     * NOTE: For backward compatible we also handle previous version text file 
+     * A typical previous version of saved file contents is as following....
+     */
+	private static boolean nsharpTextfileParser(String textFilePath, List<NcSoundingLayer> sndLyList, 
+			NsharpStationInfo stninfo) throws FileNotFoundException{
+		StringBuilder strContent = new StringBuilder("");
+		InputStream is = new FileInputStream(textFilePath);
+		int byteread;
+		try {
+			while ((byteread = is.read()) != -1) {
+				strContent.append((char) byteread);
+				// System.out.println((char)byteread);
+			}
+			if (strContent.length() <= 100){
+				is.close();
+				return false;
+			}
+			//task#5694
+			String pStr = "PRESSURE";
+			int pIndex = strContent.indexOf(pStr);
+			String headerString = strContent.substring(0, pIndex);
+			
+			String omegaStr = "OMEG";
+			int omegaIndex = strContent.indexOf(omegaStr);
+			int omegaLength = omegaStr.length();
+			String dataString = strContent.substring(omegaIndex+omegaLength);
+			dataString = dataString.trim();
+			
+			String lonStr="yy",latStr="yy";
+			// System.out.println(strContent);
+			int lat = headerString.indexOf("LAT=");
+			if (lat > 0) {
+				lat = lat + 4;
+				int endIndex = headerString.substring(lat).indexOf(";");
+				if (endIndex > 0) {
+					latStr = headerString.substring(lat, lat
+							+ endIndex);
+					// stninfo.setLatitude(Float.parseFloat(latStr));
+					stninfo.setLatitude(Double.parseDouble(latStr));
+				}
+				else{
+					//backward compatible handling
+					// get up to 4 digits for lon
+					try {
+						latStr = headerString.substring(lat, lat
+								+ 4);
+						stninfo.setLatitude(Double.parseDouble(latStr));
+					}
+					catch (IndexOutOfBoundsException e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
+			int lon = headerString.indexOf("LON=");
+			if (lon > 0) {
+				lon = lon + 4;
+				int endIndex = headerString.substring(lon).indexOf(";");
+				if (endIndex > 0) {
+					lonStr = headerString.substring(lon, lon
+							+ endIndex);
+					stninfo.setLongitude(Double.parseDouble(lonStr));
+				}
+				else{
+					//backward compatible handling
+					// get up to 4 digits for lon
+					try {
+						lonStr = headerString.substring(lon, lon
+								+ 4);
+						stninfo.setLongitude(Double.parseDouble(lonStr));
+					}
+					catch (IndexOutOfBoundsException e) {
+						e.printStackTrace();
+					} 
+
+				}
+			}
+			int snd = headerString.indexOf("SNDTYPE=");
+			if (snd >= 0) {
+				snd = snd + 8;
+				int endIndex = headerString.substring(snd).indexOf(";");
+				if (endIndex > 0) {
+					String sndStr = headerString.substring(snd, snd
+							+ endIndex);
+					stninfo.setSndType(sndStr);
+					if (NsharpLoadDialog.getAccess() != null) {
+						if (sndStr.equals("PFC"))
+							NsharpLoadDialog.getAccess()
+							.setActiveLoadSoundingType(
+									NsharpLoadDialog.PFC_SND);
+						else if (sndStr.equals("MDL"))
+							NsharpLoadDialog.getAccess()
+							.setActiveLoadSoundingType(
+									NsharpLoadDialog.MODEL_SND);
+						else if (sndStr.equals("OBS"))
+							NsharpLoadDialog.getAccess()
+							.setActiveLoadSoundingType(
+									NsharpLoadDialog.OBSER_SND);
+					}
+				}
+			}
+			
+			int title = headerString.indexOf("TITLE=");
+			if (title > 0) {
+				title = title + 6;
+				int endIndex = headerString.substring(title).indexOf(";");
+				if (endIndex > 0) {
+					String titleStr = headerString.substring(title, title
+							+ endIndex);
+					stninfo.setStnDisplayInfo(titleStr);
+				}
+				else{
+					is.close();
+					return false;
+				}
+			}
+			else {
+				//backward compatible handling
+				//Two possible header formats supported here.
+				//format 1,
+				//BUFRUA  PTPN 06.12(Fri) BUFRUA  LAT=6.966670036315918 LON=158.2166748046875
+				// title is "PTPN 06.12(Fri) BUFRUA"
+				//format 2.
+				//NAM ETA218  PointA 150125/03(Sun) ETA218  LAT=39.66764519797457 LON=-105.92044834352876
+				// title is "PointA 150125/03(Sun) ETA218"
+				StringTokenizer hdrst = new StringTokenizer(strContent.toString());
+				int j =0;
+				int titleIndex =0;
+				
+				while (hdrst.hasMoreTokens()) {
+					j++;
+					String tok = hdrst.nextToken();
+					if(tok.contains("LAT")){
+						titleIndex = j-3;
+					}
+				}
+				String tStr="";
+				boolean titleFound = false;
+				j=0;
+				hdrst = new StringTokenizer(strContent.toString());
+				if(titleIndex >0){
+					while (hdrst.hasMoreTokens()) {
+						j++;
+						String tok = hdrst.nextToken();
+
+						if(j == titleIndex){
+							tStr = tok;
+							stninfo.setStnId(tok);
+						}
+						if(j > titleIndex && j < titleIndex+3){
+							tStr =tStr + " "+ tok;
+						}
+						if (j == titleIndex+3 ){
+							titleFound = true;
+							stninfo.setStnDisplayInfo(tStr);
+							break;
+						}
+					}
+				}
+				if(titleFound == false){
+					stninfo.setStnDisplayInfo(latStr+"/"+lonStr+" ----NA N/A");
+					stninfo.setStnId(latStr+"/"+lonStr);
+				}
+			}
+			NcSoundingLayer sndLy = null;
+			StringTokenizer st = new StringTokenizer(dataString);
+			int i = 0;
+			//seven parameters: PRESSURE  HGHT	   TEMP	  DWPT    WDIR     WSPD    OMEG
+			int dataCycleLength = 7; 
+			while (st.hasMoreTokens()) {				
+				String tok = st.nextToken();
+				if (i % dataCycleLength == 0) {
+					sndLy = new NcSoundingLayer();
+					sndLyList.add(sndLy);
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setPressure(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setPressure(Float.parseFloat(tok));
+
+				} else if (i % dataCycleLength == 1) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setGeoHeight(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setGeoHeight(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 2) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setTemperature(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setTemperature(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 3) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setDewpoint(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setDewpoint(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 4) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setWindDirection(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setWindDirection(Float
+								.parseFloat(tok));
+				} else if (i % dataCycleLength == 5) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setWindSpeed(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setWindSpeed(Float.parseFloat(tok));
+				} else if (i % dataCycleLength == 6) {
+					if (Float.isNaN(Float.parseFloat(tok)))
+						sndLy.setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
+					else
+						sndLy.setOmega(Float.parseFloat(tok));
+
+				}
+				i++;
+			}
+			is.close();
+			if (sndLyList.size() > 0) {
+				// Remove sounding layers that not used by NSHARP, and
+				// assume first layer is sfc layer from input data
+				sndLyList = NsharpDataHandling
+						.organizeSoundingDataForShow(sndLyList,
+								sndLyList.get(0).getGeoHeight());
+				return true;
+			}
+			else 
+				return false;
+
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return false;
+		}
+	}
+	//Task#5694
+	private static void displayMessage(String msg){
+		Shell shell = new Shell();
+    	MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
+    			| SWT.OK);
+    	mb.setMessage(msg);
+    	mb.open();
+	}
+	public static boolean nsharpParseAndLoadTextFile(String textFilePath) throws FileNotFoundException{
+		List<NcSoundingLayer> sndLyList = new ArrayList<NcSoundingLayer>();
+        NsharpStationInfo stninfo = new NsharpStationInfo();
+        if(nsharpTextfileParser(textFilePath,sndLyList,stninfo) == false)
+        {
+        	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
+        	return false;        
+        }
+        else {
+        	// minimum rtnSndList size will be 2 (50 & 75 mb layers),
+            // but that is not enough
+            // We need at least 2 regular layers for plotting
+        	Map<String, List<NcSoundingLayer>> soundingLysLstMap = new HashMap<String, List<NcSoundingLayer>>();
+            if (sndLyList != null && sndLyList.size() > 4)
+            	soundingLysLstMap.put(stninfo.getStnDisplayInfo(), sndLyList);
+            if (soundingLysLstMap.size() > 0) {
+            	
+            	// create/open  NsharpSkewTEditor
+            	NsharpEditor editor = NsharpEditor.createOrOpenEditor();
+            	NsharpResourceHandler rsc = editor.getRscHandler();
+            	rsc.addArchiveRsc(soundingLysLstMap, stninfo);
+            	rsc.setSoundingType(stninfo.getSndType());
+            	NsharpEditor.bringEditorToTop();
+            	
+            } 
+            else{
+            	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
+            	return false;
+            }
+        }
+        return true;
+	}
+	//end Task#5694
     public static void openArchiveFile(Shell shell) {
-        /*
-         * Chin: 3/14/2013 A typical saved file contents is as following....
-         * SNDTYPE=MDL TITLE=KMFR 130131/1200 NCUAIR STNID=KMFR LAT=42.38
-         * LON=-122.87 PRESSURE HGHT TEMP DWPT WDIR WSPD OMEG 997.500000
-         * 129.000000 -3.250006 -3.381190 10.619656 1.627882 0.000000 ........
-         */
-        FileDialog fd = new FileDialog(shell, SWT.MULTI);// SWT.OPEN);
+         FileDialog fd = new FileDialog(shell, SWT.MULTI);
         fd.setText("Open");
         fd.setFilterPath("C:/");
         String[] filterExt = { "*.nsp", "*", "*.txt", "*.doc", ".rtf", "*.*" };
         fd.setFilterExtensions(filterExt);
-        String selected;
+        String selectedFilePath;
         String code = fd.open();
         if (code == null) {
             return;
         }
         String[] selecteds = fd.getFileNames();
-
-        // if(selected!= null){
         if (selecteds != null && selecteds.length > 0) {
-            Map<String, List<NcSoundingLayer>> soundingLysLstMap = new HashMap<String, List<NcSoundingLayer>>();
-            // List<String> timeList = new ArrayList<String>();
-            // String timeLine ;
-            String stnDispInfoStr = "N/A N/A";
-            // read in archive file
-            InputStream is = null;
-            NsharpStationInfo stninfo = new NsharpStationInfo();
-            String sndType = "N/A";
+           // Map<String, List<NcSoundingLayer>> soundingLysLstMap = new HashMap<String, List<NcSoundingLayer>>();
             try {
                 for (int j = 0; j < selecteds.length; j++) {
-                    selected = "";
-                    StringBuilder strContent = new StringBuilder("");
-                    selected = selected + fd.getFilterPath();
-                    if (selected.charAt(selected.length() - 1) != File.separatorChar) {
-                        selected = selected + (File.separatorChar);
+                    selectedFilePath = "";
+                    selectedFilePath = selectedFilePath + fd.getFilterPath();
+                    if (selectedFilePath.charAt(selectedFilePath.length() - 1) != File.separatorChar) {
+                        selectedFilePath = selectedFilePath + (File.separatorChar);
                     }
-                    selected = selected + selecteds[j];
-                    // System.out.println(selected);
-
-                    is = new FileInputStream(selected);
-                    int byteread;
-                    while ((byteread = is.read()) != -1) {
-                        strContent.append((char) byteread);
-                        // System.out.println((char)byteread);
-                    }
-                    if (strContent.length() <= 100)
-                        return;
-                    // System.out.println(strContent);
-                    int lat = strContent.indexOf("LAT=");
-                    if (lat > 0) {
-                        lat = lat + 4;
-                        int endIndex = strContent.substring(lat).indexOf(";");
-                        if (endIndex > 0) {
-                            String latStr = strContent.substring(lat, lat
-                                    + endIndex);
-                            // stninfo.setLatitude(Float.parseFloat(latStr));
-                            stninfo.setLatitude(Double.parseDouble(latStr));
-                        }
-                    }
-                    int lon = strContent.indexOf("LON=");
-                    if (lon > 0) {
-                        lon = lon + 4;
-                        int endIndex = strContent.substring(lon).indexOf(";");
-                        if (endIndex > 0) {
-                            String lonStr = strContent.substring(lon, lon
-                                    + endIndex);
-                            stninfo.setLongitude(Double.parseDouble(lonStr));
-                        }
-                    }
-                    int snd = strContent.indexOf("SNDTYPE=");
-                    if (snd >= 0) {
-                        snd = snd + 8;
-                        int endIndex = strContent.substring(snd).indexOf(";");
-                        if (endIndex > 0) {
-                            String sndStr = strContent.substring(snd, snd
-                                    + endIndex);
-                            stninfo.setSndType(sndStr);
-                            if (NsharpLoadDialog.getAccess() != null) {
-                                if (sndStr.equals("PFC"))
-                                    NsharpLoadDialog.getAccess()
-                                            .setActiveLoadSoundingType(
-                                                    NsharpLoadDialog.PFC_SND);
-                                else if (sndStr.equals("MDL"))
-                                    NsharpLoadDialog.getAccess()
-                                            .setActiveLoadSoundingType(
-                                                    NsharpLoadDialog.MODEL_SND);
-                                else if (sndStr.equals("OBS"))
-                                    NsharpLoadDialog.getAccess()
-                                            .setActiveLoadSoundingType(
-                                                    NsharpLoadDialog.OBSER_SND);
-                            }
-                        }
-                    }
-                    int title = strContent.indexOf("TITLE=");
-                    if (title > 0) {
-                        title = title + 6;
-                        int endIndex = strContent.substring(title).indexOf(";");
-                        if (endIndex > 0) {
-                            String titleStr = strContent.substring(title, title
-                                    + endIndex);
-                            stninfo.setStnDisplayInfo(titleStr);
-                            stnDispInfoStr = titleStr;
-                        }
-                    }
-                    // timeLine = new String("");
-                    // stnDispInfoStr = new String("");
-                    List<NcSoundingLayer> sndLyList = new ArrayList<NcSoundingLayer>();
-                    NcSoundingLayer sndLy = null;
-                    StringTokenizer st = new StringTokenizer(
-                            strContent.toString());
-                    int i = 0;
-                    int dataStartIndex = 15;
-                    int dataCycleLength = 7;
-                    while (st.hasMoreTokens()) {
-                        i++;
-                        // System.out.println(st.nextToken());
-                        // Chin's NOTE: Our input file should have the same
-                        // format as the text information shown with "Show Text"
-                        // button. The "Save" Button will save text data in same
-                        // format as well.
-                        // first token is stn display info string,
-                        // 2nd and 3rd token are time line.
-                        // 4th and 5th tokens are LAT=xxx, LON=xxx of stn
-                        // token 6 to 12 are PRESSURE, HGHT, TEMP, DWPT, WDIR,
-                        // WSPD, OMEG words. We don't need to read them.
-                        // From token 13, we have pressure, height, temp,...,
-                        // omega, pressure, height,..omega.
-                        // These weather data will be repeated every 7 tokens.
-                        String tok = st.nextToken();
-                        if (tok.equals("OMEG")) {
-                            dataStartIndex = i + 1;
-                        }
-                        if (i >= dataStartIndex) {
-
-                            if ((i - dataStartIndex) % dataCycleLength == 0) {
-                                sndLy = new NcSoundingLayer();
-                                sndLyList.add(sndLy);
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setPressure(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setPressure(Float.parseFloat(tok));
-
-                            } else if ((i - dataStartIndex) % dataCycleLength == 1) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setGeoHeight(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setGeoHeight(Float.parseFloat(tok));
-                            } else if ((i - dataStartIndex) % dataCycleLength == 2) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setTemperature(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setTemperature(Float.parseFloat(tok));
-                            } else if ((i - dataStartIndex) % dataCycleLength == 3) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setDewpoint(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setDewpoint(Float.parseFloat(tok));
-                            } else if ((i - dataStartIndex) % dataCycleLength == 4) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setWindDirection(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setWindDirection(Float
-                                            .parseFloat(tok));
-                            } else if ((i - dataStartIndex) % dataCycleLength == 5) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setWindSpeed(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setWindSpeed(Float.parseFloat(tok));
-                            } else if ((i - dataStartIndex) % dataCycleLength == 6) {
-                                if (Float.isNaN(Float.parseFloat(tok)))
-                                    sndLy.setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
-                                else
-                                    sndLy.setOmega(Float.parseFloat(tok));
-
-                            }
-
-                        }
-                        // System.out.println("line " + i + "="+ tok);
-
-                    }
-                    // System.out.println("total line " + i);
-                    // System.out.println("time line " + timeLine +
-                    // " stn disp info = " + stnDispInfo);
-                    if (sndLyList.size() > 0)
-                        // Remove sounding layers that not used by NSHARP, and
-                        // assume first layer is sfc layer from input data
-                        sndLyList = NsharpDataHandling
-                                .organizeSoundingDataForShow(sndLyList,
-                                        sndLyList.get(0).getGeoHeight());
-                    // minimum rtnSndList size will be 2 (50 & 75 mb layers),
-                    // but that is not enough
-                    // We need at least 2 regular layers for plotting
-                    if (sndLyList != null && sndLyList.size() > 4)
-                        soundingLysLstMap.put(stnDispInfoStr, sndLyList);
-                }
-                if (soundingLysLstMap.size() > 0) {
-                    // create an editor NsharpSkewTEditor
-                    NsharpEditor editor = NsharpEditor.createOrOpenEditor();
-                    NsharpResourceHandler rsc = editor.getRscHandler();
-                    rsc.addArchiveRsc(soundingLysLstMap, stninfo);
-                    rsc.setSoundingType(sndType);
-                    NsharpEditor.bringEditorToTop();
-                } else {
-                    // Shell shell =
-                    // PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                    MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
-                            | SWT.OK);
-                    mb.setMessage("Invalid sounding data retrieved from archive file!!");
-                    mb.open();
-                }
+                    selectedFilePath = selectedFilePath + selecteds[j];
+                    //Task#5694
+                    nsharpParseAndLoadTextFile(selectedFilePath);
+                 }
             } catch (FileNotFoundException e) {
-
-                e.printStackTrace();
-            } catch (IOException e) {
-
+            	displayMessage("File not found!!");
                 e.printStackTrace();
             } catch (NumberFormatException e) {
-                System.out.println("number format exception happened");
+                displayMessage("Parsing file and number format exception happened!!");
                 e.printStackTrace();
-            } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException ioe) {
-                        System.out.println("Could not close input file ");
-                    }
-                }
-            }
+            } 
         }
 
     }

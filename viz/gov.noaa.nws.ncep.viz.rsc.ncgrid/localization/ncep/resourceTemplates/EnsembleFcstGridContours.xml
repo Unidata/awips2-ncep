@@ -18,12 +18,8 @@
           <timeMatchMethod>${timeMatchMethod}</timeMatchMethod>       
           <timelineGenMethod>${timelineGenMethod}</timelineGenMethod> 
           <dfltTimeRange>${dfltTimeRange}</dfltTimeRange>
-        
-<!--     <primaryModel>$ { primaryModel}</primaryModel>  -->      
-
           <availableModels>${availableModels}</availableModels>
-          <!-- like GDFILE for ensembles except with relative cycle times ie. 'CYC-12' -->
-          <ensembleComponentWeights>${ENS_COMPONENT_WEIGHTS}</ensembleComponentWeights>
+          <gdfile>${GDFILE}</gdfile>
           <lineAttributes>${LINE}</lineAttributes>
 		  <cint>${CINT}</cint>
 		  <type>${TYPE}</type>
@@ -52,7 +48,6 @@
                 <constraint constraintValue="${primaryModel}" constraintType="EQUALS" />
              </mapping>
              <!-- a constraint on the "modelInfo.modelName" is set in code from -->
-             
           </metadataMap>
        </resourceData>
     </resource>            

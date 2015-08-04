@@ -31,6 +31,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 2014/02/12            qzhou         initiate
+ * 12/23/2014   R5412    sgurung       Change float to double
  * 
  * </pre>
  * 
@@ -184,14 +185,14 @@ public class RetrieveUtils {
         return newDataTime;
     }
 
-    public static float[] getMedian(List<GeoMagRecord> records) {
+    public static double[] getMedian(List<GeoMagRecord> records) {
 
         if (records == null || records.size() == 0)
-            return new float[] { 0f, 0f };
+            return new double[] { 0.0, 0.0 };
 
         int size = records.size();
-        float[] hComps = new float[size];
-        float[] dComps = new float[size];
+        double[] hComps = new double[size];
+        double[] dComps = new double[size];
 
         for (int i = 0; i < size; i++) {
             hComps[i] = records.get(i).getComponent_1();
@@ -201,8 +202,8 @@ public class RetrieveUtils {
         Arrays.sort(hComps);
         Arrays.sort(dComps);
 
-        float hMedian = 0f;
-        float dMedian = 0f;
+        double hMedian = 0.0;
+        double dMedian = 0.0;
 
         if (size % 2 == 0) {
             hMedian = (hComps[hComps.length / 2] + hComps[hComps.length / 2 - 1]) / 2;
@@ -213,7 +214,7 @@ public class RetrieveUtils {
             dMedian = dComps[(dComps.length - 1) / 2];
         }
 
-        return new float[] { hMedian, dMedian };
+        return new double[] { hMedian, dMedian };
 
     }
 

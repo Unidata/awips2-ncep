@@ -15,16 +15,15 @@
       <timelineGenMethod>${timelineGenMethod}</timelineGenMethod> 
       <dfltNumFrames>${dfltNumFrames}</dfltNumFrames>
       <dfltTimeRange>${dfltTimeRange}</dfltTimeRange>
-      <!--  NOT IMPLEMENTED
-      <displayValues>$ { displayValues}</displayValues>
-      <symbolName>$ { symbolName}</symbolName>
-       --> 
       <fontName>${fontName}</fontName>
       <fontSize>${fontSize}</fontSize>
 	  <timeDisplayInterval>${timeDisplayInterval}</timeDisplayInterval>
 	  <timeDisplayColor>${timeDisplayColor}</timeDisplayColor>
+      <useFeetInsteadOfMeters>${useFeetInsteadOfMeters}</useFeetInsteadOfMeters>
 	  
-      ${colorBar}
+      ${colorBarForMeters}
+      
+      ${colorBarForFeet}
       
       <metadataMap>
         <mapping key="pluginName">

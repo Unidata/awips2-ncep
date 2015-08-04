@@ -7,6 +7,7 @@
 primaryModel=nam
 availableModels=nam;gefs:01,02,03,04,05,07,09;gfs;ruc80
 pluginName=grid
+GDFILE=
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

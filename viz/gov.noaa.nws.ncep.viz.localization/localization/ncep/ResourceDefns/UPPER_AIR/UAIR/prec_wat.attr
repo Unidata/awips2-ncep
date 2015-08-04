@@ -1,5 +1,7 @@
-! Parameters and Attributes for the default UAIR Resource
+! Parameters and Attributes for the UAIR Resource, with precipitable water ("prec_wat") plot model
+!
 levelKey=500
 plotModel=@PlotModels/ncuair/prec_wat.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=30
 conditionalFilter=

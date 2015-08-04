@@ -1,0 +1,58 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    
+    <bean id="ghcdDao" class="gov.noaa.nws.ncep.common.dataplugin.ghcd.dao.GenericHighCadenceDataDao">
+        <constructor-arg ref="ghcdPluginName" />
+    </bean>
+    
+	<bean id="ghcdDecoder" class="gov.noaa.nws.ncep.edex.plugin.ghcd.decoder.GenericHighCadenceDataDecoder"
+ depends-on="ghcdPluginName" >
+		<property name="pluginName" ref="ghcdPluginName" />	
+        <property name="ghcdDao" ref="ghcdDao" />	
+	</bean>
+ 
+	<bean id="ghcdDistRegistry" factory-bean="distributionSrv"
+		factory-method="register">
+		<constructor-arg ref="ghcdPluginName" />
+		<constructor-arg value="jms-durable:queue:Ingest.ghcd" />
+	</bean>
+	
+	<camelContext id="ghcd-camel"
+		xmlns="http://camel.apache.org/schema/spring"
+		errorHandlerRef="errorHandler">
+		
+		<endpoint id="ghcdEndpoint" uri="file:${edex.home}/data/sbn/ghcd?noop=true&amp;idempotent=false" />		
+		<route id="ghcdFileConsumerRoute">
+			<from ref="ghcdEndpoint" />
+			<bean ref="fileToString" />
+			<setHeader headerName="pluginName">
+				<constant>ghcd</constant>
+			</setHeader>
+			<to uri="jms-durable:queue:Ingest.ghcd" />
+		</route>
+
+		 
+		<route id="ghcdIngestRoute">
+			<from uri="jms-durable:queue:Ingest.ghcd" />
+			<setHeader headerName="pluginName">
+                <constant>ghcd</constant>
+            </setHeader>
+             <doTry>
+                <pipeline>
+                    <bean ref="stringToFile" />
+                    <bean ref="ghcdDecoder" method="decode" />
+                    <to uri="direct-vm:persistIndexAlert" /> <!-- direct-vm:persistIndexAlert -->
+                </pipeline>
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:ghcd?level=ERROR"/>
+                </doCatch>
+            </doTry>
+			
+		</route>
+  		
+	</camelContext>
+
+</beans>

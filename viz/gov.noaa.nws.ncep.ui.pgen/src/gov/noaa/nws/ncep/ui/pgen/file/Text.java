@@ -5,11 +5,11 @@
 // Generated on: 2011.04.14 at 10:56:13 AM EDT 
 //
 
-
 package gov.noaa.nws.ncep.ui.pgen.file;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,11 +17,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -54,46 +56,64 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "color",
-    "point",
-    "textLine"
-})
+@XmlType(name = "", propOrder = { "color", "point", "textLine" })
 @XmlRootElement(name = "Text")
 public class Text {
 
     @XmlElement(name = "Color", required = true)
     protected List<Color> color;
+
     @XmlElement(name = "Point", required = true)
     protected Point point;
+
     @XmlElement(required = true)
     protected List<String> textLine;
+
     @XmlAttribute
     protected Boolean auto;
+
     @XmlAttribute
     protected Boolean hide;
+
     @XmlAttribute
     protected Integer xOffset;
+
     @XmlAttribute
     protected Integer yOffset;
+
     @XmlAttribute
     protected String displayType;
+
     @XmlAttribute
     protected Boolean mask;
+
     @XmlAttribute
     protected String rotationRelativity;
+
     @XmlAttribute
     protected Double rotation;
+
+    @XmlAttribute
+    protected Integer ithw;
+
+    @XmlAttribute
+    protected Integer iwidth;
+
     @XmlAttribute
     protected String justification;
+
     @XmlAttribute
     protected String style;
+
     @XmlAttribute
     protected String fontName;
+
     @XmlAttribute
     protected Float fontSize;
+
     @XmlAttribute
     protected String pgenType;
+
     @XmlAttribute
     protected String pgenCategory;
 
@@ -101,21 +121,21 @@ public class Text {
      * Gets the value of the color property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the color property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the color property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getColor().add(newItem);
+     * getColor().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Color }
+     * Objects of the following type(s) are allowed in the list {@link Color }
      * 
      * 
      */
@@ -129,10 +149,8 @@ public class Text {
     /**
      * Gets the value of the point property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Point }
-     *     
+     * @return possible object is {@link Point }
+     * 
      */
     public Point getPoint() {
         return point;
@@ -142,9 +160,8 @@ public class Text {
      * Sets the value of the point property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Point }
-     *     
+     *            allowed object is {@link Point }
+     * 
      */
     public void setPoint(Point value) {
         this.point = value;
@@ -154,21 +171,21 @@ public class Text {
      * Gets the value of the textLine property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the textLine property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the textLine property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getTextLine().add(newItem);
+     * getTextLine().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link String }
+     * Objects of the following type(s) are allowed in the list {@link String }
      * 
      * 
      */
@@ -182,10 +199,8 @@ public class Text {
     /**
      * Gets the value of the auto property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isAuto() {
         return auto;
@@ -195,9 +210,8 @@ public class Text {
      * Sets the value of the auto property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setAuto(Boolean value) {
         this.auto = value;
@@ -206,10 +220,8 @@ public class Text {
     /**
      * Gets the value of the hide property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isHide() {
         return hide;
@@ -219,9 +231,8 @@ public class Text {
      * Sets the value of the hide property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setHide(Boolean value) {
         this.hide = value;
@@ -230,10 +241,8 @@ public class Text {
     /**
      * Gets the value of the xOffset property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
+     * @return possible object is {@link Integer }
+     * 
      */
     public Integer getXOffset() {
         return xOffset;
@@ -243,9 +252,8 @@ public class Text {
      * Sets the value of the xOffset property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
+     *            allowed object is {@link Integer }
+     * 
      */
     public void setXOffset(Integer value) {
         this.xOffset = value;
@@ -254,10 +262,8 @@ public class Text {
     /**
      * Gets the value of the yOffset property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
+     * @return possible object is {@link Integer }
+     * 
      */
     public Integer getYOffset() {
         return yOffset;
@@ -267,9 +273,8 @@ public class Text {
      * Sets the value of the yOffset property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
+     *            allowed object is {@link Integer }
+     * 
      */
     public void setYOffset(Integer value) {
         this.yOffset = value;
@@ -278,10 +283,8 @@ public class Text {
     /**
      * Gets the value of the displayType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getDisplayType() {
         return displayType;
@@ -291,9 +294,8 @@ public class Text {
      * Sets the value of the displayType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setDisplayType(String value) {
         this.displayType = value;
@@ -302,10 +304,8 @@ public class Text {
     /**
      * Gets the value of the mask property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isMask() {
         return mask;
@@ -315,9 +315,8 @@ public class Text {
      * Sets the value of the mask property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setMask(Boolean value) {
         this.mask = value;
@@ -326,10 +325,8 @@ public class Text {
     /**
      * Gets the value of the rotationRelativity property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getRotationRelativity() {
         return rotationRelativity;
@@ -339,9 +336,8 @@ public class Text {
      * Sets the value of the rotationRelativity property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setRotationRelativity(String value) {
         this.rotationRelativity = value;
@@ -350,10 +346,8 @@ public class Text {
     /**
      * Gets the value of the rotation property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getRotation() {
         return rotation;
@@ -363,21 +357,60 @@ public class Text {
      * Sets the value of the rotation property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setRotation(Double value) {
         this.rotation = value;
     }
 
     /**
+     * Gets the value of the ithw property.
+     * 
+     * @return possible object is {@link Integer }
+     * 
+     */
+    public Integer getIthw() {
+        return ithw;
+    }
+
+    /**
+     * Sets the value of the ithw property.
+     * 
+     * @param value
+     *            allowed object is {@link Integer }
+     * 
+     */
+    public void setIthw(Integer value) {
+        this.ithw = value;
+    }
+
+    /**
+     * Gets the value of the iwidth property.
+     * 
+     * @return possible object is {@link Integer }
+     * 
+     */
+    public Integer getIwidth() {
+        return iwidth;
+    }
+
+    /**
+     * Sets the value of the iwidth property.
+     * 
+     * @param value
+     *            allowed object is {@link Integer }
+     * 
+     */
+    public void setIwidth(Integer value) {
+        this.iwidth = value;
+    }
+
+    /**
      * Gets the value of the justification property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getJustification() {
         return justification;
@@ -387,9 +420,8 @@ public class Text {
      * Sets the value of the justification property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setJustification(String value) {
         this.justification = value;
@@ -398,10 +430,8 @@ public class Text {
     /**
      * Gets the value of the style property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getStyle() {
         return style;
@@ -411,9 +441,8 @@ public class Text {
      * Sets the value of the style property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setStyle(String value) {
         this.style = value;
@@ -422,10 +451,8 @@ public class Text {
     /**
      * Gets the value of the fontName property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getFontName() {
         return fontName;
@@ -435,9 +462,8 @@ public class Text {
      * Sets the value of the fontName property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setFontName(String value) {
         this.fontName = value;
@@ -446,10 +472,8 @@ public class Text {
     /**
      * Gets the value of the fontSize property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Float }
-     *     
+     * @return possible object is {@link Float }
+     * 
      */
     public Float getFontSize() {
         return fontSize;
@@ -459,9 +483,8 @@ public class Text {
      * Sets the value of the fontSize property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Float }
-     *     
+     *            allowed object is {@link Float }
+     * 
      */
     public void setFontSize(Float value) {
         this.fontSize = value;
@@ -470,10 +493,8 @@ public class Text {
     /**
      * Gets the value of the pgenType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenType() {
         return pgenType;
@@ -483,9 +504,8 @@ public class Text {
      * Sets the value of the pgenType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenType(String value) {
         this.pgenType = value;
@@ -494,10 +514,8 @@ public class Text {
     /**
      * Gets the value of the pgenCategory property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenCategory() {
         return pgenCategory;
@@ -507,9 +525,8 @@ public class Text {
      * Sets the value of the pgenCategory property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenCategory(String value) {
         this.pgenCategory = value;

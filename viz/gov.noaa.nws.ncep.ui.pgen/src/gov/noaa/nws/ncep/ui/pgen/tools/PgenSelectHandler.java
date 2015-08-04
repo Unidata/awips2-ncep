@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlgFactory;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.GfaAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
@@ -84,7 +85,10 @@ import com.vividsolutions.jts.geom.Point;
  *                                      main Contour tool window on Cancel, changing a
  *                                      symbol's label should not change the symbol;
  *                                      Both issues fixed.
- * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool..
+ * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool.
+ * 12/14     R5198/TTR1057  J. Wu       Select a label over a line for Contours.
+ * 01/15    R5201/TTR1060   J. Wu       Update settings when an element is selected.
+ * 05/14     Redmine 7804   S. Russell  Updated handleMouseDownMove()
  * 
  * </pre>
  * 
@@ -222,16 +226,18 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 return false;
             }
 
-            // Get the nearest element and set it as the selected element.
+            /*
+             * Get the nearest element and set it as the selected element. For
+             * contour lines, if a line and a label are both "close" to the
+             * click point (the difference is within MaxDistToSelect/5), the
+             * label will be selected first.
+             */
             DrawableElement elSelected = pgenrsc.getNearestElement(loc);
 
             if (elSelected instanceof SinglePointElement) {
                 ptSelected = true; // prevent map from moving when holding and
                                    // dragging too fast.
             }
-
-            // AbstractDrawableComponent adc = drawingLayer.getNearestComponent(
-            // loc );
 
             AbstractDrawableComponent adc = null;
             if (elSelected != null && elSelected.getParent() != null
@@ -240,9 +246,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 adc = pgenrsc
                         .getNearestComponent(loc, new AcceptFilter(), true);
             }
-
-            // AbstractDrawableComponent adc = drawingLayer.getNearestComponent(
-            // loc, new AcceptFilter(), true );
 
             if (elSelected == null) {
                 return false;
@@ -261,7 +264,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                                 .getShell()).setWatchBox((WatchBox) elSelected);
                 PgenUtil.loadWatchBoxModifyTool(elSelected);
-                return false;
             } else if (elSelected instanceof Tcm) {
                 PgenUtil.loadTcmTool(elSelected);
             }
@@ -274,6 +276,19 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         .getCurrentContour();
                 if (dec != null) {
                     elSelected = pgenrsc.getNearestElement(loc, (Contours) dec);
+
+                    /*
+                     * If a contour line is selected, check if a label is also
+                     * close to the click point.
+                     */
+                    if (elSelected instanceof Line
+                            && elSelected.getParent() != null
+                            && elSelected.getParent() instanceof ContourLine) {
+                        elSelected = pgenrsc.getNearestElement(loc,
+                                (ContourLine) elSelected.getParent(),
+                                elSelected);
+                    }
+
                     if (elSelected instanceof MultiPointElement) {
                         // ptSelected could be set to true if there is a
                         // SiglePointElement near the click, which is not part
@@ -380,10 +395,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     if (elSelected != null) {
                         updateContoursAttrDlg(elSelected);
                         ((ContoursAttrDlg) attrDlg).setSelectMode();
+                        // Update the settings.
+                        ((ContoursAttrDlg) attrDlg).setSettings(elSelected
+                                .copy());
                     }
 
                 } else {
                     attrDlg.setAttrForDlg(elSelected);
+                    // Update the settings.
+                    AttrSettings.getInstance().setSettings(elSelected);
                 }
 
                 if (elSelected instanceof SinglePointElement
@@ -475,11 +495,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         }
 
-        else if (button == 3 && pgenrsc.getSelectedDE() != null) {
-            // Right button click does not fall through to other handlers if
-            // there is pgen element is selected
-            return true;
-        } else {
+        else {
 
             return false;
 
@@ -495,6 +511,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
      */
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
+
         if (!tool.isResourceEditable()) {
             return false;
         }
@@ -519,27 +536,40 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             return false;
         }
 
-        //
         if (loc != null) {
             tempLoc = loc;
         }
 
+        // Redmine 7804
+        boolean drawElmSelected = false;
+        if (firstDown == null) {
+            firstDown = loc;
+        }
+
         if (loc != null && inOut == 1) {
-            // make sure the click is close enough to the element
-            if (pgenrsc.getDistance(tmpEl, loc) > pgenrsc.getMaxDistToSelect()
-                    && !ptSelected) {
-                // if (( firstDown != null && pgenrsc.getDistance(tmpEl,
-                // firstDown) > drawingLayer.getMaxDistToSelect() &&
-                // !ptSelected) ||
-                // tmpEl instanceof SinglePointElement ){
-                if (firstDown != null
-                        && pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
-                                .getMaxDistToSelect()) {
-                    firstDown = null;
-                } else {
+
+            // Redmine 7804 - is user's intent selection or panning?
+            // return false to send control to the panning handlers, if user's
+            // actions indicate they are panning and not trying to manipulate
+            // a selected drawable element
+            if (tmpEl instanceof SinglePointElement) {
+                if (pgenrsc.getDistance(tmpEl, firstDown) > pgenrsc
+                        .getMaxDistToSelect()) {
+                    return false;
+                } else if (pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
+                        .getMaxDistToSelect()) {
+                    firstDown = loc;
+                }
+            } else { // Multipoint Element
+                if (pgenrsc.getDistance(tmpEl, firstDown) < pgenrsc
+                        .getMaxDistToSelect()) {
+                    drawElmSelected = true;
+                }
+                if (!drawElmSelected) {
                     return false;
                 }
             }
+
         } else if (loc != null && inOut == 0) {
             inOut = 1;
         } else {
@@ -1051,16 +1081,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             }
             trackExtrapPointInfoDlg = null;
 
-            if (pgenrsc.getSelectedDE() != null) {
-                preempt = true;
-            }
-
             pgenrsc.removeGhostLine();
             ptSelected = false;
             pgenrsc.removeSelected();
             mapEditor.refresh();
 
-            return preempt;
+            // return false;
 
         }
 

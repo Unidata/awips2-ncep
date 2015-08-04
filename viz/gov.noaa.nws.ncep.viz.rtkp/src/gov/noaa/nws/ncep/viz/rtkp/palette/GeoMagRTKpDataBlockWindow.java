@@ -76,7 +76,8 @@ import com.raytheon.viz.ui.UiUtil;
  * SOFTWARE HISTORY
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- -----------------------------------
- * April 4, 2014 1122       sgurung     Initial creation
+ * Apr 4, 2014    1122       sgurung     Initial creation
+ * Dec 24, 2014   R5412      sgurung     Change float to double
  * 
  * </pre>
  * 
@@ -437,7 +438,7 @@ public class GeoMagRTKpDataBlockWindow extends ViewPart implements
             List<GeoMagK1min> kDataList = RTKpUtil.getEstKIndex1min(kStations,
                     dbStartTime, endTime);
 
-            float maxGamma = getMaxGamma(kDataList);
+            double maxGamma = getMaxGamma(kDataList);
             double gammaSize = Math.floor(Math.log10(maxGamma)) + 1;
 
             String gammaFiller = "";
@@ -602,11 +603,11 @@ public class GeoMagRTKpDataBlockWindow extends ViewPart implements
 
     }
 
-    private float getMaxGamma(List<GeoMagK1min> kDataList) {
+    private double getMaxGamma(List<GeoMagK1min> kDataList) {
 
         int kDataListSize = (kDataList != null) ? kDataList.size() : 0;
 
-        float maxGamma = 0f;
+        double maxGamma = 0.0;
         for (int i = 0; i < kDataListSize; i++) {
             GeoMagK1min k1minRec = kDataList.get(i);
             if (k1minRec.getKestGamma() > maxGamma

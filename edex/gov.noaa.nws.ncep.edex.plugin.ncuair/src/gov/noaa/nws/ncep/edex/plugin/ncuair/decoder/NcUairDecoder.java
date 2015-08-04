@@ -16,6 +16,7 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.pointdata.spatial.ObStation;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.time.DataTime;
@@ -138,7 +139,7 @@ public class NcUairDecoder extends AbstractDecoder {
         Boolean ship = false;
         Boolean drop = false;
         System.out.println("Nc uair decode entered, data size= " + data.length);
-        // long curTime = System.currentTimeMillis();
+        long curTime = System.currentTimeMillis();
         if (headers != null) {
             /*
              * traceId equals to the file name
@@ -348,8 +349,8 @@ public class NcUairDecoder extends AbstractDecoder {
         if (record == null) {
             return new PluginDataObject[0];
         }
-        // long enqueueTime = System.currentTimeMillis();
-        // double latency = (enqueueTime - curTime);
+        long enqueueTime = System.currentTimeMillis();
+        double latency = (enqueueTime - curTime);
         // System.out.println("Nc uair decode spend "+ latency);
         return new PluginDataObject[] { record };
     }
@@ -377,8 +378,10 @@ public class NcUairDecoder extends AbstractDecoder {
          */
         NcUairSeparator sep = NcUairSeparator.separate(data, headers);
 
+        int i = 0;
         while (sep.hasNext()) {
             nil = false;
+            i++;
             messageData = sep.next();
             // System.out.println("New message # "+ i);
 

@@ -135,6 +135,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/13        #1065       J. Wu       Added Kink lines.
  * 05/14        TTR995      J. Wu       Set Text's 'auto" flag to false.
  * 09/14        TTR716      J. Wu       Use "-" for GFA Outlook's Vor text.
+ * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
+ * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
  * 
  * </pre>
  * 
@@ -169,6 +171,14 @@ public class ProductConverter {
 
             if (fPrd.getCenter() != null) {
                 p.setCenter(fPrd.getCenter());
+            }
+
+            if (fPrd.getForecaster() != null) {
+                p.setForecaster(fPrd.getForecaster());
+            }
+
+            if (fPrd.getStatus() != null) {
+                p.setStatus(fPrd.getStatus());
             }
 
             if (fPrd.isSaveLayers() != null) {
@@ -369,6 +379,15 @@ public class ProductConverter {
                     text.setHide(fText.isHide());
                 }
 
+                // R6158 - preserve ithw/iwidth
+                if (fText.getIthw() != null) {
+                    text.setIthw(fText.getIthw());
+                }
+
+                if (fText.getIwidth() != null) {
+                    text.setIwidth(fText.getIwidth());
+                }
+
                 /*
                  * if (fText.isAuto() != null) { //
                  * text.setAuto(fText.isAuto()); text.setAuto(false); }
@@ -404,6 +423,15 @@ public class ProductConverter {
                         aText.getSymbolPatternName(), aText.getPgenCategory(),
                         aText.getPgenType());
 
+                // R6158 - preserve ithw/iwidth
+                if (aText.getIthw() != null) {
+                    text.setIthw(aText.getIthw());
+                }
+
+                if (aText.getIwidth() != null) {
+                    text.setIwidth(aText.getIwidth());
+                }
+
                 des.add(text);
             }
 
@@ -434,6 +462,15 @@ public class ProductConverter {
                         mText.getTstormTypes(), mText.getTstormLevels(),
                         FontStyle.valueOf(mText.getStyle()), clr[0],
                         mText.getPgenCategory(), mText.getPgenType());
+
+                // R6158 - preserve ithw/iwidth
+                if (mText.getIthw() != null) {
+                    text.setIthw(mText.getIthw());
+                }
+
+                if (mText.getIwidth() != null) {
+                    text.setIwidth(mText.getIwidth());
+                }
 
                 des.add(text);
             }
@@ -849,6 +886,14 @@ public class ProductConverter {
             p.setType(prd.getType());
             p.setForecaster(prd.getForecaster());
             p.setCenter(prd.getCenter());
+
+            if (prd.getForecaster() != null) {
+                p.setForecaster(prd.getForecaster());
+            }
+
+            if (prd.getStatus() != null) {
+                p.setStatus(prd.getStatus());
+            }
 
             String outFile = prd.getOutputFile();
             if (outFile != null) {
@@ -1314,6 +1359,11 @@ public class ProductConverter {
                     atext.setAvnTextType(((AvnText) de).getAvnTextType().name());
                     atext.setTopValue(((AvnText) de).getTopValue());
                     atext.setBottomValue(((AvnText) de).getBottomValue());
+
+                    atext.setIthw(((AvnText) de).getIthw());
+
+                    atext.setIwidth(((AvnText) de).getIwidth());
+
                     atext.setJustification(((AvnText) de).getJustification()
                             .name());
                     atext.setStyle(((AvnText) de).getStyle().name());
@@ -1356,6 +1406,9 @@ public class ProductConverter {
                     mtext.setTstormTypes(mcde.getTstormTypes());
                     mtext.setTstormLevels(mcde.getTstormLevels());
 
+                    mtext.setIthw(mcde.getIthw());
+                    mtext.setIwidth(mcde.getIwidth());
+
                     mtext.setJustification(mcde.getJustification().name());
                     mtext.setStyle(mcde.getStyle().name());
                     mtext.setFontName(mcde.getFontName());
@@ -1395,6 +1448,10 @@ public class ProductConverter {
                     text.setRotationRelativity(((Text) de)
                             .getRotationRelativity().name());
                     text.setRotation(((Text) de).getRotation());
+
+                    text.setIthw(((Text) de).getIthw());
+                    text.setIwidth(((Text) de).getIwidth());
+
                     text.setJustification(((Text) de).getJustification().name());
                     text.setStyle(((Text) de).getStyle().name());
                     text.setFontName(((Text) de).getFontName());
@@ -2997,6 +3054,15 @@ public class ProductConverter {
                                         aText.getPgenType());
 
                                 // text.setTwoColumns(false);
+                                // R6158 - preserve ithw/iwidth
+                                if (aText.getIthw() != null) {
+                                    text.setIthw(aText.getIthw());
+                                }
+
+                                if (aText.getIwidth() != null) {
+                                    text.setIwidth(aText.getIwidth());
+                                }
+
                                 text.setParent(lbl);
                                 lbl.setSpe(text);
                             }

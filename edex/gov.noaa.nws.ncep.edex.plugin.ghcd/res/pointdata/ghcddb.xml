@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pointDataDbDescription>
+<!--parameter name is used when calling PointdataQuery.setParameters(), queryName and type are used for query DB, so need to be
+the same as fields defined in GenericHighCadenceDataRecord  
+defined same name for both, so in GenericHighCadenceDataConstants only have to define one -->
+  <!--parameter name="dataURI" queryName="dataURI" type="STRING" /-->
+  <parameter name="reportType" queryName="reportType" type="STRING" />
+  <parameter name="dataResolUnits" queryName="dataResolUnits" type="STRING" />
+  <parameter name="dataResolVal" queryName="dataResolVal" type="INT" />
+  <parameter name="typeInfo.source" queryName="typeInfo.source" type="STRING" />
+  <parameter name="typeInfo.instrument" queryName="typeInfo.instrument" type="STRING" />
+  <parameter name="typeInfo.datatype" queryName="typeInfo.datatype" type="STRING" />
+  <parameter name="dataTime.refTime" queryName="dataTime.refTime" numDims="1" type="LONG" unit="ms"/>
+  <parameter name="dataTime.utilityFlags" queryName="dataTime.utilityFlags" type="STRING" />
+  <parameter name="dataTime.fcstTime" queryName="dataTime.fcstTime" type="INT" />
+</pointDataDbDescription>

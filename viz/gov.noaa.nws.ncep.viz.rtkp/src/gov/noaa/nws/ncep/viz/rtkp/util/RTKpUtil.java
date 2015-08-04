@@ -601,14 +601,14 @@ public class RTKpUtil {
             for (int i = 0; i < rsltsListSize; i++) {
                 Map<String, Object> map = rsltsList.get(i);
                 Integer k = (Integer) map.get("kestindex");
-                Float ks = (Float) map.get("ks");
+                Double ks = (Double) map.get("ks");
 
                 if (k > 9) {
                     k = 0;
                 }
 
                 if (ks > 9.0) {
-                    ks = 0.0f;
+                    ks = 0.0;
                 }
                 map.put("kestindex", k);
                 map.put("ks", ks);

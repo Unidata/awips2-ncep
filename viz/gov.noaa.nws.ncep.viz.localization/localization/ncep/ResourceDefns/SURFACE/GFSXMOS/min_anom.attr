@@ -1,6 +1,7 @@
 ! Attributes for the GFSXMOS resource with "min_anom" plot model
 !
 plotModel=@PlotModels/bufrmosMRF/min_anom.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=GFSXMOS Night Temperature Anomaly (F)

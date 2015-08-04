@@ -47,6 +47,85 @@
         <source>PREDEFINED_AREA</source>
         <areaName>Caribbean</areaName>
     </AreaMenuItem>
+        <AreaMenuItem subMenuName="" menuName="">
+        <source>PREDEFINED_AREA</source>
+        <areaName>AlbersEqualArea</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="" menuName="">
+        <source>PREDEFINED_AREA</source>
+        <areaName>Lake_Erie</areaName>
+    </AreaMenuItem>
+
+<!--  ICAO bounds for AWC -->    
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA A">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_A</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA B">
+        <source>PREDEFINED_AREA</source>
+        <areaName>ICAO-B</areaName>
+    </AreaMenuItem>
+     <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA B1">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_B1</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA C">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_C</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA D">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_D</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA E">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_E</areaName>
+    </AreaMenuItem>
+     <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA F">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_F</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA G">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_G</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA H">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_H</areaName>
+    </AreaMenuItem>        
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA I">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_I</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA J">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_J</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA K">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_K</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA M">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_M</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA EU">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_EU</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA ME">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_ME</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA AS">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_AS</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA NAT">
+        <source>GEMPAK_GEOG_AREA_CODE</source>
+        <areaName>ICAO_NA</areaName>
+    </AreaMenuItem>
+<!-- End of ICAO submenu -->    
 
     <AreaMenuItem subMenuName="Atlantic" menuName="ICAO-B">
         <source>PREDEFINED_AREA</source>

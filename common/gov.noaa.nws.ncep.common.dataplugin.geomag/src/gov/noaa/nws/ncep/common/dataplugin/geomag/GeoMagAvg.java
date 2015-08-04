@@ -21,8 +21,6 @@ import com.raytheon.uf.common.dataplugin.persist.PersistableDataObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
-//import javax.persistence.UniqueConstraint;
-
 /**
  * Record implementation for geomag avg.
  * 
@@ -32,6 +30,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * ------------ ---------- ----------------   --------------------------
  * 08/14/2013   T989       qzhou              Initial creation.
  * 03/03/2014              qzhou              modified get/set
+ * 12/23/2014   R5412      sgurung            Change float to double
+ * 01/26/2015   R7615      sgurung            Change sequence name
  * </pre>
  * 
  * @author qzhou
@@ -39,7 +39,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  */
 
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagseq")
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagavgseq")
 @Table(name = "geomag_houravg")
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -88,7 +88,7 @@ public class GeoMagAvg extends PersistableDataObject<Object> {
     @Column
     @XmlAttribute
     @DynamicSerializeElement
-    private float hHrAvg;
+    private double hHrAvg;
 
     /**
      * D data Hour Average
@@ -96,7 +96,7 @@ public class GeoMagAvg extends PersistableDataObject<Object> {
     @Column
     @XmlAttribute
     @DynamicSerializeElement
-    private float dHrAvg;
+    private double dHrAvg;
 
     public GeoMagAvg() {
 
@@ -109,22 +109,22 @@ public class GeoMagAvg extends PersistableDataObject<Object> {
     /**
      * @return the hHrAvg
      */
-    public float gethHrAvg() {
+    public double gethHrAvg() {
         return hHrAvg;
     }
 
-    public void sethHrAvg(float hHrAvg) {
+    public void sethHrAvg(double hHrAvg) {
         this.hHrAvg = hHrAvg;
     }
 
     /**
      * @return the dHrAvg
      */
-    public float getdHrAvg() {
+    public double getdHrAvg() {
         return dHrAvg;
     }
 
-    public void setdHrAvg(float dHrAvg) {
+    public void setdHrAvg(double dHrAvg) {
         this.dHrAvg = dHrAvg;
     }
 

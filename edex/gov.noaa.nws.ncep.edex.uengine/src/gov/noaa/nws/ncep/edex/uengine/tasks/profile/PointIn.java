@@ -46,6 +46,7 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
  * 03/28/2012                       Chin Chen   Add new APIs to support query multiple Points at one shoot and using
  * 										dataStore.retrieveGroups()
  * Oct 15, 2012     2473            bsteffen            Remove unused imports
+ * 05262015                         chin chen           remove debug message
  * </PRE>
  * 
  */
@@ -230,7 +231,7 @@ public class PointIn {// extends ScriptTask {
                     	pData[k]= data[i];
                         }
                     }
-                System.out.println("total points = "+ points.size()+ " totalRec = "+totalRec);
+                //System.out.println("total points = "+ points.size()+ " totalRec = "+totalRec);
         } catch (Exception e) {
             throw new PluginException("Error getting HDF5 data", e);
         }

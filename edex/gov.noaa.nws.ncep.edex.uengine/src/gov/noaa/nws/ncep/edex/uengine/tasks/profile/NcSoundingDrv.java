@@ -34,6 +34,7 @@ package gov.noaa.nws.ncep.edex.uengine.tasks.profile;
  * 10/03/2014               B. Hebbard  Performance improvement:  Pass level and pwRequired params to
  *                                      ObservedSoundingQuery.getObservedSndNcUairDataGeneric( ) so
  *                                      it can decide whether it can economize on DB params it needs
+ * 03/04/2015  RM#6674      Chin Chen   support model sounding query data interpolation and nearest point option       
  * </pre>
  *  Python Script example to query multiple locations at one request:
  *  The following 3 query examples, returns same results.
@@ -151,6 +152,8 @@ public class NcSoundingDrv {
 
     private int merge;
 
+    private int interpolation=0; //RM#6674, for model sounding use: 1=do interpolation, 0= use nearest point
+
     private int pwRequired = 0; // Support PW, 1=required, 0=Not required
 
     private boolean useNcSoundingLayer2 = false;
@@ -176,7 +179,12 @@ public class NcSoundingDrv {
 
     private List<String> rangeTimeStringLst = new ArrayList<String>();
 
-    public double[][] getLatLons() {
+    //RM#6674
+    public void setInterpolation(int interpolation) {
+		this.interpolation = interpolation;
+	}
+
+	public double[][] getLatLons() {
         return latLonArray;
     }
 
@@ -898,22 +906,20 @@ public class NcSoundingDrv {
                 timeLimeCalList.add(refTimeCal);
             }
             if (latLonArray != null) {
-                /*
-                 * old way for ( int i=0; i < latLonArray.length ; i++) { double
-                 * lat = latLonArray[i][0]; double lon = latLonArray[i][1]; for
-                 * (int j=0; j< timeLineStrList.size(); j++){ String timeStr =
-                 * timeLineStrList.get(j); pf = MdlSoundingQuery.getMdlSndData(
-                 * lat, lon, timeStr, validTimeStartStr, pluginName, modelName
-                 * ); if(pf.getRtnStatus() != NcSoundingCube.QueryStatus.OK){
-                 * failedRtnStatus = pf.getRtnStatus(); pf = null; } if(pf !=
-                 * null && pf.getSoundingLyLst().size()>0) {
-                 * soundingProfileList.add(pf); pf = null; } } }
-                 */
-                // Chin Note: using new API to query multiple Points at one shot
-                soundingProfileList = MdlSoundingQuery
-                        .getMdlSndDataProfileList(latLonArray,
+            	//#RM6674
+            	if(interpolation == 1){
+            		//get interpolation point
+            		soundingProfileList = MdlSoundingQuery.getMdlSndInterpolatedDataProfileList(latLonArray,
+                            timeLineStrList.get(0), validTimeStartStr,
+                            pluginName, modelName);
+            	}
+            	else {
+            		// get nearest point data
+            		soundingProfileList = MdlSoundingQuery.getMdlSndNearestPtDataProfileList(latLonArray,
                                 timeLineStrList.get(0), validTimeStartStr,
                                 pluginName, modelName);
+            	}
+            	//end #RM6674
             }
         } else if (sndType.equals(ObsSndType.BUFRUA.toString())) {
             int arrLen = 0;

@@ -246,7 +246,17 @@ public class ModelSoundingDialogContents {
     private void queryAndLoadData(boolean stnQuery) {
     	soundingLysLstMap.clear();
     	ldDia.startWaitCursor();
-    	//Chin Note: Since NcGrib/Grib HDF5 data file is created based on a forecast time line, we can not query 
+    	//RM#6674                         
+        NsharpConfigManager mgr =NsharpConfigManager.getInstance();
+        NsharpConfigStore configStore = mgr.retrieveNsharpConfigStoreFromFs();
+        boolean gridInterpolation;
+		if(configStore != null){
+			gridInterpolation = configStore.getGraphProperty().isGridInterpolation();
+		}
+		else
+			gridInterpolation = true; //by default
+		//end RM#6674
+		//Chin Note: Since NcGrib/Grib HDF5 data file is created based on a forecast time line, we can not query 
     	// more than one time line at one time as Edex server just could not support such query at one shot.
     	//This is not the case of PFC sounding (modelsounding db). It has all time lines of one forecast report
     	// saved in one file. Therefore, PFC query is much faster.
@@ -255,7 +265,8 @@ public class ModelSoundingDialogContents {
     		String selectedFileStr = timeLineToFileMap.get(timeLine); 
     		String rangeStartStr = NcSoundingQuery.convertSoundTimeDispStringToRangeStartTimeFormat(timeLine);
     		float[][] latLon = {{lat, lon}};
-    		NcSoundingCube cube = NcSoundingQuery.mdlSoundingQueryByLatLon(selectedFileStr+":00:00",rangeStartStr, latLon, gribDecoderName,selectedModel, false, "-1");
+    		NcSoundingCube cube = NcSoundingQuery.mdlSoundingQueryByLatLon(selectedFileStr+":00:00",rangeStartStr, latLon, 
+    				gribDecoderName,selectedModel, false, "-1", gridInterpolation);
     		if(cube != null && cube.getRtnStatus()== NcSoundingCube.QueryStatus.OK){
     			//System.out.println("mdlSoundingQueryByLatLon returnd ok");
         		

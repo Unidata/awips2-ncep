@@ -8,8 +8,8 @@
 
 package gov.noaa.nws.ncep.ui.pgen.file;
 
-import gov.noaa.nws.ncep.ui.pgen.elements.tcm.TcmFcst;
 import gov.noaa.nws.ncep.ui.pgen.elements.tcm.TcmWindQuarters;
+import gov.noaa.nws.ncep.ui.pgen.elements.tcm.TcmFcst;
 
 import java.util.ArrayList;
 import java.util.List;

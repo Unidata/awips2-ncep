@@ -1,6 +1,7 @@
-! Parameters and Attributes for the default METAR Resource
+! Parameters and Attributes for the METAR Resource with "standard" plot model
 !
 plotModel=@PlotModels/obs/standard.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=METAR Standard

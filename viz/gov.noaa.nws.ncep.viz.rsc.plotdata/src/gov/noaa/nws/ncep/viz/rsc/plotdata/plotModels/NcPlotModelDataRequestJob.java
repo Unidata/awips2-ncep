@@ -33,7 +33,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery2;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
@@ -87,6 +86,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 09/2012      896        sgurung     Refactored raytheon's class PlotModelDataRequestJob and added
  * 									   code from ncep's PlotModelGenerator2
  * Aug 07, 2014 3478       bclement    removed PointDataDescription.Type.Double
+ * 07142015     RM#9173    Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
  * 
  * </pre>
  * 
@@ -726,32 +726,16 @@ public class NcPlotModelDataRequestJob extends Job {
                 rangeTimeLst.add(stnTime);
             }
         }
-
-        // TODO if this is an UpperAir FcstPlotResource then we will need to 
-        // get the validTime and query for it. 
-        NcSoundingQuery2 sndingQuery;
-        try {
-            sndingQuery = new NcSoundingQuery2(plugin, true, levelStr);
-        } catch (Exception e1) {
-            System.out.println("Error creating NcSoundingQuery2: " + e1.getMessage());
-            return null;
-        }
-        //chin sndingQuery.setLatLonConstraints( latLonCoords );
-        sndingQuery.setStationIdConstraints(stnIdLst);
-        sndingQuery.setRangeTimeList(rangeTimeLst);
-        sndingQuery.setRefTimeConstraint(refTime);
-        sndingQuery.setTimeRangeConstraint(new TimeRange(beginTime, endTime));
-
-        // for modelsounding data we need to set the name of the model (ie the reportType)
-        if (plugin.equals("modelsounding")) {
-            if (!constraintMap.containsKey("reportType")) {
-                System.out.println("Error creating NcSoundingQuery2: missing modelName (reportType) for modelsounding plugin");
-                return null;
-            }
-            sndingQuery.setModelName(constraintMap.get("reportType").getConstraintValue());
-        }
+        long[] refTimelArray = new long[1];
+        refTimelArray[0] = refTime.getTime();
+        long[] rangeTimeArray = new long[rangeTimeLst.size()];
+        for(int k=0; k<rangeTimeLst.size();k++)
+        	rangeTimeArray[k]= rangeTimeLst.get(k);
+        String[] stnIdArray;
+        stnIdArray = stnIdLst.toArray((new String[0]));
+        
         long t004 = System.currentTimeMillis();
-        NcSoundingCube sndingCube = sndingQuery.query();
+        NcSoundingCube sndingCube = PlotModelMngr.querySoundingData(refTimelArray, rangeTimeArray, stnIdArray, plugin, levelStr,  constraintMap,paramsToPlot);
         long t005 = System.currentTimeMillis();
         System.out.println("plotUpperAirData sndingQuery query  took " + (t005 - t004) + " ms");
 

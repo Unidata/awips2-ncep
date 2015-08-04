@@ -23,6 +23,7 @@ package  gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  *                                    Copy whole file PfcSoundingQuery.java from uEngine project to this serverRequestService project.
  *                                    "refactor" and clean up unused code for this ticket.
  * 07/02/2015   RM#8107    Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * 07/21/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
  *  *
  * </pre>
  * 
@@ -30,14 +31,11 @@ package  gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  * @version 1.0
  */
 
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingRequestType;
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.PfcSndType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
@@ -356,9 +354,9 @@ public class PfcSoundingQuery {
 				List<NcSoundingProfile> soundingProfileList = new ArrayList<NcSoundingProfile>(
 						0);
 				soundingProfileList.addAll(listReturned);
-				if (request.isUseNcSoundingLayer2() == true) {
-					QueryMiscTools.convertNcSoundingLayerToNcSoundingLayer2(soundingProfileList);
-				}
+//				if (request.isUseNcSoundingLayer2() == true) {
+//					QueryMiscTools.convertNcSoundingLayerToNcSoundingLayer2(soundingProfileList);
+//				}
 				cube.setRtnStatus(NcSoundingCube.QueryStatus.OK); //as long as one query successful, set it to OK
 				finalSoundingProfileList.addAll(soundingProfileList);
 			}

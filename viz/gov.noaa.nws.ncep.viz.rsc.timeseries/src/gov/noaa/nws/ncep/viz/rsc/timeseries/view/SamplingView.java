@@ -42,7 +42,8 @@ import org.eclipse.ui.part.ViewPart;
  * 
  *  Date         Ticket#     Engineer    Description
  *  ------------ ----------  ----------- --------------------------
- * 07/07/2014    R4079       qzhou     Initial Creation.
+ * 07/07/2014    R4079       qzhou       Initial Creation.
+ * 12/23/2014    R5412       sgurung     Change float to double
  * 
  * </pre>
  * 
@@ -188,7 +189,7 @@ public class SamplingView extends ViewPart implements SelectionListener,
     }
 
     public void paintSampling(List<GeoMagRecord> recordsList,
-            List<Float> hQdcList, List<Float> dQdcList, Calendar cal) {
+            List<Double> hQdcList, List<Double> dQdcList, Calendar cal) {
 
         StyleRange[] styleRanges = new StyleRange[2];
 
@@ -196,10 +197,10 @@ public class SamplingView extends ViewPart implements SelectionListener,
         List<GeoMagRecord> geoMagList = getSamplingRecords(recordsList, cal);
 
         // hdev = h_data91440:2879] - h_qdc
-        List<float[]> devList = getSamplingDevs(recordsList, hQdcList,
+        List<double[]> devList = getSamplingDevs(recordsList, hQdcList,
                 dQdcList, cal);
 
-        float[] median = RetrieveUtils.getMedian(recordsList);
+        double[] median = RetrieveUtils.getMedian(recordsList);
         String timeStr = timeSampleFormat.format(RetrieveUtils.getUtcDate(cal));
 
         text.setText("");
@@ -261,9 +262,9 @@ public class SamplingView extends ViewPart implements SelectionListener,
 
     }
 
-    public List<float[]> getSamplingDevs(List<GeoMagRecord> recordsList,
-            List<Float> hQdcList, List<Float> dQdcList, Calendar cal) {
-        List<float[]> devList = new ArrayList<float[]>();
+    public List<double[]> getSamplingDevs(List<GeoMagRecord> recordsList,
+            List<Double> hQdcList, List<Double> dQdcList, Calendar cal) {
+        List<double[]> devList = new ArrayList<double[]>();
 
         // according to cal, build displaying List<float[]> devList,
         // which is 14 minutes before and after cal
@@ -278,9 +279,9 @@ public class SamplingView extends ViewPart implements SelectionListener,
                     && recordsList.get(i).getDataTime().getValidTime()
                             .getTimeInMillis() <= calEnd.getTimeInMillis()) {
 
-                float hTemp = hQdcList.get(i);
-                float dTemp = dQdcList.get(i);
-                devList.add(new float[] { hTemp, dTemp });
+                double hTemp = hQdcList.get(i);
+                double dTemp = dQdcList.get(i);
+                devList.add(new double[] { hTemp, dTemp });
             }
         }
 

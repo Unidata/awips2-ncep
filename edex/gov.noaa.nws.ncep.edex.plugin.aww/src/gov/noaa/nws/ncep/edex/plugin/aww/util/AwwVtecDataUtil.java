@@ -3,18 +3,32 @@ package gov.noaa.nws.ncep.edex.plugin.aww.util;
 import gov.noaa.nws.ncep.edex.plugin.aww.dao.AwwVtecDao;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 
 import com.raytheon.uf.common.dataquery.db.QueryResult;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 
 
+/**
+ * Utility class for AwwVtec.
+ * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * ????         ????       ????        Initial creation.
+ * Jul 27, 2015 4500       rjpeter     Removed SQL Injection Concern.
+ * 
+ * </pre>
+ * 
+ * @author rjpeter
+ * @version 1.0
+ */
 public class AwwVtecDataUtil {
 //	private final static String zeroTime = "000000T0000";
 //
@@ -27,7 +41,6 @@ public class AwwVtecDataUtil {
 //		return isZeroTimeString; 
 //	}
 	
-	private static Logger logger = Logger.getLogger(AwwVtecDataUtil.class.getName()); 
 
 	public static LatLonInfo retrieveAirportLatLonInfoByAirportId(String airportId) { 
 		String queryString = getQueryForAirportLatLonInfo(airportId); 
@@ -96,10 +109,10 @@ System.out.println("@@@@@@#########, lon=" + lon);
 	
 	public static void 	populateAwwVtecEventStartTimeWithValidValue(Calendar validEventStartTime, String productClass, 
 			String officeId, String phenomena, String significance, String eventTrackingNumber) throws DataAccessLayerException {
-		String updateQueryString = getQueryForUpdateVtectEventTimeInfo(validEventStartTime, productClass, 
-				officeId, phenomena, significance, eventTrackingNumber); 
-		AwwVtecDao awwVtecDao = new AwwVtecDao(); 
-		awwVtecDao.executeNativeSql(updateQueryString); 
+        AwwVtecDao awwVtecDao = new AwwVtecDao();
+        awwVtecDao.populateAwwVtecEventStartTimeWithValidValue(
+                validEventStartTime, productClass, officeId, phenomena,
+                significance, eventTrackingNumber);
 	}
 	
 	public static void displayResultOfGetQueryForVtectEventTimeInfo(List<AwwVtecDataInfo> results) {
@@ -138,37 +151,6 @@ System.out.println("@@@@@@#########, lon=" + lon);
 			 .append(significance)
 			 .append("' and vtec.parentid=ugc.recordid and ugc.parentid=aww.id order by aww.issuetime desc;"); 
 		return query.toString(); 
-	}
-	
-	private static String getQueryForUpdateVtectEventTimeInfo(Calendar eventStartTime, String productClass, 
-			String officeId, String phenomena, String significance, String eventTrackingNumber) {
-		
-		String timeInString =  convertCalendarToString(eventStartTime); 
-
-		StringBuilder query = new StringBuilder("update awips.aww_vtec set eventstarttime = '");
-		query.append(timeInString)
-			 .append("' where ")
-			 .append("eventstarttime is null and ")
-			 .append("eventtrackingnumber='")
-			 .append(eventTrackingNumber)
-			 .append("' and officeid='")
-			 .append(officeId)
-			 .append("' and phenomena='")
-			 .append(phenomena)
-			 .append("' and productclass ='")
-			 .append(productClass)
-			 .append("' and significance='")
-			 .append(significance) 
-			 .append("'"); 
-//		logger.debug("******, updateQuery=" + query.toString()); 
-		return query.toString(); 
-	}
-	
-	private static String convertCalendarToString(Calendar cal) {
-		String dateFormatPattern = "yyyy-MM-dd HH:mm:ss"; 
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern); 
-		String calInString = simpleDateFormat.format(cal.getTime()); 
-		return calInString; 
 	}
 	
 	private static List<AwwVtecDataInfo> retrieveVtectEventStartEndTimeInfoFromDB(String nativeSQLQuery) {

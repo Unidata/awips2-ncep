@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +67,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * Oct 19, 2012  898       sgurung     Fix for fuzzy fonts
  * Sep 12, 2014            sgilbert    Add world wrap check (needed for 14.3.1).
  *                                     Corrected deprecated calls.
- * 
+ * Jul 27, 2015  4500      rjpeter     Removed duplicate columns in requests.
  * </pre>
  * 
  * This class is copied over from com.raytheon.viz.core.rsc.DbMapResource
@@ -253,7 +254,7 @@ public class DbOverlayResource extends
                         Geometry g = wkbReader.read(wkb);
                         // System.out.println(name + ": " + g.toText());
 
-                        if (req.labeled && result[i] != null && g != null) {
+                        if (req.labeled && (result[i] != null) && (g != null)) {
                             LabelNode node = new LabelNode(
                                     result[i++].toString(), g.getCentroid());
 
@@ -262,7 +263,7 @@ public class DbOverlayResource extends
 
                         if (!(g instanceof Point)) {
                             RGB color = null;
-                            if (req.shaded && result[i] != null) {
+                            if (req.shaded && (result[i] != null)) {
                                 Object shadedField = result[i++];
                                 color = req.getColor(shadedField);
                                 jtsData.setGeometryColor(color);
@@ -397,8 +398,9 @@ public class DbOverlayResource extends
 
         String geometryField = resourceData.getGeomField() + suffix;
 
-        if (env.getMinX() == Double.NaN || env.getMaxX() == Double.NaN
-                || env.getMinY() == Double.NaN || env.getMaxY() == Double.NaN) {
+        if ((env.getMinX() == Double.NaN) || (env.getMaxX() == Double.NaN)
+                || (env.getMinY() == Double.NaN)
+                || (env.getMaxY() == Double.NaN)) {
             System.out.println("Extents is not valid for DB Overlay query");
         }
         // create the geospatial constraint from the envelope
@@ -412,23 +414,31 @@ public class DbOverlayResource extends
         query.append(geometryField);
         query.append(")");
 
+        Set<String> columns = new HashSet<>();
+        String field = resourceData.getLabelField();
         // add the label field
-        if (resourceData.getLabelField() != null) {
+        if (field != null) {
             query.append(", ");
-            query.append(resourceData.getLabelField());
+            query.append(field);
+            columns.add(field);
         }
 
         // add the shading field
-        if (resourceData.getShadingField() != null) {
+        field = resourceData.getShadingField();
+        if ((field != null) && !columns.contains(field)) {
             query.append(", ");
-            query.append(resourceData.getShadingField());
+            query.append(field);
+            columns.add(field);
         }
 
         // add any additional columns
         if (resourceData.getColumns() != null) {
             for (String column : resourceData.getColumns()) {
-                query.append(", ");
-                query.append(column);
+                if ((column != null) && !columns.contains(column)) {
+                    query.append(", ");
+                    query.append(column);
+                    columns.add(column);
+                }
             }
         }
 
@@ -512,14 +522,14 @@ public class DbOverlayResource extends
             simpLev = lastSimpLev;
         }
 
-        boolean isLabeled = resourceData.getLabelField() != null
+        boolean isLabeled = (resourceData.getLabelField() != null)
                 && resourceData.isLabeled();
         boolean isShaded = isPolygonal() && resourceData.isShaded();
 
-        if (simpLev < lastSimpLev
+        if ((simpLev < lastSimpLev)
                 || (isLabeled && !lastLabeled)
                 || (isShaded && !lastShaded)
-                || lastExtent == null
+                || (lastExtent == null)
                 || !lastExtent.getEnvelope().contains(
                         screenExtent.getEnvelope())) {
 
@@ -553,20 +563,20 @@ public class DbOverlayResource extends
 
         float alpha = paintProps.getAlpha();
 
-        if (shadedShape != null && shadedShape.isDrawable() && isShaded) {
+        if ((shadedShape != null) && shadedShape.isDrawable() && isShaded) {
             aTarget.drawShadedShape(shadedShape, alpha);
         }
 
-        if (outlineShape != null && outlineShape.isDrawable()
+        if ((outlineShape != null) && outlineShape.isDrawable()
                 && ncRscData.isOutlineOn()) {
             aTarget.drawWireframeShape(outlineShape, ncRscData.getColor(),
                     ncRscData.getLineWidth(), ncRscData.getLineStyle());
 
-        } else if (outlineShape == null && ncRscData.isOutlineOn()) {
+        } else if ((outlineShape == null) && ncRscData.isOutlineOn()) {
             aTarget.setNeedsRefresh(true);
         }
 
-        if (labels != null && isLabeled) {
+        if ((labels != null) && isLabeled) {
             IFont font = aTarget.initializeFont(aTarget.getDefaultFont()
                     .getFontName(), 10, null);
             font.setSmoothing(false);

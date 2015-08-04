@@ -31,6 +31,7 @@ Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.contours,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc
 Import-Package: com.raytheon.uf.common.comm,
+ com.raytheon.uf.viz.core.point.display,
  com.raytheon.viz.core.contours.util,
  com.sun.jna,
  com.sun.jna.ptr,

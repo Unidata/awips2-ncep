@@ -11,6 +11,8 @@
  *                                                           (from date/hour field recurrence) and
  *                                                           date handling to prevent garbage from being
  *                                                           interpreted as dates decades in the future.
+ * B. Hebbard        R5939                   01/2015         Handle new year change between observation and
+ *                                                           decoding time.
  * </pre>
  *
  * This code has been developed by the SIB for use in the AWIPS system.
@@ -86,13 +88,6 @@ public class NcscatProcessing {
 
         int tempLength = message.length;
 
-        startTime = Calendar.getInstance();
-        startTime.setLenient(false); // guard against wild values
-        startTime.set(Calendar.MILLISECOND, 0);
-        endTime = Calendar.getInstance();
-        endTime.setLenient(false); // guard against wild values
-        endTime.set(Calendar.MILLISECOND, 0);
-
         // Determine type of data (that is, which satellite and resolution)
         // by examining it for unique consistency with known characteristics
 
@@ -149,7 +144,10 @@ public class NcscatProcessing {
 
                 // Make a pass through all rows in file, just to determine
                 // earliest and latest times
-                int day, hour, min, sec;
+                int day = 1;
+                int hour = 0;
+                int min = 0;
+                int sec = 0;
                 while (ji < tempLength) {
                     day = byteBuffer.getShort(ji);
                     hour = byteBuffer.getShort(ji + 2);
@@ -159,26 +157,40 @@ public class NcscatProcessing {
                     if (day < 1 || day > 366 || hour < 0 || hour > 23
                             || min < 0 || min > 59 || sec < 0 || sec > 60) {
                         // TODO log error?
-                        break;// TODO continue?
+                        continue; // TODO break?
                     }
 
                     if (ji < 8) { // first row
+                        startTime = Calendar.getInstance();
+                        startTime.setLenient(false); // guard against wild
+                                                     // values
+                        if (day > startTime.get(Calendar.DAY_OF_YEAR)) {
+                            // Handle year rollover between obs and decode
+                            startTime.add(Calendar.YEAR, -1);
+                        }
                         startTime.set(Calendar.DAY_OF_YEAR, day);
                         startTime.set(Calendar.HOUR_OF_DAY, hour);
                         startTime.set(Calendar.MINUTE, min);
                         startTime.set(Calendar.SECOND, sec);
+                        startTime.set(Calendar.MILLISECOND, 0);
                     }
-
-                    // Don't know ahead of time which row will be last
-                    // so set each time; last one will remain endTime
-                    endTime.set(Calendar.DAY_OF_YEAR, day);
-                    endTime.set(Calendar.HOUR_OF_DAY, hour);
-                    endTime.set(Calendar.MINUTE, min);
-                    endTime.set(Calendar.SECOND, sec);
 
                     ji = ji + scatXLen;
 
                 }// for while
+
+                // Set end time from last row timestamp
+                endTime = Calendar.getInstance();
+                endTime.setLenient(false); // guard against wild values
+                if (day > endTime.get(Calendar.DAY_OF_YEAR)) {
+                    // Handle year rollover between obs and decode
+                    endTime.add(Calendar.YEAR, -1);
+                }
+                endTime.set(Calendar.DAY_OF_YEAR, day);
+                endTime.set(Calendar.HOUR_OF_DAY, hour);
+                endTime.set(Calendar.MINUTE, min);
+                endTime.set(Calendar.SECOND, sec);
+                endTime.set(Calendar.MILLISECOND, 0);
 
                 // Time bounds scan done; now go back through the row data and
                 // rearrange as needed.

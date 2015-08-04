@@ -46,7 +46,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 08/29/2012   #743        Archana    Added CLRBAR  
  * 09/14/2013   #1036       S. Gurung  Added TEXT  
  * 07/02/2014   ?           B. Yin     Handle grid analysis.
- * 
+ * 03/27/2015   RM6552      S. Russell Initialize member variables to avoid nullpointer exceptions
  * </pre>
  * 
  * @author mli
@@ -59,28 +59,28 @@ public class NcgridResourceData extends
         INatlCntrsResourceData {
 
     @XmlElement
-    protected String type;
+    protected String type = "";
 
     @XmlElement
-    protected String cint;
+    protected String cint = "";
 
     @XmlElement
-    protected String gdfile;
+    protected String gdfile = "";
 
     @XmlElement
-    protected String gvcord;
+    protected String gvcord = "";
 
     @XmlElement
-    protected String glevel;
+    protected String glevel = "";
 
     @XmlElement
-    protected String gdpfun;
+    protected String gdpfun = "";
 
     @XmlElement
-    protected String skip;
+    protected String skip = "";
 
     @XmlElement
-    protected String filter;
+    protected String filter = "";
 
     @XmlElement
     protected String scale = "0";
@@ -89,37 +89,37 @@ public class NcgridResourceData extends
     protected String wind = "18/1/1";
 
     @XmlElement
-    protected String title;
+    protected String title = "";
 
     @XmlElement
-    protected String lineAttributes;
+    protected String lineAttributes = "";
 
     @XmlElement
-    protected String colors;
+    protected String colors = "";
 
     @XmlElement
-    protected String marker;
+    protected String marker = "";
 
     @XmlElement
-    protected int grdlbl;
+    protected int grdlbl = 0;
 
     @XmlElement
-    protected String fint;
+    protected String fint = "";
 
     @XmlElement
-    protected String fline;
+    protected String fline = "";
 
     @XmlElement
-    protected String hilo;
+    protected String hilo = "";
 
     @XmlElement
-    protected String hlsym;
+    protected String hlsym = "";
 
     @XmlElement
-    protected String clrbar;
+    protected String clrbar = "";
 
     @XmlElement
-    protected String text;
+    protected String text = "";
 
     public NcgridResourceData() {
         super();
@@ -528,6 +528,10 @@ public class NcgridResourceData extends
         } else {
             return null;
         }
+    }
+
+    public boolean isEnsemble() {
+        return this.gdfile.startsWith("{") && this.gdfile.endsWith("}");
     }
 
     // set metadataMap with the modelName constraint and return it

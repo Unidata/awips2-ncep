@@ -34,8 +34,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Jul 22, 2013 1977       rjpeter            Added getDataURI and annotations.
  * Jul 26, 2013 989        qzhou              Added lots of fields.
  * Aug 30, 2013 2298       rjpeter            Make getPluginName abstract
- * Jun 11, 2014 2061       bsteffen           Remove IDecoderGettable
- * 
+ * Dec 23, 2014 R5412      sgurung            Change float to double
  * </pre>
  * 
  * @author sgurung
@@ -171,7 +170,7 @@ public class GeoMagRecord extends PersistablePluginDataObject {
     @Column
     @DynamicSerializeElement
     @XmlAttribute
-    private float component_1;
+    private double component_1;
 
     /**
      * D or Y values
@@ -179,7 +178,7 @@ public class GeoMagRecord extends PersistablePluginDataObject {
     @Column
     @DynamicSerializeElement
     @XmlAttribute
-    private float component_2;
+    private double component_2;
 
     /**
      * Z values
@@ -187,7 +186,7 @@ public class GeoMagRecord extends PersistablePluginDataObject {
     @Column
     @DynamicSerializeElement
     @XmlAttribute
-    private float component_3;
+    private double component_3;
 
     /**
      * F values
@@ -195,7 +194,7 @@ public class GeoMagRecord extends PersistablePluginDataObject {
     @Column
     @DynamicSerializeElement
     @XmlAttribute
-    private float component_4;
+    private double component_4;
 
     /**
      * F values
@@ -231,25 +230,25 @@ public class GeoMagRecord extends PersistablePluginDataObject {
      * H or X values
      */
     @Transient
-    private float[] comp1_data;
+    private double[] comp1_data;
 
     /**
      * D or Y values
      */
     @Transient
-    private float[] comp2_data;
+    private double[] comp2_data;
 
     /**
      * Z values
      */
     @Transient
-    private float[] comp3_data;
+    private double[] comp3_data;
 
     /**
      * F values
      */
     @Transient
-    private float[] comp4_data;
+    private double[] comp4_data;
 
     /**
      * No-arg Constructor
@@ -342,88 +341,88 @@ public class GeoMagRecord extends PersistablePluginDataObject {
     /**
      * @return the comp1_data array
      */
-    public float[] getComp1Data() {
+    public double[] getComp1Data() {
         return comp1_data;
     }
 
-    public void setComp1Data(float[] h_data) {
+    public void setComp1Data(double[] h_data) {
         this.comp1_data = h_data;
     }
 
     /**
      * @return the comp2_data array
      */
-    public float[] getComp2Data() {
+    public double[] getComp2Data() {
         return comp2_data;
     }
 
-    public void setComp2Data(float[] d_data) {
+    public void setComp2Data(double[] d_data) {
         this.comp2_data = d_data;
     }
 
     /**
      * @return the comp3_data
      */
-    public float[] getComp3Data() {
+    public double[] getComp3Data() {
         return comp3_data;
     }
 
-    public void setComp3Data(float[] z_data) {
+    public void setComp3Data(double[] z_data) {
         this.comp3_data = z_data;
     }
 
     /**
      * @return the comp4_data
      */
-    public float[] getComp4Data() {
+    public double[] getComp4Data() {
         return comp4_data;
     }
 
-    public void setComp4Data(float[] f_data) {
+    public void setComp4Data(double[] f_data) {
         this.comp4_data = f_data;
     }
 
     /**
      * @return the component_1
      */
-    public float getComponent_1() {
+    public double getComponent_1() {
         return component_1;
     }
 
-    public void setComponent_1(float component_1) {
+    public void setComponent_1(double component_1) {
         this.component_1 = component_1;
     }
 
     /**
      * @return the component_2
      */
-    public float getComponent_2() {
+    public double getComponent_2() {
         return component_2;
     }
 
-    public void setComponent_2(float component_2) {
+    public void setComponent_2(double component_2) {
         this.component_2 = component_2;
     }
 
     /**
      * @return the component_3
      */
-    public float getComponent_3() {
+    public double getComponent_3() {
         return component_3;
     }
 
-    public void setComponent_3(float component_3) {
+    public void setComponent_3(double component_3) {
         this.component_3 = component_3;
     }
 
     /**
      * @return the component_4
      */
-    public float getComponent_4() {
+    public double getComponent_4() {
         return component_4;
     }
 
-    public void setComponent_4(float component_4) {
+    public void setComponent_4(double component_4) {
         this.component_4 = component_4;
     }
 

@@ -134,6 +134,8 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
  * 06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
  * 08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
+ * 12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
+ * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and overrode processNewRscDataList for the super class
  * </pre>
  * 
  * @author mli
@@ -259,24 +261,45 @@ public class NcgridResource extends
             if (ncgribLogger.enableRscLogs())
                 logger.info("==from init to run loadNcgridData took: "
                         + (t1 - initTime));
+
+            boolean frameMatched = false;
+            IRscDataObject lastDataObj = null;
+            int closestMatch = 0;
+
             for (AbstractFrameData fd : frameDataMap.values()) {
                 FrameData frameData = (FrameData) fd;
 
+                frameMatched = false;
                 for (DataTime dt : dataTimesForDgdriv) {
 
                     IRscDataObject[] dataObject = processRecord(dt);
                     if (frameData.isRscDataObjInFrame(dataObject[0])) {
-                        newRscDataObjsQueue.add(dataObject[0]);
+
+                        closestMatch = frameData.closestToFrame(dataObject[0],
+                                lastDataObj);
+
+                        if (closestMatch == 1) {
+                            newRscDataObjsQueue.add(dataObject[0]);
+                        } else if (closestMatch == 2) {
+                            newRscDataObjsQueue.add(lastDataObj);
+                        } else if (closestMatch == 0) {
+                            newRscDataObjsQueue.add(lastDataObj);
+                        }
+
+                        frameMatched = true;
+                        // lastDataObj = dataObject[0];
                         break;
                     }
+                    lastDataObj = dataObject[0];
+                }
+
+                if (!frameMatched && lastDataObj != null) {
+                    newRscDataObjsQueue.add(lastDataObj);
                 }
 
                 if (cancel) {
                     return Status.CANCEL_STATUS;
                 }
-
-                //
-                processNewRscDataList();
 
                 if (isFirst) {
                     isFirst = false;
@@ -492,11 +515,17 @@ public class NcgridResource extends
                 HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
                         gridRscData.getMetadataMap());
 
-                if (gridRscData.getGdfile().startsWith("{")
-                        && gridRscData.getGdfile().endsWith("}")) {
-
+                if (gridRscData.isEnsemble()) {
+                    String gdfileWithTimeCycles = NcEnsembleResourceData
+                            .convertGdfileToCycleTimeString(gridRscData
+                                    .getGdfile(), gridRscData.getResourceName()
+                                    .getCycleTime());
+                    gridRscData.setGdfile(NcEnsembleResourceData
+                            .convertGdfileToWildcardString(
+                                    gdfileWithTimeCycles, gridRscData
+                                            .getResourceName().getCycleTime()));
                     ModelListInfo modelListInfo = new ModelListInfo(
-                            gridRscData.getGdfile());
+                            gdfileWithTimeCycles);
                     String modelName = modelListInfo.getModelList().get(0)
                             .getModelName();
                     String perturbationNum = null;
@@ -509,11 +538,7 @@ public class NcgridResource extends
                             modelName = gdfileArrs[0].split("%")[1];
                         }
                         // eventName = gdfileArrs[1].toLowerCase();
-
-                        if (isIntNum(gdfileArrs[1])) {
-                            perturbationNum = String.valueOf(Integer
-                                    .parseInt(gdfileArrs[1]));
-                        }
+                        perturbationNum = gdfileArrs[1];
                     } else {
                         if (modelName.contains("%")) {
                             modelName = modelName.split("%")[1];
@@ -1001,23 +1026,6 @@ public class NcgridResource extends
                                 || !contourAttributes[i].getText()
                                         .equalsIgnoreCase(text)) {
 
-                            /*
-                             * System.out
-                             * .println(" In Line#: 747 updateFrameData... " +
-                             * " Old color ==>  " + colors + " New colors ===> "
-                             * + contourAttributes[i].getColors() + " ");
-                             * 
-                             * System.out
-                             * .println(" In Line#: 755 updateFrameData... " +
-                             * " Old levels ==>  " + glevel + " New leves ===> "
-                             * + contourAttributes[i].getGlevel() + " ");
-                             * 
-                             * System.out
-                             * .println(" In Line#: 763 updateFrameData... " +
-                             * " Old gpfunc ==>  " + gfunc + " New gpfunc ===> "
-                             * + contourAttributes[i].getGdpfun() +
-                             * " contourRenderable #: " + i);
-                             */
                             try { // gdPrxy may not have been fully assembled
                                   // upstream
                                 gridPointValueDisplay[i] = createGridPointValueDisplay(
@@ -1850,6 +1858,7 @@ public class NcgridResource extends
         // it hasn't already been added, add it to the queue of data objects
         // to be processed by the abstract class.
         for (DataTime dt : availableTimes) {
+
             // create a dataTime without a possible validPeriod.
             DataTime availTime = new DataTime(dt.getRefTime(), dt.getFcstTime());
             DataTime refTime = new DataTime(dt.getRefTime());
@@ -2350,8 +2359,18 @@ public class NcgridResource extends
     }
 
     private void separateAttributes() {
-        String[] gfuncArray = gridRscData.getGdpfun().replaceAll("\\s+", "")
-                .split("!", -1);
+        /*
+         * Redmine #5113 - an trailing "!" may cause the field before "!" to be
+         * created twice - so need to remove it before splitting into array.
+         */
+        // String[] gfuncArray = gridRscData.getGdpfun().replaceAll("\\s+", "")
+        // .split("!", -1);
+        String gfuncStr = gridRscData.getGdpfun().replaceAll("\\s+", "").trim();
+        if (gfuncStr != null && gfuncStr.endsWith("!")) {
+            gfuncStr = gfuncStr.substring(0, gfuncStr.length() - 1);
+        }
+        String[] gfuncArray = gfuncStr.split("!", -1);
+
         String[] glevelArray = gridRscData.getGlevel().replaceAll("\\s+", "")
                 .split("!", -1);
         String[] gvcordArray = gridRscData.getGvcord().replaceAll("\\s+", "")
@@ -2917,15 +2936,13 @@ public class NcgridResource extends
 
         // String modelname = gridRscData.getGdfile();
         String modelname = gridRscData.getResourceName().getRscType();
-        // System.out.println(" modelname: " + modelname);
-        // if (gridRscData.getEnsembelMember() != null) {
-        // modelname = modelname + ":" + gridRscData.getEnsembelMember();
-        // } else {
-        // if (gridRscData.getEventName() != null) {
-        // modelname = modelname + ":" + gridRscData.getEventName();
-        // }
-        // }
-        titleInfoStr = modelname + " "
+        if (gridRscData.isEnsemble()) {
+            String gdfile = NcEnsembleResourceData
+                    .convertGdfileToCycleTimeString(gridRscData.getGdfile(),
+                            gridRscData.getResourceName().getCycleTime());
+            modelname = modelname + " " + gdfile.toUpperCase();
+        }
+        titleInfoStr = modelname
                 + replaceTitleSpecialCharacters(titleStr, cTime);
         if (shrttlStr != null) {
             titleInfoStr = titleInfoStr + " | "
@@ -2985,7 +3002,9 @@ public class NcgridResource extends
                     }
                 }
             } else {
-                cal = currFrameTm.getValidTime();
+                // Redmine 4980: use cycle time (ctime) instead
+                // cal = currFrameTm.getValidTime();
+                cal = cTime.getValidTime();
                 timestampFormat = "%02d%02d%02d/%02d%02dV%s";
             }
             String forecastTime = CommonDateFormatUtil
@@ -3170,5 +3189,81 @@ public class NcgridResource extends
             filename = file.getAbsolutePath();
         }
         return filename;
+    }
+
+    /*
+     * Redmine 4980 Overridden fromt he super class to allow use of the the new
+     * time matching method BINNING_FOR_GRID_RESOURCES. Removed unnecessary
+     * autoupdate code and changed the order of the concentric for-loops to
+     * process data appropriately for this new time match method
+     * 
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
+     * processNewRscDataList()
+     */
+    protected synchronized boolean processNewRscDataList() {
+
+        // allow resources to pre process the data before it is added to the
+        // frames
+        preProcessFrameUpdate();
+
+        boolean frameMatched = false;
+        IRscDataObject lastDataObj = null;
+        IRscDataObject rscDataObj = null;
+        int closestMatch = 0;
+
+        for (AbstractFrameData frameData : frameDataMap.values()) {
+            if (frameData != null) {
+
+                frameMatched = false;
+
+                while (!newRscDataObjsQueue.isEmpty()) {
+                    rscDataObj = newRscDataObjsQueue.poll();
+
+                    if (frameData.isRscDataObjInFrame(rscDataObj)) {
+
+                        closestMatch = frameData.closestToFrame(rscDataObj,
+                                lastDataObj);
+
+                        if (closestMatch == 1) {
+                            addRscDataToFrame(frameData, rscDataObj);
+                            lastDataObj = rscDataObj;
+                        } else if (closestMatch == 2) {
+                            addRscDataToFrame(frameData, lastDataObj);
+                        } else if (closestMatch == 0) {
+                            addRscDataToFrame(frameData, lastDataObj);
+                        }
+                        frameMatched = true;
+                        break;
+                    }
+
+                    lastDataObj = rscDataObj;
+
+                }// end while
+
+                if (!frameMatched) {
+                    closestMatch = frameData.closestToFrame(rscDataObj,
+                            lastDataObj);
+
+                    if (closestMatch == 1) {
+                        addRscDataToFrame(frameData, rscDataObj);
+                        lastDataObj = rscDataObj;
+                    } else if (closestMatch == 2) {
+                        addRscDataToFrame(frameData, lastDataObj);
+                    } else if (closestMatch == 0) {
+                        addRscDataToFrame(frameData, lastDataObj);
+                    }
+
+                }
+
+            }
+        }// end for
+
+        // allow resources to post-process the data after it is added to the
+        // frames
+        postProcessFrameUpdate();
+        autoUpdateReady = false;
+        return true;
     }
 }

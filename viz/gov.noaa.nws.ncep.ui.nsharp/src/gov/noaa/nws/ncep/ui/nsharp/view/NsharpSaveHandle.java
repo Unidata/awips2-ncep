@@ -11,6 +11,8 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
+ * 12/17/2014   Task#5694   Chin Chen   consolidate saved file format for both NCP and D2D perspectives
+ * 02/23/2015   Task#5694   Chin Chen   let NCP and D2D use same text file format 
  *
  * </pre>
  * 
@@ -33,9 +35,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-
-import com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane;
-import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 
 public class NsharpSaveHandle {
     public static void saveFile(Shell shell) {
@@ -124,7 +123,9 @@ public class NsharpSaveHandle {
                     String textToSave = new String("");
 
                     if (rsc != null && rsc.getSoundingLys() != null) {
-                        if (VizPerspectiveListener
+
+                    	//Task#5694
+                        /*if (VizPerspectiveListener
                                 .getCurrentPerspectiveManager() != null
                                 && VizPerspectiveListener
                                         .getCurrentPerspectiveManager()
@@ -179,7 +180,8 @@ public class NsharpSaveHandle {
                                         layer.getWindSpeed(), layer.getOmega());
                                 textToSave = textToSave + tempText;
                             }
-                        } else {
+                        } else */
+                    	{
                             List<NcSoundingLayer> soundLyList = rsc
                                     .getSoundingLys();
                             String latlonstr;
@@ -191,9 +193,9 @@ public class NsharpSaveHandle {
                             } else {
                                 latlonstr = "LAT=; LON=; ";
                             }
-                            int loadsoundingType = NsharpLoadDialog.OBSER_SND;
-                            String loadsoundingTypeStr = "OBS";
-                            ;
+                            int loadsoundingType;// = NsharpLoadDialog.OBSER_SND;
+                            String loadsoundingTypeStr = "NA";//OBS";
+                            
                             if (NsharpLoadDialog.getAccess() != null) {
                                 loadsoundingType = NsharpLoadDialog.getAccess()
                                         .getActiveLoadSoundingType();
@@ -205,8 +207,10 @@ public class NsharpSaveHandle {
                                     loadsoundingTypeStr = "MDL";
                                     break;
                                 case NsharpLoadDialog.OBSER_SND:
+                                	loadsoundingTypeStr = "OBS";
+                                	break;
                                 default:
-                                    loadsoundingTypeStr = "OBS";
+                                    loadsoundingTypeStr = "NA";
                                     break;
                                 }
                             }
@@ -237,8 +241,9 @@ public class NsharpSaveHandle {
                         // Close the output stream
                         out.close();
                     }
+
                 } catch (Exception e) {// Catch exception if any
-                    System.err.println("Error: " + e.getMessage());
+                	System.err.println("Error: " + e.getMessage());
                 }
 
             }

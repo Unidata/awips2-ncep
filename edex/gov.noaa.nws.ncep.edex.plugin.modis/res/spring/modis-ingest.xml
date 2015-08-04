@@ -1,0 +1,41 @@
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+  http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+                        
+    <bean id="modisDao" class="gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao">
+       <constructor-arg ref="modisPluginName" />    
+    </bean> 
+        
+    <bean id="modisDecoder" class="gov.noaa.nws.ncep.edex.plugin.modis.decoder.ModisDecoder">
+        <property name="dao" ref="modisDao"/>
+    </bean>
+
+    <bean id="modisDistRegistry" factory-bean="distributionSrv"
+        factory-method="register">
+        <constructor-arg value="modis" />
+        <constructor-arg value="jms-durable:queue:Ingest.modis" />
+    </bean>
+                                                
+    <camelContext id="modis-camel"
+        xmlns="http://camel.apache.org/schema/spring"
+        errorHandlerRef="errorHandler"
+        autoStartup="false">
+
+        <!-- Begin Modis routes -->
+        <route id="modisIngestRoute">
+            <from uri="jms-durable:queue:Ingest.modis"/>
+            <doTry>
+                <pipeline>
+                    <bean ref="stringToFile" />
+                    <bean ref="modisDecoder" method="decode" />
+                    <to uri="direct-vm:persistIndexAlert" />
+                </pipeline>
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:modis?level=ERROR"/>
+                </doCatch>
+            </doTry>
+        </route>
+    </camelContext>
+    
+</beans>

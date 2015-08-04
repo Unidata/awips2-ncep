@@ -1,10 +1,10 @@
 package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
-import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatPoint;
-import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatRecord;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.LongitudeCoding;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode.WindDirectionSense;
+import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatPoint;
+import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatRecord;
 import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
@@ -86,6 +86,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     regression caused by reverseOrder enhancement for imagery
  *                                     resources (in vertical).  Fix:  Set reverseOrder for NCSCAT colorbars
  *                                     to false for horizontal and true for vertical.
+ * 10 Jan 2015  R5939      B. Hebbard  (TTR 984) Handle new year change between observation and
+ *                                     display time.
  * 
  * </pre>
  * 
@@ -207,6 +209,10 @@ public class NcscatResource extends
                 ji += 8;
                 byteNumber += 8;
                 Calendar startTime = Calendar.getInstance();
+                if (day > startTime.get(Calendar.DAY_OF_YEAR)) {
+                    // Handle year rollover since obs
+                    startTime.add(Calendar.YEAR, -1);
+                }
                 startTime.set(Calendar.DAY_OF_YEAR, day);
                 startTime.set(Calendar.HOUR_OF_DAY, hour);
                 startTime.set(Calendar.MINUTE, min);

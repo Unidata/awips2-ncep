@@ -55,9 +55,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.pointdata.ParameterDescription;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
@@ -371,23 +371,23 @@ public class NcPlotModelDataRequestJob extends Job {
             if ( //deriveParams.length > 1 &&
             !deriveParams[0].equalsIgnoreCase("all")) {
 
-                ArrayList<String> preferedDeriveParameterNames = new ArrayList<String>();
-                ArrayList<AbstractMetParameter> preferedDeriveParameters = new ArrayList<AbstractMetParameter>();
+                ArrayList<String> preferredDeriveParameterNames = new ArrayList<String>();
+                ArrayList<AbstractMetParameter> preferredDeriveParameters = new ArrayList<AbstractMetParameter>();
 
                 for (String dPrm : deriveParams) {
                     AbstractMetParameter deriveInputParam = MetParameterFactory.getInstance().createParameter(dPrm);
 
                     if (deriveInputParam != null) {
                         //MetParameterFactory.getInstance().isValidMetParameterName( dPrm ) ) {
-                        preferedDeriveParameters.add(deriveInputParam);
-                        preferedDeriveParameterNames.add(dPrm);
+                        preferredDeriveParameters.add(deriveInputParam);
+                        preferredDeriveParameterNames.add(dPrm);
                     } else {
                         System.out.println("Warning : '" + dPrm + " is not a valid metParameter name");
                         return null;
                     }
                 }
 
-                derivedMetParam.setPreferedDeriveParameters(preferedDeriveParameterNames);
+                derivedMetParam.setPreferredDeriveParameters(preferredDeriveParameterNames);
             }
 
             if (derivedMetParam.getDeriveMethod(dbParamsMap.values()) == null) {
@@ -664,7 +664,7 @@ public class NcPlotModelDataRequestJob extends Job {
                             AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                             metParam.setDataTime(origMetParam.getDataTime());
                             metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                            metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                            metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                             metParam.setUnitStr(origMetParam.getUnitStr());
                             metParam.setUseStringValue(origMetParam.isUseStringValue());
                             metParam.setValue(origMetParam.getValue());
@@ -678,7 +678,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                 AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                                 metParam.setDataTime(origMetParam.getDataTime());
                                 metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                 metParam.setUnitStr(origMetParam.getUnitStr());
                                 metParam.setUseStringValue(origMetParam.isUseStringValue());
                                 metParam.setValue(origMetParam.getValue());
@@ -893,7 +893,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                 AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                                 metParam.setDataTime(origMetParam.getDataTime());
                                 metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                 metParam.setUnitStr(origMetParam.getUnitStr());
                                 metParam.setUseStringValue(origMetParam.isUseStringValue());
                                 metParam.setValue(origMetParam.getValue());
@@ -908,7 +908,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                             origMetParam.getUnit());
                                     metParam.setDataTime(origMetParam.getDataTime());
                                     metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                    metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                    metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                     metParam.setUnitStr(origMetParam.getUnitStr());
                                     metParam.setUseStringValue(origMetParam.isUseStringValue());
                                     metParam.setValue(origMetParam.getValue());

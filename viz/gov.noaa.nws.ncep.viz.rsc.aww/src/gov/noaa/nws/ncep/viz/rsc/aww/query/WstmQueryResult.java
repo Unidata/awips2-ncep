@@ -15,7 +15,10 @@ import com.raytheon.uf.viz.core.catalog.DirectDbQuery.*;
 import com.raytheon.uf.viz.core.catalog.*;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
+//import gov.noaa.nws.ncep.common.dataplugin.aww.AwwFips;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.IRscDataObject;
+import gov.noaa.nws.ncep.viz.rsc.aww.utils.PreProcessDisplay;
+
 
 /**
  * this class handling database query part for the WstmResource. 
@@ -68,20 +71,21 @@ public class WstmQueryResult {
 	 * 
 	 * @param aSetOfAwwFips
 	 */
-	public void buildQueryPart(Set<AwwFips> aSetOfAwwFips){
+	public void buildQueryPart(IRscDataObject dataObject){
+	    PreProcessDisplay wData = (PreProcessDisplay) dataObject;
 		
-		if( aSetOfAwwFips==null || aSetOfAwwFips.size()==0 )
+		if( wData.fipsCodesList==null || wData.fipsCodesList.size()==0 )
 			return;
 		
-		String fips;
-		for(AwwFips afips : aSetOfAwwFips){
-			fips = afips.getFips();
-			
-			if(fips==null || fips.length()==0)
-				continue;
+//		String fips;
+		for(String afips : wData.fipsCodesList){
+//			fips = afips.getFips();
+//			
+//			if(fips==null || fips.length()==0)
+//				continue;
 			
 			query.append(" ( state_zone = '");
-			query.append(fips.substring(0, 2)).append(fips.substring(3));//taking off Z as in PAZ008
+			query.append(afips.substring(0, 2)).append(afips.substring(3));//taking off Z as in PAZ008
 			query.append("' ) OR ");			
 			
 		}
@@ -103,7 +107,6 @@ public class WstmQueryResult {
 		 */
 		try{
 			String wholeQuery = queryPrefix + geoConstraint + " AND (" + query.substring(0, query.lastIndexOf("OR")) + " );";
-			
 			results = DirectDbQuery.executeQuery(wholeQuery, "maps", QueryLanguage.SQL);
 		}catch(Exception e){
 			logger.log(Level.SEVERE, "_____ Exception with query string or result: "+ e.getMessage());			

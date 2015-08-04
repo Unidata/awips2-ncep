@@ -81,8 +81,7 @@ public abstract class AbstractPgenTool extends AbstractModalTool {
 
         // Get a PGEN Resource
         drawingLayer = PgenSession.getInstance().getPgenResource();
-   
-        
+
         if (this instanceof PgenDeleteObj) {
             delObjFlag = true;
         } else if ((this instanceof PgenSelectingTool)

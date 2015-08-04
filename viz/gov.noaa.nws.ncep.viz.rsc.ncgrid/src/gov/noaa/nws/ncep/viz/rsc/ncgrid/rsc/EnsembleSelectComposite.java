@@ -1,49 +1,36 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
-import static java.lang.System.out;
-import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryDefinition;
-import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryRequestMsg;
+import static gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData.CyclePlaceholder.MAX_MODEL_CYCLES;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.EnsembleComponentData.EnsComp;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 
-import com.raytheon.uf.common.dataplugin.grid.GridConstants;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.catalog.LayerProperty;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 
 /**
  * 
@@ -64,323 +51,323 @@ import com.raytheon.uf.viz.core.rsc.ResourceType;
  * @version 1.0
  * 
  */
-public class EnsembleSelectComposite extends Composite {    
-    private final int WINDOW_WIDTH = 680;
+public class EnsembleSelectComposite extends Composite {
+
+    private NcEnsembleResourceData rscData;
+
+    private Label weightStatus = null;
+
+    private final int WINDOW_WIDTH = 1250;
+
     private final int HEIGHT_PER_LINE = 41;
+
     private final String NA_CYCLE = "  N/A  ";
 
+    private final int SLIDER_INTERVAL = 5;
+
     private DataTime seldEnsCycleTime;
-    
-//    private String availModels;
-    
+
+    // private String availModels;
+
     private Text selectedModelText;
-        
-//    private String modelListString;    
-//    private String modelListString0;
-    
-    public final static int MaxNumOfEnsembleCycles = 4;
-    
-    private List<EnsComp> ensCompList;
-    
-    private EnsembleComponentData ensCompData;
 
     private ScrolledComposite scrolledComposite;
+
     // like GDFILE but with relative cycletimes
-//    private String ensembleComponentWeightsStr;
-    
+    // private String ensembleComponentWeightsStr;
+
     // update this whenever a change is made for any selection.
     //
-    private RscAttrValue ensembleComponentWeightsAttr; 
-        
+    // private RscAttrValue ensembleComponentWeightsAttr;
+
     private String inventoryName = "NcGridModelTimes";
 
-	private class EnsembleCompGuiData {
-//		private int cycleNumber = 4;
-		private String modelName;  // create the ensC
-		private String memberName;  // 
-		public  String getEnsCompName() { return( memberName != null ? modelName+":"+memberName : modelName ); }
-		private boolean isPrimary;
-		private boolean hasMembers;
-		private boolean isExpanded = true;
-		private int memberCount;
-		EnsembleCompGuiData[] members;
-		private String[] cyclesLblStr = new String[MaxNumOfEnsembleCycles];
-		private Date[] cycleTimes = new Date[MaxNumOfEnsembleCycles];
-		
-//		Composite composite;
-		Composite memberComp;
-		Button expandMembersButton;
-		Button modelNameButton;
-		Button isPrimaryButton;
-		
-		Text[] weightText = new Text[MaxNumOfEnsembleCycles];
-		Button[] cycleButtons = new Button[MaxNumOfEnsembleCycles];		
-	}
-	    
-	public EnsembleSelectComposite( Composite parent ) {
-		super( parent, SWT.SHADOW_NONE );
-	}
+    private Map<Button, String> modelExpandButtons;
 
-	public void init( NcEnsembleResourceData rscData,
-					  ResourceAttrSet editedRscAttrSet ) throws VizException {		
-		
-		// get the inventoryName to use. Assume that the inventory used 
-		// by the Ensemble Resource is the NcGridModelTimes which will have times for all
-		// the grid models. 
-		//  
-		// TODO : change thsi to make a directory request to get a list of all the 
-		// edex inventories and find a suitable one
-		//
-		ResourceDefinition rd = ResourceDefnsMngr.getInstance().
-				getResourceDefinition( rscData.getResourceName() );
-	    // TODO : change this to set from a directory request.
-	    // but for now require that the NcGridModelTimes ID is installed and running on edex
-	    if( rd != null ) {
-	    	inventoryName = rd.getInventoryAlias();
-	    }
+    private Map<String, Composite> modelMemberListComp;
 
-		// just the model names w/o the members.
-		List<String> compModelsList = rscData.getComponentModels();
+    private Map<String, GridData> modelExpandMemberGrid;
 
-		// make sure the inventories exist for the component models.
-//		EnsembleComponentInventoryMngr.initInventory();
-		
-		seldEnsCycleTime = rscData.getResourceName().getCycleTime();
-		
-		ensembleComponentWeightsAttr = editedRscAttrSet.getRscAttr("ensembleComponentWeights");
+    private Map<Button, String> modelButtons;
 
-		if( ensembleComponentWeightsAttr.getAttrClass() != String.class ) {
-    		throw new VizException( "GDFILE is not of expected class? "+ 
-    				ensembleComponentWeightsAttr.getAttrClass().toString() );
-		}
-		
-    	createSelectableEnsembleComponentGuiData( rscData.getAvailableModels() );
-    	
-    	ensembleComponentWeightsAttr.setAttrValue( rscData.getEnsembleComponentWeights() );
-		
-		ensCompData = new EnsembleComponentData( seldEnsCycleTime.getRefTime(),
-							(String)ensembleComponentWeightsAttr.getAttrValue() );
-		
-		ensCompList = ensCompData.getEnsembleComponentsList();
-		
- 		initializeComponents();
-	}
+    private Map<Button, String> primaryModelButtons;
 
+    private Map<Slider, String> cycleSliders;
 
-	private List<EnsembleCompGuiData> ensCompGuiList;
-	
-    /**
-     * Create and Initialize the widgets
-     */
-    private void initializeComponents() {
+    private Map<Text, String> cyclePercentTexts;
 
-    	
-    	Composite comp = new Composite( this, SWT.NONE);
-    	GridLayout gl = new GridLayout(1, false);
-    	comp.setLayout(gl);
-    	
-    	Label cycTimeLbl = new Label( comp, SWT.NONE );
-    	cycTimeLbl.setText( "     Selected Cycle Time : "+ NmapCommon.getTimeStringFromDataTime( seldEnsCycleTime, "/" ) +"\n");
-    	
-    	Label label = new Label(comp, SWT.NONE);
-    	label.setText("          Model              Primary               Cycle1                   Cycle2                  Cycle3                   Cycle4");
-//    	GridData gd = new GridData(WINDOW_WIDTH, SWT.DEFAULT);
-//    	label.setLayoutData(gd);
+    private Map<Button, String> cycleSelectedButtons;
 
-    	createModelListControls();
-    	createModelSelectionControls();
-    	setEnsembleSelectionGUI();
-    	
-    	updateSelectedModels();
+    private Map<String, Date[]> modelCycleDates;
 
+    private int totalModelCount = 0;
+
+    public EnsembleSelectComposite(Composite parent) {
+        super(parent, SWT.SHADOW_NONE);
     }
-    
-    
-    private void createSelectableEnsembleComponentGuiData( String availModels ) throws VizException {
-    	 
-    	if( availModels == null || availModels.isEmpty() ) {
-    		throw new VizException("No Models are specified for the Ensemble Components?");
-    	}
-    	
-    	String ensCompsModels[] = availModels.split(";"	);
 
-		ensCompGuiList = new ArrayList<EnsembleCompGuiData>();
+    public void init(NcEnsembleResourceData resrcData,
+            ResourceAttrSet editedRscAttrSet) throws VizException {
+        rscData = resrcData;
+        modelExpandButtons = new HashMap<Button, String>();
+        modelExpandMemberGrid = new HashMap<String, GridData>();
+        modelMemberListComp = new HashMap<String, Composite>();
+        modelButtons = new HashMap<Button, String>();
+        primaryModelButtons = new HashMap<Button, String>();
+        cycleSliders = new HashMap<Slider, String>();
+        cyclePercentTexts = new HashMap<Text, String>();
+        cycleSelectedButtons = new HashMap<Button, String>();
+        modelCycleDates = new HashMap<String, Date[]>();
 
-    	for( String ensCompModel : ensCompsModels ) {
-    		ensCompModel = ensCompModel.trim();
-    		
-    		int memberIndx = ensCompModel.indexOf(':'); 
-    		
-    		// if this has no ensemble members
-    		if( memberIndx == -1 ) {
-    			EnsembleCompGuiData ensData2 = new EnsembleCompGuiData();
-    			ensData2.modelName = ensCompModel;
-    			ensData2.memberName  = null;
-    			
-    			ensData2.hasMembers = false;
-    			ensData2.isPrimary = false;
+        ResourceDefinition rd = ResourceDefnsMngr.getInstance()
+                .getResourceDefinition(rscData.getResourceName());
 
-    			Date[] cycles = getAvailCycleTimes( seldEnsCycleTime.getRefTime(), ensCompModel, "" );
-    			
-    			ensData2.cyclesLblStr = new String[MaxNumOfEnsembleCycles];
-    			ensData2.cycleTimes = new Date[MaxNumOfEnsembleCycles];
-    			
-    			for (int i = 0; i < MaxNumOfEnsembleCycles ; i++ ) {
-    				if (i < cycles.length) {
-    					ensData2.cycleTimes[i] = cycles[i];
-    					ensData2.cyclesLblStr[i] = 
-    						EnsembleComponentData.getCycleTimeStrFromDataTime( cycles[i] );
-    				}
-    				else {
-    					ensData2.cycleTimes[i] = null;
-    					ensData2.cyclesLblStr[i] = NA_CYCLE;
-    				}
-    			}
+        // TODO : change this to set from a directory request.
+        // but for now require that the NcGridModelTimes ID is installed and
+        // running on edex
+        if (rd != null) {
+            inventoryName = rd.getInventoryAlias();
+        }
+        seldEnsCycleTime = rscData.getResourceName().getCycleTime();
 
-    			ensCompGuiList.add(ensData2);
-    		}
-    		else { // has members
-    			String modelName = ensCompModel.substring(0,memberIndx).trim();
-    			String membersStr = ensCompModel.substring(memberIndx+1).trim();
-    			
-    			if( membersStr == null || membersStr.isEmpty() ) {
-    				throw new VizException("Error parsing members for model ("+
-    						modelName+") for availableModels : "+ availModels );
-    			}
-    			String[] memberStrs = membersStr.split(",");
+        String ensCompsModels[] = rscData.getAvailableModels().split(";");
 
-    			EnsembleCompGuiData ensData1 = new EnsembleCompGuiData();
-    			ensData1.modelName = modelName;
-    			ensData1.memberName = null;
-    			
-    			ensData1.hasMembers = true;
-    			ensData1.isPrimary = false;
-    			ensData1.memberCount = memberStrs.length;
+        System.out.println("getAvailableModels: "
+                + rscData.getAvailableModels());
 
-    			// TODO : should we change this to specifically query for each members' cycle times instead of 
-    			// assuming the cycle time of the base model?
-    			Date[] cycles = getAvailCycleTimes( seldEnsCycleTime.getRefTime(), modelName, "" );
-    			
-    			ensData1.cycleTimes   = new Date[MaxNumOfEnsembleCycles];
-    			ensData1.cyclesLblStr = new String[MaxNumOfEnsembleCycles];
-    			
-    			for( int i = 0; i < MaxNumOfEnsembleCycles ; i++ ) {
-    				if( i < cycles.length ) {
-    					ensData1.cycleTimes[i] = cycles[i];
-    					ensData1.cyclesLblStr[i] = 
-    						EnsembleComponentData.getCycleTimeStrFromDataTime( cycles[i] );
-    				}
-    				else {
-    					ensData1.cycleTimes[i] = null;
-    					ensData1.cyclesLblStr[i] = NA_CYCLE;
-    				}
-    			}
+        // ------- initializeComponents()
+        Composite comp = new Composite(this, SWT.NONE);
+        GridLayout gl = new GridLayout(1, false);
+        comp.setLayout(gl);
 
-    			ensData1.members = new EnsembleCompGuiData[ensData1.memberCount];
-    			
-    			for (int i = 0; i < ensData1.memberCount; i++) {
-    				ensData1.members[i] = new EnsembleCompGuiData();
-    				ensData1.members[i].modelName = modelName.trim();
-    				ensData1.members[i].memberName =  memberStrs[i].trim();
-    				ensData1.members[i].hasMembers = false;
-    				ensData1.members[i].isPrimary = false;
-    				
-    			}
-    			ensCompGuiList.add(ensData1);
-    		}
-		}
+        Label cycTimeLbl = new Label(comp, SWT.NONE);
+        cycTimeLbl.setText("Selected Cycle Time : "
+                + NmapCommon.getTimeStringFromDataTime(seldEnsCycleTime, "/")
+                + "\n");
+
+        weightStatus = new Label(comp, SWT.NONE);
+        weightStatus.setText("Total Weight:        ");
+
+        Label label = new Label(comp, SWT.NONE);
+        label.setText("\n"
+                + "Model                      "
+                + "Primary            "
+                + "Cycle1                                                 "
+                + "Cycle2                                                      "
+                + "Cycle3                                                    "
+                + "Cycle4");
+
+        label.setLayoutData(new GridData(WINDOW_WIDTH, SWT.DEFAULT));
+
+        scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL
+                | SWT.BORDER);
+        scrolledComposite.setLayout(new GridLayout(1, true));
+        GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gd2.heightHint = 8 * HEIGHT_PER_LINE;
+        scrolledComposite.setLayoutData(gd2);
+        Composite modelListComp = new Composite(scrolledComposite, SWT.NONE);
+        modelListComp.setLayout(gl);
+
+        for (String ensCompModel : ensCompsModels) {
+            ensCompModel = ensCompModel.trim();
+            System.out.println("trim availModels: " + ensCompModel); // GOS
+
+            Composite modelComp = new Composite(modelListComp, SWT.NONE);
+            modelComp.setLayout(new GridLayout(19, false));
+            modelComp.setLayoutData(new GridData());// WINDOW_WIDTH,
+                                                    // SWT.DEFAULT));
+
+            addEnsModelWidgets(modelComp, ensCompModel,
+                    ensCompModel.contains(":"));
+            modelListComp.pack();
+        }
+        modelListComp.setSize(WINDOW_WIDTH, totalModelCount * HEIGHT_PER_LINE);
+        scrolledComposite.setContent(modelListComp);
+
+        createModelSelectionControls();
+        // ------- initializeComponents()
+        String gdfile = rscData.getGdfile();
+        if (gdfile == null || gdfile.length() < 3) {
+            updateModelString();
+        } else {
+            populateGdfile(gdfile);
+        }
+        updateTotalWeight();
     }
-    
-    // Use the NcGridInventory with constraints on the model/ensembleId
-	@SuppressWarnings("null")
-	public Date[] getAvailCycleTimes( Date seldCycleTime, String modelName, String pertNum ) {
 
-		HashMap<String, RequestConstraint> reqConstraints = 
-				new HashMap<String, RequestConstraint>();
-		reqConstraints.put( "pluginName", new RequestConstraint( GridDBConstants.GRID_TBL_NAME ) );
-		reqConstraints.put( GridConstants.DATASET_ID, 
-				new RequestConstraint( modelName ) );
+    private void addEnsModelWidgets(Composite rowComp, String ensCompModel,
+            boolean hasMembers) {
 
-		if( !pertNum.isEmpty() ) {
-			reqConstraints.put( GridDBConstants.ENSEMBLE_ID_QUERY, 
-					new RequestConstraint( pertNum ) );
-		}
-		
-		NcInventoryRequestMsg reqMsg = NcInventoryRequestMsg.makeQueryRequest();    			
-		reqMsg.setInventoryName( inventoryName );
-		reqMsg.setRequestedParams( new String[]{ GridDBConstants.DATA_TIME_QUERY } );
-		reqMsg.setReqConstraintsMap( 
-				(HashMap<String, RequestConstraint>)reqConstraints );
-		reqMsg.setUniqueValues( true );
+        if (hasMembers) {
+            String model = ensCompModel.substring(0, ensCompModel.indexOf(":"));
+            String[] members = ensCompModel.substring(
+                    ensCompModel.indexOf(":") + 1).split(",");
+            Button modelExpand = new Button(rowComp, SWT.ARROW | SWT.DOWN);
+            modelExpand.setEnabled(true);
+            modelExpand.addSelectionListener(new ModelExpandListener());
+            modelExpandButtons.put(modelExpand, model);
+            addEnsModelWidgets(rowComp, model, false);
+            rowComp.pack();
+            totalModelCount++;
 
-		Object rslts;
-		try {
-			rslts = ThriftClient.sendRequest( reqMsg );
-		} catch (VizException e) {
-			System.out.println("Error querying inventory "+inventoryName+" for ensemble "+
-					" component cycle times:"+e.getMessage() );
-			return new Date[0];
-		}
-		
-		if( !(rslts instanceof String[]) ) {
-			out.println("Inventory Request Failed: "+rslts.toString() );
-			return new Date[0];
-		}
-		
-		String[] rsltsList = (String[]) rslts;
-		DataTime[] dataTimeArr = new DataTime[ rsltsList.length ];
+            Composite memberListComp = new Composite(rowComp.getParent(),
+                    SWT.NONE);
+            memberListComp.setLayout(new GridLayout(1, false));
+            GridData memberGrid = new GridData(WINDOW_WIDTH, members.length
+                    * HEIGHT_PER_LINE);
+            memberGrid.verticalIndent = 0;
+            memberGrid.grabExcessVerticalSpace = true;
+            memberGrid.verticalAlignment = SWT.TOP;
+            memberListComp.setLayoutData(memberGrid);
+            for (String member : members) {
+                Composite memberComp = new Composite(memberListComp, SWT.NONE);
+                memberComp.setLayout(new GridLayout(19, false));
+                memberComp.setLayoutData(new GridData());// WINDOW_WIDTH,
+                                                         // SWT.DEFAULT));
 
-		for( int i=0 ; i<rsltsList.length ; i++ ) {
-			dataTimeArr[i] = ( rsltsList[i] == null ? 
-						  new DataTime(new Date(0)) : new DataTime( rsltsList[i] ) );
-		}
-		
-		ArrayList<Date> refTimes = new ArrayList<Date>();
+                addEnsModelWidgets(memberComp, model + ":" + member, false);
+                memberComp.pack();
+                memberListComp.pack();
+            }
+            modelMemberListComp.put(model, memberListComp);
+            modelExpandMemberGrid.put(model, memberGrid);
+        } else {
+            if (rowComp.getChildren().length == 0) {
+                Label label = new Label(rowComp, SWT.NONE);
+                label.setText("       ");
+            }
+            String modelKey = ensCompModel + "|";
+            Date[] cycles = NcEnsembleResourceData.queryLatestAvailCycleTimes(
+                    ensCompModel, rscData.getResourceName().getCycleTime());
+            modelCycleDates.put(modelKey, cycles);
 
-		// just the cycle times.
-		// a list of all the times with a reftime < the selected time
-		//
-		for( DataTime dt : dataTimeArr ) {
+            boolean modelHasData = false;
+            Button modelSelect = new Button(rowComp, SWT.CHECK);
+            modelSelect.setText(ensCompModel.contains(":") ? ensCompModel
+                    .substring(ensCompModel.indexOf(":")) : ensCompModel);
+            modelSelect.setLayoutData(new GridData(100, SWT.DEFAULT));
+            modelSelect.setSelection(false);
+            modelSelect.addSelectionListener(new ModelSelectListener());
+            modelButtons.put(modelSelect, modelKey);
 
-			Date refTime = dt.getRefTime();
+            Button primarySelect = new Button(rowComp, SWT.CHECK);
+            primarySelect.setText("      ");
+            primarySelect.setEnabled(false);
+            primarySelect.setSelection(false);
+            primarySelect
+                    .addSelectionListener(new PrimaryModelSelectListener());
+            primaryModelButtons.put(primarySelect, modelKey);
 
-			if( !refTimes.contains( refTime ) &&
-				refTime.getTime() <= seldCycleTime.getTime() ) { 
-				refTimes.add( refTime );
-			}
-		}
+            for (int i = 0; i < MAX_MODEL_CYCLES; i++) {
+                String cycleTimeStr, cycleKey;
 
-		Date[] sortedRefTimesArr = refTimes.toArray( new Date[0] );
-		Arrays.sort( sortedRefTimesArr );
+                Slider slider = new Slider(rowComp, SWT.HORIZONTAL);
+                slider.setEnabled(false);
+                slider.setSelection(0);
+                slider.setToolTipText("Percentages of all cycles must sum to 100%");
+                slider.setThumb(2);
+                slider.setMinimum(0);
+                slider.setMaximum(100 + slider.getThumb());
+                slider.setIncrement(5);
+                slider.setSize(50, 100);
+                slider.addSelectionListener(new CycleSliderSelectListener());
+                slider.pack();
 
-		Date[] availCycleTimesArray = 
-				Arrays.copyOf( sortedRefTimesArr, sortedRefTimesArr.length );
-		
-		return availCycleTimesArray;					
-	}
+                Text percent = new Text(rowComp, SWT.SINGLE | SWT.BORDER
+                        | SWT.RIGHT);
+                percent.setEnabled(false);
+                percent.setTextLimit(3);
+                percent.setText("");
+                percent.setLayoutData(new GridData(23, SWT.DEFAULT));
+                percent.addSelectionListener(new CycleTextSelectListener());
+                percent.addFocusListener(new CycleTextFocusListener());
 
-//	private String getCycleTimeStrFromDataTime( Date dt ) {
-//
-//    	NumberFormat nf = NumberFormat.getInstance();
-//    	nf.setMinimumIntegerDigits(2);
-//    	nf.setMinimumFractionDigits(0);
-//    	nf.setMaximumFractionDigits(2);
-//    	nf.setMaximumIntegerDigits(2);
-//
-//    	Calendar cal = Calendar.getInstance( TimeZone.getTimeZone("GMT") );
-//    	cal.setTime(dt);//.getRefTime());
-//    	String dd = nf.format(cal.get(Calendar.DAY_OF_MONTH));
-//    	String hh = nf.format(cal.get(Calendar.HOUR_OF_DAY));
-//
-//    	String cycleTimeStr = String.format("%s/%s", dd, hh);
-//    	return cycleTimeStr;
-//    }
-    
+                Label percentLabel = new Label(rowComp, SWT.LEFT);
+                percentLabel.setEnabled(false);
+                percentLabel.setText("%");
+
+                Button cycleSelect = new Button(rowComp, SWT.CHECK);
+                cycleSelect.setEnabled(false);
+                cycleSelect.setSelection(false);
+                cycleSelect.addSelectionListener(new CycleSelectListener());
+
+                if (i < cycles.length) {
+                    modelHasData = true;
+                    cycleTimeStr = CommonDateFormatUtil
+                            .getCycleTimeString(cycles[i]);
+                    cycleKey = cycleTimeStr;
+                } else {
+                    cycleTimeStr = NA_CYCLE;
+                    cycleKey = cycleTimeStr.trim() + i;
+                }
+                cycleKey = modelKey + cycleKey;
+                cycleSliders.put(slider, cycleKey);
+                cyclePercentTexts.put(percent, cycleKey);
+
+                cycleSelect.setText(cycleTimeStr);
+                cycleSelectedButtons.put(cycleSelect, cycleKey);
+            }
+            modelSelect.setEnabled(modelHasData);
+            totalModelCount++;
+        }
+    }
+
+    private void setSelectedButtonWithKey(String searchKey, boolean selected,
+            Map<Button, String> buttonMap) {
+        for (Entry<Button, String> buttonEntry : buttonMap.entrySet()) {
+            if (buttonEntry.getValue().equals(searchKey)) {
+                buttonEntry.getKey().setSelection(selected);
+                break;
+            }
+        }
+    }
+
+    private void setAllSelectedButtonWithKey(String searchKey,
+            boolean selected, Map<Button, String> buttonMap) {
+        for (Entry<Button, String> buttonEntry : buttonMap.entrySet()) {
+            if (buttonEntry.getValue().startsWith(searchKey)) {
+                buttonEntry.getKey().setSelection(selected);
+            }
+        }
+    }
+
+    private Slider findCycleSlider(String cycleKey) {
+        List<Slider> resultList = findAllCycleSlider(cycleKey);
+        return (resultList.isEmpty() ? null : resultList.get(0));
+    }
+
+    private Text findCycleText(String cycleKey) {
+        List<Text> resultList = findAllCycleText(cycleKey);
+        return (resultList.isEmpty() ? null : resultList.get(0));
+    }
+
+    private List<Slider> findAllCycleSlider(String cycleKey) {
+        List<Slider> returnList = new ArrayList<Slider>();
+        for (Entry<Slider, String> slider : cycleSliders.entrySet()) {
+            if (!slider.getValue().contains(NA_CYCLE.trim())
+                    && slider.getValue().startsWith(cycleKey)) {
+                returnList.add(slider.getKey());
+            }
+        }
+        return returnList;
+    }
+
+    private List<Text> findAllCycleText(String cycleKey) {
+        List<Text> returnList = new ArrayList<Text>();
+        for (Entry<Text, String> percentTxt : cyclePercentTexts.entrySet()) {
+            if (!percentTxt.getValue().contains(NA_CYCLE.trim())
+                    && percentTxt.getValue().startsWith(cycleKey)) {
+                returnList.add(percentTxt.getKey());
+            }
+        }
+        return returnList;
+    }
+
     /**
      * Create the locatorSelection controls.
      */
     private void createModelSelectionControls() {
-        Composite modelSelectionComp = new Composite( this, SWT.NONE);
+        Composite modelSelectionComp = new Composite(this, SWT.NONE);
         GridLayout gl = new GridLayout(3, false);
         modelSelectionComp.setLayout(gl);
 
@@ -389,720 +376,326 @@ public class EnsembleSelectComposite extends Composite {
         label.setText("Selected Models:");
         label.setLayoutData(gd);
 
-        
-        selectedModelText = new Text(modelSelectionComp, SWT.SINGLE|SWT.BORDER);
+        selectedModelText = new Text(modelSelectionComp, SWT.SINGLE
+                | SWT.BORDER);
         selectedModelText.setLayoutData(new GridData(450, SWT.DEFAULT));
-        
-        Button clearAllBtn = new Button( modelSelectionComp, SWT.NONE);
+
+        Button clearAllBtn = new Button(modelSelectionComp, SWT.NONE);
         clearAllBtn.setText("Clear");
-//        clearAllBtn.setLayoutData(gd);
         clearAllBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-            	clearAll();
+                clearAllPercentageValues("", false);
+                setModelWidgetsEnabled("", false);
+                for (Button modelSelect : modelButtons.keySet()) {
+                    modelSelect.setSelection(false);
+                }
+                updateModelString();
             }
         });
-
     }
 
-   
-    private void createModelListControls() {
-    	
-    	if ( scrolledComposite != null ) {
-    		scrolledComposite.dispose();
-    	}
-    	scrolledComposite = new ScrolledComposite( this, SWT.V_SCROLL|SWT.BORDER);
-    	scrolledComposite.setLayout(new GridLayout(1, true));
-    	GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        gd.heightHint = 8 * HEIGHT_PER_LINE;
-       // gd.widthHint = WINDOW_WIDTH;
-        scrolledComposite.setLayoutData(gd);
-        Composite modelListComp = new Composite(scrolledComposite, SWT.NONE);
-        
-        GridLayout gl = new GridLayout(1, false);
-        modelListComp.setLayout(gl);
-        
-        for (int i = 0; i < ensCompGuiList.size(); i++) {
-        	Composite comp = new Composite(modelListComp, SWT.NONE);
-        	comp.setLayout(new GridLayout(15, false));
-        	comp.setLayoutData(new GridData());//WINDOW_WIDTH, SWT.DEFAULT));
-
-//        	ensCompGuiList.get(i).composite = new Composite(modelListComp, SWT.NONE);
-//        	ensCompGuiList.get(i).composite.setLayout(new GridLayout(15, false));
-//        	ensCompGuiList.get(i).composite.setLayoutData(new GridData(WINDOW_WIDTH, SWT.DEFAULT));
-        	
-        	createWidget(i, comp, false, -1);
-        	modelListComp.pack();
-
-        	
-        	if (ensCompGuiList.get(i).hasMembers) {
-        		ensCompGuiList.get(i).memberComp = new Composite(modelListComp, SWT.NONE);
-        		ensCompGuiList.get(i).memberComp.setLayout(new GridLayout(15, false));
-        		GridData griddata = new GridData(WINDOW_WIDTH, ensCompGuiList.get(i).memberCount * HEIGHT_PER_LINE);
-        		griddata.verticalIndent = 0;
-        		griddata.grabExcessVerticalSpace = true;
-        		griddata.verticalAlignment = SWT.TOP;
-            	ensCompGuiList.get(i).memberComp.setLayoutData(griddata);
-        		for(int kk = 0; kk < ensCompGuiList.get(i).memberCount; kk++) {
-        			createWidget(i, ensCompGuiList.get(i).memberComp, true, kk);
-     				modelListComp.pack();
-        		}
-        		
-        		((GridData)ensCompGuiList.get(i).memberComp.getLayoutData()).exclude = false;
-    			ensCompGuiList.get(i).memberComp.setVisible(true);
-        	}
-        	
+    public void updateTotalWeight() {
+        int newTotalWelght = 0;
+        for (Slider cycleSlider : cycleSliders.keySet()) {
+            newTotalWelght += cycleSlider.getSelection();
         }
-        
-        modelListComp.setSize(WINDOW_WIDTH, getTotalModelNumber()*HEIGHT_PER_LINE);
-        scrolledComposite.setContent(modelListComp);
-        
-    }
-   
-     private void createWidget(final int index, Composite composite, boolean isMember, final int memberIndex) {
-    	 int naCycleCnts;
-    	 boolean isChecked;
-    	 //Arrow Button to turn on/off ensemble members
-    	boolean hasMembers = ensCompGuiList.get(index).hasMembers;
-    	if (isMember) 
-    		hasMembers = false;
-    	
-     	if (hasMembers) {
-     		boolean isExpanded = false;
-     		
-     		if ( ensCompGuiList.get(index).isExpanded ) {
-     			isExpanded = true;
-     		}
-     		if ( ensCompGuiList.get(index).expandMembersButton != null ) {
-     			ensCompGuiList.get(index).expandMembersButton.dispose();
-     		}
-     		if ( isExpanded ) {
-     			ensCompGuiList.get(index).expandMembersButton = new Button(composite, SWT.ARROW|SWT.DOWN);
-     		}
-     		else {
-     			ensCompGuiList.get(index).expandMembersButton = new Button(composite, SWT.ARROW|SWT.RIGHT);
-     		}
-     		ensCompGuiList.get(index).expandMembersButton.addSelectionListener(new SelectionAdapter() {
-     			public void widgetSelected(SelectionEvent event) {
-     				if (ensCompGuiList.get(index).expandMembersButton.getAlignment() == SWT.DOWN) {
-     					ensCompGuiList.get(index).expandMembersButton.setAlignment(SWT.RIGHT);
-     					ensCompGuiList.get(index).isExpanded = false;
-     					((GridData)ensCompGuiList.get(index).memberComp.getLayoutData()).exclude = true;
-//     	    			ensCompGuiList.get(index).memberComp.setVisible(false);
-     					updateModelListControls ();
-     				} else {
-     					ensCompGuiList.get(index).expandMembersButton.setAlignment(SWT.DOWN);
-     					ensCompGuiList.get(index).isExpanded = true;
-     					((GridData)ensCompGuiList.get(index).memberComp.getLayoutData()).exclude = false;
-//     	    			ensCompGuiList.get(index).memberComp.setVisible(true);
-     					updateModelListControls ();
-     				}	     			
-     			}
-     		});
-     	} 
-     	else {
-     		Label label = new Label(composite, SWT.NONE);
-     		label.setText("       ");
-     	}
-     	
-     	
-     	/*
-     	 * For ensemble member
-     	 */
-     	if (isMember) {
-     		// Model Name
-     		isChecked = false;
-     		if ( ensCompGuiList.get(index).members[memberIndex].modelNameButton != null ) {
-     			isChecked = ensCompGuiList.get(index).members[memberIndex].modelNameButton.getSelection();
-     			ensCompGuiList.get(index).members[memberIndex].modelNameButton.dispose();
-     		}
-     		ensCompGuiList.get(index).members[memberIndex].modelNameButton = new Button(composite, SWT.CHECK);
-     		ensCompGuiList.get(index).members[memberIndex].modelNameButton.setText("   :"+ensCompGuiList.get(index).members[memberIndex].memberName);
-     		ensCompGuiList.get(index).members[memberIndex].modelNameButton.setLayoutData(new GridData(100, SWT.DEFAULT));
-     		ensCompGuiList.get(index).members[memberIndex].modelNameButton.addSelectionListener(new SelectionAdapter() {
-     			public void widgetSelected(SelectionEvent event) {
-     				updateSelectedModels();
-     			}
-     		});
-     		ensCompGuiList.get(index).members[memberIndex].modelNameButton.setSelection(isChecked);
-     		
-     		// isPrimary button
-     		isChecked = false;
-     		if ( ensCompGuiList.get(index).members[memberIndex].isPrimaryButton != null) {
-     			isChecked = ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.getSelection();
-     			ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.dispose();
-     		}
-     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton = new Button(composite, SWT.CHECK);
-     		
-     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setText("      ");
-// Can't change the primary component. This is set in the Resource so if they need a different primary grid
-// they need to edit the RD.
-//     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.addSelectionListener(new SelectionAdapter() {
-//     			public void widgetSelected(SelectionEvent event) {
-//     				if (ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.getSelection()) {
-//     					processFirstButton(index, memberIndex);
-//     					updateSelectedModels();
-//     				}	
-//     			}
-//     		});
-     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setSelection(isChecked);
-     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setEnabled( isChecked );
-
-     		// TODO : Remove this if we are going to keep the primaryModel parameter in the Resource Definition.
-     		// for now this is just turned off.
-//     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setEnabled( false );
-//     		ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setVisible( false );
-
-     		
-     		naCycleCnts = 0;
-     		// weight at each cycle
-     		for (int jj = 0; jj < MaxNumOfEnsembleCycles; jj++) {
-     			String text ="";
-     			if ( ensCompGuiList.get(index).members[memberIndex].weightText[jj] != null ) {
-     				text = ensCompGuiList.get(index).members[memberIndex].weightText[jj].getText().trim();
-     				ensCompGuiList.get(index).members[memberIndex].weightText[jj].dispose();
-     			}
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj] = new Text(composite, SWT.SINGLE|SWT.BORDER|SWT.RIGHT);
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj].setTextLimit(2);
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj].setLayoutData(new GridData(18, SWT.DEFAULT));
-     			Label percentLabel1 = new Label(composite, SWT.LEFT);
-     			percentLabel1.setText("%");
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj].setText(text);
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj].addModifyListener( new ModifyListener() {
-     				@Override
-     				public void modifyText(ModifyEvent e) {
-     					updateSelectedModels();
-     				}         			
-     			});
-     			ensCompGuiList.get(index).members[memberIndex].weightText[jj].addVerifyListener( new VerifyListener() {
-     				@Override
-     				public void verifyText(VerifyEvent e) {
-//     		    		try {
-//     		    			if( Integer.parseInt(e.text.toString()) <= 0 ) {
-//     		    				e.doit = false;
-//     		    			}
-//     		    		}
-//     		    		catch ( NumberFormatException nfe ) {
-//     		    			e.doit = false;
-//     		    		}
-//
-//     					if ( !e.doit ) 
-//     						Display.getCurrent().beep();
-     				}
-     			});
-     			
-
-     			isChecked = false;
-     			if ( ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj] != null ) {
-     				isChecked = ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].getSelection();
-     				ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].dispose();
-     			}
-     			ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj] = new Button(composite, SWT.CHECK);
-     			ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].setText( ensCompGuiList.get(index).cyclesLblStr[jj]  );
-     			ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].addSelectionListener(new SelectionAdapter() {
-     				public void widgetSelected(SelectionEvent event) {
-     					updateSelectedModels();
-     				}
-     			});	
-     			ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].setSelection(isChecked);
-     			
-     			if (ensCompGuiList.get(index).cyclesLblStr[jj].equals(NA_CYCLE)) {
-     				naCycleCnts ++;
-     				ensCompGuiList.get(index).members[memberIndex].cycleButtons[jj].setEnabled(false);
-     				ensCompGuiList.get(index).members[memberIndex].weightText[jj].setEnabled(false);
-     			}
-         	}
-     		
-     		if ( naCycleCnts == MaxNumOfEnsembleCycles ) {
-     			ensCompGuiList.get(index).members[memberIndex].modelNameButton.setSelection(false);
-     			ensCompGuiList.get(index).members[memberIndex].isPrimaryButton.setSelection(false);
-     		}
-     	}
-     	
-     	/*
-     	 * for model
-     	 */
-     	else {
-     		// Model Name
-     		isChecked = false;
-     		
-     		if ( ensCompGuiList.get(index).modelNameButton != null ) {
-     			isChecked = ensCompGuiList.get(index).modelNameButton.getSelection();
-     			ensCompGuiList.get(index).modelNameButton.dispose();
-     		}
-     		ensCompGuiList.get(index).modelNameButton = new Button(composite, SWT.CHECK);
-     		ensCompGuiList.get(index).modelNameButton.setText(ensCompGuiList.get(index).getEnsCompName());
-     		ensCompGuiList.get(index).modelNameButton.setLayoutData(new GridData(100, SWT.DEFAULT));
-     		ensCompGuiList.get(index).modelNameButton.addSelectionListener(new SelectionAdapter() {
-     			public void widgetSelected(SelectionEvent event) {
-     				updateSelectedModels();
-     			}
-     		});	
-     		ensCompGuiList.get(index).modelNameButton.setSelection(isChecked);
-     		// isFirst button
-     		isChecked = false;
-     		if ( ensCompGuiList.get(index).isPrimaryButton != null ) {
-     			isChecked = ensCompGuiList.get(index).isPrimaryButton.getSelection();
-     			ensCompGuiList.get(index).isPrimaryButton.dispose();
-     		}
-     		ensCompGuiList.get(index).isPrimaryButton = new Button(composite, SWT.CHECK);
-     		ensCompGuiList.get(index).isPrimaryButton.setText("      ");
-     	// Can't change the primary component. This is set in the Resource so if they need a different primary grid
-     	// they need to edit the RD.
-//     		ensCompGuiList.get(index).isPrimaryButton.addSelectionListener(new SelectionAdapter() {
-//     			public void widgetSelected(SelectionEvent event) {
-//     				if (ensCompGuiList.get(index).isPrimaryButton.getSelection()) {
-//     					processFirstButton(index, -1);
-//     					updateSelectedModels();
-//     				}
-//     			}
-//     		});	
-     		ensCompGuiList.get(index).isPrimaryButton.setSelection(isChecked);
-     		ensCompGuiList.get(index).isPrimaryButton.setEnabled(isChecked);
-
-     		// TODO : Remove this if we are going to keep the primaryModel parameter in the Resource Definition.
-     		// for now this is just turned off.
-//     		ensCompGuiList.get(index).isPrimaryButton.setEnabled( false );
-//     		ensCompGuiList.get(index).isPrimaryButton.setVisible( false );
-
-     		naCycleCnts = 0;
-     		// weight at each cycle
-     		for (int jj = 0; jj < MaxNumOfEnsembleCycles; jj++) {
-     			String text ="";
-     			if ( ensCompGuiList.get(index).weightText[jj] != null) {
-     				text = ensCompGuiList.get(index).weightText[jj].getText().trim();
-     				ensCompGuiList.get(index).weightText[jj].dispose();
-     			}
-     			ensCompGuiList.get(index).weightText[jj] = new Text(composite, SWT.SINGLE|SWT.BORDER|SWT.RIGHT);
-     			ensCompGuiList.get(index).weightText[jj].setTextLimit(2);
-     			ensCompGuiList.get(index).weightText[jj].setLayoutData(new GridData(18, SWT.DEFAULT));
-     			Label percentLabel1 = new Label(composite, SWT.LEFT);
-     			percentLabel1.setText("%");
-     			ensCompGuiList.get(index).weightText[jj].addModifyListener( new ModifyListener() {
-     				@Override
-					public void modifyText(ModifyEvent e) {
-						updateSelectedModels();
-					}         			
-         		});
-     			ensCompGuiList.get(index).weightText[jj].addVerifyListener( new VerifyListener() {
-     				@Override
-     				public void verifyText(VerifyEvent e) {
-//     		    		try {
-//     		    			if( Integer.parseInt(e.text.toString()) <= 0 ) {
-//     		    				e.doit = false;
-//     		    			}
-//     		    		}
-//     		    		catch ( NumberFormatException nfe ) {
-//     		    			e.doit = false;
-//     		    		}
-//
-//     					if ( !e.doit ) 
-//     						Display.getCurrent().beep();
-     				}
-         		});
-     			ensCompGuiList.get(index).weightText[jj].setText(text);
-     			
-     			isChecked = false;
-     			if ( ensCompGuiList.get(index).cycleButtons[jj] != null ) {
-     				isChecked = ensCompGuiList.get(index).cycleButtons[jj].getSelection();
-     				ensCompGuiList.get(index).cycleButtons[jj].dispose();
-     			}
-     			ensCompGuiList.get(index).cycleButtons[jj] = new Button(composite, SWT.CHECK);
-     			ensCompGuiList.get(index).cycleButtons[jj].setText(ensCompGuiList.get(index).cyclesLblStr[jj] );
-     			ensCompGuiList.get(index).cycleButtons[jj].addSelectionListener(new SelectionAdapter() {
-     				public void widgetSelected(SelectionEvent event) {
-     					updateSelectedModels();
-     				}
-     			});	
-     			ensCompGuiList.get(index).cycleButtons[jj].setSelection(isChecked);
-     			
-     			if (ensCompGuiList.get(index).cyclesLblStr[jj].equals(NA_CYCLE)) {
-     				naCycleCnts ++;
-     				ensCompGuiList.get(index).cycleButtons[jj].setEnabled(false);
-     				ensCompGuiList.get(index).weightText[jj].setEnabled(false);
-     			}
-     		}
-     		
-     		if ( naCycleCnts == MaxNumOfEnsembleCycles ) {
-     			ensCompGuiList.get(index).modelNameButton.setSelection(false);
-     			ensCompGuiList.get(index).isPrimaryButton.setSelection(false);
-     		}
-     	}
-     }
-    
-    private int getTotalModelNumber() {
-		int ret = ensCompGuiList.size();
-		for (int i = 0; i < ensCompGuiList.size(); i++) {
-			if (ensCompGuiList.get(i).hasMembers) ret += ensCompGuiList.get(i).memberCount;
-		}
-		
-		return ret;
-	}
-  
-    private void clearAll() {
-    	for (int i = 0; i < ensCompGuiList.size(); i++) {
-    		
-    			ensCompGuiList.get(i).modelNameButton.setSelection(false);
-    			ensCompGuiList.get(i).isPrimaryButton.setSelection(false);
-    			ensCompGuiList.get(i).isPrimary = false;
-    		
-    		for (int jj = 0; jj < 4; jj++) {
-    			ensCompGuiList.get(i).weightText[jj].setText("");
-    			ensCompGuiList.get(i).cycleButtons[jj].setSelection(false);
-    		}
-    		
-    		if (ensCompGuiList.get(i).hasMembers) {
-    			for (int jj = 0; jj < ensCompGuiList.get(i).memberCount; jj++) {
-    				ensCompGuiList.get(i).members[jj].modelNameButton.setSelection(false);
-    				ensCompGuiList.get(i).members[jj].isPrimaryButton.setSelection(false);
-    				ensCompGuiList.get(i).members[jj].isPrimary = false;
-    				
-    				for (int kk = 0; kk < MaxNumOfEnsembleCycles ; kk++) {
-    					ensCompGuiList.get(i).members[jj].weightText[kk].setText("");
-    					ensCompGuiList.get(i).members[jj].cycleButtons[kk].setSelection(false);
-    				}
-    			}
-    		}
-    	}
-    	
-    	selectedModelText.setText("");
-    }
-    
-    // set the GUI with data saved in the ensCompList 
-    //
-    private void setEnsembleSelectionGUI() {
-    	if (ensCompList == null) 
-    		return;
-    	
-    	boolean firstDone = false;
-    	for(int i = 0; i < ensCompList.size(); i++) {
-    		
-    		EnsComp ensComp = ensCompList.get(i);
-    		boolean modelFound = false;
-    		
-    		for(int j = 0; j < ensCompGuiList.size(); j++) {
-    		
-    			if( modelFound ) {
-    				break;
-    			}
-    			EnsembleCompGuiData ensGuiData = ensCompGuiList.get(j);
-    			
-    			if (ensComp.getEnsCompName().equalsIgnoreCase( ensGuiData.getEnsCompName() )) {
-    				
-    				modelFound = true;
-
-//    				setFirstButtons(j,-1);
-    				
-    				// if this cycle time 
-    				if (ensComp.getCycleTime() != null) {
-    					ensGuiData.modelNameButton.setSelection(true);
-        				
-        				if (!firstDone) {
-        					ensGuiData.isPrimaryButton.setSelection(true);
-        					firstDone = true;
-        				}
-        				
-    					for (int k = 0; k < 4; k++) {
-        					
-    						Date kCycleTime = ensGuiData.cycleTimes[k];
-
-        					if( kCycleTime != null &&
-        						kCycleTime.getTime() == ensComp.getCycleTime().getTime() ) {
-        						
-//    						if (ensGuiData.cyclesLblStr[k].contains(
-//    								modelInfo.getCycle())) {
-    							
-    							ensGuiData.cycleButtons[k].setSelection(true);
-    							
-    							if (ensComp.getWeight() > 0 && ensComp.getWeight() <= 100) {
-    								ensGuiData.weightText[k].setText( String.valueOf(ensComp.getWeight()));
-    							}
-    							break;
-    						}
-    					}
-    				}
-    				else {
-    					ensGuiData.modelNameButton.setSelection(false);
-    					ensGuiData.isPrimaryButton.setSelection(false);
-    				}
-    			}
-    			else if (ensGuiData.hasMembers && ensComp.getEnsCompName().contains(":")) {
-
-    				boolean isModelEnable = false;
-    				for (int mm = 0; mm < ensGuiData.memberCount; mm++) {
-    					
-    					if (ensComp.getEnsCompName().equalsIgnoreCase(ensGuiData.members[mm].getEnsCompName())) {
-    						
-    						modelFound = true;
-    						
-    						// setFirstButtons(j,-1);
-
-    						if (ensComp.getCycleTime() != null) {
-    							isModelEnable = true;
-    							ensGuiData.members[mm].modelNameButton.setSelection(true);
-        						
-    							if (!firstDone) {
-    								ensGuiData.members[mm].isPrimaryButton.setSelection(true);
-    								firstDone = true;
-    							}
-    							for (int k = 0; k < 4; k++) {
-            						Date kCycleTime = ensGuiData.cycleTimes[k];
-
-    								//if (ensGuiData.members[mm].cyclesLblStr[k].contains(modelInfo.getCycle())) {
-    								if( kCycleTime != null &&
-    									kCycleTime.getTime() == ensComp.getCycleTime().getTime() ) {
-    									
-    									ensGuiData.members[mm].cycleButtons[k].setSelection(true);
-    									
-    									if (ensComp.getWeight() > 0 && ensComp.getWeight() <= 100) {
-    										ensGuiData.members[mm].weightText[k].setText(String.valueOf(ensComp.getWeight()));
-    									}
-    									break;
-    								}
-    							}
-    						}
-    						else {
-    							ensGuiData.members[mm].modelNameButton.setSelection(false);
-    							ensGuiData.members[mm].isPrimaryButton.setSelection(false);
-    						}
-    					}
-    				}
-    				
-    				if ( ! isModelEnable ) {
-    					ensGuiData.modelNameButton.setSelection(false);
-    					ensGuiData.isPrimaryButton.setSelection(false);
-    				}
-    			}
-    		}
-    		if( !modelFound ) {
-    			System.out.println("Warning: model, "+ensComp.getEnsCompName()+" not found in list of models for this Ensemble.");
-    		}
-    	}
-    	
-    	// compute the GDFILE string  and set it here
-//    	selectedModelText.setText();
-    }
-    
-    /*
-     * Only allow ONE 'isFirst' button to be selected
-     */
-    private void processFirstButton(int index, int memberIndex) {
-    	for (int i = 0; i < ensCompGuiList.size(); i++) {
-    		if (ensCompGuiList.get(i).hasMembers) {
-    			for (int jj = 0; jj < ensCompGuiList.get(i).memberCount; jj++) {
-    				if ( !(i == index && jj == memberIndex))
-    					ensCompGuiList.get(i).members[jj].isPrimaryButton.setSelection(false);
-    			}
-    		}
-    		
-    		if ( i != index || (i == index && memberIndex >= 0)) {
-    			ensCompGuiList.get(i).isPrimaryButton.setSelection(false);
-    		}	
-    	}
-    }
-    
-    // set the ensCompData with selections from the GUI.
-    //
-    private void updateSelectedModels() {
-    	ensCompData.reset();
-    	    	
-    	for (int i = 0; i < ensCompGuiList.size(); i++) {
-    		String ensCompName = null;
-        	int wt = -1,j;
-        	Date cyc = null;
-        	boolean first = false;
-        	
-    		if (ensCompGuiList.get(i).modelNameButton.getSelection() ) {
-    			if ( ! avariableCycles (i)) {
-    				ensCompGuiList.get(i).modelNameButton.setSelection(false);
-    				continue;
-    			}
-    			ensCompName = ensCompGuiList.get(i).getEnsCompName();
-    			if (ensCompGuiList.get(i).isPrimaryButton.getSelection())  
-    				first = true;
-    			
-    			boolean cycleFlag = false;
-    			for (j = 0; j < MaxNumOfEnsembleCycles ; j++) {
-    				wt = -1;
-    				
-    				if (ensCompGuiList.get(i).cycleButtons[j].getSelection()) {
-    				
-    					if (ensCompGuiList.get(i).weightText[j].getText() != null &&
-    							ensCompGuiList.get(i).weightText[j].getText().trim().length() > 0) {
-    						int w = Integer.valueOf(ensCompGuiList.get(i).weightText[j].getText());
-    						if (w > 0 && w <= 100) 
-    							wt = w;
-    					}	
-    					
-    					if (ensCompGuiList.get(i).cyclesLblStr[j] != null) {
-    						cyc = ensCompGuiList.get(i).cycleTimes[j]; //cyclesLblStr[j];
-    					}
-    					
-    					cycleFlag = true;
-
-    					ensCompData.addModel(ensCompName, wt, cyc, first);
-    					
-    				}
-    			}
-    			
-    			if (!cycleFlag) {
-    				ensCompData.addModel(ensCompName, wt, cyc, first);
-    			}
-    			
-    		}
-    		else {
-    			if (ensCompGuiList.get(i).isPrimaryButton.getSelection()) {
-    				ensCompGuiList.get(i).isPrimaryButton.setSelection(false);
-    				ensCompGuiList.get(i).isPrimary = false;
-    			}
-    			for (j = 0; j < MaxNumOfEnsembleCycles ; j++) {
-					if (ensCompGuiList.get(i).cycleButtons[j].getSelection()) {
-						ensCompGuiList.get(i).cycleButtons[j].setSelection(false);
-					}
-					if (ensCompGuiList.get(i).weightText[j].getText() != null &&
-							ensCompGuiList.get(i).weightText[j].getText().trim().length() > 0) {
-						ensCompGuiList.get(i).weightText[j].setText("");
-					}
-				}
-    		}
-    		
-    		if (ensCompGuiList.get(i).hasMembers) {
-    			if ( ! ensCompGuiList.get(i).modelNameButton.getSelection() ) {
-    				for (int jj = 0; jj < ensCompGuiList.get(i).memberCount; jj++) {
-    					ensCompName = null;
-    					wt = -1;
-    					cyc = null;
-    					first = false;
-    				
-    					if (ensCompGuiList.get(i).members[jj].modelNameButton.getSelection()) {
-    						ensCompName = ensCompGuiList.get(i).members[jj].getEnsCompName();
-    					
-    						if (ensCompGuiList.get(i).members[jj].isPrimaryButton.getSelection()) {
-    							first = true;
-    						}
-    	    			
-    						boolean cycleFlag = false;
-    					
-    						for (j = 0; j < MaxNumOfEnsembleCycles ; j++) {
-    	    				
-    							if (ensCompGuiList.get(i).members[jj].cycleButtons[j].getSelection()) {
-    	    					
-    								String weightStr = ensCompGuiList.get(i).members[jj].weightText[j].getText();
-    								wt = -1;
-
-    								if (weightStr != null && weightStr.trim().length() > 0) {
-    	    					
-    									int w = Integer.valueOf(weightStr.trim());
-    	    						
-    									if (w > 0 && w <= 100) {
-    										wt = w;
-    									}
-    								}	
-    	    					
-    								if (ensCompGuiList.get(i).cyclesLblStr[j] != null) 
-    									cyc = ensCompGuiList.get(i).cycleTimes[j];//cyclesLblStr[j];
-    	    					
-    								cycleFlag = true;
-
-    								ensCompData.addModel(ensCompName, wt, cyc, first);
-    							}
-    						}
-    	    			
-    						if (!cycleFlag) {
-    							ensCompData.addModel(ensCompName, wt, cyc, first);    	    				
-    						}
-    					}
-    					else {
-    						clearMember (i, jj);
-    					}
-    				}
-    			}
-    			else {
-    	    		for (int jj = 0; jj < ensCompGuiList.get(i).memberCount; jj++) {
-    	    			clearMember (i,jj);
-    	    		}
-    	    	}
-    
-    		}
-    		
-    		ensCompData.setSelectedModelStrings();
-    		
-    		selectedModelText.setText(ensCompData.getEnsCompsStringForRefTime());
-    		
-    		ensembleComponentWeightsAttr.setAttrValue( ensCompData.getEnsCompsStringWithRelativeCycTimes() );
-    	}    	
-    }
-    
-    private boolean avariableCycles (int memberId) {
-    	boolean hasCycles = false;
-    	for ( int j = 0 ; j < MaxNumOfEnsembleCycles; j ++) {
-    		if ( ! ensCompGuiList.get(memberId).cyclesLblStr[j].equals(NA_CYCLE) ) {
-    			hasCycles = true;
-    			break;
-    		}
-    	}
-    	return hasCycles;
-    }
-    
-    private void clearMember (int model, int member ) {
-    	if (ensCompGuiList.get(model).members[member].modelNameButton.getSelection()) {
-			ensCompGuiList.get(model).members[member].modelNameButton.setSelection(false);
-		}
-		if (ensCompGuiList.get(model).members[member].isPrimaryButton.getSelection()) {
-			ensCompGuiList.get(model).members[member].isPrimaryButton.setSelection(false);
-			ensCompGuiList.get(model).members[member].isPrimary = false;
-		}
-		for (int j = 0; j < MaxNumOfEnsembleCycles ; j++) {
-			if (ensCompGuiList.get(model).members[member].cycleButtons[j].getSelection()) {
-				ensCompGuiList.get(model).members[member].cycleButtons[j].setSelection(false);
-			}
-			if ( ensCompGuiList.get(model).members[member].weightText[j].getText() != null && 
-				ensCompGuiList.get(model).members[member].weightText[j].getText().trim().length() > 0 ) {
-				ensCompGuiList.get(model).members[member].weightText[j].setText("");
-			}
-		}
-    }
-    
-    private void updateModelListControls() {
-    	
-    	int cnt = 0;
-        Composite modelListComp = new Composite(scrolledComposite, SWT.NONE);
-        
-        GridLayout gl = new GridLayout(1, false);
-        modelListComp.setLayout(gl);
-        
-        for (int i = 0; i < ensCompGuiList.size(); i++) {
-        	Composite comp = new Composite(modelListComp, SWT.NONE);
-        	comp.setLayout(new GridLayout(15, false));
-        	comp.setLayoutData(new GridData());//WINDOW_WIDTH, SWT.DEFAULT));
-        	
-        	createWidget(i, comp, false, -1);
-        	modelListComp.pack();
-
-        	cnt ++;
-        	if (ensCompGuiList.get(i).hasMembers &&
-        			ensCompGuiList.get(i).isExpanded ) {
-        		ensCompGuiList.get(i).memberComp = new Composite(modelListComp, SWT.NONE);
-        		ensCompGuiList.get(i).memberComp.setLayout(new GridLayout(15, false));
-        		GridData griddata = new GridData(WINDOW_WIDTH, ensCompGuiList.get(i).memberCount * HEIGHT_PER_LINE);
-        		griddata.verticalIndent = 0;
-        		griddata.grabExcessVerticalSpace = true;
-        		griddata.verticalAlignment = SWT.TOP;
-            	ensCompGuiList.get(i).memberComp.setLayoutData(griddata);
-        		for(int kk = 0; kk < ensCompGuiList.get(i).memberCount; kk++) {
-        			createWidget(i, ensCompGuiList.get(i).memberComp, true, kk);
-     				modelListComp.pack();
-     				cnt ++;
-        		}
-        		
-        		((GridData)ensCompGuiList.get(i).memberComp.getLayoutData()).exclude = false;
-    			ensCompGuiList.get(i).memberComp.setVisible(true);
-        	}
-        	
+        if (newTotalWelght > 100) {
+            weightStatus.setForeground(getDisplay().getSystemColor(
+                    SWT.COLOR_RED));
+        } else if (newTotalWelght < 100) {
+            weightStatus.setForeground(getDisplay().getSystemColor(
+                    SWT.COLOR_DARK_YELLOW));
+        } else {
+            weightStatus.setForeground(getDisplay().getSystemColor(
+                    SWT.COLOR_DARK_GREEN));
         }
-        
-        modelListComp.setSize(WINDOW_WIDTH, cnt*HEIGHT_PER_LINE);
-        scrolledComposite.setContent(modelListComp);
-        
+        weightStatus.setText("Total Weight: " + newTotalWelght + "%    ");
     }
 
+    public void updateModelString() {
+        StringBuilder selectedModels = new StringBuilder();
+        String primaryModelKey = "";
+        for (Entry<Button, String> primaryEntry : primaryModelButtons
+                .entrySet()) {
+            if (primaryEntry.getKey().getSelection()) {
+                primaryModelKey = primaryEntry.getValue();
+                break;
+            }
+        }
+        for (Entry<Button, String> modelEntry : modelButtons.entrySet()) {
+            if (modelEntry.getKey().getSelection()) {
+                StringBuilder modelBlockBuilder = new StringBuilder();
+                String model = modelEntry.getValue();
+                boolean cycleSelected = false;
+
+                for (Entry<Button, String> cycleSelectEntry : cycleSelectedButtons
+                        .entrySet()) {
+                    String cycleKey = cycleSelectEntry.getValue();
+                    if (cycleSelectEntry.getKey().getSelection()
+                            && cycleKey.startsWith(model)) {
+                        cycleSelected = true;
+                        int percent = findCycleSlider(cycleKey).getSelection();
+                        modelBlockBuilder
+                                .append(percent > 0 ? percent + "%" : "")
+                                .append(cycleKey).append(",");
+                    } else {
+                        continue;
+                    }
+                }
+                if (!cycleSelected) {
+                    modelBlockBuilder.append(model.replace("|", ""))
+                            .append(",");
+                }
+                if (model.equals(primaryModelKey)) {
+                    selectedModels.insert(0, modelBlockBuilder.toString());
+                } else {
+                    selectedModels.append(modelBlockBuilder.toString());
+                }
+            } else {
+                continue;
+            }
+        }
+        if (selectedModels.length() > 0) {
+            selectedModels.deleteCharAt(selectedModels.lastIndexOf(","));
+        }
+        selectedModels.insert(0, "{").append("}");
+        selectedModelText.setText(selectedModels.toString());
+        String gdfile = NcEnsembleResourceData.convertGdfileToWildcardString(
+                selectedModels.toString(), rscData.getResourceName()
+                        .getCycleTime());
+        rscData.setGdfile(gdfile);
+    }
+
+    private void populateGdfile(String gdfile) {
+        gdfile = NcEnsembleResourceData.convertGdfileToCycleTimeString(gdfile,
+                rscData.getResourceName().getCycleTime());
+
+        selectedModelText.setText(gdfile);
+        gdfile = gdfile.substring(1, gdfile.length() - 1);
+        String[] modelBlocks = gdfile.split(",");
+
+        for (int i = 0; i < modelBlocks.length; i++) {
+            int percent = -1;
+            String modelKey;
+            String cycleKey;
+            if (modelBlocks[i].contains("%")) {
+                int percentIndex = modelBlocks[i].indexOf("%");
+                percent = Integer.parseInt(modelBlocks[i].substring(0,
+                        percentIndex));
+                modelBlocks[i] = modelBlocks[i].substring(percentIndex + 1);
+            }
+            if (modelBlocks[i].contains("|")) {
+                cycleKey = modelBlocks[i];
+                modelKey = modelBlocks[i].substring(0,
+                        modelBlocks[i].indexOf("|") + 1);
+            } else {
+                modelKey = modelBlocks[i] + "|";
+                cycleKey = modelKey + modelCycleDates.get(modelKey)[0];
+            }
+            setModelWidgetsEnabled(modelKey, true);
+            setSelectedButtonWithKey(modelKey, true, modelButtons);
+            clearAllPercentageValues(cycleKey, true);
+            setSelectedButtonWithKey(cycleKey, true, cycleSelectedButtons);
+            if (percent > 0) {
+                updateModelCyclePercentage(findCycleSlider(cycleKey),
+                        findCycleText(cycleKey), percent);
+            }
+            if (i == 0) {
+                setSelectedButtonWithKey(modelKey, true, primaryModelButtons);
+            }
+        }
+    }
+
+    private void setModelWidgetsEnabled(String model, boolean enabled) {
+        for (Entry<Button, String> primary : primaryModelButtons.entrySet()) {
+            if (primary.getValue().startsWith(model)) {
+                primary.getKey().setEnabled(enabled);
+            }
+        }
+        for (Entry<Button, String> selected : cycleSelectedButtons.entrySet()) {
+            if (!selected.getValue().contains(NA_CYCLE.trim())
+                    && selected.getValue().startsWith(model)) {
+                selected.getKey().setEnabled(enabled);
+            }
+        }
+    }
+
+    private void updateModelCyclePercentage(Text text) {
+        Slider cycleSlider = findCycleSlider(cyclePercentTexts.get(text));
+        int newValue = 0;
+        try {
+            newValue = Integer.parseInt(text.getText().trim());
+        } catch (NumberFormatException nfe) {
+            System.out
+                    .println(text.getSelectionText() + " is not an interger!");
+            newValue = 0;
+        }
+        updateModelCyclePercentage(cycleSlider, text, newValue);
+    }
+
+    private void updateModelCyclePercentage(Slider slider, Text text,
+            int newValue) {
+        slider.getParent().setFocus();
+        int remainder = newValue % SLIDER_INTERVAL;
+        if (newValue < 0 || newValue > 100) {
+            // Value out of range!
+            newValue = 0;
+        }
+        if (remainder != 0) {
+            newValue = newValue - remainder;
+            if ((float) remainder / SLIDER_INTERVAL >= .5) {
+                newValue = newValue + SLIDER_INTERVAL;
+            }
+        }
+        slider.setSelection(newValue);
+        text.setText(String.valueOf(newValue));
+    }
+
+    private void clearAllPercentageValues(String key, boolean enabled) {
+        for (Slider cycleSlider : findAllCycleSlider(key)) {
+            cycleSlider.setEnabled(enabled);
+            cycleSlider.setSelection(0);
+        }
+        for (Text cycleTxt : findAllCycleText(key)) {
+            cycleTxt.setEnabled(enabled);
+            cycleTxt.setText("");
+        }
+    }
+
+    private class ModelExpandListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Button modelExpand = (Button) e.getSource();
+            String modelNameKey = modelExpandButtons.get(modelExpand);
+            GridData memberListGD = modelExpandMemberGrid.get(modelNameKey);
+            Composite memberListComp = modelMemberListComp.get(modelNameKey);
+
+            if (modelExpand.getAlignment() == SWT.DOWN) {
+                modelExpand.setAlignment(SWT.RIGHT);
+                memberListGD.exclude = true;
+                memberListComp.setVisible(false);
+            } else {
+                modelExpand.setAlignment(SWT.DOWN);
+                memberListGD.exclude = false;
+                memberListComp.setVisible(true);
+            }
+            memberListComp.getParent().pack();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class ModelSelectListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Button modelSelected = (Button) e.getSource();
+            String modelNameKey = modelButtons.get(modelSelected);
+
+            setSelectedButtonWithKey(modelNameKey, false, primaryModelButtons);
+            setAllSelectedButtonWithKey(modelNameKey, false,
+                    cycleSelectedButtons);
+            clearAllPercentageValues(modelNameKey, false);
+            setModelWidgetsEnabled(modelNameKey, modelSelected.getSelection());
+
+            updateModelString();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class PrimaryModelSelectListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Button modelSelected = (Button) e.getSource();
+            for (Button primaryButton : primaryModelButtons.keySet()) {
+                primaryButton.setSelection(false);
+            }
+            modelSelected.setSelection(true);
+            updateModelString();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class CycleSelectListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Button cycleSelected = (Button) e.getSource();
+            String cycleKey = cycleSelectedButtons.get(cycleSelected);
+
+            clearAllPercentageValues(cycleKey, cycleSelected.getSelection());
+
+            updateModelString();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class CycleSliderSelectListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Slider cycleSlider = (Slider) e.getSource();
+            Text cycleText = findCycleText(cycleSliders.get(cycleSlider));
+
+            updateModelCyclePercentage(cycleSlider, cycleText,
+                    cycleSlider.getSelection());
+
+            updateTotalWeight();
+            updateModelString();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class CycleTextSelectListener implements SelectionListener {
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            Text cycleText = (Text) e.getSource();
+
+            updateModelCyclePercentage(cycleText);
+
+            updateTotalWeight();
+            updateModelString();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+            widgetSelected(e);
+        }
+    }
+
+    private class CycleTextFocusListener implements FocusListener {
+
+        @Override
+        public void focusGained(FocusEvent e) {
+            // Do nothing
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+            Text cycleText = (Text) e.getSource();
+
+            updateModelCyclePercentage(cycleText);
+
+            updateTotalWeight();
+            updateModelString();
+        }
+
+    }
 }

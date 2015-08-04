@@ -52,6 +52,13 @@
          unpack="false"/>
 
    <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.modis"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.atcf"
          download-size="0"
          install-size="0"
@@ -189,7 +196,7 @@
          download-size="0"
          install-size="0"
          version="0.0.0"/>
-
+         
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.pirep"
          download-size="0"
@@ -203,4 +210,11 @@
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.ghcd"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
 </feature>

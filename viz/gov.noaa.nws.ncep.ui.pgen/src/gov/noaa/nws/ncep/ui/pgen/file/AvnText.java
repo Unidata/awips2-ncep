@@ -5,11 +5,11 @@
 // Generated on: 2009.07.24 at 03:21:33 PM EDT 
 //
 
-
 package gov.noaa.nws.ncep.ui.pgen.file;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,11 +17,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -49,35 +51,49 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "color",
-    "point"
-})
+@XmlType(name = "", propOrder = { "color", "point" })
 @XmlRootElement(name = "AvnText")
 public class AvnText {
 
     @XmlElement(name = "Color", required = true)
     protected List<Color> color;
+
     @XmlElement(name = "Point", required = true)
     protected Point point;
+
     @XmlAttribute
     protected String avnTextType;
+
     @XmlAttribute
     protected String topValue;
+
     @XmlAttribute
     protected String bottomValue;
+
+    @XmlAttribute
+    protected Integer ithw;
+
+    @XmlAttribute
+    protected Integer iwidth;
+
     @XmlAttribute
     protected String justification;
+
     @XmlAttribute
     protected String style;
+
     @XmlAttribute
     protected String fontName;
+
     @XmlAttribute
     protected Float fontSize;
+
     @XmlAttribute
     protected String symbolPatternName;
+
     @XmlAttribute
     protected String pgenType;
+
     @XmlAttribute
     protected String pgenCategory;
 
@@ -85,21 +101,21 @@ public class AvnText {
      * Gets the value of the color property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the color property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the color property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getColor().add(newItem);
+     * getColor().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Color }
+     * Objects of the following type(s) are allowed in the list {@link Color }
      * 
      * 
      */
@@ -113,10 +129,8 @@ public class AvnText {
     /**
      * Gets the value of the point property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Point }
-     *     
+     * @return possible object is {@link Point }
+     * 
      */
     public Point getPoint() {
         return point;
@@ -126,9 +140,8 @@ public class AvnText {
      * Sets the value of the point property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Point }
-     *     
+     *            allowed object is {@link Point }
+     * 
      */
     public void setPoint(Point value) {
         this.point = value;
@@ -137,10 +150,8 @@ public class AvnText {
     /**
      * Gets the value of the avnTextType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getAvnTextType() {
         return avnTextType;
@@ -150,9 +161,8 @@ public class AvnText {
      * Sets the value of the avnTextType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setAvnTextType(String value) {
         this.avnTextType = value;
@@ -161,10 +171,8 @@ public class AvnText {
     /**
      * Gets the value of the topValue property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getTopValue() {
         return topValue;
@@ -174,9 +182,8 @@ public class AvnText {
      * Sets the value of the topValue property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setTopValue(String value) {
         this.topValue = value;
@@ -185,10 +192,8 @@ public class AvnText {
     /**
      * Gets the value of the bottomValue property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getBottomValue() {
         return bottomValue;
@@ -198,21 +203,60 @@ public class AvnText {
      * Sets the value of the bottomValue property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setBottomValue(String value) {
         this.bottomValue = value;
     }
 
     /**
+     * Gets the value of the ithw property.
+     * 
+     * @return possible object is {@link Integer }
+     * 
+     */
+    public Integer getIthw() {
+        return ithw;
+    }
+
+    /**
+     * Sets the value of the ithw property.
+     * 
+     * @param value
+     *            allowed object is {@link Integer }
+     * 
+     */
+    public void setIthw(Integer value) {
+        this.ithw = value;
+    }
+
+    /**
+     * Gets the value of the iwidth property.
+     * 
+     * @return possible object is {@link Integer }
+     * 
+     */
+    public Integer getIwidth() {
+        return iwidth;
+    }
+
+    /**
+     * Sets the value of the iwidth property.
+     * 
+     * @param value
+     *            allowed object is {@link Integer }
+     * 
+     */
+    public void setIwidth(Integer value) {
+        this.iwidth = value;
+    }
+
+    /**
      * Gets the value of the justification property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getJustification() {
         return justification;
@@ -222,9 +266,8 @@ public class AvnText {
      * Sets the value of the justification property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setJustification(String value) {
         this.justification = value;
@@ -233,10 +276,8 @@ public class AvnText {
     /**
      * Gets the value of the style property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getStyle() {
         return style;
@@ -246,9 +287,8 @@ public class AvnText {
      * Sets the value of the style property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setStyle(String value) {
         this.style = value;
@@ -257,10 +297,8 @@ public class AvnText {
     /**
      * Gets the value of the fontName property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getFontName() {
         return fontName;
@@ -270,9 +308,8 @@ public class AvnText {
      * Sets the value of the fontName property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setFontName(String value) {
         this.fontName = value;
@@ -281,10 +318,8 @@ public class AvnText {
     /**
      * Gets the value of the fontSize property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Float }
-     *     
+     * @return possible object is {@link Float }
+     * 
      */
     public Float getFontSize() {
         return fontSize;
@@ -294,9 +329,8 @@ public class AvnText {
      * Sets the value of the fontSize property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Float }
-     *     
+     *            allowed object is {@link Float }
+     * 
      */
     public void setFontSize(Float value) {
         this.fontSize = value;
@@ -305,10 +339,8 @@ public class AvnText {
     /**
      * Gets the value of the symbolPatternName property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getSymbolPatternName() {
         return symbolPatternName;
@@ -318,9 +350,8 @@ public class AvnText {
      * Sets the value of the symbolPatternName property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setSymbolPatternName(String value) {
         this.symbolPatternName = value;
@@ -329,10 +360,8 @@ public class AvnText {
     /**
      * Gets the value of the pgenType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenType() {
         return pgenType;
@@ -342,9 +371,8 @@ public class AvnText {
      * Sets the value of the pgenType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenType(String value) {
         this.pgenType = value;
@@ -353,10 +381,8 @@ public class AvnText {
     /**
      * Gets the value of the pgenCategory property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenCategory() {
         return pgenCategory;
@@ -366,9 +392,8 @@ public class AvnText {
      * Sets the value of the pgenCategory property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenCategory(String value) {
         this.pgenCategory = value;

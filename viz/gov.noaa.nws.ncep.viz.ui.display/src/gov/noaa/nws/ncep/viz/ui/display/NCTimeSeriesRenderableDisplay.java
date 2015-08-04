@@ -38,7 +38,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceList.AddListener;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.xy.graph.AbstractXyRenderableDisplay;
-import com.raytheon.uf.viz.xy.map.rsc.GraphResource;
 import com.raytheon.uf.viz.xy.map.rsc.GraphResourceData;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -52,6 +51,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * ------------ ---------- ----------- --------------------------
  * 04/21/2014   #1136      qzhou       Initial creation
  * 07/28/2014   R4078      sgurung     Added code changes to support loading TimeSeriesResource in a new window.
+ * 10/28/2014   R4508      sgurung     Changed OverlayMode to VERTICAL in method customizeResourceList()
  * 
  * 
  * </pre>
@@ -150,9 +150,9 @@ public class NCTimeSeriesRenderableDisplay extends AbstractXyRenderableDisplay
     // TODO? if null then set to the descriptors gridGeom??
     @Override
     public NCTimeSeriesDescriptor getDescriptor() {
-        if (super.getDescriptor() instanceof NCTimeSeriesDescriptor) {       
+        if (super.getDescriptor() instanceof NCTimeSeriesDescriptor) {
             return (NCTimeSeriesDescriptor) super.getDescriptor();
-        } else {          
+        } else {
             super.getDescriptor();
         }
 
@@ -226,14 +226,14 @@ public class NCTimeSeriesRenderableDisplay extends AbstractXyRenderableDisplay
         super.customizeResourceList(resourceList);
 
         // Add time series graph resource
-        GraphResourceData grd = new GraphResourceData("Time series");
-        GraphResource gr = null;
+        NcGraphResourceData grd = new NcGraphResourceData("Graph");
+        NcGraphResource gr = null;
         LoadProperties lprops = new LoadProperties();
         ResourceProperties rprops = new ResourceProperties();
         rprops.setMapLayer(true);
         try {
             gr = grd.construct(lprops, getDescriptor());
-            grd.setOverlayMode(GraphResourceData.OverlayMode.OVERLAY);
+            grd.setOverlayMode(GraphResourceData.OverlayMode.VERTICAL);
             ResourcePair rp = new ResourcePair();
             rp.setResourceData(grd);
             rp.setResource(gr);

@@ -380,14 +380,6 @@
       </nc-resourceParameter>
       
        <nc-resourceParameter
-            paramClass="String"
-            paramName="ensembleComponentWeights"
-            defaultValue=""
-            paramType="EDITABLE_ATTRIBUTE"
-            ncResourceName="EnsembleFcstGridContours">
-      </nc-resourceParameter>
-      
-       <nc-resourceParameter
              ncResourceName="ModelFcstGridContours"
              paramClass="String"
              paramName="GDFILE"
@@ -419,7 +411,14 @@
              paramName="availableModels"
              paramType="IMPLEMENTATION_PARAM">
        </nc-resourceParameter>
-      
+   
+       <nc-resourceParameter
+             ncResourceName="EnsembleFcstGridContours"
+             paramClass="String"
+             paramName="GDFILE"
+             paramType="IMPLEMENTATION_PARAM">
+       </nc-resourceParameter>
+
        <nc-resourceParameter
              ncResourceName="EnsembleFcstGridContours"
              paramClass="String"

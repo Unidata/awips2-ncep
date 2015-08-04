@@ -395,6 +395,13 @@
                     mnemonic="F"
                     style="push"
                     tooltip="Conditional Filter Manager">
+              </command>              
+              <command
+                    commandId="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
+                    label="Time-series X-axis Scale Manager"
+                    mnemonic="X"
+                    style="push"
+                    tooltip="Time-series X-axis Scale Manager">
               </command>
               <menu
                    id="AODT"
@@ -850,10 +857,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.commands">
-      <category 
-            id="gov.noaa.nws.ncep.viz.ui.modalTool"
-            name="Modal Tool">
-      </category>
       <command
             id="gov.noaa.nws.ncep.viz.ui.actions.loadOverlay"
             name="Load Overlay">
@@ -862,11 +865,6 @@
                name="overlayName"
                optional="false">
          </commandParameter>
-      </command>
-      <command
-            description="Auto Update"
-            id="gov.noaa.nws.ncep.viz.ui.autoUpdate"
-            name="Auto Update">
       </command>
       <command
             id="sync.file.tool.command"

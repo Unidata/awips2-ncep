@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pathKeySet>
+    <pathKey>
+        <key>typeInfo.source</key>
+        <order>0</order>
+    </pathKey>
+	<pathKey>
+		<key>typeInfo.instrument</key>
+		<order>1</order>
+	</pathKey>
+    <pathKey>
+        <key>typeInfo.datatype</key>
+        <order>2</order>
+    </pathKey>
+	<pathKey>
+		<key>dataResolUnits</key>
+		<order>3</order>
+	</pathKey>
+	<pathKey>
+		<key>dataResolVal</key>
+		<order>4</order>
+	</pathKey>
+</pathKeySet>

@@ -51,8 +51,8 @@ import com.raytheon.uf.viz.core.rsc.ResourceType;
 
 
 /**
- * LigntningResource - Display Lightning data. *
- * 
+ * LigntningResource - Display Lightning data.
+ *  *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -68,10 +68,11 @@ import com.raytheon.uf.viz.core.rsc.ResourceType;
  *  12/19/2012    #960     Greg Hull    override propertiesChanged() to update colorBar.
  *  05/07/2013    #993     Greg Hull	change key for strikeMap from URI to the HDF5 group
  *  Jun 05, 2014  3226     bclement     reference datarecords by LightningConstants
+ *  10/02/2014    #594     Dr. A.Yuk    Color bar not behaving as intended: infinite color bar corrected.
  *  12/19/2014      ?      B. Yin       Remove ScriptCreator, use Thrift Client.
  * </pre>
  * 
- * @author ghull
+ * @author ghull 
  * @version 1.0
  */
 public class LightningResource extends AbstractNatlCntrsResource<LightningResourceData, NCMapDescriptor> 
@@ -167,9 +168,10 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
     }
 
     // to show in the legend
-    public Integer getNumDisplayedStrikes( ) {
-    	return displayedStrikeCount;
-//    	AbstractFrameData frmData = getCurrentFrame();
+    public Integer getNumDisplayedStrikes() {
+    return displayedStrikeCount;
+
+//    	    	AbstractFrameData frmData = getCurrentFrame();
 //    //	if( ((FrameData)frmData).ltngStrikes.size())
 //    	// should we return the total number of strikes in the frame or 
 //    	// only those displayed in the current extents?
@@ -200,7 +202,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
     //
     @Override
 	public void queryRecords() throws VizException {
-    	// set up contraints to only query the needed data. 
+    	// set up constraints to only query the needed data. 
     	// If displaying by intensity then this will just be the start time of the 
 		// first frame and the end time of the last frame.
     	//     	
@@ -302,7 +304,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
 		long t0 = System.currentTimeMillis();
     	long strikeCount = 0;
     	long dsTime = 0;
-    	long latestStrike = 0;
+//    	long latestStrike = 0;
 
 		HashMap<String, List<LtngStrikeDataObj>> strikeMap = new HashMap<String, List<LtngStrikeDataObj>>(); 
 
@@ -347,6 +349,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
 							strikeCount++;
 						}
 					}
+					
 					if( hdf5Rec.getSizes()[0] != strikeList.size() ) {
 						System.out.println("HDF5 Warning: ");
 					}
@@ -384,7 +387,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
 		
     	System.out.println("Decoded: " + strikeCount + " strikes in "
     			+ (t1 - t0) + " (" + dsTime + ")");    	
-		
+
 		// return a list of all the strikes for all the uris.
     	ArrayList<LtngStrikeDataObj> strikeList = new ArrayList<LtngStrikeDataObj>();
 		for( String hdfgrp : strikeMap.keySet() ) {
@@ -419,12 +422,15 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
     	FrameData currFrameData=(FrameData) frameData;
     	
     	IExtent extent = paintProps.getView().getExtent();
-        int posCount=0, negCount=0, noIntensityCount=0;
+        int posCount=0, negCount=0; // noIntensityCount=0;
+        long endTime=0; 
+        int startIndx=0;
 
-        double zoomLevel = paintProps.getZoomLevel();
+ //     double zoomLevel = paintProps.getZoomLevel();
 
-        // if we don't need to re-create the wireframes
-        if( !needsUpdate &&
+// if we don't need to re-create the wireframes
+   
+  if( !needsUpdate &&
             !currFrameData.ltngStrikeShapesList.isEmpty() && 
              extent.equals( currFrameData.lastPixelExtent ) ) {
 
@@ -432,51 +438,44 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
         	for( int s= currFrameData.ltngStrikeShapesList.size()-1 ; s>=0 ; s-- ) {        		
         		grphTarget.drawWireframeShape( currFrameData.ltngStrikeShapesList.get(s),
         							ltngRscData.getColorBar().getRGB(s), 
-        							ltngRscData.getLineWidth() );
+        							ltngRscData.getLineWidth() ); 
         	}
-        	
-        } else {
-        	
+        }  else    { 
             needsUpdate = false;
-            // determine the length of the lines based on the symbol size. 3 is 'normal'
+       // determine the length of the lines based on the symbol size. 3 is 'normal' 
             double xLength = (extent.getMaxX() - extent.getMinX()) / 200.0;
             double posSymSize = (xLength * ltngRscData.getPositiveSymbolSize())/3;
             double negSymSize = (xLength * ltngRscData.getNegativeSymbolSize())/3;
 
             
-            // create or reuse the wireframe shapes
+        // create or reuse the wireframe shapes
             for( int i=0 ; i<ltngRscData.getColorBar().getNumIntervals() ; i++ ) {            	
             	if( i >= currFrameData.ltngStrikeShapesList.size() ) {
             		currFrameData.ltngStrikeShapesList.add( 
-            				grphTarget.createWireframeShape( true, this.descriptor ) );        			
+            				grphTarget.createWireframeShape( true, this.descriptor ) );    
             	}
             	else {	
-            		currFrameData.ltngStrikeShapesList.get(i).reset();        			
+                            		currFrameData.ltngStrikeShapesList.get(i).reset();        			
         		}
         	}
             
             displayedStrikeCount = 0;
-            
-            // if intervals have been removed from the colorBar, delete wireframes
-            //
+// if intervals have been removed from the colorBar, delete wireframes
+        
             while( currFrameData.ltngStrikeShapesList.size() > 
             	   ltngRscData.getColorBar().getNumIntervals() ) {
-            	IWireframeShape wf = currFrameData.ltngStrikeShapesList.get( 
+                IWireframeShape wf = currFrameData.ltngStrikeShapesList.get( 
             			currFrameData.ltngStrikeShapesList.size()-1 );
             	wf.dispose();
-            	currFrameData.ltngStrikeShapesList.remove( wf ); 
+            	currFrameData.ltngStrikeShapesList.remove( wf );
             }
             
-//            int maxInt = 0, minInt=0;
+    //        int maxInt = 0, minInt=0;
             
             // loop thru all the strikes in this frame and compile the wireframes for the
             // strike histories. 
             for( LtngStrikeDataObj strike : currFrameData.ltngStrikes ) {
-        		
-//            	if( strike.intensity > maxInt ) maxInt = strike.intensity;
-//            	if( strike.intensity < minInt ) minInt = strike.intensity;
-//            	System.out.println("Intensity = "+ Integer.toString( strike.intensity ) );
-            	
+        		            	
             	if( (!ltngRscData.getEnablePositiveStrikes() && strike.isPositive() ) ||
             		(!ltngRscData.getEnableNegativeStrikes() && !strike.isPositive() ) ) {
             		continue;
@@ -484,28 +483,39 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
             	
                 double[] worldLoc = this.descriptor.worldToPixel( 
                 		                new double[] { strike.lon, strike.lat } );
-                 
+
                 if( extent.contains( worldLoc ) ) {
 
                 	// determine the interval that this strike belongs in based on the
                 	// colorBarInterval and then get the shape and the color  
                 	//   
 
-                	// times are computed in seconds. The colorbar intervals are in mins.  
+                	// times are computed in seconds. The colorbar intervals are in mins.   
                 	// (the number of mins in the past that a strike occurred)
                 	long strikeTime = strike.strikeTime / 1000;
-                	                	
-                	// the minvalue of the first interval really should be 0 to indicate 
+  
+                	// the minvalue of the first interval really should be 0 to indicate  
                 	// a strike at the current time.
-                	long endTime = currFrameData.getFrameTime().getRefTime().getTime()/1000 -
-                					(long)(ltngRscData.getColorBar().getIntervalMin(0) * 60);
-
-                    	
-                    for( int i=0 ; i<ltngRscData.getColorBar().getNumIntervals() ; i++ ) {
                     
+/* Abraham YUK found a problem here due to infinite range of color index.                        
+Original code below is bad in case that color bar is specified infinity(-)
+endTime = currFrameData.getFrameTime().getRefTime().getTime()/1000 -(long)(ltngRscData.getColorBar().getIntervalMin(0) * 60);
+As bad code it is not working in infinite color bar. 
+Change above to like below: by Abraham Yuk
+*/// for TTR594 by Abraham Yuk Oct.2, 2014
+       if ((long) (ltngRscData.getColorBar().getIntervalMin(0)*1) > -9223372035442521600L ) {
+           startIndx=0;
+           endTime = currFrameData.getFrameTime().getRefTime().getTime()/1000 -(long)(ltngRscData.getColorBar().getIntervalMin(0) * 60);
+         } else {
+           startIndx=1;
+           endTime = currFrameData.getFrameTime().getRefTime().getTime()/1000 -(long)(ltngRscData.getColorBar().getIntervalMin(1) * 60);
+        } 
+       // 
+// original    for( int i=0 ; i<ltngRscData.getColorBar().getNumIntervals() ; i++ ) {
+// change above to like below: by TTR594:  Abraham Yuk
+                 for( int i=startIndx ; i<ltngRscData.getColorBar().getNumIntervals() ; i++ ) {
                     	long beginIntervalTime = 
                     		endTime - (long)(ltngRscData.getColorBar().getIntervalMax(i)*60);
-                    	
                     	if( ltngRscData.getColorBar().getIntervalMax(i) == Float.POSITIVE_INFINITY ) {
                     		beginIntervalTime = 0;
                     	}
@@ -517,6 +527,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
                     	// if we are coloring by history then we will check if the strike is within
                     	// the given time interval and if we are coloring by intensity then we will
                     	// check if the intensity is in this interval.
+// YUK found an initial problem here with a previous endTime so that it was corrected with resolution of infinite time.  
                     	if( (!ltngRscData.getColorByIntensity() &&
                     		 strikeTime <= endTime && strikeTime > beginIntervalTime ) 
                     		      ||
@@ -571,19 +582,16 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
 //                    			strikeShape.addLineSegment( minusLine );
 //                    			noIntensityCount++;                    			
 //                    		}
-
                     		endTime = (long)(endTime-ltngRscData.getColorBar().getIntervalMin(i)*60);
                     		break;
                     	} // end if this strike in this colorInterval
                     } // end loop thru color intervals
                 } // end if pixel in extent
             } // end loop thru strikes
-
-            displayedStrikeCount = posCount+negCount;
             
-//            System.out.println("Max Intensity = "+ Integer.toString( maxInt ) );
-//            System.out.println("Min Intensity = "+ Integer.toString( minInt ) );
+            displayedStrikeCount = posCount+negCount;
 
+            
             
         	for( int s= ltngRscData.getColorBar().getNumIntervals()-1 ; s>=0 ; s-- ) {
             	IWireframeShape strikeShape = currFrameData.ltngStrikeShapesList.get(s);
@@ -592,10 +600,10 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
             								   ltngRscData.getColorBar().getRGB(s), 
             			                       ltngRscData.getLineWidth() );
         	}
-
+        	
             currFrameData.lastPixelExtent = (PixelExtent) extent.clone();
-        }
-
+        } 
+        
 // code from d2d's lightningResource to draw the strike counts in the upper left corner.
 //
 //        if( ltngRscData.getEnablePositiveStrikes() ) {
@@ -618,6 +626,7 @@ public class LightningResource extends AbstractNatlCntrsResource<LightningResour
 //                    extent.getMinY() + (1000 * zoomLevel), 0.0,
 //                    TextStyle.BLANKED, ltngRscData.getColor(), HorizontalAlignment.RIGHT, null);
 //        }
+
     }                        
 
     public void disposeInternal() {

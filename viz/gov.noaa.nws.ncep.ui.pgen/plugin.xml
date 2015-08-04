@@ -584,8 +584,7 @@
                  moveable="true">
            </stickyView-->
    </extension>
- 
- 
+   
    <extension
        point="org.eclipse.ui.menus">
        <menuContribution locationURI="menu:tools?after=lapsTools">
@@ -2289,7 +2288,7 @@
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
              icon="icons/wxsym105.gif" />
          <object
-             name="PRESENT_WX_107"
+             name="PRESENT_WX_106"
              label="Heavy thunderstorm without hail and snow at observation time"
              className="Symbol"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
@@ -2312,8 +2311,7 @@
              className="Symbol"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
              icon="icons/wxsym203.gif" />
-             
-         <object
+          <object
              name="ICING_00"
              label="No Icing"
              className="Symbol"

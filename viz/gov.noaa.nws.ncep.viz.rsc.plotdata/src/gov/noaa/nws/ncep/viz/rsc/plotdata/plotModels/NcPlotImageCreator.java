@@ -82,6 +82,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/08/2014    TTR1027     B. Hebbard   Force createRenderableData to recreate wind vectors each time.
  * Aug 08, 2014  3477        bclement     changed plot info locations to floats
  * 09/10/2014    Redmine 4230 S. Russell  Fix wind barb/brbk menu option in plot model dialog box
+ * 11/03/2014    Redmine 4830 S. Russell  Added elements to presWxSymbolNames
  * 11/03/2014    Redmine 5156 B. Hebbard  Allow use of system fonts in addition to file-based 3
  * 11/06/2014    Redmine 5156 B. Hebbard  Rename Helvetica & Times lookalike fonts/files to make clear they aren't Java/AWT logical SansSerif & Serif
  */
@@ -116,22 +117,29 @@ public class NcPlotImageCreator {
             "SKY_COVER_09", "SKY_COVER_10" };
 
     private static String[] presWxSymbolNames = new String[] {
-            "PRESENT_WX_080", "PRESENT_WX_081", "PRESENT_WX_082",
-            "PRESENT_WX_085", "PRESENT_WX_086", "PRESENT_WX_095",
-            "PRESENT_WX_097", "PRESENT_WX_066", "PRESENT_WX_010",
-            "PRESENT_WX_048", "PRESENT_WX_041", "PRESENT_WX_044",
-            "PRESENT_WX_045", "PRESENT_WX_019", "PRESENT_WX_008",
-            "PRESENT_WX_036", "PRESENT_WX_037", "PRESENT_WX_039",
             "PRESENT_WX_004", "PRESENT_WX_005", "PRESENT_WX_006",
-            "PRESENT_WX_007", "PRESENT_WX_009", "PRESENT_WX_056",
-            "PRESENT_WX_067", "PRESENT_WX_057", "PRESENT_WX_088",
-            "PRESENT_WX_078", "PRESENT_WX_079", "PRESENT_WX_087",
-            "PRESENT_WX_058", "PRESENT_WX_069", "PRESENT_WX_061",
-            "PRESENT_WX_065", "PRESENT_WX_063", "PRESENT_WX_051",
-            "PRESENT_WX_055", "PRESENT_WX_053", "PRESENT_WX_071",
-            "PRESENT_WX_075", "PRESENT_WX_073", "PRESENT_WX_203",
-            "PRESENT_WX_079", "PRESENT_WX_077", "PRESENT_WX_201",
-            "PRESENT_WX_044" };
+            "PRESENT_WX_007", "PRESENT_WX_008", "PRESENT_WX_009",
+            "PRESENT_WX_010", "PRESENT_WX_011", "PRESENT_WX_012",
+            "PRESENT_WX_014", "PRESENT_WX_016", "PRESENT_WX_017",
+            "PRESENT_WX_018", "PRESENT_WX_019", "PRESENT_WX_031",
+            "PRESENT_WX_034", "PRESENT_WX_036", "PRESENT_WX_037",
+            "PRESENT_WX_038", "PRESENT_WX_039", "PRESENT_WX_040",
+            "PRESENT_WX_041", "PRESENT_WX_044", "PRESENT_WX_045",
+            "PRESENT_WX_048", "PRESENT_WX_049", "PRESENT_WX_051",
+            "PRESENT_WX_053", "PRESENT_WX_055", "PRESENT_WX_056",
+            "PRESENT_WX_057", "PRESENT_WX_058", "PRESENT_WX_059",
+            "PRESENT_WX_061", "PRESENT_WX_063", "PRESENT_WX_065",
+            "PRESENT_WX_066", "PRESENT_WX_067", "PRESENT_WX_068",
+            "PRESENT_WX_069", "PRESENT_WX_071", "PRESENT_WX_073",
+            "PRESENT_WX_075", "PRESENT_WX_077", "PRESENT_WX_078",
+            "PRESENT_WX_079", "PRESENT_WX_079", "PRESENT_WX_080",
+            "PRESENT_WX_081", "PRESENT_WX_082", "PRESENT_WX_083",
+            "PRESENT_WX_084", "PRESENT_WX_085", "PRESENT_WX_086",
+            "PRESENT_WX_087", "PRESENT_WX_088", "PRESENT_WX_089",
+            "PRESENT_WX_090", "PRESENT_WX_095", "PRESENT_WX_096",
+            "PRESENT_WX_097", "PRESENT_WX_098", "PRESENT_WX_099",
+            "PRESENT_WX_105", "PRESENT_WX_106", "PRESENT_WX_201",
+            "PRESENT_WX_202", "PRESENT_WX_203" };
 
     private static String[] icingSymbolNames = new String[] { "ICING_00",
             "ICING_01", "ICING_02", "ICING_03", "ICING_04", "ICING_05",

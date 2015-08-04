@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/*
+/**
  * The calculation of k, 3 hour related.
  * 
  * <pre>
@@ -17,13 +17,14 @@ import java.util.Map;
  * 05/14/2013   #989        qzhou      Initial Creation
  * 03/18/2014   #1123       qzhou      Add getHQdcOrDQdc
  * 06/23/2014   R4152       qzhou      Touched up functions that do not affect the results
+ * 12/23/2014   R5412       sgurung    Change float to double, fixed equation in getQuietLevelHourAvg()
+ * 
  * </pre>
  * 
  * @author qzhou
  * @version 1
  */
 public class CalcEach3hr {
-    private static final float MISSING_VAL = 99999.99f;
 
     private static final int NIGHT_LENGTH = 90; // min
 
@@ -44,10 +45,10 @@ public class CalcEach3hr {
      * 
      * @param bestList -- contains 1 hour data
      */
-    public static float[] getSimpleHourAvg(List bestList) {
-        float[] simpHrAvg = new float[2];
-        float simpHrAvg1 = 0;
-        float simpHrAvg2 = 0;
+    public static double[] getSimpleHourAvg(List bestList) {
+        double[] simpHrAvg = new double[2];
+        double simpHrAvg1 = 0;
+        double simpHrAvg2 = 0;
         double sum1 = 0;
         double sum2 = 0;
         int rec1 = 0;
@@ -55,30 +56,30 @@ public class CalcEach3hr {
 
         for (int i = 0; i < bestList.size(); i++) {
 
-            List<Float> list = (List<Float>) bestList.get(i);
+            List<Double> list = (List<Double>) bestList.get(i);
 
-            float comp1 = (Float) list.get(1);
-            float comp2 = (Float) list.get(2);
+            double comp1 = list.get(1);
+            double comp2 = list.get(2);
 
-            if (comp1 != MISSING_VAL) {
+            if (comp1 != CalcUtil.MISSING_VAL) {
                 sum1 += comp1;
                 rec1++;
             }
-            if (comp2 != MISSING_VAL) {
+            if (comp2 != CalcUtil.MISSING_VAL) {
                 sum2 += comp2;
                 rec2++;
             }
         }
 
         if (rec1 > 30) // less than half missing value
-            simpHrAvg1 = (float) sum1 / rec1;
+            simpHrAvg1 = (double) sum1 / rec1;
         else
-            simpHrAvg1 = MISSING_VAL;
+            simpHrAvg1 = CalcUtil.MISSING_VAL;
 
         if (rec2 > 30) // less than half missing value
-            simpHrAvg2 = (float) sum2 / rec2;
+            simpHrAvg2 = (double) sum2 / rec2;
         else
-            simpHrAvg2 = MISSING_VAL;
+            simpHrAvg2 = CalcUtil.MISSING_VAL;
 
         simpHrAvg[0] = simpHrAvg1;
         simpHrAvg[1] = simpHrAvg2;
@@ -91,9 +92,9 @@ public class CalcEach3hr {
      * 
      * @param data -- data of one day, 1440
      */
-    public static float[] getSimpleHourAvg(float[] data) { // data 1440
+    public static double[] getSimpleHourAvg(double[] data) { // data 1440
 
-        float[] simpHrAvg = new float[HOURS];
+        double[] simpHrAvg = new double[HOURS];
 
         for (int ihr = 0; ihr < HOURS; ihr++) {
             double sum = 0;
@@ -101,16 +102,16 @@ public class CalcEach3hr {
 
             for (int i = ihr * MINUTES; i < ihr * MINUTES + MINUTES; i++) {
 
-                if (data[i] != MISSING_VAL)
+                if (data[i] != CalcUtil.MISSING_VAL)
                     sum += data[i];
                 else
                     missing++;
             }
 
             if (missing < 30) // less than half missing value
-                simpHrAvg[ihr] = (float) sum / (MINUTES - missing);
+                simpHrAvg[ihr] = (double) sum / (MINUTES - missing);
             else
-                simpHrAvg[ihr] = MISSING_VAL;
+                simpHrAvg[ihr] = CalcUtil.MISSING_VAL;
         }
 
         return simpHrAvg;
@@ -121,33 +122,35 @@ public class CalcEach3hr {
      * 
      * @param data -- data of one day, 1440
      */
-    public static float getSimpleHourAvg(float[] data, int hour) { // one day
-                                                                   // 1440, avg
-                                                                   // for hour-1
+    public static double getSimpleHourAvg(double[] data, int hour) { // one day
+                                                                     // 1440,
+                                                                     // avg
+                                                                     // for
+                                                                     // hour-1
 
-        float simpHrAvg = 0;
+        double simpHrAvg = 0;
         double sum = 0;
         int rec = 0;
 
         if (data.length <= hour * MINUTES + MINUTES)
             for (int i = hour * MINUTES; i < data.length; i++) {
-                if (data[i] != MISSING_VAL) {
+                if (data[i] != CalcUtil.MISSING_VAL) {
                     sum += data[i];
                     rec++;
                 }
             }
         else
             for (int i = hour * MINUTES; i < hour * MINUTES + MINUTES; i++) {
-                if (data[i] != MISSING_VAL) {
+                if (data[i] != CalcUtil.MISSING_VAL) {
                     sum += data[i];
                     rec++;
                 }
             }
 
         if (rec > 30) // less than half missing value
-            simpHrAvg = (float) sum / (rec);
+            simpHrAvg = (double) sum / (rec);
         else
-            simpHrAvg = MISSING_VAL;
+            simpHrAvg = CalcUtil.MISSING_VAL;
 
         return simpHrAvg;
     }
@@ -157,9 +160,9 @@ public class CalcEach3hr {
      * 
      * @return disturbance levels for 30 intervals
      */
-    public static float[] getDisturbanceLevel(float[] simpHrAvgH,
-            float[] simpHrAvgD) {
-        float[] dB = new float[30];
+    public static double[] getDisturbanceLevel(double[] simpHrAvgH,
+            double[] simpHrAvgD) {
+        double[] dB = new double[30];
 
         for (int j = 0; j < DAYS; j++) {
             double sum = 0;
@@ -168,10 +171,10 @@ public class CalcEach3hr {
             for (int i = 0; i < 23; i++) {
                 int ii = j * HOURS + i;
 
-                if (simpHrAvgH[ii] != MISSING_VAL
-                        && simpHrAvgD[ii] != MISSING_VAL
-                        && simpHrAvgH[ii + 1] != MISSING_VAL
-                        && simpHrAvgD[ii + 1] != MISSING_VAL) {
+                if (simpHrAvgH[ii] != CalcUtil.MISSING_VAL
+                        && simpHrAvgD[ii] != CalcUtil.MISSING_VAL
+                        && simpHrAvgH[ii + 1] != CalcUtil.MISSING_VAL
+                        && simpHrAvgD[ii + 1] != CalcUtil.MISSING_VAL) {
                     sum += Math
                             .sqrt(Math.pow(
                                     (simpHrAvgH[ii + 1] - simpHrAvgH[ii]), 2)
@@ -180,12 +183,13 @@ public class CalcEach3hr {
                                             2));
                     count++;
                 }
+
             }
 
             if (count >= 12) // not 12 or more missing
-                dB[j] = (float) sum / count;
+                dB[j] = (double) sum / count;
             else
-                dB[j] = MISSING_VAL;
+                dB[j] = CalcUtil.MISSING_VAL;
 
         }
 
@@ -193,26 +197,26 @@ public class CalcEach3hr {
     }
 
     /*
-     * @param dB -- float[30 ]
+     * @param dB -- double[30 ]
      * 
      * @return --5 smallest disturbance levels
      */
-    public static Map getSmallDisturbanceLevel(float[] dB) {
+    public static Map getSmallDisturbanceLevel(double[] dB) {
         // create a map that key=dBIndex and value=dBValue.
         // create a duplicate array dBDup. Sort it.
         // take 5 smallest dBDup[i]. Then find its index and value from the dB.
         // Put them to the map
-        Map<Integer, Float> dBSmall = new HashMap<Integer, Float>();
+        Map<Integer, Double> dBSmall = new HashMap<Integer, Double>();
 
-        float[] dBDup = new float[dB.length];
+        double[] dBDup = new double[dB.length];
         for (int i = 0; i < dBDup.length; i++) {
             dBDup[i] = dB[i];
         }
 
         Arrays.sort(dBDup);
 
-        float dupIndex = (int) MISSING_VAL;
-        float wk = 0;
+        double dupIndex = (int) CalcUtil.MISSING_VAL;
+        double wk = 0;
         // take 5 smallest dBDup
         for (int j = 0; j < 5; j++) {
             for (int i = 0; i < dB.length; i++) {
@@ -232,25 +236,25 @@ public class CalcEach3hr {
     /*
      * @param -- dBSmall, 5 set map
      * 
-     * @param -- simpHrAvg, -- float[720]
+     * @param -- simpHrAvg, -- double[720]
      * 
-     * @rturn -- quietLevelHourAvg, float[24]
+     * @rturn -- quietLevelHourAvg, double[24]
      */
-    public static float[] getQuietLevelHourAvg(Map<Integer, Float> dBSmall,
-            float[] simpHrAvg) {
+    public static double[] getQuietLevelHourAvg(Map<Integer, Double> dBSmall,
+            double[] simpHrAvg) {
         if (dBSmall.entrySet().size() < 5)
             return simpHrAvg;
 
-        float[] quietHrAvg = new float[24];
-        Arrays.fill(quietHrAvg, MISSING_VAL);
+        double[] quietHrAvg = new double[24];
+        Arrays.fill(quietHrAvg, CalcUtil.MISSING_VAL);
         int[] index = new int[5];
-        float[] dB = new float[5];
+        double[] dB = new double[5];
 
         int k = 0;
         Iterator<?> iter = dBSmall.entrySet().iterator();
         while (iter.hasNext()) {
             @SuppressWarnings("unchecked")
-            Map.Entry<Integer, Float> mEntry = (Map.Entry<Integer, Float>) iter
+            Map.Entry<Integer, Double> mEntry = (Map.Entry<Integer, Double>) iter
                     .next(); // sorted on key
 
             index[k] = mEntry.getKey();
@@ -260,7 +264,7 @@ public class CalcEach3hr {
         }
 
         // construct smallHrAvg array (24*5) from simpHrAvg (24*30)
-        float[] smallHrAvg = new float[24 * 5];
+        double[] smallHrAvg = new double[24 * 5];
 
         for (int j = 0; j < 5; j++) { // k=5
             int endOfArray = smallHrAvg.length;
@@ -273,18 +277,23 @@ public class CalcEach3hr {
         }
 
         for (int ihr = 0; ihr < HOURS; ihr++) {
-            float sumAvg = 0;
-            float sumWk = 0;
-            float wk = 0;
+            double sumAvg = 0;
+            double sumWk = 0;
+            double wk = 0;
 
             for (int jk = 0; jk < 5; jk++) {
                 int ind = jk * HOURS + ihr;
-                if (dB[jk] < 1)
-                    wk = 1;
-                else
-                    wk = 1.0f / (dB[jk] * dB[jk]);
+                wk = (double) Math.pow(dB[jk], 2.0); // modified to match
+                                                     // IDL code
+                                                     // FMIQDCRT11_3hr.pro, line
+                                                     // 103
+                if (wk < 1.0) {
+                    wk = 1.0;
+                } else {
+                    wk = 1.0 / wk;
+                }
 
-                if (smallHrAvg[ind] != MISSING_VAL) {
+                if (smallHrAvg[ind] != CalcUtil.MISSING_VAL) {
                     sumAvg += wk * smallHrAvg[ind];
                     sumWk += wk;
                 }
@@ -299,12 +308,12 @@ public class CalcEach3hr {
     }
 
     /*
-     * @param -- quietHrAvg, float[24]
+     * @param -- quietHrAvg, double[24]
      * 
-     * @return -- shifted quietLevelHourAvg, float[24]
+     * @return -- shifted quietLevelHourAvg, double[24]
      */
-    public static float[] getQHA(float[] quietHrAvg) {
-        float[] QHA = new float[24];
+    public static double[] getQHA(double[] quietHrAvg) {
+        double[] QHA = new double[24];
 
         if (quietHrAvg.length != 24)
             return quietHrAvg;
@@ -317,17 +326,17 @@ public class CalcEach3hr {
     }
 
     /*
-     * @return -- 24 element floating point array. Default fitting lengths.
+     * @return -- 24 element double array. Default fitting lengths.
      * (one for each hour of the 24 hour interval that ends at EPtime).
      */
-    public static float[] getDefLength(String station, int epHour) {
-        float[] defLength = new float[24];
-        float lon = CalcUtil.getLongitude(station);
-        int UTdiff = Math.round(1440.0f * lon / 360.0f);
+    public static double[] getDefLength(String station, int epHour) {
+        double[] defLength = new double[24];
+        double lon = CalcUtil.getLongitude(station);
+        int UTdiff = (int) Math.round(1440.0f * lon / 360.0f);
         int minute0 = epHour * MINUTES;
 
         for (int ihr = 0; ihr < HOURS; ihr++) {
-            float sum = 0;
+            double sum = 0;
 
             for (int imin = 0; imin < MINUTES; imin++) {
                 int curMin = (minute0 + ihr * MINUTES + imin) % 1440;
@@ -355,33 +364,33 @@ public class CalcEach3hr {
     /*
      * wraper function for a few functions in this class.
      * 
-     * @param -- hHrAvgs, hourly average for H. float[720]
+     * @param -- hHrAvgs, hourly average for H. double[720]
      * 
-     * @param -- dHrAvgs, hourly average for D. float[720]
+     * @param -- dHrAvgs, hourly average for D. double[720]
      * 
      * @return -- if hHrAvgs is first param, return hQdc; if dHrAvgs is first
-     * param, return dQdc. float[1440]
+     * param, return dQdc. double[1440]
      */
-    public static float[] getHQdcOrDQdc(float[] hHrAvgs, float[] dHrAvgs) {
-        float[] hQdc = null;
-        float[] qhaQdc = null;
+    public static double[] getHQdcOrDQdc(double[] hHrAvgs, double[] dHrAvgs) {
+        double[] hQdc = null;
+        double[] qhaQdc = null;
 
-        float[] dB = CalcEach3hr.getDisturbanceLevel(hHrAvgs, dHrAvgs);
+        double[] dB = CalcEach3hr.getDisturbanceLevel(hHrAvgs, dHrAvgs);
 
         @SuppressWarnings("unchecked")
-        Map<Integer, Float> dBsmall = CalcEach3hr.getSmallDisturbanceLevel(dB);
+        Map<Integer, Double> dBsmall = CalcEach3hr.getSmallDisturbanceLevel(dB);
 
-        float[] quietHHrAvg = CalcEach3hr
-                .getQuietLevelHourAvg(dBsmall, hHrAvgs);
+        double[] quietHHrAvg = CalcEach3hr.getQuietLevelHourAvg(dBsmall,
+                hHrAvgs);
 
         // added from FMIQDCRT11_3hr.pro
         for (int k = 0; k < quietHHrAvg.length; k++) {
-            if (quietHHrAvg[k] == MISSING_VAL) {
+            if (quietHHrAvg[k] == CalcUtil.MISSING_VAL) {
                 quietHHrAvg[k] = CalcUtil.getMedian(quietHHrAvg);
             }
         }
 
-        float[] qha = CalcEach3hr.getQHA(quietHHrAvg);
+        double[] qha = CalcEach3hr.getQHA(quietHHrAvg);
 
         hQdc = CalcEach1min.getHarmonicFit(qha);// [1440]
 

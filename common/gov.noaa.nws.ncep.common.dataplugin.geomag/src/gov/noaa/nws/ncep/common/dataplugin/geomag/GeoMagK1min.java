@@ -31,6 +31,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 08/14/2013   T989       qzhou              Initial creation.
  * 03/03/2014   #1110      qzhou              modified get/set 
  * 04/05/2014   R4078      sgurung            Added method match().
+ * 12/23/2014   R5412      sgurung            Change float to double
+ * 01/26/2015   R7615      sgurung            change sequence name
  * 
  * </pre>
  * 
@@ -39,7 +41,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  */
 
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagseq")
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagk1minseq")
 @Table(name = "geomag_k1min")
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -94,14 +96,14 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float kestReal;
+    private double kestReal;
 
     /**
      * D data Hour Average
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float kestGamma;
+    private double kestGamma;
 
     /**
      * H data Hour Average
@@ -115,14 +117,14 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float hkReal;
+    private double hkReal;
 
     /**
      * D data Hour Average
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float hkGamma;
+    private double hkGamma;
 
     /**
      * H data Hour Average
@@ -136,14 +138,14 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float dkReal;
+    private double dkReal;
 
     /**
      * D data Hour Average
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float dkGamma;
+    private double dkGamma;
 
     /**
      * D data Hour Average
@@ -171,7 +173,7 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
      */
     @Column(length = 16)
     @DynamicSerializeElement
-    private float ks;
+    private double ks;
 
     public GeoMagK1min() {
 
@@ -195,44 +197,44 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
     /**
      * @return the kestReal
      */
-    public float getKestReal() {
+    public double getKestReal() {
         return kestReal;
     }
 
-    public void setKestReal(float kestReal) {
+    public void setKestReal(double kestReal) {
         this.kestReal = kestReal;
     }
 
     /**
      * @return the kestGamma
      */
-    public float getKestGamma() {
+    public double getKestGamma() {
         return kestGamma;
     }
 
-    public void setKestGamma(float kestGamma) {
+    public void setKestGamma(double kestGamma) {
         this.kestGamma = kestGamma;
     }
 
     /**
      * @return the hkReal
      */
-    public float getHkReal() {
+    public double getHkReal() {
         return hkReal;
     }
 
-    public void setHkReal(float hkReal) {
+    public void setHkReal(double hkReal) {
         this.hkReal = hkReal;
     }
 
     /**
      * @return the hkGamma
      */
-    public float getHkGamma() {
+    public double getHkGamma() {
         return hkGamma;
     }
 
-    public void setHkGamma(float hkGamma) {
+    public void setHkGamma(double hkGamma) {
         this.hkGamma = hkGamma;
     }
 
@@ -261,22 +263,22 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
     /**
      * @return the dkReal
      */
-    public float getDkReal() {
+    public double getDkReal() {
         return dkReal;
     }
 
-    public void setDkReal(float dkReal) {
+    public void setDkReal(double dkReal) {
         this.dkReal = dkReal;
     }
 
     /**
      * @return the dkGamma
      */
-    public float getDkGamma() {
+    public double getDkGamma() {
         return dkGamma;
     }
 
-    public void setDkGamma(float dkGamma) {
+    public void setDkGamma(double dkGamma) {
         this.dkGamma = dkGamma;
     }
 
@@ -316,11 +318,11 @@ public class GeoMagK1min extends PersistableDataObject<Object> {
     /**
      * @return the dHrAvg
      */
-    public float getKs() {
+    public double getKs() {
         return ks;
     }
 
-    public void setKs(float ks) {
+    public void setKs(double ks) {
         this.ks = ks;
     }
 

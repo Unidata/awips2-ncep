@@ -172,7 +172,7 @@ public class GeoMagK1minDao extends CoreDao {
         sql.append(start).append("' AND a.reftime <= '").append(end)
                 .append("'");
         sql.append(" AND a.ks <= 9.0 ");
-        sql.append(" AND d.processingstate <= 'Active' ");
+        sql.append(" AND d.processingstate = 'Active' ");
         sql.append(" AND b.reftime = date_trunc('hour', a.reftime - cast(date_part('HOUR',a.reftime) as bigint) % 3 * INTERVAL  '1 hour' + interval '0 hour') ");
         sql.append(" GROUP BY a.reftime ORDER BY a.reftime ASC");
 

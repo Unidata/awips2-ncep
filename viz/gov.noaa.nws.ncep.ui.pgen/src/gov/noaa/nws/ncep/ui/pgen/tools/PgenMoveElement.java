@@ -35,7 +35,7 @@ import gov.noaa.nws.ncep.viz.common.SnapUtil;
  * 02/12                    S. Gurung   Moved isSnapADC() and getNumOfCompassPts() to SigmeInfo.
  * 05/11			#808	J. Wu		Update Gfa vor text
  * 05/12		    #610	J. Wu   	Add warning when GFA FROM lines > 3
- *
+ * 12/14			R5413	B. Yin		PGEN in D2D Changes.
  * </pre>
  * 
  * @author	B. Yin

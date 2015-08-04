@@ -10,7 +10,8 @@
  * 
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
- * 01/2011	229			Chin Chen	Initial coding
+ * 01/2011	    229			Chin Chen	Initial coding
+ * 03/09/2015   RM#6674     Chin Chen   Support model sounding query data interpolation and nearest point option                       
  *
  * </pre>
  * 
@@ -311,9 +312,19 @@ public class NsharpModelSoundingDialogContents {
             String rangeStartStr = NcSoundingQuery
                     .convertSoundTimeDispStringToRangeStartTimeFormat(timeLine);
             float[][] latLon = { { lat, lon } };
+            //RM#6674                         
+            NsharpConfigManager mgr =NsharpConfigManager.getInstance();
+            NsharpConfigStore configStore = mgr.retrieveNsharpConfigStoreFromFs();
+            boolean gridInterpolation;
+    		if(configStore != null){
+    			gridInterpolation = configStore.getGraphProperty().isGridInterpolation();
+    		}
+    		else
+    			gridInterpolation = true; //by default
+    		//end RM#6674
             NcSoundingCube cube = NcSoundingQuery.mdlSoundingQueryByLatLon(
                     selectedFileStr + ":00:00", rangeStartStr, latLon,
-                    gribDecoderName, selectedModel, false, "-1");
+                    gribDecoderName, selectedModel, false, "-1", gridInterpolation);
             if (cube != null
                     && cube.getRtnStatus() == NcSoundingCube.QueryStatus.OK) {
                 // System.out.println("mdlSoundingQueryByLatLon returnd ok");
@@ -484,6 +495,7 @@ public class NsharpModelSoundingDialogContents {
             }
             NsharpMapResource.bringMapEditorToTop();
         }
+        System.out.println("atan2(1,-1)="+Math.atan2(1,-1));
     }
 
     public void createMdlDialogContents() {

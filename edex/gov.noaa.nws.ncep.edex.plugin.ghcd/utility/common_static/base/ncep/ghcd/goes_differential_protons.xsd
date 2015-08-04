@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+   <!--
+      Define the root level element "dataset". For now each XML
+      message must have one and only one "dataset" element. This
+      root element contains one child element to specify the
+      data resolution and zero or more elements containing the
+      time tagged GOES(Geostationary Operational Environmental Satellite) SEM(Space Environment Monitor-instrument)
+      High Energy Proton and Alpha Detector(HEPAD) Differential Protons data.
+   -->
+   <xs:element name="dataset">
+   
+      <xs:complexType>
+      
+         <!-- The ordered sequence of child elements -->
+         <xs:sequence>
+         
+            <!-- required element specifying the data resolution -->
+            <xs:element name="data-resolution" type="data-resolution-type"/>
+            
+            <xs:element name="data-field-definitions" type="field-description-list"/>
+            
+            <!-- the optional description -->
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            
+            <!-- The data elements (zero or more) of type "time-tagged-data" -->
+            <xs:element name="data-item" type="time-tagged-data" minOccurs="0" maxOccurs="unbounded"/>
+            
+         </xs:sequence>
+         
+         <!--
+              The "source" attribute (e.g. goes-12, goes-r). This attribute
+              is of type "data-sources" which is a simple type enumerating
+              the valid string values for "source".
+         -->
+         <xs:attribute name="source" type="data-sources" use="required"/>
+        
+         <!--
+               The "entry-count" attribute is an optional non-negative
+               integer which specifies the number of data-item entries
+               in the dataset.
+         -->
+         <xs:attribute name="entry-count" type="xs:nonNegativeInteger"/>
+      </xs:complexType>
+   </xs:element>
+
+   <!--
+         The complexType "time-tagged-data" encodes the time tagged
+         Differential PROTONS data for the goes SEM-EPEAD/HEPAD instrument. The time tag for all
+         of the child elements is specified as a required argument.
+         
+         The child elements may appear in any order. A missing or empty
+         child element may be interpreted as a missing value.
+   -->
+   <xs:complexType name="time-tagged-data">
+      <xs:all>
+         <xs:element name="p1" type="p1-data-item" minOccurs="0"/>
+         <xs:element name="p2" type="p2-data-item" minOccurs="0"/>
+         <xs:element name="p3" type="p3-data-item" minOccurs="0"/>
+         <xs:element name="p4" type="p4-data-item" minOccurs="0"/>
+         <xs:element name="p5" type="p5-data-item" minOccurs="0"/>
+         <xs:element name="p6" type="p6-data-item" minOccurs="0"/>
+         <xs:element name="p7" type="p7-data-item" minOccurs="0"/>
+         <xs:element name="p8" type="p8-data-item" minOccurs="0"/>
+         <xs:element name="p9" type="p9-data-item" minOccurs="0"/>
+         <xs:element name="p10" type="p10-data-item" minOccurs="0"/>
+         <xs:element name="p11" type="p11-data-item" minOccurs="0"/>
+      </xs:all>
+      <xs:attribute name="time-tag" type="xs:dateTime" use="required"/>
+   </xs:complexType>
+   
+   <!-- An enumeration of valid data source values for this XML message -->
+   <xs:simpleType name="data-sources">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="goes-13"/>
+         <xs:enumeration value="goes-14"/>
+         <xs:enumeration value="goes-15"/>
+         <xs:enumeration value="goes-r"/>
+         <xs:enumeration value="goes-16"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!-- An enumeration of valid instruments for this XML message -->
+   <xs:simpleType name="instruments">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="epead"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+      <!-- An enumeration of valid data type values for this XML message -->
+   <xs:simpleType name="data-types">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="differential-protons"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <!-- An enumeration of valid data resolution units -->
+   <xs:simpleType name="data-resolution-units">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="seconds"/>
+         <xs:enumeration value="minutes"/>
+         <xs:enumeration value="hours"/>
+         <xs:enumeration value="days"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!--
+        A complex type used to specify the data sampling resolution
+        for the contents of the data set.
+   -->
+   <xs:complexType name="data-resolution-type">
+      <xs:simpleContent>
+         <xs:extension base="xs:positiveInteger">
+            <xs:attribute name="units" type="data-resolution-units" use="required"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+      
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p1 data.
+   -->
+   <xs:simpleType name="p1-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p1-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p1-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 2.5 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p2 data.
+   -->
+   <xs:simpleType name="p2-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p2-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p2-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 6.5 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with a correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p3 data.
+   -->
+   <xs:simpleType name="p3-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p3-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p3-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 11.6 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with a correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p4 data.
+   -->
+   <xs:simpleType name="p4-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.00001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p4-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p4-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 30.6 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p5 data.
+   -->
+   <xs:simpleType name="p5-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.00001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p5-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p5-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 63.1 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p6 data.
+   -->
+   <xs:simpleType name="p6-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.00001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p6-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p6-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 165 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p7 data.
+   -->
+   <xs:simpleType name="p7-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.00001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p7-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p7-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 433 MeV protons from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove electron contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p8 data.
+   -->
+   <xs:simpleType name="p8-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.001"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p8-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p8-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 375 MeV protons"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p9 data.
+   -->
+   <xs:simpleType name="p9-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.0"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p9-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p9-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 645 MeV proton particles."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p10 data.
+   -->
+   <xs:simpleType name="p10-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.0"/>
+         <xs:maxInclusive value="100000."/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p10-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p10-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of 605 MeV protons."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for p11 data.
+   -->
+   <xs:simpleType name="p11-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0.0"/>
+         <xs:maxInclusive value="100000"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="p11-data-item">
+      <xs:simpleContent>
+         <xs:extension base="p11-type">
+            <xs:attribute name="units" fixed="p/(cm^2*s*sr*Mev)"/>
+            <xs:attribute name="description" fixed="Average flux of protons with energy >700 MeV."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+     
+   <!--
+         Meta-data field description line
+   -->
+   
+   <xs:complexType name="field-description-list">
+      <xs:sequence>
+         <xs:element name="field-def" type="field-definition" minOccurs="0" maxOccurs="unbounded"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+              
+      <!--
+            The "instrument" attribute (e.g. xrs, eps). This attribute
+            is of type "instruments" which is a simple type enumerating
+            the valid string values for "instrument".
+      -->
+      <xs:attribute name="instrument" type="instruments" use="required"/>
+      <xs:attribute name="data-type" type="data-types" use="required"/>        
+   </xs:complexType>
+   
+   <xs:attribute name="field-name" type="xs:token"/>
+   <xs:attribute name="type" type="xs:string"/>
+   
+   <xs:complexType name="field-definition">
+      <xs:all>
+         <xs:element name="units" type="xs:string" minOccurs="0"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+         <xs:element name="data-range" minOccurs="0">
+            <xs:complexType>
+                  <xs:attribute name="minInclusive" type="xs:float"/>
+                  <xs:attribute name="minExclusive" type="xs:float"/>
+                  <xs:attribute name="maxInclusive" type="xs:float"/>
+                  <xs:attribute name="maxExclusive" type="xs:float"/>
+            </xs:complexType>
+         </xs:element>
+      </xs:all>
+      <xs:attribute ref="field-name" use="required"/>
+      <xs:attribute ref="type" use="required"/>
+
+   </xs:complexType>
+   
+</xs:schema>

@@ -14,6 +14,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.action.PgenAction;
+import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenCommandManager;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenFileNameDisplay;
 import gov.noaa.nws.ncep.ui.pgen.display.AbstractElementContainer;
@@ -144,11 +145,12 @@ import com.vividsolutions.jts.geom.Point;
  * 03/13		#927		B. Yin		Implemented IContextMenuProvider interface
  * 04/13		#874		B. Yin		Added a method replaceElements with parameter parent.
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * 11/13        TTR 752     J. Wu       Add methods for CCFP text auto placement.
  * 09/14        TTR972      J. Wu       "Filled" object on the active layer should be 
  *                                      drawn as "filled" even if the "filled" flag for
  *                                      the layer is "false".
- * 11/13        TTR 752     J. Wu       Add methods for CCFP text auto placement.
  * 11/14		R5413		B. Yin		Display PGEN in side view in D2D
+ * 12/14     R5198/TTR1057  J. Wu       Adding a method to select label over a line for Contours.
  * 12/14        R5413       B. Yin      Added resetAllElements(), reset ghost, removed "Any".
  * </pre>
  * 
@@ -575,6 +577,13 @@ public class PgenResource extends
                 catFilter);
         DrawableElement nearestElm = getNearestElement(point, catFilter);
 
+        if (nearestElm != null && nearestElm.getParent() != null
+                && nearestElm.getParent() instanceof ContourLine
+                && nearestElm instanceof Line) {
+            nearestElm = getNearestElement(point,
+                    (ContourLine) nearestElm.getParent(), nearestElm);
+        }
+
         // Selecting Gfa by its text box first.
         if (nearestGfabyTextBox != null
                 && ((nearestElm == null) || (nearestElm instanceof Gfa))) {
@@ -604,10 +613,13 @@ public class PgenResource extends
         while (iterator.hasNext()) {
             DrawableElement element = iterator.next();
 
-            if (!filter.accept(element) || !filters.acceptOnce(element))
+            if (!filter.accept(element) || !filters.acceptOnce(element)) {
                 continue;
-            if (!catFilter.accept(element))
+            }
+
+            if (!catFilter.accept(element)) {
                 continue;
+            }
 
             double dist = getDistance(element, point);
             if (dist < minDistance) {
@@ -1420,6 +1432,48 @@ public class PgenResource extends
 
                 }
             }
+        }
+
+        return nearestElement;
+
+    }
+
+    /**
+     * Finds the nearest Text element in the a DECollection that is close to a
+     * specified element (with MaxDistToSelect()/5) in the same DECollection.
+     * 
+     * @param point
+     * @param dec
+     * @param nearestDe
+     * @return the nearest element in the collection
+     */
+    public DrawableElement getNearestElement(Coordinate point,
+            DECollection dec, DrawableElement nearestDe) {
+
+        DrawableElement nearestElement = null;
+        double minDistance = Double.MAX_VALUE;
+        double distToLine = getDistance(nearestDe, point);
+
+        // Find the closest Text element within "MaxDistToSelect".
+        Iterator<DrawableElement> iterator = dec.createDEIterator();
+        while (iterator.hasNext()) {
+            DrawableElement element = iterator.next();
+
+            if (element instanceof Text) {
+                double dist = getDistance(element, point);
+                if (dist < this.getMaxDistToSelect() && dist < minDistance) {
+                    minDistance = dist;
+                    nearestElement = element;
+                }
+            }
+        }
+
+        /*
+         * If the closest Text element is not "close" enough to the specified
+         * de, return the specified DE.
+         */
+        if (Math.abs(minDistance - distToLine) > (this.getMaxDistToSelect() / 5)) {
+            nearestElement = nearestDe;
         }
 
         return nearestElement;

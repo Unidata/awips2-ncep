@@ -12,6 +12,7 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 03/21/2012	229			Chin Chen	Initial coding
+ * 03/09/2015   RM#6674     Chin Chen   support model sounding query data interpolation and nearest point option                       
  *
  * </pre>
  * 
@@ -35,7 +36,7 @@ import org.eclipse.ui.PlatformUI;
 
 
 public class NsharpConfigDialog extends Dialog {
-	private Button parameterBtn, dataDisplayBtn,dataPageBtn, timeLineBtn, stnBtn, sndBtn,paneCfgBtn, mdlCfgBtn;
+	private Button parameterBtn, dataDisplayBtn,dataPageBtn, timeLineBtn, stnBtn, sndBtn,paneCfgBtn, mdlCfgBtn, mdlDataBtn;
 	private static NsharpConfigDialog thisDialog=null;
 	private static NsharpParametersSelectionConfigDialog parameterSelDialog = null;
 	private static NsharpDataDisplayConfigDialog dataDislpayDialog = null;
@@ -45,6 +46,7 @@ public class NsharpConfigDialog extends Dialog {
 	private static NsharpSndConfigDialog sndDialog = null;
 	private static NsharpPaneConfigDialog paneCfgDialog = null;
 	private static NsharpGribModelTypeConfigDialog mdlCfgDialog = null;
+	private static NsharpGridDataConfigDialog mdlDataDialog = null;
 	public NsharpConfigDialog(Shell parentShell) {
 		super(parentShell);
 		// TODO Auto-generated constructor stub
@@ -170,6 +172,20 @@ public class NsharpConfigDialog extends Dialog {
 				mdlCfgDialog =  NsharpGribModelTypeConfigDialog.getInstance(shell);
 				if ( mdlCfgDialog != null ) {
 					mdlCfgDialog.open();
+				}	
+			}          		            	 	
+		} );
+		
+		mdlDataBtn = new Button(parent,  SWT.PUSH);
+		mdlDataBtn.setText("Grid Data Interpolation");
+		mdlDataBtn.setEnabled( true );
+		
+		mdlDataBtn.addListener( SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {           
+				Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();  	
+				mdlDataDialog =  NsharpGridDataConfigDialog.getInstance(shell);
+				if ( mdlDataDialog != null ) {
+					mdlDataDialog.open();
 				}	
 			}          		            	 	
 		} );

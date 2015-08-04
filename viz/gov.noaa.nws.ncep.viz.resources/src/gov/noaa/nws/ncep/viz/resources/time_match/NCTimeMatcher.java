@@ -63,6 +63,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 07/11/14       TTR1032  J. Wu        No timeline needed if no data times available.
  * 07/28/14       TTR1034+ J. Wu        Build timeline only from available datatimes..
  * 07/29/14       R4078    s. Gurung    Commented out code that sets numFrames=1 for graph/timeseries display
+ * 08/25/14       RM4097  kbugenhagen   Added EVENT_BEFORE_OR_AFTER time matching
  * 
  * </pre>
  * 
@@ -371,7 +372,8 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                 frameInterval = 60; // what to use here as a default
             }
         } else if (tLineGenMthd == TimelineGenMethod.USE_FRAME_INTERVAL
-                || tLineGenMthd == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME) {
+                || tLineGenMthd == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME
+                || tLineGenMthd == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION) {
             frameInterval = dominantRscData.getFrameSpan();
         } else { // ???
             return;
@@ -895,6 +897,13 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                 startTime = new DataTime(frameTime.getValidTime());
                 endTime = new DataTime(frameTime.getValidTime());
             }
+            case EVENT_BEFORE_OR_AFTER: {
+                startTime = new DataTime(new Date(frameMillis - frameInterval
+                        * 1000 * 60 / 2));
+                endTime = new DataTime(new Date(frameMillis + frameInterval
+                        * 1000 * 60 / 2 - 1000));
+                break;
+            }
             case CLOSEST_BEFORE_OR_AFTER: {
                 startTime = new DataTime(new Date(frameMillis - frameInterval
                         * 1000 * 60 / 2));
@@ -968,6 +977,17 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
              */
             case EVENT: {
                 return 0;
+            }
+
+            case EVENT_BEFORE_OR_AFTER: {
+                if (startTimeMillis >= dataTimeMillis
+                        || dataTimeMillis > endTimeMillis) {
+                    return -1;
+                } else {
+                    return Math.abs(frameTime.getValidTime().getTime()
+                            .getTime()
+                            - dataTimeMillis) / 1000;
+                }
             }
 
             // mainly (only?) for lightning. Might be able to remove this

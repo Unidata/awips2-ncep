@@ -1,6 +1,7 @@
 ! Attributes for the PAFM resource with "standard" plot model
 !
 plotModel=@PlotModels/ncpafm/standard.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=PAFM Standard View

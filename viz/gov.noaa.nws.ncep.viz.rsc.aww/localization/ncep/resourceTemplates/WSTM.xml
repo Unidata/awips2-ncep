@@ -38,7 +38,7 @@
               		<constraint constraintValue="${pluginName}" constraintType="EQUALS" />
                </mapping>
                <mapping key="reportType">
-                 <constraint constraintValue="WINTER_WEATHER_ADVISORY,WINTER_STORM_WARNING,WINTER_STORM_WATCH,ADVISORY,URGENT_WEATHER_MESSAGE,WEATHER_ADVISORY,WINTER_STORM" constraintType="IN" />
+                 <constraint constraintValue="${reportType}" constraintType="IN" />
                </mapping>
              </metadataMap>
           </resourceData>

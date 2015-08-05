@@ -48,7 +48,6 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -140,7 +139,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     to force re-query (now that we're bypassing stations that already have data).
  *  Aug 08, 2014  3477     bclement    changed plot info locations to floats
  *  09/03/2014    1009     kbugenhagen Reload Framedata.stationMap if all stations' dist values are null
- * 
+ *  Aug 05, 2015  4486     rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author brockwoo
@@ -1844,7 +1843,7 @@ public class NcPlotResource2 extends
                 results = DirectDbQuery.executeQuery(query, "metadata",
                         QueryLanguage.SQL);
                 List<Integer> intList = new ArrayList<Integer>();
-                List<Timestamp> timeStampList = new ArrayList<Timestamp>();
+                List<Date> timeStampList = new ArrayList<Date>();
                 if (results != null) {
                     for (Object[] objArr : results) {
                         for (Object o : objArr) {
@@ -1852,20 +1851,20 @@ public class NcPlotResource2 extends
                                 Integer i = (Integer) o;
                                 intList.add((Integer) i);
                             }
-                            if (o instanceof Timestamp) {
-                                timeStampList.add((Timestamp) o);
+                            if (o instanceof Date) {
+                                timeStampList.add((Date) o);
                             }
 
                         }
                     }
                     Integer[] iArr = new Integer[0];
-                    Timestamp[] tArr = new Timestamp[0];
+                    Date[] tArr = new Date[0];
                     if (!intList.isEmpty()) {
                         iArr = intList.toArray(new Integer[0]);
                         Arrays.sort(iArr);
 
                         if (!timeStampList.isEmpty()) {
-                            tArr = timeStampList.toArray(new Timestamp[0]);
+                            tArr = timeStampList.toArray(new Date[0]);
                             Arrays.sort(tArr);
 
                             Date cycleTimeDate = rscName.getCycleTime()
@@ -1879,7 +1878,7 @@ public class NcPlotResource2 extends
                                 int indexOfTimeStamp = 0;
                                 int sizeOfTimestampList = tArr.length;
                                 for (indexOfTimeStamp = 0; indexOfTimeStamp < sizeOfTimestampList; indexOfTimeStamp++) {
-                                    Timestamp timeStamp = tArr[indexOfTimeStamp];
+                                    Date timeStamp = tArr[indexOfTimeStamp];
                                     if (timeStamp.getTime() == nextFrameTime
                                             .getRefTime().getTime()) {
                                         int fcstHr = iArr[indexOfTimeStamp]

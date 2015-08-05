@@ -14,21 +14,23 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * 11/1/2010	362			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * 02/15/2012               Chin Chen   add  PFC sounding query algorithm for better performance getPfcSndDataBySndTmRange()
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
  * @version 1.0
  */
 
-import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
+import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
+import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.sql.Timestamp;
 
 
 // Chin-T import com.raytheon.uf.common.sounding.SoundingLayer;
@@ -38,7 +40,7 @@ public class NsharpPfcSoundingQuery {
      * Create python script to query data from edex
      */
 	/*
-    private static String scriptCreator( double lat, double lon, Timestamp refTime, Timestamp validTime, NcSoundingProfile.PfcSndType sndType) {
+    private static String scriptCreator( double lat, double lon, Date refTime, Date validTime, NcSoundingProfile.PfcSndType sndType) {
     	
     	StringBuilder query = new StringBuilder();
         query.append("import NcSoundingDataRequest\n");
@@ -64,7 +66,7 @@ public class NsharpPfcSoundingQuery {
 			//query using NcSoundingQuery class
 			double[][] latLon = {{StnPt.getLatitude(), StnPt.getLongitude()}};
 			for(NsharpStationInfo.timeLineSpecific tmlinSpc: StnPt.getTimeLineSpList() ){
-				Timestamp rangeTime = tmlinSpc.getTiemLine();
+				Date rangeTime = tmlinSpc.getTiemLine();
 				String stnDispInfo = tmlinSpc.getDisplayInfo();
 				NcSoundingCube cube = NcSoundingQuery.pfcSoundingQueryByLatLon(StnPt.getReftime().getTime(),rangeTime.getTime(), latLon, StnPt.getSndType(), NcSoundingLayer.DataType.ALLDATA, false, "-1");
 				//System.out.println(stnDispInfo + " "+ rangeTime);
@@ -106,7 +108,7 @@ public class NsharpPfcSoundingQuery {
 			long[] rangeTimeArray = new long[StnPt.getTimeLineSpList().size()];
 			int i=0;
 			for(NsharpStationInfo.timeLineSpecific tmlinSpc: StnPt.getTimeLineSpList() ){
-				Timestamp rangeTime = tmlinSpc.getTiemLine();
+				Date rangeTime = tmlinSpc.getTimeLine();
 				rangeTimeArray[i]=rangeTime.getTime();
 				i++;
 			}
@@ -130,7 +132,7 @@ public class NsharpPfcSoundingQuery {
 							for(int j=0; j < StnPt.getTimeLineSpList().size(); j++ ){
 								NsharpStationInfo.timeLineSpecific tmlinSpcj = StnPt.getTimeLineSpList().get(j);
 								//System.out.println("rtnSndTIme="+ sndPf.getFcsTime() + " requestTime"+j+"="+tmlinSpcj.getTiemLine().getTime());
-								if(tmlinSpcj.getTiemLine().getTime()== sndPf.getFcsTime()){
+								if(tmlinSpcj.getTimeLine().getTime()== sndPf.getFcsTime()){
 									stnDispInfo = tmlinSpcj.getDisplayInfo();
 									break;
 								}

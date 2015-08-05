@@ -12,7 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 01/2011	    229			Chin Chen	Initial coding
  * 03/09/2015   RM#6674     Chin Chen   Support model sounding query data interpolation and nearest point option                       
- *
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -37,13 +37,13 @@ import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
 import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
-import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -208,9 +208,9 @@ public class NsharpModelSoundingDialogContents {
      * timeLines = NcSoundingQuery.mdlSoundingTimeLineQuery(selectedModel,
      * gribDecoderName); if(timeLines!= null && timeLines.getTimeLines() !=
      * null){ ldDia.startWaitCursor(); for(Object timeLine :
-     * timeLines.getTimeLines()){ Timestamp reftime = (Timestamp)timeLine;
+     * timeLines.getTimeLines()){ Date reftime = (Date)timeLine;
      * if(reftime != null){ //need to format reftime to GMT time string.
-     * Timestamp.toString produce a local time Not GMT time Calendar cal =
+     * Date.toString produce a local time Not GMT time Calendar cal =
      * Calendar.getInstance(TimeZone.getTimeZone("GMT"));
      * cal.setTimeInMillis(reftime.getTime()); String gmtTimeStr =
      * String.format("%1$tY-%1$tm-%1$td %1$tH", cal);
@@ -244,9 +244,9 @@ public class NsharpModelSoundingDialogContents {
                             gribDecoderName);
             if (timeLines != null && timeLines.getTimeLines().length > 0) {
                 for (Object obj : timeLines.getTimeLines()) {
-                    Timestamp rangestart = (Timestamp) obj;
+                    Date rangestart = (Date) obj;
                     // need to format rangestart to GMT time string.
-                    // Timestamp.toString produce a local time Not GMT time
+                    // Date.toString produce a local time Not GMT time
                     cal.setTimeInMillis(rangestart.getTime());
                     long vHour = (cal.getTimeInMillis() - reftimeMs) / 3600000;
                     String dayOfWeek = defaultDays[cal
@@ -288,7 +288,7 @@ public class NsharpModelSoundingDialogContents {
             throws java.text.ParseException {
         soundingLysLstMap.clear();
         ldDia.startWaitCursor();
-        Timestamp refTime = null;
+        Date refTime = null;
         // Chin Note: Since NcGrib/Grib HDF5 data file is created based on a
         // forecast time line, we can not query
         // more than one time line at one time as Edex server just could not
@@ -306,7 +306,7 @@ public class NsharpModelSoundingDialogContents {
             Calendar cal = df.getCalendar();
             int offset = cal.get(Calendar.ZONE_OFFSET)
                     + cal.get(Calendar.DST_OFFSET) / (60 * 1000);
-            refTime = new Timestamp(cal.getTimeInMillis() + offset);
+            refTime = new Date(cal.getTimeInMillis() + offset);
             // end FixMark:nearByStnCompSnd
 
             String rangeStartStr = NcSoundingQuery

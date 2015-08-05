@@ -12,7 +12,7 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 05/30/2013				Chin J. Chen	Initial coding
- *
+ * Aug 05, 2015 4486        rjpeter       Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin J. Chen
@@ -35,7 +35,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
 import java.io.File;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1658,7 +1657,7 @@ public class GenericPointDataDao extends
         rtnobjArray = executeSQLQuery(queryStr);
         String stnId = "";
         Double slat, slon;
-        Timestamp synoptictime = null, rsTime = null;
+        Date synoptictime = null, rsTime = null;
         for (int j = 0; j < rtnobjArray.length; j++) {
             Object[] objArray = (Object[]) rtnobjArray[j];
             // ids.add(((Integer)objArray[2]));
@@ -1670,8 +1669,8 @@ public class GenericPointDataDao extends
             slon = new Double(objArray[1].toString());
             stnId = (String) objArray[3];
             stnId = stnId.replace("1000-", "");
-            synoptictime = (Timestamp) objArray[4];
-            rsTime = (Timestamp) objArray[5];
+            synoptictime = (Date) objArray[4];
+            rsTime = (Date) objArray[5];
             NcSoundingStnInfo stn = stnInfoCol.getNewStnInfo();
             stn.setStnId(stnId);
             stn.setStationLongitude(slon);

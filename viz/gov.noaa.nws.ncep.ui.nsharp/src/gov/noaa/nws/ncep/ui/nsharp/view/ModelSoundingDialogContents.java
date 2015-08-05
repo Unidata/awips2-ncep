@@ -11,7 +11,7 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 01/2011	229			Chin Chen	Initial coding
- *
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -36,13 +36,12 @@ import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
 import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
-import java.io.File;
-import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -173,9 +172,9 @@ public class ModelSoundingDialogContents {
 		if(timeLines!= null && timeLines.getTimeLines() != null){
 			ldDia.startWaitCursor();
 			for(Object timeLine : timeLines.getTimeLines()){
-				Timestamp reftime = (Timestamp)timeLine;
+				Date reftime = (Date)timeLine;
 				if(reftime != null){
-					//need to format reftime to GMT time string.  Timestamp.toString produce a local time Not GMT time
+					//need to format reftime to GMT time string.  Date.toString produce a local time Not GMT time
 					Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 					cal.setTimeInMillis(reftime.getTime());
 					String gmtTimeStr = String.format("%1$tY-%1$tm-%1$td %1$tH",  cal);
@@ -210,8 +209,8 @@ public class ModelSoundingDialogContents {
 			NcSoundingTimeLines timeLines = NcSoundingQuery.mdlSoundingRangeTimeLineQuery(selectedModel, fl, gribDecoderName);
 			if(timeLines != null && timeLines.getTimeLines().length >0){
 				for(Object obj : timeLines.getTimeLines()){
-					Timestamp rangestart = (Timestamp)obj;
-					//need to format rangestart to GMT time string.  Timestamp.toString produce a local time Not GMT time
+					Date rangestart = (Date)obj;
+					//need to format rangestart to GMT time string.  Date.toString produce a local time Not GMT time
 					cal.setTimeInMillis(rangestart.getTime());
 					long vHour = (cal.getTimeInMillis()- reftimeMs)/3600000;
 					String dayOfWeek = defaultDays[cal.get(Calendar.DAY_OF_WEEK)];

@@ -16,7 +16,7 @@ package gov.noaa.nws.ncep.edex.uengine.tasks.profile;
  * 12/16/2010   301         Chin Chen   add support of PFC (NAM and GFS) model sounding data
  * 02/28/2012               Chin Chen   modify several sounding query algorithms for better performance
  * 12/20/2013   2537        bsteffen    Update ModelSoundingPointDataTransform
- *  *
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -31,11 +31,11 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,8 +102,8 @@ public class PfcSoundingQuery {
 				stn.setStationLongitude(lon);
 				stn.setStationLatitude(lat);
 				stn.setStationElevation((float)elv);
-				stn.setSynopTime((Timestamp)objArray[4]);
-				stn.setRangeStartTime((Timestamp)objArray[5]);
+				stn.setSynopTime((Date)objArray[4]);
+				stn.setRangeStartTime((Date)objArray[5]);
 				stationInfoList.add(stn);
 				//System.out.println("stn id "+ stn.getStnId() + " lon "+ lon + " lat "+ lat);
 			}
@@ -183,7 +183,7 @@ public class PfcSoundingQuery {
 	public static NcSoundingProfile getPfcSndData(double lat, double lon, String stn, Calendar refTimeCal, Calendar validTimeCal, String sndTypeStr, SndQueryKeyType queryType) {
 		//System.out.println("getPfcSndData input ref time = "+ refTimeCal+" valid time is " + validTimeCal);
     	//NcSoundingProfile.PfcSndType sndType; //yes, it is not used now..
-    	//Timestamp validTime = new Timestamp(validTimeL);
+    	//Date validTime = new Date(validTimeL);
     	//System.out.println("getPfcSndData input ref time = "+ refTime.toGMTString()+" valid time is " + validTime.toGMTString());
 		long t01 = System.currentTimeMillis();
 		NcSoundingProfile pf = new NcSoundingProfile();
@@ -376,7 +376,7 @@ public class PfcSoundingQuery {
 	public static NcSoundingProfile getPfcSndData2(double lat, double lon, String stn, Calendar refTimeCal, Calendar validTimeCal, String sndTypeStr, SndQueryKeyType queryType) {
 		//System.out.println("getPfcSndData  lat="+lat+" lon="+lon);
     	//NcSoundingProfile.PfcSndType sndType; //yes, it is not used now..
-    	//Timestamp validTime = new Timestamp(validTimeL);
+    	//Date validTime = new Date(validTimeL);
     	//System.out.println("getPfcSndData2 input ref time = "+ refTimeCal.getTime());
 		//long t01 = System.currentTimeMillis();
 		NcSoundingProfile pf = new NcSoundingProfile();
@@ -738,7 +738,7 @@ public class PfcSoundingQuery {
 	public static List<NcSoundingProfile>  getPfcSndDataBySoundTimeRangeArray(double lat, double lon, String stn, String refTimeStr, List<String> soundingTimeAry, String sndTypeStr, SndQueryKeyType queryType) {
 		//System.out.println("getPfcSndData  lat="+lat+" lon="+lon);
     	//NcSoundingProfile.PfcSndType sndType; //yes, it is not used now..
-    	//Timestamp validTime = new Timestamp(validTimeL);
+    	//Date validTime = new Date(validTimeL);
 		List<NcSoundingProfile> pfs = new ArrayList<NcSoundingProfile>();
 		
 		if(sndTypeStr.equals(PfcSndType.GFSSND.toString())  || sndTypeStr.equals(PfcSndType.NAMSND.toString())){

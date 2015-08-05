@@ -11,10 +11,10 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
 import java.io.File;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -70,6 +70,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Oct 03, 2014         B. Hebbard Performance improvement:  getObservedSndNcUairDataGeneric( )
  *                                 limits DB param set to retrieve, in cases where possible
  *                                 (mandatory level and no PW-for-full-sounding)
+ * Aug 05, 2015 4486    rjpeter    Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -256,7 +257,7 @@ public class ObservedSoundingQuery {
             // report it.
             for (Object element : rtnobjArray1) {
                 Object[] objArray1 = (Object[]) element;
-                Timestamp synoptictime = null;
+                Date synoptictime = null;
                 stnInfo = "";
                 elv = -999;
                 /*
@@ -286,7 +287,7 @@ public class ObservedSoundingQuery {
                                 elv = (Integer) objArray[4];
                             }
                         }
-                        synoptictime = (Timestamp) objArray[5];
+                        synoptictime = (Date) objArray[5];
                     }
 
                 }
@@ -377,7 +378,7 @@ public class ObservedSoundingQuery {
                 System.out.println("synoptictime =" + element);
                 Calendar cal = Calendar
                         .getInstance(TimeZone.getTimeZone("GMT"));
-                cal.setTimeInMillis(((Timestamp) element).getTime());
+                cal.setTimeInMillis(((Date) element).getTime());
                 // String gmtTimeStr =
                 // String.format("%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS", cal);
                 timeLst.add(cal);
@@ -1533,7 +1534,7 @@ public class ObservedSoundingQuery {
             SndQueryKeyType queryType) {
         // *System.out.println("getObservedSndBufruaData lat= " +
         // lat+" lon="+lon+" refTime="+refTimeCal );
-        // Timestamp refTime = new Timestamp(refTimeL);
+        // Date refTime = new Date(refTimeL);
         // System.out.println("GMT ref time = "+ refTime.toGMTString());
         NcSoundingProfile pf = new NcSoundingProfile();
         List<NcSoundingLayer> soundLyList = new ArrayList<NcSoundingLayer>();

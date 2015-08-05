@@ -12,7 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 01/2011	    229			Chin Chen	Initial coding
  * 09/14/2011   457         S. Gurung   Renamed H5UAIR to NCUAIR
- *
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -29,11 +29,11 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
-import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.eclipse.swt.SWT;
@@ -98,10 +98,10 @@ public class NsharpObservedSoundingDialogContents {
             Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
             ldDia.startWaitCursor();
             for (Object timeLine : timeLines.getTimeLines()) {
-                Timestamp synoptictime = (Timestamp) timeLine;
+                Date synoptictime = (Date) timeLine;
                 if (synoptictime != null) {
                     // need to format synoptictime to GMT time string.
-                    // Timestamp.toString produce a local time Not GMT time
+                    // Date.toString produce a local time Not GMT time
                     cal.setTimeInMillis(synoptictime.getTime());
                     String dayOfWeek = defaultDays[cal
                             .get(Calendar.DAY_OF_WEEK)];
@@ -147,14 +147,14 @@ public class NsharpObservedSoundingDialogContents {
             // Note: A same station may have many reports
             for (int i = 0; i < stnInfoAry.length; i++) {
                 NcSoundingStnInfo stnInfo = stnInfoAry[i];
-                Timestamp synoptictime = null;
+                Date synoptictime = null;
                 stnInfoStr = stnInfo.getStnId();
                 if (stnInfoStr == null || stnInfoStr.length() < 1)
                     stnInfoStr = "*";
                 lat = stnInfo.getStationLatitude();
                 lon = stnInfo.getStationLongitude();
                 // elv = stnInfo.getStationElevation();
-                synoptictime = (Timestamp) stnInfo.getSynopTime();
+                synoptictime = (Date) stnInfo.getSynopTime();
 
                 // convert to Nsharp's own station info struct
                 NsharpStationInfo stn = new NsharpStationInfo();

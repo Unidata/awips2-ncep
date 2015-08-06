@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
+//import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory;
@@ -13,7 +14,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery2;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
@@ -54,7 +54,6 @@ import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.DataTime.FLAG;
-import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
@@ -78,6 +77,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * Aug 07, 2014  3478        bclement     removed PointDataDescription.Type.Double
  * 09/04/2014    1127        B. Hebbard   Exempt forecast (e.g., MOS) datatimes from check in requestSurfaceData that sees if retrieved value matches desired time.  This is because we retrieve only the refTime from HDF5 for comparison, which is sufficient for obs times, but not those with forecast component.
  * 12/04/2014   R5437        B. Hebbard   In addToDerivedParamsList(..), correct logic to determine (additional) base DB params needed for derived params; minor cleanups
+ * 07142015     RM#9173      Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
  * 
  * 
  * 
@@ -968,13 +968,14 @@ public class NcPlotModelHdf5DataRequestor {
         List<Long> rangeTimeLst = new ArrayList<Long>(listSize);
         Map<String, Station> mapOfStnidsWithStns = new HashMap<String, Station>();
         synchronized (listOfStationsRequestingForData) {
-            for (Station currentStation : listOfStationsRequestingForData) {
+        	for (Station currentStation : listOfStationsRequestingForData) {
                 refTime = currentStation.info.dataTime.getRefTime();
                 long stnTime = currentStation.info.dataTime.getValidTime()
                         .getTimeInMillis();
                 beginTime = (beginTime < stnTime ? stnTime : beginTime);
                 endTime = (endTime > stnTime ? stnTime : endTime);
                 String stnId = new String(currentStation.info.stationId);
+                //System.out.println("stnId"+j+ " = "+stnId);
                 if (stationHasAllParametersItNeeds(currentStation, parameters)) {
                     Tracer.print("Station "
                             + currentStation.info.stationId
@@ -988,58 +989,62 @@ public class NcPlotModelHdf5DataRequestor {
                 }
             }
         }
-
-        NcSoundingQuery2 sndingQuery;
-        NcSoundingCube sndingCube = null;
-
-        if (stnIdLst.isEmpty()) {
-            // No stations, no query
+        if(stnIdLst.size() <=0 || rangeTimeLst.size() <=0 ){
+        	// No stations, no query
             Tracer.print("SKIPPING request for UPPER AIR data because "
                     + stnIdLst.size() + " (zero) out of "
                     + listOfStationsRequestingForData.size()
-                    + " stations need it");
-        } else {
-            // Set up the query
-            Tracer.print("Requesting UPPER AIR data for " + stnIdLst.size()
+                    + " stations need it");        
+        	return null;
+        }
+        else {
+        	Tracer.print("Requesting UPPER AIR data for " + stnIdLst.size()
                     + " out of " + listOfStationsRequestingForData.size()
                     + " stations");
-            try {
-                final boolean merge = true;
-                sndingQuery = new NcSoundingQuery2(plugin, merge, levelStr);
-            } catch (Exception e1) {
-                System.out.println("Error creating NcSoundingQuery2: "
-                        + e1.getMessage());
-                return null;
-            }
-
-            sndingQuery.setStationIdConstraints(stnIdLst);
-            sndingQuery.setRangeTimeList(rangeTimeLst);
-            sndingQuery.setRefTimeConstraint(refTime);
-            sndingQuery
-                    .setTimeRangeConstraint(new TimeRange(beginTime, endTime));
-            sndingQuery
-                    .setPwRequired(isPrecipitableWaterForEntireSoundingRequired());
-
-            // for modelsounding data we need to set the name of the model
-            // (ie the reportType)
-            if (plugin.equals("modelsounding")) {
-                if (!constraintMap.containsKey("reportType")) {
-                    System.out
-                            .println("Error creating NcSoundingQuery2: missing modelName (reportType) for modelsounding plugin");
-                    return null;
-                }
-                sndingQuery.setModelName(constraintMap.get("reportType")
-                        .getConstraintValue());
-            }
-
-            // Make the query
-            long t004 = System.nanoTime();
-            sndingCube = sndingQuery.query();
-            long t005 = System.nanoTime();
-            Tracer.print("requestUpperAirData()-->sndingQuery.query() took "
-                    + (t005 - t004) / 1000000 + " ms");
         }
-
+        long[] refTimelArray = new long[1];
+        refTimelArray[0] = refTime.getTime();
+        long[] rangeTimeArray = new long[rangeTimeLst.size()];
+        for(int k=0; k<rangeTimeLst.size();k++)
+        	rangeTimeArray[k]= rangeTimeLst.get(k);
+        String[] stnIdArray;
+        stnIdArray = stnIdLst.toArray((new String[0]));
+        NcSoundingCube sndingCube = null;
+//        String sndType="";
+//        if (plugin.equals("modelsounding")) {
+//        	if (!constraintMap.containsKey("reportType")) {
+//        		System.out.println("requestUpperAirData: missing modelName (reportType) for modelsounding plugin");
+//        		return null;
+//        	}
+//        	String modelName = constraintMap.get("reportType").getConstraintValue();
+//        	if (modelName.startsWith("NAM")
+//        			|| modelName.startsWith("ETA")) {
+//        		sndType = PfcSndType.NAMSND.toString();
+//        	} else if (modelName.startsWith("GFS")) {
+//        		sndType = PfcSndType.GFSSND.toString();
+//        	}
+//        	else {
+//        		System.out.println("requestUpperAirData: unreconized modelsounding model name "+modelName);
+//        		return null;
+//        	}
+//        }
+//        else if (plugin.equals("ncuair")) {
+//        	sndType = ObsSndType.NCUAIR.toString();
+//        }
+//        else {
+//        	System.out.println("requestUpperAirData: unreconized plugin name "+ plugin);
+//        	return null;
+//        }
+        // Make the query
+        
+        long t004 = System.nanoTime();
+        sndingCube = PlotModelMngr.querySoundingData(refTimelArray, rangeTimeArray, stnIdArray, plugin, levelStr,  constraintMap,paramsToPlot);
+//SoundingQuery.genericSoundingDataQuery( refTimelArray, rangeTimeArray, null, null,null,  
+//        		stnIdArray,sndType,  NcSoundingLayer.DataType.ALLDATA,  true,  levelStr,
+//        		null, true, true, isPrecipitableWaterForEntireSoundingRequired());
+        long t005 = System.nanoTime();
+        Tracer.print("requestUpperAirData()-->genericSoundingDataQuery() took "
+        		+ (t005 - t004) / 1000000 + " ms");
         //
         // TODO -- This shouldn't be necessary, given Amount.getUnit() should
         // now heal itself
@@ -1338,11 +1343,11 @@ public class NcPlotModelHdf5DataRequestor {
         return (mapOfStnidsWithStns.values());
     }
 
-    private Boolean isPrecipitableWaterForEntireSoundingRequired() {
-        return paramsToPlot
-                .containsKey(PrecipitableWaterForEntireSounding.class
-                        .getSimpleName());
-    }
+//    private Boolean isPrecipitableWaterForEntireSoundingRequired() {
+//        return paramsToPlot
+//                .containsKey(PrecipitableWaterForEntireSounding.class
+//                        .getSimpleName());
+//    }
 
     private boolean stationHasAllParametersItNeeds(Station station,
             String[] namesOfNeededParameters) {
@@ -2144,7 +2149,8 @@ public class NcPlotModelHdf5DataRequestor {
 
             long t1 = System.nanoTime();
 
-            Tracer.print("Finished getting data for " + stationsWithData.size()
+            if(stationsWithData != null)
+            	Tracer.print("Finished getting data for " + stationsWithData.size()
                     + " stations in " + (t1 - t0) / 1000000 + " ms for frame: "
                     + Tracer.shortTimeString(time));
 

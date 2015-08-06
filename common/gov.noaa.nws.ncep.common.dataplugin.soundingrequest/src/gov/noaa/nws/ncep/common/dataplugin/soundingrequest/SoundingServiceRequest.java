@@ -10,6 +10,7 @@ package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 05/20/2015	RM#8306		Chin Chen	Initial coding - eliminate NSHARP dependence on uEngine
+ * 07/20/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounding2
  *
  * </pre>
  * 
@@ -60,10 +61,7 @@ public class SoundingServiceRequest implements IServerRequest {
 	
 	@DynamicSerializeElement
 	private String level;
-	
-	@DynamicSerializeElement
-	private boolean useNcSoundingLayer2= false;
-	
+		
 	@DynamicSerializeElement
 	private boolean pwRequired= false;
 	
@@ -176,14 +174,6 @@ public class SoundingServiceRequest implements IServerRequest {
 
 	public void setLevel(String level) {
 		this.level = level;
-	}
-
-	public boolean isUseNcSoundingLayer2() {
-		return useNcSoundingLayer2;
-	}
-
-	public void setUseNcSoundingLayer2(boolean useNcSoundingLayer2) {
-		this.useNcSoundingLayer2 = useNcSoundingLayer2;
 	}
 
 	public boolean isPwRequired() {

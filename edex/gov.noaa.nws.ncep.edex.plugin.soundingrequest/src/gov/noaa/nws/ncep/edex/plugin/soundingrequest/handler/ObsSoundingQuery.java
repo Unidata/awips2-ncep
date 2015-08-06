@@ -6,34 +6,23 @@ import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
 import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
 import gov.noaa.nws.ncep.common.dataplugin.ncuair.dao.NcUairToRecord;
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
-import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingRequestType;
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
-import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
-import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
-import gov.noaa.nws.ncep.edex.common.metparameters.DewPointTemp;
-import gov.noaa.nws.ncep.edex.common.metparameters.HeightAboveSeaLevel;
-import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
-import gov.noaa.nws.ncep.edex.common.metparameters.WindDirection;
-import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.SndQueryKeyType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
 
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.TimeZone;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
@@ -91,6 +80,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                 Copy whole file ObservedSoundingQuery.java from uEngine project to this serverRequestService project
  *                                 "refactor" and clean up unused code for this ticket.
  * 07/02/2015   RM#8107 Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * 07/21/2015   RM#9173 Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
  * 
  * @author Chin Chen
  * @version 1.0
@@ -1258,8 +1248,8 @@ public class ObsSoundingQuery {
         }
     }
 
-    public static List<NcSoundingProfile> processQueryReturnedNcUairData(
-            List<NcUairRecord[]> uairRecordArrList, boolean useNcSndLayer2, boolean merge, String level) {
+    private static List<NcSoundingProfile> processQueryReturnedNcUairData(
+            List<NcUairRecord[]> uairRecordArrList, /*boolean useNcSndLayer2,*/ boolean merge, String level, boolean pwRequired) {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<NcSoundingProfile>(
                 0);
         for (NcUairRecord[] recordArray : uairRecordArrList) {
@@ -1271,99 +1261,113 @@ public class ObsSoundingQuery {
                 pf = null;
             } else {
                 pf = new NcSoundingProfile();
-                if (useNcSndLayer2 == true) {
+//                if (useNcSndLayer2 == true) {
                     // use NcSoundingLayer2
-                    if (recordArray != null && recordArray.length > 0) {
-                        MergeSounding2 ms2 = new MergeSounding2();
-                        List<NcSoundingLayer2> sls = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ttaa = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ttbb = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ttcc = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ttdd = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ppaa = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ppbb = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ppcc = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> ppdd = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> trop_a = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> trop_c = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> wmax_a = new ArrayList<NcSoundingLayer2>();
-                        List<NcSoundingLayer2> wmax_c = new ArrayList<NcSoundingLayer2>();
-
-                        for (int k = 0; k < recordArray.length; k++) {
-                            NcUairRecord record = recordArray[k];
-                            if (record.getDataType().equals("TTAA")
-                                    || record.getDataType().equals("XXAA")) {
-                                ttaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                                trop_a = getSoundingLayer2FromNcUairRecordTrop(record);
-                                wmax_a = getSoundingLayer2FromNcUairRecordMaxw(record);
-                            } else if (record.getDataType().equals("TTBB")
-                                    || record.getDataType().equals("XXBB")) {
-                                ttbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            } else if (record.getDataType().equals("TTCC")
-                                    || record.getDataType().equals("XXCC")) {
-                                ttcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                                trop_c = getSoundingLayer2FromNcUairRecordTrop(record);
-                                wmax_c = getSoundingLayer2FromNcUairRecordMaxw(record);
-                            } else if (record.getDataType().equals("TTDD")
-                                    || record.getDataType().equals("XXDD")) {
-                                ttdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            } else if (record.getDataType().equals("PPAA")) {
-                                ppaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            } else if (record.getDataType().equals("PPBB")) {
-                                ppbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            } else if (record.getDataType().equals("PPCC")) {
-                                ppcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            } else if (record.getDataType().equals("PPDD")) {
-                                ppdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
-                            }
-                        }
-                        pf.setStationElevation((float) recordArray[0]
-                                .getElevation());
-                        pf.setStationId(recordArray[0].getStationId());
-                        if (recordArray[0].getStnum() != null
-                                && recordArray[0].getStnum().length() > 0)
-                            pf.setStationNum(Integer.parseInt(recordArray[0]
-                                    .getStnum()));
-                        pf.setStationLatitude(recordArray[0].getLatitude());
-                        pf.setStationLongitude(recordArray[0].getLongitude());
-                        pf.setFcsTime(recordArray[0].getDataTime().getRefTime()
-                                .getTime());
-                        // System.out.println("m2 input lat=" + lat +
-                        // " pf's lat="
-                        // + pf.getStationLatitude() + " elv="
-                        // + pf.getStationElevation() + " stnId="
-                        // + pf.getStationId());
-                        if (useNcSndLayer2)
-                            sls = ms2.mergeUairSounding(level, ttaa, ttbb,
-                                    ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a,
-                                    trop_c, wmax_a, wmax_c,
-                                    pf.getStationElevation());
-
-                        if (level.toUpperCase().equalsIgnoreCase("MAN")) {
-                            pf.setSoundingLyLst2(sls);
-                            // System.out.println("sls set to the sounding profile");
-                        } else if (ms2.isNumber(level) >= 0) {
-                            if (sls.size() == 1) {
-                                // System.out.println("NcUair get one layer using level = "+
-                                // level);
-                                pf.setSoundingLyLst2(sls);
-                            } else {
-                                pf = null;
-                                // System.out.println("NcUair get 0 layer using level = "+
-                                // level);
-                            }
-                        } else {
-                            if (sls.isEmpty() || sls.size() <= 1) {
-                                pf = null;
-                                // System.out.println("not MAN level &  sls is empty or 1");
-                            } else {
-                                pf.setSoundingLyLst2(sls);
-                                // System.out.println("sls set to the sounding profile for level = "
-                                // + level);
-                            }
-                        }
-                    }
-                } else {
+//                    if (recordArray != null && recordArray.length > 0) {
+//                        MergeSounding2 ms2 = new MergeSounding2();
+//                        List<NcSoundingLayer2> sls = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ttaa = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ttbb = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ttcc = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ttdd = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ppaa = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ppbb = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ppcc = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> ppdd = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> trop_a = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> trop_c = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> wmax_a = new ArrayList<NcSoundingLayer2>();
+//                        List<NcSoundingLayer2> wmax_c = new ArrayList<NcSoundingLayer2>();
+//
+//                        for (int k = 0; k < recordArray.length; k++) {
+//                            NcUairRecord record = recordArray[k];
+//                            if (record.getDataType().equals("TTAA")
+//                                    || record.getDataType().equals("XXAA")) {
+//                                ttaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                                trop_a = getSoundingLayer2FromNcUairRecordTrop(record);
+//                                wmax_a = getSoundingLayer2FromNcUairRecordMaxw(record);
+//                            } else if (record.getDataType().equals("TTBB")
+//                                    || record.getDataType().equals("XXBB")) {
+//                                ttbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            } else if (record.getDataType().equals("TTCC")
+//                                    || record.getDataType().equals("XXCC")) {
+//                                ttcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                                trop_c = getSoundingLayer2FromNcUairRecordTrop(record);
+//                                wmax_c = getSoundingLayer2FromNcUairRecordMaxw(record);
+//                            } else if (record.getDataType().equals("TTDD")
+//                                    || record.getDataType().equals("XXDD")) {
+//                                ttdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            } else if (record.getDataType().equals("PPAA")) {
+//                                ppaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            } else if (record.getDataType().equals("PPBB")) {
+//                                ppbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            } else if (record.getDataType().equals("PPCC")) {
+//                                ppcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            } else if (record.getDataType().equals("PPDD")) {
+//                                ppdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
+//                            }
+//                        }
+//                        pf.setStationElevation((float) recordArray[0]
+//                                .getElevation());
+//                        pf.setStationId(recordArray[0].getStationId());
+//                        if (recordArray[0].getStnum() != null
+//                                && recordArray[0].getStnum().length() > 0)
+//                            pf.setStationNum(Integer.parseInt(recordArray[0]
+//                                    .getStnum()));
+//                        pf.setStationLatitude(recordArray[0].getLatitude());
+//                        pf.setStationLongitude(recordArray[0].getLongitude());
+//                        pf.setFcsTime(recordArray[0].getDataTime().getRefTime()
+//                                .getTime());
+//                        // System.out.println("m2 input lat=" + lat +
+//                        // " pf's lat="
+//                        // + pf.getStationLatitude() + " elv="
+//                        // + pf.getStationElevation() + " stnId="
+//                        // + pf.getStationId());
+//                        if (useNcSndLayer2)
+//                            sls = ms2.mergeUairSounding(level, ttaa, ttbb,
+//                                    ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a,
+//                                    trop_c, wmax_a, wmax_c,
+//                                    pf.getStationElevation());
+//
+//                        if(pwRequired){
+//                        	List<NcSoundingLayer2> sls2 = new ArrayList<NcSoundingLayer2>();
+//                            sls2 = ms2.mergeUairSounding("-1", ttaa, ttbb,
+//                                    ttcc, ttdd, ppaa, ppbb, ppcc, ppdd,
+//                                    trop_a, trop_c, wmax_a, wmax_c,
+//                                    pf.getStationElevation());
+//                            if (sls2 != null && sls2.size() > 0)
+//                                pf.setPw(NcSoundingTools
+//                                        .precip_water2(sls2));
+//                            else
+//                                pf.setPw(-1);
+//                        }
+//                        
+//                        if (level.toUpperCase().equalsIgnoreCase("MAN")) {
+//                            pf.setSoundingLyLst2(sls);
+//                            // System.out.println("sls set to the sounding profile");
+//                        } else if (ms2.isNumber(level) >= 0) {
+//                            if (sls.size() == 1) {
+//                                // System.out.println("NcUair get one layer using level = "+
+//                                // level);
+//                                pf.setSoundingLyLst2(sls);
+//                            } else {
+//                                pf = null;
+//                                // System.out.println("NcUair get 0 layer using level = "+
+//                                // level);
+//                            }
+//                        } else {
+//                            if (sls.isEmpty() || sls.size() <= 1) {
+//                                pf = null;
+//                                // System.out.println("not MAN level &  sls is empty or 1");
+//                            } else {
+//                                pf.setSoundingLyLst2(sls);
+//                                // System.out.println("sls set to the sounding profile for level = "
+//                                // + level);
+//                            }
+//                        }
+//                    }
+//                } else 
+                {
                     // use NcSoundingLayer
                     if (recordArray != null && recordArray.length > 0) {
                         MergeSounding ms = new MergeSounding();
@@ -1425,8 +1429,22 @@ public class ObsSoundingQuery {
                                 ttdd, ppaa, ppbb, ppcc, ppdd, trop_a, trop_c,
                                 wmax_a, wmax_c, pf.getStationElevation());
                         // PW Support test
-                        // float pw = NcSoundingTools.precip_water(sls);
-                        // pf.setPw(pw);
+                        if(pwRequired) {
+                        	if(level.equals("-1")){
+                        		float pw = NcSoundingTools.precip_water(sls);
+                        		pf.setPw(pw);
+                        	}
+                        	else{
+                        		List<NcSoundingLayer> sls2 = new ArrayList<NcSoundingLayer>();
+                                sls2 = ms.mergeUairSounding("-1", ttaa, ttbb,
+                                        ttcc, ttdd, ppaa, ppbb, ppcc, ppdd,
+                                        trop_a, trop_c, wmax_a, wmax_c,
+                                        pf.getStationElevation());
+                                if (sls2 != null && sls2.size() > 0)
+                                    pf.setPw(NcSoundingTools
+                                            .precip_water(sls2));
+                        	}
+                        }
                         // end PW Support test
                         // System.out.println("NCUAIR Number of Layers after merge:"+sls.size()
                         // + " level="+level +
@@ -1496,90 +1514,90 @@ public class ObsSoundingQuery {
         // System.out.println("ObsLevel="+obLevels.size()+" sndLayers="+sndLayers.size());
         return sndLayers;
     }
-    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordObsLevel(
-            NcUairRecord record) {
-        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-        Set<NcUairObsLevels> obLevels = record.getObsLevels();
-
-        // System.out.println("The datatype for this record is: " +
-        // record.getDataType() );
-        if (obLevels.size() > 0) {
-            for (NcUairObsLevels obLev : obLevels) {
-                // System.out.println("\n\nFrom NcUairObsLevel:");
-                // System.out.println("Temperature = " + obLev.getTemp());
-                // System.out.println("Pressure = " + obLev.getPres());
-                // System.out.println("Dewpoint = " + obLev.getDwpt());
-                // System.out.println("Height = " + obLev.getHght());
-                // System.out.println("Wind direction = " + obLev.getDrct());
-                // System.out.println("Wind speed in m/s= " + obLev.getSped());
-                try {
-                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-                    /*
-                     * (Non-Javadoc) The units for each quantity are chosen
-                     * based upon the units defined for these quantities in the
-                     * pointdata description file for NcUair
-                     */
-                    AirTemperature airTemp = new AirTemperature();
-                    airTemp.setValue(new Amount(obLev.getTemp(), SI.CELSIUS));
-                    DewPointTemp dewPoint = new DewPointTemp();
-                    dewPoint.setValue(new Amount(obLev.getDwpt(), SI.CELSIUS));
-                    HeightAboveSeaLevel height = new HeightAboveSeaLevel();
-                    height.setValue(obLev.getHght(), SI.METER);
-
-                    // System.out.println("Sounding layer height =  " +
-                    // sndLayer.getGeoHeight().doubleValue() );
-                    PressureLevel pressure = new PressureLevel();
-                    pressure.setValue(new Amount(obLev.getPres(),
-                            NcUnits.MILLIBAR));
-
-                    WindDirection windDirection = new WindDirection();
-                    windDirection.setValue(obLev.getDrct(), NonSI.DEGREE_ANGLE);
-                    WindSpeed windSpeed = new WindSpeed();
-                    float speed = obLev.getSped();
-
-                    /*
-                     * ( Non-Javadoc ) There are no negative speed values
-                     * decoded except for either -999 or -9999 to indicate that
-                     * the speed is missing. The check for the positive speed
-                     * value ensures that the unit conversion happens for
-                     * non-missing speed values.
-                     */
-                    if (speed >= 0) {
-                        double convertedSpeed = metersPerSecondToKnots
-                                .convert(speed);
-                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-                    } else {
-                        windSpeed.setValueToMissing();
-                    }
-
-                    // System.out.println("\nFrom MetParameters:");
-                    // System.out.println("Temperature = " +
-                    // airTemp.getValue().floatValue());
-                    // System.out.println("Pressure = " +
-                    // pressure.getValue().floatValue());
-                    // System.out.println("Dewpoint = " +
-                    // dewPoint.getValue().floatValue());
-                    // System.out.println("Height = " +
-                    // height.getValue().floatValue());
-                    // System.out.println("Wind direction = " +
-                    // windDirection.getValue().floatValue());
-                    // System.out.println("Wind speed = " +
-                    // windSpeed.getValue().floatValue());
-                    sndLayer.setTemperature(airTemp);
-                    sndLayer.setPressure(pressure);
-                    sndLayer.setDewpoint(dewPoint);
-                    sndLayer.setGeoHeight(height);
-                    sndLayer.setWindDirection(windDirection);
-                    sndLayer.setWindSpeed(windSpeed);
-                    sndLayers.add(sndLayer);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        // System.out.println("ObsLevel="+obLevels.size()+" sndLayers="+sndLayers.size());
-        return sndLayers;
-    }
+//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordObsLevel(
+//            NcUairRecord record) {
+//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+//        Set<NcUairObsLevels> obLevels = record.getObsLevels();
+//
+//        // System.out.println("The datatype for this record is: " +
+//        // record.getDataType() );
+//        if (obLevels.size() > 0) {
+//            for (NcUairObsLevels obLev : obLevels) {
+//                // System.out.println("\n\nFrom NcUairObsLevel:");
+//                // System.out.println("Temperature = " + obLev.getTemp());
+//                // System.out.println("Pressure = " + obLev.getPres());
+//                // System.out.println("Dewpoint = " + obLev.getDwpt());
+//                // System.out.println("Height = " + obLev.getHght());
+//                // System.out.println("Wind direction = " + obLev.getDrct());
+//                // System.out.println("Wind speed in m/s= " + obLev.getSped());
+//                try {
+//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+//                    /*
+//                     * (Non-Javadoc) The units for each quantity are chosen
+//                     * based upon the units defined for these quantities in the
+//                     * pointdata description file for NcUair
+//                     */
+//                    AirTemperature airTemp = new AirTemperature();
+//                    airTemp.setValue(new Amount(obLev.getTemp(), SI.CELSIUS));
+//                    DewPointTemp dewPoint = new DewPointTemp();
+//                    dewPoint.setValue(new Amount(obLev.getDwpt(), SI.CELSIUS));
+//                    HeightAboveSeaLevel height = new HeightAboveSeaLevel();
+//                    height.setValue(obLev.getHght(), SI.METER);
+//
+//                    // System.out.println("Sounding layer height =  " +
+//                    // sndLayer.getGeoHeight().doubleValue() );
+//                    PressureLevel pressure = new PressureLevel();
+//                    pressure.setValue(new Amount(obLev.getPres(),
+//                            NcUnits.MILLIBAR));
+//
+//                    WindDirection windDirection = new WindDirection();
+//                    windDirection.setValue(obLev.getDrct(), NonSI.DEGREE_ANGLE);
+//                    WindSpeed windSpeed = new WindSpeed();
+//                    float speed = obLev.getSped();
+//
+//                    /*
+//                     * ( Non-Javadoc ) There are no negative speed values
+//                     * decoded except for either -999 or -9999 to indicate that
+//                     * the speed is missing. The check for the positive speed
+//                     * value ensures that the unit conversion happens for
+//                     * non-missing speed values.
+//                     */
+//                    if (speed >= 0) {
+//                        double convertedSpeed = metersPerSecondToKnots
+//                                .convert(speed);
+//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+//                    } else {
+//                        windSpeed.setValueToMissing();
+//                    }
+//
+//                    // System.out.println("\nFrom MetParameters:");
+//                    // System.out.println("Temperature = " +
+//                    // airTemp.getValue().floatValue());
+//                    // System.out.println("Pressure = " +
+//                    // pressure.getValue().floatValue());
+//                    // System.out.println("Dewpoint = " +
+//                    // dewPoint.getValue().floatValue());
+//                    // System.out.println("Height = " +
+//                    // height.getValue().floatValue());
+//                    // System.out.println("Wind direction = " +
+//                    // windDirection.getValue().floatValue());
+//                    // System.out.println("Wind speed = " +
+//                    // windSpeed.getValue().floatValue());
+//                    sndLayer.setTemperature(airTemp);
+//                    sndLayer.setPressure(pressure);
+//                    sndLayer.setDewpoint(dewPoint);
+//                    sndLayer.setGeoHeight(height);
+//                    sndLayer.setWindDirection(windDirection);
+//                    sndLayer.setWindSpeed(windSpeed);
+//                    sndLayers.add(sndLayer);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        // System.out.println("ObsLevel="+obLevels.size()+" sndLayers="+sndLayers.size());
+//        return sndLayers;
+//    }
     private static List<NcSoundingLayer> getSndLayersFromNcUairRecordTrop(
             NcUairRecord record) {
         List<NcSoundingLayer> sndLayers = new ArrayList<NcSoundingLayer>();
@@ -1603,58 +1621,58 @@ public class ObsSoundingQuery {
         return sndLayers;
     }
 
-    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordTrop(
-            NcUairRecord record) {
-        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-        Set<NcUairTropopause> trops = record.getTropopause();
-        if (trops.size() > 0) {
-            for (NcUairTropopause trop : trops) {
-                try {
-                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-                    /*
-                     * (Non-Javadoc) The units for each quantity are chosen
-                     * based upon the units defined for these quantities in the
-                     * pointdata description file for NcUair
-                     */
-                    AirTemperature airTemp = new AirTemperature();
-                    airTemp.setValue(new Amount(trop.getTemp(), SI.CELSIUS));
-                    DewPointTemp dewPoint = new DewPointTemp();
-                    dewPoint.setValue(new Amount(trop.getDwpt(), SI.CELSIUS));
-                    PressureLevel pressure = new PressureLevel();
-                    pressure.setValue(new Amount(trop.getPres(),
-                            NcUnits.MILLIBAR));
-                    WindDirection windDirection = new WindDirection();
-                    windDirection.setValue(trop.getDrct(), NonSI.DEGREE_ANGLE);
-                    WindSpeed windSpeed = new WindSpeed();
-                    float speed = trop.getSped();
-                    /*
-                     * ( Non-Javadoc ) There are no negative speed values
-                     * decoded except for either -999 or -9999 to indicate that
-                     * the speed is missing. The check for the positive speed
-                     * value ensures that the unit conversion happens for
-                     * non-missing speed values.
-                     */
-                    if (speed >= 0) {
-                        double convertedSpeed = metersPerSecondToKnots
-                                .convert(speed);
-                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-                    } else {
-                        windSpeed.setValueToMissing();
-                    }
-                    sndLayer.setTemperature(airTemp);
-                    sndLayer.setPressure(pressure);
-                    sndLayer.setDewpoint(dewPoint);
-                    sndLayer.setWindDirection(windDirection);
-                    sndLayer.setWindSpeed(windSpeed);
-                    sndLayers.add(sndLayer);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        // System.out.println("trops="+trops.size()+" sndLayers="+sndLayers.size());
-        return sndLayers;
-    }
+//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordTrop(
+//            NcUairRecord record) {
+//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+//        Set<NcUairTropopause> trops = record.getTropopause();
+//        if (trops.size() > 0) {
+//            for (NcUairTropopause trop : trops) {
+//                try {
+//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+//                    /*
+//                     * (Non-Javadoc) The units for each quantity are chosen
+//                     * based upon the units defined for these quantities in the
+//                     * pointdata description file for NcUair
+//                     */
+//                    AirTemperature airTemp = new AirTemperature();
+//                    airTemp.setValue(new Amount(trop.getTemp(), SI.CELSIUS));
+//                    DewPointTemp dewPoint = new DewPointTemp();
+//                    dewPoint.setValue(new Amount(trop.getDwpt(), SI.CELSIUS));
+//                    PressureLevel pressure = new PressureLevel();
+//                    pressure.setValue(new Amount(trop.getPres(),
+//                            NcUnits.MILLIBAR));
+//                    WindDirection windDirection = new WindDirection();
+//                    windDirection.setValue(trop.getDrct(), NonSI.DEGREE_ANGLE);
+//                    WindSpeed windSpeed = new WindSpeed();
+//                    float speed = trop.getSped();
+//                    /*
+//                     * ( Non-Javadoc ) There are no negative speed values
+//                     * decoded except for either -999 or -9999 to indicate that
+//                     * the speed is missing. The check for the positive speed
+//                     * value ensures that the unit conversion happens for
+//                     * non-missing speed values.
+//                     */
+//                    if (speed >= 0) {
+//                        double convertedSpeed = metersPerSecondToKnots
+//                                .convert(speed);
+//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+//                    } else {
+//                        windSpeed.setValueToMissing();
+//                    }
+//                    sndLayer.setTemperature(airTemp);
+//                    sndLayer.setPressure(pressure);
+//                    sndLayer.setDewpoint(dewPoint);
+//                    sndLayer.setWindDirection(windDirection);
+//                    sndLayer.setWindSpeed(windSpeed);
+//                    sndLayers.add(sndLayer);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        // System.out.println("trops="+trops.size()+" sndLayers="+sndLayers.size());
+//        return sndLayers;
+//    }
 
     private static List<NcSoundingLayer> getSndLayersFromNcUairRecordMaxw(
             NcUairRecord record) {
@@ -1677,58 +1695,58 @@ public class ObsSoundingQuery {
         return sndLayers;
     }
 
-    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordMaxw(
-            NcUairRecord record) {
-        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-        Set<NcUairMaxWind> maxWinds = record.getMaxWind();
-        if (maxWinds.size() > 0) {
-            /*
-             * (Non-Javadoc) The units for each quantity are chosen based upon
-             * the units defined for these quantities in the pointdata
-             * description file for NcUair
-             */
-            for (NcUairMaxWind maxWind : maxWinds) {
-                try {
-                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-                    PressureLevel pressure = new PressureLevel();
-                    // pressure.setValueAs(maxWind.getPres(), "hPa" );
-                    pressure.setValue(new Amount(maxWind.getPres(),
-                            NcUnits.MILLIBAR));
-                    WindDirection windDirection = new WindDirection();
-                    windDirection.setValue(maxWind.getDrct(),
-                            NonSI.DEGREE_ANGLE);
-                    WindSpeed windSpeed = new WindSpeed();
-                    float speed = maxWind.getSped();
-                    /*
-                     * ( Non-Javadoc ) There are no negative speed values
-                     * decoded except for either -999 or -9999 to indicate that
-                     * the speed is missing. The check for the positive speed
-                     * value ensures that the unit conversion happens for
-                     * non-missing speed values.
-                     */
-                    if (speed >= 0) {
-                        double convertedSpeed = metersPerSecondToKnots
-                                .convert(speed);
-                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-                    } else {
-                        windSpeed.setValueToMissing();
-                    }
-                    sndLayer.setPressure(pressure);
-                    sndLayer.setWindDirection(windDirection);
-                    sndLayer.setWindSpeed(windSpeed);
-                    sndLayers.add(sndLayer);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        // System.out.println("maxWinds="+maxWinds.size()+" sndLayers="+sndLayers.size());
-        return sndLayers;
-    }
+//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordMaxw(
+//            NcUairRecord record) {
+//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+//        Set<NcUairMaxWind> maxWinds = record.getMaxWind();
+//        if (maxWinds.size() > 0) {
+//            /*
+//             * (Non-Javadoc) The units for each quantity are chosen based upon
+//             * the units defined for these quantities in the pointdata
+//             * description file for NcUair
+//             */
+//            for (NcUairMaxWind maxWind : maxWinds) {
+//                try {
+//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+//                    PressureLevel pressure = new PressureLevel();
+//                    // pressure.setValueAs(maxWind.getPres(), "hPa" );
+//                    pressure.setValue(new Amount(maxWind.getPres(),
+//                            NcUnits.MILLIBAR));
+//                    WindDirection windDirection = new WindDirection();
+//                    windDirection.setValue(maxWind.getDrct(),
+//                            NonSI.DEGREE_ANGLE);
+//                    WindSpeed windSpeed = new WindSpeed();
+//                    float speed = maxWind.getSped();
+//                    /*
+//                     * ( Non-Javadoc ) There are no negative speed values
+//                     * decoded except for either -999 or -9999 to indicate that
+//                     * the speed is missing. The check for the positive speed
+//                     * value ensures that the unit conversion happens for
+//                     * non-missing speed values.
+//                     */
+//                    if (speed >= 0) {
+//                        double convertedSpeed = metersPerSecondToKnots
+//                                .convert(speed);
+//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+//                    } else {
+//                        windSpeed.setValueToMissing();
+//                    }
+//                    sndLayer.setPressure(pressure);
+//                    sndLayer.setWindDirection(windDirection);
+//                    sndLayer.setWindSpeed(windSpeed);
+//                    sndLayers.add(sndLayer);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        // System.out.println("maxWinds="+maxWinds.size()+" sndLayers="+sndLayers.size());
+//        return sndLayers;
+//    }
 	
     public static NcSoundingCube handleNcuairDataRequest(SoundingServiceRequest request){
-		SoundingRequestType reqType = request.getReqType();
-		SoundingType sndType = request.getSndType();
+//		SoundingRequestType reqType = request.getReqType();
+//		SoundingType sndType = request.getSndType();
 		String[]  refTimeStrLst = request.getRefTimeStrAry();
 		if(refTimeStrLst == null)
 			refTimeStrLst =QueryMiscTools.convertTimeLongArrayToStrArray(request.getRefTimeAry());
@@ -1736,7 +1754,7 @@ public class ObsSoundingQuery {
 				refTimeStrLst, request.getRefTimeAry(), request.getLevel(), request.isPwRequired());
         if (uairRecordArrList != null && uairRecordArrList.size() > 0) {
         	List<NcSoundingProfile> soundingProfileList = ObsSoundingQuery.processQueryReturnedNcUairData(
-                    uairRecordArrList, request.isUseNcSoundingLayer2(),request.isMerge(),request.getLevel());
+                    uairRecordArrList, /*request.isUseNcSoundingLayer2()*/request.isMerge(),request.getLevel(),request.isPwRequired());
         	NcSoundingCube cube = new NcSoundingCube();
         	cube.setSoundingProfileList(soundingProfileList);
         	cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);

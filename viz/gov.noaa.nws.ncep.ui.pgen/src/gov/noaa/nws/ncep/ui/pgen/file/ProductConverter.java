@@ -137,6 +137,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/14        TTR716      J. Wu       Use "-" for GFA Outlook's Vor text.
  * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
  * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
+ * 08/05		R8879		B. Yin		Check Outlook/Contour by type
  * 
  * </pre>
  * 
@@ -1566,10 +1567,10 @@ public class ProductConverter {
                 }
             } else if (adc instanceof DECollection) {
 
-                if (adc.getName().equalsIgnoreCase("Contours")) {
-                    fde.getContours().add(convertContours2XML((Contours) adc));
-                } else if (adc.getName().equalsIgnoreCase("Outlook")) {
-                    fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
+                if (adc instanceof Outlook){
+                	 fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
+                } else if (adc instanceof Contours)  {
+                	 fde.getContours().add(convertContours2XML((Contours) adc));
                 } else {
                     fde.getDECollection().add(
                             convertDECollection2XML((DECollection) adc));

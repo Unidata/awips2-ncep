@@ -39,49 +39,6 @@
         <source>PREDEFINED_AREA</source>
         <areaName>Alaska</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Hawaii</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Caribbean</areaName>
-    </AreaMenuItem>
-
-    <AreaMenuItem subMenuName="Atlantic" menuName="ICAO-B">
-        <source>PREDEFINED_AREA</source>
-        <areaName>ICAO-B</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="Western">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-Western</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="North">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-North</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="Tropical">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-Tropical</areaName>
-    </AreaMenuItem>
-    
-    <AreaMenuItem subMenuName="Pacific" menuName="Eastern">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-Eastern</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="North">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-North</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="Tropical">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-Tropical</areaName>
-    </AreaMenuItem>
-
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Canada</areaName>
-    </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="Europe">
         <source>PREDEFINED_AREA</source>
         <areaName>Europe</areaName>

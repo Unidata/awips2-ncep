@@ -355,7 +355,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                                 perspectiveWindow.getShell(), "Warning", null,
                                 msgBuf.toString(), MessageDialog.WARNING,
                                 new String[] { "OK" }, 0);
-                        warnDlg.open();
+                        //warnDlg.open();
                     }
                 });
             }

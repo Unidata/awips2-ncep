@@ -29,7 +29,8 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * 
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- --------------------------
- * Sep 9, 2014    R4508       sgurung    Initial creation
+ * Sep 9, 2014    R4508       sgurung    Initial creation   
+ * Mar 12, 2015   R6920       sgurung    Modified javaDoc for method getGhcdDataItems()
  * 
  * </pre>
  * 
@@ -48,17 +49,23 @@ public class GhcdUtil {
     public static final String TITLE_POSITION_RIGHT = "Right";
 
     /**
-     * Retrieves list of GenericHighCadenceDataItem records for a list of
-     * station codes, start date and end date. <br>
      * 
-     * @param stationCodes
-     *            A list of station codes
-     * @param startTime
-     *            start date
-     * @param endTime
-     *            end date
+     * Retrieves a list of GenericHighCadenceDataItem records
+     * 
+     * @param refTimeList
+     *            The list of reference times
+     * @param source
+     *            The source
+     * @param dataResolUnits
+     *            The data resolution unit
+     * @param dataResolVal
+     *            The data resolution value
+     * @param instrument
+     *            The instrument
+     * @param datatype
+     *            The data type
      * @return List of GenericHighCadenceDataItem records
-     * @throws GeoMagTimeSeriesDataException
+     * @throws VizException
      */
     public static List<GenericHighCadenceDataItem> getGhcdDataItems(
             List<Date> refTimes, String source, String instrument,

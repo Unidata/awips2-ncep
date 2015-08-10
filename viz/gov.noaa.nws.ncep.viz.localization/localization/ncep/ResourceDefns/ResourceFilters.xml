@@ -714,19 +714,16 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-40km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="NamDNG5">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NamDNG">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS">
 <filters>Global,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS-NH">
-<filters>NCEP</filters>
-</ResourceDefinitionFilter>
-<!--
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="CMC">
 <filters>CONUS</filters>
 </ResourceDefinitionFilter>
+<!--
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAVGEM">
 <filters>Global,Ocean,FNMOC</filters>
 </ResourceDefinitionFilter>
@@ -752,7 +749,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-12km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="NAM-5km">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="NAM-4km">
 <filters>CONUS,NCEP</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM-40km">
@@ -778,10 +775,10 @@
 <filters>NCEP</filters>
 </ResourceDefinitionFilter>
 -->
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA-2p5km">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA">
 <filters>Analysis,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA-5km">
 <filters>Analysis,NCEP</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NIDS">

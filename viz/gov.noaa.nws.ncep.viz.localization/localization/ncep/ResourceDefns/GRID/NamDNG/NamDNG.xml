@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="http://www.example.org/productType">
-    <resourceDefnName>RTMA-2p5km</resourceDefnName>
+    <resourceDefnName>NamDNG</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
@@ -9,11 +9,11 @@
     <frameSpan>60</frameSpan>
     <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>
-    <dfltTimeRange>24</dfltTimeRange>
+    <dfltTimeRange>384</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
     <resourceParameters>
 pluginName=grid
-GDFILE=RTMA-2p5km
+GDFILE=NamDNG
 
 </resourceParameters>
     <inventoryEnabled>true</inventoryEnabled>

@@ -246,9 +246,6 @@ public class ResourceSelectionControl extends Composite {
     	fd.top = new FormAttachment( 0, 20 );
         fd.left = new FormAttachment(0, 10);
         fd.right = new FormAttachment( 15, 0 );
-
-
-        // This allows a resize to change the size of the lists.
     	fd.bottom = new FormAttachment( 100, -75 );
         rscCatLViewer.getList().setLayoutData(fd);
 
@@ -267,20 +264,16 @@ public class ResourceSelectionControl extends Composite {
         fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
     	fd.right = new FormAttachment( 37, 0 );
-    	//fd.width = 150;
-
+    	fd.width = 180;
         fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0, SWT.BOTTOM);
         rscTypeLViewer.getList().setLayoutData(fd);
-
+        
         rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
     	rscTypeLbl.setText("Source");
         fd = new FormData();
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
         fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -2, SWT.TOP);
-
         rscTypeLbl.setLayoutData(fd);
-
-
 
         // first create the lists and then attach the label to the top of them
         rscGroupLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
@@ -289,7 +282,7 @@ public class ResourceSelectionControl extends Composite {
         fd.height = rscListViewerHeight;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
-    	fd.width = 120;
+    	fd.width = 180;
         fd.bottom = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.BOTTOM);
         rscGroupLViewer.getList().setLayoutData(fd);
 
@@ -325,7 +318,6 @@ public class ResourceSelectionControl extends Composite {
         fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
 
-    	
     	filterCombo = new Combo( sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY );
         fd = new FormData();
     	fd.width = 130;
@@ -340,80 +332,46 @@ public class ResourceSelectionControl extends Composite {
     	fd.bottom = new FormAttachment( filterCombo, -3, SWT.TOP );
     	filt_lbl.setLayoutData( fd );
     	
-    	
        	seldRscNameTxt = new Text( sel_rsc_comp, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
-//    	fd = new FormData(360,20);
-    	fd = new FormData(200,20);
-    	//   	fd.bottom = new FormAttachment( 100, -50 ); // change to addResourceBtn
+    	fd = new FormData(400,20);
     	fd.top = new FormAttachment( rscCatLViewer.getList(), 40, SWT.BOTTOM );
     	fd.left = new FormAttachment( filterCombo, 10, SWT.RIGHT );
         seldRscNameTxt.setLayoutData(fd);
     	seldRscNameTxt.setEnabled( false );
 
-
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
-
         fd = new FormData();
         fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
         fd.right = new FormAttachment( 100, -10 );
-        // fd.left = new FormAttachment( seldRscNameTxt, 75, SWT.RIGHT );
-        // fd.bottom = new FormAttachment( 100, -10 );
         addResourceBtn.setLayoutData(fd);
     	addResourceBtn.setText( "   Add   " ); // Add To RBD
     	
-    	
-        /*
-        can_btn = new Button( sel_rsc_comp, SWT.PUSH );
-        can_btn.setText("  Cancel  ");
-        fd = new FormData();    	
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-        fd.right = new FormAttachment( addResourceBtn, -10, SWT.LEFT  );
-    	can_btn.setLayoutData( fd );
-    	*/
-    	/*
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-    	replaceResourceBtn.setText( " Replace " ); // ie Modify 
-
-        // both for now unless we change it to be one or the other
-        // addResourceBtn.setVisible( !replaceBtnVisible );
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-    	*/
-
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
         fd = new FormData();
         fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
     	fd.top  = new FormAttachment( addResourceBtn, 0, SWT.TOP );
         addToAllPanesBtn.setLayoutData(fd);
         addToAllPanesBtn.setText("Add To All Panes");
-
         addToAllPanesBtn.setVisible(multiPane);
 
+        cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
+        cycleTimeLbl.setText("Cycle Time");
+        fd = new FormData();
+    	fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 10, SWT.BOTTOM);
+        cycleTimeLbl.setLayoutData(fd);
+        
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
         // fd.left = new FormAttachment( addResourceBtn, 30, SWT.RIGHT );
     	//fd.left = new FormAttachment( 55, 0 );
         //fd.right = new FormAttachment( can_btn, -10, SWT.LEFT  );
-        fd.width = 130;
-        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-    	fd.right = new FormAttachment( 100, -20 );
+        fd.width = 150;
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
+    	fd.left = new FormAttachment( cycleTimeLbl, 10, SWT.RIGHT );
         // fd.bottom = new FormAttachment( 100, -10 );
-
         cycleTimeCombo.setLayoutData(fd);
-
-        cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
-        cycleTimeLbl.setText("Cycle Time");
-        fd = new FormData();
-    	//fd.left = new FormAttachment( cycleTimeCombo, 0, SWT.LEFT );
-        fd.right = new FormAttachment( cycleTimeCombo, -10, SWT.LEFT  );
-        //fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
-
-    	fd.bottom = new FormAttachment( cycleTimeCombo, -5, SWT.BOTTOM );
-        cycleTimeLbl.setLayoutData(fd);
     }
 
     private void setContentProviders() {
@@ -1378,7 +1336,7 @@ public class ResourceSelectionControl extends Composite {
                     NcDisplayMngr.getCaveShell(), "Error", null,
                     "Error Requesting Cycle Times:" + ve.getMessage(),
                     MessageDialog.ERROR, new String[] { "OK" }, 0);
-            errDlg.open();
+            //errDlg.open();
             return;
         }
 

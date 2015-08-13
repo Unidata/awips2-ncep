@@ -1296,11 +1296,9 @@ public class ResourceDefnsMngr {
     }
 
     // map the Full Resource Name to the location of the resource bundle
-    // template file
-    // for the resource.
+    // template file for the resource.
     // The rsc name is the RBD Category/Type/Group/AttributeSet. The fcst/obs is
-    // not saved
-    // so we try both to find a match.
+    // not saved so we try both to find a match.
     public File getRscBundleTemplateFile(String rscType) {
         ResourceDefinition rscDefn = getResourceDefinition(rscType);
 

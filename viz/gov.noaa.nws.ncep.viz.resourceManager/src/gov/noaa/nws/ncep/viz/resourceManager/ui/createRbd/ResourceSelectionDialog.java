@@ -88,7 +88,7 @@ public class ResourceSelectionDialog extends Dialog {
         shell.setLayout(mainLayout);
 
         Group sel_rscs_grp = new Group(shell, SWT.SHADOW_NONE);
-        sel_rscs_grp.setText("Select Resources");
+        //sel_rscs_grp.setText("Select Resources");
         sel_rscs_grp.setLayout(new GridLayout(1, true));
 
         GridData gd = new GridData();

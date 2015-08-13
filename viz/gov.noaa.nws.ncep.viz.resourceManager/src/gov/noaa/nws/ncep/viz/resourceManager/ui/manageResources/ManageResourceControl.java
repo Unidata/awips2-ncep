@@ -107,7 +107,7 @@ public class ManageResourceControl extends Composite {
         sashForm.setSashWidth(10);
                 
         selRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
-        selRscGrp.setText("Select Resource");
+        //selRscGrp.setText("Select Resource");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;

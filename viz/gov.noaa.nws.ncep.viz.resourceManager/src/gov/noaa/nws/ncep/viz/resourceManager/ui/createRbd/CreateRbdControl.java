@@ -357,7 +357,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         createRBDGroup();
 
         timeline_grp = new Group(sash_form, SWT.SHADOW_NONE);
-        timeline_grp.setText("Select Timeline");
+        //timeline_grp.setText("Select Timeline");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -403,7 +403,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         Composite loadSaveComp = new Composite(top_comp, SWT.NONE);
         gd = new GridData();
-        gd.minimumHeight = 40;
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
         gd.horizontalAlignment = SWT.FILL;
@@ -469,7 +468,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                                            // configureForEditRbd is called
         ok_edit_btn.setVisible(false);
 
-        sash_form.setWeights(new int[] { 50, 35 });
+        sash_form.setWeights(new int[] { 100, 60 });
 
         // set up the content providers for the ListViewers
         setContentProviders();
@@ -503,34 +502,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     // of the sashForm.
     //
     private void createRBDGroup() {
-
-
         import_lbl = new Label(rbd_grp, SWT.None);
-        /*
-        import_lbl.setText(ImportFromSPF);
-        form_data = new FormData();
-     	form_data.left = new FormAttachment( import_rbd_btn, 0, SWT.LEFT );
-    	form_data.bottom = new FormAttachment( import_rbd_btn, -3, SWT.TOP );
-        import_lbl.setLayoutData(form_data);
-    	*/
-
     	rbd_name_txt = "";
-    	/*
-        rbd_name_txt = new Text(rbd_grp, SWT.SINGLE | SWT.BORDER);
-        form_data = new FormData(200, 20);
-        form_data.left = new FormAttachment(import_rbd_combo, 25, SWT.RIGHT);
-        form_data.top = new FormAttachment(import_rbd_combo, 0, SWT.TOP);
-        rbd_name_txt.setLayoutData(form_data);
-
-        rbd_name_lbl = new Label(rbd_grp, SWT.None);
-        rbd_name_lbl.setText("Bundle Name");
-        form_data = new FormData();
-        form_data.width = 180;
-        form_data.left = new FormAttachment(rbd_name_txt, 0, SWT.LEFT);
-        form_data.bottom = new FormAttachment(rbd_name_txt, -3, SWT.TOP);
-        rbd_name_lbl.setLayoutData(form_data);
-    	*/
-    	
     	// Import
     	import_rbd_btn = new Button( rbd_grp, SWT.PUSH );
     	import_rbd_btn.setText("Import");
@@ -555,84 +528,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 NcDisplayType.SOLAR_DISPLAY.getName(),
                 NcDisplayType.GRAPH_DISPLAY.getName() });
     	
-    	// AREA
-    	//createAreaGroup();
-        /*
-        ToolBar areaTBar = new ToolBar(rbd_grp, SWT.SHADOW_OUT|SWT.HORIZONTAL|SWT.RIGHT|SWT.WRAP);
-    	form_data = new FormData();
-    	form_data.left = new FormAttachment( disp_type_combo, 10, SWT.RIGHT );
-    	form_data.top  = new FormAttachment( 0, 10 );
-    	form_data.width = 100;
-    	form_data.height = 30;
-    	areaTBar.setLayoutData( form_data );
-    	
-    	this.addDisposeListener( new DisposeListener() {			
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				if( areaFont != null ) {
-					areaFont.dispose();
-				}
-			}
-		});
-    	
-    	areaTItm = new ToolItem(areaTBar, SWT.DROP_DOWN);    	
-    	areaMenuMngr = new MenuManager("CreateRbdControl");
-    	areaMenuMngr.setRemoveAllWhenShown( true );
-    	final Menu areaCtxMenu = areaMenuMngr.createContextMenu( shell );
-    	
-    	areaCtxMenu.setVisible( false );
-    	rbd_grp.setMenu( areaCtxMenu );
-    	
-    	areaMenuMngr.addMenuListener( new IMenuListener() {
-			@Override
-			public void menuAboutToShow(IMenuManager amngr) {				
-				createAvailAreaMenuItems( amngr );
-			}
-		});
-    	
-    	// Main toolbar button clicked:  show the areas popup menu at 
-    	// the location of the toolbar so it appears like a combo 
-    	// dropdown. This will also trigger the menu manager to create 
-    	// the menu items for the available areas. 
-    	areaTItm.addListener(SWT.Selection, new Listener() {
-        	public void handleEvent(Event event) {
-        		ToolItem ti = ((ToolItem)event.widget);
-        		Rectangle bounds = ti.getBounds();
-        		Point point = ((ToolBar)ti.getParent()).toDisplay(bounds.x, bounds.y + bounds.height);
-        		
-        		areaCtxMenu.setLocation(point);
-        		areaCtxMenu.setVisible(true);
-        	}
-        });
-        
-        */
-    	
-    	// 2 Composites. 1 for when a predefined area is selected which will show the
-    	// projection and map center. And 1 for when a satellite resource is selected which
-    	// will let the user select either FitToScreen or SizeOfImage
-    	//
-        /*
-    	geo_area_info_comp = new Composite( rbd_grp, SWT.NONE );
-    	geo_area_info_comp.setLayout( new FormLayout() );
-    	rsc_area_opts_comp = new Composite( rbd_grp, SWT.NONE );
-    	rsc_area_opts_comp.setLayout( new GridLayout(1,true) );
-    	
-    	geo_area_info_comp.setVisible( true );
-    	rsc_area_opts_comp.setVisible( false );
-
-        form_data = new FormData();
-    	form_data.left = new FormAttachment( 0, 10 );
-    	form_data.top  = new FormAttachment( areaTBar, 15, SWT.BOTTOM );
-    	form_data.right = new FormAttachment( 100, -10 );
-
-    	// both overlap each other since only one visible at a time
-    	geo_area_info_comp.setLayoutData( form_data );
-    	
-    	form_data.top  = new FormAttachment( areaTBar, 30, SWT.BOTTOM );
-    	rsc_area_opts_comp.setLayoutData( form_data );
-        
-    	*/
-
     	// Multi-Pane Checkbox
         multi_pane_tog = new Button(rbd_grp, SWT.CHECK);
         multi_pane_tog.setText("Multi-Pane");
@@ -844,9 +739,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         form_data = new FormData();
     	form_data.top = new FormAttachment( 0, 10 );
-    	form_data.right = new FormAttachment( 100, -5 );
+    	form_data.right = new FormAttachment( 100, -10 );
     	form_data.left = new FormAttachment( 0, 95);//-110 ); //80, 0 );
-    	form_data.bottom = new FormAttachment( 100, -40 );
+    	form_data.bottom = new FormAttachment( 100, -10 );
         seld_rscs_lviewer.getList().setLayoutData(form_data);
 
         //
@@ -915,15 +810,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     	form_data.right  = new FormAttachment( disable_rsc_btn, 0, SWT.RIGHT);
         move_up_btn.setLayoutData(form_data);
         move_up_btn.setEnabled(false);
-
-        Button edit_span_btn = new Button(seld_rscs_grp, SWT.PUSH);
-        edit_span_btn.setText("Bin");
-        form_data = new FormData();
-        form_data.width = 75;
-    	form_data.top = new FormAttachment( move_down_btn, 8, SWT.BOTTOM );
-    	form_data.left = new FormAttachment( 0, 10 );
-        edit_span_btn.setLayoutData(form_data);
-        edit_span_btn.setEnabled(false);
 
         seld_rscs_grp.pack(true);
 
@@ -2698,12 +2584,12 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         rbdMngr.setSelectedPaneId(seldPane);
 
-        if (rbdMngr.isMultiPane()) {
-            seld_rscs_grp.setText("Selected Resources for Pane "
-                    + seldPane.toString());
-        } else {
-            seld_rscs_grp.setText("Selected Resources");
-        }
+//        if (rbdMngr.isMultiPane()) {
+//            seld_rscs_grp.setText("Selected Resources for Pane "
+//                    + seldPane.toString());
+//        } else {
+//            seld_rscs_grp.setText("Selected Resources");
+//        }
 
         // implement radio behavior
         for (int r = 0; r < rbdMngr.getMaxPaneLayout().getRows(); r++) {
@@ -2844,11 +2730,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             StructuredSelection orig_sel_elems = (StructuredSelection) seld_rscs_lviewer
                     .getSelection();
-            System.out.println("BEFORE: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
             List<ResourceSelection> origSeldRscsList = (List<ResourceSelection>) orig_sel_elems
                     .toList();
-
-            System.out.println("MID: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
 
             // this is where list is reset to default BaseOverlay (GeoPolitical) rather than default RBD (State/County boundaries)
             seld_rscs_lviewer.setInput(rbdMngr.getUngroupedResources());
@@ -2869,8 +2752,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             seld_rscs_lviewer.setSelection(new StructuredSelection(
                     newSeldRscsList.toArray()), true);
-            System.out.println("AFTER: seld_rscs_lviewer: " + seld_rscs_lviewer.getList().getItemCount());
-
         }
 
         int numSeldRscs = seld_rscs_lviewer.getList().getSelectionCount();

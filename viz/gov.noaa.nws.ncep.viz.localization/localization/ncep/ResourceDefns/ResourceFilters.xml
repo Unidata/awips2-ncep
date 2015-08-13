@@ -781,7 +781,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA-5km">
 <filters>Analysis,NCEP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="NIDS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LocalRadar">
 <filters>Radar</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="FNEXRAD">
@@ -796,13 +796,10 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="POES-NPOESS">
 <filters>NIMAGE</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="LCI West">
-<filters>NIMAGE</filters>
-</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES 13 - GINI">
 <filters>NIMAGE</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="GINI_Composite">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_Composite">
 <filters>NIMAGE</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES 15 - GINI">
@@ -819,12 +816,6 @@
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES Sounder">
 <filters>UNIWISC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="LCI East">
-<filters>NIMAGE</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="false" rscDefnName="GINI_GOES10">
-<filters>NIMAGE</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_Miscellaneous">
 <filters>NIMAGE</filters>

@@ -74,7 +74,7 @@ public class ResourceEditSelectionComposite extends Composite {
 	
     private Composite sel_rsc_comp = null;
 
-    private Label rscTypeLbl = null;
+    //private Label rscTypeLbl = null;
     private Label rscTypeGroupLbl = null;
 
     private ListViewer rscCatLViewer = null;
@@ -88,7 +88,7 @@ public class ResourceEditSelectionComposite extends Composite {
     private Button removeRscTypeBtn = null;
     private Button enableRscTypeBtn = null;
     
-    private Label  rscGroupLocLbl  = null;
+    //private Label  rscGroupLocLbl  = null;
     private Button copyRscGroupBtn = null;
     private Button editRscGroupBtn = null;
     private Button removeRscGroupBtn = null;
@@ -190,74 +190,60 @@ public class ResourceEditSelectionComposite extends Composite {
     			             SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
     	FormData fd = new FormData();//100, rscListViewerHeight);
     	fd.height = rscListViewerHeight;
-    	fd.top = new FormAttachment( 0, 35 );
+    	fd.top = new FormAttachment( 0, 10 );
     	fd.left = new FormAttachment( 0, 10 );
-    	fd.bottom = new FormAttachment( 100, -130 );
-    	fd.right = new FormAttachment( 17, -3 );
+    	fd.bottom = new FormAttachment( 100, -100 );
+    	fd.right = new FormAttachment( 25, -3 );
     	rscCatLViewer.getList().setLayoutData( fd );
 
-    	Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
-    	rscCatLbl.setText("Category");
-    	fd = new FormData();
-    	fd.left = new FormAttachment( rscCatLViewer.getList(), 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( rscCatLViewer.getList(), -5, SWT.TOP );
-    	rscCatLbl.setLayoutData( fd );
-
-        
     	// first create the lists and then attach the label to the top of them
         rscTypeLViewer = new ListViewer( sel_rsc_comp, 
         		                  SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
     	fd = new FormData();//150, rscListViewerHeight);
     	fd.top = new FormAttachment( rscCatLViewer.getList(), 0, SWT.TOP );
-    	fd.left = new FormAttachment( 17, 3 );//rscCatLViewer.getList(), 10, SWT.RIGHT );
+    	fd.left = new FormAttachment( rscCatLViewer.getList(), 5, SWT.RIGHT );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
     	fd.bottom = new FormAttachment( rscCatLViewer.getList(), 0, SWT.BOTTOM );
-    	fd.right = new FormAttachment( 50, -3 );
+    	fd.width=180;
     	rscTypeLViewer.getList().setLayoutData( fd );
-
-        rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
-    	rscTypeLbl.setText("Resource Type");
-    	fd = new FormData();
-    	fd.left = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( rscTypeLViewer.getList(), -5, SWT.TOP );
     	
-    	rscTypeLbl.setLayoutData( fd );
+        copyRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
+        copyRscTypeBtn.setText("Copy");
+        fd = new FormData(70,25);
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 5, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.RIGHT );
+    	copyRscTypeBtn.setLayoutData( fd );
+        
+    	editRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
+        editRscTypeBtn.setText("Edit");
+        fd = new FormData(70,25);
+        fd.top = new FormAttachment( copyRscTypeBtn, 7, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.RIGHT );
+    	editRscTypeBtn.setLayoutData( fd );
+
+    	removeRscTypeBtn = new Button( sel_rsc_comp, SWT.PUSH );
+    	removeRscTypeBtn.setText("Delete");
+        fd = new FormData(70,25);
+        fd.top = new FormAttachment( editRscTypeBtn, 7, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.RIGHT );
+    	removeRscTypeBtn.setLayoutData( fd );
     	
     	rscTypeLocLbl = new Label(sel_rsc_comp, SWT.NONE);
     	rscTypeLocLbl.setText("Loc");
     	fd = new FormData();
-    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 6, SWT.BOTTOM );
+    	fd.top = new FormAttachment( rscTypeLViewer.getList(), 5, SWT.BOTTOM );
     	fd.left = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.LEFT );
     	fd.right = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.RIGHT );
     	rscTypeLocLbl.setLayoutData( fd );
     	
-        copyRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        copyRscTypeBtn.setText("Copy ...");
-        fd = new FormData(80,25);
-    	fd.top = new FormAttachment( rscTypeLocLbl, 10, SWT.BOTTOM );
-    	fd.left = new FormAttachment( rscTypeLViewer.getList(),  25, SWT.LEFT );
-    	copyRscTypeBtn.setLayoutData( fd );
-        
-    	editRscTypeBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        editRscTypeBtn.setText("Edit ...");
-        fd = new FormData(80,25);
-        fd.top = new FormAttachment( copyRscTypeBtn, 0, SWT.TOP );
-    	fd.right = new FormAttachment( rscTypeLViewer.getList(), -25, SWT.RIGHT );
-    	editRscTypeBtn.setLayoutData( fd );
+		enableRscTypeBtn = new Button( sel_rsc_comp, SWT.CHECK );
+		enableRscTypeBtn.setText("Enabled");
+		fd = new FormData(100,25);
+		fd.top = new FormAttachment( rscTypeLocLbl, 5, SWT.BOTTOM );
+    	fd.left = new FormAttachment( rscTypeLViewer.getList(),  0, SWT.LEFT );
+		enableRscTypeBtn.setLayoutData( fd );
+		
 
-    	removeRscTypeBtn = new Button( sel_rsc_comp, SWT.PUSH );
-    	removeRscTypeBtn.setText("Remove");
-        fd = new FormData(80,25);
-        fd.top = new FormAttachment( copyRscTypeBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( copyRscTypeBtn, 0, SWT.LEFT );
-    	removeRscTypeBtn.setLayoutData( fd );
-    	//removeRscTypeBtn.setEnabled( false ); // TODO : not implemented
-            	
-    	enableRscTypeBtn = new Button( sel_rsc_comp, SWT.CHECK );
-    	enableRscTypeBtn.setText("Enabled");
-        fd = new FormData(80,25);
-        fd.top = new FormAttachment( editRscTypeBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( editRscTypeBtn, 0, SWT.LEFT );
-    	enableRscTypeBtn.setLayoutData( fd );
+
     	
     	
     	// first create the lists and then attach the label to the top of them
@@ -265,46 +251,36 @@ public class ResourceEditSelectionComposite extends Composite {
         		                SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
     	fd = new FormData(); //150, rscListViewerHeight);
     	fd.top = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.TOP );
-    	fd.left = new FormAttachment( 50, 3 );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
+    	fd.left = new FormAttachment( rscTypeLViewer.getList(), 5, SWT.RIGHT );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
     	fd.bottom = new FormAttachment( rscTypeLViewer.getList(), 0, SWT.BOTTOM );
-    	fd.right = new FormAttachment( 75, -3);
+    	fd.width = 120;
     	rscGroupLViewer.getList().setLayoutData( fd );
-
-        rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscTypeGroupLbl.setText("Group"); // changed later depending on type
-    	fd = new FormData();
-    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.LEFT );
-    	fd.bottom = new FormAttachment( rscGroupLViewer.getList(), -5, SWT.TOP );
-    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
-    	rscTypeGroupLbl.setLayoutData( fd );
        	
-    	rscGroupLocLbl = new Label(sel_rsc_comp, SWT.NONE);
-    	rscGroupLocLbl.setText("Loc");
-    	fd = new FormData();
-    	fd.top = new FormAttachment( rscGroupLViewer.getList(), 6, SWT.BOTTOM );
-    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.LEFT );
-    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
-    	rscGroupLocLbl.setLayoutData( fd );
+//    	rscGroupLocLbl = new Label(sel_rsc_comp, SWT.NONE);
+//    	rscGroupLocLbl.setText("Loc");
+//    	fd = new FormData();
+//    	fd.top = new FormAttachment( rscGroupLViewer.getList(), 6, SWT.BOTTOM );
+//    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.LEFT );
+//    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
+//    	rscGroupLocLbl.setLayoutData( fd );
 
     	copyRscGroupBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        copyRscGroupBtn.setText("Copy ...");
-        fd = new FormData(100,25);
-    	fd.top = new FormAttachment( rscGroupLocLbl, 10, SWT.BOTTOM );
-    	fd.left = new FormAttachment( rscGroupLViewer.getList(), -50, SWT.CENTER );
+        copyRscGroupBtn.setText("Copy");
+        fd = new FormData(70,25);
+    	fd.top = new FormAttachment( rscGroupLViewer.getList(), 5, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
     	copyRscGroupBtn.setLayoutData( fd );
         
     	editRscGroupBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-    	editRscGroupBtn.setText("Edit ...");
-        fd = new FormData(100,25);
-//    	fd.top = new FormAttachment( rscGroupLViewer.getList(), 7, SWT.BOTTOM );
-//    	fd.left = new FormAttachment( rscGroupLViewer.getList(), -50, SWT.CENTER );
-        fd.top = new FormAttachment( copyRscGroupBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( copyRscGroupBtn, -50, SWT.CENTER );
+    	editRscGroupBtn.setText("Edit");
+        fd = new FormData(70,25);
+    	fd.top = new FormAttachment( copyRscGroupBtn, 5, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.RIGHT );
     	editRscGroupBtn.setLayoutData( fd );
 
     	removeRscGroupBtn = new Button( sel_rsc_comp, SWT.PUSH );
-    	removeRscGroupBtn.setText(" Remove ");
-        fd = new FormData(100,25);
+    	removeRscGroupBtn.setText("Delete");
+        fd = new FormData(70,25);
         fd.top = new FormAttachment( editRscGroupBtn, 7, SWT.BOTTOM );
     	fd.left = new FormAttachment( editRscGroupBtn, -50, SWT.CENTER );
     	removeRscGroupBtn.setLayoutData( fd );
@@ -315,18 +291,36 @@ public class ResourceEditSelectionComposite extends Composite {
                 SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
     	fd = new FormData();//150, rscListViewerHeight);
         fd.top = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.TOP );
-        fd.left = new FormAttachment( 75, 3 ); //rscGroupLViewer.getList(), 7, SWT.RIGHT );
+    	fd.left = new FormAttachment( rscGroupLViewer.getList(), 5, SWT.RIGHT );//rscTypeLViewer.getList(), 10, SWT.RIGHT );
         fd.right = new FormAttachment( 100, -10 );
         fd.bottom = new FormAttachment( rscGroupLViewer.getList(), 0, SWT.BOTTOM );
         rscAttrSetLViewer.getList().setLayoutData( fd );
-
-        Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscAttrsLbl.setText("Attributes");
-        fd = new FormData();
-        fd.left = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.LEFT );
-        fd.bottom = new FormAttachment( rscAttrSetLViewer.getList(), -5, SWT.TOP );
-        rscAttrsLbl.setLayoutData( fd );
         
+
+
+        copyRscAttrSetBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
+        copyRscAttrSetBtn.setText("Copy");
+        fd = new FormData(70,25);
+    	fd.top = new FormAttachment( rscAttrSetLViewer.getList(), 5, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.RIGHT );
+    	copyRscAttrSetBtn.setLayoutData( fd );
+        
+    	editRscAttrSetBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
+    	editRscAttrSetBtn.setText("Edit");
+        fd = new FormData(70,25);
+//    	fd.top = new FormAttachment( rscAttrSetLViewer.getList(), 7, SWT.BOTTOM );
+//    	fd.left = new FormAttachment( rscAttrSetLViewer.getList(), -50, SWT.CENTER );
+        fd.top = new FormAttachment( copyRscAttrSetBtn, 7, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.RIGHT );
+    	editRscAttrSetBtn.setLayoutData( fd );
+
+    	removeRscAttrSetBtn = new Button( sel_rsc_comp, SWT.PUSH );
+    	removeRscAttrSetBtn.setText("Delete");
+        fd = new FormData(70,25);
+        fd.top = new FormAttachment( editRscAttrSetBtn, 7, SWT.BOTTOM );
+    	fd.right = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.RIGHT );
+    	removeRscAttrSetBtn.setLayoutData( fd ); 
+    	
     	attrSetLocLbl = new Label(sel_rsc_comp, SWT.NONE);
     	attrSetLocLbl.setText("Loc");
     	fd = new FormData();
@@ -334,29 +328,6 @@ public class ResourceEditSelectionComposite extends Composite {
     	fd.left = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.LEFT );
     	fd.right = new FormAttachment( rscAttrSetLViewer.getList(), 0, SWT.RIGHT );
     	attrSetLocLbl.setLayoutData( fd );
-
-        copyRscAttrSetBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-        copyRscAttrSetBtn.setText("Copy ...");
-        fd = new FormData(100,25);
-    	fd.top = new FormAttachment( attrSetLocLbl, 10, SWT.BOTTOM );
-    	fd.left = new FormAttachment( rscAttrSetLViewer.getList(), -50, SWT.CENTER );
-    	copyRscAttrSetBtn.setLayoutData( fd );
-        
-    	editRscAttrSetBtn = new Button( sel_rsc_comp, SWT.TOGGLE );
-    	editRscAttrSetBtn.setText("Edit ...");
-        fd = new FormData(100,25);
-//    	fd.top = new FormAttachment( rscAttrSetLViewer.getList(), 7, SWT.BOTTOM );
-//    	fd.left = new FormAttachment( rscAttrSetLViewer.getList(), -50, SWT.CENTER );
-        fd.top = new FormAttachment( copyRscAttrSetBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( copyRscAttrSetBtn, -50, SWT.CENTER );
-    	editRscAttrSetBtn.setLayoutData( fd );
-
-    	removeRscAttrSetBtn = new Button( sel_rsc_comp, SWT.PUSH );
-    	removeRscAttrSetBtn.setText(" Remove ");
-        fd = new FormData(100,25);
-        fd.top = new FormAttachment( editRscAttrSetBtn, 7, SWT.BOTTOM );
-    	fd.left = new FormAttachment( editRscAttrSetBtn, -50, SWT.CENTER );
-    	removeRscAttrSetBtn.setLayoutData( fd );      
     }
 
     private void setContentProviders() {
@@ -384,15 +355,15 @@ public class ResourceEditSelectionComposite extends Composite {
 			public Object[] getElements(Object inputElement) {
 				
 				if( seldResourceName.getRscCategory() == ResourceCategory.NullCategory ) {
-					rscTypeLbl.setText("");
+					//rscTypeLbl.setText("");
 					return new ResourceDefinition[]{};
 				}
-				else if( seldResourceName.getRscCategory().equals("PGEN" ) ) {
-					rscTypeLbl.setText("PGEN");
-				}
-				else {
-					rscTypeLbl.setText(seldResourceName.getRscCategory()+" Resources");
-				}
+//				else if( seldResourceName.getRscCategory().equals("PGEN" ) ) {
+//					rscTypeLbl.setText("PGEN");
+//				}
+//				else {
+//					rscTypeLbl.setText(seldResourceName.getRscCategory()+" Resources");
+//				}
 				
 				try {
 					List<ResourceDefinition> rscTypes = 
@@ -508,12 +479,12 @@ public class ResourceEditSelectionComposite extends Composite {
 						
 						if( rscAttrSetGroupsList != null &&
 								!rscAttrSetGroupsList.isEmpty() ) {
-							if( rscType.length() < 8 ) {
-								rscTypeGroupLbl.setText( rscType+" Attribute Groups " );
-							}
-							else { 
-								rscTypeGroupLbl.setText( rscType+" Attr Groups " );
-							}
+//							if( rscType.length() < 8 ) {
+//								rscTypeGroupLbl.setText( rscType+" Attribute Groups " );
+//							}
+//							else { 
+//								rscTypeGroupLbl.setText( rscType+" Attr Groups " );
+//							}
 
 							return rscAttrSetGroupsList.toArray();
 						}
@@ -521,15 +492,15 @@ public class ResourceEditSelectionComposite extends Composite {
 					else {
 						ResourceDefinition rd = rscDefnsMngr.getResourceDefinition( rscType );
 						
-						if( rd != null ) {
-							if( rd.getSubTypeGenParamsList().length > 0 ) {
-								rscTypeGroupLbl.setText( "Sub-Types Generated from\n"+ rd.getSubTypeGenerator() );
-							}
-							else {								
-								rscTypeGroupLbl.setText("N/A");
-							}
-							
-						}
+//						if( rd != null ) {
+//							if( rd.getSubTypeGenParamsList().length > 0 ) {
+//								rscTypeGroupLbl.setText( "Sub-Types Generated from\n"+ rd.getSubTypeGenerator() );
+//							}
+//							else {								
+//								rscTypeGroupLbl.setText("N/A");
+//							}
+//							
+//						}
 						return new String[0];
 //						try {
 //							String[] rscGroups = rscDefnsMngr.getResourceSubTypes( rscType );
@@ -989,14 +960,14 @@ public class ResourceEditSelectionComposite extends Composite {
 			copyRscGroupBtn.setEnabled( false );
 			editRscGroupBtn.setEnabled( false );
 			removeRscGroupBtn.setEnabled( false );		
-			rscGroupLocLbl.setText("");
+			//rscGroupLocLbl.setText("");
 		}
 		// Also, PGEN groups are the PGEN files which can't be edited here.
 		else if( seldResourceName.getRscCategory().equals("PGEN") ) {
 			copyRscGroupBtn.setEnabled( false );
 			editRscGroupBtn.setEnabled( false );
 			removeRscGroupBtn.setEnabled( false );
-			rscGroupLocLbl.setText("");
+			//rscGroupLocLbl.setText("");
 		}
 		else {
 			copyRscGroupBtn.setEnabled( true );
@@ -1099,7 +1070,7 @@ public class ResourceEditSelectionComposite extends Composite {
 			// PGEN just has 1 default/hardcoded group that the user can't edit
 			if( asg == null || asg.getAttrSetGroupName().equals("PGEN") ) {
 				removeRscGroupBtn.setEnabled( false );
-				rscGroupLocLbl.setText("");
+				//rscGroupLocLbl.setText("");
 			}
 			else {
 				String locStr = "Unknown";
@@ -1115,7 +1086,7 @@ public class ResourceEditSelectionComposite extends Composite {
 					removeRscGroupBtn.setEnabled( true );					
 				}
 				
-				rscGroupLocLbl.setText( locStr );
+				//rscGroupLocLbl.setText( locStr );
 			}
 		}
 		

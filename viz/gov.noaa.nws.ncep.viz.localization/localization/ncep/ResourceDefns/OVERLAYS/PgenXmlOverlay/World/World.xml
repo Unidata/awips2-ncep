@@ -2,6 +2,7 @@
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <!--  DISABLED BECAUSE the locowobnds.xml file doesn't exist -->
     <resourceDefnName>World</resourceDefnName>
+	<resourceMapName>World</resourceMapName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
 pgenStaticProductLocation=ncep/StaticPgenOverlays

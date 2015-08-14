@@ -82,7 +82,7 @@ public class MapOverlayAction extends AbstractHandler implements IElementUpdater
             protected IStatus run(IProgressMonitor monitor) {
                 long t0 = System.currentTimeMillis();
                 String overlayName = arg0.getParameter("overlayName");  // LatLon
-               
+                
                 if (overlayName == null) {
                     return new Status(IStatus.ERROR, UiPlugin.PLUGIN_ID,
                             "bundleName was null");
@@ -154,7 +154,7 @@ public class MapOverlayAction extends AbstractHandler implements IElementUpdater
     @SuppressWarnings("unchecked")
     public void updateElement(UIElement element, Map parameters) {
     	
-        String ResourceName = (String) parameters.get("resourceName");
+        String ResourceName = (String) parameters.get("resourceMapName");
 
     	AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
         if (editor == null) {

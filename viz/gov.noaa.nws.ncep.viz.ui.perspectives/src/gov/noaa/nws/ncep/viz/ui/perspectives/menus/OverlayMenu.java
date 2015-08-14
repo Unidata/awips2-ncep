@@ -146,7 +146,7 @@ public class OverlayMenu extends CompoundContributionItem {
 		Map<String, String> params = new HashMap<String, String>();
 		ovrlyRsc.getResourceParameters(isEnabled());
 		params.put("overlayName", ovrlyRsc.getResourceDefnName() );
-		params.put("resourceName", ovrlyRsc.getMapName() );
+		params.put("resourceMapName", ovrlyRsc.getMapName() );
 		
 		CommandContributionItemParameter param = new CommandContributionItemParameter(
 				PlatformUI.getWorkbench(), null,

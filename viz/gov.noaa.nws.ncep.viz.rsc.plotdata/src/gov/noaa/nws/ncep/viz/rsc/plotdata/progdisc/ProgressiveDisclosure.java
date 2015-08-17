@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.progdisc;
 
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
@@ -12,7 +13,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
 
 import org.eclipse.swt.graphics.Rectangle;
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -30,8 +30,6 @@ import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.vividsolutions.jts.geom.Coordinate;
 
-//import org.hibernate.mapping.Array;
-
 /**
  * 
  * 
@@ -43,22 +41,23 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------ ---------- ----------- --------------------------
  * 05/20/2013     988        Archana.S    Initial creation.
  * 02/26/2014    1061        B. Hebbard   Relax tolerance for extent/zoom compare to avoid infinite loop.
+ * 09/02/2015   R7757        B. Hebbard   Various cleanups.
  */
 
 public final class ProgressiveDisclosure {
 
-    private final static double TOLERANCE = 1E-03; // 0.0000000001;//
-                                                   // 0.00000001;//0.000000000001;
+    private final static double TOLERANCE = 1E-03;
 
-    private final static double ZOOM_TOLERANCE = TOLERANCE; // need different?
+    private final static double ZOOM_TOLERANCE = TOLERANCE; // TODO: need to be
+                                                            // distinct?
 
     private ConcurrentLinkedQueue<QueueEntry> queueOfStationsToBeDisclosed;
 
-    StaticPlotInfoPV spi;
+    StaticPlotInfoPV spi = null;
 
     public boolean updateNextPaint;
 
-    private VA_Advanced progDisc;
+    private VA_Advanced progDisc = null;
 
     private Task progDiscTask = null;
 
@@ -68,7 +67,7 @@ public final class ProgressiveDisclosure {
 
     private Rectangle canvasBounds = null;
 
-    private IProgDiscListener progDiscListener;
+    private IProgDiscListener progDiscListener = null;
 
     TimeLogger timeLogger = null;
 
@@ -185,14 +184,6 @@ public final class ProgressiveDisclosure {
             }
 
             long t0 = System.nanoTime();
-            // Tracer.print("The zoom level is " +
-            // progDiscTask.zoomLevel);
-            // if (extent != null) {
-            // Tracer.print("minX= " + extent.getMinX()
-            // +"\nminY="+extent.getMinY()
-            // +"\nmaxX="+extent.getMaxX()
-            // +"\nmaxY="+extent.getMaxY());
-            // }
             descriptor = (NCMapDescriptor) NcDisplayMngr
                     .getActiveNatlCntrsEditor().getActiveDisplayPane()
                     .getDescriptor();
@@ -264,7 +255,6 @@ public final class ProgressiveDisclosure {
                 Tracer.printX("> Entry");
                 if (activePane != null) {
                     canvasBounds = activePane.getBounds();
-
                 }
             }
         });
@@ -277,7 +267,6 @@ public final class ProgressiveDisclosure {
                     currViewExtents.getMaxY());
             Tracer.print("New pix extents");
             update = true;
-
         }
 
         if (progDiscTask.descriptor == null) {
@@ -394,9 +383,9 @@ public final class ProgressiveDisclosure {
             Collection<Station> collectionOfStations, int dynStations) {
         Tracer.print("> Entry");
         if (collectionOfStations == null || collectionOfStations.isEmpty()) {
-
             return null;
         }
+
         int size = collectionOfStations.size();
         Coordinate[] latLonArray = new Coordinate[size];
         Integer[] goodnessArray = new Integer[size];
@@ -430,41 +419,40 @@ public final class ProgressiveDisclosure {
 
     private void scheduleProgressiveDisclosure() {
         Tracer.print("> Entry");
-        if (queueOfStationsToBeDisclosed.peek() == null)
+        if (queueOfStationsToBeDisclosed.peek() == null) {
             Tracer.print("No stations in queue for PD...");
-        timeLogger.append("No stations in queue for PD...");
-        Semaphore sm = new Semaphore(1);
-        while (queueOfStationsToBeDisclosed.peek() != null) {
-            sm.acquireUninterruptibly();
-            QueueEntry currentEntry = queueOfStationsToBeDisclosed.poll();
+            timeLogger.append("No stations in queue for PD...");
+        } else {
 
-            if (currentEntry == null)
-                continue;
-            synchronized (currentEntry) {
+            while (queueOfStationsToBeDisclosed.peek() != null) {
+                QueueEntry currentEntry = queueOfStationsToBeDisclosed.poll();
 
-                Collection<Station> stnColl = currentEntry.getStations();
-                synchronized (stnColl) {
-                    try {
-                        progDiscTask.stations = stnColl.toArray(new Station[0]);
-                    } catch (Exception e) {
-                        sm.release();
+                if (currentEntry == null) {
+                    continue;
+                }
+
+                Task task = progDiscTask.clone();
+
+                synchronized (currentEntry) {
+                    Collection<Station> stnColl = currentEntry.getStations();
+                    synchronized (stnColl) {
+                        try {
+                            task.stations = stnColl.toArray(new Station[0]);
+                        } catch (Exception e) {
+                        }
                     }
                 }
+                task.time = new DataTime(currentEntry.getDataTime()
+                        .getRefTime());
+                Tracer.print("About to schedule progressive disclosure for frame "
+                        + shortTimeString(currentEntry.getDataTime()));
+                timeLogger
+                        .append("About to schedule progressive disclosure for frame "
+                                + currentEntry.getDataTime().toString());
+                progDiscJobPool.schedule(task);
             }
-            sm.release();
-            progDiscTask.time = new DataTime(currentEntry.getDataTime()
-                    .getRefTime());
-
-            Task task = progDiscTask.clone();
-            Tracer.print("About to schedule progressive disclosure for frame "
-                    + shortTimeString(currentEntry.getDataTime()));
-            timeLogger
-                    .append("About to schedule progressive disclosure for frame "
-                            + currentEntry.getDataTime().toString());
-            progDiscJobPool.schedule(task);
         }
         Tracer.print("< Exit");
-
     }
 
     public void setMapDescriptor(NCMapDescriptor theMapDescriptor) {
@@ -472,9 +460,16 @@ public final class ProgressiveDisclosure {
     }
 
     private String shortTimeString(DataTime dt) {
-        // temporary -- combine with
-        // NcPlotResource2.FrameData.getShortFrameTime(), somehow
-        return Tracer.shortTimeString(dt);
+        // TODO -- Consider making common utility
+        String returnString = NmapCommon.getTimeStringFromDataTime(dt, "/")
+                .substring(4);
+        if (dt.getFcstTime() != 0) {
+            returnString += "(" + dt.getFcstTime() + ")";
+        }
+        return returnString;
     }
 
+    public void dispose() {
+
+    }
 }

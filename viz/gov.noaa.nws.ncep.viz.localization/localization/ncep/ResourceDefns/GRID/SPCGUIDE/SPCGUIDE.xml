@@ -11,6 +11,7 @@
     <dfltFrameCount>999</dfltFrameCount>
     <dfltTimeRange>48</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <isEnabled>false</isEnabled> 
     <resourceParameters>
 pluginName=grid
 GDFILE=SPCGuide

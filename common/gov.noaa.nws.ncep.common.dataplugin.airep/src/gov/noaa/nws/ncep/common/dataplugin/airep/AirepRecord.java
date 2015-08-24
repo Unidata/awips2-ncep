@@ -39,6 +39,7 @@ import org.hibernate.annotations.Index;
 import com.raytheon.uf.common.dataplugin.NullUtil;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
+import com.raytheon.uf.common.dataplugin.annotations.NullString;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.pointdata.IPointData;
@@ -138,6 +139,7 @@ public class AirepRecord extends PersistablePluginDataObject implements
 
     //
     @DataURI(position = 1)
+    @NullString
     @Column(length = 8, nullable = false)
     @DynamicSerializeElement
     @XmlAttribute
@@ -151,6 +153,7 @@ public class AirepRecord extends PersistablePluginDataObject implements
 
     // Correction indicator from wmo header
     @DataURI(position = 2)
+    @NullString
     @Column(length = 8, nullable = false)
     @DynamicSerializeElement
     @XmlElement

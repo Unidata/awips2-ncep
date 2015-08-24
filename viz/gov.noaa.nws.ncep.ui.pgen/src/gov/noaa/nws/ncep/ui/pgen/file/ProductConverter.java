@@ -138,6 +138,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
  * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
  * 08/05		R8879		B. Yin		Check Outlook/Contour by type
+ * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
  * 
  * </pre>
  * 
@@ -146,6 +147,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 
 public class ProductConverter {
+
+    private static final String HASH = "Hash";
+
+    private static final String BARB = "Barb";
 
     /*
      * Convert a XML file Products object to a list of PGEN in-memory Product
@@ -389,10 +394,6 @@ public class ProductConverter {
                     text.setIwidth(fText.getIwidth());
                 }
 
-                /*
-                 * if (fText.isAuto() != null) { //
-                 * text.setAuto(fText.isAuto()); text.setAuto(false); }
-                 */
                 text.setAuto(false);
                 des.add(text);
             }
@@ -529,9 +530,10 @@ public class ProductConverter {
 
                 VectorType vtype = null;
                 String pgenType = fVector.getPgenType();
-                if (pgenType.equalsIgnoreCase("Hash")) {
+                if (pgenType.equalsIgnoreCase(HASH)) {
                     vtype = VectorType.HASH_MARK;
-                } else if (pgenType.equalsIgnoreCase("Barb")) {
+                    fVector.setDirection(fVector.getDirection());
+                } else if (pgenType.equalsIgnoreCase(BARB)) {
                     vtype = VectorType.WIND_BARB;
                 } else {
                     vtype = VectorType.ARROW;
@@ -552,24 +554,6 @@ public class ProductConverter {
         if (!elem.getTCA().isEmpty()) {
 
             for (gov.noaa.nws.ncep.ui.pgen.file.TCA ftca : elem.getTCA()) {
-
-                /*
-                 * Color[] clr = new Color[ fVector.getColor().size() ]; int nn
-                 * = 0; for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor :
-                 * fVector.getColor() ) { clr[nn++] = new Color(
-                 * fColor.getRed(), fColor.getGreen(), fColor.getBlue(),
-                 * fColor.getAlpha() ); }
-                 */
-
-                // Point loc = fVector.getPoint();
-
-                /*
-                 * VectorType vtype = null; String pgenType =
-                 * fVector.getPgenType(); if ( pgenType.equalsIgnoreCase( "Hash"
-                 * ) ) { vtype = VectorType.HASH_MARK; } else if (
-                 * pgenType.equalsIgnoreCase( "Barb" ) ) { vtype =
-                 * VectorType.WIND_BARB; } else { vtype = VectorType.ARROW; }
-                 */
 
                 TCAElement tca = new TCAElement();
                 tca.setPgenType(ftca.getPgenType());
@@ -1511,24 +1495,6 @@ public class ProductConverter {
 
                     gov.noaa.nws.ncep.ui.pgen.file.TCA tca = new gov.noaa.nws.ncep.ui.pgen.file.TCA();
 
-                    /*
-                     * for ( Color clr : de.getColors() ) {
-                     * 
-                     * gov.noaa.nws.ncep.ui.pgen.file.Color fclr = new
-                     * gov.noaa.nws.ncep.ui.pgen.file.Color();
-                     * 
-                     * fclr.setRed( clr.getRed() ); fclr.setGreen(
-                     * clr.getGreen() ); fclr.setBlue( clr.getBlue() );
-                     * fclr.setAlpha( clr.getAlpha() );
-                     * 
-                     * vector.getColor().add( fclr ); }
-                     */
-
-                    // Point fpt = new Point();
-                    // fpt.setLat( de.getLocation().y );
-                    // fpt.setLon( de.getLocation().x );
-                    // vector.setPoint( fpt );
-
                     tca.setPgenType(tcaEl.getPgenType());
                     tca.setPgenCategory(tcaEl.getPgenCategory());
 
@@ -1735,7 +1701,7 @@ public class ProductConverter {
         VectorType vtype = null;
         String pgenType = fVector.getPgenType();
 
-        if (pgenType.equalsIgnoreCase("Hash")) {
+        if (pgenType.equalsIgnoreCase(HASH)) {
             vtype = VectorType.HASH_MARK;
         }
         JetHash hash = jet.new JetHash(null, clr, fVector.getLineWidth(),
@@ -1770,7 +1736,7 @@ public class ProductConverter {
         VectorType vtype = null;
         String pgenType = fVector.getPgenType();
 
-        if (pgenType.equalsIgnoreCase("Barb")) {
+        if (pgenType.equalsIgnoreCase(BARB)) {
             vtype = VectorType.WIND_BARB;
         }
         JetBarb barb = jet.new JetBarb(null, clr, fVector.getLineWidth(),
@@ -2338,37 +2304,6 @@ public class ProductConverter {
             }
         }
 
-        // set outlines and holes
-        /*
-         * Geometry union = wb.getCountyUnion();
-         * 
-         * if ( union != null ){ //loop through all polygons in the union for (
-         * int ii = 0; ii < union.getNumGeometries(); ii++ ){
-         * 
-         * //set outlines Polygon poly = (Polygon)union.getGeometryN(ii);
-         * 
-         * LineString outside = poly.getExteriorRing();
-         * 
-         * Outline ol = new Outline();
-         * 
-         * for ( Coordinate pt : outside.getCoordinates() ){ Point fpt = new
-         * Point(); fpt.setLat( pt.y ); fpt.setLon( pt.x );
-         * ol.getPoint().add(fpt); }
-         * 
-         * fwb.getOutline().add(ol);
-         * 
-         * //loop through all holes of the polygon for ( int jj = 0; jj <
-         * poly.getNumInteriorRing(); jj++ ){
-         * 
-         * LineString ls = poly.getInteriorRingN(jj); Hole hole = new Hole();
-         * 
-         * for ( Coordinate pt : ls.getCoordinates()) { Point fpt = new Point();
-         * fpt.setLat( pt.y ); fpt.setLon( pt.x ); hole.getPoint().add(fpt); }
-         * 
-         * fwb.getHole().add(hole);
-         * 
-         * } } }
-         */
         return fwb;
     }
 
@@ -2788,8 +2723,7 @@ public class ProductConverter {
         Properties props = new Properties();
         try {
             FileInputStream fis = new FileInputStream(propsFile);
-            props.load(fis); // .loadFromXML(fis);
-            // String s = props.getProperty("HTTPServer");
+            props.load(fis);
             fis.close();
         } catch (Exception e) {
         }

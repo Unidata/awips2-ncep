@@ -4,7 +4,7 @@
     <resourceDefnName>NAM-12km</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=NAM-12km
+GDFILE=NAM12
 pluginName=grid
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>

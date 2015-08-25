@@ -48,6 +48,7 @@ import java.util.Set;
  * 07-Apr-2014   TTR-938   D.Sushon      Added check for null string to constructor, fixing NullPointerException
  *                                       thrown when attempting to initialize with null String.
  * 09-Sep-2014   TTR-852     A.Yuk       remove restriction of contour lines =50 and make it unlimited contour lines.
+ * 02-Apr-2015   R7134       J. Wu       Add MAX_CONTOUR_LEVELS and set it to 100.
  * 
  * </pre>
  * 
@@ -56,7 +57,10 @@ import java.util.Set;
  * @see $GEMPAK/help/hlx/cint.hl2
  */
 public class CINT {
- 
+
+    /** Maximum number of contour levels */
+    private final static int MAX_CONTOUR_LEVELS = 100;
+
     /** The object responsible for parsing the CINT string */
     private ContourStringParser cintParser;
 
@@ -396,44 +400,31 @@ public class CINT {
                 if (interval == null || interval.isNaN()) {
                     interval = (cmax - cmin) / 10.0;
                 }
- 
-// Only allow less than 50 contour levels : 
-// comment out contour restriction. : IT WAs BAD Code to generate decimal point on contour labels.
-      /*         if ((cmax - cmin) / interval > 50) {
-                    interval = (cmax - cmin) / 50; 
-                interval =(double) (int) ((cmax - cmin)/50) ; }
-     */        
+
+                // Only allow less than 50 contour levels :
+                // comment out contour restriction. : IT WAs BAD Code to
+                // generate decimal point on contour labels.
+                /*
+                 * if ((cmax - cmin) / interval > 50) { interval = (cmax - cmin)
+                 * / 50; interval =(double) (int) ((cmax - cmin)/50) ; }
+                 */
                 contourInfo = new CINT(interval.toString() + "/"
                         + cmin.toString() + "/" + cmax.toString());
                 cvalues = contourInfo
-                        .getUniqueSortedContourValuesFromAllZoomLevels();  
-            } 
-        } 
-        
-/********************************
-        int csize=cvalues.size();
-        System.out.println(" .................");
-        System.out.println(" .................");
-        System.out.println(" Contour level range is from "+cvalues.get(0)+" to "+cvalues.get(csize-1)+".");
-        System.out.println(" Contour interval "+interval+".");
-        System.out.println(" .................");
-        System.out.println(" .................");
-// *  capped contour lines to 50
-             if (csize > 50) {
-            System.out.println(" !!! Pay attention to CONTOUR INTERVAL.");
-            System.out.println(" Contour lines from "+cvalues.get(0)+" to "+cvalues.get(csize-1)+" are eliminated due to maximum contour allowance." );
-            while (cvalues.size()>50){cvalues.remove(50);}         
-            System.out.println(" !!! Contours are being plotted to the first 50th lines.");
-            System.out.println(" Range of contour lines drawn is from "+cvalues.get(0)+" to "+cvalues.get(49)+".");
-            System.out.println(" !!! Contour lines are capped due to allowance of maximum contour lines of 50. ");
+                        .getUniqueSortedContourValuesFromAllZoomLevels();
+
             }
-             System.out.println(" Contour level = "+cvalues.toString()+".");
-***************************/            
-        while (cvalues.size()>50){cvalues.remove(50);}
-        int csize=cvalues.size();
-        System.out.println(" Contour lines("+csize+ ") from "+cvalues.get(0)+" to "+cvalues.get(csize-1));
-        
-         return cvalues;
+        }
+
+        /*
+         * Limit contour levels up to MAX_CONTOUR_LEVELS to avoid potential
+         * memory and/or performance issues.
+         */
+        while (cvalues.size() > MAX_CONTOUR_LEVELS) {
+            cvalues.remove(MAX_CONTOUR_LEVELS);
+        }
+
+        return cvalues;
     }
 
     /** @return boolean isCINTStringParsed */
@@ -676,4 +667,3 @@ public class CINT {
     }
 
 }
-

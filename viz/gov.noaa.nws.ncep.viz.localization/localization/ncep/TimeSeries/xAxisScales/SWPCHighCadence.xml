@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xAxisScale xmlns:ns2="http://www.example.org/productType" name="SWPCHighCadence">
+    <xAxisScaleElement durationHour="2" labelInterval="10" majorTickInterval="5" minorTickInterval="1" labelFormat="mm"/>
+    <xAxisScaleElement durationHour="6" labelInterval="60" majorTickInterval="60" minorTickInterval="10" labelFormat="HH"/>
+    <xAxisScaleElement durationHour="12" labelInterval="180" majorTickInterval="180" minorTickInterval="30" labelFormat="HHmm"/>
+    <xAxisScaleElement durationHour="24" labelInterval="120" majorTickInterval="180" minorTickInterval="30" labelFormat="HH"/>
+    <xAxisScaleElement durationHour="72" labelInterval="1440" majorTickInterval="1440" minorTickInterval="180" labelFormat="MMM dd"/>
+    <xAxisScaleElement durationHour="168" labelInterval="1440" majorTickInterval="1440" minorTickInterval="360" labelFormat="MMM dd"/>
+</xAxisScale>

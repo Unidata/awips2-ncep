@@ -1,11 +1,13 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
 import static java.lang.System.out;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryDefinition;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryRequestMsg;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
@@ -85,6 +87,11 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  07/2014       R4644       Y. Song     Added VIIRS as implementation
  *  11/2004       R4644       S. Gilbert  Removed dependency on specific PDOs and
  *                                        changed uEngine request to ThriftClinet
+ *  12/24/14      R4508      S. Gurung    Add special handling for GHCD (generic high-cadence data) compound subType
+ *  01/21/15	  R4646	  	 B. Yin       Handle PGEN resource group (subtype)
+ *  05/14/15      R7656      A. Su        Retrieved the resource definitions of LocalRadar from an xml file.
+ *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
+ * 
  * </pre>
  * 
  * @author ghull
@@ -154,6 +161,15 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     @XmlElement
     private int dfltTimeRange;
 
+    @XmlElement
+    private String dfltFrameTimes;
+
+    @XmlElement
+    private String cycleReference;
+
+    @XmlElement
+    private DayReference dayReference;
+
     // the hours range in graph display.
     @XmlElement
     private int dfltGraphRange;
@@ -211,6 +227,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     // processing alert notifications.
     //
     private Map<Map<String, RequestConstraint>, DataTimesCacheEntry> availTimesCache = null;
+
+    // This variable is specific for the resource definition of LocalRadar.
+    private static boolean isLocalRadarProcessed = false;
+
+    // The name of resource definition for LocalRadar.
+    private static String localRadarResourceDefnName = LocalRadarStationManager.ResourceDefnName;
 
     // Set this to true and store the latestTimes in the URICatalog.
     // Some RscDefns have a lot of possible constraints (i.e. radar and some
@@ -502,7 +524,8 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     public boolean isForecast() {
         // @formatter:off
-        return (timelineGenMethod == TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS || timelineGenMethod == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME);
+        return (timelineGenMethod == TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS
+                || timelineGenMethod == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME || timelineGenMethod == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION);
         // @formatter:on
         // return filterLabels.contains("Forecast");
     }
@@ -557,6 +580,30 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     public void setDfltFrameCount(int dfltFrameCount) {
         this.dfltFrameCount = dfltFrameCount;
+    }
+
+    public String getDfltFrameTimes() {
+        return dfltFrameTimes;
+    }
+
+    public void setDfltFrameTimes(String dfltFrameTimes) {
+        this.dfltFrameTimes = dfltFrameTimes;
+    }
+
+    public String getCycleReference() {
+        return cycleReference;
+    }
+
+    public void setCycleReference(String cycleReference) {
+        this.cycleReference = cycleReference;
+    }
+
+    public DayReference getDayReference() {
+        return dayReference;
+    }
+
+    public void setDayReference(DayReference dayReference) {
+        this.dayReference = dayReference;
     }
 
     public int getDfltGraphRange() {
@@ -1332,6 +1379,15 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 } else
                     out.println("subType already in the list?"); // shouldn't
                                                                  // happen
+            } else if (numSubTypeGenParams == 3) {
+
+                String subType = queryResults[0] + "_" + queryResults[1] + "_"
+                        + queryResults[2];
+                if (!generatedSubTypesList.contains(subType)) {
+                    generatedSubTypesList.add(subType);
+                } else
+                    out.println("subType already in the list?"); // shouldn't
+                                                                 // happen
             }
         }
 
@@ -1680,6 +1736,24 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         generatedSubTypesList.clear();
         generatedTypesList.clear();
 
+        // R7656: Special case for LocalRadar:
+        // Retrieve the station IDs of radar stations from an XML file,
+        // bypassing its original CatalogQuery.performQuery.
+
+        if (!isLocalRadarProcessed
+                && getResourceDefnName().equals(localRadarResourceDefnName)) {
+
+            List<String> stationIDs = LocalRadarStationManager.getInstance()
+                    .getStationIDs();
+
+            if (stationIDs != null)
+                for (String id : stationIDs)
+                    generatedTypesList.add(id);
+
+            isLocalRadarProcessed = true;
+            return;
+        }
+
         try {
             // the parameters used to define the data that gets stored in the
             // inventory. this will be all the request constraint params
@@ -1715,8 +1789,11 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 String[] subParams = getSubTypeGenParamsList();
 
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
-                request.addFields(subParams);
-                request.setDistinct(true);
+
+                if (!(getResourceCategory() == ResourceCategory.PGENRscCategory)) {
+                    request.addFields(subParams);
+                    request.setDistinct(true);
+                }
 
                 DbQueryResponse response = (DbQueryResponse) ThriftClient
                         .sendRequest(request);
@@ -1749,10 +1826,48 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                         }
                     }
 
-                    subType = sb.toString();
-                    if (subType != null && !subType.trim().isEmpty()) {
-                        if (!generatedSubTypesList.contains(subType)) {
-                            generatedSubTypesList.add(subType);
+                    if (getResourceCategory() == ResourceCategory.PGENRscCategory) {
+
+                        for (Object pdo : result.values()) {
+                            PgenRecord pgenRec = (PgenRecord) pdo;
+                            if (subTypeGenerator.indexOf("dataTime") > -1) {
+                                subType = pgenRec.getDataTime().toString();
+                            } else if (subTypeGenerator
+                                    .indexOf("activitySubtype") > -1) {
+                                subType = pgenRec.getActivitySubtype();
+                            } else if (subTypeGenerator
+                                    .indexOf("activityLabel") > -1) {
+                                subType = pgenRec.getActivityLabel();
+                            } else if (subTypeGenerator.indexOf("activityName") > -1) {
+                                subType = pgenRec.getActivityName();
+                            } else if (subTypeGenerator.indexOf("activityType") > -1) {
+                                subType = pgenRec.getActivityType();
+                            } else if (subTypeGenerator.indexOf("site") > -1) {
+                                subType = pgenRec.getSite();
+                            } else if (subTypeGenerator.indexOf("desk") > -1) {
+                                subType = pgenRec.getDesk();
+                            } else if (subTypeGenerator.indexOf("forecaster") > -1) {
+                                subType = pgenRec.getForecaster();
+                            } else {
+                                System.out
+                                        .println("Unrecognized PGEN rsc generating subType"
+                                                + subTypeGenerator);
+                            }
+
+                            if (subType != null && !subType.trim().isEmpty()) {
+                                if (!generatedSubTypesList.contains(subType)) {
+                                    generatedSubTypesList.add(subType);
+                                }
+                            }
+                        }
+
+                    } else {
+
+                        subType = sb.toString();
+                        if (subType != null && !subType.trim().isEmpty()) {
+                            if (!generatedSubTypesList.contains(subType)) {
+                                generatedSubTypesList.add(subType);
+                            }
                         }
                     }
                 }
@@ -1872,6 +1987,14 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                     subType = subType + "_"
                             + uriAttrValues.get(genPrm2).toString() + "km";
                 }
+            } else if (getSubTypeGenParamsList().length == 3) { // Ghcd
+                                                                // (high-cadence)
+                String genPrm1 = getSubTypeGenParamsList()[0];
+                String genPrm2 = getSubTypeGenParamsList()[1];
+                String genPrm3 = getSubTypeGenParamsList()[2];
+                subType = uriAttrValues.get(genPrm1).toString() + "_"
+                        + uriAttrValues.get(genPrm2).toString() + "_"
+                        + uriAttrValues.get(genPrm3).toString();
             }
 
             if (subType != null && !generatedSubTypesList.contains(subType)) {

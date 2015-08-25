@@ -10,7 +10,9 @@
  * 
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
- * 01/2011	229			Chin Chen	Initial coding
+ * 01/2011	    229			Chin Chen	Initial coding
+ * 03/09/2015   RM#6674     Chin Chen   Support model sounding query data interpolation and nearest point option                       
+ * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query grid model sounding data
  *
  * </pre>
  * 
@@ -19,10 +21,12 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.MdlSndType;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
@@ -34,7 +38,6 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
 import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
@@ -239,8 +242,8 @@ public class NsharpModelSoundingDialogContents {
             String fl = selectedFlLst.get(i);
             long reftimeMs = NcSoundingQuery.convertRefTimeStr(fl);
             NcSoundingTimeLines timeLines = NcSoundingQuery
-                    .mdlSoundingRangeTimeLineQuery(selectedModel, fl,
-                            gribDecoderName);
+                    .soundingRangeTimeLineQuery(MdlSndType.ANY.toString(), fl,
+                    		selectedModel);
             if (timeLines != null && timeLines.getTimeLines().length > 0) {
                 for (Object obj : timeLines.getTimeLines()) {
                     Timestamp rangestart = (Timestamp) obj;
@@ -310,10 +313,28 @@ public class NsharpModelSoundingDialogContents {
 
             String rangeStartStr = NcSoundingQuery
                     .convertSoundTimeDispStringToRangeStartTimeFormat(timeLine);
-            float[][] latLon = { { lat, lon } };
-            NcSoundingCube cube = NcSoundingQuery.mdlSoundingQueryByLatLon(
-                    selectedFileStr + ":00:00", rangeStartStr, latLon,
-                    gribDecoderName, selectedModel, false, "-1");
+            //float[][] latLon = { { lat, lon } };
+                                 
+            NsharpConfigManager mgr =NsharpConfigManager.getInstance();
+            NsharpConfigStore configStore = mgr.retrieveNsharpConfigStoreFromFs();
+            boolean gridInterpolation;
+    		if(configStore != null){
+    			gridInterpolation = configStore.getGraphProperty().isGridInterpolation();
+    		}
+    		else
+    			gridInterpolation = true; //by default
+    		//RM#9173  use NcSoundingQuery.genericSoundingDataQuery() to query observed sounding data    	
+    		String[] refLTimeStrAry = { selectedFileStr + ":00:00"};
+    		String[] soundingRangeTimeStrArray = {rangeStartStr};
+    		Coordinate[] coordArray = {new Coordinate(lon,lat)};
+    		NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery(null, null, refLTimeStrAry,  soundingRangeTimeStrArray, 
+    				coordArray, null,MdlSndType.ANY.toString() ,  NcSoundingLayer.DataType.ALLDATA, 
+    				false, "-1", selectedModel, gridInterpolation,false, false);
+    		
+//            NcSoundingCube cube = NcSoundingQuery.mdlSoundingQueryByLatLon(
+//                    selectedFileStr + ":00:00", rangeStartStr, latLon,
+//                    gribDecoderName, selectedModel, false, "-1", gridInterpolation);
+    		
             if (cube != null
                     && cube.getRtnStatus() == NcSoundingCube.QueryStatus.OK) {
                 // System.out.println("mdlSoundingQueryByLatLon returnd ok");
@@ -484,6 +505,7 @@ public class NsharpModelSoundingDialogContents {
             }
             NsharpMapResource.bringMapEditorToTop();
         }
+        //System.out.println("atan2(1,-1)="+Math.atan2(1,-1));
     }
 
     public void createMdlDialogContents() {

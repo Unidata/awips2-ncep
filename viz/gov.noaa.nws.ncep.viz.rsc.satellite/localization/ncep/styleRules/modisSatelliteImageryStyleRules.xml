@@ -1,0 +1,59 @@
+<styleRuleset>
+<styleRule>
+  <paramLevelMatches>
+     <parameter>rhos_678</parameter>
+  </paramLevelMatches>
+  <imageStyle>
+     <displayUnits label="sr^-1">sr^-1</displayUnits>
+     <range scale="LINEAR">
+        <minValue>-73</minValue>
+        <maxValue>11</maxValue>
+     </range>
+     <defaultColormap>CIRA_IR_Default</defaultColormap>      
+     <colorbarLabeling>
+        <values>10 20 30 50</values>
+     </colorbarLabeling>
+  </imageStyle>
+</styleRule>
+<styleRule>
+  <paramLevelMatches>
+     <parameter>chlor_a</parameter>
+  </paramLevelMatches>
+  <imageStyle>
+     <displayUnits label="mg*m^-3">mg*m^-3</displayUnits>
+     <range scale="LOG">
+         <minValue>.001</minValue>
+         <maxValue>64</maxValue>
+     </range>     
+     <defaultColormap>chlorophyll</defaultColormap> 
+     <dataMapping>
+        <entry displayValue='0.001' pixelValue='10' label='0.001'/>
+        <entry displayValue='0.01' pixelValue='60' label='0.01'/>
+        <entry displayValue='0.1' pixelValue='120' label='0.1'/>
+        <entry displayValue='1.0' pixelValue='170' label='1.0'/>
+        <entry displayValue='10.0' pixelValue='220' label='10.0'/>
+        <entry displayValue='64.0' pixelValue='255' label='64.0'/>
+     </dataMapping>     
+  </imageStyle>
+</styleRule>
+<styleRule>
+  <paramLevelMatches>
+     <parameter>Cyanobacteria</parameter>
+  </paramLevelMatches>
+  <imageStyle>
+     <range scale="LINEAR">
+         <minValue>0.001</minValue>
+         <maxValue>0.05</maxValue>
+     </range>     
+     <defaultColormap>chlorophyll</defaultColormap> 
+     <dataMapping>
+        <entry displayValue='0' pixelValue='0' label='0'/>
+        <entry displayValue='50' pixelValue='50' label='50'/>
+        <entry displayValue='100' pixelValue='100' label='100'/>
+        <entry displayValue='150' pixelValue='150' label='150'/>
+        <entry displayValue='200' pixelValue='200' label='200'/>
+        <entry displayValue='250' pixelValue='250' label='250'/>
+     </dataMapping>          
+  </imageStyle>
+</styleRule>
+</styleRuleset>

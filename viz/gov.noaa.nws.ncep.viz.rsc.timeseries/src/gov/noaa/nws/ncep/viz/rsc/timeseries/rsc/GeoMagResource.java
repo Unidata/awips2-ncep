@@ -77,7 +77,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.PixelCoverage;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.RGBColors;
-import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
@@ -120,6 +119,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/10/2014   R4079      qzhou       Added SamplingView and Sampling related classes.
  * 07/28/2014   R4078      sgurung     Added code changes to support loading GeoMagResource in a new window.
  * 12/19/2014       ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 12/23/2014   R5412      sgurung     Change float to double
  * </pre>
  * 
  * @author qzhou
@@ -193,11 +193,11 @@ public class GeoMagResource extends
 
     private UnitConverter toDeltanT;
 
-    protected float[] hQdc;
+    protected double[] hQdc;
 
-    protected float[] dQdc;
+    protected double[] dQdc;
 
-    private float yMedian;
+    private double yMedian;
 
     /*
      * class FrameData not used except legenda
@@ -472,7 +472,7 @@ public class GeoMagResource extends
 
         // get median before filling null to data
         String geoMagType = ((GeoMagResourceData) resourceData).getYAxesData();
-        float[] temp = RetrieveUtils.getMedian(magRecords);
+        double[] temp = RetrieveUtils.getMedian(magRecords);
 
         if (geoMagType.startsWith("H")) {
             yMedian = temp[0];
@@ -538,14 +538,14 @@ public class GeoMagResource extends
 
         if (avgList != null && avgList.size() >= 5) {
             List<Date> dateListFinal = new ArrayList<Date>();
-            List<Float> hHrAvgListFinal = new ArrayList<Float>();
-            List<Float> dHrAvgListFinal = new ArrayList<Float>();
+            List<Double> hHrAvgListFinal = new ArrayList<Double>();
+            List<Double> dHrAvgListFinal = new ArrayList<Double>();
 
             DatabaseUtil.fillHrAvgTimeGaps(avgList, dateListFinal,
                     hHrAvgListFinal, dHrAvgListFinal, spTime);
 
-            float[] hHrAvgs = CalcUtil.toFloatArray(hHrAvgListFinal);
-            float[] dHrAvgs = CalcUtil.toFloatArray(dHrAvgListFinal);
+            double[] hHrAvgs = CalcUtil.toDoubleArray(hHrAvgListFinal);
+            double[] dHrAvgs = CalcUtil.toDoubleArray(dHrAvgListFinal);
 
             hQdc = CalcEach3hr.getHQdcOrDQdc(hHrAvgs, dHrAvgs);
             dQdc = CalcEach3hr.getHQdcOrDQdc(dHrAvgs, hHrAvgs);
@@ -567,7 +567,7 @@ public class GeoMagResource extends
                         .equalsIgnoreCase("DQdc")))) {
 
             int i = 0;
-            Float y = 0f;
+            Double y = 0.0;
             for (i = 0; i < recordSize; i++) {
 
                 DataTime x = recordsList.get(i).getDataTime();
@@ -624,7 +624,7 @@ public class GeoMagResource extends
         else {
             for (GeoMagRecord record : recordsList) {
                 DataTime x = record.getDataTime();
-                Float y = 0f;
+                Double y = 0.0;
                 if (geoMagType.equalsIgnoreCase("H"))
                     y = record.getComponent_1();
                 else if (geoMagType.equalsIgnoreCase("D"))
@@ -1216,8 +1216,8 @@ public class GeoMagResource extends
 
                 if (activeDisplay.getPaneId().equals(currDisplay.getPaneId())) {
 
-                    List<Float> hQdcList = new ArrayList<Float>();
-                    List<Float> dQdcList = new ArrayList<Float>();
+                    List<Double> hQdcList = new ArrayList<Double>();
+                    List<Double> dQdcList = new ArrayList<Double>();
 
                     int hrExtra = (hQdc.length - magRecords.size() + 1) / 60;
                     int minExtra = hrExtra * 60;

@@ -13,8 +13,10 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
 import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PSLibrary;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
 import gov.noaa.nws.ncep.gempak.parameterconversionlibrary.GempakConstants;
 import gov.noaa.nws.ncep.viz.cloudHeight.CloudHeightResource.StationData;
 import gov.noaa.nws.ncep.viz.cloudHeight.soundings.SoundingLevels.LevelValues;
@@ -24,7 +26,7 @@ import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.ComputationalMethod;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.PixelValueMethod;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.SoundingDataSourceType;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery2;
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
@@ -57,7 +59,6 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.NoninvertibleTransformException;
 import org.opengis.referencing.operation.TransformException;
 
-import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.dataplugin.HDF5Util;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
@@ -65,6 +66,7 @@ import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.numeric.buffer.ByteBufferWrapper;
 import com.raytheon.uf.common.numeric.filter.UnsignedFilter;
 import com.raytheon.uf.common.numeric.source.DataSource;
@@ -120,6 +122,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 10/13/2013               T. Lee      Fixed station data retrieval; Fixed moist adiabatic computation error;
  *                                      Added climate cloud height
  * 03/07/2014   2791        bsteffen    Move Data Source/Destination to numeric plugin.
+ * 07142015     RM#9173     Chin Chen   use NcSoundingQuery to query ncuair sounding data
+ *
  * 
  * @version 1
  */
@@ -662,30 +666,21 @@ public class CloudHeightProcesser {
      */
     private List<NcSoundingLayer2> getStationSounding(StationData stationData) {
 
-        // List<NcSoundingLayer> ncSoundingLayerList = new
-        // ArrayList<NcSoundingLayer>(0);
         List<NcSoundingLayer2> ncSoundingLayer2List = new ArrayList<NcSoundingLayer2>(
                 0);
-        // System.out.println("Time stamp of station: " +
-        // stationData.stationRefTime.toString());
-        List<Coordinate> coords = new ArrayList<Coordinate>(0);
-        coords.add(stationData.stationCoordinate);
-        List<String> stnIdList = new ArrayList<String>(1);
+//RM#9173
+        String[] stnIdAry = new String[1];
         if (stationData.stationId != null && !stationData.stationId.isEmpty())
-            stnIdList.add(stationData.stationId);
-
+        	stnIdAry[0] = stationData.stationId;
         try {
-            NcSoundingQuery2 soundingQuery = new NcSoundingQuery2("ncuair",
-                    true);
-            soundingQuery.setStationIdConstraints(stnIdList);
-            soundingQuery.setRefTimeConstraint(stationData.stationRefTime
-                    .getRefTime());
-            List<Long> rangeTimeList = new ArrayList<Long>();
-            rangeTimeList
-                    .add(stationData.stationRefTime.getRefTime().getTime());
-            soundingQuery.setRangeTimeList(rangeTimeList);
-            NcSoundingCube thisSoundingCube = soundingQuery.query();
 
+            long refTime = stationData.stationRefTime.getRefTime().getTime();
+            long[] reflTimeAry = {refTime}; 
+            long[] rangeTimeAry = {refTime}; //for ncuair, reange time is same as ref time
+        	NcSoundingCube thisSoundingCube = NcSoundingQuery
+                    .genericSoundingDataQuery( reflTimeAry, rangeTimeAry, null, null,null,  
+                    		stnIdAry,ObsSndType.NCUAIR.toString(),  NcSoundingLayer.DataType.ALLDATA,  true,  null,null,true,true,false);
+//end RM#9173    
             //
             // TODO -- This shouldn't be necessary, given Amount.getUnit()
             // should now heal itself

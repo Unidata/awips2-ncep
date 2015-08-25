@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+   <!--
+      Define the root level element "dataset". For now each XML
+      message must have one and only one "dataset" element. This
+      root element contains one child element to specify the
+      data resolution and zero or more elements containing the
+      time tagged Corrected Electrons (ce) data.
+   -->
+   <xs:element name="dataset">
+   
+      <xs:complexType>
+      
+         <!-- The ordered sequence of child elements -->
+         <xs:sequence>
+         
+            <!-- required element specifying the data resolution -->
+            <xs:element name="data-resolution" type="data-resolution-type"/>
+            
+            <xs:element name="data-field-definitions" type="field-description-list"/>
+            
+            <!-- the optional description -->
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            
+            <!-- The data elements (zero or more) of type "time-tagged-data" -->
+            <xs:element name="data-item" type="time-tagged-data" minOccurs="0" maxOccurs="unbounded"/>
+            
+         </xs:sequence>
+         
+         <!--
+              The "source" attribute (e.g. goes-12, goes-r). This attribute
+              is of type "data-sources" which is a simple type enumerating
+              the valid string values for "source".
+         -->
+         <xs:attribute name="source" type="data-sources" use="required"/>
+        
+         <!--
+               The "entry-count" attribute is an optional non-negative
+               integer which specifies the number of data-item entries
+               in the dataset.
+         -->
+         <xs:attribute name="entry-count" type="xs:nonNegativeInteger"/>
+      </xs:complexType>
+   </xs:element>
+
+   <!--
+         The complexType "time-tagged-data" encodes the time tagged
+         Corrected Electrons (ce) data for the goes SEM-EPEAD instrument. The time tag for all
+         of the child elements is specified as a required argument.
+         
+         The child elements may appear in any order. A missing or empty
+         child element may be interpreted as a missing value.
+   -->
+   <xs:complexType name="time-tagged-data">
+      <xs:all>
+         <xs:element name="ce1" type="ce1-data-item" minOccurs="0"/>
+         <xs:element name="ce2" type="ce2-data-item"  minOccurs="0"/>
+         <xs:element name="ce3" type="ce3-data-item"  minOccurs="0"/>
+      </xs:all>
+      <xs:attribute name="time-tag" type="xs:dateTime" use="required"/>
+   </xs:complexType>
+   
+   <!-- An enumeration of valid data source values for this XML message -->
+   <xs:simpleType name="data-sources">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="goes-13"/>
+         <xs:enumeration value="goes-14"/>
+         <xs:enumeration value="goes-15"/>
+         <xs:enumeration value="goes-r"/>
+         <xs:enumeration value="goes-16"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!-- An enumeration of valid instruments for this XML message -->
+   <xs:simpleType name="instruments">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="epead"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+      <!-- An enumeration of valid data type values for this XML message -->
+   <xs:simpleType name="data-types">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="corrected-electrons"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <!-- An enumeration of valid data resolution units -->
+   <xs:simpleType name="data-resolution-units">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="seconds"/>
+         <xs:enumeration value="minutes"/>
+         <xs:enumeration value="hours"/>
+         <xs:enumeration value="days"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <!--
+        A complex type used to specify the data sampling resolution
+        for the contents of the data set.
+   -->
+   <xs:complexType name="data-resolution-type">
+      <xs:simpleContent>
+         <xs:extension base="xs:positiveInteger">
+            <xs:attribute name="units" type="data-resolution-units" use="required"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+      
+   <!--
+         A simpleType specifying the type and value restrictions
+         for ce1 data.
+   -->
+   <xs:simpleType name="ce1-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="1e+6"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="ce1-data-item">
+      <xs:simpleContent>
+         <xs:extension base="ce1-type">
+            <xs:attribute name="units" fixed="e/(cm^2*s*sr)"/>
+            <xs:attribute name="description" fixed="Average flux of electrons with energy >.8 MeV from the A or B detector that faces either East or West depending on the yaw flip of the satellite with a correction applied to remove proton contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for ce2 data.
+   -->
+   <xs:simpleType name="ce2-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="1e+5"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="ce2-data-item">
+      <xs:simpleContent>
+         <xs:extension base="ce2-type">
+            <xs:attribute name="units" fixed="e/(cm^2*s*sr)"/>
+            <xs:attribute name="description" fixed="Average flux of electrons with energy >2 MeV from the A or B detector that faces either East or West depending on the yaw flip of the satellite with no correction applied to remove proton contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         A simpleType specifying the type and value restrictions
+         for ce3 data.
+   -->   
+   <xs:simpleType name="ce3-type">
+      <xs:restriction base="xs:float">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="1e+3"/>
+      </xs:restriction>
+   </xs:simpleType>
+   
+   <xs:complexType name="ce3-data-item">
+      <xs:simpleContent>
+         <xs:extension base="ce3-type">
+            <xs:attribute name="units" fixed="e/(cm^2*s*sr)"/>
+            <xs:attribute name="description" fixed="Average flux of electrons with energy >4 MeV from the A or B detector that faces either East or West depending on the yaw flip of the satellite with a correction applied to remove proton contamination."/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+   
+   <!--
+         Meta-data field description line
+   -->
+   
+   <xs:complexType name="field-description-list">
+      <xs:sequence>
+         <xs:element name="field-def" type="field-definition" minOccurs="0" maxOccurs="unbounded"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+              
+      <!--
+            The "instrument" attribute (e.g. xrs, eps). This attribute
+            is of type "instruments" which is a simple type enumerating
+            the valid string values for "instrument".
+      -->
+      <xs:attribute name="instrument" type="instruments" use="required"/>
+      <xs:attribute name="data-type" type="data-types" use="required"/>        
+   </xs:complexType>
+   
+   <xs:attribute name="field-name" type="xs:token"/>
+   <xs:attribute name="type" type="xs:string"/>
+   
+   <xs:complexType name="field-definition">
+      <xs:all>
+         <xs:element name="units" type="xs:string" minOccurs="0"/>
+         <xs:element name="description" type="xs:string" minOccurs="0"/>
+         <xs:element name="data-range" minOccurs="0">
+            <xs:complexType>
+                  <xs:attribute name="minInclusive" type="xs:float"/>
+                  <xs:attribute name="minExclusive" type="xs:float"/>
+                  <xs:attribute name="maxInclusive" type="xs:float"/>
+                  <xs:attribute name="maxExclusive" type="xs:float"/>
+            </xs:complexType>
+         </xs:element>
+      </xs:all>
+      <xs:attribute ref="field-name" use="required"/>
+      <xs:attribute ref="type" use="required"/>
+
+   </xs:complexType>
+   
+</xs:schema>

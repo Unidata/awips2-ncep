@@ -152,8 +152,6 @@ public class Dgdriv {
 
     private ArrayList<DataTime> dataForecastTimes;
 
-    private int forecastTimeInSec;
-
     private NcgridDataCache cacheData;
 
     private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();;
@@ -234,16 +232,17 @@ public class Dgdriv {
     }
 
     public void setGdfile(String gdfile) {
-        String tmpGdFiles = chechEnsembleGdFiles(gdfile);
-        this.gdfile = tmpGdFiles;
-        this.gdfileOriginal = tmpGdFiles;
+        if (gridRscData.isEnsemble()) {
+            gdfile = NcEnsembleResourceData.convertGdfileToCycleTimeString(
+                    gdfile, gridRscData.getResourceName().getCycleTime());
+        }
+        this.gdfile = gdfile;
+        this.gdfileOriginal = gdfile;
     }
 
     public void setGdattim(String gdattim) {
         this.gdattim = gdattim;
         this.gempakTime = CommonDateFormatUtil.dbtimeToDattim(gdattim);
-        this.forecastTimeInSec = CommonDateFormatUtil
-                .getForecastTimeInSec(gempakTime);
     }
 
     public void setGlevel(String glevel) {
@@ -1035,45 +1034,9 @@ public class Dgdriv {
     }
 
     private String getEnsembleTemplate(String ensName, String perturbationNum) {
-        String ensTemplate = null;
+        String ensTemplate = ensName + "_db_" + perturbationNum
+                + "_YYYYMMDDHHfFFF";
 
-        try {
-            int num = Integer.parseInt(perturbationNum);
-            ensTemplate = ensName + "_db_" + num + "_YYYYMMDDHHfFFF";
-        } catch (Exception e) {
-            ensTemplate = ensName + "_db_" + perturbationNum
-                    + "_YYYYMMDDHHfFFF";
-        }
-
-        /*
-         * HashMap<String, RequestConstraint> rcMap = new HashMap<String,
-         * RequestConstraint>(); rcMap.put( GridDBConstants.PLUGIN_NAME, new
-         * RequestConstraint(GridDBConstants.GRID_TBL_NAME) ); rcMap.put(
-         * GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint( ensName ) );
-         * if ( perturbationNum != null ) { rcMap.put(
-         * GridDBConstants.ENSEMBLE_ID_QUERY, new RequestConstraint(
-         * String.valueOf(Integer.parseInt(perturbationNum))) ); }
-         * DbQueryRequest request = new DbQueryRequest();
-         * request.addRequestField(GridDBConstants.EVENT_NAME_QUERY);
-         * request.setDistinct(true); request.setConstraints(rcMap); long t0 =
-         * System.currentTimeMillis(); String ensTemplate = null; try {
-         * DbQueryResponse response = (DbQueryResponse) ThriftClient
-         * .sendRequest(request); // extract list of results List<Map<String,
-         * Object>> responseList = null; if (response != null) { responseList =
-         * response.getResults(); } else { // empty list to simplify code
-         * responseList = new ArrayList<Map<String, Object>>(0); } if
-         * (responseList.size() > 0) { Object event =
-         * responseList.get(0).get(GridDBConstants.EVENT_NAME_QUERY); if (event
-         * != null && event instanceof String) { ensTemplate = ensName + "_db_"
-         * + (String) event + "_YYYYMMDDHHfFFF"; } } } catch (VizException e) {
-         * 
-         * } long t1 = System.currentTimeMillis(); if ( ensTemplate != null )
-         * logger
-         * .debug("getEnsembleTemplate("+ensTemplate+") for("+ensName+") took: "
-         * + (t1-t0)); else
-         * logger.debug("??? getEnsembleTemplate(null) for("+ensName+") took: "
-         * + (t1-t0));
-         */
         logger.debug("getEnsembleTemplate(" + ensTemplate + ") for(" + ensName
                 + "," + perturbationNum + ")");
         return ensTemplate;
@@ -1765,8 +1728,7 @@ public class Dgdriv {
         }
 
         try {
-            String gempakTimeStrFFF = parms[3].split("f")[1];
-            int fhr = Integer.parseInt(gempakTimeStrFFF) * 3600;
+            int fhr = CommonDateFormatUtil.getForecastTimeInSec(parms[3]);
             rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
                     new RequestConstraint(Integer.toString(fhr),
                             ConstraintType.EQUALS));
@@ -1930,82 +1892,6 @@ public class Dgdriv {
             lvl++;
         }
         return lvl;
-    }
-
-    private String chechEnsembleGdFiles(String gdfile1) {
-        // String [] members = {"gefs:01","gefs:02","gefs:03","gefs:12"};
-        if (gdfile1.startsWith("{") && gdfile1.endsWith("}")) {
-            StringBuilder sba = new StringBuilder();
-            String[] gdfileArray = gdfile1.substring(gdfile1.indexOf("{") + 1,
-                    gdfile1.indexOf("}")).split(",");
-            if (gdfileArray.length == 0) {
-                return gdfile1;
-            }
-
-            sba.append("{");
-            for (int igd = 0; igd < gdfileArray.length; igd++) {
-                if (!gdfileArray[igd].contains(":")) {
-                    String model = gdfileArray[igd];
-                    String wgt = null;
-                    if (gdfileArray[igd].contains("%")) {
-                        String[] wgts = gdfileArray[igd].split("%");
-                        wgt = wgts[0];
-                        model = wgts[1];
-                    }
-                    String cycleTime = null;
-                    if (model.contains("|")) {
-                        String[] tempAttrs = model.split("\\|");
-                        model = tempAttrs[0];
-                        cycleTime = tempAttrs[1];
-                    }
-
-                    ArrayList<String> members = ((NcEnsembleResourceData) gridRscData)
-                            .getEnsembleMembersForModel(model);
-                    if (members != null && members.size() > 0) {
-                        int cnt = 0;
-                        int weight = -1;
-                        int mbrWt = 0, sumWts = 0;
-                        if (wgt != null) {
-                            weight = Integer.parseInt(wgt);
-                            mbrWt = weight / members.size();
-                        }
-                        for (String mb : members) {
-                            cnt++;
-                            if (mbrWt != 0) {
-                                sumWts += mbrWt;
-                                if (cnt == members.size()) {
-                                    sba.append(String.valueOf(mbrWt + weight
-                                            - sumWts));
-                                } else {
-                                    sba.append(String.valueOf(mbrWt));
-                                }
-                                sba.append("%");
-                            }
-                            sba.append(model);
-                            sba.append(":");
-                            sba.append(mb);
-                            if (cycleTime != null) {
-                                sba.append("|");
-                                sba.append(cycleTime);
-                            }
-                            if (cnt < members.size()) {
-                                sba.append(",");
-                            }
-                        }
-                    } else {
-                        sba.append(gdfileArray[igd]);
-                    }
-                } else {
-                    sba.append(gdfileArray[igd]);
-                }
-                if (igd < (gdfileArray.length - 1)) {
-                    sba.append(",");
-                }
-            }
-            sba.append("}");
-            return sba.toString();
-        }
-        return gdfile1;
     }
 
     private String getEnsembleNavigation(String msg) {
@@ -2172,7 +2058,8 @@ public class Dgdriv {
         }
         String refTimeg = parmList[5].toUpperCase().split("F")[0];
         String refTime = CommonDateFormatUtil.dattimToDbtime(refTimeg);
-        String fcstTimeInSec = Integer.toString(forecastTimeInSec);
+        String fcstTimeInSec = Integer.toString(CommonDateFormatUtil
+                .getForecastTimeInSec(parmList[5]));
 
         rcMap.put(GridDBConstants.REF_TIME_QUERY,
                 new RequestConstraint(refTime));

@@ -395,6 +395,13 @@
                     mnemonic="F"
                     style="push"
                     tooltip="Conditional Filter Manager">
+              </command>              
+              <command
+                    commandId="gov.noaa.nws.ncep.viz.xAxisScaleMngr"
+                    label="Time-series X-axis Scale Manager"
+                    mnemonic="X"
+                    style="push"
+                    tooltip="Time-series X-axis Scale Manager">
               </command>
               <menu
                    id="AODT"

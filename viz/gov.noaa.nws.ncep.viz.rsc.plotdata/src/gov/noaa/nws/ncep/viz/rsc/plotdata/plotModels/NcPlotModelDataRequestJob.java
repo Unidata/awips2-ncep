@@ -33,7 +33,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery2;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
@@ -55,9 +54,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.pointdata.ParameterDescription;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
@@ -87,6 +86,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 09/2012      896        sgurung     Refactored raytheon's class PlotModelDataRequestJob and added
  * 									   code from ncep's PlotModelGenerator2
  * Aug 07, 2014 3478       bclement    removed PointDataDescription.Type.Double
+ * 07142015     RM#9173    Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
  * 
  * </pre>
  * 
@@ -371,23 +371,23 @@ public class NcPlotModelDataRequestJob extends Job {
             if ( //deriveParams.length > 1 &&
             !deriveParams[0].equalsIgnoreCase("all")) {
 
-                ArrayList<String> preferedDeriveParameterNames = new ArrayList<String>();
-                ArrayList<AbstractMetParameter> preferedDeriveParameters = new ArrayList<AbstractMetParameter>();
+                ArrayList<String> preferredDeriveParameterNames = new ArrayList<String>();
+                ArrayList<AbstractMetParameter> preferredDeriveParameters = new ArrayList<AbstractMetParameter>();
 
                 for (String dPrm : deriveParams) {
                     AbstractMetParameter deriveInputParam = MetParameterFactory.getInstance().createParameter(dPrm);
 
                     if (deriveInputParam != null) {
                         //MetParameterFactory.getInstance().isValidMetParameterName( dPrm ) ) {
-                        preferedDeriveParameters.add(deriveInputParam);
-                        preferedDeriveParameterNames.add(dPrm);
+                        preferredDeriveParameters.add(deriveInputParam);
+                        preferredDeriveParameterNames.add(dPrm);
                     } else {
                         System.out.println("Warning : '" + dPrm + " is not a valid metParameter name");
                         return null;
                     }
                 }
 
-                derivedMetParam.setPreferedDeriveParameters(preferedDeriveParameterNames);
+                derivedMetParam.setPreferredDeriveParameters(preferredDeriveParameterNames);
             }
 
             if (derivedMetParam.getDeriveMethod(dbParamsMap.values()) == null) {
@@ -664,7 +664,7 @@ public class NcPlotModelDataRequestJob extends Job {
                             AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                             metParam.setDataTime(origMetParam.getDataTime());
                             metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                            metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                            metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                             metParam.setUnitStr(origMetParam.getUnitStr());
                             metParam.setUseStringValue(origMetParam.isUseStringValue());
                             metParam.setValue(origMetParam.getValue());
@@ -678,7 +678,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                 AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                                 metParam.setDataTime(origMetParam.getDataTime());
                                 metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                 metParam.setUnitStr(origMetParam.getUnitStr());
                                 metParam.setUseStringValue(origMetParam.isUseStringValue());
                                 metParam.setValue(origMetParam.getValue());
@@ -726,32 +726,16 @@ public class NcPlotModelDataRequestJob extends Job {
                 rangeTimeLst.add(stnTime);
             }
         }
-
-        // TODO if this is an UpperAir FcstPlotResource then we will need to 
-        // get the validTime and query for it. 
-        NcSoundingQuery2 sndingQuery;
-        try {
-            sndingQuery = new NcSoundingQuery2(plugin, true, levelStr);
-        } catch (Exception e1) {
-            System.out.println("Error creating NcSoundingQuery2: " + e1.getMessage());
-            return null;
-        }
-        //chin sndingQuery.setLatLonConstraints( latLonCoords );
-        sndingQuery.setStationIdConstraints(stnIdLst);
-        sndingQuery.setRangeTimeList(rangeTimeLst);
-        sndingQuery.setRefTimeConstraint(refTime);
-        sndingQuery.setTimeRangeConstraint(new TimeRange(beginTime, endTime));
-
-        // for modelsounding data we need to set the name of the model (ie the reportType)
-        if (plugin.equals("modelsounding")) {
-            if (!constraintMap.containsKey("reportType")) {
-                System.out.println("Error creating NcSoundingQuery2: missing modelName (reportType) for modelsounding plugin");
-                return null;
-            }
-            sndingQuery.setModelName(constraintMap.get("reportType").getConstraintValue());
-        }
+        long[] refTimelArray = new long[1];
+        refTimelArray[0] = refTime.getTime();
+        long[] rangeTimeArray = new long[rangeTimeLst.size()];
+        for(int k=0; k<rangeTimeLst.size();k++)
+        	rangeTimeArray[k]= rangeTimeLst.get(k);
+        String[] stnIdArray;
+        stnIdArray = stnIdLst.toArray((new String[0]));
+        
         long t004 = System.currentTimeMillis();
-        NcSoundingCube sndingCube = sndingQuery.query();
+        NcSoundingCube sndingCube = PlotModelMngr.querySoundingData(refTimelArray, rangeTimeArray, stnIdArray, plugin, levelStr,  constraintMap,paramsToPlot);
         long t005 = System.currentTimeMillis();
         System.out.println("plotUpperAirData sndingQuery query  took " + (t005 - t004) + " ms");
 
@@ -893,7 +877,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                 AbstractMetParameter metParam = MetParameterFactory.getInstance().createParameter(origMetParam.getClass().getSimpleName(), origMetParam.getUnit());
                                 metParam.setDataTime(origMetParam.getDataTime());
                                 metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                 metParam.setUnitStr(origMetParam.getUnitStr());
                                 metParam.setUseStringValue(origMetParam.isUseStringValue());
                                 metParam.setValue(origMetParam.getValue());
@@ -908,7 +892,7 @@ public class NcPlotModelDataRequestJob extends Job {
                                             origMetParam.getUnit());
                                     metParam.setDataTime(origMetParam.getDataTime());
                                     metParam.setMissing_data_value(origMetParam.getMissing_data_value());
-                                    metParam.setPreferedDeriveParameters(origMetParam.getPreferedDeriveParameters());
+                                    metParam.setPreferredDeriveParameters(origMetParam.getPreferredDeriveParameters());
                                     metParam.setUnitStr(origMetParam.getUnitStr());
                                     metParam.setUseStringValue(origMetParam.isUseStringValue());
                                     metParam.setValue(origMetParam.getValue());

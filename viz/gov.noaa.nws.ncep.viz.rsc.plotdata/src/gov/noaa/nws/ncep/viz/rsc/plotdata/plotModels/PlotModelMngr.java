@@ -1,27 +1,28 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
 
+import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
+import gov.noaa.nws.ncep.edex.common.metparameters.PrecipitableWaterForEntireSounding;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.ObsSndType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.PfcSndType;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
+import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
-import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
 import com.raytheon.uf.common.serialization.SerializationException;
@@ -46,6 +47,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 03/08/11      425        Greg Hull   add deletePlotModel
  * 08/15/11      450        Greg Hull   NcPathManager and save LocalizationFiles;
  *                                      use SerializationUtil instead of JaxBContext
+ * 07142015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
+ * 										add a static query function querySoundingData() for all plot model methods to use for ncuair and modelsounding
+ *                                      sounding data
  *                       
  * </pre>
  * 
@@ -286,5 +290,44 @@ public class PlotModelMngr {
 	
 	public String getDefaultSvgTemplate() {
 		return DFLT_SVG_TEMPLATE_FILE;
+	}
+	
+	/*
+	 * querySoundingData used to query ncuair and modelsounding data. 
+	 */
+	public static NcSoundingCube querySoundingData(long[] refTime,long[] rangeTime, String[] stnIdAry, String plugin,
+			String level,   Map<String, RequestConstraint> constraintMap, HashMap<String, AbstractMetParameter> paramsToPlot) {
+		String sndType="";
+        if (plugin.equals("modelsounding")) {
+        	if (!constraintMap.containsKey("reportType")) {
+        		System.out.println("requestUpperAirData: missing modelName (reportType) for modelsounding plugin");
+        		return null;
+        	}
+        	String modelName = constraintMap.get("reportType").getConstraintValue();
+        	if (modelName.startsWith("NAM")
+        			|| modelName.startsWith("ETA")) {
+        		sndType = PfcSndType.NAMSND.toString();
+        	} else if (modelName.startsWith("GFS")) {
+        		sndType = PfcSndType.GFSSND.toString();
+        	}
+        	else {
+        		System.out.println("requestUpperAirData: unreconized modelsounding model name "+modelName);
+        		return null;
+        	}
+        }
+        else if (plugin.equals("ncuair")) {
+        	sndType = ObsSndType.NCUAIR.toString();
+        }
+        else {
+        	System.out.println("requestUpperAirData: unreconized plugin name "+ plugin);
+        	return null;
+        }
+        
+        boolean pwRequired = paramsToPlot.containsKey(PrecipitableWaterForEntireSounding.class
+                .getSimpleName());
+
+		return NcSoundingQuery.genericSoundingDataQuery( refTime, rangeTime, null, null,null,  
+        		stnIdAry, sndType,  NcSoundingLayer.DataType.ALLDATA,  true,  level,
+        		null, true, true, pwRequired);
 	}
 }

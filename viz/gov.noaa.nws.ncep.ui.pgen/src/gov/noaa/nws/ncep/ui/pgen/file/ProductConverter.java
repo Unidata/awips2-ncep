@@ -135,6 +135,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/13        #1065       J. Wu       Added Kink lines.
  * 05/14        TTR995      J. Wu       Set Text's 'auto" flag to false.
  * 09/14        TTR716      J. Wu       Use "-" for GFA Outlook's Vor text.
+ * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
+ * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
+ * 08/05		R8879		B. Yin		Check Outlook/Contour by type
+ * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
  * 
  * </pre>
  * 
@@ -143,6 +147,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 
 public class ProductConverter {
+
+    private static final String HASH = "Hash";
+
+    private static final String BARB = "Barb";
 
     /*
      * Convert a XML file Products object to a list of PGEN in-memory Product
@@ -169,6 +177,14 @@ public class ProductConverter {
 
             if (fPrd.getCenter() != null) {
                 p.setCenter(fPrd.getCenter());
+            }
+
+            if (fPrd.getForecaster() != null) {
+                p.setForecaster(fPrd.getForecaster());
+            }
+
+            if (fPrd.getStatus() != null) {
+                p.setStatus(fPrd.getStatus());
             }
 
             if (fPrd.isSaveLayers() != null) {
@@ -369,10 +385,15 @@ public class ProductConverter {
                     text.setHide(fText.isHide());
                 }
 
-                /*
-                 * if (fText.isAuto() != null) { //
-                 * text.setAuto(fText.isAuto()); text.setAuto(false); }
-                 */
+                // R6158 - preserve ithw/iwidth
+                if (fText.getIthw() != null) {
+                    text.setIthw(fText.getIthw());
+                }
+
+                if (fText.getIwidth() != null) {
+                    text.setIwidth(fText.getIwidth());
+                }
+
                 text.setAuto(false);
                 des.add(text);
             }
@@ -404,6 +425,15 @@ public class ProductConverter {
                         aText.getSymbolPatternName(), aText.getPgenCategory(),
                         aText.getPgenType());
 
+                // R6158 - preserve ithw/iwidth
+                if (aText.getIthw() != null) {
+                    text.setIthw(aText.getIthw());
+                }
+
+                if (aText.getIwidth() != null) {
+                    text.setIwidth(aText.getIwidth());
+                }
+
                 des.add(text);
             }
 
@@ -434,6 +464,15 @@ public class ProductConverter {
                         mText.getTstormTypes(), mText.getTstormLevels(),
                         FontStyle.valueOf(mText.getStyle()), clr[0],
                         mText.getPgenCategory(), mText.getPgenType());
+
+                // R6158 - preserve ithw/iwidth
+                if (mText.getIthw() != null) {
+                    text.setIthw(mText.getIthw());
+                }
+
+                if (mText.getIwidth() != null) {
+                    text.setIwidth(mText.getIwidth());
+                }
 
                 des.add(text);
             }
@@ -491,9 +530,10 @@ public class ProductConverter {
 
                 VectorType vtype = null;
                 String pgenType = fVector.getPgenType();
-                if (pgenType.equalsIgnoreCase("Hash")) {
+                if (pgenType.equalsIgnoreCase(HASH)) {
                     vtype = VectorType.HASH_MARK;
-                } else if (pgenType.equalsIgnoreCase("Barb")) {
+                    fVector.setDirection(fVector.getDirection());
+                } else if (pgenType.equalsIgnoreCase(BARB)) {
                     vtype = VectorType.WIND_BARB;
                 } else {
                     vtype = VectorType.ARROW;
@@ -514,24 +554,6 @@ public class ProductConverter {
         if (!elem.getTCA().isEmpty()) {
 
             for (gov.noaa.nws.ncep.ui.pgen.file.TCA ftca : elem.getTCA()) {
-
-                /*
-                 * Color[] clr = new Color[ fVector.getColor().size() ]; int nn
-                 * = 0; for (gov.noaa.nws.ncep.ui.pgen.file.Color fColor :
-                 * fVector.getColor() ) { clr[nn++] = new Color(
-                 * fColor.getRed(), fColor.getGreen(), fColor.getBlue(),
-                 * fColor.getAlpha() ); }
-                 */
-
-                // Point loc = fVector.getPoint();
-
-                /*
-                 * VectorType vtype = null; String pgenType =
-                 * fVector.getPgenType(); if ( pgenType.equalsIgnoreCase( "Hash"
-                 * ) ) { vtype = VectorType.HASH_MARK; } else if (
-                 * pgenType.equalsIgnoreCase( "Barb" ) ) { vtype =
-                 * VectorType.WIND_BARB; } else { vtype = VectorType.ARROW; }
-                 */
 
                 TCAElement tca = new TCAElement();
                 tca.setPgenType(ftca.getPgenType());
@@ -849,6 +871,14 @@ public class ProductConverter {
             p.setType(prd.getType());
             p.setForecaster(prd.getForecaster());
             p.setCenter(prd.getCenter());
+
+            if (prd.getForecaster() != null) {
+                p.setForecaster(prd.getForecaster());
+            }
+
+            if (prd.getStatus() != null) {
+                p.setStatus(prd.getStatus());
+            }
 
             String outFile = prd.getOutputFile();
             if (outFile != null) {
@@ -1314,6 +1344,11 @@ public class ProductConverter {
                     atext.setAvnTextType(((AvnText) de).getAvnTextType().name());
                     atext.setTopValue(((AvnText) de).getTopValue());
                     atext.setBottomValue(((AvnText) de).getBottomValue());
+
+                    atext.setIthw(((AvnText) de).getIthw());
+
+                    atext.setIwidth(((AvnText) de).getIwidth());
+
                     atext.setJustification(((AvnText) de).getJustification()
                             .name());
                     atext.setStyle(((AvnText) de).getStyle().name());
@@ -1356,6 +1391,9 @@ public class ProductConverter {
                     mtext.setTstormTypes(mcde.getTstormTypes());
                     mtext.setTstormLevels(mcde.getTstormLevels());
 
+                    mtext.setIthw(mcde.getIthw());
+                    mtext.setIwidth(mcde.getIwidth());
+
                     mtext.setJustification(mcde.getJustification().name());
                     mtext.setStyle(mcde.getStyle().name());
                     mtext.setFontName(mcde.getFontName());
@@ -1395,6 +1433,10 @@ public class ProductConverter {
                     text.setRotationRelativity(((Text) de)
                             .getRotationRelativity().name());
                     text.setRotation(((Text) de).getRotation());
+
+                    text.setIthw(((Text) de).getIthw());
+                    text.setIwidth(((Text) de).getIwidth());
+
                     text.setJustification(((Text) de).getJustification().name());
                     text.setStyle(((Text) de).getStyle().name());
                     text.setFontName(((Text) de).getFontName());
@@ -1453,24 +1495,6 @@ public class ProductConverter {
 
                     gov.noaa.nws.ncep.ui.pgen.file.TCA tca = new gov.noaa.nws.ncep.ui.pgen.file.TCA();
 
-                    /*
-                     * for ( Color clr : de.getColors() ) {
-                     * 
-                     * gov.noaa.nws.ncep.ui.pgen.file.Color fclr = new
-                     * gov.noaa.nws.ncep.ui.pgen.file.Color();
-                     * 
-                     * fclr.setRed( clr.getRed() ); fclr.setGreen(
-                     * clr.getGreen() ); fclr.setBlue( clr.getBlue() );
-                     * fclr.setAlpha( clr.getAlpha() );
-                     * 
-                     * vector.getColor().add( fclr ); }
-                     */
-
-                    // Point fpt = new Point();
-                    // fpt.setLat( de.getLocation().y );
-                    // fpt.setLon( de.getLocation().x );
-                    // vector.setPoint( fpt );
-
                     tca.setPgenType(tcaEl.getPgenType());
                     tca.setPgenCategory(tcaEl.getPgenCategory());
 
@@ -1509,10 +1533,10 @@ public class ProductConverter {
                 }
             } else if (adc instanceof DECollection) {
 
-                if (adc.getName().equalsIgnoreCase("Contours")) {
-                    fde.getContours().add(convertContours2XML((Contours) adc));
-                } else if (adc.getName().equalsIgnoreCase("Outlook")) {
-                    fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
+                if (adc instanceof Outlook){
+                	 fde.getOutlook().add(convertOutlook2XML((Outlook) adc));
+                } else if (adc instanceof Contours)  {
+                	 fde.getContours().add(convertContours2XML((Contours) adc));
                 } else {
                     fde.getDECollection().add(
                             convertDECollection2XML((DECollection) adc));
@@ -1677,7 +1701,7 @@ public class ProductConverter {
         VectorType vtype = null;
         String pgenType = fVector.getPgenType();
 
-        if (pgenType.equalsIgnoreCase("Hash")) {
+        if (pgenType.equalsIgnoreCase(HASH)) {
             vtype = VectorType.HASH_MARK;
         }
         JetHash hash = jet.new JetHash(null, clr, fVector.getLineWidth(),
@@ -1712,7 +1736,7 @@ public class ProductConverter {
         VectorType vtype = null;
         String pgenType = fVector.getPgenType();
 
-        if (pgenType.equalsIgnoreCase("Barb")) {
+        if (pgenType.equalsIgnoreCase(BARB)) {
             vtype = VectorType.WIND_BARB;
         }
         JetBarb barb = jet.new JetBarb(null, clr, fVector.getLineWidth(),
@@ -2280,37 +2304,6 @@ public class ProductConverter {
             }
         }
 
-        // set outlines and holes
-        /*
-         * Geometry union = wb.getCountyUnion();
-         * 
-         * if ( union != null ){ //loop through all polygons in the union for (
-         * int ii = 0; ii < union.getNumGeometries(); ii++ ){
-         * 
-         * //set outlines Polygon poly = (Polygon)union.getGeometryN(ii);
-         * 
-         * LineString outside = poly.getExteriorRing();
-         * 
-         * Outline ol = new Outline();
-         * 
-         * for ( Coordinate pt : outside.getCoordinates() ){ Point fpt = new
-         * Point(); fpt.setLat( pt.y ); fpt.setLon( pt.x );
-         * ol.getPoint().add(fpt); }
-         * 
-         * fwb.getOutline().add(ol);
-         * 
-         * //loop through all holes of the polygon for ( int jj = 0; jj <
-         * poly.getNumInteriorRing(); jj++ ){
-         * 
-         * LineString ls = poly.getInteriorRingN(jj); Hole hole = new Hole();
-         * 
-         * for ( Coordinate pt : ls.getCoordinates()) { Point fpt = new Point();
-         * fpt.setLat( pt.y ); fpt.setLon( pt.x ); hole.getPoint().add(fpt); }
-         * 
-         * fwb.getHole().add(hole);
-         * 
-         * } } }
-         */
         return fwb;
     }
 
@@ -2730,8 +2723,7 @@ public class ProductConverter {
         Properties props = new Properties();
         try {
             FileInputStream fis = new FileInputStream(propsFile);
-            props.load(fis); // .loadFromXML(fis);
-            // String s = props.getProperty("HTTPServer");
+            props.load(fis);
             fis.close();
         } catch (Exception e) {
         }
@@ -2997,6 +2989,15 @@ public class ProductConverter {
                                         aText.getPgenType());
 
                                 // text.setTwoColumns(false);
+                                // R6158 - preserve ithw/iwidth
+                                if (aText.getIthw() != null) {
+                                    text.setIthw(aText.getIthw());
+                                }
+
+                                if (aText.getIwidth() != null) {
+                                    text.setIwidth(aText.getIwidth());
+                                }
+
                                 text.setParent(lbl);
                                 lbl.setSpe(text);
                             }

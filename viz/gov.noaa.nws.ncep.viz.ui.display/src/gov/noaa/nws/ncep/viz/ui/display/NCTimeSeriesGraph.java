@@ -52,6 +52,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 4/18/2014               qzhou       Similar to TimeSeriesGraph
+ * 10/28/2014   R4508      sgurung     Modified decimal format
  * 
  * </pre>
  * 
@@ -61,7 +62,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 public class NCTimeSeriesGraph extends AbstractGraph {
 
-    protected static final DecimalFormat df = new DecimalFormat("#.0###");
+    protected static final DecimalFormat df = new DecimalFormat("#0.0###");
 
     /** The x labels */
     protected List<IGraphLabel<DataTime>> xLabels;

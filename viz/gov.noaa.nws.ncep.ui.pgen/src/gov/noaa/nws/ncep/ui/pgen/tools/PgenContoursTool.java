@@ -21,6 +21,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.ILine;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.Arc;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
@@ -57,6 +58,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/13		TTR778		J. Wu		Move loading libg2g to GraphToGridParamDialog.
  * 04/14        #1117       J. Wu       Set focus to label/use line color for label.
  * 05/14        TTR1008     J. Wu       Remove confirmation dialog when adding to an existing contour.
+ * 01/15        R5200/T1059 J. Wu       Use setSettings(de) to save last-used attributes.
  * 
  * </pre>
  * 
@@ -306,7 +308,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 ContourMinmax ghost = null;
                 ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
                         dlg.getActiveSymbolObjType(),
-                        new String[] { dlg.getLabel() });
+                        new String[] { dlg.getLabel() }, dlg.hideSymbolLabel());
 
                 IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
                         .getMinmaxTemplate();
@@ -478,6 +480,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     Boolean isClosed = oneLine.isClosedLine();
                     oneLine.update(lineTemp);
                     oneLine.setClosed(isClosed);
+                    ((ContoursAttrDlg) attrDlg).setSettings(oneLine.copy());
                 }
 
                 String lblstr = ((ContoursAttrDlg) attrDlg).getLabel();
@@ -496,6 +499,9 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setText(oldText);
                         lbl.setHide(hide);
                         lbl.setAuto(auto);
+
+                        ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+
                         if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
                             lbl.setColors(lineTemp.getColors());
                         }
@@ -565,8 +571,12 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 String cls = ((ContoursAttrDlg) attrDlg).getActiveSymbolClass();
                 String type = ((ContoursAttrDlg) attrDlg)
                         .getActiveSymbolObjType();
-                ContourMinmax cmm = new ContourMinmax(loc, cls, type,
-                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() });
+                ContourMinmax cmm = new ContourMinmax(
+                        loc,
+                        cls,
+                        type,
+                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() },
+                        ((ContoursAttrDlg) attrDlg).hideSymbolLabel());
 
                 IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
                         .getMinmaxTemplate();
@@ -574,6 +584,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 if (mmTemp != null) {
                     Symbol oneSymb = (Symbol) (cmm.getSymbol());
                     oneSymb.update(mmTemp);
+                    ((ContoursAttrDlg) attrDlg).setSettings(oneSymb.copy());
                 }
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
@@ -587,6 +598,9 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     lbl.setText(oldText);
                     lbl.setHide(hide);
                     lbl.setAuto(auto);
+
+                    ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+
                     if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
                         lbl.setColors(mmTemp.getColors());
                     }
@@ -699,6 +713,9 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     cmm.getCircle().setColors(circleTemp.getColors());
                     ((Arc) cmm.getCircle()).setLineWidth(circleTemp
                             .getLineWidth());
+                    ((ContoursAttrDlg) attrDlg)
+                            .setSettings((DrawableElement) cmm.getCircle()
+                                    .copy());
                 }
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
@@ -712,6 +729,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     lbl.setText(oldText);
                     lbl.setHide(hide);
                     lbl.setAuto(auto);
+                    ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
                     if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
                         lbl.setColors(circleTemp.getColors());
                     }

@@ -67,33 +67,4 @@
 	        </doTry>
 	    </route> 
 	</camelContext>	 
-	
-	
-	<!-- <camelContext id="calc1minContext" xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-		
-		<endpoint id="trig1minCalcCron" uri="clusteredquartz://purge/trig1minCalcScheduled/?cron=25 * * ? * *"/>  
-	    //   <endpoint id="calcLogsCron" uri="quartz://purge/purgeLogScheduled/?cron=${purge.logs.cron}"/>        
-		
-		<route id="purgeByRequest">
-			<from uri="jms-generic:queue:purgeRequest" /> 
-			<doTry>
-				<bean ref="purge" method="purge" />
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to
-						uri="log:purge?level=ERROR&amp;showBody=false&amp;showCaughtException=true&amp;showStackTrace=true" />
-				</doCatch>
-			</doTry>
-		</route>
-		
-		
-		<route id="trig1minCalcScheduled">
-			<from ref="trig1minCalcCron" />
-			<bean ref="trig1minCalc" method="trig1min" />
-		</route>
-	</camelContext> 
-	<bean factory-bean="contextManager" factory-method="registerClusteredContext">
-		<constructor-arg ref="calc1minContext" />
-  	</bean> -->	
 </beans>

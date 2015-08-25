@@ -84,6 +84,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 07/15/2013      #1011   ghull       add MATCH_ALL_DATA timeMatchMethod for PgenResource
  * 06/16/2014      TTR1026 jwu         sort data time for local radar in getAvailableDataTimes()
  * 05/15/2014      #1131   qzhou       Added GraphRscCategory.  Added dfltGraphRange
+ * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
+ * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
+ * 06/16/2015      RM6580  kvepuri     Updated PGEN latest file logic
  * </pre>
  * 
  * *
@@ -155,6 +158,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     @XmlElement
     protected String dfltFrameTimes; // GEMPAKs GDATTIME
 
+    @XmlElement
+    private String cycleReference;
+
+    @XmlElement
+    private DayReference dayReference;
+
     protected AbstractVizResource<?, ?> ncRsc;
 
     //
@@ -169,7 +178,19 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         // an EVENT TimeMatchMethod is the same as EXACT in that it sets a
         // frames start/end time to the frame time. (ie a frame span of 0.)
         //
-        EVENT
+        EVENT,
+        // This can be used for event 'Event'-based resources where it's
+        // desired that all data records be matched per frame, not just the
+        // data that exactly matches on the frame boundary. This is the same as
+        // CLOSEST_BEFORE_OR_AFTER match but will NOT do the time range validity
+        // check.
+        EVENT_BEFORE_OR_AFTER,
+        // This is used for grid resource types. It will likely require
+        // modification to the particular rescource classes run method loop. For
+        // an exmaple please see NcGridResource. This time matching method
+        // imitates NMAP behavior in that it ignores frameSpans, finding the
+        // closes match in the data, after or before the frame time.
+        BINNING_FOR_GRID_RESOURCES
     }
 
     public static enum TimelineGenMethod {
@@ -180,8 +201,15 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         USE_FCST_FRAME_INTERVAL_FROM_REF_TIME, // For Taf.
         // USE_FCST_FRAME_INTERVAL_FROM_CYCLE_TIME, // currently no
         // implementations of this
-        USE_MANUAL_TIMELINE
-        // DETERMINE_FROM_RSC_IMPLEMENTATION,
+        USE_MANUAL_TIMELINE, // Usage???
+        DETERMINE_FROM_RSC_IMPLEMENTATION // uses frame span and dflt frames to
+                                          // generate the time line from the
+                                          // cycle, day references in the RBD
+                                          // xml
+    }
+
+    public static enum DayReference {
+        TOMORROW, TODAY, YESTERDAY
     }
 
     public AbstractNatlCntrsRequestableResourceData() {
@@ -311,6 +339,22 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
     public void setDfltFrameTimes(String dfltFrameTimes) {
         this.dfltFrameTimes = dfltFrameTimes;
+    }
+
+    public String getCycleReference() {
+        return cycleReference;
+    }
+
+    public void setCycleReference(String cycleReference) {
+        this.cycleReference = cycleReference;
+    }
+
+    public DayReference getDayReference() {
+        return dayReference;
+    }
+
+    public void setDayReference(DayReference dayReference) {
+        this.dayReference = dayReference;
     }
 
     // some rsc param values may change from EQUALS to a wildcard (ie %) so
@@ -459,6 +503,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     public List<DataTime> getAvailableDataTimes() {
         List<DataTime> availTimesList = null;
 
+        DataTime[] availTimes = null;
+
         try {
             ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
                     .getResourceDefinition(getResourceName());
@@ -477,7 +523,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 availTimesList = rscDefn.getDataTimes(getResourceName());
             } else {
                 try {
-                    DataTime[] availTimes = null;
                     availTimes = getAvailableTimes();
                     if (availTimes == null) {
                         return new ArrayList<DataTime>();
@@ -490,6 +535,17 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                     return null;
                 }
             }
+
+            // RM6580 : PGEN needs to display Latest file, don't display
+            // multiple available files.
+            // availTimesList is already sorted, pick the latest
+            if (rscDefn.getResourceCategory().isPgenCategory()
+                    && availTimesList.size() > 1) {
+                availTimesList = Arrays
+                        .asList(availTimes[availTimes.length - 1]);
+            }
+            // RM6580 : Fix end
+
         } catch (VizException e1) {
             return availTimesList;
         }

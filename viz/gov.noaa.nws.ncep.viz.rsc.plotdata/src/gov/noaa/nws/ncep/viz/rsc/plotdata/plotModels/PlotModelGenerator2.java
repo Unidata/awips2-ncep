@@ -33,7 +33,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery2;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
@@ -66,7 +65,6 @@ import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.data.prep.IODataPreparer;
@@ -77,15 +75,14 @@ import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.viz.pointdata.IPlotModelGeneratorCaller;
 import com.raytheon.viz.pointdata.PlotInfo;
 import com.raytheon.viz.pointdata.PointDataRequest;
+//import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 //import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
 //import gov.noaa.nws.ncep.edex.common.metparameters.RelativeHumidity;
 //import gov.noaa.nws.ncep.edex.common.metparameters.StationElevation;
 //import gov.noaa.nws.ncep.edex.common.metparameters.StationID;
-//import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 //import gov.noaa.nws.ncep.edex.common.metparameters.StationName;
 //import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 //import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer.DataType;
-
 /**
  * A Eclipse Job thread that will listen for new stations on a queue and request
  * the data to create the plots.
@@ -119,7 +116,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 04/02/2012   #615       sgurung     Modified code to support conditional filtering: added conditionalFilterMap, 
  * 									   applyConditionalFilters(), and modified constructor to take ConditionalFilter
  * 12/19/2012   #947       ghull       check for empty conditional filter before applying
- * Aug 07, 2014 3478       bclement    removed PointDataDescription.Type.Double
+ * 07142015     RM#9173    Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
  * 
  * </pre>
  * 
@@ -423,8 +420,8 @@ public class PlotModelGenerator2 extends Job {
 			if( //deriveParams.length > 1 &&
 			    !deriveParams[0].equalsIgnoreCase("all") ) {
 				
-				ArrayList<String> preferedDeriveParameterNames = new ArrayList<String>();
-				ArrayList<AbstractMetParameter> preferedDeriveParameters = new ArrayList<AbstractMetParameter>();
+				ArrayList<String> preferredDeriveParameterNames = new ArrayList<String>();
+				ArrayList<AbstractMetParameter> preferredDeriveParameters = new ArrayList<AbstractMetParameter>();
 				
 				for( String dPrm : deriveParams ) {
 					AbstractMetParameter deriveInputParam = 
@@ -432,8 +429,8 @@ public class PlotModelGenerator2 extends Job {
 
 					if( deriveInputParam != null ) {
 						//MetParameterFactory.getInstance().isValidMetParameterName( dPrm ) ) {
-						preferedDeriveParameters.add( deriveInputParam );
-						preferedDeriveParameterNames.add( dPrm );
+						preferredDeriveParameters.add( deriveInputParam );
+						preferredDeriveParameterNames.add( dPrm );
 					}
 					else {
 						System.out.println("Warning : '"+dPrm+" is not a valid metParameter name");
@@ -441,7 +438,7 @@ public class PlotModelGenerator2 extends Job {
 					}
 				}
 
-				derivedMetParam.setPreferedDeriveParameters( preferedDeriveParameterNames );
+				derivedMetParam.setPreferredDeriveParameters( preferredDeriveParameterNames );
 			}
 
 			if( derivedMetParam.getDeriveMethod( dbParamsMap.values() ) == null ) {
@@ -755,34 +752,16 @@ public class PlotModelGenerator2 extends Job {
                 	//System.out.println("PlotModelGenerator2.plotUpperAirData(): add rangeTime="+stnInfo.dataTime.getValidTime().getTime().toString());
                 }
             }
-
-            // TODO if this is an UpperAir FcstPlotResource then we will need to 
-            // get the validTime and query for it. 
-    		NcSoundingQuery2 sndingQuery;
-			try {
-				sndingQuery = new NcSoundingQuery2( plugin, true, levelStr );
-			} catch (Exception e1) {
-            	System.out.println("Error creating NcSoundingQuery2: "+e1.getMessage() );
-            	return Status.CANCEL_STATUS;
-			}
-			//chin sndingQuery.setLatLonConstraints( latLonCoords );
-    		sndingQuery.setStationIdConstraints(stnIdLst);
-    		sndingQuery.setRangeTimeList(rangeTimeLst);
-    		sndingQuery.setRefTimeConstraint(refTime);
-    		sndingQuery.setTimeRangeConstraint( 
-    				   new TimeRange( beginTime, endTime ) );
-    		
-    		// for modelsounding data we need to set the name of the model (ie the reportType)
-    		if( plugin.equals("modelsounding") ) {
-    			if( !constraintMap.containsKey( "reportType" ) ) {
-                	System.out.println("Error creating NcSoundingQuery2: missing modelName (reportType) for modelsounding plugin" );
-                	return Status.CANCEL_STATUS;
-    			}
-    			sndingQuery.setModelName(
-    					constraintMap.get("reportType" ).getConstraintValue() );
-    		}
+            long[] refTimelArray = new long[1];
+            refTimelArray[0] = refTime.getTime();
+            long[] rangeTimeArray = new long[rangeTimeLst.size()];
+            for(int k=0; k<rangeTimeLst.size();k++)
+            	rangeTimeArray[k]= rangeTimeLst.get(k);
+            String[] stnIdArray;
+            stnIdArray = stnIdLst.toArray((new String[0]));
+            
     		//long t004 = System.currentTimeMillis();
-			NcSoundingCube sndingCube = sndingQuery.query();
+			NcSoundingCube sndingCube = PlotModelMngr.querySoundingData(refTimelArray, rangeTimeArray, stnIdArray, plugin, levelStr, constraintMap,paramsToPlot);
     		//long t005 = System.currentTimeMillis();
 			//System.out.println("plotUpperAirData sndingQuery query  took "+(t005-t004)+" ms");
     		

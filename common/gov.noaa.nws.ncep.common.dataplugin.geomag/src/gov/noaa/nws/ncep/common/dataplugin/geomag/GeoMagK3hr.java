@@ -22,13 +22,15 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
- * Record implementation for geomag k 3 hr. 
+ * Record implementation for geomag k 3 hr.
  * 
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer           Description
  * ------------ ---------- ----------------   --------------------------
  * 08/14/2013   T989       qzhou              Initial creation.
+ * 12/23/2014   R5412      sgurung            Change float to double
+ * 01/26/2015   R7615      sgurung            Change sequence name
  * </pre>
  * 
  * @author qzhou
@@ -36,33 +38,33 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  */
 
 @Entity
-@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagseq")
+@SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagk3hrseq")
 @Table(name = "geomag_k3hr")
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
 public class GeoMagK3hr extends PersistableDataObject<Object> {
 
-
-	/**
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
-public static final String ID_GEN = "idgen";
-	
-	/** The id */
+    private static final long serialVersionUID = 1L;
+
+    public static final String ID_GEN = "idgen";
+
+    /** The id */
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = ID_GEN)
     private Integer id;
-	
-	/**
+
+    /**
      * station code
      */
     @Column
     @XmlAttribute
     @DynamicSerializeElement
     private String stationCode;
-	
+
     /**
      * time tag
      */
@@ -70,89 +72,87 @@ public static final String ID_GEN = "idgen";
     @XmlAttribute
     @DynamicSerializeElement
     private Date refTime;
-	
+
     /**
-     * insert time 
+     * insert time
      */
     @Column
     @XmlAttribute
     @DynamicSerializeElement
     private Date lastUpdate;
-	
+
     /**
      * k_index
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-	private int kIndex;
-   
-	/**
+    private int kIndex;
+
+    /**
      * k_real
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-    private float kReal;
-	
-	/**
+    private double kReal;
+
+    /**
      * Gamma
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-    private float kGamma;
-	
-	/**
+    private double kGamma;
+
+    /**
      * est k_index
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-	private int kestIndex;
-   
-	/**
+    private int kestIndex;
+
+    /**
      * est k_real
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-    private float kestReal;
-	
-	/**
+    private double kestReal;
+
+    /**
      * est gamma
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
-    private float kestGamma;
-	
-	/**
+    private double kestGamma;
+
+    /**
      * A Final Running
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
     private int aFinalRunning;
-	
-	/**
+
+    /**
      * A Running
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
     private int aRunning;
-	
-	/**
+
+    /**
      * forecaster manual editing
      */
-	@Column(length=16)
+    @Column(length = 16)
     @DynamicSerializeElement
     private int isManual;
-	
-	
-	
-	public GeoMagK3hr() {
-		
-	}
-	
-	public void generateId() {
+
+    public GeoMagK3hr() {
+
+    }
+
+    public void generateId() {
         this.id = hashCode();
     }
-	
-	/**
+
+    /**
      * @return the hHrAvg
      */
     public int getKIndex() {
@@ -162,29 +162,29 @@ public static final String ID_GEN = "idgen";
     public void setKIndex(int kIndex) {
         this.kIndex = kIndex;
     }
-    
+
     /**
      * @return the dHrAvg
      */
-    public float getKReal() {
+    public double getKReal() {
         return kReal;
     }
 
-    public void setKReal(float kReal) {
+    public void setKReal(double kReal) {
         this.kReal = kReal;
     }
-    
+
     /**
      * @return the hHrAvg
      */
-    public float getKGamma() {
+    public double getKGamma() {
         return kGamma;
     }
 
-    public void setKGamma(float kGamma) {
+    public void setKGamma(double kGamma) {
         this.kGamma = kGamma;
     }
-    
+
     /**
      * @return the hHrAvg
      */
@@ -195,29 +195,29 @@ public static final String ID_GEN = "idgen";
     public void setKestIndex(int kestIndex) {
         this.kestIndex = kestIndex;
     }
-    
+
     /**
      * @return the dHrAvg
      */
-    public float getKestReal() {
+    public double getKestReal() {
         return kestReal;
     }
 
-    public void setKestReal(float kestReal) {
+    public void setKestReal(double kestReal) {
         this.kestReal = kestReal;
     }
-    
+
     /**
      * @return the hHrAvg
      */
-    public float getKestGamma() {
+    public double getKestGamma() {
         return kestGamma;
     }
 
-    public void setKestGamma(float kestGamma) {
+    public void setKestGamma(double kestGamma) {
         this.kestGamma = kestGamma;
     }
-    
+
     /**
      * @return the dHrAvg
      */
@@ -228,7 +228,7 @@ public static final String ID_GEN = "idgen";
     public void setARunning(int aRunning) {
         this.aRunning = aRunning;
     }
-    
+
     /**
      * @return the dHrAvg
      */
@@ -239,7 +239,7 @@ public static final String ID_GEN = "idgen";
     public void setAFinalRunning(int aFinalRunning) {
         this.aFinalRunning = aFinalRunning;
     }
-    
+
     /**
      * @return the dHrAvg
      */
@@ -250,7 +250,7 @@ public static final String ID_GEN = "idgen";
     public void setIsManual(int isManual) {
         this.isManual = isManual;
     }
-    
+
     /**
      * @return The id
      */
@@ -262,7 +262,7 @@ public static final String ID_GEN = "idgen";
         this.id = id;
     }
 
-	/**
+    /**
      * @return the timeTag
      */
     public Date getRefTime() {
@@ -272,7 +272,7 @@ public static final String ID_GEN = "idgen";
     public void setRefTime(Date refTime) {
         this.refTime = refTime;
     }
-    
+
     /**
      * @return the timeTag
      */
@@ -283,7 +283,7 @@ public static final String ID_GEN = "idgen";
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
-    
+
     /**
      * @return the stationCode
      */

@@ -53,6 +53,7 @@ import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
  * 12/19/2012    #947      ghull       save ConditionalFilter object to the RBD.
  * 04/15/2013    #864      ghull       rm isForecastResource()
  * Sep 05, 2013  2316      bsteffen    Unify pirep and ncpirep.
+ * 06/09/2015	#8585	   jhuber	   Remove ncscd plugins.
  * 
  * </pre>
  * 
@@ -119,7 +120,6 @@ INatlCntrsResourceData {
         pluginNames.add("obs");
         pluginNames.add("sfcobs");
         pluginNames.add("ncuair");
-        pluginNames.add("ncscd");
         pluginNames.add("airep");
         pluginNames.add("pirep");
         pluginNames.add("nctaf");
@@ -141,7 +141,6 @@ INatlCntrsResourceData {
         // levelKey won't be surface.
         sfcPlugins.add("obs");
         sfcPlugins.add("sfcobs");
-        sfcPlugins.add("ncscd");
         sfcPlugins.add("airep");
         sfcPlugins.add("pirep");
         sfcPlugins.add("nctaf");

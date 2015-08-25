@@ -11,6 +11,12 @@
  *                                                           (from date/hour field recurrence) and
  *                                                           date handling to prevent garbage from being
  *                                                           interpreted as dates decades in the future.
+ * B. Hebbard        R5939                   01/2015         Handle new year change between observation and
+ *                                                           decoding time.
+ * B. Hebbard        R7739                   05/2015         Strengthen error checking to abort and throw
+ *                                                           DecoderException in cases where:  
+ *                                                           (1) data format (satellite/density) unrecognized 
+ *                                                           (2) any date/time field out of range, in any row
  * </pre>
  *
  * This code has been developed by the SIB for use in the AWIPS system.
@@ -31,6 +37,8 @@ import java.util.NoSuchElementException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
+
+import com.raytheon.edex.exception.DecoderException;
 
 public class NcscatProcessing {
 
@@ -59,7 +67,7 @@ public class NcscatProcessing {
     public NcscatProcessing() {
     }
 
-    public byte[] separate(byte[] data) {
+    public byte[] separate(byte[] data) throws DecoderException {
         doSeparate(data);
         try {
             if (newMessage == null) {
@@ -78,20 +86,14 @@ public class NcscatProcessing {
     /**
      * @param message
      *            separate bulletins
+     * @throws DecoderException
      */
-    private void doSeparate(byte[] message) {
+    private void doSeparate(byte[] message) throws DecoderException {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(message.length);
         byteBuffer.put(message, 0, message.length);
 
         int tempLength = message.length;
-
-        startTime = Calendar.getInstance();
-        startTime.setLenient(false); // guard against wild values
-        startTime.set(Calendar.MILLISECOND, 0);
-        endTime = Calendar.getInstance();
-        endTime.setLenient(false); // guard against wild values
-        endTime.set(Calendar.MILLISECOND, 0);
 
         // Determine type of data (that is, which satellite and resolution)
         // by examining it for unique consistency with known characteristics
@@ -105,7 +107,8 @@ public class NcscatProcessing {
         }
 
         if (matchedMode == NcscatMode.UNKNOWN) {
-            // TODO: Log error/warning -- and quit?
+            throw new DecoderException(
+                    "Data format does not match any known satellite/density types");
         }
 
         ncscatMode = matchedMode;
@@ -149,7 +152,10 @@ public class NcscatProcessing {
 
                 // Make a pass through all rows in file, just to determine
                 // earliest and latest times
-                int day, hour, min, sec;
+                int day = 1;
+                int hour = 0;
+                int min = 0;
+                int sec = 0;
                 while (ji < tempLength) {
                     day = byteBuffer.getShort(ji);
                     hour = byteBuffer.getShort(ji + 2);
@@ -158,27 +164,41 @@ public class NcscatProcessing {
 
                     if (day < 1 || day > 366 || hour < 0 || hour > 23
                             || min < 0 || min > 59 || sec < 0 || sec > 60) {
-                        // TODO log error?
-                        break;// TODO continue?
+                        throw new DecoderException(
+                                "Out-of-range date/time field encountered; decoding of file aborted");
                     }
 
                     if (ji < 8) { // first row
+                        startTime = Calendar.getInstance();
+                        startTime.setLenient(false); // guard against wild
+                                                     // values
+                        if (day > startTime.get(Calendar.DAY_OF_YEAR)) {
+                            // Handle year rollover between obs and decode
+                            startTime.add(Calendar.YEAR, -1);
+                        }
                         startTime.set(Calendar.DAY_OF_YEAR, day);
                         startTime.set(Calendar.HOUR_OF_DAY, hour);
                         startTime.set(Calendar.MINUTE, min);
                         startTime.set(Calendar.SECOND, sec);
+                        startTime.set(Calendar.MILLISECOND, 0);
                     }
-
-                    // Don't know ahead of time which row will be last
-                    // so set each time; last one will remain endTime
-                    endTime.set(Calendar.DAY_OF_YEAR, day);
-                    endTime.set(Calendar.HOUR_OF_DAY, hour);
-                    endTime.set(Calendar.MINUTE, min);
-                    endTime.set(Calendar.SECOND, sec);
 
                     ji = ji + scatXLen;
 
                 }// for while
+
+                // Set end time from last row timestamp
+                endTime = Calendar.getInstance();
+                endTime.setLenient(false); // guard against wild values
+                if (day > endTime.get(Calendar.DAY_OF_YEAR)) {
+                    // Handle year rollover between obs and decode
+                    endTime.add(Calendar.YEAR, -1);
+                }
+                endTime.set(Calendar.DAY_OF_YEAR, day);
+                endTime.set(Calendar.HOUR_OF_DAY, hour);
+                endTime.set(Calendar.MINUTE, min);
+                endTime.set(Calendar.SECOND, sec);
+                endTime.set(Calendar.MILLISECOND, 0);
 
                 // Time bounds scan done; now go back through the row data and
                 // rearrange as needed.

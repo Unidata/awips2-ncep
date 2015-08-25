@@ -17,11 +17,13 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
 
 /**
  * A Dialog to edit SGWH resource attributes.
@@ -33,6 +35,8 @@ import org.eclipse.swt.widgets.Shell;
  * ------------ ----------  ----------- --------------------------
  * 09/25/11      #248        Greg Hull      Initial Creation.
  * 07/01/14     TTR 1018     Steve Russell  Updated call to ColorBarEditor
+ * 04/15/15     R6281        Bruce Hebbard  Add meters/feet selection
+ * 06/16/15     R6281        Bruce Hebbard  Clean up per code review comments
  * 
  * </pre>
  * 
@@ -42,11 +46,16 @@ import org.eclipse.swt.widgets.Shell;
 
 public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
-    public EditWaveSatAttrsDialog(Shell parentShell, INatlCntrsResourceData r, Boolean apply) {
+    public EditWaveSatAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
+            Boolean apply) {
         super(parentShell, r, apply);
     }
 
-    private RscAttrValue colorBarAttr = null;
+    private RscAttrValue useFeetInsteadOfMetersAttr = null;
+
+    private RscAttrValue colorBarForMetersAttr = null;
+
+    private RscAttrValue colorBarForFeetAttr = null;
 
     private RscAttrValue fontNameAttr = null;
 
@@ -56,73 +65,156 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     private RscAttrValue timeDisplayColorAttr = null;
 
-    private String[] availFonts = { "Times", "Serif", "Sans", "Utopia", "Roman", "Courier" };
+    private String[] availFonts = { "Times", "Serif", "Sans", "Utopia",
+            "Roman", "Courier" };
 
-    private String[] availFontsSizes = { "6", "10", "12", "14", "16", "18", "20", "24", "28" };
+    private String[] availFontsSizes = { "6", "10", "12", "14", "16", "18",
+            "20", "24", "28" };
 
-    private String[] availTimeIntStrs = { "10 Mins", "20 Mins", "30 Mins", "45 Mins", "1 Hour", "1 1/2 Hours", "2 Hours", "3 Hours", "6 Hours", "12 Hours", "24 Hours" };
+    private ColorBarEditor colorBarEditorMeters = null;
 
-    private Integer[] availTimeIntMins = { 10, 20, 30, 45, 60, 90, 120, 180, 360, 720, 1440 };
+    private ColorBarEditor colorBarEditorFeet = null;
 
-    private ColorBarEditor colorBarEditor = null;
+    Button metersButton = null;
 
-    // 
+    Button feetButton = null;
+
+    ColorBar editedColorBarMeters = null;
+
+    ColorBar editedColorBarFeet = null;
+
+    Group colorBarGrpMeters = null;
+
+    Group colorBarGrpFeet = null;
+
+    //
     @Override
     public Composite createDialog(Composite topComp) {
 
-        colorBarAttr = editedRscAttrSet.getRscAttr("colorBar");
+        // Get and validate attribute values
+
+        useFeetInsteadOfMetersAttr = editedRscAttrSet
+                .getRscAttr("useFeetInsteadOfMeters");
+        colorBarForMetersAttr = editedRscAttrSet
+                .getRscAttr("colorBarForMeters");
+        colorBarForFeetAttr = editedRscAttrSet.getRscAttr("colorBarForFeet");
         fontNameAttr = editedRscAttrSet.getRscAttr("fontName");
         fontSizeAttr = editedRscAttrSet.getRscAttr("fontSize");
-        timeDisplayIntervalAttr = editedRscAttrSet.getRscAttr("timeDisplayInterval");
+        timeDisplayIntervalAttr = editedRscAttrSet
+                .getRscAttr("timeDisplayInterval");
         timeDisplayColorAttr = editedRscAttrSet.getRscAttr("timeDisplayColor");
 
-        if (colorBarAttr == null || colorBarAttr.getAttrClass() != ColorBar.class) {
-            System.out.println("colorBar is null or not of expected class ColorBar?");
+        if (useFeetInsteadOfMetersAttr == null
+                || useFeetInsteadOfMetersAttr.getAttrClass() != Boolean.class) {
+            System.out
+                    .println("useFeetInsteadOfMeters is null or not of expected class Boolean?");
+            return null;
+        }
+        if (colorBarForMetersAttr == null
+                || colorBarForMetersAttr.getAttrClass() != ColorBar.class) {
+            System.out
+                    .println("colorBarForMeters is null or not of expected class ColorBar?");
+            return null;
+        }
+        if (colorBarForFeetAttr == null
+                || colorBarForFeetAttr.getAttrClass() != ColorBar.class) {
+            System.out
+                    .println("colorBarForFeet is null or not of expected class ColorBar?");
             return null;
         }
         if (fontNameAttr == null || fontNameAttr.getAttrClass() != String.class) {
-            System.out.println("fontName is null or not of expected class String?");
+            System.out
+                    .println("fontName is null or not of expected class String?");
             return null;
         }
-        if (fontSizeAttr == null || fontSizeAttr.getAttrClass() != Integer.class) {
-            System.out.println("fontSize is null or not of expected class Integer?");
+        if (fontSizeAttr == null
+                || fontSizeAttr.getAttrClass() != Integer.class) {
+            System.out
+                    .println("fontSize is null or not of expected class Integer?");
             return null;
         }
-        if (timeDisplayIntervalAttr == null || timeDisplayIntervalAttr.getAttrClass() != Integer.class) {
-            System.out.println("timeDisplayInterval is null or not of expected class Integer?");
+        if (timeDisplayIntervalAttr == null
+                || timeDisplayIntervalAttr.getAttrClass() != Integer.class) {
+            System.out
+                    .println("timeDisplayInterval is null or not of expected class Integer?");
             return null;
         }
-        if (timeDisplayColorAttr == null || timeDisplayColorAttr.getAttrClass() != RGB.class) {
-            System.out.println("timeDisplayColor is null or not of expected class RGB?");
+        if (timeDisplayColorAttr == null
+                || timeDisplayColorAttr.getAttrClass() != RGB.class) {
+            System.out
+                    .println("timeDisplayColor is null or not of expected class RGB?");
             return null;
         }
+
+        // Global layout of composite
 
         FormLayout layout0 = new FormLayout();
         topComp.setLayout(layout0);
 
-        Group selFontGrp = new Group(topComp, SWT.BORDER);
+        // Unit selection group
+
+        Group unitsGrp = new Group(topComp, SWT.BORDER);
         FormData fd = new FormData();
+        unitsGrp.setText("Select Units");
+
+        unitsGrp.setLayout(new FormLayout());
+        // fd.width = 90;
+        fd.left = new FormAttachment(0, 14);
+        fd.right = new FormAttachment(31, 0);
+        fd.bottom = new FormAttachment(0, 100);
+        fd.top = new FormAttachment(0, 10);
+        unitsGrp.setLayoutData(fd);
+
+        feetButton = new Button(unitsGrp, SWT.RADIO);
+        fd = new FormData();
+        fd.left = new FormAttachment(12, 0);
+        fd.top = new FormAttachment(50, -12);
+        feetButton.setLayoutData(fd);
+        feetButton.setSelection(((Boolean) useFeetInsteadOfMetersAttr
+                .getAttrValue()).booleanValue());
+        feetButton.setText("Feet");
+        feetButton.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                Boolean useFeet = feetButton.getSelection();
+                useFeetInsteadOfMetersAttr.setAttrValue(useFeet);
+                colorBarGrpMeters.setVisible(metersButton.getSelection());
+                colorBarGrpFeet.setVisible(feetButton.getSelection());
+            }
+        });
+
+        metersButton = new Button(unitsGrp, SWT.RADIO);
+        fd = new FormData();
+        fd.left = new FormAttachment(50, 0);
+        fd.top = new FormAttachment(50, -12);
+        metersButton.setLayoutData(fd);
+        metersButton.setSelection(!((Boolean) useFeetInsteadOfMetersAttr
+                .getAttrValue()).booleanValue());
+        metersButton.setText("Meters");
+        metersButton.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                Boolean useFeet = feetButton.getSelection();
+                useFeetInsteadOfMetersAttr.setAttrValue(useFeet);
+                colorBarGrpMeters.setVisible(metersButton.getSelection());
+                colorBarGrpFeet.setVisible(feetButton.getSelection());
+            }
+        });
+
+        // Font selection group
+
+        Group selFontGrp = new Group(topComp, SWT.BORDER);
+        fd = new FormData();
         selFontGrp.setText("Select Font");
 
         selFontGrp.setLayout(new FormLayout());
-        fd.width = 300;
-        fd.left = new FormAttachment(0, 10);
-        //        fd.right = new FormAttachment( 35, 0 );
+        // fd.width = 220;
+        fd.left = new FormAttachment(35, 0);
+        fd.right = new FormAttachment(65, 0);
         fd.bottom = new FormAttachment(0, 100);
         fd.top = new FormAttachment(0, 10);
         selFontGrp.setLayoutData(fd);
 
-        //        FontData[] fontdata = shell.getDisplay().getFontList(null, true);
-        //        for( int x = 0; x < fontdata.length; x++ ) {
-        //                System.out.println(fontdata[x].getName());
-        //        }
-        //        // and the non-scalable ones
-        //        fontdata = shell.getDisplay().getFontList(null, false);
-        //        for( int x = 0; x < fontdata.length; x++ ) {
-        //                System.out.println(fontdata[x].getName());
-        //        }
-
-        final Combo fontNameCombo = new Combo(selFontGrp, SWT.READ_ONLY | SWT.DROP_DOWN);
+        final Combo fontNameCombo = new Combo(selFontGrp, SWT.READ_ONLY
+                | SWT.DROP_DOWN);
         fd = new FormData();
         fd.left = new FormAttachment(10, 0);
         fd.top = new FormAttachment(0, 30);
@@ -146,9 +238,10 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         fd.bottom = new FormAttachment(fontNameCombo, -3, SWT.TOP);
         nameLbl.setLayoutData(fd);
         nameLbl.setText("Name");
-        //        nameLbl.setVisible( false );
+        // nameLbl.setVisible( false );
 
-        final Combo fontSizeCombo = new Combo(selFontGrp, SWT.READ_ONLY | SWT.DROP_DOWN);
+        final Combo fontSizeCombo = new Combo(selFontGrp, SWT.READ_ONLY
+                | SWT.DROP_DOWN);
         fd = new FormData();
         fd.left = new FormAttachment(fontNameCombo, 20, SWT.RIGHT);
         fd.top = new FormAttachment(fontNameCombo, 0, SWT.TOP);
@@ -158,7 +251,8 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         fontSizeCombo.select(0);
 
         for (int i = 0; i < availFontsSizes.length; i++) {
-            if (Integer.parseInt(availFontsSizes[i]) == (Integer) fontSizeAttr.getAttrValue()) {
+            if (Integer.parseInt(availFontsSizes[i]) == (Integer) fontSizeAttr
+                    .getAttrValue()) {
                 fontSizeCombo.select(i);
                 break;
             }
@@ -170,15 +264,18 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         fd.bottom = new FormAttachment(fontSizeCombo, -3, SWT.TOP);
         fontSizeLbl.setLayoutData(fd);
         fontSizeLbl.setText("Size");
-        //        fontSizeLbl.setVisible( false );
+        // fontSizeLbl.setVisible( false );
 
         fontSizeCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 int selIndx = fontSizeCombo.getSelectionIndex();
 
-                fontSizeAttr.setAttrValue(Integer.parseInt(availFontsSizes[selIndx]));
+                fontSizeAttr.setAttrValue(Integer
+                        .parseInt(availFontsSizes[selIndx]));
             }
         });
+
+        // Time Stamp group
 
         Group selTimeStampGrp = new Group(topComp, SWT.BORDER);
         fd = new FormData();
@@ -187,53 +284,59 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         selTimeStampGrp.setLayout(new FormLayout());
 
         fd.top = new FormAttachment(selFontGrp, 0, SWT.TOP);
-        fd.left = new FormAttachment(50, 10);
-        fd.right = new FormAttachment(100, -10);
+        // fd.width = 270;
+        fd.left = new FormAttachment(69, 0);
+        fd.right = new FormAttachment(100, -14);
         fd.bottom = new FormAttachment(selFontGrp, 0, SWT.BOTTOM);
         selTimeStampGrp.setLayoutData(fd);
 
-        final Combo timeStampIntCombo = new Combo(selTimeStampGrp, SWT.READ_ONLY | SWT.DROP_DOWN);
+        final Spinner timeStampIntervalSpinner = new Spinner(selTimeStampGrp,
+                SWT.BORDER);
+        timeStampIntervalSpinner
+                .setToolTipText("Minutes between time stamps/lines");
         fd = new FormData();
         fd.left = new FormAttachment(10, 0);
         fd.top = new FormAttachment(0, 30);
-        timeStampIntCombo.setLayoutData(fd);
-
-        // set the list of time Intervals and initialize to the currently selected one.
-        //
-        timeStampIntCombo.setItems(availTimeIntStrs);
-
-        for (int t = 0; t < availTimeIntMins.length; t++) {
-            if (availTimeIntMins[t].equals((Integer) timeDisplayIntervalAttr.getAttrValue())) {
-                timeStampIntCombo.select(t);
-                break;
-            }
-        }
-
-        timeStampIntCombo.addSelectionListener(new SelectionAdapter() {
+        timeStampIntervalSpinner.setLayoutData(fd);
+        timeStampIntervalSpinner.setDigits(0);
+        timeStampIntervalSpinner.setMinimum(1);
+        timeStampIntervalSpinner.setMaximum(90);
+        timeStampIntervalSpinner.setIncrement(1);
+        timeStampIntervalSpinner.setPageIncrement(1);
+        timeStampIntervalSpinner
+                .setSelection(((Integer) timeDisplayIntervalAttr.getAttrValue())
+                        .intValue());
+        timeStampIntervalSpinner.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                int selIndx = timeStampIntCombo.getSelectionIndex();
-
-                timeDisplayIntervalAttr.setAttrValue(availTimeIntMins[selIndx]);
+                timeDisplayIntervalAttr.setAttrValue(new Integer(
+                        timeStampIntervalSpinner.getSelection()));
             }
         });
 
-        Label timeStampIntLbl = new Label(selTimeStampGrp, SWT.None);
+        Label timeStampIntLbl1 = new Label(selTimeStampGrp, SWT.None);
         fd = new FormData();
-        fd.left = new FormAttachment(timeStampIntCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(timeStampIntCombo, -3, SWT.TOP);
-        timeStampIntLbl.setLayoutData(fd);
-        timeStampIntLbl.setText("Interval");
-        //        timeStampIntLbl.setVisible(  false  );
+        fd.left = new FormAttachment(timeStampIntervalSpinner, 0, SWT.LEFT);
+        fd.bottom = new FormAttachment(timeStampIntervalSpinner, -3, SWT.TOP);
+        timeStampIntLbl1.setLayoutData(fd);
+        timeStampIntLbl1.setText("Interval");
+
+        Label timeStampIntLbl2 = new Label(selTimeStampGrp, SWT.None);
+        fd = new FormData();
+        fd.left = new FormAttachment(timeStampIntervalSpinner, 6, SWT.RIGHT);
+        fd.bottom = new FormAttachment(timeStampIntervalSpinner, 0, SWT.CENTER);
+        timeStampIntLbl2.setLayoutData(fd);
+        timeStampIntLbl2.setText("min");
 
         Composite selColComp = new Composite(selTimeStampGrp, SWT.NONE);
         fd = new FormData();
 
-        fd.bottom = new FormAttachment(timeStampIntCombo, 0, SWT.BOTTOM);
-        fd.left = new FormAttachment(timeStampIntCombo, 30, SWT.RIGHT);
+        fd.bottom = new FormAttachment(timeStampIntervalSpinner, 4, SWT.BOTTOM);
+        fd.left = new FormAttachment(timeStampIntervalSpinner, 93, SWT.LEFT);
         selColComp.setLayoutData(fd);
         selColComp.setLayout(new GridLayout());
 
-        final ColorButtonSelector colBtnSel = new ColorButtonSelector(selColComp, 60, 30);
+        final ColorButtonSelector colBtnSel = new ColorButtonSelector(
+                selColComp, 55, 25);
         colBtnSel.setColorValue((RGB) timeDisplayColorAttr.getAttrValue());
         colBtnSel.addListener(new IPropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent event) {
@@ -241,34 +344,61 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
             }
         });
 
-        Group colorBarGrp = new Group(topComp, SWT.NONE);
-        colorBarGrp.setText("Edit Color Bar");
-        fd = new FormData();//400,300);        
+        Label timeStampIntLbl3 = new Label(selTimeStampGrp, SWT.None);
+        fd = new FormData();
+        fd.left = new FormAttachment(timeStampIntLbl1, 100, SWT.LEFT);
+        fd.top = new FormAttachment(timeStampIntLbl1, 0, SWT.TOP);
+        timeStampIntLbl3.setLayoutData(fd);
+        timeStampIntLbl3.setText("Color");
+
+        // Color Bar group - Meters
+
+        colorBarGrpMeters = new Group(topComp, SWT.NONE);
+        colorBarGrpMeters.setText("Edit Color Bar (Meters)");
+        fd = new FormData();// 400,300);
         fd.left = new FormAttachment(0, 15);
         fd.right = new FormAttachment(100, -15);
         fd.top = new FormAttachment(selFontGrp, 15, SWT.BOTTOM);
         fd.bottom = new FormAttachment(100, -20);
-        colorBarGrp.setLayoutData(fd);
+        colorBarGrpMeters.setLayoutData(fd);
+        colorBarGrpMeters.setLayout(new FormLayout());
+        colorBarGrpMeters.setVisible(metersButton.getSelection());
 
-        colorBarGrp.setLayout(new FormLayout());
+        editedColorBarMeters = (ColorBar) colorBarForMetersAttr.getAttrValue();
 
-        ColorBar editedColorBar = null;
+        colorBarEditorMeters = new ColorBarEditor(colorBarGrpMeters,
+                editedColorBarMeters, true);
 
-        editedColorBar = (ColorBar) colorBarAttr.getAttrValue();
+        // Color Bar group - Feet
 
-        colorBarEditor = new ColorBarEditor(colorBarGrp, editedColorBar, true);
+        colorBarGrpFeet = new Group(topComp, SWT.NONE);
+        colorBarGrpFeet.setText("Edit Color Bar (Feet)");
+        fd = new FormData();// 400,300);
+        fd.left = new FormAttachment(0, 15);
+        fd.right = new FormAttachment(100, -15);
+        fd.top = new FormAttachment(selFontGrp, 15, SWT.BOTTOM);
+        fd.bottom = new FormAttachment(100, -20);
+        colorBarGrpFeet.setLayoutData(fd);
+        colorBarGrpFeet.setLayout(new FormLayout());
+        colorBarGrpFeet.setVisible(feetButton.getSelection());
+
+        editedColorBarFeet = (ColorBar) colorBarForFeetAttr.getAttrValue();
+
+        colorBarEditorFeet = new ColorBarEditor(colorBarGrpFeet,
+                editedColorBarFeet, true);
 
         return topComp;
     }
 
     @Override
     public void initWidgets() {
-        // done in createDialog		
+        // done in createDialog
     }
 
     @Override
     protected void dispose() {
         super.dispose();
-        colorBarEditor.dispose();
+        colorBarEditorMeters.dispose();
+        colorBarEditorFeet.dispose();
     }
 }

@@ -9,11 +9,13 @@
 package gov.noaa.nws.ncep.ui.pgen.rsc;
 
 import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.action.PgenAction;
+import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenCommandManager;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenFileNameDisplay;
 import gov.noaa.nws.ncep.ui.pgen.display.AbstractElementContainer;
@@ -102,54 +104,61 @@ import com.vividsolutions.jts.geom.Point;
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
- * 02/09					B. Yin   	Initial Creation.
- * 04/09					S. Gilbert  Added PgenCommand for undo/redo.
- * 04/09		#88			J. Wu  		Added Text.
- * 04/09		#89			J. Wu  		Added Arc.
- * 05/09		#79			B. Yin		Added a List for points selected
- * 05/09		#89			J. Wu  		Added Vector
- * 06/09		#116		B. Yin		Use AbstractDrawableComponent
- * 07/09		#131		J. Wu		Made all commands work only on active layer
- * 07/09		#131		J. Wu		Drew layers in mono color & filled mode.
- * 07/09		#131		J. Wu		Initialize product list when a PgenResource
- * 										is created.
- * 07/09		#141		J. Wu		Added "replaceElements"
- * 08/09        #142		S. Gilbert  
- * 09/09		#151		J. Wu		Added product management dialog
- * 09/30/09     #169        Greg Hull   NCMapEditor
- * 12/09		#167		J. Wu		Made getNearestElement work for a given DECollection
- * 12/09		#267		B. Yin		Fixed the delObj bug
- * 03/10		#223		M.Laryukhin	Added Gfa
- * 04/10		#165		G.Zhang		Added the two setSelected( ) null arguments handling
- * 03/10		#223		M.Laryukhin	Added Gfa
- * 04/10		#165		G.Zhang		Added the two setSelected( ) null arguments handling
- * 03/10		#265		B. Yin		Added filters for forecast hours
- * 09/10		#290		B. Yin		Calculate distance from line segment
- * 09/10		#151		J. Wu		Save product in LPF-style
- * 10/10 		#310        S. Gilbert  Modified to support PGEN SINGLE mode
- * 02/11		?			B. Yin		Select elements only in certain distance.
- * 04/11		?			B. Yin		Re-factor IAttribute
- * 09/11		?			B. Yin		Added Circle symbol for Inc/Dec selection.			
- * 01/12		?			J. Wu		TTR 444-Always display active product's active layer.			
- * 03/12		?			B. Yin		Make VAA text editable
- * 04/12		?			B. Hebbard	Per B. Yin; in paintInternal(), add makeContextCurrent()
- * 										on IGLTarget after screenshot to avoid GLException:
- * 										"No OpenGL context current on this thread"; 
- * 										workaround pending RTS regression fix.
- * 04/12		#705		J. Wu		TTR 542 - Draw elements in specific sequences.
- * 05/12		#610		J. Wu		TTR 397 - Select GFA by text box.
- * 07/12		#695		B. Yin		TTR 261 - Add Pgen resource editable capability.
- * 08/12		#655		B. Hebbard	TTR 382 - Add paintProps as parameter to IDisplayable draw
- * 09/12					B. Hebbard  Merge out RTS changes from OB12.9.1
- * 03/13		#927		B. Yin		Implemented IContextMenuProvider interface
- * 04/13		#874		B. Yin		Added a method replaceElements with parameter parent.
+ * 02/09                    B. Yin      Initial Creation.
+ * 04/09                    S. Gilbert  Added PgenCommand for undo/redo.
+ * 04/09        #88         J. Wu       Added Text.
+ * 04/09        #89         J. Wu       Added Arc.
+ * 05/09        #79         B. Yin      Added a List for points selected
+ * 05/09        #89         J. Wu       Added Vector
+ * 06/09        #116        B. Yin      Use AbstractDrawableComponent
+ * 07/09        #131        J. Wu       Made all commands work only on active layer
+ * 07/09        #131        J. Wu       Drew layers in mono color & filled mode.
+ * 07/09        #131        J. Wu       Initialize product list when a PgenResource
+ *                                      is created.
+ * 07/09        #141        J. Wu       Added "replaceElements"
+ * 08/09        #142        S. Gilbert  
+ * 09/09        #151        J. Wu       Added product management dialog
+ * 09/30/09     #169         Greg Hull  NCMapEditor
+ * 12/09        #167        J. Wu       Made getNearestElement work for a given DECollection
+ * 12/09        #267        B. Yin      Fixed the delObj bug
+ * 03/10        #223        M.Laryukhin Added Gfa
+ * 04/10        #165        G.Zhang     Added the two setSelected( ) null arguments handling
+ * 03/10        #223        M.Laryukhin Added Gfa
+ * 04/10        #165        G.Zhang     Added the two setSelected( ) null arguments handling
+ * 03/10        #265        B. Yin      Added filters for forecast hours
+ * 09/10        #290        B. Yin      Calculate distance from line segment
+ * 09/10        #151        J. Wu       Save product in LPF-style
+ * 10/10        #310        S. Gilbert  Modified to support PGEN SINGLE mode
+ * 02/11        ?	        B. Yin      Select elements only in certain distance.
+ * 04/11        ?	        B. Yin      Re-factor IAttribute
+ * 09/11        ?	        B. Yin      Added Circle symbol for Inc/Dec selection.			
+ * 01/12        ?	        J. Wu       TTR 444-Always display active product's active layer.			
+ * 03/12        ?	        B. Yin      Make VAA text editable
+ * 04/12        ?	        B. Hebbard  Per B. Yin; in paintInternal(), add makeContextCurrent()
+ *                                       on IGLTarget after screenshot to avoid GLException:
+ *                                      "No OpenGL context current on this thread"; 
+ *                                      workaround pending RTS regression fix.
+ * 04/12        #705        J. Wu       TTR 542 - Draw elements in specific sequences.
+ * 05/12        #610        J. Wu       TTR 397 - Select GFA by text box.
+ * 07/12        #695        B. Yin      TTR 261 - Add Pgen resource editable capability.
+ * 08/12        #655        B. Hebbard  TTR 382 - Add paintProps as parameter to IDisplayable draw
+ * 09/12        	        B. Hebbard  Merge out RTS changes from OB12.9.1
+ * 03/13        #927        B. Yin      Implemented IContextMenuProvider interface
+ * 04/13        #874        B. Yin      Added a method replaceElements with parameter parent.
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * 11/13        TTR 752     J. Wu       Add methods for CCFP text auto placement.
  * 09/14        TTR972      J. Wu       "Filled" object on the active layer should be 
  *                                      drawn as "filled" even if the "filled" flag for
  *                                      the layer is "false".
- * 11/13        TTR 752     J. Wu       Add methods for CCFP text auto placement.
- * 11/14		R5413		B. Yin		Display PGEN in side view in D2D
- * 12/14        R5413       B. Yin      Added resetAllElements(), reset ghost, removed "Any".
+ * 11/14        R5413       B. Yin      Display PGEN in side view in D2D
+ * 12/14     R5198/TTR1057  J. Wu       Adding a method to select label over a line for Contours.
+ * 06/15        R8199       S. Russell  Alter fillContextMenu() to NOT add a 
+ *                                      "Delete Label" option where not appropriate
+ *                                      
+ * 07/13/2015   R8198       S. Russell  Altered fillContextMenu(),  added an
+ *                                      argument to getActionList(). Moved
+ *                                      several methods for 8199 into a the
+ *                                      new class PgenActionXtra
  * </pre>
  * 
  * @author B. Yin
@@ -158,9 +167,6 @@ import com.vividsolutions.jts.geom.Point;
 public class PgenResource extends
         AbstractVizResource<PgenResourceData, MapDescriptor> implements
         RemoveListener, IResourceDataChanged, IContextMenuProvider {
-
-    // private final static org.apache.log4j.Logger log =
-    // org.apache.log4j.Logger.getLogger(PgenResource.class);
 
     /**
      * Ghost line for multi-point element.
@@ -575,6 +581,13 @@ public class PgenResource extends
                 catFilter);
         DrawableElement nearestElm = getNearestElement(point, catFilter);
 
+        if (nearestElm != null && nearestElm.getParent() != null
+                && nearestElm.getParent() instanceof ContourLine
+                && nearestElm instanceof Line) {
+            nearestElm = getNearestElement(point,
+                    (ContourLine) nearestElm.getParent(), nearestElm);
+        }
+
         // Selecting Gfa by its text box first.
         if (nearestGfabyTextBox != null
                 && ((nearestElm == null) || (nearestElm instanceof Gfa))) {
@@ -604,10 +617,13 @@ public class PgenResource extends
         while (iterator.hasNext()) {
             DrawableElement element = iterator.next();
 
-            if (!filter.accept(element) || !filters.acceptOnce(element))
+            if (!filter.accept(element) || !filters.acceptOnce(element)) {
                 continue;
-            if (!catFilter.accept(element))
+            }
+
+            if (!catFilter.accept(element)) {
                 continue;
+            }
 
             double dist = getDistance(element, point);
             if (dist < minDistance) {
@@ -1381,20 +1397,19 @@ public class PgenResource extends
         }
     }
 
-
     /**
-     * Releases the resources held by all DEs to refresh all. 
+     * Releases the resources held by all DEs to refresh all.
      * 
      * @param adc
      */
-    public void resetAllElements(){
-        for ( Product prd : this.resourceData.getProductList() ){
-            for ( Layer layer : prd.getLayers()) {
+    public void resetAllElements() {
+        for (Product prd : this.resourceData.getProductList()) {
+            for (Layer layer : prd.getLayers()) {
                 this.resetADC(layer);
             }
         }
     }
-    
+
     /**
      * Finds the nearest element in the a DECollection to the input point.
      * 
@@ -1420,6 +1435,48 @@ public class PgenResource extends
 
                 }
             }
+        }
+
+        return nearestElement;
+
+    }
+
+    /**
+     * Finds the nearest Text element in the a DECollection that is close to a
+     * specified element (with MaxDistToSelect()/5) in the same DECollection.
+     * 
+     * @param point
+     * @param dec
+     * @param nearestDe
+     * @return the nearest element in the collection
+     */
+    public DrawableElement getNearestElement(Coordinate point,
+            DECollection dec, DrawableElement nearestDe) {
+
+        DrawableElement nearestElement = null;
+        double minDistance = Double.MAX_VALUE;
+        double distToLine = getDistance(nearestDe, point);
+
+        // Find the closest Text element within "MaxDistToSelect".
+        Iterator<DrawableElement> iterator = dec.createDEIterator();
+        while (iterator.hasNext()) {
+            DrawableElement element = iterator.next();
+
+            if (element instanceof Text) {
+                double dist = getDistance(element, point);
+                if (dist < this.getMaxDistToSelect() && dist < minDistance) {
+                    minDistance = dist;
+                    nearestElement = element;
+                }
+            }
+        }
+
+        /*
+         * If the closest Text element is not "close" enough to the specified
+         * de, return the specified DE.
+         */
+        if (Math.abs(minDistance - distToLine) > (this.getMaxDistToSelect() / 5)) {
+            nearestElement = nearestDe;
         }
 
         return nearestElement;
@@ -2134,8 +2191,13 @@ public class PgenResource extends
 
         if (getSelectedDE() != null
                 && !(getSelectedDE() instanceof Jet.JetLine)) { // ignore jet
+
+            AbstractDrawableComponent adc = getSelectedDE();
+            String actionsxtra = PgenActionXtra.getActionsXtra(adc);
+
             List<String> actList = getActionList(this.getSelectedDE()
-                    .getPgenType());
+                    .getPgenType(), actionsxtra);
+
             if (actList != null) {
                 for (String act : actList) {
                     menuManager.add(new PgenAction(act.trim()));
@@ -2152,28 +2214,38 @@ public class PgenResource extends
      * @param objName
      * @return
      */
-    private List<String> getActionList(String objName) {
+    private List<String> getActionList(String objName, String actionsxtra) {
         HashMap<String, IConfigurationElement> itemMap = PgenSession
                 .getInstance().getPgenPalette().getItemMap();
 
         IConfigurationElement ice = itemMap.get(objName);
         if (ice != null) {
             // get actions for the object
-            String actList = ice.getAttribute("actions");
+            String actList = ice.getAttribute(PgenConstant.ACTIONS);
 
             // if no actions for the object, get actions for the class/category
             if (actList == null) {
-                String category = ice.getAttribute("className");
+                String category = ice.getAttribute(PgenConstant.CLASSNAME);
                 if (category != null) {
                     IConfigurationElement cat = itemMap.get(category);
                     if (cat != null) {
-                        actList = cat.getAttribute("actions");
+                        actList = cat.getAttribute(PgenConstant.ACTIONS);
                     }
                 }
             }
 
+            // Add conditional context menu choices to the context menu
+            if (actionsxtra != null) {
+                if (actList != null) {
+                    actList = actList + "," + actionsxtra;
+                } else {
+                    actList = actionsxtra;
+                }
+            }
+
             if (actList != null && !actList.isEmpty()) {
-                return Arrays.asList(actList.split("\\s*,\\s*"));
+                return Arrays.asList(actList
+                        .split(PgenConstant.PLUGINXML_ATTRIBUTE_DELIMETER));
             }
         }
 

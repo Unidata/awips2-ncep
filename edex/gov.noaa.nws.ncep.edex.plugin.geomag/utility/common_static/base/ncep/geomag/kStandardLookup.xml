@@ -132,7 +132,7 @@
         <kpStation>true</kpStation>
         <ksThree season="JFND" period="E1" k0="0" k1="7" k2="10" k3="13" k4="16" k5="19" k6="22" k7="24" k8="26" k9="27"/>
         <ksThree season="JFND" period="E2" k0="0" k1="6" k2="9" k3="11"  k4="13" k5="16" k6="19" k7="22" k8="25" k9="27"/>
-        <ksThree season="JFND" period="E3" k0="0" k1="6" k2="6" k3="8"   k4="11" k5="14" k6="17" k7="19" k8="22" k9="27"/>
+        <ksThree season="JFND" period="E3" k0="0" k1="3" k2="6" k3="8"   k4="11" k5="14" k6="17" k7="19" k8="22" k9="27"/>
         <ksThree season="JFND" period="E4" k0="0" k1="3" k2="5" k3="7"   k4="10" k5="12" k6="14" k7="16" k8="19" k9="27"/>
         <ksThree season="JFND" period="E5" k0="0" k1="3" k2="6" k3="8"   k4="10" k5="12" k6="14" k7="16" k8="19" k9="27"/>
         <ksThree season="JFND" period="E6" k0="0" k1="4" k2="7" k3="10"  k4="12" k5="14" k6="16" k7="19" k8="22" k9="27"/>
@@ -167,14 +167,14 @@
         <ksThree season="JFND" period="E4" k0="0" k1="2" k2="6" k3="10" k4="15" k5="18" k6="21" k7="24" k8="26" k9="27"/>
         <ksThree season="JFND" period="E5" k0="0" k1="1" k2="6" k3="10" k4="13" k5="17" k6="20" k7="24" k8="26" k9="27"/>
         <ksThree season="JFND" period="E6" k0="0" k1="2" k2="5" k3="9" k4="12" k5="16" k6="19" k7="23" k8="26" k9="27"/>
-        <ksThree season="JFND" period="E7" k0="0" k1="2" k2="5" k3="8" k4="11" k5="14" k6="19" k7="22" k8="26" k9="27"/>
-        <ksThree season="JFND" period="E8" k0="0" k1="2" k2="5" k3="8" k4="12" k5="15" k6="19" k7="23" k8="26" k9="27"/>
+        <ksThree season="JFND" period="E7" k0="0" k1="2" k2="5" k3="8" k4="11" k5="14" k6="19" k7="22" k8="25" k9="27"/>
+        <ksThree season="JFND" period="E8" k0="0" k1="2" k2="5" k3="8" k4="12" k5="15" k6="19" k7="23" k8="25" k9="27"/>
         <ksThree season="MASO" period="E1" k0="0" k1="3" k2="6" k3="10" k4="13" k5="17" k6="22" k7="25" k8="26" k9="27"/>
         <ksThree season="MASO" period="E2" k0="0" k1="4" k2="7" k3="11" k4="15" k5="19" k6="23" k7="25" k8="26" k9="27"/>
         <ksThree season="MASO" period="E3" k0="0" k1="2" k2="6" k3="10" k4="15" k5="19" k6="23" k7="25" k8="26" k9="27"/>
         <ksThree season="MASO" period="E4" k0="0" k1="1" k2="5" k3="10" k4="15" k5="19" k6="23" k7="25" k8="26" k9="27"/>
-        <ksThree season="MASO" period="E5" k0="0" k1="1" k2="4" k3="9" k4="13" k5="18" k6="22" k7="24" k8="26" k9="27"/>
-        <ksThree season="MASO" period="E6" k0="0" k1="1" k2="4" k3="8" k4="13" k5="17" k6="21" k7="24" k8="26" k9="27"/>
+        <ksThree season="MASO" period="E5" k0="0" k1="1" k2="4" k3="9" k4="13" k5="18" k6="22" k7="24" k8="25" k9="27"/>
+        <ksThree season="MASO" period="E6" k0="0" k1="1" k2="4" k3="8" k4="13" k5="17" k6="21" k7="24" k8="25" k9="27"/>
         <ksThree season="MASO" period="E7" k0="0" k1="2" k2="5" k3="8" k4="12" k5="16" k6="20" k7="24" k8="26" k9="27"/>
         <ksThree season="MASO" period="E8" k0="0" k1="2" k2="5" k3="8" k4="12" k5="16" k6="21" k7="24" k8="26" k9="27"/>
         <ksThree season="MJJA" period="E1" k0="0" k1="3" k2="6" k3="9" k4="13" k5="18" k6="23" k7="25" k8="26" k9="27"/>
@@ -226,7 +226,7 @@
         <ksThree season="JFND" period="E1" k0="0" k1="7" k2="10" k3="14" k4="17" k5="20" k6="23" k7="25" k8="26" k9="27"/>
         <ksThree season="JFND" period="E2" k0="0" k1="4" k2="8" k3="12" k4="16" k5="19" k6="23" k7="25" k8="26" k9="27"/>
         <ksThree season="JFND" period="E3" k0="0" k1="3" k2="6" k3="11" k4="15" k5="18" k6="23" k7="25" k8="26" k9="27"/>
-        <ksThree season="JFND" period="E4" k0="0" k1="4" k2="7" k3="10" k4="14" k5="16" k6="20" k7="23" k8="26" k9="27"/>
+        <ksThree season="JFND" period="E4" k0="0" k1="4" k2="7" k3="10" k4="14" k5="16" k6="20" k7="23" k8="25" k9="27"/>
         <ksThree season="JFND" period="E5" k0="0" k1="3" k2="6" k3="10" k4="13" k5="16" k6="22" k7="24" k8="26" k9="27"/>
         <ksThree season="JFND" period="E6" k0="0" k1="4" k2="7" k3="11" k4="14" k5="18" k6="21" k7="24" k8="26" k9="27"/>
         <ksThree season="JFND" period="E7" k0="0" k1="6" k2="9" k3="12" k4="16" k5="19" k6="22" k7="24" k8="26" k9="27"/>
@@ -289,7 +289,7 @@
         <ksThree season="JFND" period="E2" k0="0" k1="5" k2="8" k3="10" k4="13" k5="16" k6="19" k7="22" k8="25" k9="27"/>
         <ksThree season="JFND" period="E3" k0="0" k1="3" k2="5" k3="7" k4="9" k5="12" k6="15" k7="19" k8="23" k9="27"/>
         <ksThree season="JFND" period="E4" k0="0" k1="3" k2="5" k3="7" k4="9" k5="11" k6="13" k7="18" k8="23" k9="27"/>
-        <ksThree season="JFND" period="E5" k0="0" k1="4" k2="7" k3="9" k4="13" k5="16" k6="19" k7="24" k8="25" k9="27"/>
+        <ksThree season="JFND" period="E5" k0="0" k1="4" k2="7" k3="9" k4="11" k5="13" k6="16" k7="19" k8="24" k9="27"/>
         <ksThree season="JFND" period="E6" k0="0" k1="4" k2="8" k3="10" k4="13" k5="16" k6="19" k7="22" k8="25" k9="27"/>
         <ksThree season="JFND" period="E7" k0="0" k1="5" k2="9" k3="13" k4="16" k5="19" k6="22" k7="25" k8="26" k9="27"/>
         <ksThree season="JFND" period="E8" k0="0" k1="6" k2="10" k3="13" k4="16" k5="20" k6="24" k7="25" k8="26" k9="27"/>
@@ -326,7 +326,7 @@
         <ksThree season="JFND" period="E8" k0="0" k1="2" k2="5" k3="8" k4="11" k5="14" k6="17" k7="21" k8="25" k9="27"/>
         <ksThree season="MASO" period="E1" k0="0" k1="3" k2="6" k3="10" k4="13" k5="16" k6="21" k7="24" k8="26" k9="27"/>
         <ksThree season="MASO" period="E2" k0="0" k1="4" k2="8" k3="11" k4="15" k5="19" k6="22" k7="25" k8="26" k9="27"/>        
-        <ksThree season="MASO" period="E3" k0="0" k1="4" k2="7" k3="12" k4="16" k5="19" k6="23" k7="25" k8="26" k9="27"/>
+        <ksThree season="MASO" period="E3" k0="0" k1="4" k2="8" k3="12" k4="16" k5="19" k6="23" k7="25" k8="26" k9="27"/>
         <ksThree season="MASO" period="E4" k0="0" k1="3" k2="7" k3="11" k4="15" k5="19" k6="22" k7="25" k8="26" k9="27"/>        
         <ksThree season="MASO" period="E5" k0="0" k1="3" k2="6" k3="10" k4="13" k5="17" k6="21" k7="24" k8="26" k9="27"/>
         <ksThree season="MASO" period="E6" k0="0" k1="2" k2="6" k3="9" k4="12" k5="15" k6="18" k7="23" k8="25" k9="27"/>

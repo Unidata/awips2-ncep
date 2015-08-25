@@ -8,7 +8,10 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
 
 import java.nio.FloatBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
@@ -20,10 +23,17 @@ import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormapShadedShapeExtension;
+import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormapShadedShapeExtension.IColormapShadedShape;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.DisplayType;
+import com.raytheon.viz.core.contours.util.VectorGraphicsConfig;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 /**
  * 
@@ -39,15 +49,22 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 22, 2010            bsteffen     Initial creation
- * Nov 22, 2010			   M. Li		modified from RTS for NCGRID
+ * Nov 22, 2010            M. Li        modified from RTS for NCGRID
  * Nov 02, 2011            X. Guo       Updated
  * Feb 06, 2012  #538      Q. Zhou      Changed density to filter. 
  * Feb 15, 2012  #539      Q. Zhou      Change barb tail direction on south hemisphere
  * Mar 01, 2012            X. Guo       Added isDirectional and contourAttributes
- * 										 to handle vector type changes
+ *                                       to handle vector type changes
  * Apr 03, 2012            X. Guo       Added createWireFrame
  * May 23, 2012            X. Guo       Loaded ncgrib logger
- * Apr 26, 2013			   B. Yin		Don't plot missing values.
+ * Apr 26, 2013            B. Yin       Don't plot missing values.
+ * Dec.12, 2014  R5113     J. Wu        Detect real change in view extent to avoid 
+ *                                      re-creation of the wireframeShape.
+ * May 05, 2015  RM7058    S. Russell   Made wind barbs same size as in NMAP,
+ *                                      made flags be filled shapes at user
+ *                                      request. Altered code in constructor,
+ *                                      paint(),paintGlobalImage,paintImage() and paintBarb().
+ *                                      Added getFilledShape()
  * </pre>
  * 
  * @author bsteffen
@@ -89,6 +106,20 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     private boolean isDirectional;
 
     private static NcgribLogger ncgribLogger;
+
+    private VectorGraphicsConfig vgconfig = null;
+
+    private boolean fillFlag = false;
+
+    private String flagFill = "1";
+
+    private IColormapShadedShape filledShape;
+
+    private static final double barbAdjSizeMultiplier = 0.030;
+
+    private static final double barbAAMultiplier = 0.707;
+
+    private static final double barbSPDIncrease = 2.5;
 
     public GriddedVectorDisplay(NcFloatDataRecord rec, DisplayType displayType,
             boolean directional, IMapDescriptor descriptor,
@@ -158,11 +189,36 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             if (attr.length >= 3 && !attr[2].trim().isEmpty()) {
                 lineWidth = Float.parseFloat(attr[2].trim());
             }
+            if (attr.length >= 4 && !attr[3].trim().isEmpty()) {
+                attr[3] = attr[3].trim();
+                if (attr[3].length() >= 3) {
+                    flagFill = attr[3].substring(2);
+                    if (flagFill.equals("2")) {
+                        fillFlag = true;
+                    }
+                }
+            }
 
         }
 
         setSize(sizeFactor * SIZE);
         setColor(GempakColor.convertToRGB(colorIndex));
+
+        // Redmine 7058
+        vgconfig = new VectorGraphicsConfig();
+        vgconfig.setSizeScaler(0.55); // use this to increase/dec barb size
+        vgconfig.setOffsetRatio(0.0);
+        vgconfig.setMinimumMagnitude(2.5);
+        vgconfig.setBarbRotationDegrees(75);
+        vgconfig.setBarbRotationRadians(Math.toRadians(65));
+        vgconfig.setBarbLengthRatio(0.3);
+        vgconfig.setBarbSpacingRatio(0.105);
+        vgconfig.setBarbFillFiftyTriangle(fillFlag);
+        vgconfig.setCalmCircleMaximumMagnitude(2.5);
+        vgconfig.setCalmCircleSizeRatio(0.075);
+        vgconfig.setArrowHeadSizeRatio(0.1875);
+        vgconfig.setLinearArrowScaleFactor(1.0);
+
     }
 
     @Override
@@ -173,11 +229,21 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             return;
         }
 
-        if (lastExtent == null
-                || !lastExtent.equals(paintProps.getView().getExtent())) {
+        /*
+         * R5113 - Check the view extent using a 1 pixel sentinel instead of
+         * using "equals" check. "equals" checks the equality of two doubles,
+         * which is not quite reliable. This helps avoid re-creating the
+         * wireframeShape unless a "real" change in view extent happens, e.g.,
+         * simply clicking or moving mouse won't cause the shape to be
+         * re-created.
+         */
+        // if (lastExtent == null
+        // || !lastExtent.equals(paintProps.getView().getExtent())) {
+        if (viewExtentChanged(lastExtent, paintProps.getView().getExtent())) {
             disposeImages();
             lastExtent = paintProps.getView().getExtent().clone();
         }
+
         if (lastShape == null) {
             lastShape = target.createWireframeShape(false, descriptor);
             super.paint(gridRscData, target, paintProps);
@@ -185,6 +251,17 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         target.drawWireframeShape(lastShape, color, lineWidth, lineStyle);
+
+        // Redmine 7058
+        if (filledShape != null) {
+            if (filledShape.isDrawable()) {
+                Map<Object, RGB> colorMap = new HashMap<Object, RGB>();
+                colorMap.put(this, color);
+                target.getExtension(IColormapShadedShapeExtension.class)
+                        .drawColormapShadedShape(filledShape, colorMap, 1.0f,
+                                1.0f);
+            }
+        }
     }
 
     public void createWireFrame(NcgridResourceData gridRscData,
@@ -192,6 +269,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
         if (lastShape == null) {
             try {
+
+                /*
+                 * Save this viewExtent so we do not need to recreate the
+                 * wireframeShape unless the view extent changes.
+                 */
+                lastExtent = paintProps.getView().getExtent().clone();
+
                 long t1 = System.currentTimeMillis();
                 lastShape = target.createWireframeShape(false, descriptor);
                 super.paint(gridRscData, target, paintProps);
@@ -201,20 +285,28 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                     logger.info("--GriddedVectorDisplay: create wireframe took:"
                             + (t4 - t1));
                 }
+
             } catch (VizException e) {
                 lastShape = null;
             }
         }
     }
 
+    // Redmine 7058
+    private IColormapShadedShape getFilledShape(IGraphicsTarget target)
+            throws VizException {
+
+        IColormapShadedShape filledShape = null;
+        filledShape = target.getExtension(IColormapShadedShapeExtension.class)
+                .createColormapShadedShape(descriptor.getGridGeometry(), false);
+        return filledShape;
+
+    }
+
     @Override
     protected void paintImage(int x, int y, PaintProperties paintProps,
             double adjSize) throws VizException {
         int idx = x + y * this.gridDims[0];
-
-        // System.out.println("paintImage idx==="+idx+" x=="+ijcoord.x+"  y====="+ijcoord.y);
-        // System.out.println("INDEX " + idx + " : " + x + "," + y + " : "
-        // + gridDims[0] + "," + gridDims[1]);
         if (idx < 0 || idx >= (gridDims[0] * gridDims[1])) {
             return;
         }
@@ -263,11 +355,15 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         dir = (float) Math.toRadians(dir);
+
         switch (displayType) {
         case ARROW:
             paintArrow(plotLoc, adjSize, spd, dir);
             break;
         case BARB:
+            // Redmine 7058
+            if (vgconfig.isBarbFillFiftyTriangle() && filledShape == null)
+                filledShape = getFilledShape(target);
             paintBarb(plotLoc, adjSize, spd, dir);
             break;
         case DUALARROW:
@@ -282,16 +378,16 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     private void paintBarb(Coordinate plotLoc, double adjSize, double spd,
             double dir) {
+
         // Don't plot missing value
-        if (spd < 0) {
+        if (spd < vgconfig.getMinimumMagnitude()) {
             return;
         }
 
-        if (spd < 2.5) {
+        if (spd < vgconfig.getCalmCircleMaximumMagnitude()) {
             double[][] line = new double[9][2];
-
-            double aa = adjSize * .030;
-            double saa = aa * 0.707;
+            double aa = adjSize * barbAdjSizeMultiplier;
+            double saa = aa * barbAAMultiplier;
 
             line[8][0] = line[0][0] = plotLoc.x + aa;
             line[8][1] = line[0][1] = plotLoc.y;
@@ -321,19 +417,32 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             return;
         }
 
-        int speed = (int) (spd + 2.5);
-        double staff = adjSize * .4;
-        double barb = staff * 0.30;
-        double add = staff * 0.105;
+        int speed = (int) (spd + barbSPDIncrease);
+        double staff = adjSize * vgconfig.getSizeScaler();
+        double barb = staff * vgconfig.getBarbLengthRatio();
+        double add = staff * vgconfig.getBarbSpacingRatio();
+
+        // int speed = (int) (spd + 2.5);
+        // double staff = adjSize * .4;
+        // double barb = staff * 0.30;
+        // double add = staff * 0.105;
+
+        if (latLon.y >= 0)
+            vgconfig.setBarbRotationRadians(Math.toRadians(75));
+        else
+            // southern hemisphere
+            vgconfig.setBarbRotationRadians(Math.toRadians(115));
+
         // DIRECTIONS
         double uudd = -spd * Math.sin(dir);
         double vvff = -spd * Math.cos(dir);
         double dix = -uudd / spd;
         double djy = -vvff / spd;
-        double dix1 = Math.cos(Math.toRadians(75)) * dix
-                + Math.sin(Math.toRadians(75)) * djy;
-        double djy1 = (-1) * Math.sin(Math.toRadians(75)) * dix
-                + Math.cos(Math.toRadians(75)) * djy;
+        double barbRotationRadians = vgconfig.getBarbRotationRadians();
+        double dix1 = Math.cos(barbRotationRadians) * dix
+                + Math.sin(barbRotationRadians) * djy;
+        double djy1 = (-1) * Math.sin(barbRotationRadians) * dix
+                + Math.cos(barbRotationRadians) * djy;
 
         // SPEED AND COUNTERS:
         int n50 = speed / 50;
@@ -368,8 +477,14 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             return;
         }
 
+        double ix3 = 0;
+        double jy3 = 0;
+
         // PLOT FLAGS, IF NECESSARY
         for (int i = 0; i < n50; i++) {
+            ix3 = ix1 - dix * add * 2;
+            jy3 = jy1 + djy * add * 2;
+
             if (latLon.y >= 0) {
                 ix2 = ix1 + dix1 * barb; // +
                 jy2 = jy1 - djy1 * barb; // -
@@ -377,12 +492,22 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                 ix2 = ix1 - dix1 * barb;
                 jy2 = jy1 + djy1 * barb;
             }
+
             lastShape.addLineSegment(new double[][] { { ix2, jy2 },
                     { ix1, jy1 } });
-            ix1 = ix1 - dix * add * 2; // 2 space
+            lastShape.addLineSegment(new double[][] { { ix2, jy2 },
+                    { ix3, jy3 } });
+            if (vgconfig.isBarbFillFiftyTriangle()) {
+                double[] triangleRaw = { ix1, jy1, ix2, jy2, ix3, jy3, ix1, jy1 };
+                CoordinateSequence triangleSeq = new PackedCoordinateSequence.Double(
+                        triangleRaw, 2);
+                LineString triangleLS = new GeometryFactory()
+                        .createLineString(triangleSeq);
+                filledShape.addPolygonPixelSpace(
+                        new LineString[] { triangleLS }, this);
+            }
+            ix1 = ix1 - dix * add * 2;
             jy1 = jy1 + djy * add * 2;
-            lastShape.addLineSegment(new double[][] { { ix2, jy2 },
-                    { ix1, jy1 } });
         }
 
         if (n50 > 0) {
@@ -399,6 +524,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                 ix2 = ix1 - dix1 * barb;
                 jy2 = jy1 + djy1 * barb;
             }
+
             lastShape.addLineSegment(new double[][] { { ix2, jy2 },
                     { ix1, jy1 } });
             ix1 = ix1 - dix * add;
@@ -576,6 +702,11 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             lastShape.dispose();
             lastShape = null;
         }
+        if (filledShape != null) {
+            filledShape.dispose();
+            filledShape = null;
+        }
+
     }
 
     @Override
@@ -698,11 +829,15 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         dir = (float) Math.toRadians(dir);
+
         switch (displayType) {
         case ARROW:
             paintArrow(plotLoc, adjSize, spd, dir);
             break;
         case BARB:
+            // Redmine 7058
+            if (vgconfig.isBarbFillFiftyTriangle() && filledShape == null)
+                filledShape = getFilledShape(target);
             paintBarb(plotLoc, adjSize, spd, dir);
             break;
         case DUALARROW:
@@ -713,5 +848,24 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         this.isPlotted[idx] = true;
+    }
+
+    /*
+     * Check if two PixelExtents has significant changes - R5113.
+     */
+    private boolean viewExtentChanged(IExtent origExt, IExtent newExt) {
+        double sentinel = 1.0;
+        if (origExt == null || newExt == null) {
+            return true;
+        } else {
+            if (Math.abs(origExt.getMinX() - newExt.getMinX()) > sentinel
+                    || Math.abs(origExt.getMaxX() - newExt.getMaxX()) > sentinel
+                    || Math.abs(origExt.getMinY() - newExt.getMinY()) > sentinel
+                    || Math.abs(origExt.getMaxY() - newExt.getMaxY()) > sentinel) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }

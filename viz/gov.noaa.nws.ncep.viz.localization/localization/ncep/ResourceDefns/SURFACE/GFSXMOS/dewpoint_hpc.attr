@@ -1,6 +1,7 @@
 ! Attributes for the GFSXMOS resource with "dewpoint_hpc" plot model
 !
 plotModel=@PlotModels/bufrmosMRF/dewpoint_hpc.xml
+! plotDensity range 1-30, or use 99 for "Plot All" points
 plotDensity=10
 conditionalFilter=
 legendString=GFSXMOS Dewpoint Forecast (F)

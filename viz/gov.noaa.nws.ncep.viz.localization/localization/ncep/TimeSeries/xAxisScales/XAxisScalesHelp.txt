@@ -1,0 +1,47 @@
+
+X-Axis Scale Manager Help
+-------------------------------------
+
+This tool allows users to manage time series x-axis (scale) specifications. It can be used 
+to create, edit, and delete xml files containing x-axis scale specifications such as label 
+intervals, major tick intervals, minor tick intervals, and label (date/time) formats.
+
+In order to use the x-axis specifications, the xml file name should be included in the attribute set group.
+
+For example:
+xAxisScale=@TimeSeries/xAxisScales/SWPCHighCadence.xml
+
+Label Date/Time Formats
+-----------------------------------
+mm:
+Example: 10  => 10 minutes
+
+HH:
+Example: 02  => 2z
+
+HHmm
+Example: 1030   => 10:30z
+
+HH:mm
+Example: 10:30 => 10:30z
+
+MM-dd-HH
+Example: 10-08-15 => October 8 15z 
+
+MM-dd-HHmm
+Example: 10-08-1550 => October 8 15:50z 
+
+MM-dd-HH:mm
+Example: 10-08-15:50 => October 8 15:50z 
+
+MMM dd
+Example: Oct 08 => October 8
+
+MMM dd HH:mm
+Example: Oct 08 10:50 => October 8 10:50z
+
+Note:
+mm = minutes
+HH = Hour
+dd = Day
+MMM = Month

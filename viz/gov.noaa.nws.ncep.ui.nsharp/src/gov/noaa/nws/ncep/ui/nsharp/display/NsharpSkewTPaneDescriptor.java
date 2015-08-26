@@ -65,8 +65,7 @@ public class NsharpSkewTPaneDescriptor extends NsharpAbstractPaneDescriptor {
         return null;
     }
 	
-    @SuppressWarnings("deprecation")
-	@Override
+    @Override
 	/*
 	 * Chin Note: this function handles time line stepping from NC Perspective tool bar left/right/first/last arrow Buttons.
 	 */

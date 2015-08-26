@@ -13,6 +13,7 @@
  * 05/02/2012	229			Chin Chen	Initial coding for multiple display panes implementation
  * 01/13/2015   DR#17008,
  *              task#5930   Chin Chen   NSHARP Hodograph Does Not Loop in D2D Lite Configuration
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  *
  * </pre>
  * 
@@ -41,7 +42,8 @@ public class NsharpHodoPaneDescriptor extends NsharpAbstractPaneDescriptor {
    
     public NsharpHodoPaneDescriptor(PixelExtent pe) {
         super(pe);
-        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)))
+        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) ||
+        		NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_OPC_CFG_STR)))
         {
         	setTimeMatcher(new D2DTimeMatcher());
             setFrameCoordinator();
@@ -49,7 +51,8 @@ public class NsharpHodoPaneDescriptor extends NsharpAbstractPaneDescriptor {
     }
     public NsharpHodoPaneDescriptor(PixelExtent pe, int paneNumber) {
         super(pe, paneNumber);
-        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)))
+        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_OPC_CFG_STR)))
         {
         	setTimeMatcher(new D2DTimeMatcher());
             setFrameCoordinator();
@@ -57,7 +60,8 @@ public class NsharpHodoPaneDescriptor extends NsharpAbstractPaneDescriptor {
     }
     public NsharpHodoPaneDescriptor() {
         super();
-        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)))
+        if((NsharpEditor.getActiveNsharpEditor() != null) && (NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		NsharpEditor.getActiveNsharpEditor().getPaneConfigurationName().equals(NsharpConstants.PANE_OPC_CFG_STR)))
         {
         	setTimeMatcher(new D2DTimeMatcher());
             setFrameCoordinator();
@@ -71,8 +75,7 @@ public class NsharpHodoPaneDescriptor extends NsharpAbstractPaneDescriptor {
         }
         return null;
     }
-    @SuppressWarnings("deprecation")
-	@Override
+ 	@Override
 	/*
 	 * Chin Note: this function handles time line stepping from NC Perspective tool bar left/right/first/last arrow Buttons.
 	 */
@@ -83,12 +86,13 @@ public class NsharpHodoPaneDescriptor extends NsharpAbstractPaneDescriptor {
         	//However, for D2D LITE display configuration, when switched to HODO pane, skewT pane is no longer
         	//in charge. therefore, we have to handle this special case here by HODO pane.
         	
-        	if((rscHandler == null) ||(!rscHandler.getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)))
+        	if((rscHandler == null) ||
+        			(!rscHandler.getPaneConfigurationName().equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) ||
+        			(!rscHandler.getPaneConfigurationName().equals(NsharpConstants.PANE_OPC_CFG_STR)))
         		return;
         	
         	if( VizPerspectiveListener.getCurrentPerspectiveManager()!= null){
-        		//System.out.println("changeFrame: current perspective ="+VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId());
-    			if(!VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(NmapCommon.NatlCntrsPerspectiveID)){
+   			if(!VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(NmapCommon.NatlCntrsPerspectiveID)){
     				if(mode != FrameChangeMode.TIME_ONLY)
     					return;
     			}

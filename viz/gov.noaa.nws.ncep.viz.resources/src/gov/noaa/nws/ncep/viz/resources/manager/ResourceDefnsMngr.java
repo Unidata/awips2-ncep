@@ -373,8 +373,7 @@ public class ResourceDefnsMngr {
         Collection<String> supportedPlugins = RecordFactory.getInstance()
                 .getSupportedPlugins();
 
-        // this was used to maintain the order in the resourceDefnsTable but now
-        // that
+        // this was used to maintain the order in the resourceDefnsTable but now that
         // these are separate files, I don't know that this will work. Need to
         // find another way to get these in the right order for the GUI.
         long t0 = System.currentTimeMillis();
@@ -406,15 +405,7 @@ public class ResourceDefnsMngr {
                                 + message.getFileName()
                                 + " has been updated.\n"
                                 + "To get these changes you will need to restart cave.");
-                        // VizApp.runAsync(new Runnable() {
-                        // @Override
-                        // public void run() {
-                        // MessageDialog warnDlg = new MessageDialog(
-                        // .getShell(), "WARNING", null, , MessageDialog.,
-                        // new String[] { "OK" }, 0);
-                        // warnDlg.open();
-                        // }
-                        // });
+
                     }
                 });
             } catch (VizException e) {
@@ -1310,11 +1301,9 @@ public class ResourceDefnsMngr {
     }
 
     // map the Full Resource Name to the location of the resource bundle
-    // template file
-    // for the resource.
+    // template file for the resource.
     // The rsc name is the RBD Category/Type/Group/AttributeSet. The fcst/obs is
-    // not saved
-    // so we try both to find a match.
+    // not saved so we try both to find a match.
     public File getRscBundleTemplateFile(String rscType) {
         ResourceDefinition rscDefn = getResourceDefinition(rscType);
 

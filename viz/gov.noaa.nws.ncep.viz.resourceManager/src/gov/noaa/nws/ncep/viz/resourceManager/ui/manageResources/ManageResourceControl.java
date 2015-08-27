@@ -52,7 +52,7 @@ public class ManageResourceControl extends Composite {
     private Group selRscGrp = null;
     private Group editRscGrp = null;
     
-    private Point initDlgSize = new Point( 750, 860 );
+    private Point initDlgSize = new Point( 850, 860 );
 
     private ResourceEditSelectionComposite selectResourceComp = null;
     
@@ -107,7 +107,7 @@ public class ManageResourceControl extends Composite {
         sashForm.setSashWidth(10);
                 
         selRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
-        selRscGrp.setText("Select Resource");
+        //selRscGrp.setText("Select Resource");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;

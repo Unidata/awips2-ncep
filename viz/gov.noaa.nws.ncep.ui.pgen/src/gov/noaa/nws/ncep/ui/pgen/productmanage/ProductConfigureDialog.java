@@ -8,6 +8,7 @@
 package gov.noaa.nws.ncep.ui.pgen.productmanage;
 
 import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
@@ -24,6 +25,7 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProdType;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductTypes;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenActionXtra;
 import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 import java.awt.Color;
@@ -96,6 +98,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 12/12  		#937        J. Wu    	Update G_Airmet layers/hazard - "C&V"
  * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
  * 06/15        R8189       J. WU       Set Pgen palette by activity layer.
+ * 09/01/2015   R11365      S. Russell  Altered retrievePgenPalette() to ignore
+ *                                      Pgen actions that only appear on in
+ *                                      the Pgen context menu for Symbols
  * 
  * </pre>
  * 
@@ -519,6 +524,7 @@ public class ProductConfigureDialog extends ProductDialog {
 
         ii = 0;
         for (String str : actions) {
+
             actionBtns[ii] = new Button(actionGroup, SWT.TOGGLE);
             actionBtns[ii].setData(str);
             actionBtns[ii].setToolTipText(itemMap.get(str)
@@ -1517,6 +1523,19 @@ public class ProductConfigureDialog extends ProductDialog {
         controls = (ArrayList<String>) plt.getControlNames();
         actions = (ArrayList<String>) plt.getActionNames();
         classes = (ArrayList<String>) plt.getClassNames();
+
+        // Remove Pgen actions that exist only as Pgen context menu choices
+        // from the "actions" list
+        List<String> contextMenuActions = null;
+        IConfigurationElement ice = itemMap.get(PgenConstant.SYMBOL);
+        if (ice != null) {
+            contextMenuActions = PgenActionXtra.getActionsXtra(ice);
+            if (contextMenuActions != null) {
+                for (String contextMenuAction : contextMenuActions) {
+                    actions.remove(contextMenuAction);
+                }
+            }
+        }
 
         controlBtns = new Button[controls.size()];
         actionBtns = new Button[actions.size()];

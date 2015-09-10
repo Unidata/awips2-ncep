@@ -9,6 +9,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.viz.core.ProgramArguments;
+import com.raytheon.uf.viz.core.localization.LocalizationManager;
 
 /**
  * This class is the placeholder for the NC perspective to perform
@@ -21,7 +22,7 @@ import com.raytheon.uf.viz.core.ProgramArguments;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 08/06/2015     R8015     A. Su       Initial creation.
- * 
+ * 09/09/2015     R8015     J. Huber	Fix issue with desk localization not registering.
  * </pre>
  * 
  * @author asu
@@ -55,8 +56,7 @@ public class StartupInitialization {
 
         if (desk != null && !desk.trim().isEmpty()) {
             desk = desk.trim().toUpperCase();
-            System.out.println("Setting Desk to " + desk
-                    + " from Program Arguement.");
+            System.out.println("Setting Desk to: " + desk);
         } else {
             desk = "NONE";
         }
@@ -78,5 +78,7 @@ public class StartupInitialization {
             System.out
                     .println("WARNING: the USER level order <= the DESK???? ");
         }
+        
+        LocalizationManager.registerContextName(DESK, desk);
     }
 }

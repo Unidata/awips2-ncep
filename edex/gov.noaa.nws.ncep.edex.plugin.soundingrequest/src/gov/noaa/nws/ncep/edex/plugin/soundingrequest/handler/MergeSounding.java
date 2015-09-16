@@ -8,12 +8,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-//import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * 
- * gov.noaa.nws.ncep.ui.nsharp.rsc.NsharpMapResource This java class performs
- * the NSHARP Resource functions. This code has been developed by the SIB for
+ * This code has been developed by the SIB for
  * use in the AWIPS2 system.
  * 
  * <pre>
@@ -38,6 +36,7 @@ import java.util.List;
  * 05/20/2015  RM#8306	    Chin Chen  eliminate NSHARP dependence on uEngine.
  *                                     Copy whole file from uEngine project
  *                                     and "refactor" and clean up unused code for this ticket.
+ * 09/15/2015  RM#11676     Chin Chen  interpolated values for single level are wrong; clean up software
  * </pre>
  * 
  * @author T. Lee
@@ -45,10 +44,25 @@ import java.util.List;
  */
 
 public class MergeSounding {
-    final float RMISSD = IDecoderConstantsN.UAIR_FLOAT_MISSING;
+    private final float missingFloat = IDecoderConstantsN.UAIR_FLOAT_MISSING;
+    private final int missingInteger = IDecoderConstantsN.INTEGER_MISSING;
+    //input flag used for ConstructMissing()
+    private enum MissFlag {
+    	MISSING_TEMP, MISSING_DEWPOINT, MISSING_WIND
+    };
+    
+    private final float TMCK = 273.15f;
+    
+    //return value for isNumber()
+    public final int INTEGER_NUM = 0;
+    public final int FLOAT_NUM = 1;
+    public final int DOUBLE_NUM = 2;
+    public final int NOT_NUM = -1;
 
-    final int IMISSD = IDecoderConstantsN.INTEGER_MISSING;
-
+    //return value for getNumberType()
+    public enum NumType {
+    	INTEGER_NUM,FLOAT_NUM,DOUBLE_NUM,NOT_NUM
+    };
     /**
      * Default constructor
      */
@@ -82,28 +96,21 @@ public class MergeSounding {
             float elevation) {
         List<NcSoundingLayer> sndata = new ArrayList<NcSoundingLayer>();
         List<NcSoundingLayer> man = null;
-        System.out.println("Enter mergeUairSounding.....");
 
         // Return the specific levels requested by users
         if (ttaa.size() > 0) {
             Collections.sort(ttaa, new reverseSortByPressure());
-            // System.out.println(" TTAA sounding: ");
-            // printOut(ttaa);
 
             if (level!=null && level.toUpperCase().equalsIgnoreCase("MAN")) {
                 return ttaa;
             }
             man = removeUnderGround(ttaa);
-            // System.out.println(" TTAA sounding above ground: ");
-            // printOut(man);
 
         } else {
             if (ppaa.size() < 1 && ttbb.size() < 1) {
-                System.out.println(" Missing TTAA/TTBB and PPAA data.");
                 return missingSounding();
             } else {
                 man = missingSounding();
-                System.out.println(" Missing Mandatory (TTAA) Data!");
             }
         }
 
@@ -111,35 +118,25 @@ public class MergeSounding {
 
         if (ttbb.size() > 0) {
             Collections.sort(ttbb, new reverseSortByPressure());
-            // System.out.println(" TTBB sounding: ");
-            // printOut(ttbb);
         }
 
         if (ttcc.size() > 0) {
             Collections.sort(ttcc, new reverseSortByPressure());
-            // System.out.println(" TTCC sounding: ");
-            // printOut(ttcc);
 
         }
 
         if (ttdd.size() > 0) {
             Collections.sort(ttdd, new reverseSortByPressure());
-            // System.out.println(" TTDD sounding: ");
-            // printOut(ttdd);
 
         }
 
         if (ppaa.size() > 0) {
             if (checkWindData(ppaa)) {
                 Collections.sort(ppaa, new MergeSounding.sortByHeight());
-                // System.out.println(" PPAA sounding by Height: ");
-                // printOut(ppaa);
 
             } else {
                 Collections.sort(ppaa,
                         new MergeSounding.reverseSortByPressure());
-                // System.out.println(" PPAA sounding by Pressure: ");
-                // printOut(ppaa);
 
             }
         }
@@ -147,41 +144,29 @@ public class MergeSounding {
         if (ppcc.size() > 0) {
             if (checkWindData(ppcc)) {
                 Collections.sort(ppcc, new MergeSounding.sortByHeight());
-                // System.out.println(" PPCC sounding by Height:");
-                // printOut(ppcc);
 
             } else {
                 Collections.sort(ppcc,
                         new MergeSounding.reverseSortByPressure());
-                // System.out.println(" PPCC sounding by Pressure: ");
-                // printOut(ppcc);
             }
         }
 
         if (ppbb.size() > 0) {
             if (checkWindData(ppbb)) {
                 Collections.sort(ppbb, new MergeSounding.sortByHeight());
-                // System.out.println(" PPBB sounding by Height:");
-                // printOut(ppbb);
 
             } else {
                 Collections.sort(ppbb,
                         new MergeSounding.reverseSortByPressure());
-                // System.out.println(" PPBB sounding by Pressure: ");
-                // printOut(ppbb);
             }
         }
 
         if (ppdd.size() > 0) {
             if (checkWindData(ppdd)) {
                 Collections.sort(ppdd, new MergeSounding.sortByHeight());
-                // System.out.println(" PPDD sounding by Height");
-                // printOut(ppdd);
             } else {
                 Collections.sort(ppdd,
                         new MergeSounding.reverseSortByPressure());
-                // System.out.println(" PPDD sounding by Pressure: ");
-                // printOut(ppdd);
             }
 
         }
@@ -190,10 +175,8 @@ public class MergeSounding {
         NcSoundingLayer sl = new NcSoundingLayer();
         sl = getSurfaceData(man, ttbb, ppbb, elevation);
         sndata.add(0, sl);
-        // System.out.println(" surface data ");
-        // printOut(sndata);
 
-        if (level!=null && isNumber(level) >= 0) {
+        if (level!=null && getNumberType(level) != NumType.NOT_NUM) {
             if (equal(0.f, Float.valueOf(level.trim()).floatValue())
                     || equal(sl.getPressure(), Float.valueOf(level.trim())
                             .floatValue())) {
@@ -203,11 +186,9 @@ public class MergeSounding {
 
         // Merge mandatory data
         mergeMandatory(man, ttcc, sndata);
-        // System.out.println("after merge Mandatory data: ");
-        // printOut(sndata);
 
         // Check if the single level is mandatory or not
-        if (level!=null && isNumber(level) >= 0) {
+        if (level!=null && getNumberType(level)!= NumType.NOT_NUM) {
             for (int kk = 0; kk < sndata.size(); kk++) {
                 if (equal(Float.valueOf(level.trim()).floatValue(),
                         sndata.get(kk).getPressure())) {
@@ -227,104 +208,120 @@ public class MergeSounding {
 
         // Merge mandatory winds
         mergeMandatoryWinds(ppaa, ppcc, sndata);
-        // System.out.println("after merge PPAA/PPCC: ");
-        // printOut(sndata);
 
         // Merge tropopause
         mergeTropSigTemp(trop_a, trop_c, sndata);
-        // System.out.println("after merge Tropause data: ");
-        // printOut(sndata);
 
         // Merge TTBB
         mergeTropSigTemp(ttbb, ttdd, sndata);
-        // System.out.println("after merge TTBB/TTDD: ");
-        // printOut(sndata);
 
         constructTtbbHeight(sndata);
-        // System.out.println("after construct TTBB Height: ");
-        // printOut(sndata);
 
         if (!checkWindData(ppbb)) {
             mergeSigMaxWindOnPressure(ppbb, ppdd, sndata);
-            // System.out.println("after merge TTBB/TTDD: ");
-            // printOut(sndata);
 
         }
 
         mergeSigMaxWindOnPressure(wmax_a, wmax_c, sndata);
-        // System.out.println("after merge max wind: ");
-        // printOut(sndata);
 
         constructPpbbHeight(sndata);
-        // System.out.println(" After contrstruct PPBB height: ");
-        // printOut(sndata);
 
         if (checkWindData(ppbb)) {
             mergeSigWindOnHeight(ppbb, ppdd, sndata);
             constructPpbbPressure(sndata);
-            // System.out.println("after merge PPBB/PPDD: ");
-            // printOut(sndata);
         }
 
-        // Reorder sounding profile so the first level is the surface data.
-        // No need to reorder now becuz surface data is always the 1st level.
-        // reOrderSounding(sndata);
-
         // Interpolate missing temperature, dew point and winds.
-        constructMissing(1, sndata);
-        constructMissing(2, sndata);
+        constructMissing(MissFlag.MISSING_TEMP, sndata);
+        constructMissing(MissFlag.MISSING_DEWPOINT, sndata);
 
-        // constructMissing(3,sndata);
-        // System.out.println("after contrstruct Missing data: ");
-        // printOut(sndata);
 
         // Return single level or add underground mandatory data to the sounding
         // profile
 
         List<NcSoundingLayer> sndout = new ArrayList<NcSoundingLayer>();
         sndout = removeMissingPressure(sndata);
-        // System.out.println(" Missing pressure removed ");
-        // printOut(sndout);
-        if (level!=null && isNumber(level) == 0) {
+        if (level!=null && getNumberType(level) == NumType.INTEGER_NUM) {
             float rlev = new Integer(Integer.parseInt(level.trim()))
                     .floatValue();
             return getSingLevel(rlev, sndout);
-        } else if (level!=null && isNumber(level) == 1) {
+        } else if (level!=null && getNumberType(level) == NumType.FLOAT_NUM) {
             float rlev = new Float(Float.parseFloat(level.trim()));
             return getSingLevel(rlev, sndout);
         } else {
-            if (sndout.size() < 2)
-                System.out.println(" Not enough levels to plot the sounding! ");
             return addUnderGround(ttaa, sndout);
         }
     }
 
-    /*
+    /**
      * Check an alpha-numerical string is a number or characters.
+     * Returns:
+     * INTEGER_NUM: integer
+     * FLOAT_NUM: float
+     * DOUBLE_NUM: double
+     * NOT_NUM: not a number
+     * @Deprecated It is deprecated and should use getNumberType instead
      */
+    @Deprecated
     public int isNumber(String level) {
         try {
             if (Integer.parseInt(level) >= 0) {
-                return 0;
+                return INTEGER_NUM;
             } else {
-                return -1;
+                return NOT_NUM;
             }
         } catch (NumberFormatException nfe1) {
             try {
                 if (Float.parseFloat(level) >= 0.f) {
-                    return 1;
+                    return FLOAT_NUM;
                 } else {
-                    return -1;
+                    return NOT_NUM;
                 }
             } catch (NumberFormatException nfe2) {
                 try {
                     if (Double.parseDouble(level) >= 0.) {
-                        return 2;
+                        return DOUBLE_NUM;
                     } else {
-                        return -1;
+                        return NOT_NUM;
                     }
                 } catch (NumberFormatException nfe3) {
-                    return -1;
+                    return NOT_NUM;
+                }
+            }
+        }
+    }
+    /*
+     * Check an alpha-numerical string is a number or characters.
+     * Returns:
+     * INTEGER_NUM: integer
+     * FLOAT_NUM: float
+     * DOUBLE_NUM: double
+     * NOT_NUM: not a number
+     */
+
+    public NumType getNumberType(String level) {
+        try {
+            if (Integer.parseInt(level) >= 0) {
+                return NumType.INTEGER_NUM;
+            } else {
+                return NumType.NOT_NUM;
+            }
+        } catch (NumberFormatException nfe1) {
+            try {
+                if (Float.parseFloat(level) >= 0.f) {
+                    return NumType.FLOAT_NUM;
+                } else {
+                    return NumType.NOT_NUM;
+                }
+            } catch (NumberFormatException nfe2) {
+                try {
+                    if (Double.parseDouble(level) >= 0.) {
+                        return NumType.DOUBLE_NUM;
+                    } else {
+                        return NumType.NOT_NUM;
+                    }
+                } catch (NumberFormatException nfe3) {
+                    return NumType.NOT_NUM;
                 }
             }
         }
@@ -333,18 +330,17 @@ public class MergeSounding {
     /*
      * convert specific humidity to dew point temperature.
      */
-    float elevation;
 
     public List<NcSoundingLayer> spfhToDewpoint(List<NcSoundingLayer> sndata) {
         float spfh, pres;
-        float dwpc = RMISSD;
+        float dwpc = missingFloat;
 
         for (NcSoundingLayer layer : sndata) {
-            if (layer.getDewpoint() == RMISSD) {
+            if (layer.getDewpoint() == missingFloat) {
                 spfh = layer.getSpecHumidity();
                 pres = layer.getPressure();
 
-                if (spfh == RMISSD || pres == RMISSD || spfh <= 0.f
+                if (spfh == missingFloat || pres == missingFloat || spfh <= 0.f
                         || pres <= 0.f) {
                     continue;
                 } else {
@@ -354,7 +350,6 @@ public class MergeSounding {
                     dwpc = (float) (Math.log(e / 6.112) * 243.5 / (17.67 - Math
                             .log((e / 6.112))));
                     layer.setDewpoint(dwpc);
-                    // //System.out.println("spfhToDewpoint dwpc: " + dwpc);
                 }
 
             }
@@ -368,14 +363,14 @@ public class MergeSounding {
      */
     public List<NcSoundingLayer> rhToDewpoint(List<NcSoundingLayer> sndata) {
         float rh, vapr, vaps, temp;
-        float dwpc = RMISSD;
+        float dwpc = missingFloat;
 
         for (NcSoundingLayer layer : sndata) {
-            if (layer.getDewpoint() == RMISSD) {
+            if (layer.getDewpoint() == missingFloat) {
                 rh = layer.getRelativeHumidity();
                 temp = layer.getTemperature();
 
-                if (rh == RMISSD || temp == RMISSD) {
+                if (rh == missingFloat || temp == missingFloat) {
                     continue;
                 } else {
                     vaps = tempToVapr(temp);
@@ -386,8 +381,7 @@ public class MergeSounding {
                         dwpc = (float) (243.5 * (Math.log(6.112) - Math
                                 .log(vapr)) / (Math.log(vapr) - Math.log(6.112) - 17.67));
                         layer.setDewpoint(dwpc);
-                        // //System.out.println("rhToDewpoint dwpc: " + dwpc);
-                    }
+                     }
                 }
             }
         }
@@ -400,20 +394,19 @@ public class MergeSounding {
      */
     public List<NcSoundingLayer> dpdToDewpoint(List<NcSoundingLayer> sndata) {
         float temp, dpdk;
-        float dwpc = RMISSD;
+        float dwpc = missingFloat;
 
         for (NcSoundingLayer layer : sndata) {
-            if (layer.getDewpoint() == RMISSD) {
+            if (layer.getDewpoint() == missingFloat) {
                 temp = layer.getTemperature();
                 dpdk = layer.getDpd();
 
-                if (temp == RMISSD || dpdk == RMISSD) {
+                if (temp == missingFloat || dpdk == missingFloat) {
                     continue;
                 } else {
 
                     dwpc = temp - dpdk;
                     layer.setDewpoint(dwpc);
-                    // //System.out.println("rhToDewpoint dwpc: " + dwpc);
                 }
             }
 
@@ -433,11 +426,10 @@ public class MergeSounding {
         /*
          * For native model sounding, using hypsometric equation to build height
          */
-        elevation = elev;
         int lev = sndata.size();
-        float tb = RMISSD, tdb = RMISSD, pb = RMISSD;
-        float tt = RMISSD, tdt = RMISSD, pt = RMISSD;
-        float dwptsf, psfc, tmpcsf, scaleh, mhgt = RMISSD;
+        float tb = missingFloat, tdb = missingFloat, pb = missingFloat;
+        float tt = missingFloat, tdt = missingFloat, pt = missingFloat;
+        float dwptsf, psfc, tmpcsf, scaleh, mhgt = missingFloat;
 
         for (int k = 0; k < lev; k++) {
 
@@ -453,7 +445,7 @@ public class MergeSounding {
                 pt = psfc;
 
                 scaleh = scaleHeight(tb, tt, tdb, tdt, pb, pt);
-                mhgt = moistHeight(elevation, pb, pt, scaleh);
+                mhgt = moistHeight(elev, pb, pt, scaleh);
             } else {
                 tt = sndata.get(k).getTemperature();
                 tdt = sndata.get(k).getDewpoint();
@@ -474,12 +466,9 @@ public class MergeSounding {
      * Compute moist height.
      */
     private float moistHeight(float zb, float pb, float pt, float scale) {
-        // System.out.println("From moistHeight: ");
-        if (zb == RMISSD || pb == RMISSD || pt == RMISSD || scale == RMISSD) {
-            return RMISSD;
+        if (zb == missingFloat || pb == missingFloat || pt == missingFloat || scale == missingFloat) {
+            return missingFloat;
         } else {
-            // System.out.println("the computed moistHeight is  " + (float) (zb
-            // + scale * Math.log(pb / pt)));
             return (float) (zb + scale * Math.log(pb / pt));
         }
     }
@@ -489,22 +478,17 @@ public class MergeSounding {
      */
     private float scaleHeight(float tb, float tt, float tdb, float tdt,
             float pb, float pt) {
-        // System.out.println("From scaleHeight: " );
         final float RDGAS = 287.04f, GRAVTY = 9.80616f, RKAP = RDGAS / GRAVTY;
-        if (tb == RMISSD || tt == RMISSD || pb == RMISSD || pt == RMISSD) {
-            return RMISSD;
+        if (tb == missingFloat || tt == missingFloat || pb == missingFloat || pt == missingFloat) {
+            return missingFloat;
         } else {
             float tvb = virtualTemperature(tb, tdb, pb);
             float tvt = virtualTemperature(tt, tdt, pt);
-            // System.out.println("tvb = " + tvb);
-            // System.out.println("tvt = " + tvt);
-            if (tvb == RMISSD || tvt == RMISSD) {
-                return RMISSD;
+            if (tvb == missingFloat || tvt == missingFloat) {
+                return missingFloat;
             } else {
                 float tav = (tvb + tvt) / 2.0f;
 
-                // System.out.println("tav = " + tav);
-                // System.out.println("RKAP * tav = " + RKAP * tav);
                 return (RKAP * tav);
             }
         }
@@ -514,14 +498,14 @@ public class MergeSounding {
      * Compute virtual temperature
      */
     private float virtualTemperature(float tt, float td, float pres) {
-        if (tt == RMISSD || pres == RMISSD) {
-            return RMISSD;
-        } else if (td == RMISSD) {
+        if (tt == missingFloat || pres == missingFloat) {
+            return missingFloat;
+        } else if (td == missingFloat) {
             return celciusToKevin(tt);
         } else {
             float tmpk = celciusToKevin(tt);
             float rmix = mixingRatio(td, pres);
-            if (rmix == RMISSD) {
+            if (rmix == missingFloat) {
                 return celciusToKevin(tt);
             } else {
                 return tmpk * (1.f + .001f * rmix / .62197f)
@@ -533,11 +517,9 @@ public class MergeSounding {
     /*
      * Convert Celcius to Kelvin.
      */
-    float TMCK = 273.15f;
-
     private float celciusToKevin(float tc) {
-        if (tc == RMISSD) {
-            return RMISSD;
+        if (tc == missingFloat) {
+            return missingFloat;
         } else {
             return (tc + TMCK);
         }
@@ -547,19 +529,19 @@ public class MergeSounding {
      * Compute mixing ratio from DWPC and PRES.
      */
     private float mixingRatio(float td, float pres) {
-        if (td == RMISSD || pres == RMISSD) {
-            return RMISSD;
+        if (td == missingFloat || pres == missingFloat) {
+            return missingFloat;
         } else {
             float vapr = vaporPressure(td);
-            if (vapr == RMISSD) {
-                return RMISSD;
+            if (vapr == missingFloat) {
+                return missingFloat;
             }
 
             float corr = (1.001f + ((pres - 100.f) / 900.f) * .0034f);
 
             float e = corr * vapr;
             if (e > (.5f * pres)) {
-                return RMISSD;
+                return missingFloat;
             } else {
                 return .62197f * (e / (pres - e)) * 1000.f;
             }
@@ -570,8 +552,8 @@ public class MergeSounding {
      * Compute vapor pressure from DWPC.
      */
     private float vaporPressure(float td) {
-        if (td == RMISSD) {
-            return RMISSD;
+        if (td == missingFloat) {
+            return missingFloat;
         } else {
             return (6.112f * (float) Math.exp((17.67 * td) / (td + 243.5)));
         }
@@ -591,7 +573,7 @@ public class MergeSounding {
     public boolean checkWindData(List<NcSoundingLayer> sndata) {
         boolean zwind = true;
         for (int kk = 0; kk < sndata.size(); kk++) {
-            if (sndata.get(kk).getPressure() != RMISSD) {
+            if (sndata.get(kk).getPressure() != missingFloat) {
                 zwind = false;
             }
         }
@@ -601,12 +583,10 @@ public class MergeSounding {
     /*
      * Find surface data. (MR_SRFC)
      */
-    final int NPARMS = 7;
-
     public NcSoundingLayer getSurfaceData(List<NcSoundingLayer> man,
             List<NcSoundingLayer> ttbb, List<NcSoundingLayer> ppbb,
             float elevation) {
-        float psfc = RMISSD;
+        float psfc = missingFloat;
         NcSoundingLayer sl_sfc = new NcSoundingLayer();
 
         /*
@@ -621,7 +601,7 @@ public class MergeSounding {
             // Note that GEMPAK sets it to 1060mb.
             psfc = man.get(0).getPressure();
             if (psfc > 1080.) {
-                sl_sfc.setPressure(RMISSD);
+                sl_sfc.setPressure(missingFloat);
             } else {
                 sl_sfc.setPressure(psfc);
             }
@@ -636,13 +616,13 @@ public class MergeSounding {
         /*
          * Find the first reporting mandatory level above the surface.
          */
-        float pman = RMISSD;
+        float pman = missingFloat;
         int iman = 1;
         try {
-            while (pman == RMISSD && iman < man.size()) {
-                if (man.get(iman).getPressure() != RMISSD
-                        && man.get(iman).getTemperature() != RMISSD
-                        && man.get(iman).getGeoHeight() != RMISSD) {
+            while (pman == missingFloat && iman < man.size()) {
+                if (man.get(iman).getPressure() != missingFloat
+                        && man.get(iman).getTemperature() != missingFloat
+                        && man.get(iman).getGeoHeight() != missingFloat) {
                     pman = man.get(iman).getPressure();
                 }
                 iman++;
@@ -655,7 +635,7 @@ public class MergeSounding {
          * If surface pressure is missing or is less than first reporting
          * mandatory level, set surface data to missing.
          */
-        if (psfc == RMISSD || (psfc < pman && pman != RMISSD)) {
+        if (psfc == missingFloat || (psfc < pman && pman != missingFloat)) {
             sl_sfc = missingSounding().get(0);
         }
 
@@ -668,14 +648,14 @@ public class MergeSounding {
             psfc = sl_sfc.getPressure();
             float psql = ttbb.get(0).getPressure();
 
-            if (equal(psfc, psql) || psfc == RMISSD) {
-                if (psql != RMISSD && psfc == RMISSD)
+            if (equal(psfc, psql) || psfc == missingFloat) {
+                if (psql != missingFloat && psfc == missingFloat)
                     sl_sfc.setPressure(psql);
 
-                if (sl_sfc.getTemperature() == RMISSD)
+                if (sl_sfc.getTemperature() == missingFloat)
                     sl_sfc.setTemperature(ttbb.get(0).getTemperature());
 
-                if (sl_sfc.getDewpoint() == RMISSD)
+                if (sl_sfc.getDewpoint() == missingFloat)
                     sl_sfc.setDewpoint(ttbb.get(0).getDewpoint());
             }
         }
@@ -689,7 +669,7 @@ public class MergeSounding {
         if (checkWindData(ppbb)) {
             if (ppbb.size() > 0) {
                 if (ppbb.get(0).getGeoHeight() == 0.
-                        && sl_sfc.getWindDirection() == RMISSD) {
+                        && sl_sfc.getWindDirection() == missingFloat) {
                     sl_sfc.setWindDirection(ppbb.get(0).getWindDirection());
                     sl_sfc.setWindSpeed(ppbb.get(0).getWindSpeed());
                 }
@@ -697,13 +677,13 @@ public class MergeSounding {
         } else {
             // PPBB reported in Pressure.
             if (ppbb.size() > 0) {
-                if (ppbb.get(0).getPressure() != RMISSD
-                        && sl_sfc.getPressure() == RMISSD) {
+                if (ppbb.get(0).getPressure() != missingFloat
+                        && sl_sfc.getPressure() == missingFloat) {
                     float psgl = Math.abs(ppbb.get(0).getPressure());
                     sl_sfc.setPressure(psgl);
 
-                    if (ppbb.get(0).getWindDirection() != RMISSD
-                            && sl_sfc.getWindDirection() == RMISSD) {
+                    if (ppbb.get(0).getWindDirection() != missingFloat
+                            && sl_sfc.getWindDirection() == missingFloat) {
                         if (equal(psfc, psgl)) {
                             sl_sfc.setWindDirection(ppbb.get(0)
                                     .getWindDirection());
@@ -738,17 +718,11 @@ public class MergeSounding {
             List<NcSoundingLayer> man_c, List<NcSoundingLayer> sndata) {
 
         float plast;
-        // if (man_a == null) {
-        // System.out.println(" NO data in Man \n");
-        // } else {
-        // System.out.println(" Man not null \n");
-
-        //
         if (man_a.size() < 1 && man_c.size() < 1) {
             return;
         }
 
-        if (sndata.get(0).getPressure() == RMISSD) {
+        if (sndata.get(0).getPressure() == missingFloat) {
             plast = 2000.f;
         } else {
             plast = sndata.get(0).getPressure();
@@ -763,9 +737,9 @@ public class MergeSounding {
             for (int kk = 1; kk < man_a.size(); kk++) {
                 pres = man_a.get(kk).getPressure();
                 if (pres < plast
-                        && pres != RMISSD
-                        && (man_a.get(kk).getTemperature() != RMISSD || man_a
-                                .get(kk).getWindDirection() != RMISSD)) {
+                        && pres != missingFloat
+                        && (man_a.get(kk).getTemperature() != missingFloat || man_a
+                                .get(kk).getWindDirection() != missingFloat)) {
                     addDataToList(kk, man_a, sndata);
                     plast = pres;
                 }
@@ -778,8 +752,8 @@ public class MergeSounding {
         if (man_c.size() > 0) {
             for (int kk = 0; kk < man_c.size(); kk++) {
                 pres = man_c.get(kk).getPressure();
-                if (pres < plast && pres != RMISSD
-                        && man_c.get(kk).getTemperature() != RMISSD) {
+                if (pres < plast && pres != missingFloat
+                        && man_c.get(kk).getTemperature() != missingFloat) {
                     addDataToList(kk, man_c, sndata);
                     plast = man_c.get(kk).getPressure();
                 }
@@ -819,7 +793,7 @@ public class MergeSounding {
             for (int kk = 0; kk < sndata.size() && !found; kk++) {
                 float pres = sndata.get(kk).getPressure();
                 if (equal(ppp, pres)) {
-                    if (sndata.get(kk).getWindDirection() == RMISSD) {
+                    if (sndata.get(kk).getWindDirection() == missingFloat) {
                         sndata.get(kk).setWindDirection(
                                 man_wa.get(lev).getWindDirection());
                         sndata.get(kk).setWindSpeed(
@@ -834,7 +808,7 @@ public class MergeSounding {
              */
             if (!found) {
                 float ddd = man_wa.get(lev).getWindDirection();
-                if (ppp != RMISSD && ddd != RMISSD) {
+                if (ppp != missingFloat && ddd != missingFloat) {
                     addDataToList(lev, man_wa, sndata);
                 }
             }
@@ -869,14 +843,14 @@ public class MergeSounding {
                 if (equal(ppp, pres)) {
 
                     // add data to missing
-                    if (sndata.get(kk).getTemperature() == RMISSD) {
+                    if (sndata.get(kk).getTemperature() == missingFloat) {
                         sndata.get(kk).setTemperature(
                                 trop_a.get(lev).getTemperature());
                         sndata.get(kk).setDewpoint(
                                 trop_a.get(lev).getDewpoint());
                     }
 
-                    if (sndata.get(kk).getWindDirection() == RMISSD) {
+                    if (sndata.get(kk).getWindDirection() == missingFloat) {
                         sndata.get(kk).setWindDirection(
                                 trop_a.get(lev).getWindDirection());
                         sndata.get(kk).setWindSpeed(
@@ -892,7 +866,7 @@ public class MergeSounding {
              */
             if (!found) {
                 float ttt = trop_a.get(lev).getTemperature();
-                if (ppp != RMISSD && ttt != RMISSD) {
+                if (ppp != missingFloat && ttt != missingFloat) {
                     addDataToList(lev, trop_a, sndata);
                 }
             }
@@ -917,24 +891,22 @@ public class MergeSounding {
         float[] scale = new float[200];
         float pb, zb, tb, tdb, zlev, plev;
         float pt, zt = 0.f, tt, tdt, znew = 0.f;
-        // System.out.println("In construct TTBB Height 1: ");
-        // printOut(sndata);
 
         if (sndata.size() <= 2)
             return;
 
         for (int nlev = 0; nlev < sndata.size(); nlev++) {
             if (newblock) {
-                if (sndata.get(nlev).getGeoHeight() != RMISSD
-                        && sndata.get(nlev).getPressure() != RMISSD
-                        && sndata.get(nlev).getTemperature() != RMISSD) {
+                if (sndata.get(nlev).getGeoHeight() != missingFloat
+                        && sndata.get(nlev).getPressure() != missingFloat
+                        && sndata.get(nlev).getTemperature() != missingFloat) {
 
                     blev = nlev;
                     newblock = false;
                 }
             } else {
-                if (sndata.get(nlev).getGeoHeight() != RMISSD
-                        && sndata.get(nlev).getTemperature() != RMISSD) {
+                if (sndata.get(nlev).getGeoHeight() != missingFloat
+                        && sndata.get(nlev).getTemperature() != missingFloat) {
                     tlev = nlev;
                     mand = true;
                 }
@@ -958,7 +930,7 @@ public class MergeSounding {
                     tdt = sndata.get(kk).getDewpoint();
                     scale[kk] = scaleHeight(tb, tt, tdb, tdt, pb, pt);
                     znew = moistHeight(zb, pb, pt, scale[kk]);
-                    if (znew != RMISSD) {
+                    if (znew != missingFloat) {
                         pb = pt;
                         tb = tt;
                         tdb = tdt;
@@ -978,7 +950,7 @@ public class MergeSounding {
                     zt = sndata.get(kk).getGeoHeight();
                     scale[kk] = scale[kk] * s;
                     znew = moistHeight(zbb, pbb, pt, scale[kk]);
-                    if (znew != RMISSD) {
+                    if (znew != missingFloat) {
                         pbb = pt;
                         zbb = znew;
                         sndata.get(kk).setGeoHeight(znew);
@@ -988,20 +960,14 @@ public class MergeSounding {
                 newblock = true;
 
                 if ((tlev + 1) != sndata.size()) {
-                    if (sndata.get(tlev + 1).getGeoHeight() == RMISSD
-                            && sndata.get(tlev + 1).getPressure() != RMISSD
-                            && sndata.get(tlev + 1).getTemperature() != RMISSD) {
+                    if (sndata.get(tlev + 1).getGeoHeight() == missingFloat
+                            && sndata.get(tlev + 1).getPressure() != missingFloat
+                            && sndata.get(tlev + 1).getTemperature() != missingFloat) {
                         nlev--;
                     }
                 }
             }
         }
-        // System.out
-        // .println("In construct TTBB Height before check TOP missing level: ");
-        // printOut(sndata);
-
-        // System.out.println(" TLEV: " + tlev + " sndata.size()" +
-        // sndata.size() + "\n");
         // Fill missing height at the top levels
         fillMissingHeightAtTop(sndata);
 
@@ -1017,16 +983,10 @@ public class MergeSounding {
         if (sig_wa.size() < 1 && sig_wc.size() < 1) {
             return;
         }
-
-        // System.out.println(" Windmax below trop \n");
-        // printOut(sig_wa);
-        // System.out.println(" Windmax above trop \n");
-        // printOut(sig_wc);
-
         /*
          * Append two lists of wind data.
          */
-        if (sig_wc.size() > 0 && sig_wc.get(0).getPressure() != RMISSD) {
+        if (sig_wc.size() > 0 && sig_wc.get(0).getPressure() != missingFloat) {
             for (int kk = 0; kk < sig_wc.size(); kk++) {
                 sig_wa.add(sig_wc.get(kk));
             }
@@ -1043,7 +1003,7 @@ public class MergeSounding {
                         .getPressure())) {
 
                     // add data to missing
-                    if (sndata.get(lev).getWindDirection() == RMISSD) {
+                    if (sndata.get(lev).getWindDirection() == missingFloat) {
                         sndata.get(lev).setWindDirection(
                                 sig_wa.get(kk).getWindDirection());
                         sndata.get(lev).setWindSpeed(
@@ -1052,15 +1012,13 @@ public class MergeSounding {
                     found = true;
                 }
             }
-            // System.out.println("In mergeSigMaxWindOnPressure:);
-            // printOut(sndata);
 
             /*
              * if not found, add to the list.
              */
             if (!found) {
-                if ((sig_wa.get(kk).getWindDirection() != RMISSD && sig_wa.get(
-                        kk).getPressure() != RMISSD)) {
+                if ((sig_wa.get(kk).getWindDirection() != missingFloat && sig_wa.get(
+                        kk).getPressure() != missingFloat)) {
 
                     NcSoundingLayer sl = new NcSoundingLayer();
                     sl.setPressure(sig_wa.get(kk).getPressure());
@@ -1078,7 +1036,6 @@ public class MergeSounding {
             Collections.sort(sndata, new reverseSortByPressure());
         }
         fillMissingHeightAtTop(sndata);
-        // printOut(sndata);
         return;
     }
 
@@ -1089,15 +1046,14 @@ public class MergeSounding {
      */
     public void constructPpbbHeight(List<NcSoundingLayer> sndata) {
         int tlev = 0;
-        // System.out.println("From constructPpbbHeight(): " );
         for (int kk = sndata.size() - 1; kk >= 0; kk--) {
-            if (sndata.get(kk).getGeoHeight() != RMISSD) {
+            if (sndata.get(kk).getGeoHeight() != missingFloat) {
                 tlev = kk;
                 break;
             }
         }
 
-        float pb = RMISSD, pt = RMISSD, zt = RMISSD, zb = RMISSD;
+        float pb = missingFloat, pt = missingFloat, zt = missingFloat, zb = missingFloat;
         int next;
 
         if (sndata.size() <= 2)
@@ -1106,13 +1062,13 @@ public class MergeSounding {
         for (int kk = 0; kk < tlev; kk++) {
             float pres = sndata.get(kk).getPressure();
             float hght = sndata.get(kk).getGeoHeight();
-            if (pres == RMISSD) {
+            if (pres == missingFloat) {
                 // DO NOTHING
-            } else if (hght != RMISSD) {
+            } else if (hght != missingFloat) {
                 pb = pres;
                 zb = hght;
                 pt = 2000.f;
-            } else if (pb == RMISSD) {
+            } else if (pb == missingFloat) {
                 // DO NOTHING
             } else {
 
@@ -1121,7 +1077,7 @@ public class MergeSounding {
                  */
                 next = kk + 1;
                 while (pres <= pt) {
-                    if (sndata.get(next).getGeoHeight() != RMISSD) {
+                    if (sndata.get(next).getGeoHeight() != missingFloat) {
                         pt = sndata.get(next).getPressure();
                         zt = sndata.get(next).getGeoHeight();
                     } else {
@@ -1163,9 +1119,6 @@ public class MergeSounding {
                 sig_wa.add(sig_wc.get(kk));
             }
         }
-        // System.out.println(" in mergeSigWindOnHeight 0: ");
-        // printOut(sndata);
-
         int nlevel = sndata.size();
         for (int kk = 0; kk < sig_wa.size(); kk++) {
             boolean found = false;
@@ -1175,7 +1128,7 @@ public class MergeSounding {
             // report wind data twice at surface. We don't want the surface
             // pressure to be missing.
             if (zzz == 0) {
-                if (sndata.get(0).getWindDirection() == RMISSD) {
+                if (sndata.get(0).getWindDirection() == missingFloat) {
                     sndata.get(0).setWindDirection(
                             sig_wa.get(0).getWindDirection());
                     sndata.get(0).setWindSpeed(sig_wa.get(kk).getWindSpeed());
@@ -1186,7 +1139,7 @@ public class MergeSounding {
                     float hght = sndata.get(lev).getGeoHeight();
                     if (equal(zzz, hght) || (zzz == 0 && lev == 0 && kk == 0)) {
                         // add data to missing
-                        if (sndata.get(lev).getWindDirection() == RMISSD) {
+                        if (sndata.get(lev).getWindDirection() == missingFloat) {
                             sndata.get(lev).setWindDirection(
                                     sig_wa.get(kk).getWindDirection());
                             sndata.get(lev).setWindSpeed(
@@ -1197,15 +1150,12 @@ public class MergeSounding {
                 }
             }
 
-            // System.out.println(" in mergeSigWindOnHeight 1: ");
-            // printOut(sndata);
-
             /*
              * if not found, add to the list.
              */
             if (!found) {
-                if (sig_wa.get(kk).getWindDirection() != RMISSD
-                        && sig_wa.get(kk).getGeoHeight() != RMISSD) {
+                if (sig_wa.get(kk).getWindDirection() != missingFloat
+                        && sig_wa.get(kk).getGeoHeight() != missingFloat) {
                     NcSoundingLayer sl = new NcSoundingLayer();
                     sl.setPressure(sig_wa.get(kk).getPressure());
                     sl.setTemperature(sig_wa.get(kk).getTemperature());
@@ -1223,8 +1173,6 @@ public class MergeSounding {
          * Sorting the combined temperature and wind data based on Geopotential
          * height.
          */
-        // System.out.println(" in mergeSigWindOnHeight 2: ");
-        // printOut(sndata);
 
         fillMissingHeightAtTop(sndata);
 
@@ -1259,21 +1207,21 @@ public class MergeSounding {
         if (sndata.size() <= 2)
             return sndata;
 
-        float pb = RMISSD, pt = RMISSD, zt = RMISSD, zb = RMISSD;
-        int blev = IMISSD, tlev = IMISSD;
+        float pb = missingFloat, pt = missingFloat, zt = missingFloat, zb = missingFloat;
+        int blev = missingInteger, tlev = missingInteger;
         for (int lev = 0; lev < sndata.size(); lev++) {
             float pres = sndata.get(lev).getPressure();
             float hght = sndata.get(lev).getGeoHeight();
-            if (pres != RMISSD && hght != RMISSD) {
+            if (pres != missingFloat && hght != missingFloat) {
                 tlev = lev;
                 pt = pres;
                 zt = hght;
             }
 
-            if (blev != IMISSD && tlev != IMISSD) {
+            if (blev != missingInteger && tlev != missingInteger) {
                 for (int kk = blev + 1; kk < tlev; kk++) {
                     float z = sndata.get(kk).getGeoHeight();
-                    if (sndata.get(kk).getGeoHeight() != RMISSD) {
+                    if (sndata.get(kk).getGeoHeight() != missingFloat) {
                         float ppp = (float) (pb * Math.exp((double) ((z - zb)
                                 * Math.log(pt / pb) / (zt - zb))));
                         sndata.get(kk).setPressure(ppp);
@@ -1285,7 +1233,7 @@ public class MergeSounding {
             zb = zt;
         }
 
-        if (tlev == (sndata.size() - 1) || tlev == IMISSD) {
+        if (tlev == (sndata.size() - 1) || tlev == missingInteger) {
             return sndata;
         } else {
 
@@ -1296,7 +1244,7 @@ public class MergeSounding {
             zb = sndata.get(tlev - 1).getGeoHeight();
 
             for (int kk = tlev + 1; kk < sndata.size(); kk++) {
-                if (sndata.get(kk).getPressure() == RMISSD) {
+                if (sndata.get(kk).getPressure() == missingFloat) {
                     pt = sndata.get(kk - 1).getPressure();
                     zt = sndata.get(kk - 1).getGeoHeight();
                     float zz = sndata.get(kk).getGeoHeight();
@@ -1329,7 +1277,7 @@ public class MergeSounding {
             td = sndata.get(kk).getDewpoint();
             dd = sndata.get(kk).getWindDirection();
             ff = sndata.get(kk).getWindSpeed();
-            if (tt == RMISSD && td == RMISSD && dd == RMISSD && ff == RMISSD) {
+            if (tt == missingFloat && td == missingFloat && dd == missingFloat && ff == missingFloat) {
                 // DO NOTHING
             } else {
                 klev = kk;
@@ -1355,168 +1303,160 @@ public class MergeSounding {
      * and wind (iflag = 3). This method is called after reOrderSounding().
      * MR_MISS
      */
-    public List<NcSoundingLayer> constructMissing(int iflag,
-            List<NcSoundingLayer> sndata) {
-        float pb = RMISSD, pt = RMISSD, data = RMISSD, pres, tb, tt, tdb, tdt;
-        int jlev = IMISSD, tlev = IMISSD;
-        boolean contin = true;
-        if (sndata.size() <= 2)
-            return sndata;
-        for (int blev = 1; blev < sndata.size() - 1 && contin; blev++) {
-            jlev = blev;
+    private List<NcSoundingLayer> constructMissing(MissFlag iflag,
+    		List<NcSoundingLayer> sndata) {
+    	float pb = missingFloat, pt = missingFloat, data = missingFloat, pres, tb, tt, tdb, tdt;
+    	int jlev = missingInteger, tlev = missingInteger;
+    	boolean contin = true;
+    	if (sndata.size() <= 2)
+    		return sndata;
+    	for (int blev = 1; blev < sndata.size() - 1 && contin; blev++) {
+    		jlev = blev;
 
-            switch (iflag) {
-            case 1: {
-                data = sndata.get(blev).getTemperature();
-                break;
-            }
-            case 2: {
-                data = sndata.get(blev).getDewpoint();
-                break;
-            }
-            case 3: {
-                data = sndata.get(blev).getWindDirection();
-                break;
-            }
-            default: {
-                return sndata;
-            }
-            }
+    		switch (iflag) {
+    		case MISSING_TEMP: {
+    			data = sndata.get(blev).getTemperature();
+    			break;
+    		}
+    		case MISSING_DEWPOINT: {
+    			data = sndata.get(blev).getDewpoint();
+    			break;
+    		}
+    		case MISSING_WIND: {
+    			data = sndata.get(blev).getWindDirection();
+    			break;
+    		}
+    		default: {
+    			return sndata;
+    		}
+    		}
 
-            if (data == RMISSD) {
+    		if (data == missingFloat) {
 
-                /*
-                 * find data at level above. Data should already be at level
-                 * below after reOrderSounding() call.
-                 */
-                boolean found = false;
-                while (!found) {
-                    jlev++;
-                    switch (iflag) {
-                    case 1: {
-                        data = sndata.get(jlev).getTemperature();
-                        break;
-                    }
-                    case 2: {
-                        data = sndata.get(jlev).getDewpoint();
-                        break;
-                    }
-                    case 3: {
-                        data = sndata.get(jlev).getWindDirection();
-                        break;
-                    }
-                    default: {
-                        // System.out.println("Invalid data flag");
-                    }
-                    }
-                    int top = sndata.size();
-                    if (data != RMISSD || jlev + 1 >= top) {
-                        found = true;
-                        tlev = jlev;
-                        if (jlev >= top) {
-                            tlev = IMISSD;
-                            contin = false;
-                        }
-                    }
-                }
+    			/*
+    			 * find data at level above. Data should already be at level
+    			 * below after reOrderSounding() call.
+    			 */
+    			 boolean found = false;
+    			 while (!found) {
+    				 jlev++;
+    				 switch (iflag) {
+    				 case MISSING_TEMP: {
+    					 data = sndata.get(jlev).getTemperature();
+    					 break;
+    				 }
+    				 case MISSING_DEWPOINT: {
+    					 data = sndata.get(jlev).getDewpoint();
+    					 break;
+    				 }
+    				 case MISSING_WIND: {
+    					 data = sndata.get(jlev).getWindDirection();
+    					 break;
+    				 }
+    				 }
+    				 int top = sndata.size();
+    				 if (data != missingFloat || jlev + 1 >= top) {
+    					 found = true;
+    					 tlev = jlev;
+    					 if (jlev >= top) {
+    						 tlev = missingInteger;
+    						 contin = false;
+    					 }
+    				 }
+    			 }
 
-                /*
-                 * Add check to eliminate dew point layer more than 100mb.
-                 */
-                if (iflag == 2 && tlev != IMISSD) {
-                    if ((sndata.get(blev).getPressure() - sndata.get(tlev)
-                            .getPressure()) > 100.) {
-                        for (int kk = tlev; kk < sndata.size(); kk++) {
-                            sndata.get(kk).setDewpoint(RMISSD);
-                        }
-                        tlev = IMISSD;
-                        contin = false;
-                    }
-                }
+    			 /*
+    			  * Add check to eliminate dew point layer more than 100mb.
+    			  */
+    			 if (iflag == MissFlag.MISSING_DEWPOINT && tlev != missingInteger) {
+    				 if ((sndata.get(blev).getPressure() - sndata.get(tlev)
+    						 .getPressure()) > 100.) {
+    					 for (int kk = tlev; kk < sndata.size(); kk++) {
+    						 sndata.get(kk).setDewpoint(missingFloat);
+    					 }
+    					 tlev = missingInteger;
+    					 contin = false;
+    				 }
+    			 }
 
-                /*
-                 * Add check to eliminate interpolation of winds from below 100
-                 * mb to above 100 mb. This eliminates interpolation to very
-                 * high level winds.
-                 */
-                /*
-                 * if (iflag == 3 && tlev != IMISSD && (sndata.get(blev -
-                 * 1).getPressure() > 100.) && (sndata.get(tlev).getPressure() <
-                 * 100.)) { tlev = IMISSD; }
-                 */
-                /*
-                 * Interpolate with respect to logP.
-                 */
-                float rmult = RMISSD;
-                if (tlev != IMISSD) {
-                    pb = sndata.get(blev - 1).getPressure();
-                    pres = sndata.get(blev).getPressure();
-                    pt = sndata.get(tlev).getPressure();
-                    if (pt != RMISSD && pb != RMISSD && pres != RMISSD) {
-                        rmult = (float) (Math.log(pres / pb) / Math
-                                .log(pt / pb));
-                    }
+    			 /*
+    			  * Add check to eliminate interpolation of winds from below 100
+    			  * mb to above 100 mb. This eliminates interpolation to very
+    			  * high level winds.
+    			  */
+    			 /*
+    			  * Interpolate with respect to logP.
+    			  */
+    			 float rmult = missingFloat;
+    			 if (tlev != missingInteger) {
+    				 pb = sndata.get(blev - 1).getPressure();
+    				 pres = sndata.get(blev).getPressure();
+    				 pt = sndata.get(tlev).getPressure();
+    				 if (pt != missingFloat && pb != missingFloat && pres != missingFloat) {
+    					 rmult = (float) (Math.log(pres / pb) / Math
+    							 .log(pt / pb));
+    				 }
 
-                    switch (iflag) {
-                    case 1: {
-                        tb = sndata.get(blev - 1).getTemperature();
-                        tt = sndata.get(tlev).getTemperature();
+    				 switch (iflag) {
+    				 case MISSING_TEMP: {
+    					 tb = sndata.get(blev - 1).getTemperature();
+    					 tt = sndata.get(tlev).getTemperature();
 
-                        if (tb != RMISSD && tt != RMISSD && rmult != RMISSD) {
-                            data = tb + (tt - tb) * rmult;
+    					 if (tb != missingFloat && tt != missingFloat && rmult != missingFloat) {
+    						 data = tb + (tt - tb) * rmult;
 
-                            sndata.get(blev).setTemperature(data);
-                        }
+    						 sndata.get(blev).setTemperature(data);
+    					 }
 
-                        tdb = sndata.get(blev - 1).getDewpoint();
-                        tdt = sndata.get(tlev).getDewpoint();
-                        if (tdb != RMISSD && tdt != RMISSD && rmult != RMISSD) {
-                            data = tdb + (tdt - tdb) * rmult;
-                            sndata.get(blev).setDewpoint(data);
-                        }
-                        break;
-                    }
-                    case 2: {
-                        tdb = sndata.get(blev - 1).getDewpoint();
-                        tdt = sndata.get(tlev).getDewpoint();
-                        if (tdb != RMISSD && tdt != RMISSD && rmult != RMISSD) {
-                            data = tdb + (tdt - tdb) * rmult;
-                            sndata.get(blev).setDewpoint(data);
-                        }
-                        break;
-                    }
-                    case 3: {
-                        float drctb = sndata.get(blev - 1).getWindDirection();
-                        float drctt = sndata.get(tlev).getWindDirection();
+    					 tdb = sndata.get(blev - 1).getDewpoint();
+    					 tdt = sndata.get(tlev).getDewpoint();
+    					 if (tdb != missingFloat && tdt != missingFloat && rmult != missingFloat) {
+    						 data = tdb + (tdt - tdb) * rmult;
+    						 sndata.get(blev).setDewpoint(data);
+    					 }
+    					 break;
+    				 }
+    				 case MISSING_DEWPOINT: {
+    					 tdb = sndata.get(blev - 1).getDewpoint();
+    					 tdt = sndata.get(tlev).getDewpoint();
+    					 if (tdb != missingFloat && tdt != missingFloat && rmult != missingFloat) {
+    						 data = tdb + (tdt - tdb) * rmult;
+    						 sndata.get(blev).setDewpoint(data);
+    					 }
+    					 break;
+    				 }
+    				 case MISSING_WIND: {
+    					 float drctb = sndata.get(blev - 1).getWindDirection();
+    					 float drctt = sndata.get(tlev).getWindDirection();
 
-                        if (drctt != RMISSD && drctb != RMISSD
-                                && rmult != RMISSD) {
-                            drctb = drctb % 360.f;
-                            drctt = drctt % 360.f;
-                            if (Math.abs(drctb - drctt) > 180.f) {
-                                if (drctb < drctt) {
-                                    drctb = drctb + 360.f;
-                                } else {
-                                    drctt = drctt + 360.f;
-                                }
-                            }
-                            float drct = (drctb + (drctt - drctb) * rmult) % 360.f;
-                            sndata.get(blev).setWindDirection(drct);
+    					 if (drctt != missingFloat && drctb != missingFloat
+    							 && rmult != missingFloat) {
+    						 drctb = drctb % 360.f;
+    						 drctt = drctt % 360.f;
+    						 if (Math.abs(drctb - drctt) > 180.f) {
+    							 if (drctb < drctt) {
+    								 drctb = drctb + 360.f;
+    							 } else {
+    								 drctt = drctt + 360.f;
+    							 }
+    						 }
+    						 float drct = (drctb + (drctt - drctb) * rmult) % 360.f;
+    						 sndata.get(blev).setWindDirection(drct);
 
-                            // Interpolate wind speed
-                            float spedb = sndata.get(blev - 1).getWindSpeed();
-                            float spedt = sndata.get(tlev).getWindSpeed();
-                            float sped = spedb + (spedt - spedb) * rmult;
-                            sndata.get(blev).setWindSpeed(sped);
-                        }
-                        break;
+    						 // Interpolate wind speed
+    						 float spedb = sndata.get(blev - 1).getWindSpeed();
+    						 float spedt = sndata.get(tlev).getWindSpeed();
+    						 float sped = spedb + (spedt - spedb) * rmult;
+    						 sndata.get(blev).setWindSpeed(sped);
+    					 }
+    					 break;
 
-                    }
-                    }
-                }
-            }
-        }
-        return sndata;
+    				 }
+    				 }
+    			 }
+    		}
+    	}
+    	return sndata;
     }
 
     /*
@@ -1526,7 +1466,7 @@ public class MergeSounding {
             List<NcSoundingLayer> sndata) {
         if (sndata == null || sndata.size() < 2)
             return sndata;
-        if (sndata.get(0).getPressure() == RMISSD || man.size() < 1)
+        if (sndata.get(0).getPressure() == missingFloat || man.size() < 1)
             return sndata;
 
         int blev = 0;
@@ -1582,18 +1522,17 @@ public class MergeSounding {
         if (sndata.size() <= 1)
             return sndata;
         for (int kk = 0; kk < sndata.size(); kk++) {
-            if (sndata.get(kk).getTemperature() <= RMISSD
-                    && sndata.get(kk).getDewpoint() <= RMISSD
-                    && sndata.get(kk).getWindDirection() <= RMISSD
-                    && sndata.get(kk).getWindSpeed() <= RMISSD) {
-            } else if (sndata.get(kk).getPressure() <= RMISSD) {
+            if (sndata.get(kk).getTemperature() <= missingFloat
+                    && sndata.get(kk).getDewpoint() <= missingFloat
+                    && sndata.get(kk).getWindDirection() <= missingFloat
+                    && sndata.get(kk).getWindSpeed() <= missingFloat) {
+            } else if (sndata.get(kk).getPressure() <= missingFloat) {
             } else {
                 addDataToList(kk, sndata, outdat);
             }
         }
         return outdat;
     }
-
     /*
      * Interpolate data to a single level, including surface.
      */
@@ -1606,13 +1545,13 @@ public class MergeSounding {
             return missingSounding(); // Chin: check size again, after remove
                                       // underground level, size changed
 
-        for (int kk = 1; /* chin 0; */kk < sndata.size() - 1; kk++) {
+        for (int kk = 1; kk < sndata.size() - 1; kk++) {
             if (pres > sndata.get(0).getPressure() || pres < 0.f) {
                 return missingSounding();
             } else {
 
                 if (pres >= sndata.get(kk).getPressure()) {
-                    float pt, pb, zt, zb, tt, tb, tdt, tdb, dt, db, st, sb;
+                	float pt = missingFloat, pb = missingFloat, zt = missingFloat, zb = missingFloat, tt = missingFloat, tb = missingFloat, tdt = missingFloat, tdb = missingFloat, dt = missingFloat, db = missingFloat, st = missingFloat, sb = missingFloat;
                     pb = sndata.get(kk - 1).getPressure();
                     pt = sndata.get(kk).getPressure();
                     tb = sndata.get(kk - 1).getTemperature();
@@ -1629,18 +1568,44 @@ public class MergeSounding {
 
                     float rmult = (float) (Math.log(pres / pb) / Math.log(pt
                             / pb));
-                    sl.setTemperature(tb + (tt - tb) * rmult);
-                    sl.setDewpoint(tdb + (tdt - tdb) * rmult);
-                    if (Math.abs(db - dt) > 180.) {
-                        if (db < dt) {
-                            db = db + 360.f;
-                        } else {
-                            dt = dt + 360.f;
-                        }
+                    
+                    float tempVal = missingFloat;
+                    if (tb != missingFloat && tt != missingFloat ) {
+                        tempVal = tb + (tt - tb) * rmult;
                     }
-                    sl.setWindDirection(db + (dt - db) * rmult);
-                    sl.setWindSpeed(sb + (st - sb) * rmult);
-                    sl.setGeoHeight(zb + (zt - zb) * rmult);
+                    sl.setTemperature(tempVal);
+                    
+                    float dewpointVal = missingFloat;
+                    if (tdb != missingFloat && tdt != missingFloat) {
+                        dewpointVal = tdb + (tdt - tdb) * rmult;
+                    }
+                    sl.setDewpoint(dewpointVal);
+
+                    float windDirVal = missingFloat;
+                    if (tdb != missingFloat && tdt != missingFloat) {
+                    	if (Math.abs(db - dt) > 180.) {
+                    		if (db < dt) {
+                    			db = db + 360.f;
+                    		} else {
+                    			dt = dt + 360.f;
+                    		}
+                    	}
+                    	windDirVal = db + (dt - db) * rmult;
+                    }
+                    sl.setWindDirection(windDirVal);
+                    
+                    float windSpdVal = missingFloat;
+                    if (sb != missingFloat && st != missingFloat) {
+                    	windSpdVal = sb + (st - sb) * rmult;
+                    }
+                    sl.setWindSpeed(windSpdVal);
+                    
+                    float geoHtdVal = missingFloat;
+                    if (zb != missingFloat && zt != missingFloat) {
+                    	geoHtdVal = zb + (zt - zb) * rmult;
+                    }
+                    sl.setGeoHeight(geoHtdVal);
+                    
                     sls.add(sl);
                     return sls;
                 }
@@ -1671,13 +1636,13 @@ public class MergeSounding {
     public List<NcSoundingLayer> missingSounding() {
         List<NcSoundingLayer> outdat = new ArrayList<NcSoundingLayer>();
         NcSoundingLayer sl = new NcSoundingLayer();
-        sl.setPressure(RMISSD);
-        sl.setTemperature(RMISSD);
-        sl.setDewpoint(RMISSD);
-        sl.setWindDirection(RMISSD);
-        sl.setWindSpeed(RMISSD);
-        sl.setGeoHeight(RMISSD);
-        sl.setOmega(RMISSD);
+        sl.setPressure(missingFloat);
+        sl.setTemperature(missingFloat);
+        sl.setDewpoint(missingFloat);
+        sl.setWindDirection(missingFloat);
+        sl.setWindSpeed(missingFloat);
+        sl.setGeoHeight(missingFloat);
+        sl.setOmega(missingFloat);
         outdat.add(sl);
         return outdat;
     }
@@ -1710,15 +1675,15 @@ public class MergeSounding {
 
         int miss = 0;
         contin = true;
-        if (sndata.get(sndata.size() - 1).getGeoHeight() != RMISSD)
+        if (sndata.get(sndata.size() - 1).getGeoHeight() != missingFloat)
             return;
         for (kk = sndata.size() - 1; kk > 0 && contin; kk--) {
-            if (sndata.get(kk).getGeoHeight() == RMISSD) {
+            if (sndata.get(kk).getGeoHeight() == missingFloat) {
                 miss++;
                 if (kk == 0)
                     return;
 
-                if (sndata.get(kk - 1).getGeoHeight() != RMISSD)
+                if (sndata.get(kk - 1).getGeoHeight() != missingFloat)
                     contin = false;
             }
         }
@@ -1737,12 +1702,12 @@ public class MergeSounding {
                 tdt = sndata.get(kk).getDewpoint();
                 float xxx = scaleHeight(tb, tt, tdb, tdt, pb, pt);
                 znew = moistHeight(zb, pb, pt, xxx);
-                if (znew == RMISSD) {
+                if (znew == missingFloat) {
                     xxx = scaleHeight(tb, tb, tdb, tdb, pb, pt);
                     znew = moistHeight(zb, pb, pt, xxx);
                 }
 
-                if (znew != RMISSD) {
+                if (znew != missingFloat) {
                     sndata.get(kk).setGeoHeight(znew);
                     pb = pt;
                     tb = tt;
@@ -1782,31 +1747,29 @@ public class MergeSounding {
     
     public List<NcSoundingLayer> convertDewpoint(List<NcSoundingLayer> sndata) {
     	float rh, vapr, vaps, temp;
-    	float dwpc = RMISSD;
+    	float dwpc = missingFloat;
     	boolean rhFound=false;
     	for (NcSoundingLayer layer : sndata) {
-    		//System.out.println("layer "+layer.getPressure()+ " dwpc: " + layer.getDewpoint());
-    		if (layer.getDewpoint() == RMISSD) {
+    		if (layer.getDewpoint() == missingFloat) {
     			temp = layer.getTemperature();
     			rh = layer.getRelativeHumidity();               
-    			if (rh == RMISSD || temp == RMISSD) {
+    			if (rh == missingFloat || temp == missingFloat) {
     				//RH or temp not available, can not convert RH, try SH
     				float spfh, pres;
     				spfh = layer.getSpecHumidity();
     				pres = layer.getPressure();
-    				if (spfh == RMISSD || pres == RMISSD||temp == RMISSD || spfh <= 0.f
+    				if (spfh == missingFloat || pres == missingFloat||temp == missingFloat || spfh <= 0.f
     						|| pres <= 0.f) {
     					//SH or pressure not available, try DpD
     					float dpdk;
     					dpdk = layer.getDpd();
-    	                if (temp == RMISSD || dpdk == RMISSD) {
+    	                if (temp == missingFloat || dpdk == missingFloat) {
     	                	//DpD or temp not available, no hope for this level. 
     	                    continue;
     	                } else {
     	                	// DpD and temp are available, perform dew point conversion for this level
     	                    dwpc = temp - dpdk;
     	                    layer.setDewpoint(dwpc);
-    	                    //System.out.println("dpd: "+ dpdk+" To Dewpoint dwpc: " + dwpc);
     	                }
     				} else {
     					//SH, temp and pressure available, perform dew point conversion for this level
@@ -1818,7 +1781,6 @@ public class MergeSounding {
     					// found @http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
     					
     					rh =(float)( 0.263*pres*spfh / Math.exp(17.67*temp/(temp+273.16-29.65)));				
-    					//System.out.println("sh: "+spfh+" To rh: " + rh);
     					rhFound = true;
     				}
     			}
@@ -1836,7 +1798,6 @@ public class MergeSounding {
     					dwpc = (float) (243.5 * (Math.log(6.112) - Math
     							.log(vapr)) / (Math.log(vapr) - Math.log(6.112) - 17.67));
     					layer.setDewpoint(dwpc);
-    					//System.out.println("rh: "+rh+" To Dewpoint dwpc: " + dwpc);
     				}   				
     			}
     		}

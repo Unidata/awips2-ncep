@@ -18,5 +18,6 @@ legendColor=RGB {200, 200, 200}
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>10</dfltFrameCount>
     <dfltTimeRange>48</dfltTimeRange>
+    <isEnabled>false</isEnabled> 
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
 </ResourceDefinition>

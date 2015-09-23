@@ -93,20 +93,12 @@ public class NsharpAbstractPaneDisplay extends AbstractRenderableDisplay {
         return (NsharpAbstractPaneDescriptor) super.getDescriptor();
     }
     
-    @SuppressWarnings("deprecation")
-	@Override
+    @Override
     public void paint(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
         super.paint(target, paintProps);
 
-        //this.target = target;
-        //this.paintProps = paintProps;
-
-        //Chin:: 11.5 changes, DrawCoordinatedPane() will call checkDrawTime(),
-        // so we dont have to call it from here.
-        //Chin: 11.11 change: however, DrawCoordinatedPane() does not  call checkDrawTime() any more
-        // since 11.11. So, to make looping work, we call it from here AGAIN. Any other good work from Raytheon.
-        descriptor.checkDrawTime(paintProps.getLoopProperties());
+        //descriptor.checkDrawTime(paintProps.getLoopProperties());
         
         drawTheData(target, paintProps);
     }

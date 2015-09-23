@@ -25,6 +25,7 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._lplvalues;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._parcel;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -46,7 +47,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.sun.jna.ptr.FloatByReference;
 
 public class NsharpPrintHandle {
@@ -220,7 +220,7 @@ public class NsharpPrintHandle {
         // Print SkewT square
         gc.drawRectangle(leftMargin+SKEWT_X_ORIG, topMargin, SKEWT_WIDTH, SKEWT_HEIGHT);
         // set view dimension
-        WGraphics world = new WGraphics(leftMargin+SKEWT_X_ORIG, topMargin, leftMargin+SKEWT_X_ORIG+SKEWT_WIDTH, topMargin+SKEWT_HEIGHT);
+        NsharpWGraphics world = new NsharpWGraphics(leftMargin+SKEWT_X_ORIG, topMargin, leftMargin+SKEWT_X_ORIG+SKEWT_WIDTH, topMargin+SKEWT_HEIGHT);
         //set SKEWT virtual world coordinate. 
         world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
                 NsharpConstants.right, NsharpConstants.bottom);
@@ -260,7 +260,7 @@ public class NsharpPrintHandle {
         gc.drawRectangle(leftMargin+HODO_X_ORIG, topMargin, HODO_WIDTH, HODO_HEIGHT);
         
         //set HODO view world
-        world = new WGraphics(leftMargin+HODO_X_ORIG, topMargin, leftMargin+HODO_X_ORIG+HODO_WIDTH, topMargin+HODO_HEIGHT);
+        world = new NsharpWGraphics(leftMargin+HODO_X_ORIG, topMargin, leftMargin+HODO_X_ORIG+HODO_WIDTH, topMargin+HODO_HEIGHT);
         //set HODO real world coordinate. 
         world.setWorldCoordinates(-50, 90, 90, -50);
         
@@ -416,8 +416,8 @@ public class NsharpPrintHandle {
 		y += lineHeight;
 	}
 	
-    protected WGraphics computeWorld(int x1, int y1, int x2, int y2) {
-        WGraphics world = new WGraphics(x1, y1, x1, y1);
+    protected NsharpWGraphics computeWorld(int x1, int y1, int x2, int y2) {
+        NsharpWGraphics world = new NsharpWGraphics(x1, y1, x1, y1);
         world.setWorldCoordinates(-50, 90, 90, -50);
         return world;
     }
@@ -767,7 +767,6 @@ public class NsharpPrintHandle {
 		return "";
 	}
 
-	@SuppressWarnings("deprecation")
 	public String printThermodynamicParametersBox2(){
 		/*
 		 * Chin's NOTE::::this function is coded based on legacy native nsharp software show_thermoparms(), 

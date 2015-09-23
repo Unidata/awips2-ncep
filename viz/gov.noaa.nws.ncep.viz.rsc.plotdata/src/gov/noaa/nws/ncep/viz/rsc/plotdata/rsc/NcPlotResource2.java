@@ -1,23 +1,3 @@
-/*****************************************************************************************
- * COPYRIGHT (c), 2006-2007, RAYTHEON COMPANY
- * ALL RIGHTS RESERVED, An Unpublished Work 
- *
- * RAYTHEON PROPRIETARY
- * If the end user is not the U.S. Government or any agency thereof, use
- * or disclosure of data contained in this source code file is subject to
- * the proprietary restrictions set forth in the Master Rights File.
- *
- * U.S. GOVERNMENT PURPOSE RIGHTS NOTICE
- * If the end user is the U.S. Government or any agency thereof, this source
- * code is provided to the U.S. Government with Government Purpose Rights.
- * Use or disclosure of data contained in this source code file is subject to
- * the "Government Purpose Rights" restriction in the Master Rights File.
- *
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * Use or disclosure of data contained in this source code file is subject to
- * the export restrictions set forth in the Master Rights File.
- ******************************************************************************************/
-
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
 import static java.lang.System.out;
@@ -26,18 +6,23 @@ import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector;
 import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
+import gov.noaa.nws.ncep.viz.common.Activator;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.PointDataDisplayPreferences;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.IPointInfoRenderingListener;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.IMetParamRetrievalListener;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.IPointInfoRenderingListener;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotDataRequestor;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.Position;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotModelHdf5DataRequestor;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV.SPIEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
@@ -53,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,20 +46,31 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableBasics;
 import com.raytheon.uf.viz.core.DrawableString;
+import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.IGraphicsTarget.HorizontalAlignment;
+import com.raytheon.uf.viz.core.IGraphicsTarget.TextStyle;
+import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
+import com.raytheon.uf.viz.core.drawables.IFont;
+import com.raytheon.uf.viz.core.drawables.IFont.Style;
 import com.raytheon.uf.viz.core.drawables.IImage;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -140,6 +137,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     to force re-query (now that we're bypassing stations that already have data).
  *  Aug 08, 2014  3477     bclement    changed plot info locations to floats
  *  09/03/2014    1009     kbugenhagen Reload Framedata.stationMap if all stations' dist values are null
+ *  08/14/2015   R7757     B. Hebbard  Refactor to connect imageCreator directly to this class, instead of indirectly via dataRequestor;
+ *                                     add FrameStatus state tracking (instead of just processing-in-progress boolean)
  * 
  * </pre>
  * 
@@ -149,9 +148,11 @@ import com.vividsolutions.jts.geom.Coordinate;
 public class NcPlotResource2 extends
         AbstractNatlCntrsResource<PlotResourceData, NCMapDescriptor> implements
         IPlotModelGeneratorCaller, INatlCntrsResource, IProgDiscListener,
-        IPointInfoRenderingListener
+        IMetParamRetrievalListener, IPointInfoRenderingListener
 
 {
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NcPlotResource2.class);
 
     protected static final float MAX_DENSITY = 3.0f;
 
@@ -175,7 +176,9 @@ public class NcPlotResource2 extends
 
     private PixelExtent worldExtent;
 
-    private NcPlotModelHdf5DataRequestor dataRequestor = null;
+    private NcPlotDataRequestor dataRequestor = null;
+
+    public NcPlotImageCreator imageCreator = null;
 
     public StaticPlotInfoPV spi;
 
@@ -201,7 +204,7 @@ public class NcPlotResource2 extends
 
     boolean matchFound = false;
 
-    boolean requeryDataAndReCreateAllStnImages = false;
+    boolean dataRequeryNeeded = false;
 
     boolean onlyReCreateExistingImages = false;
 
@@ -217,7 +220,11 @@ public class NcPlotResource2 extends
 
     List<SymbolLocationSet> listOfSymbolLocationSet = new ArrayList<SymbolLocationSet>();
 
-    Semaphore semaphore = new Semaphore(1);
+    private static boolean frameStatusDisplayEnabled = false;
+
+    private static boolean frameStatusDisplayVerbose = false;
+
+    private static IFont frameStatusDisplayFont = null;
 
     protected class PlotInfoRscDataObj implements IRscDataObject {
         private PlotInfo plotInfo;
@@ -245,7 +252,7 @@ public class NcPlotResource2 extends
 
         FcstFrameLoaderTask(DataTime frameTimeToMatch, DataTime stnTimeToSet,
                 Collection<Station> listOfStations) {
-            Tracer.print("> Entry");
+            Tracer.print("> Entry  " + Tracer.shortTimeString(frameTimeToMatch));
             frameTime = frameTimeToMatch;
             stationTimeToSet = stnTimeToSet;
             stationList = listOfStations;
@@ -256,8 +263,6 @@ public class NcPlotResource2 extends
         public void run() {
             Tracer.print("> Entry  START FcstFrameLoaderTask TASK "
                     + Tracer.shortTimeString(frameTime));
-            Semaphore sm = new Semaphore(1);
-            sm.acquireUninterruptibly();
             String trialKey = null;
             synchronized (frameTime) {
                 FrameData frameData = (FrameData) getFrame(frameTime);
@@ -266,20 +271,17 @@ public class NcPlotResource2 extends
                         && (stationList != null && !stationList.isEmpty())
                         && (frameTime != null)) {
 
-                    if (!getFrameTimes().get(0).equals(frameTime)) {/*
-                                                                     * Except
-                                                                     * for the
-                                                                     * first
-                                                                     * frame...
-                                                                     */
+                    // Except for the first frame...
+                    if (!getFrameTimes().get(0).equals(frameTime)) {
                         synchronized (stationList) {
                             for (Station station : stationList) {
                                 String stnKey = getStationMapKey(
                                         station.info.latitude,
                                         station.info.longitude);
 
-                                if (trialKey == null)
+                                if (trialKey == null) {
                                     trialKey = new String(stnKey);
+                                }
                                 Station newStation = new Station();
                                 newStation.info = new PlotInfo(
                                         station.info.stationId,
@@ -314,20 +316,15 @@ public class NcPlotResource2 extends
                                 + frameData.getShortFrameTime()
                                 + " the size of stationMap - "
                                 + frameData.stationMap.size());
-                        frameData.progressiveDisclosureInProgress = true;
+                        frameData.setFrameStatus(FrameStatus.PROGDISC);
                         progressiveDisclosure.queueListOfStationsToBeDisclosed(
                                 frameTime, frameData.stationMap.values());
                         issueRefresh();
                     }
-
                 }
-
             }
-
-            sm.release();
             Tracer.print("< Exit  END TASK "
                     + Tracer.shortTimeString(frameTime));
-
         }
     }
 
@@ -351,10 +348,10 @@ public class NcPlotResource2 extends
                     + Tracer.shortTimeString(dataTime));
 
             FrameData frameData = (FrameData) getFrame(dataTime);
+            frameData.setFrameStatus(FrameStatus.LOADING); // already set?
             RequestConstraint timeConstraint = new RequestConstraint();
 
             if (!isFcst) {
-
                 String[] constraintList = {
                         frameData.getFrameStartTime().toString(),
                         frameData.getFrameEndTime().toString() };
@@ -365,8 +362,8 @@ public class NcPlotResource2 extends
             }
 
             try {
-                // Tracer.print("frameLoaderTaskMetadataMap = "
-                // + frameLoaderTaskMetadataMap);
+                Tracer.printX("frameLoaderTaskMetadataMap = "
+                        + frameLoaderTaskMetadataMap);
 
                 frameData.plotInfoObjs = plotRscData.getPlotInfoRetriever()
                         .getStations(frameLoaderTaskMetadataMap);
@@ -385,8 +382,12 @@ public class NcPlotResource2 extends
                                     .calculateStaticProgDiscDistancesForStations(
                                             frameData.stationMap.values(),
                                             frameData.dynStations);
-                            if (stationsToBeQueuedForProgDisc != null
-                                    && !stationsToBeQueuedForProgDisc.isEmpty()) {
+                            if (stationsToBeQueuedForProgDisc == null
+                                    || stationsToBeQueuedForProgDisc.isEmpty()) {
+                                // Frame is READY to paint -- because it's
+                                // empty!
+                                frameData.setFrameStatus(FrameStatus.READY);
+                            } else {
                                 synchronized (stationsToBeQueuedForProgDisc) {
                                     for (Station stn : stationsToBeQueuedForProgDisc) {
                                         String stnMapKey = getStationMapKey(
@@ -404,7 +405,8 @@ public class NcPlotResource2 extends
                                     Tracer.print("About to schedule the frame: "
                                             + frameData.getShortFrameTime()
                                             + " for progressive disclosure");
-                                    frameData.progressiveDisclosureInProgress = true;
+                                    frameData
+                                            .setFrameStatus(FrameStatus.PROGDISC);
                                     progressiveDisclosure
                                             .queueListOfStationsToBeDisclosed(
                                                     frameData.getFrameTime(),
@@ -415,6 +417,10 @@ public class NcPlotResource2 extends
                                 }
                             }
 
+                        } else {
+                            Tracer.print("frameData.populateFrame() returned FALSE for frame "
+                                    + frameData.getShortFrameTime());
+                            frameData.setFrameStatus(FrameStatus.READY); // empty
                         }
 
                     }
@@ -422,10 +428,10 @@ public class NcPlotResource2 extends
                 } else {
                     Tracer.print("PointDataPlotInfoRetriever.getStations returned null or empty station list for frame "
                             + frameData.getShortFrameTime());
+                    frameData.setFrameStatus(FrameStatus.READY); // empty
                 }
 
             } catch (VizException e) {
-
                 e.printStackTrace();
             }
             Tracer.print("< Exit   END TASK   " + frameData.getShortFrameTime());
@@ -471,7 +477,68 @@ public class NcPlotResource2 extends
         }
     }
 
+    public enum FrameStatus {
+
+        // Frame Status Tracking
+
+        // Each frame progresses through the following states as it becomes
+        // ready to paint all the stations it needs to. Progression is in this
+        // order, although reprocessing occurs often and may start in the
+        // middle, depending on what work needs to be done. (For example, after
+        // zooming in or out, we start over at PROGDISC.)
+
+        // This is used internally to track frame states as processing is handed
+        // off to various Jobs (threads). As a diagnostic tool for developers,
+        // an optional realtime display of all frame states can be activated via
+        // CAVE NCEP preferences.
+
+        // @formatter:off
+        NEW       (GempakColor.WHITE,  "No Stations Loaded Yet"), 
+        LOADING   (GempakColor.RED,    "Loading All Time-matched Stations"), 
+        PROGDISC  (GempakColor.ORANGE, "Filtering by Progressive Disclosure and Extent"), 
+        METPARAMS (GempakColor.YELLOW, "Retrieving Met Parameters"), 
+        IMAGING   (GempakColor.CYAN,   "Creating Plot Image"), 
+        READY     (GempakColor.GREEN,  "Ready to Paint");
+        // @formatter:on
+
+        private final int maxOrdinal = 5; // READY.ordinal()
+
+        // Constructor
+        private FrameStatus(GempakColor gempakColorCode, String description) {
+            this.colorCode = gempakColorCode.getRGB();
+            this.description = description;
+            this.spacing = "";
+            for (int i = 0; i < maxOrdinal - ordinal(); i++) {
+                spacing += "        ";
+            }
+            if (ordinal() < maxOrdinal) {
+                spacing += "< ";
+            }
+        }
+
+        private RGB colorCode;
+
+        private String description;
+
+        private String spacing;
+
+        public RGB getColorCode() {
+            return colorCode;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getSpacing() {
+            return spacing;
+        }
+
+    }
+
     public class FrameData extends AbstractFrameData {
+
+        private FrameStatus frameStatus = FrameStatus.NEW;
 
         // map from the station Id to the station info (plotInfo and image)
         // (using ConcurrentHashMap to take care of
@@ -480,43 +547,40 @@ public class NcPlotResource2 extends
 
         private List<PlotInfo> plotInfoObjs = new ArrayList<PlotInfo>();
 
-        // Map<String, Station> lastDisclosed;
         private boolean isFramePaintedFirstTime = false;
-
-        private int uniqueStations;
 
         private int dynStations;
 
         private boolean progDiscCalculated;
 
-        private boolean progressiveDisclosureInProgress = false;
-
         private boolean screenExtentsChangedForCurrentFrame = false;
 
         private List<DrawableString> drawableStrings = null;
 
-        private List<IVector> listOfWindVectors = null;
+        private List<IVector> listOfVectors = null;
 
         private List<SymbolLocationSet> listOfSymbolLocSet = null;
 
         private Set<Station> setOfStationsLastRendered = null;
 
+        public int disclosedStationsCount;
+
+        public int stationsRetrievedThisCallCount;
+
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
-            Tracer.print("> Entry");
-            uniqueStations = 0;
+            Tracer.print("> Entry  " + getShortFrameTime());
             dynStations = 0;
-            // lastDisclosed = new HashMap<String, Station>();
             drawableStrings = new ArrayList<DrawableString>(0);
-            listOfWindVectors = new ArrayList<IVector>(0);
+            listOfVectors = new ArrayList<IVector>(0);
             listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(0);
             setOfStationsLastRendered = new HashSet<Station>(0);
-            Tracer.print("< Exit");
+            Tracer.print("< Exit   " + getShortFrameTime());
         }
 
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
-            Tracer.printX("> Entry");
+            Tracer.printX("> Entry  " + getShortFrameTime());
 
             if (!(rscDataObj instanceof PlotInfoRscDataObj)) { // sanity check
                 return false;
@@ -543,7 +607,7 @@ public class NcPlotResource2 extends
 
             Station stn = new Station();
             if (stnMapKey != null) {
-                stn = stationMap.get(stnMapKey);// plotInfo.stationId );
+                stn = stationMap.get(stnMapKey);
             }
 
             // This can happen during an auto update or if there are multiple
@@ -555,8 +619,6 @@ public class NcPlotResource2 extends
                     out.println("Sanity check: Found existing Station in stationMap with a null plotInfo???");
                     return false;// ??
                 } else {
-                    // out.println(" updating station info "+stn.info.dataURI+
-                    // " with " + plotInfo.dataURI );
 
                     if (!stn.info.stationId.equals(plotInfo.stationId)) {
                         out.println("2 stations " + stn.info.stationId
@@ -567,15 +629,13 @@ public class NcPlotResource2 extends
                                 + stn.info.dataTime);
                     }
                     // if these are the same time, should we check which one
-                    // should be used,
-                    // (or combine them?) How to determine which to use?
-                    //
+                    // should be used, (or combine them?) How to determine which
+                    // to use?
                     else if (stn.info.dataTime.getValidTime().getTimeInMillis() != plotInfo.dataTime
                             .getValidTime().getTimeInMillis()) {
 
                         if (timeMatch(plotInfo.dataTime) < timeMatch(stn.info.dataTime)) {
                             stn.info = plotInfo;
-
                         }
                     }
                 }
@@ -591,131 +651,42 @@ public class NcPlotResource2 extends
 
                 calcStaticStationInfo(stn);
             }
-            Tracer.printX("< Exit");
+            Tracer.printX("< Exit  " + getShortFrameTime());
 
             return true;
         }
 
-        // protected void setFrameData() throws VizException {
-        //
-        // RequestConstraint timeConstraint = new RequestConstraint();
-        //
-        // // set the constraints for the query.
-        // // for forecast resources we need to match the cycle time and
-        // // create a range constraint on the forecast hour.
-        // if( isFcst ) {
-        //
-        // //cycleTimeStr - gets initialized during resource creation
-        // timeConstraint = new RequestConstraint( cycleTimeStr );
-        // metadataMap.put("dataTime.refTime", timeConstraint );
-        //
-        // // determine the fcst hr range for the frame span
-        // long refTimeMs = rscName.getCycleTime().getRefTime().getTime();
-        // long frmStartMs = this.startTime.getRefTime().getTime();
-        // long frmEndMs = this.endTime.getRefTime().getTime();
-        //
-        // long beginFcstHr = (frmStartMs - refTimeMs) / 1000;
-        // long endFcstHr = (frmEndMs - refTimeMs) / 1000;
-        //
-        // timeConstraint = new RequestConstraint( );
-        // timeConstraint.setBetweenValueList(
-        // new String[] { Long.toString( beginFcstHr ),
-        // Long.toString( endFcstHr ) } );
-        //
-        // timeConstraint.setConstraintType( ConstraintType.BETWEEN );
-        // metadataMap.put( "dataTime.fcstTime", timeConstraint );
-        // }
-        // else {
-        //
-        // String[] constraintList = { this.startTime.toString(),
-        // this.endTime.toString() };
-        // timeConstraint.setBetweenValueList( constraintList );
-        // timeConstraint.setConstraintType(
-        // RequestConstraint.ConstraintType.BETWEEN );
-        // metadataMap.put("dataTime", timeConstraint );
-        // }
-        //
-        // dataRequestor.setDefaultConstraintsMap(metadataMap);
-        //
-        // // plotInfoObjs =
-        // plotRscData.getPlotInfoRetriever().getStations(metadataMap);
-        // // plotInfoObjs =
-        // plotRscData.getPlotInfoRetriever().getStations(this, getFrameTime(),
-        // // metadataMap);
-        //
-        // }
-
         // if we are painting a frame which has not yet been loaded with data
-        // then we
-        // need to request data for this frame and then
-        // update the frames with
+        // then we need to request data for this frame and then update the
+        // frames
         protected boolean populateFrame() throws VizException {
-            Tracer.print("> Entry");
+            Tracer.print("> Entry  " + getShortFrameTime());
 
             Tracer.print("Starting populateFrame for " + getShortFrameTime());
 
             dynStations = 0;
-            uniqueStations = 0;
 
             if (plotInfoObjs == null || plotInfoObjs.isEmpty()) {
-                // setFrameData();
                 return false;
             }
 
             for (PlotInfo pltInfo : plotInfoObjs) {
 
                 // have to add this since the dataTime is not always getting set
-                // by the
-                // plotInfoRetriever?
+                // by the NcPlotDataRequestor
                 if (pltInfo.dataTime == null) {
                     if (plotRscData.isSurfaceOnly()) {
                         pltInfo.dataTime = getFrameTime();
-                    } else { // upper air data uses the NcSoundingQuery which
-                             // needs a start and stop time for
-                             // the query which needs to be correct.
+                    } else {
                         out.println("Error getting dataTime from Plot Query");
                     }
                 }
 
                 for (IRscDataObject rscDataObj : processRecord(pltInfo)) {
-                    // sanity check: this should always be true since we
-                    // constrained the
-                    // query with the start/end frame times.
+                    // Sanity Check: this should always be true since we
+                    // constrained the query with the start/end frame times.
                     if (isRscDataObjInFrame(rscDataObj)) {
                         updateFrameData(rscDataObj);
-
-                    } else {
-                        // if we don't change the plotInfoRetriever to set the
-                        // dataTime, then this
-                        // really is a serious sanity check.....
-                        // This happens when the dataTime is the same as the
-                        // startTime. This satisfies the query constraint
-                        // the not the time matching.
-                        // else this is possible when the time is equal to one
-                        // of the start/end times
-                        // Updating this constraint to be a sanity check in the
-                        // event that the rscDataObj doesn't time-match the
-                        // start time or the end time
-                        // if( plotRscData.isForecastResource()
-                        // && ( !rscDataObj.getDataTime().equals(this.startTime)
-                        // || (!rscDataObj.getDataTime().equals(this.endTime))))
-                        // {
-                        // // out.println(
-                        // "plotInfo obj doesn't time match to the frame:" +
-                        // this.frameTime + " which queried it???");
-                        // // out.println( "pltInfo.URI = " + pltInfo.dataURI +
-                        // "\npltInfo.datatime = " + pltInfo.dataTime );
-                        // // newRscDataObjsQueue.add(rscDataObj);
-                        // }else{
-                        // if( plotRscData.isSurfaceOnly() ){
-                        // // out.println( pltInfo.dataURI + " at "+
-                        // rscDataObj.getDataTime().toString()
-                        // // + " does not time match to frame: "
-                        // // + this.getFrameTime().toString() );
-                        // newRscDataObjsQueue.add(rscDataObj);
-                        // }
-                        // }
-
                     }
                 }
             }
@@ -726,13 +697,13 @@ public class NcPlotResource2 extends
             Tracer.print("Ending populateFrame for " + getShortFrameTime()
                     + " -- " + (populated ? this.stationMap.size() : "NO")
                     + " stations");
-            Tracer.print("< Exit");
+            Tracer.print("< Exit  " + getShortFrameTime());
 
             return this.populated;
         }
 
         public boolean calcStaticStationInfo(Station station) {
-            Tracer.print("> Entry");
+            Tracer.printX("> Entry  " + getShortFrameTime());
             SPIEntry obsStation = null;
             Coordinate thisLocation = null;
             Coordinate thisPixelLocation = null;
@@ -782,106 +753,116 @@ public class NcPlotResource2 extends
             String stnMapKey = getStationMapKey(station.info.latitude,
                     station.info.longitude);
 
-            if (stationMap.put(stnMapKey, station) == null) {
-
-                uniqueStations++;
-            } else {
+            if (stationMap.put(stnMapKey, station) != null) {
                 out.println("Updating StationMap with " + stnMapKey);
             }
-            Tracer.printX("< Exit");
+            Tracer.printX("< Exit   " + getShortFrameTime());
             return true;
         }
 
+        public void clearMetParameters() {
+            // TODO synchronize needed?
+            Tracer.print("> Entry  " + getShortFrameTime());
+            for (Station station : stationMap.values()) {
+                station.listOfParamsToPlot.clear();
+            }
+            Tracer.print("< Exit   " + getShortFrameTime());
+        }
+
         public void dispose() {
-            Tracer.print("> Entry");
+            Tracer.print("> Entry  " + getShortFrameTime());
             super.dispose();
             if (stationMap != null && !stationMap.isEmpty()) {
                 stationMap.clear();
                 stationMap = null;
             }
-
             if (setOfStationsLastRendered != null
                     && !setOfStationsLastRendered.isEmpty()) {
                 setOfStationsLastRendered.clear();
                 setOfStationsLastRendered = null;
             }
-
-            if (listOfWindVectors != null && !listOfWindVectors.isEmpty()) {
-                listOfWindVectors.clear();
-                listOfWindVectors = null;
+            if (listOfVectors != null && !listOfVectors.isEmpty()) {
+                listOfVectors.clear();
+                listOfVectors = null;
             }
-
             if (listOfSymbolLocSet != null && !listOfSymbolLocSet.isEmpty()) {
                 listOfSymbolLocSet.clear();
                 listOfSymbolLocSet = null;
             }
-
             if (drawableStrings != null && !drawableStrings.isEmpty()) {
                 drawableStrings.clear();
                 drawableStrings = null;
             }
-
             if (plotInfoObjs != null && !plotInfoObjs.isEmpty()) {
                 plotInfoObjs.clear();
                 plotInfoObjs = null;
             }
-
             isFramePaintedFirstTime = false;
-            progressiveDisclosureInProgress = false;
             screenExtentsChangedForCurrentFrame = false;
+            setFrameStatus(FrameStatus.NEW);
             populated = false;
-
             dynStations = 0;
-            uniqueStations = 0;
-            Tracer.print("< Exit");
+            Tracer.print("< Exit   " + getShortFrameTime());
+        }
+
+        public FrameStatus getFrameStatus() {
+            return frameStatus;
+        }
+
+        public synchronized void setFrameStatus(FrameStatus frameStatus) {
+            this.frameStatus = frameStatus;
+            Tracer.print("Frame " + getShortFrameTime() + " status set to: "
+                    + this.frameStatus);
+            if (frameStatusDisplayEnabled) {
+                issueRefresh();
+            }
+        }
+
+        public boolean isFrameProcessingInProgress() {
+            return EnumSet.range(FrameStatus.LOADING, FrameStatus.IMAGING)
+                    .contains(frameStatus); // that is, between NEW and READY
         }
 
         public boolean isStationMapEmpty() {
-            if (stationMap.isEmpty())
-                return true;
-            else
-                return false;
+            return stationMap.isEmpty();
         }
 
         public boolean isProgDiscCalculated() {
-            Tracer.print("> Entry");
-            Tracer.print("< Exit");
+            Tracer.printX("> Entry  " + getShortFrameTime());
+            Tracer.printX("< Exit   " + getShortFrameTime());
             return progDiscCalculated;
         }
 
         public void setProgDiscCalculated(boolean p) {
-            Tracer.print("> Entry");
+            Tracer.print("> Entry  " + getShortFrameTime() + "  " + p);
             progDiscCalculated = p;
-            Tracer.print("< Exit");
+            Tracer.print("< Exit   " + getShortFrameTime());
         }
 
         public Collection<DrawableString> getStringsToDraw() {
             return drawableStrings;
         }
 
-        public List<IVector> getListOfWindVectors() {
-            return listOfWindVectors;
+        public List<IVector> getVectorsToDraw() {
+            return listOfVectors;
         }
 
-        public List<SymbolLocationSet> getListOfSymbols() {
+        public List<SymbolLocationSet> getSymbolsToDraw() {
             return listOfSymbolLocSet;
         }
 
         public String getShortFrameTime() {
-            /*
-             * Date frameDate = frameTime.getRefTime(); String returnString =
-             * Integer.toString(frameDate.getDate()) + "/" +
-             * Integer.toString(frameDate.getHours()) +
-             * Integer.toString(frameDate.getMinutes()); if
-             * (frameTime.getFcstTime() == 0) { returnString += "(" +
-             * frameTime.getFcstTime() + ")"; } return returnString;
-             */
-            return Tracer.shortTimeString(frameTime);
+            String returnString = NmapCommon.getTimeStringFromDataTime(
+                    frameTime, "/").substring(4);
+            if (frameTime.getFcstTime() != 0) {
+                returnString += "(" + frameTime.getFcstTime() + ")";
+            }
+            return returnString;
         }
     }
 
     /**
-     * Create a surface plot resource.
+     * Create a point data (plot) resource.
      * 
      * @param target
      *            The graphic target to draw to
@@ -894,7 +875,7 @@ public class NcPlotResource2 extends
         Tracer.print("> Entry");
         plotRscData = data;
         // The object which is called by the NcAutoUpdater to get a PlotInfo
-        // object from the alert uri.
+        // object from the alert URI.
         if (plotRscData.getAlertParser() == null) {
             plotRscData.setAlertParser(new PlotAlertParser());
         }
@@ -932,7 +913,6 @@ public class NcPlotResource2 extends
                     .getPixelSizeHint());
             progressiveDisclosure.setPlotWidth(plotWidth);
             progressiveDisclosure.setDensity(plotDensity);
-
             progressiveDisclosure.setMapDescriptor(mapDescriptor);
         }
 
@@ -943,10 +923,6 @@ public class NcPlotResource2 extends
             cycleTimeStr = new String(dts[0] + " "
                     + dts[1].substring(0, dts[1].length() - 2));
             timeLogger.append("Cycletime is:" + cycleTimeStr + "\n");
-            // fcstFrameLoaderJobPool = new
-            // JobPool("Loading stations for forecast point resource", 8,
-            // false);
-
             queueOfFrameTimesAndStations = new ConcurrentLinkedQueue<SpecialQueueEntry>();
         }
         plotModel = plotRscData.getPlotModel();
@@ -957,9 +933,9 @@ public class NcPlotResource2 extends
                     .getAttrValue());
         }
         existingCondFilter = plotRscData.getConditionalFilter();
-        dataRequestor = new NcPlotModelHdf5DataRequestor(plotModel,
-                plotRscData.levelKey, metadataMap, this, plotDensity,
-                existingCondFilter);
+        dataRequestor = new NcPlotDataRequestor(plotModel,
+                plotRscData.levelKey, metadataMap, this, existingCondFilter);
+        imageCreator = new NcPlotImageCreator(this, plotModel);
         Tracer.print("< Exit");
 
     }
@@ -1000,29 +976,33 @@ public class NcPlotResource2 extends
 
     public void paintFrame(AbstractFrameData fd, final IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
-        Tracer.printX("> Entry");
-        currPaintProp = paintProps;
-        if (fd == null)
-            return;
-
-        if (paintProps.isZooming())
-            return;
-
         FrameData frameData = (FrameData) fd;
+        Tracer.printX("> Entry  " + frameData.getShortFrameTime());
+        currPaintProp = paintProps;
 
-        if (frameData.progressiveDisclosureInProgress) {
-            Tracer.print("Progressive disclosure in progress...aborting paintFrame for "
+        if (frameStatusDisplayEnabled) {
+            paintFrameStatusDisplay(frameData, target, paintProps);
+        }
+
+        if (fd == null) {
+            return;
+        }
+
+        if (paintProps.isZooming()) {
+            Tracer.print("Zooming in progress...aborting paintFrame for "
                     + frameData.getShortFrameTime());
             return;
         }
 
-        Semaphore sem = new Semaphore(1);
+        if (frameData.isFrameProcessingInProgress()) {
+            Tracer.print("Frame processing in progress...aborting paintFrame for "
+                    + frameData.getShortFrameTime());
+            return;
+        }
+
         if (progressiveDisclosure == null) {
-            progressiveDisclosure = new ProgressiveDisclosure(this, spi);// assumes
-                                                                         // spi
-                                                                         // is
-                                                                         // not
-                                                                         // null
+            // assumes spi is not null...
+            progressiveDisclosure = new ProgressiveDisclosure(this, spi);
 
             Collection<Station> stationsToDisclose = progressiveDisclosure
                     .calculateStaticProgDiscDistancesForStations(
@@ -1031,7 +1011,6 @@ public class NcPlotResource2 extends
             if (stationsToDisclose != null && !stationsToDisclose.isEmpty()) {
 
                 synchronized (stationsToDisclose) {
-                    sem.acquireUninterruptibly();
                     for (Station stn : stationsToDisclose) {
                         String stnMapKey = getStationMapKey(stn.info.latitude,
                                 stn.info.longitude);
@@ -1039,12 +1018,11 @@ public class NcPlotResource2 extends
                         frameStn.distValue = stn.distValue;
                         frameData.stationMap.put(stnMapKey, frameStn);
                     }
-                    sem.release();
                 }
                 Tracer.print("paintFrame() - about to schedule progressive disclosure the frame: "
                         + frameData.getShortFrameTime());
 
-                frameData.progressiveDisclosureInProgress = true;
+                frameData.setFrameStatus(FrameStatus.PROGDISC);
 
                 progressiveDisclosure.queueListOfStationsToBeDisclosed(
                         frameData.getFrameTime(), stationsToDisclose);
@@ -1053,10 +1031,10 @@ public class NcPlotResource2 extends
         }
 
         synchronized (frameData) {
+            Tracer.printX("calling checkAndUpdateProgDisclosureProperties on frame - "
+                    + frameData.getShortFrameTime());
             frameData.screenExtentsChangedForCurrentFrame = progressiveDisclosure
                     .checkAndUpdateProgDisclosureProperties();
-
-            sem.acquireUninterruptibly();
 
             if (frameData.screenExtentsChangedForCurrentFrame) {
                 Tracer.print("Screen extents changed in  the frame - "
@@ -1064,14 +1042,11 @@ public class NcPlotResource2 extends
                 resetFramePaintFlagForAllFrames();
             }
 
-            sem.release();
-
             if (frameData.screenExtentsChangedForCurrentFrame
                     || progressiveDisclosure.updateNextPaint
                     || !frameData.isFramePaintedFirstTime) {
 
-                if (!frameData.isFramePaintedFirstTime)
-                    frameData.isFramePaintedFirstTime = true;
+                frameData.isFramePaintedFirstTime = true;
 
                 if (!frameData.stationMap.isEmpty()) {
                     Tracer.print("Calling from paintFrame() - about to schedule progressive disclosure the frame: "
@@ -1093,7 +1068,7 @@ public class NcPlotResource2 extends
                         issueRefresh();
                     }
 
-                    frameData.progressiveDisclosureInProgress = true;
+                    frameData.setFrameStatus(FrameStatus.PROGDISC);
 
                     progressiveDisclosure.queueListOfStationsToBeDisclosed(
                             frameData.getFrameTime(),
@@ -1105,43 +1080,32 @@ public class NcPlotResource2 extends
                     loadFrameData();
                     issueRefresh();
                 }
-
-                // TODO??CHECK frameData.progressiveDisclosureInProgress = true;
-
             }
 
         }
 
-        List<IVector> listOfWindBarbs = frameData.getListOfWindVectors();
-
-        Collection<DrawableString> collOfStringsToDraw = frameData
-                .getStringsToDraw();
-        List<SymbolLocationSet> symLocSet = frameData.getListOfSymbols();
-        DataTime dt = frameData.getFrameTime();
-
-        if (frameData.progressiveDisclosureInProgress) {
-            Tracer.print("Progressive disclosure in progress...aborting paintFrame for "
+        if (frameData.isFrameProcessingInProgress()) {
+            Tracer.print("Frame processing in progress...aborting paintFrame for "
                     + frameData.getShortFrameTime());
             return;
         }
 
-        boolean symbolDisplayFlag = dataRequestor.imageCreator
-                .areThereSymbolsToBeRenderedInTheCurrentFrame(dt);
-        boolean textDisplayFlag = dataRequestor.imageCreator
-                .areThereTextElementsToBeRenderedInTheCurrentFrame(dt);
-        boolean vectorDisplayFlag = dataRequestor.imageCreator
-                .areThereVectorsToBeRenderedInTheCurrentFrame(dt);
+        List<IVector> vectorsToDraw = frameData.getVectorsToDraw();
 
-        Semaphore ss = new Semaphore(1);
-        ss.acquireUninterruptibly();
+        Collection<DrawableString> stringsToDraw = frameData.getStringsToDraw();
+        List<SymbolLocationSet> symbolLocationSetsToDraw = frameData
+                .getSymbolsToDraw();
+
         long t1 = 0;
         long t2 = 0;
 
-        if (symbolDisplayFlag && (symLocSet != null && !symLocSet.isEmpty())) {
+        if (symbolLocationSetsToDraw != null
+                && !symbolLocationSetsToDraw.isEmpty()) {
             t1 = System.nanoTime();
-            synchronized (symLocSet) {
+            synchronized (symbolLocationSetsToDraw) {
                 List<IDisplayable> listOfDisplayables = df
-                        .createDisplayElements(paintProps, symLocSet);
+                        .createDisplayElements(paintProps,
+                                symbolLocationSetsToDraw);
                 for (IDisplayable each : listOfDisplayables) {
                     each.draw(target, paintProps);
                     each.dispose();
@@ -1153,12 +1117,10 @@ public class NcPlotResource2 extends
                     + frameData.getShortFrameTime());
         }
 
-        if (textDisplayFlag
-                && (collOfStringsToDraw != null && !collOfStringsToDraw
-                        .isEmpty())) {
+        if (stringsToDraw != null && !stringsToDraw.isEmpty()) {
             t1 = System.nanoTime();
-            synchronized (collOfStringsToDraw) {
-                target.drawStrings(collOfStringsToDraw);
+            synchronized (stringsToDraw) {
+                target.drawStrings(stringsToDraw);
             }
 
             t2 = System.nanoTime();
@@ -1167,13 +1129,11 @@ public class NcPlotResource2 extends
                     + " strings in the frame " + frameData.getShortFrameTime());
         }
 
-        if (vectorDisplayFlag
-                && (listOfWindBarbs != null && !listOfWindBarbs.isEmpty())) {
+        if (vectorsToDraw != null && !vectorsToDraw.isEmpty()) {
             t1 = System.nanoTime();
-
-            synchronized (listOfWindBarbs) {
+            synchronized (vectorsToDraw) {
                 List<IDisplayable> displayElsPoint = df.createDisplayElements(
-                        listOfWindBarbs, paintProps);
+                        vectorsToDraw, paintProps);
                 for (IDisplayable each : displayElsPoint) {
                     each.draw(target, paintProps);
                     each.dispose();
@@ -1184,14 +1144,14 @@ public class NcPlotResource2 extends
                     + " ms to draw the wind-barbs in the frame "
                     + frameData.getShortFrameTime());
         }
-        ss.release();
         Tracer.printX("< Exit");
     }
 
     public void initResource(IGraphicsTarget aTarget) throws VizException {
-
         Tracer.print("> Entry");
         setInitialPlotDensityFromRscAttrSet();
+        getPointDataPreferences();
+        addPointDataPreferencesListener();
         this.worldExtent = new PixelExtent(0, descriptor.getGridGeometry()
                 .getGridRange().getHigh(0), 0, descriptor.getGridGeometry()
                 .getGridRange().getHigh(1));
@@ -1199,25 +1159,59 @@ public class NcPlotResource2 extends
         // load/populate all the frames in the frameDataMap
         loadFrameData();
         issueRefresh();
+        // Just initialize P/D values, for comparison on future paints (to see
+        // if we need to trigger again). (We don't care about the return value.)
+        progressiveDisclosure.checkAndUpdateProgDisclosureProperties();
         Tracer.print("< Exit");
 
+    }
+
+    public void getPointDataPreferences() {
+        IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+        frameStatusDisplayEnabled = prefs
+                .getBoolean(PointDataDisplayPreferences.ENABLE_FRAME_STATUS_DISPLAY);
+        frameStatusDisplayVerbose = prefs
+                .getBoolean(PointDataDisplayPreferences.ENABLE_VERBOSE_FRAME_STATUS);
+    }
+
+    private void addPointDataPreferencesListener() {
+        // If notified of a preference store change while the resource is
+        // active, then reload the preferences relating to point data display.
+        IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+        IPropertyChangeListener listener = new IPropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent event) {
+                getPointDataPreferences();
+            }
+        };
+        prefs.addPropertyChangeListener(listener);
     }
 
     @Override
     public void disposeInternal() {
         Tracer.print("> Entry");
-        timeLogger.append("\n Invoking NcplotResource2.disposeInternal()\n");
         initialized = false;
-        dataRequestor.dispose();
-        dataRequestor = null;
+        if (progressiveDisclosure != null) {
+            progressiveDisclosure.dispose();
+            progressiveDisclosure = null;
+        }
+        if (dataRequestor != null) {
+            dataRequestor.dispose();
+            dataRequestor = null;
+        }
+        if (imageCreator != null) {
+            imageCreator.dispose();
+            imageCreator = null;
+        }
+        if (frameStatusDisplayFont != null) {
+            frameStatusDisplayFont.dispose();
+            frameStatusDisplayFont = null;
+        }
         clearImages();
         timeLogger.append("\n Clearing the frameMap\n");
         frameDataMap.clear();
         frameRetrievalPool.cancel();
         frameRetrievalPool = null;
         timeLogger.append("\n Clearing the stationsCache\n");
-        progressiveDisclosure = null;
-
         Tracer.print(timeLogger.toString());
         timeLogger.clearLog();
         Tracer.print("< Exit");
@@ -1226,10 +1220,12 @@ public class NcPlotResource2 extends
     protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
         Tracer.print("> Entry  " + Tracer.shortTimeString(frameTime));
         FrameData newFrame = new FrameData(frameTime, timeInt);
-        if (df == null) // TODO why do this here??
+        newFrame.setFrameStatus(FrameStatus.NEW);
+        if (df == null) { // TODO why do this here??
             df = new DisplayElementFactory(NcDisplayMngr
                     .getActiveNatlCntrsEditor().getActiveDisplayPane()
                     .getTarget(), getDescriptor());
+        }
         Tracer.print("< Exit   " + Tracer.shortTimeString(frameTime));
         return newFrame;
     }
@@ -1250,7 +1246,6 @@ public class NcPlotResource2 extends
                     station.info.plotQueued = false;
                 }
             }
-
         }
         issueRefresh();
         Tracer.print("< Exit");
@@ -1261,7 +1256,6 @@ public class NcPlotResource2 extends
     public void modelGenerated(PlotInfo[] keys, IImage image) {
         Tracer.print("> Entry  [empty!]");
         Tracer.print("< Exit");
-
     }
 
     @Override
@@ -1270,7 +1264,6 @@ public class NcPlotResource2 extends
         this.worldExtent = new PixelExtent(0, descriptor.getGridGeometry()
                 .getGridRange().getHigh(0), 0, descriptor.getGridGeometry()
                 .getGridRange().getHigh(1));
-
         issueRefresh();
         Tracer.print("< Exit");
     }
@@ -1278,30 +1271,30 @@ public class NcPlotResource2 extends
     @Override
     public void resourceAttrsModified() {
         Tracer.print("> Entry");
-        requeryDataAndReCreateAllStnImages = false;
+        dataRequeryNeeded = false;
         onlyReCreateExistingImages = false;
         densityChanged = false;
         ResourceAttrSet rscAttrSet = plotRscData.getRscAttrSet();
         PlotModel editedPlotModel = (PlotModel) rscAttrSet.getRscAttr(
                 "plotModel").getAttrValue();
-        if (editedPlotModel == null)
+        if (editedPlotModel == null) {
             return;
+        }
 
         RscAttrValue levelKeyAttr = rscAttrSet.getRscAttr("levelKey");
         if (levelKeyAttr != null) {
             String newLevelString = (String) levelKeyAttr.getAttrValue();
             int editedLevel = Integer.parseInt((newLevelString));
-
-            if (editedLevel != existingLevel) {
+            if (editedLevel != existingLevel) { // Level change requested
                 dataRequestor.setLevelStr(newLevelString);
-                requeryDataAndReCreateAllStnImages = true;
+                existingLevel = editedLevel;
+                dataRequeryNeeded = true;
             }
-
         }
 
         double newDensity = ((Integer) rscAttrSet.getRscAttr("plotDensity")
                 .getAttrValue()).doubleValue() / 10;
-        if (Math.abs(newDensity - plotDensity) > 0.0001) {
+        if (Math.abs(newDensity - plotDensity) > 0.0001) { // TODO constify
             plotDensity = newDensity;
             densityChanged = true;
         }
@@ -1344,13 +1337,12 @@ public class NcPlotResource2 extends
                  * Replace the existing conditional filter
                  */
                 this.existingCondFilter = new ConditionalFilter(cf);
-                dataRequestor.imageCreator.isThereAConditionalFilter = false;
+                imageCreator.isThereAConditionalFilter = false;
                 isThereAConditionalFilter = true;
-                Tracer.print("Added the conditional filter\n");
+                Tracer.print("Added the conditional filter");
                 Map<String, RequestConstraint> mapOfCondFilters = dataRequestor
                         .getConditionalFilterMap();
                 if (mapOfCondFilters != null && !mapOfCondFilters.isEmpty()) {
-
                     synchronized (mapOfCondFilters) {
                         Set<String> keySet = mapOfCondFilters.keySet();
                         for (String condParamName : keySet) {
@@ -1363,13 +1355,10 @@ public class NcPlotResource2 extends
                                     areALLCondFilterParamsInEditedPlotModel = true;
                             }
                         }
-
                         if (!areALLCondFilterParamsInEditedPlotModel) {
-                            requeryDataAndReCreateAllStnImages = true;
+                            dataRequeryNeeded = true;
                         }
-
                     }
-
                 }
             } else {
                 /*
@@ -1381,14 +1370,12 @@ public class NcPlotResource2 extends
                     dataRequestor.setConditionalFilter(null);
                     dataRequestor
                             .updateConditionalFilterMapFromConditionalFilter(null);
-                    dataRequestor.imageCreator.isThereAConditionalFilter = false;
+                    imageCreator.isThereAConditionalFilter = false;
                     isThereAConditionalFilter = false;
                     densityChanged = true;
                     Tracer.print("Removed the conditional filter\n");
                 }
-
             }
-
         }
 
         PlotParameterDefns ppdefs = PlotParameterDefnsMngr.getInstance()
@@ -1406,12 +1393,10 @@ public class NcPlotResource2 extends
                         setOfCondParamsAlreadyInPlotModel.add(newPME
                                 .getConditionalParameter());
                     } else {
-
-                        requeryDataAndReCreateAllStnImages = true;
+                        dataRequeryNeeded = true;
                         break;
                     }
                 }
-
             }
         }
 
@@ -1419,78 +1404,56 @@ public class NcPlotResource2 extends
                 && !setOfPlotParamsPrevPlotted.isEmpty()) {
             if (setOfPlotParamsPrevPlotted.size() != newPlotParamNamesSet
                     .size()) {
-                requeryDataAndReCreateAllStnImages = true;
+                dataRequeryNeeded = true;
             } else {
-
                 synchronized (newPlotParamNamesSet) {
                     for (String newParam : newPlotParamNamesSet) {
                         if (!setOfPlotParamsPrevPlotted.contains(newParam)) {
-                            requeryDataAndReCreateAllStnImages = true;
+                            dataRequeryNeeded = true;
                             break;
                         }
                     }
                 }
-
             }
-
         }
 
         this.plotModel = editedPlotModel;
-        dataRequestor.setPlotModel(editedPlotModel);
 
-        if (requeryDataAndReCreateAllStnImages) {
+        if (dataRequeryNeeded) {
             Tracer.print("Need to requery data (and recreate all station images)");
             try {
                 dataRequestor
                         .updateListOfParamsToPlotFromCurrentPlotModel(editedPlotModel);
                 dataRequestor
                         .determineConditionalColoringParameters(editedPlotModel);
-                // if( cf != null ){
-                // dataRequestor.setConditionalFilter(cf);
-                // dataRequestor.setUpConditionalFilterParameters();
-                // }
 
-                dataRequestor.imageCreator.setPlotModel(editedPlotModel);
-                dataRequestor.imageCreator
+                imageCreator.setPlotModel(editedPlotModel);
+                imageCreator
                         .setUpPlotPositionToPlotModelElementMapping(editedPlotModel);
 
                 // Remove all met param data from all stations in all frames.
                 // (Since we need to requery all of it anyway, this will force
                 // that to occur.
-                // TODO: factor this out to something like clearImages() ?)
-
                 for (AbstractFrameData afd : frameDataMap.values()) {
                     // TODO sanity check type?
                     FrameData fd = (FrameData) afd;
-                    for (Station station : fd.stationMap.values()) {
-                        station.listOfParamsToPlot.clear();
-                    }
+                    fd.clearMetParameters();
                 }
 
                 /* To remove the obsolete strings from the diff maps */
                 synchronized (newPMEList) {
                     for (PlotModelElement newPME : newPMEList) {
                         synchronized (oldPMEList) {
-                            for (PlotModelElement oldPME : oldPMEList) {
-                                if (newPME.getPosition().compareTo(
-                                        oldPME.getPosition()) == 0) {
-                                    if (newPME.getParamName().compareTo(
-                                            oldPME.getParamName()) != 0) {
-                                        dataRequestor.imageCreator
-                                                .removeObsoletePlotEntriesAtThisPositionForAllFrames(dataRequestor.imageCreator
-                                                        .getPositionFromPlotModelElementPosition(newPME
-                                                                .getPosition()));
-                                    }
-
-                                }
-                            }
+                            imageCreator
+                                    .removeObsoletePlotEntriesAtThisPositionForAllFrames(imageCreator
+                                            .getPositionFromPlotModelElementPosition(newPME
+                                                    .getPosition()));
                         }
                     }
                 }
 
-                dataRequestor.imageCreator
-                        .removeObsoletePMEEntries(editedPlotModel);
-                dataRequestor.imageCreator.setUpSymbolMappingTables();
+                imageCreator.removeObsoletePMEEntries(editedPlotModel);
+                imageCreator.setUpSymbolMappingTables();
                 List<DataTime> dtList = getFrameTimes();
                 synchronized (dtList) {
                     for (DataTime dt : dtList) {
@@ -1498,18 +1461,16 @@ public class NcPlotResource2 extends
                         if (densityChanged) {
                             Tracer.print("About to queue stations for prog disc");
                             progressiveDisclosure.setDensity(plotDensity);
-                            dataRequestor.setPlotDensity(plotDensity);
-                            fd.progressiveDisclosureInProgress = true;
+                            fd.setFrameStatus(FrameStatus.PROGDISC);
                             progressiveDisclosure
                                     .queueListOfStationsToBeDisclosed(dt,
                                             fd.stationMap.values());
-
                         } else {
                             Tracer.print("About to queue stations for data requery");
+                            fd.setFrameStatus(FrameStatus.METPARAMS);
                             dataRequestor.queueStationsForHdf5Query(dt,
                                     fd.setOfStationsLastRendered);
                         }
-
                         issueRefresh();
                     }
                 }
@@ -1520,33 +1481,30 @@ public class NcPlotResource2 extends
 
         else {
 
-            if (!setOfCondParamsAlreadyInPlotModel.isEmpty())
+            if (!setOfCondParamsAlreadyInPlotModel.isEmpty()) {
                 dataRequestor
                         .determineConditionalColoringParameters(editedPlotModel);
+            }
 
-            dataRequestor.imageCreator.setPlotModel(editedPlotModel);
-            dataRequestor.imageCreator
+            imageCreator.setPlotModel(editedPlotModel);
+            imageCreator
                     .setUpPlotPositionToPlotModelElementMapping(editedPlotModel);
-            dataRequestor.imageCreator
-                    .removeObsoletePMEEntries(editedPlotModel);
-            dataRequestor.imageCreator.setUpSymbolMappingTables();
+            imageCreator.removeObsoletePMEEntries(editedPlotModel);
+            imageCreator.setUpSymbolMappingTables();
             List<DataTime> dtList = getFrameTimes();
             synchronized (dtList) {
                 for (DataTime dt : dtList) {
                     FrameData fd = (FrameData) getFrame(dt);
                     if (densityChanged) {
                         progressiveDisclosure.setDensity(plotDensity);
-                        dataRequestor.setPlotDensity(plotDensity);
                         Tracer.print("About to queue stations for pg disc");
-
-                        fd.progressiveDisclosureInProgress = true;
+                        fd.setFrameStatus(FrameStatus.PROGDISC);
                         progressiveDisclosure.queueListOfStationsToBeDisclosed(
                                 dt, fd.stationMap.values());
                         issueRefresh();
                     } else {
                         if (areALLCondFilterParamsInEditedPlotModel) {
                             Tracer.print("About to apply conditional filter to stns last rendered");
-
                             dataRequestor
                                     .updateListOfStationsPerConditionalFilter(
                                             dt, fd.setOfStationsLastRendered);
@@ -1566,10 +1524,9 @@ public class NcPlotResource2 extends
                                         }
                                     }
                                 }
-
                             }
                         } else {
-                            if (!requeryDataAndReCreateAllStnImages) {
+                            if (!dataRequeryNeeded) {
                                 if (!setOfCondParamsAlreadyInPlotModel
                                         .isEmpty()) {
                                     synchronized (fd.setOfStationsLastRendered) {
@@ -1588,16 +1545,13 @@ public class NcPlotResource2 extends
                                         }
                                     }
                                 }
-                                {
-                                    Tracer.print("Queueing stations only for image creation");
-                                    dataRequestor.imageCreator
-                                            .queueStationsToCreateImages(
-                                                    dt,
-                                                    fd.setOfStationsLastRendered,
-                                                    plotDensity);
-                                }
+                                Tracer.print("Queueing stations only for image creation");
+                                fd.setFrameStatus(FrameStatus.IMAGING);
+                                imageCreator.queueStationsToCreateImages(dt,
+                                        fd.setOfStationsLastRendered);
                             } else {
                                 Tracer.print("Queueing stns for data retrieval");
+                                fd.setFrameStatus(FrameStatus.METPARAMS);
                                 dataRequestor.queueStationsForHdf5Query(dt,
                                         fd.setOfStationsLastRendered);
                             }
@@ -1612,59 +1566,98 @@ public class NcPlotResource2 extends
     }
 
     @Override
-    public void disclosureComplete(DataTime time,
+    public/* synchronized?? */void disclosureComplete(DataTime time,
             Collection<Station> disclosedStations) {
         Tracer.print("> Entry");
-        Semaphore sem = new Semaphore(1);
-        sem.acquireUninterruptibly();
+        FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
 
         if (disclosedStations != null && disclosedStations.size() > 0) {
             Tracer.print("Prog disc returned " + disclosedStations.size()
                     + " stations" + " for frame: "
                     + Tracer.shortTimeString(time));
-
+            fd.disclosedStationsCount = disclosedStations.size();
+            fd.setFrameStatus(FrameStatus.METPARAMS);
             dataRequestor.queueStationsForHdf5Query(time, disclosedStations);
         } else {
             Tracer.print("Prog disc returned " + "*NO*" + " stations"
                     + " for frame: " + Tracer.shortTimeString(time)
                     + " quitting with no HDF5 retrieval attempted");
-            FrameData fd = ((FrameData) getFrame(time));
-            fd.progressiveDisclosureInProgress = false;
+            fd.setFrameStatus(FrameStatus.READY);
         }
-        sem.release();
         Tracer.print("< Exit");
 
     }
 
     @Override
-    public void renderingComplete(DataTime time,
+    public/* synchronized */void retrievalComplete(DataTime time,
+            Collection<Station> retrievedStations,
+            int stationsRetrievedThisCallCount,
+            boolean isThereAConditionalFilter) {
+        Tracer.print("> Entry");
+        FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
+
+        fd.stationsRetrievedThisCallCount = stationsRetrievedThisCallCount;
+
+        if (retrievedStations != null && retrievedStations.size() > 0) {
+            Tracer.print("Met Param retriever returned "
+                    + retrievedStations.size() + " stations" + " for frame: "
+                    + Tracer.shortTimeString(time));
+
+            if (isThereAConditionalFilter) {
+                // TODO correct logic? (i.e., if false do not change)
+                imageCreator.isThereAConditionalFilter = true;
+            }
+            fd.setFrameStatus(FrameStatus.IMAGING);
+            imageCreator.queueStationsToCreateImages(time, retrievedStations);
+        } else {
+            Tracer.print("Met Param retriever returned " + "*NO*" + " stations"
+                    + " for frame: " + Tracer.shortTimeString(time)
+                    + " quitting with no HDF5 retrieval attempted");
+            fd.setFrameStatus(FrameStatus.READY);
+        }
+        Tracer.print("< Exit");
+
+    }
+
+    public/* synchronized */void retrievalAborted(DataTime time) {
+        Tracer.print("> Entry");
+        FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
+        Tracer.print("Met Param retriever ABORTED" + " for frame: "
+                + Tracer.shortTimeString(time));
+        fd.setFrameStatus(FrameStatus.READY);
+        Tracer.print("< Exit");
+    }
+
+    @Override
+    public synchronized void renderingComplete(DataTime time,
             Collection<Station> collectionOfStationsToBeRendered,
             List<DrawableString> listOfStringsToDraw,
             List<IVector> listOfVectors,
             List<SymbolLocationSet> listOfSymbolLocSet) {
 
-        Tracer.print("> Entry");
-        Semaphore sm = new Semaphore(1);
-        sm.acquireUninterruptibly(1);
+        Tracer.print("> Entry  " + Tracer.shortTimeString(time));
         FrameData fd = ((FrameData) getFrame(time));
 
         if (fd != null) {
-            if (listOfStringsToDraw != null && !listOfStringsToDraw.isEmpty())
+            if (listOfStringsToDraw != null && !listOfStringsToDraw.isEmpty()) {
                 fd.drawableStrings = new ArrayList<DrawableString>(
                         listOfStringsToDraw);
-            else
+            } else {
                 fd.drawableStrings = new ArrayList<DrawableString>(0);
+            }
 
-            if (listOfVectors != null && !listOfVectors.isEmpty())
-                fd.listOfWindVectors = new ArrayList<IVector>(listOfVectors);
-            else
-                fd.listOfWindVectors = new ArrayList<IVector>(0);
+            if (listOfVectors != null && !listOfVectors.isEmpty()) {
+                fd.listOfVectors = new ArrayList<IVector>(listOfVectors);
+            } else {
+                fd.listOfVectors = new ArrayList<IVector>(0);
+            }
 
             if (listOfSymbolLocSet != null && !listOfSymbolLocSet.isEmpty()) {
                 fd.listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(
                         listOfSymbolLocSet);
-            } else
+            } else {
                 fd.listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(0);
+            }
 
             fd.setOfStationsLastRendered = new HashSet<Station>();
             fd.setOfStationsLastRendered
@@ -1678,75 +1671,26 @@ public class NcPlotResource2 extends
                 }
             }
 
-            fd.progressiveDisclosureInProgress = false;
+            fd.setFrameStatus(FrameStatus.READY);
         }
 
         Tracer.print("renderingComplete() called for the frame "
                 + Tracer.shortTimeString(time) + " with "
                 + collectionOfStationsToBeRendered.size() + " stations");
-        sm.release(1);
         issueRefresh();
-        Tracer.print("< Exit");
+        Tracer.print("< Exit  " + Tracer.shortTimeString(time));
 
     }
 
-    // private void getStationsForFrame( DataTime frameTime ){
-    // FrameData frameData = ( FrameData ) getFrame(frameTime);
-    // RequestConstraint timeConstraint = new RequestConstraint();
-    //
-    // // set the constraints for the query.
-    // // for forecast resources we need to match the cycle time and
-    // // create a range constraint on the forecast hour.
-    // if( isFcst ) {
-    //
-    // //cycleTimeStr - gets initialized during resource creation
-    // timeConstraint = new RequestConstraint( cycleTimeStr );
-    // metadataMap.put("dataTime.refTime", timeConstraint );
-    //
-    // // determine the fcst hr range for the frame span
-    // long refTimeMs = rscName.getCycleTime().getRefTime().getTime();
-    // long frmStartMs = frameData.getFrameStartTime().getRefTime().getTime();
-    // long frmEndMs = frameData.getFrameEndTime().getRefTime().getTime();
-    //
-    // long beginFcstHr = (frmStartMs - refTimeMs) / 1000;
-    // long endFcstHr = (frmEndMs - refTimeMs) / 1000;
-    //
-    // timeConstraint = new RequestConstraint( );
-    // // timeConstraint.setBetweenValueList(
-    // // new String[] { Long.toString( beginFcstHr ),
-    // // Long.toString( endFcstHr ) } );
-    // //
-    // // timeConstraint.setConstraintType( ConstraintType.BETWEEN );
-    // // metadataMap.put( "dataTime.fcstTime", timeConstraint );
-    // timeConstraint.setConstraintValue(frameData.getFrameTime().toString());
-    // metadataMap.put( "dataTime", timeConstraint );
-    // timeConstraint = new RequestConstraint("64800", ConstraintType.EQUALS);
-    // metadataMap.put("forecasttime", timeConstraint);
-    // }
-    // else{
-    //
-    // String[] constraintList = { frameData.getFrameStartTime().toString(),
-    // frameData.getFrameEndTime().toString() };
-    // timeConstraint.setBetweenValueList( constraintList );
-    // timeConstraint.setConstraintType(
-    // RequestConstraint.ConstraintType.BETWEEN );
-    // metadataMap.put("dataTime", timeConstraint );
-    //
-    // }
-    //
-    // try {
-    // Tracer.print("metadataMap = " + metadataMap);
-    // plotRscData.getPlotInfoRetriever().getStations( metadataMap );
-    // /*
-    // * The retrieved stations are time-matched to the frame using the
-    // resourceChanged() method
-    // */
-    // } catch (VizException e) {
-    //
-    // e.printStackTrace();
-    // }
-    //
-    // }
+    public/* synchronized */void renderingAborted(DataTime time) {
+        Tracer.print("> Entry");
+        FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
+        Tracer.print("Image Rendering ABORTED" + " for frame: "
+                + Tracer.shortTimeString(time));
+        fd.setFrameStatus(FrameStatus.READY);
+        Tracer.print("< Exit");
+
+    }
 
     // generate a string used as the key for the StationMap
 
@@ -1758,14 +1702,11 @@ public class NcPlotResource2 extends
     private void resetFramePaintFlagForAllFrames() {
         Tracer.print("> Entry");
         List<DataTime> dtList = getFrameTimes();
-        Semaphore sm1 = new Semaphore(1);
-        sm1.acquireUninterruptibly();
         synchronized (dtList) {
             for (DataTime datatime : dtList) {
                 ((FrameData) getFrame(datatime)).isFramePaintedFirstTime = false;
             }
         }
-        sm1.release();
         Tracer.print("< Exit");
     }
 
@@ -1774,9 +1715,9 @@ public class NcPlotResource2 extends
         double newPlotDensity = ((Integer) plotRscData.getRscAttrSet()
                 .getRscAttr("plotDensity").getAttrValue()).doubleValue() / 10;
         if (plotDensity == Double.MIN_NORMAL
-                || Math.abs(plotDensity - newPlotDensity) > 0.00000001) {
+                || Math.abs(plotDensity - newPlotDensity) > 1E-08) { // TODO
+                                                                     // constify
             plotDensity = newPlotDensity;
-
         }
         Tracer.print("< Exit");
 
@@ -1788,17 +1729,16 @@ public class NcPlotResource2 extends
                 getFrameTimes());
         int frameTimesListSize = (listOfFrameTimes != null) ? listOfFrameTimes
                 .size() : 0;
-        // int index = ( isFcst ) ? 0 : frameTimesListSize - 1;
 
         long t0 = System.nanoTime();
 
         if (!isFcst) {
-
             for (int index = frameTimesListSize - 1; index >= 0; --index) {
-                frameLoaderTask = new FrameLoaderTask(
-                        listOfFrameTimes.get(index));
+                DataTime dataTime = listOfFrameTimes.get(index);
+                FrameData frameData = (FrameData) getFrame(dataTime);
+                frameData.setFrameStatus(FrameStatus.LOADING);
+                frameLoaderTask = new FrameLoaderTask(dataTime);
                 frameRetrievalPool.schedule(frameLoaderTask);
-                // --index;
             }
         } else {
             populateStationsForTheFcstPointRscFrames();
@@ -1821,6 +1761,7 @@ public class NcPlotResource2 extends
         List<DataTime> datatimeList = getFrameTimes();
         synchronized (datatimeList) {
             FrameData firstFrame = (FrameData) getFrame(datatimeList.get(0));
+            firstFrame.setFrameStatus(FrameStatus.LOADING);
             String tableName = this.metadataMap.get("pluginName")
                     .getConstraintValue();
             String matrixType = null;
@@ -1855,7 +1796,6 @@ public class NcPlotResource2 extends
                             if (o instanceof Timestamp) {
                                 timeStampList.add((Timestamp) o);
                             }
-
                         }
                     }
                     Integer[] iArr = new Integer[0];
@@ -1896,16 +1836,16 @@ public class NcPlotResource2 extends
                                                 + newTime.toString());
 
                                         /*
-                                         * For a fore-cast point resource, the
-                                         * number of stations remain the same
-                                         * for all fore-cast hours. So a
-                                         * Postgres query is carried out only
-                                         * once (for the first frame) and the
-                                         * same set of stations is subsequently
-                                         * copied to the remaining frames, after
-                                         * updating the stations' data-times to
-                                         * match that of the frame it will now
-                                         * belong to....
+                                         * For a forecast point resource, the
+                                         * number of stations remains the same
+                                         * for all forecast hours. So a Postgres
+                                         * query is carried out only once (for
+                                         * the first frame) and the same set of
+                                         * stations is subsequently copied to
+                                         * the remaining frames, after updating
+                                         * the stations' data-times to match
+                                         * that of the frame it will now belong
+                                         * to....
                                          */
 
                                         if (!retrievedStationsForFirstFrame) {
@@ -1920,7 +1860,6 @@ public class NcPlotResource2 extends
                                             frameRCMap.put("pluginName",
                                                     metadataMap
                                                             .get("pluginName"));
-
                                             matrixTypeRC = this.metadataMap
                                                     .get("matrixType"); // redundant?
                                             if (matrixTypeRC != null) {
@@ -1971,45 +1910,39 @@ public class NcPlotResource2 extends
                                                                                         frameStn);
                                                                     }
                                                                 }
-
                                                             }
                                                         }
-
                                                     }
-
                                                 }
-
                                             }
                                         }
-
                                         queueStationsForRemainingFcstFrames(
                                                 nextFrameTime, newTime,
                                                 firstFrame.stationMap.values());
                                     }
                                 }
-
                             }
-
                         }
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
         Tracer.print("< Exit");
     }
 
-    private void queueStationsForRemainingFcstFrames(DataTime frameTime,
-            DataTime stnTimeToSet, Collection<Station> stationCollection) {
-        Tracer.print("> Entry");
+    private/* synchronized?? */void queueStationsForRemainingFcstFrames(
+            DataTime frameTime, DataTime stnTimeToSet,
+            Collection<Station> stationCollection) {
+        Tracer.print("> Entry  " + Tracer.shortTimeString(frameTime));
         SpecialQueueEntry queueEntry = new SpecialQueueEntry(frameTime,
                 stnTimeToSet, stationCollection);
         queueOfFrameTimesAndStations.add(queueEntry);
+        FrameData frameData = (FrameData) getFrame(frameTime);
+        frameData.setFrameStatus(FrameStatus.LOADING);
         scheduleFcstFrameLoaderTask();
-        Tracer.print("< Exit");
-
+        Tracer.print("< Exit   " + Tracer.shortTimeString(frameTime));
     }
 
     private void scheduleFcstFrameLoaderTask() {
@@ -2017,25 +1950,94 @@ public class NcPlotResource2 extends
         if (queueOfFrameTimesAndStations == null
                 || queueOfFrameTimesAndStations.isEmpty())
             return;
-        Semaphore sm = new Semaphore(1);
         synchronized (queueOfFrameTimesAndStations) {
             while (queueOfFrameTimesAndStations.peek() != null) {
-                sm.acquireUninterruptibly();
                 SpecialQueueEntry currEntry = queueOfFrameTimesAndStations
                         .poll();
                 if (currEntry == null)
                     continue;
-
                 fcstFrameLoaderTask = new FcstFrameLoaderTask(
                         currEntry.getDataTime(), currEntry.stationTimeToSet,
                         currEntry.getStations());
-                sm.release();
                 frameRetrievalPool.schedule(fcstFrameLoaderTask);
-
             }
         }
         Tracer.print("< Exit");
-
     }
 
+    private void paintFrameStatusDisplay(AbstractFrameData currentFrameData,
+            IGraphicsTarget target, PaintProperties paintProps) {
+
+        if (frameStatusDisplayFont == null) {
+            // allocate font only on first use
+            frameStatusDisplayFont = target.initializeFont("Helvetica",
+                    (float) (12 * 1.000f), new Style[] {});
+            frameStatusDisplayFont.setSmoothing(false);
+            frameStatusDisplayFont.setScaleFont(false);
+        }
+        IExtent screenExtent = paintProps.getView().getExtent();
+        IExtent mapExtent = new PixelExtent(descriptor.getGridGeometry()
+                .getGridRange());
+        double x0 = Math.max(mapExtent.getMinX(), screenExtent.getMinX()
+                + (screenExtent.getWidth() * .020));
+        double y0 = Math.max(mapExtent.getMinY(), screenExtent.getMinY()
+                + (screenExtent.getHeight() * .035));
+        double[] startPixel = new double[] { x0, y0 };
+        double x1 = Math.min(mapExtent.getMaxX(), x0
+                + (screenExtent.getWidth() * .45));
+        double y1 = y0;
+        double[] endPixel = new double[] { x1, y1 };
+
+        if (!mapExtent.contains(startPixel) || !mapExtent.contains(endPixel)) {
+            return;
+        }
+
+        float zoom = paintProps.getZoomLevel();
+        double yOffset = 250 * zoom;
+
+        TextStyle style = TextStyle.NORMAL;
+        RGB color = new RGB(255, 255, 255);
+
+        final boolean statistics = false; // enhancement in test
+
+        List<DataTime> dtList = getFrameTimes();
+        synchronized (dtList) {
+            for (DataTime dt : dtList) {
+                FrameData fd = (FrameData) getFrame(dt);
+                FrameStatus fs = fd.getFrameStatus();
+                String frameTimeString = NmapCommon.getTimeStringFromDataTime(
+                        fd.getFrameTime(), "/");
+                if (!frameStatusDisplayVerbose) { // use terse date
+                    frameTimeString = frameTimeString.substring(4);
+                }
+                String string = frameTimeString
+                        + "    "
+                        + fs.getSpacing()
+                        + (frameStatusDisplayVerbose ? fs.getDescription() : fs
+                                .toString());
+                if (statistics) {
+                    string += "  " + fd.plotInfoObjs.size() + " "
+                            + fd.disclosedStationsCount; // + " "
+                    // + fd.stationsRetrievedThisCallCount;
+                }
+                style = (fd == currentFrameData) ? TextStyle.BOXED
+                        : TextStyle.NORMAL;
+                color = fs.getColorCode();
+                y0 += yOffset;
+                DrawableString ds = new DrawableString(string, color);
+                ds.setCoordinates(x0, y0 /* - yOff */);
+                ds.font = frameStatusDisplayFont;
+                ds.textStyle = style;
+                ds.horizontalAlignment = HorizontalAlignment.LEFT;
+                ds.verticallAlignment = VerticalAlignment.BOTTOM;
+                try {
+                    target.drawStrings(ds);
+                } catch (VizException e1) {
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Error when drawing diagnostic frame status display: "
+                                    + e1);
+                }
+            }
+        }
+    }
 }

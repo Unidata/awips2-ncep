@@ -276,7 +276,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         return timeLine;
     }
 
-    @SuppressWarnings("deprecation")
     private void drawNsharpTimelinBox(IGraphicsTarget target, Rectangle rect)
             throws VizException {
         PixelExtent extent = new PixelExtent(rect);
@@ -441,7 +440,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private void drawNsharpStationIdBox(IGraphicsTarget target, Rectangle rect)
             throws VizException {
         PixelExtent extent = new PixelExtent(rect);
@@ -585,7 +583,6 @@ public class NsharpTimeStnPaneResource extends NsharpAbstractPaneResource {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private void drawNsharpSndTypeBox(IGraphicsTarget target, Rectangle rect)
             throws VizException {
         PixelExtent extent = new PixelExtent(rect);

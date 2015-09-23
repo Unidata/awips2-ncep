@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
-//import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory;
@@ -18,13 +17,11 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilter;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.IPointInfoRenderingListener;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.pluginplotproperties.PluginPlotProperties;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.TimeLogger;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
 
 import java.lang.reflect.Method;
@@ -52,6 +49,9 @@ import com.raytheon.uf.common.pointdata.ParameterDescription;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription.Type;
 import com.raytheon.uf.common.pointdata.PointDataView;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.DataTime.FLAG;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -71,56 +71,41 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 05/20/2013??   988        Archana.S    Initial creation.
  * 02/26/2014    1061        B. Hebbard   Don't block on JobPool cancel, so CAVE doesn't freeze if resource unloaded during long retrieval
  * 04/01/2014    1040        B. Hebbard   In requestUpperAirData, (1) clear displayStationPlotBoolList for each new station, (2) call cond filter check with newInstance vs. metPrm
- * 04/08/2014    1127        B. Hebbard   In requestSurfaceData, exclude only those obs returned from HDF5 that don't match desired time; fix dataTime association; removed redunda
- * 06/17/2014     932        S. Russell   TTR 923, altered methods addToDerivedParamsList(), requestSurfaceData(), and newInstance()
- * 07/08/2014 TTR1028        B. Hebbard   In requestSurfaceData(-) and requestUpperAirData(-), prune out stations that already have all met params they need, to avoid unnecessary querying
+ * 04/08/2014    1127        B. Hebbard   In requestSurfaceData, exclude only those obs returned from HDF5 that don't match desired time; fix dataTime association;
+ *                                        removed redundant datatimes from constraint.
+ * 06/17/2014     923        S. Russell   TTR 923, altered methods addToDerivedParamsList(), requestSurfaceData(), and newInstance()
+ * 07/08/2014 TTR1028        B. Hebbard   In requestSurfaceData() and requestUpperAirData(), prune out stations that already have all met params they need, to avoid unnecessary querying
  * Aug 07, 2014  3478        bclement     removed PointDataDescription.Type.Double
  * 09/04/2014    1127        B. Hebbard   Exempt forecast (e.g., MOS) datatimes from check in requestSurfaceData that sees if retrieved value matches desired time.  This is because we retrieve only the refTime from HDF5 for comparison, which is sufficient for obs times, but not those with forecast component.
  * 12/04/2014   R5437        B. Hebbard   In addToDerivedParamsList(..), correct logic to determine (additional) base DB params needed for derived params; minor cleanups
- * 07142015     RM#9173      Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
- * 
- * 
+ * 07/14/2015   R9173        Chin Chen    Use NcSoundingQuery.genericSoundingDataQuery() to query uair and modelsounding data
+ * 08/31/2015   R7757        B. Hebbard   Refactor so imageCreator belongs to resource (instead of this class) for better frame status tracking; other cleanups.
  * 
  */
 
-public class NcPlotModelHdf5DataRequestor {
+public class NcPlotDataRequestor {
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NcPlotDataRequestor.class);
 
     StringBuffer sb = new StringBuffer();
 
     private Map<String, RequestConstraint> constraintMap;
 
-    private Map<DataTime, Map<String, RequestConstraint>> mapOfFrameTimeToRC;
-
-    public Map<DataTime, Map<String, RequestConstraint>> getMapOfFrameTimeToRC() {
-        return mapOfFrameTimeToRC;
-    }
-
-    public void setMapOfFrameTimeToRC(
-            Map<DataTime, Map<String, RequestConstraint>> mapOfFrameTimeToRC) {
-        this.mapOfFrameTimeToRC = mapOfFrameTimeToRC;
-    }
-
     private String[] parameters = null;
 
     private String plugin;
 
-    private PlotModel plotModel;
-
-    private double plotDensity = Double.MIN_VALUE;
-
     private String levelStr;
 
-    public void setLevelStr(String levelStr) {
-        this.levelStr = levelStr;
-    }
-
-    // map from the metParam name to an abstractMetParameter. The met parameter
-    // will have a value set either from the pointDataContainer query or derived
-    // from the db pointData. This map is passed to the PlotModelFactory.
+    // A map from the metParam name to an abstractMetParameter. The met
+    // parameter will have a value set either from the pointDataContainer query
+    // or derived from the DB pointData. This map is passed to the
+    // PlotModelFactory.
     //
     private HashMap<String, AbstractMetParameter> paramsToPlot = null;
 
-    // a map from the dbParam name to a list of AbstractMetParameter objects
+    // A map from the dbParam name to a list of AbstractMetParameter objects
     // used to hold the values from the pointDataContainer.
     //
     private HashMap<String, AbstractMetParameter> dbParamsMap = null;
@@ -129,11 +114,10 @@ public class NcPlotModelHdf5DataRequestor {
     //
     private ArrayList<AbstractMetParameter> derivedParamsList = null;
 
-    // a map for those parameters that determine their value from an
-    // array of values from the DB. (this implements functionality previously
-    // done
-    // in the PlotModelFactory for the plotFunctionTable tag and now done with
-    // the arrayIndex tag in the plotParameterDefn)
+    // A map for those parameters that determine their value from an
+    // array of values from the DB. (This implements functionality previously
+    // done in the PlotModelFactory for the plotFunctionTable tag and now done
+    // with the arrayIndex tag in the plotParameterDefn.)
     //
     private HashMap<String, PlotParameterDefn> prioritySelectionsMap = null;
 
@@ -157,15 +141,12 @@ public class NcPlotModelHdf5DataRequestor {
 
     private ConcurrentLinkedQueue<QueueEntry> queueOfStations = null;
 
-    private TimeLogger timeLogger;
-
-    public NcPlotImageCreator imageCreator = null;
+    private IMetParamRetrievalListener listener = null;
 
     private Set<String> setOfCondDerivedMetParamNames = null;
 
     private Semaphore sem1 = new Semaphore(1);
 
-    // private NCMapDescriptor mapDescriptor;
     ConditionalFilter conditionalFilter = null;
 
     Map<String, RequestConstraint> condFilterMap = null;
@@ -183,18 +164,12 @@ public class NcPlotModelHdf5DataRequestor {
         queueOfStations.add(queueEntry);
         Tracer.print("About to query HDF5 data for frame: "
                 + Tracer.shortTimeString(dt));
-
         runDataQuery();
         Tracer.print("< Exit");
     }
 
     private void runDataQuery() {
         Tracer.print("> Entry");
-
-        if (queueOfStations.peek() == null) {
-            return;
-        }
-
         while (queueOfStations.peek() != null) {
             QueueEntry qe = queueOfStations.poll();
             if (qe != null) {
@@ -206,11 +181,9 @@ public class NcPlotModelHdf5DataRequestor {
         Tracer.print("< Exit");
     }
 
-    public NcPlotModelHdf5DataRequestor(PlotModel plotModel, String level,
+    public NcPlotDataRequestor(PlotModel plotModel, String level,
             Map<String, RequestConstraint> constraintMap,
-            IPointInfoRenderingListener listener, double initialPlotDensity,
-            ConditionalFilter cf) {
-
+            IMetParamRetrievalListener listener, ConditionalFilter cf) {
         Tracer.print("> Entry");
         this.plugin = plotModel.getPlugin();
         this.levelStr = level;
@@ -228,13 +201,9 @@ public class NcPlotModelHdf5DataRequestor {
         parameters = new String[0];
         metParamNameToDbNameMap = new HashMap<String, String>();
         setOfDBParamNamesForHdf5Query = new HashSet<String>(2);
-        imageCreator = new NcPlotImageCreator(listener, plotModel,
-                initialPlotDensity);
-        timeLogger = TimeLogger.getInstance();
         setOfCondColoringParamNames = new HashSet<String>(0);
-        plotDensity = initialPlotDensity;
         conditionalFilter = cf;
-        mapOfFrameTimeToRC = new HashMap<DataTime, Map<String, RequestConstraint>>();
+        this.listener = listener;
         try {
             setOfCondDerivedMetParamNames = new HashSet<String>(0);
             establishPlotParamDefnToMetParamMappings();
@@ -250,6 +219,10 @@ public class NcPlotModelHdf5DataRequestor {
         Tracer.print("< Exit");
     }
 
+    public void setLevelStr(String levelStr) {
+        this.levelStr = levelStr;
+    }
+
     public ConditionalFilter getConditionalFilter() {
         return conditionalFilter;
     }
@@ -261,14 +234,9 @@ public class NcPlotModelHdf5DataRequestor {
             this.conditionalFilter = null;
     }
 
-    public void setPlotModel(PlotModel pm) {
-        plotModel = pm;
-    }
-
     public void determineConditionalColoringParameters(PlotModel plotModel) {
         PlotParameterDefns plotParamDefns = PlotParameterDefnsMngr
                 .getInstance().getPlotParamDefns(plotModel.getPlugin());
-
         Tracer.print("> Entry");
         List<PlotModelElement> listOfPlotModelElements = plotModel
                 .getAllPlotModelElements();
@@ -338,14 +306,12 @@ public class NcPlotModelHdf5DataRequestor {
         Set<Station> filteredSetOfStations = new HashSet<Station>(0);
         if (conditionalFilter != null) {
             updateConditionalFilterMapFromConditionalFilter(this.conditionalFilter);
-
             synchronized (stationSet) {
                 for (Station station : stationSet) {
                     if (station.listOfParamsToPlot == null
                             || station.listOfParamsToPlot.isEmpty()) {
                         continue;
                     }
-
                     List<Boolean> displayPlotBoolList = new ArrayList<Boolean>(
                             station.listOfParamsToPlot.size());
                     boolean displayStation = true;
@@ -359,21 +325,21 @@ public class NcPlotModelHdf5DataRequestor {
                         for (Boolean b : displayPlotBoolList) {
                             displayStation &= b;
                         }
-
                         if (displayStation) {
                             synchronized (filteredSetOfStations) {
                                 filteredSetOfStations.add(station);
                             }
                         }
-
                     }
                 }
             }
         }
-        imageCreator.isThereAConditionalFilter = true;
-        imageCreator.queueStationsToCreateImages(dataTime,
-                filteredSetOfStations, plotDensity);
-        // return filteredSetOfStations;
+        boolean isThereAConditionalFilter = true;
+        // TODO future - make this actual count of stations retrieving data on
+        // this call for this frame, for statistics tracking
+        int numberStationsRetrievedThisCall = 0;
+        listener.retrievalComplete(dataTime, filteredSetOfStations,
+                numberStationsRetrievedThisCall, isThereAConditionalFilter);
         Tracer.print("< Exit");
     }
 
@@ -387,7 +353,6 @@ public class NcPlotModelHdf5DataRequestor {
             if (!setOfCondDerivedMetParamNames.isEmpty()) {
                 setOfCondDerivedMetParamNames.clear();
             }
-
             List<PlotParameterDefn> listOfAllPlotParamDefnsForThisPlugin = plotPrmDefns
                     .getParameterDefns();
             for (PlotParameterDefn eachPlotParamDefn : listOfAllPlotParamDefnsForThisPlugin) {
@@ -526,9 +491,10 @@ public class NcPlotModelHdf5DataRequestor {
             for (PlotParameterDefn plotPrmDefn : listOfAllPlotParamDefnsForThisPlugin) {
                 metParamNameToDbNameMap.put(plotPrmDefn.getMetParamName(),
                         plotPrmDefn.getDbParamName());
-                // if this is a 'vector' parameter (ie windBarb or arrow) then
-                // get the 2
-                // component metParameters and make sure they exist.
+                // If this is a 'vector' parameter (wind barb, arrow,
+                // directional arrow) then get the 2 component metParameters (or
+                // possibly only 1 for directional arrow) and make sure they
+                // exist.
                 if (plotPrmDefn.isVectorParameter()) {
                     String[] vectParamNames = plotPrmDefn
                             .getMetParamNamesForVectorPlot();
@@ -561,20 +527,19 @@ public class NcPlotModelHdf5DataRequestor {
                         }
                     } else if (dbParamsMap.containsKey(dbPrmName)) {
                         continue;
-                    } else { // if( !dbPrmName.equals("derived" ) ) {
+                    } else { // not derived(?)
 
-                        // alias the db param name to the ncep param name.
-                        // (This eliminates the need to have a direct mapping
-                        // from the db name to
-                        // the ncep param name.)
+                        // Alias the DB param name to the metParam (subclass of
+                        // AbstractMetParameter). (This eliminates the need to
+                        // have a direct mapping from the DB name to the class
+                        // name.)
                         MetParameterFactory.getInstance().alias(
                                 plotPrmDefn.getMetParamName(),
                                 plotPrmDefn.getDbParamName());
 
-                        // create a metParam that will hold the value from the
-                        // db and which will
-                        // be used to plot the plotParameter and possibly derive
-                        // other parameter values.
+                        // Create a metParam that will hold the value from the
+                        // DB and which will be used to plot the plotParameter
+                        // and possibly derive other parameter values.
                         //
                         AbstractMetParameter dbParam = MetParameterFactory
                                 .getInstance().createParameter(
@@ -584,18 +549,15 @@ public class NcPlotModelHdf5DataRequestor {
                             System.out.println("Error creating metParameter "
                                     + plotPrmDefn.getMetParamName());
                         } else {
-                            // add this prm to a map to tell us which db params
-                            // are needed
-                            // when querying the db
+                            // Add this prm to a map to tell us which DB params
+                            // are needed when querying the DB
                             dbParamsMap.put(plotPrmDefn.getDbParamName(),
                                     dbParam);
 
-                            // for parameters that need to lookup their value
-                            // from an
-                            // array of values based on a priority. (ie for
-                            // skyCover to
-                            // determine the highest level of cloud cover at any
-                            // level)
+                            // For parameters that need to lookup their value
+                            // from an array of values based on a priority
+                            // (e.g., for skyCover to determine the highest
+                            // level of cloud cover at any level).
                             //
                             prioritySelectionsMap.put(dbPrmName, plotPrmDefn);
 
@@ -605,8 +567,8 @@ public class NcPlotModelHdf5DataRequestor {
                 }
             }
 
-            // if the station lat/long is not in the defns file, add them here
-            // since they are needed by the PlotModelFactory to plot the data
+            // If the station lat/long is not in the defns file, add them here
+            // since they are needed by the PlotModelFactory to plot the data.
             //
             if (!dbParamsMap.containsKey(latDbName)) {
                 MetParameterFactory.getInstance().alias(
@@ -663,9 +625,6 @@ public class NcPlotModelHdf5DataRequestor {
             derivedParamsList.clear();
         }
 
-        // if ( dbParamsMap != null && !dbParamsMap.isEmpty())
-        // dbParamsMap.clear();
-
         if (paramsToPlot != null & !paramsToPlot.isEmpty()) {
             paramsToPlot.clear();
         }
@@ -681,16 +640,12 @@ public class NcPlotModelHdf5DataRequestor {
             setOfCondColoringParamNames.clear();
         }
 
-        // if(metParamNameToDbNameMap != null &&
-        // !metParamNameToDbNameMap.isEmpty())
-        // metParamNameToDbNameMap.clear();
-
         List<String> listOfSelectedPlotParameters = plotModel
                 .getPlotParamNames(true);
         for (String pltPrmName : listOfSelectedPlotParameters) {
 
             // get the dbParamName and determine if derived parameter
-            //
+
             PlotParameterDefn plotPrmDefn = plotPrmDefns
                     .getPlotParamDefn(pltPrmName);
 
@@ -698,16 +653,11 @@ public class NcPlotModelHdf5DataRequestor {
                 throw new VizException("Error creating plot metParameter "
                         + pltPrmName);
             } else if (plotPrmDefn.isVectorParameter()) {
-                // 'Vector' parameters for windBarbs and arrows are required to
-                // be in the center (WD) position
-                // Also, no plotDefns should have a plotMode of barb or arrow if
-                // not in the center position.
-
-                // add the 2 metParameters to paramsToPlot.
+                // Add the 1 or 2 metParameters (direction, and magnitude if
+                // applicable) to paramsToPlot.
                 String[] vectParamNames = plotPrmDefn
                         .getMetParamNamesForVectorPlot();
                 for (String vectParam : vectParamNames) {
-
                     PlotParameterDefn vectPrmDefn = plotPrmDefns
                             .getPlotParamDefnsForMetParam(vectParam).get(0);
                     addToParamsToPlot(vectPrmDefn);
@@ -724,12 +674,6 @@ public class NcPlotModelHdf5DataRequestor {
         Tracer.print("< Exit");
     }
 
-    public void setPlotDensity(double density) {
-        Tracer.print("> Entry");
-        plotDensity = density;
-        Tracer.print("< Exit");
-    }
-
     public void setDefaultConstraintsMap(Map<String, RequestConstraint> inMap) {
         Tracer.print("> Entry");
         this.constraintMap = new HashMap<String, RequestConstraint>(inMap);
@@ -738,14 +682,13 @@ public class NcPlotModelHdf5DataRequestor {
 
     public void dispose() {
         Tracer.print("> Entry");
-        Tracer.print("Invoking NcPlotModelHdf5DataRequestor.dispose()");
+        Tracer.print("Invoking NcPlotDataRequestor.dispose()");
         canceling = true;
         if (dataRequestJobPool != null) {
             dataRequestJobPool.cancel(false); // false = don't wait for jobs to
                                               // complete
             dataRequestJobPool = null;
         }
-        imageCreator.dispose();
         Tracer.print("< Exit");
     }
 
@@ -758,10 +701,9 @@ public class NcPlotModelHdf5DataRequestor {
         String[] deriveParams = plotPrmDefn.getDeriveParams();// the input args
 
         // if this is a derived parameter, create a metParameter to hold the
-        // derived
-        // value to be computed and plotted.
-        //
-        if (deriveParams != null) { // dbParamName.equals( "derived" ) ) {
+        // derived value to be computed and plotted.
+
+        if (deriveParams != null) {
 
             AbstractMetParameter derivedMetParam = addToDerivedParamsList(
                     deriveParams, plotPrmDefn);
@@ -773,8 +715,7 @@ public class NcPlotModelHdf5DataRequestor {
         }
 
         // if this is a dbParameter then save the metParameter from the
-        // dbParamsMap
-        // in the paramsToPlot map.
+        // dbParamsMap in the paramsToPlot map.
         //
         else if (dbParamName != null && dbParamsMap.containsKey(dbParamName)) {
             setOfDBParamNamesForHdf5Query.add(dbParamName);
@@ -784,8 +725,9 @@ public class NcPlotModelHdf5DataRequestor {
                 paramsToPlot.put(metParamName, dbParamsMap.get(dbParamName));
             }
         } else {
-            System.out.println("Sanity check : dbParamName: \"" + dbParamName
-                    + "\" is not in dbParamsMap");
+            statusHandler.handle(Priority.PROBLEM,
+                    "Sanity check : dbParamName: \"" + dbParamName
+                            + "\" is not in dbParamsMap");
         }
 
         // System.out.println("ParamsToPlot KeySet: "+paramsToPlot.keySet());
@@ -798,9 +740,9 @@ public class NcPlotModelHdf5DataRequestor {
             PlotParameterDefn plotPrmDefn) {
         Tracer.print("> Entry");
         long t0 = System.nanoTime();
-        // if this is a derived parameter, create a metParameter to hold the
+
+        // If this is a derived parameter, create a metParameter to hold the
         // derived value to be computed and plotted.
-        //
 
         AbstractMetParameter derivedMetParam = MetParameterFactory
                 .getInstance().createParameter(plotPrmDefn.getMetParamName(),
@@ -813,35 +755,22 @@ public class NcPlotModelHdf5DataRequestor {
         } else {
             // If all is set then all of the available metParameters from the db
             // query are used when attempting to derive the parameter.
-            // Otherwise, we are expecting a comma separated list of parameters
+            // Otherwise, we are expecting a comma separated list of parameters.
 
             if ( // deriveParams.length > 1 &&
             !deriveParams[0].equalsIgnoreCase("all")) {
 
                 ArrayList<String> preferredDeriveParameterNames = new ArrayList<String>();
-                // ArrayList<AbstractMetParameter> preferredDeriveParameters =
-                // new ArrayList<AbstractMetParameter>(); // unused
 
                 for (String dPrm : deriveParams) {
                     AbstractMetParameter deriveInputParam = MetParameterFactory
                             .getInstance().createParameter(dPrm);
 
                     if (deriveInputParam != null) {
-                        // following is unused
-                        // preferredDeriveParameters.add(deriveInputParam);
-                        // TTR 923
-                        // preferredDeriveParameterNames.add(dPrm);
                         preferredDeriveParameterNames.add(deriveInputParam
                                 .getMetParamName());
-
-                        // TTR 923 add the dependency for a derived parameter to
-                        // the list of db fields to be queried.
-                        if (!setOfDBParamNamesForHdf5Query.contains(dPrm)) {
-                            setOfDBParamNamesForHdf5Query.add(dPrm);
-                        }
-
                     } else {
-                        System.out.println("Warning : '" + dPrm
+                        statusHandler.handle(Priority.WARN, "Warning: '" + dPrm
                                 + " is not a valid metParameter name");
                         return null;
                     }
@@ -955,7 +884,8 @@ public class NcPlotModelHdf5DataRequestor {
     }
 
     private Collection<Station> requestUpperAirData(
-            List<Station> listOfStationsRequestingForData) {
+            List<Station> listOfStationsRequestingForData,
+            int stationsRetrievedThisCallCount) {
         Tracer.print("> Entry" + "\n"
                 + Tracer.printableStationList(listOfStationsRequestingForData));
         List<Boolean> displayStationPlotBoolList = new ArrayList<Boolean>(0);
@@ -968,14 +898,13 @@ public class NcPlotModelHdf5DataRequestor {
         List<Long> rangeTimeLst = new ArrayList<Long>(listSize);
         Map<String, Station> mapOfStnidsWithStns = new HashMap<String, Station>();
         synchronized (listOfStationsRequestingForData) {
-        	for (Station currentStation : listOfStationsRequestingForData) {
+            for (Station currentStation : listOfStationsRequestingForData) {
                 refTime = currentStation.info.dataTime.getRefTime();
                 long stnTime = currentStation.info.dataTime.getValidTime()
                         .getTimeInMillis();
                 beginTime = (beginTime < stnTime ? stnTime : beginTime);
                 endTime = (endTime > stnTime ? stnTime : endTime);
                 String stnId = new String(currentStation.info.stationId);
-                //System.out.println("stnId"+j+ " = "+stnId);
                 if (stationHasAllParametersItNeeds(currentStation, parameters)) {
                     Tracer.print("Station "
                             + currentStation.info.stationId
@@ -989,69 +918,42 @@ public class NcPlotModelHdf5DataRequestor {
                 }
             }
         }
-        if(stnIdLst.size() <=0 || rangeTimeLst.size() <=0 ){
-        	// No stations, no query
+        if (stnIdLst.size() <= 0 || rangeTimeLst.size() <= 0) {
+            // No stations, no query
             Tracer.print("SKIPPING request for UPPER AIR data because "
                     + stnIdLst.size() + " (zero) out of "
                     + listOfStationsRequestingForData.size()
-                    + " stations need it");        
-        	return null;
-        }
-        else {
-        	Tracer.print("Requesting UPPER AIR data for " + stnIdLst.size()
+                    + " stations need it");
+            return null; // TODO check to see if positive abort required
+        } else {
+            Tracer.print("Requesting UPPER AIR data for " + stnIdLst.size()
                     + " out of " + listOfStationsRequestingForData.size()
                     + " stations");
         }
         long[] refTimelArray = new long[1];
         refTimelArray[0] = refTime.getTime();
         long[] rangeTimeArray = new long[rangeTimeLst.size()];
-        for(int k=0; k<rangeTimeLst.size();k++)
-        	rangeTimeArray[k]= rangeTimeLst.get(k);
+        for (int k = 0; k < rangeTimeLst.size(); k++)
+            rangeTimeArray[k] = rangeTimeLst.get(k);
         String[] stnIdArray;
         stnIdArray = stnIdLst.toArray((new String[0]));
         NcSoundingCube sndingCube = null;
-//        String sndType="";
-//        if (plugin.equals("modelsounding")) {
-//        	if (!constraintMap.containsKey("reportType")) {
-//        		System.out.println("requestUpperAirData: missing modelName (reportType) for modelsounding plugin");
-//        		return null;
-//        	}
-//        	String modelName = constraintMap.get("reportType").getConstraintValue();
-//        	if (modelName.startsWith("NAM")
-//        			|| modelName.startsWith("ETA")) {
-//        		sndType = PfcSndType.NAMSND.toString();
-//        	} else if (modelName.startsWith("GFS")) {
-//        		sndType = PfcSndType.GFSSND.toString();
-//        	}
-//        	else {
-//        		System.out.println("requestUpperAirData: unreconized modelsounding model name "+modelName);
-//        		return null;
-//        	}
-//        }
-//        else if (plugin.equals("ncuair")) {
-//        	sndType = ObsSndType.NCUAIR.toString();
-//        }
-//        else {
-//        	System.out.println("requestUpperAirData: unreconized plugin name "+ plugin);
-//        	return null;
-//        }
+
         // Make the query
-        
+
         long t004 = System.nanoTime();
-        sndingCube = PlotModelMngr.querySoundingData(refTimelArray, rangeTimeArray, stnIdArray, plugin, levelStr,  constraintMap,paramsToPlot);
-//SoundingQuery.genericSoundingDataQuery( refTimelArray, rangeTimeArray, null, null,null,  
-//        		stnIdArray,sndType,  NcSoundingLayer.DataType.ALLDATA,  true,  levelStr,
-//        		null, true, true, isPrecipitableWaterForEntireSoundingRequired());
+        sndingCube = PlotModelMngr.querySoundingData(refTimelArray,
+                rangeTimeArray, stnIdArray, plugin, levelStr, constraintMap,
+                paramsToPlot);
         long t005 = System.nanoTime();
         Tracer.print("requestUpperAirData()-->genericSoundingDataQuery() took "
-        		+ (t005 - t004) / 1000000 + " ms");
-        //
+                + (t005 - t004) / 1000000 + " ms");
+
         // TODO -- This shouldn't be necessary, given Amount.getUnit() should
-        // now heal itself
-        // from a null unit by using the String.
+        // now heal itself from a null unit by using the String.
         // Repair the 'unit' in the met params, if damaged (as in, nulled) in
-        // transit.
-        // System.out.println("PlotModelGenerator2.plotUpperAirData() begin fixing returned data...");
+        // transit. UPDATE: Suggest seeing if a JAXB XmlAdapter could be used to
+        // transmit the 'unit'
         if (sndingCube != null && sndingCube.getRtnStatus() == QueryStatus.OK) {
             List<NcSoundingProfile> listOfSoundingProfiles = sndingCube
                     .getSoundingProfileList();
@@ -1073,9 +975,6 @@ public class NcPlotModelHdf5DataRequestor {
                 }
             }
         }
-        // System.out.println("PlotModelGenerator2.plotUpperAirData() done fixing returned data");
-        // TODO -- End
-        //
 
         if (sndingCube != null && sndingCube.getRtnStatus() == QueryStatus.OK) {
             List<NcSoundingProfile> listOfSoundingProfiles = sndingCube
@@ -1116,10 +1015,11 @@ public class NcPlotModelHdf5DataRequestor {
                             .getSoundingLyLst2().get(0);
                     Map<String, AbstractMetParameter> soundingParamsMap = sndingLayer
                             .getMetParamsMap();
+
                     // set all the paramsToPlot values to missing. (All the
                     // metParams in the paramsToPlot map are references into the
                     // derivedParamsMap and the dbParamsMap.)
-                    //
+
                     for (AbstractMetParameter metPrm : derivedParamsList) {
                         metPrm.setValueToMissing();
                     }
@@ -1164,12 +1064,7 @@ public class NcPlotModelHdf5DataRequestor {
                                         .getStationLongitude(),
                                         NonSI.DEGREE_ANGLE));
                             }
-                            // else if( metPrm.getMetParamName().equals(
-                            // StationElevation.class.getSimpleName() ) ) {
-                            // // metPrm.setValue( new Amount(
-                            // // sndingProfile.getStationElevation(), SI.METER
-                            // ) );
-                            // }
+                            // TODO: check stationId handling
                             else if (newInstance.getMetParamName().equals(
                                     StationID.class.getSimpleName())) {
                                 if (!sndingProfile.getStationId().isEmpty()) {
@@ -1178,10 +1073,7 @@ public class NcPlotModelHdf5DataRequestor {
                                 } else {
                                     newInstance.setValueToMissing();
                                 }
-                                // if( stnInfo.stationId != null &&
-                                // !stnInfo.stationId.isEmpty() ) {
-                                // metPrm.setStringValue( stnInfo.stationId );
-                                // }
+                                // TODO: check stationId handling
                             } else if (newInstance.getMetParamName().equals(
                                     StationNumber.class.getSimpleName())) {
                                 if (sndingProfile.getStationNum() != 0) {
@@ -1343,12 +1235,6 @@ public class NcPlotModelHdf5DataRequestor {
         return (mapOfStnidsWithStns.values());
     }
 
-//    private Boolean isPrecipitableWaterForEntireSoundingRequired() {
-//        return paramsToPlot
-//                .containsKey(PrecipitableWaterForEntireSounding.class
-//                        .getSimpleName());
-//    }
-
     private boolean stationHasAllParametersItNeeds(Station station,
             String[] namesOfNeededParameters) {
         nextNeededParam: for (String neededParameterName : namesOfNeededParameters) {
@@ -1375,10 +1261,9 @@ public class NcPlotModelHdf5DataRequestor {
     }
 
     private Collection<Station> requestSurfaceData(DataTime time,
-            List<Station> listOfStationsRequestingForData) {
+            List<Station> listOfStationsRequestingForData,
+            int stationsRetrievedThisCallCount) {
         Tracer.print("> Entry  " + Tracer.shortTimeString(time));
-
-        // sem1.acquireUninterruptibly();
 
         Map<String, Station> stationMap = new HashMap<String, Station>(
                 listOfStationsRequestingForData.size());
@@ -1585,7 +1470,8 @@ public class NcPlotModelHdf5DataRequestor {
                 for (int uriCounter = 0; uriCounter < pdcSize; uriCounter++) {
 
                     PointDataView pdv = pdc.readRandom(uriCounter);
-                    if (pdv == null) { // ??
+
+                    if (pdv == null) {
                         Tracer.print(Tracer.shortTimeString(time)
                                 + " PDV is null for station " + uriCounter
                                 + " -- skipping");
@@ -1636,8 +1522,6 @@ public class NcPlotModelHdf5DataRequestor {
                         continue;
                     }
 
-                    Semaphore sm = new Semaphore(1);
-                    sm.acquireUninterruptibly();
                     synchronized (paramsToPlot) {
                         Set<String> pkeySet = paramsToPlot.keySet();
                         synchronized (pkeySet) {
@@ -1654,11 +1538,9 @@ public class NcPlotModelHdf5DataRequestor {
                                     }
                                 }
                             } catch (Exception e) {
-                                sm.release();
                             }
                         }
                     }
-                    sm.release();
                     List<Boolean> displayStationPlotBoolList = new ArrayList<Boolean>(
                             0);
 
@@ -1767,8 +1649,7 @@ public class NcPlotModelHdf5DataRequestor {
                                 allMetParamsMap.put(
                                         clonedDerivedPrm.getMetParamName(),
                                         clonedDerivedPrm);
-                                // TTR 923 - Save the derived parameter so it
-                                // it gets painted
+                                // Save the derived parameter so it gets painted
                                 if (paramsToPlot.containsKey(clonedDerivedPrm
                                         .getMetParamName())) {
                                     paramsToPlot.put(
@@ -1813,7 +1694,6 @@ public class NcPlotModelHdf5DataRequestor {
                     if (!currentStation.listOfParamsToPlot.isEmpty()) {
                         currentStation.listOfParamsToPlot.clear();
                     }
-                    sm.acquireUninterruptibly();
                     metParamsToDisplay = new ArrayList<AbstractMetParameter>(
                             paramsToPlot.values());
 
@@ -1840,11 +1720,9 @@ public class NcPlotModelHdf5DataRequestor {
                             }
 
                         } catch (Exception e) {
-                            sm.release();
                         }
                     }
 
-                    sm.release();
                     /*
                      * Process the conditional parameter(s) (if any) for the
                      * station
@@ -1898,8 +1776,6 @@ public class NcPlotModelHdf5DataRequestor {
                     // "\nList of AbstractMetParameter values from the station itself:\n"
                     // + currentStation.listOfParamsToPlot);
 
-                    sm.acquireUninterruptibly();
-
                     synchronized (paramsToPlot) {
                         Set<String> pkeySet = paramsToPlot.keySet();
                         synchronized (pkeySet) {
@@ -1915,11 +1791,9 @@ public class NcPlotModelHdf5DataRequestor {
                                 }
 
                             } catch (Exception e) {
-                                sm.release();
                             }
                         }
                     }
-                    sm.release();
 
                 }
             } catch (VizException e) {
@@ -1930,7 +1804,7 @@ public class NcPlotModelHdf5DataRequestor {
 
         }
 
-        // sem1.release();
+        sem1.release();
 
         String stations = "";
         for (Station s : stationMap.values()) {
@@ -2039,19 +1913,16 @@ public class NcPlotModelHdf5DataRequestor {
     public Station processConditionalParameterForEachStation(
             Collection<AbstractMetParameter> metPrmCollection,
             Station currentStation, String condColorParamName) {
-
         Tracer.print("> Entry  " + currentStation.info.toString());
         synchronized (metPrmCollection) {
             for (AbstractMetParameter thisCondColorParam : metPrmCollection) {
                 if (condColorParamName.equals(thisCondColorParam
                         .getMetParamName())) {
-
                     AbstractMetParameter newPrm = newInstance(thisCondColorParam);
                     if (newPrm == null) {
                         continue;
                     }
                     currentStation.setOfConditionalColorParams.add(newPrm);
-
                 }
             }
         }
@@ -2126,47 +1997,49 @@ public class NcPlotModelHdf5DataRequestor {
         @Override
         public void run() {
             Tracer.print("> Entry  START TASK " + Tracer.shortTimeString(time));
-            if (levelStr == null) {
-                return;
+            if (levelStr == null || listOfStationsRequestingForData.isEmpty()) {
+                listener.retrievalAborted(time);
             }
 
             Collection<Station> stationsWithData = new ArrayList<Station>(0);
             long t0 = System.nanoTime();
 
-            if (listOfStationsRequestingForData.size() == 0) {
-                return;
-            }
-
-            // Tracer.sanityCheckStationSet(listOfStationsRequestingForData);
-            // parameters to plot not populated yet
-
+            int stationsRetrievedThisCallCount = 0;
             if (levelStr.equals("Surface")) {
                 stationsWithData = requestSurfaceData(time,
-                        listOfStationsRequestingForData);
+                        listOfStationsRequestingForData,
+                        stationsRetrievedThisCallCount);
             } else {
-                stationsWithData = requestUpperAirData(listOfStationsRequestingForData);
+                stationsWithData = requestUpperAirData(
+                        listOfStationsRequestingForData,
+                        stationsRetrievedThisCallCount);
             }
 
             long t1 = System.nanoTime();
 
-            if(stationsWithData != null)
-            	Tracer.print("Finished getting data for " + stationsWithData.size()
+            Tracer.print("Finished getting data for " + stationsWithData.size()
                     + " stations in " + (t1 - t0) / 1000000 + " ms for frame: "
                     + Tracer.shortTimeString(time));
 
             if (canceling) {
                 Tracer.print("CANCEL in progress; no plot creation will occur for frame "
                         + Tracer.shortTimeString(time));
-
-            } else if (listOfStationsRequestingForData.size() > 0) {
-                imageCreator.queueStationsToCreateImages(time,
-                        listOfStationsRequestingForData, plotDensity);
+                listener.retrievalAborted(time);
+            } else if (listOfStationsRequestingForData.isEmpty()) {
+                Tracer.print("*NO* stations; no plot creation will occur for frame "
+                        + Tracer.shortTimeString(time));
+                listener.retrievalAborted(time);
+            } else {
+                boolean isThereAConditionalFilter = false;
+                listener.retrievalComplete(time,
+                        listOfStationsRequestingForData,
+                        stationsRetrievedThisCallCount,
+                        isThereAConditionalFilter);
             }
 
             Tracer.print("< Exit   END TASK   " + Tracer.shortTimeString(time));
 
         }
-
     }
 
 }

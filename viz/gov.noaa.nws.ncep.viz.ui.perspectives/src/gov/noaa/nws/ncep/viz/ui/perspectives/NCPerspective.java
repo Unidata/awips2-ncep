@@ -21,6 +21,7 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * 09/27/2009   169         G. Hull     require NCMapEditor
  * 07/07/2014   R4079       Q. Zhou     Add timeseries view
  * 05/05/2014   R4078       S. Gurung   Added place holder for RTKp related views
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration
  * </pre>
  * 
  * @author
@@ -57,8 +58,8 @@ public class NCPerspective implements IPerspectiveFactory {
         // long t3 = System.currentTimeMillis();
         // System.out.println("Time to add Placeholder:  " + (t3-t2) + " ms");
 
-        layout.addPlaceholder("gov.noaa.nws.ncep.ui.nsharp", IPageLayout.LEFT,
-                0.15f, refId);
+        layout.addPlaceholder("gov.noaa.nws.ncep.ui.nsharp.defaultview1", IPageLayout.RIGHT,
+                0.94f, refId);
         // long t4 = System.currentTimeMillis();
         // System.out.println("Time to add Placeholder for NSHARP:  " + (t4-t3)
         // + " ms");

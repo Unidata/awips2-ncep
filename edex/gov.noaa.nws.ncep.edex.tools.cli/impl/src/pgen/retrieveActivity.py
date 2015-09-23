@@ -1,15 +1,24 @@
 #!/usr/bin/env python
-
+#
 ##
 # This script is used to extract PGEN products from EDEX.
-# It can be run in batch mode by specifying the "-l", "-t", "-d", "-st", "-n", and
-# "-p" options on the command line.  Optionally, users can run it in interactive 
+# It can be run in batch mode by specifying the "-l", "-type", "-tag", "-time", "-d", "-st", "-n",
+# and "-p" options on the command line.  Optionally, users can run it in interactive 
 # mode by invoking it with no argument.
 # 
 # Users can override the default EDEX server and port name by specifying them
 # in the $DEFAULT_HOST and $DEFAULT_PORT shell environment variables.
 # 
+# ??/??    R5250    A. Su    PGEN - retrieveActivity command line interface does not work
+#
+# 03/18    R5801    A. Su    PGEN - retrieveActivity command line interface does not work
+#
+# 07/02    R8536    P. Chowdhuri
+#                            PGEN - retrieveActivity should grab latest if -d option not provided                            
+#
+#
 ##
+#
 
 import os
 import logging
@@ -41,38 +50,48 @@ def __parseCommandLine():
     parser = UsageArgumentParser.UsageArgumentParser(prog='retrieveActivity',description="Retrieve PGEN Activities from EDEX.  When invoked without any arguments, retrieveActivity is run in interactive mode.")
     bgroup = parser.add_argument_group(title='batch',description='For running in scripts and/or batch mode.')
 
-    bgroup.add_argument("-l*", action="store", dest="label", 
-                      help="Activity Label being requested", 
-                      required=False, metavar="label")
-    bgroup.add_argument("-t*", action="store", dest="type", 
+    bgroup.add_argument("-type", action="store", dest="type", 
                       help="Activity Type being requested",
-                      required=False, metavar="type")
+                      required=False, metavar="  type")
     bgroup.add_argument("-st", action="store", dest="subtype", 
                       help="Activity Subtype being requested",
-                      required=False, metavar="subtype")
-    bgroup.add_argument("-d*", action="store", dest="reftime", 
+                      required=False, metavar="    subtype")
+    bgroup.add_argument("-tag", action="store", dest="tagId", 
+                      help="Tag ID being requested", 
+                      required=False, metavar="   tag")
+    bgroup.add_argument("-l", action="store", dest="label", 
+                      help="Activity Label being requested", 
+                      required=False, metavar="     label")
+    bgroup.add_argument("-time", action="store", dest="reftime", 
                       help="Activity Ref Time being requested (YYYY-MM-DD_HH:MM)",
-                      required=False, metavar="reftime")
-    bgroup.add_argument("-n*", action="store", dest="name", 
+                      required=False, metavar="  time")
+    bgroup.add_argument("-n", action="store", dest="name", 
                       help="Activity Name being requested",
-                      required=False, metavar="name")
+                      required=False, metavar="     name")
     bgroup.add_argument("-f", action="store", dest="fullpath", 
                       help="Write out XML with full path? (Yes/No)",
-                      required=False, metavar="fullpath")
+                      required=False, metavar="     Yes/No")
     
-    bgroup = parser.add_argument_group(title='Note',description='Pattern match with "*" is allowed for -l, -t, -d, and -n. E.g, -l "*CCFP*3*" will match any activities whose label contains CCFP and 3.')
+    bgroup = parser.add_argument_group(title='Note',description='Pattern matching with "*" is allowed for -type, -l, -time, and -n. E.g., -l "*CCFP*3*" will match any activities whose label contains CCFP and 3.')
     
     options = parser.parse_args()
     
     options.interactive = False
+    # R8536 In the beginning it isn't known if there are records to extract
+    options.haverecords = False
+    options.latestnotime = False
     if (options.label == None and options.type == None and 
         options.reftime == None and options.subtype == None and 
+        options.tagId == None and 
         options.fullpath == None and options.name == None):
             options.interactive = True
+    # R8536 change If a value isn't there for the --time qualifier
+    elif (options.reftime == None):
+            options.latestnotime = True
     else:
         if (options.label == None and options.type == None and 
             options.reftime == None and options.name == None):
-            print "Must enter values for at least one of -l, -t, -d, or -n"
+            print "Must enter values for at least one of -type, -tag, -time, -l, -d, or -n"
             exit(0)
        
     logger.debug("Command-line arguments: " + str(options))
@@ -95,45 +114,78 @@ def main():
         app.mainloop()
         root.destroy()
     else:
-        # Retrieve all activities abnd build a map of record using
+        # Retrieve all activities and build a map of record using
         # type(subtype) as key.
         mu = ActivityUtil.ActivityUtil()
         activityMap = mu.getActivityMap()
     
+        # Replace a space with the "_" in the type, accepting "CONV SIGMET" & "OUTL SIGMET".
         reqtype = None
         if ( options.type != None ):
-            reqtype = options.type;
+            reqtype = options.type.replace(" ", "_");
             if ( options.subtype != None ) :
                 reqtype = options.type + "(" + options.subtype + ")"
-                     
+
+	# Form the matching pattern for tag ID
+        tagID = None
+        if ( options.tagId != None):
+            tagID = "*\." + options.tagId + "\.*"
+
         records = []
+        # R8536 change define the variable for data in the latest activity file
+        latestrec = []
+        # R8536 change Most recent time on the data isn't known here
+        latestRefTime = None
+
         for key in activityMap.iterkeys():
             recs = activityMap[key]
             for rec in recs:
                 if ( mu.stringMatcher(options.label, rec["activityLabel"]) and
+		     mu.stringMatcher(tagID, rec["activityLabel"]) and
                      mu.stringMatcher(reqtype, key ) and 
                      mu.stringMatcher(options.name, rec["activityName"] ) ):
                          #Remove sec.msec from record's refTime
                          dbRefTime = rec["dataTime.refTime"]
+                         if (latestRefTime == None):
+                             latestRefTime = dbRefTime;
+                             latestrec.append(rec)
+
                          dotIndex = dbRefTime.rfind(":")
                          if ( dotIndex > 0 ):
                              shortTime = dbRefTime[:dotIndex]
                          else:
                              shortTime = dbRefTime
-                         
+                             
+                         if ( latestRefTime < dbRefTime ):
+                             latestRefTime = dbRefTime;
+                             latestrec[0] = rec
+
+                         optionTime = options.reftime
+
+                         if ( optionTime != None ):
                          #Replace the "_" with a whitespace in reftime.
-                         optionTime = options.reftime.replace("_", " ")
-                 
-                         if ( mu.stringMatcher( optionTime, shortTime ) ):
-                             records.append( rec )    
-                                               
+                                optionTime = optionTime.replace("_", " ");
+                                if ( mu.stringMatcher( optionTime, shortTime ) ):
+                                    records.append( rec )
+                         elif ( options.latestnotime ):
+                                records=latestrec
+
+        # R8536 change if there are data records to write to files set the variable and write
         for rec in records:
+            options.haverecords = True;
             pr = ProductRetriever.ProductRetriever(rec["dataURI"], rec["activityLabel"])
             if options.fullpath != None and options.fullpath.upper().startswith("Y"):
                 pr.setFullpath(True)
             pr.getProducts()
 
-    logger.info("retrieveActivity is complete.")
+    # R8536 change If there's data to write most recent activity to file when "-time" isn't specified
+    if ( options.latestnotime and options.haverecords ):
+       logger.info("Latest file(s) Extracted, -time unspecified")
+    # R8536 change If there isn't activity data to write qualifier use could be improper (e.g. -tag "")
+    elif ( not options.haverecords ):
+       logger.info("Matching records weren't found, see qualifiers")
+    else:
+       logger.info("retrieveActivity is complete.")
 
 #
 #  Interactive GUI for PGEN activity retrieval 
@@ -247,3 +299,4 @@ class RetrieveGui(Frame):
 
 if __name__ == '__main__':
     main()
+

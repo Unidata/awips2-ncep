@@ -3168,6 +3168,12 @@
                     id="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                     name="Natl Centers PGEN Context">
            </context>
+           <!-- A context for PGEN contours hotkeys -->
+           <context 
+                    description="The Natl Centers Product Genaration Context"
+                    id="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
+                    name="Natl Centers PGEN Context">
+           </context>
    </extension>
    
    <extension
@@ -3382,17 +3388,17 @@
                 <parameter  id="action" value="Save" />
          </key>         
           
-         <!-- Hot keys to move contour level up/down -->       
+         <!-- Hot keys to move contour level up/down within pgenContoursContext -->       
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
-                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
                 sequence="ARROW_UP">
                 <parameter  id="action" value="ARROW_UP" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
-                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
                 sequence="ARROW_DOWN">
                 <parameter  id="action" value="ARROW_DOWN" />

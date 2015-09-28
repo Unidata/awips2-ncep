@@ -98,6 +98,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *                                       to get params from sub-types for high-cadence data.
  * 08/17/2015    R7755      J. Lopez     Only the lowest level localization file is read, moved isEnabled" flag  is moved to Resource Definitions and 
  *                                       removed "Filterable Labels" section from Resource Definition editor. Replaced serialization with JaxB
+ * 09/25/2015    R12042     J. Lopez     Fix the bug where Attribute Set Groups and the Attributes are not loaded
  * 
  * </pre>
  * 
@@ -618,9 +619,9 @@ public class ResourceDefnsMngr {
                 ResourceDefinition asgRscDefn = getResourceDefinition(asg
                         .getResource());
                 if (asgRscDefn == null) {
-                    // out.println("AttrSetGroup file " + asgFile.getName()
-                    // + " has a unknown resource:" + asg.getResource());
-                    break;
+                    out.println("AttrSetGroup file " + asgFile.getName()
+                            + " has a unknown resource:" + asg.getResource());
+                    continue;
                 }
 
                 String rscImpl = asgRscDefn.getRscImplementation();

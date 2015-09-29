@@ -51,9 +51,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
 import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
+import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
 /**
@@ -68,6 +68,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 12/13        1084        J. Wu         Add table-control for Cint in contoursInfo.xml
  * 08/01/2015   8213        P.            CAVE>PGEN 
  *                          Chowdhuri      - Refinements to contoursInfo.xml
+ * 09/29/2015   R8163       J. Wu         Prevent exception when contour type changes.
  * 
  * </pre>
  * 
@@ -75,19 +76,21 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  */
 
 public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
-	
-	// Status handling
-    private static final IUFStatusHandler handler = UFStatus.getHandler(ContoursInfoDlg.class);
+
+    // Status handling
+    private static final IUFStatusHandler handler = UFStatus
+            .getHandler(ContoursInfoDlg.class);
 
     // Contours information files
     private static List<String> contoursInfoParamFilelist;
 
     // Contours information
-    private static HashMap<String, ContoursInfo> contoursInfoTbl; 
-	private static HashMap<String, ContoursInfo> contoursInfoTables;
+    private static HashMap<String, ContoursInfo> contoursInfoTbl;
 
-	// The JAXB Manager
-	private static SingleTypeJAXBManager<ContourRoot> cntrInfoManager;
+    private static HashMap<String, ContoursInfo> contoursInfoTables;
+
+    // The JAXB Manager
+    private static SingleTypeJAXBManager<ContourRoot> cntrInfoManager;
 
     private Composite top = null;
 
@@ -152,7 +155,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
     /**
      * Creates the dialog area
-     *  
+     * 
      */
     @Override
     public Control createDialogArea(Composite parent) {
@@ -165,14 +168,14 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         mainLayout.horizontalSpacing = 3;
         top.setLayout(mainLayout);
 
-	    initializeComponents(top);
+        initializeComponents(top);
 
         return top;
     }
 
     /**
      * create components for the dialog
-     *  
+     * 
      */
     private void initializeComponents(Composite comp) {
 
@@ -222,7 +225,8 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         levelCombo1.select(0);
         levelCombo1.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                updateComboText(levelCombo1, levelValueTxt1, levelCombo1.getText());
+                updateComboText(levelCombo1, levelValueTxt1,
+                        levelCombo1.getText());
                 updateCintText();
             }
         });
@@ -247,7 +251,8 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         levelCombo2.add("Other");
         levelCombo2.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                updateComboText(levelCombo2, levelValueTxt2, levelCombo2.getText());
+                updateComboText(levelCombo2, levelValueTxt2,
+                        levelCombo2.getText());
             }
         });
 
@@ -491,7 +496,10 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         updateComboText(fcsthrCombo, fcsthrTxt, attr.getForecastHour());
 
-        cintTxt.setText(attr.getCint());
+        // Update cint if it is valid.
+        if (attr.getCint() != null && attr.getCint().trim().length() > 0) {
+            cintTxt.setText(attr.getCint());
+        }
 
         setTime1(attr.getTime1());
         setTime2(attr.getTime2());
@@ -507,168 +515,205 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     }
 
     /**
-     * Reads a list of contours Info xml files by Parm
-     * #R8213
+     * Reads a list of contours Info xml files by Parm #R8213
      * 
      * @return - list of contour information xml files
      */
-	public static final List<String> readInfoFilelistTbl()  {
+    public static final List<String> readInfoFilelistTbl() {
 
-    	// reads and parses contoursInfo.xml file
-		
-	    if (null == contoursInfoParamFilelist)  {
+        // reads and parses contoursInfo.xml file
 
-	    contoursInfoParamFilelist = new ArrayList<String>();
+        if (null == contoursInfoParamFilelist) {
 
-        try {
+            contoursInfoParamFilelist = new ArrayList<String>();
 
-        	    String contoursInfoRoot = PgenStaticDataProvider.getProvider().getPgenLocalizationRoot() 
-        	    		                + "/contoursInfo.xml";
-        	    
-	            String contoursInfoFile = PgenStaticDataProvider.getProvider().getFileAbsolutePath(contoursInfoRoot);
+            try {
 
-	            // See if the contours info xml files are well-formed
+                String contoursInfoRoot = PgenStaticDataProvider.getProvider()
+                        .getPgenLocalizationRoot() + "/contoursInfo.xml";
 
-	            SAXParserFactory saxfactory = SAXParserFactory.newInstance();
-	            saxfactory.setValidating(false);
-	            saxfactory.setNamespaceAware(true);
+                String contoursInfoFile = PgenStaticDataProvider.getProvider()
+                        .getFileAbsolutePath(contoursInfoRoot);
 
-	            SAXParser cntrInfoparser = saxfactory.newSAXParser();
+                // See if the contours info xml files are well-formed
 
-	            XMLReader cntrInforeader = cntrInfoparser.getXMLReader();
-	            cntrInforeader.setErrorHandler(new SimpleHandler());
-	            InputSource cntrInfoSrc = new InputSource(contoursInfoFile);
-	            cntrInforeader.parse(cntrInfoSrc);
-	            
-	            cntrInfoSrc = null;
+                SAXParserFactory saxfactory = SAXParserFactory.newInstance();
+                saxfactory.setValidating(false);
+                saxfactory.setNamespaceAware(true);
 
-        		String cntrInfoSrcRoot = "";
+                SAXParser cntrInfoparser = saxfactory.newSAXParser();
 
-                if (null == cntrInfoManager)	{
-    		        cntrInfoManager = new SingleTypeJAXBManager<ContourRoot>(ContourRoot.class);
+                XMLReader cntrInforeader = cntrInfoparser.getXMLReader();
+                cntrInforeader.setErrorHandler(new SimpleHandler());
+                InputSource cntrInfoSrc = new InputSource(contoursInfoFile);
+                cntrInforeader.parse(cntrInfoSrc);
+
+                cntrInfoSrc = null;
+
+                String cntrInfoSrcRoot = "";
+
+                if (null == cntrInfoManager) {
+                    cntrInfoManager = new SingleTypeJAXBManager<ContourRoot>(
+                            ContourRoot.class);
                 }
 
-	            ContourRoot cntrInfoRoot = 
-	                		cntrInfoManager.unmarshalFromXmlFile(contoursInfoFile);
+                ContourRoot cntrInfoRoot = cntrInfoManager
+                        .unmarshalFromXmlFile(contoursInfoFile);
 
-	            String cntrInfoFile = null;
+                String cntrInfoFile = null;
 
-	                for (ContoursInfo cntrinfo : cntrInfoRoot.getCntrList()) {
-						if (null != cntrinfo.getName() && !cntrinfo.getName().isEmpty()
-						&&  null != cntrinfo.getParm() && !cntrinfo.getParm().isEmpty()
-						&&  "path".equals(cntrinfo.getParm())
-						&&  "cfiles".equals(cntrinfo.getName())) {
-	                    	ContourFiles cntrfile = cntrinfo.getCfiles();
-		                    if (null != cntrfile) {
-		                        for (String filepath: cntrfile.getPaths()) {
-		                        	if (null != filepath && !filepath.isEmpty())
-		                        	{
-		                        		cntrInfoSrcRoot = PgenStaticDataProvider.getProvider().getPgenLocalizationRoot() + "/" + filepath;
-		                        		cntrInfoFile = PgenStaticDataProvider.getProvider().getFileAbsolutePath(cntrInfoSrcRoot);
-		                        		cntrInfoSrc = new InputSource(cntrInfoFile);
-		                        		cntrInforeader.parse(cntrInfoSrc);
+                for (ContoursInfo cntrinfo : cntrInfoRoot.getCntrList()) {
+                    if (null != cntrinfo.getName()
+                            && !cntrinfo.getName().isEmpty()
+                            && null != cntrinfo.getParm()
+                            && !cntrinfo.getParm().isEmpty()
+                            && "path".equals(cntrinfo.getParm())
+                            && "cfiles".equals(cntrinfo.getName())) {
 
-		                                contoursInfoParamFilelist.add(filepath);
-		                                
-		                	            cntrInfoSrc = null;
-		                	            cntrInfoFile = null;
-		                        	 }
-		                        }
-		                    }
-	                     }
-	                }
-	                
-	             cntrInfoSrcRoot = null;
-	             cntrInfoSrc = null;
-		         cntrInfoparser = null;
-		         saxfactory = null;
-		         cntrInforeader = null;
-		         
-		         contoursInfoRoot = null;
-		         contoursInfoFile = null;
-	                
-        } catch (Exception e) {
+                        ContourFiles cntrfile = cntrinfo.getCfiles();
 
-              handler.handle(Priority.ERROR, 
-            		         "ContoursInfoDlg: exception reading contourInfo xml in readInfoTbl .",
-            		         e);
+                        /*
+                         * Checks for non-existing files and invalid files
+                         */
+                        if (null != cntrfile && cntrfile.getPaths() != null) {
+                            for (String filepath : cntrfile.getPaths()) {
+                                if (null != filepath && !filepath.isEmpty()) {
 
-          }	                
+                                    cntrInfoSrcRoot = PgenStaticDataProvider
+                                            .getProvider()
+                                            .getPgenLocalizationRoot()
+                                            + "/" + filepath;
 
-	   } // contoursInfoParamFileList null.
-	    
-	   cntrInfoManager = null;
-	   
-      return contoursInfoParamFilelist;
+                                    if (PgenStaticDataProvider.getProvider()
+                                            .getFile(cntrInfoSrcRoot) != null) {
+                                        cntrInfoFile = PgenStaticDataProvider
+                                                .getProvider()
+                                                .getFileAbsolutePath(
+                                                        cntrInfoSrcRoot);
+                                        cntrInfoSrc = new InputSource(
+                                                cntrInfoFile);
+                                        try {
+                                            cntrInforeader
+                                                    .setErrorHandler(null);
+                                            cntrInforeader.parse(cntrInfoSrc);
+                                            contoursInfoParamFilelist
+                                                    .add(filepath);
+                                        } catch (Exception e) {
+                                            handler.handle(Priority.WARN,
+                                                    "ContoursInfoDlg: Invalid contourInfo xml: "
+                                                            + filepath);
+                                        }
 
-    }    
-    
+                                        cntrInfoSrc = null;
+                                    }
+
+                                    cntrInfoFile = null;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                cntrInfoSrcRoot = null;
+                cntrInfoSrc = null;
+                cntrInfoparser = null;
+                saxfactory = null;
+                cntrInforeader = null;
+
+                contoursInfoRoot = null;
+                contoursInfoFile = null;
+
+            } catch (Exception e) {
+
+                handler.handle(
+                        Priority.ERROR,
+                        "ContoursInfoDlg: exception reading contourInfo xml in readInfoFilelistTbl .",
+                        e);
+
+            }
+
+        } // contoursInfoParamFileList null.
+
+        cntrInfoManager = null;
+
+        return contoursInfoParamFilelist;
+
+    }
 
     /**
      * Read contours information xml files by Parm
      * 
      * @return - list of contours info objects
      */
-    public static final HashMap<String, ContoursInfo> readInfoTbl()  {
-    	
-    // Read contoursInfo.xml file and list the entries for individual 
-    // contoursInfo xml files in it
-    	
-	    if (null == contoursInfoTables) {
+    public static final HashMap<String, ContoursInfo> readInfoTbl() {
+
+        // Read contoursInfo.xml file and list the entries for individual
+        // contoursInfo xml files in it
+
+        if (null == contoursInfoTables) {
 
             contoursInfoTables = new HashMap<String, ContoursInfo>();
 
-		    if (null == contoursInfoParamFilelist)  {
-   	
-		    	contoursInfoParamFilelist =  ContoursInfoDlg.readInfoFilelistTbl();
-		    	
-				// Read from the contours info xml files in the list
+            if (null == contoursInfoParamFilelist) {
+
+                contoursInfoParamFilelist = ContoursInfoDlg
+                        .readInfoFilelistTbl();
+
+                // Read from the contours info xml files in the list
                 try {
-				    	
-                    if (null == cntrInfoManager)	{
-        		        cntrInfoManager = new SingleTypeJAXBManager<ContourRoot>(ContourRoot.class);
+
+                    if (null == cntrInfoManager) {
+                        cntrInfoManager = new SingleTypeJAXBManager<ContourRoot>(
+                                ContourRoot.class);
                     }
 
-                	for (String path: contoursInfoParamFilelist) {
+                    for (String path : contoursInfoParamFilelist) {
 
-                		String cntrInfoParmFileRoot = PgenStaticDataProvider.getProvider().getPgenLocalizationRoot() + "/" + path;
+                        String cntrInfoParmFileRoot = PgenStaticDataProvider
+                                .getProvider().getPgenLocalizationRoot()
+                                + "/"
+                                + path;
 
-		                String cntrInfoParmFile = PgenStaticDataProvider.getProvider().getFileAbsolutePath(cntrInfoParmFileRoot);
+                        String cntrInfoParmFile = PgenStaticDataProvider
+                                .getProvider().getFileAbsolutePath(
+                                        cntrInfoParmFileRoot);
 
-		                ContourRoot cntrInfoRoot = 
-		                		cntrInfoManager.unmarshalFromXmlFile(cntrInfoParmFile);
-		                
-		                    List<ContoursInfo> cntrInfo = cntrInfoRoot.getCntrList();
-		                
-			                for (ContoursInfo cinfo: cntrInfo)	{
-			                    if (null != cinfo.getName() && !cinfo.getName().isEmpty()
-			                    && null != cinfo.getParm() && !cinfo.getParm().isEmpty()) {
-			                    	
-			                        contoursInfoTables.put(cinfo.getParm(), cinfo);  	
-	
-			                    }
-			                }
-			
-		                }	// end foreach
-			
-	              }  catch (Exception e) {
-	            	  
-			             handler.handle(Priority.ERROR, 
-		            		            "ContoursInfoDlg: exception reading contourInfo xml in readInfoTbl .",
-		            		            e);
-	                }
+                        ContourRoot cntrInfoRoot = cntrInfoManager
+                                .unmarshalFromXmlFile(cntrInfoParmFile);
 
+                        List<ContoursInfo> cntrInfo = cntrInfoRoot
+                                .getCntrList();
 
-		    } // contoursInfoParamFileList end .
+                        for (ContoursInfo cinfo : cntrInfo) {
+                            if (null != cinfo.getName()
+                                    && !cinfo.getName().isEmpty()
+                                    && null != cinfo.getParm()
+                                    && !cinfo.getParm().isEmpty()) {
 
-	    } // contoursInfoTables end .
-	    
-		cntrInfoManager = null;
+                                contoursInfoTables.put(cinfo.getParm(), cinfo);
 
-       return contoursInfoTables;
+                            }
+                        }
+
+                    } // end foreach
+
+                } catch (Exception e) {
+
+                    handler.handle(
+                            Priority.ERROR,
+                            "ContoursInfoDlg: exception reading contourInfo xml in readInfoTbl .",
+                            e);
+                }
+
+            } // contoursInfoParamFileList end .
+
+        } // contoursInfoTables end .
+
+        cntrInfoManager = null;
+
+        return contoursInfoTables;
 
     }
-
 
     /**
      * Read contours information document
@@ -694,72 +739,75 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
      * @param type
      *            - name for the info
      * @return
-     *  
+     * 
      */
-    private static List<String> getContourParms(String parm)  {
- 
-    	List<String> retList = new ArrayList<String>();
-        
-    	// Read the contours info xml files
-        contoursInfoTbl = ContoursInfoDlg.readInfoTbl(); 
+    private static List<String> getContourParms(String parm) {
 
-        if ("Parm".equals(parm))  {
-        	
-	        Set<String> contoursInfoTblKeys = contoursInfoTbl.keySet();
-	
-	        String[] keySetArray = contoursInfoTblKeys.toArray(new String[0]);
-	        
-	        List<String> keySetArrList = Arrays.asList(keySetArray);
-	        
-	        Collections.reverse(keySetArrList);
-	        
-	        retList.addAll(keySetArrList);
+        List<String> retList = new ArrayList<String>();
 
-        } //  "Parm"
-        
-        if ("Level".equals(parm))  {
-        	
-        	String param = "";
+        // Read the contours info xml files
+        contoursInfoTbl = ContoursInfoDlg.readInfoTbl();
 
-        	Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
-        	
-	    	for (ContoursInfo cntrsInfo: cntrsInfoValues) { 
-	        	if (retList.isEmpty() || !retList.contains(param)) {
-	        		List<ContourLevel> levls = cntrsInfo.getLevels();
-	                for (ContourLevel lv: levls) {	
-	            		param = lv.getValue();
-	            		if (null != param && !param.isEmpty()) {
-	            			retList.add(param);
-	            		}
-	                }
-	        	}
-	    	}
+        if ("Parm".equals(parm)) {
 
-        }  //  "Level"       
-        
-        if ("ForecastHour".equals(parm))  {
-        	
-			String text = "";
+            Set<String> contoursInfoTblKeys = contoursInfoTbl.keySet();
 
-        	Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
-        	
-	    	for (ContoursInfo cntrsInfo: cntrsInfoValues) {  
-	        	if (retList.isEmpty() || !retList.contains(text)) {
-	        		FcstHrs fcsthrs = cntrsInfo.getFhrs();
-	        		List<ContourLabel> labels = fcsthrs.getClabels();
-	        		for (ContourLabel lbl: labels) {
-	            		text = lbl.getText();
-		        		if (null != text && !text.isEmpty()) {
-		            		retList.add(text);
-		            	}
-	        		} // labelnodes
-	        	}
-	    	}
+            String[] keySetArray = contoursInfoTblKeys.toArray(new String[0]);
 
-        }  //  "Fhr"
+            List<String> keySetArrList = Arrays.asList(keySetArray);
 
+            Collections.reverse(keySetArrList);
 
-        return retList; 
+            retList.addAll(keySetArrList);
+
+        } // "Parm"
+
+        if ("Level".equals(parm)) {
+
+            String param = "";
+
+            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
+
+            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
+                if (retList.isEmpty() || !retList.contains(param)) {
+                    if (cntrsInfo.getLevels() != null) {
+                        List<ContourLevel> levls = cntrsInfo.getLevels();
+                        for (ContourLevel lv : levls) {
+                            param = lv.getValue();
+                            if (null != param && !param.isEmpty()) {
+                                retList.add(param);
+                            }
+                        }
+                    }
+                }
+            }
+
+        } // "Level"
+
+        if ("ForecastHour".equals(parm)) {
+
+            String text = "";
+
+            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
+
+            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
+                if (retList.isEmpty() || !retList.contains(text)) {
+                    if (cntrsInfo.getFhrs() != null) {
+                        FcstHrs fcsthrs = cntrsInfo.getFhrs();
+                        List<ContourLabel> labels = fcsthrs.getClabels();
+                        for (ContourLabel lbl : labels) {
+                            text = lbl.getText();
+                            if (null != text && !text.isEmpty()) {
+                                retList.add(text);
+                            }
+                        } // labelnodes
+                    }
+                }
+            }
+
+        } // "Fhr"
+
+        return retList;
 
     }
 
@@ -812,38 +860,42 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     public static LinkedHashMap<String, String> getCints() {
 
         LinkedHashMap<String, String> cInts = new LinkedHashMap<String, String>();
-  
-		ContoursInfoDlg.readInfoTbl();
-        
+
+        ContoursInfoDlg.readInfoTbl();
+
         Collection<ContoursInfo> cntrsInfoObjects = contoursInfoTables.values();
-        
-		for (ContoursInfo cntrsInfo: cntrsInfoObjects) {
-          
-		  List<ContourLevel> levels = cntrsInfo.getLevels();
-		    	            
-		    // Iterating through level elements
-		    for (ContourLevel lv : levels) {
-		
-		        String levelValue = lv.getValue();
-		        String cint =  lv.getCint();
-		        String coord = lv.getCoord();
-		        String ckey  = "";
 
-		        if ( null != coord && 0 < coord.trim().length()) {
-		            ckey += coord;
-		            if (null != levelValue && 0 < levelValue.trim().length()) {
-		                ckey += "-" + levelValue;
-		            }
-		
-		            if (null != cint && 0 < cint.trim().length()) {
-		                cInts.put(ckey, cint);
-		            }
-		        }
-		    } // end foreach
+        for (ContoursInfo cntrsInfo : cntrsInfoObjects) {
 
-		} // end foreach
+            if (cntrsInfo.getLevels() != null) {
+                List<ContourLevel> levels = cntrsInfo.getLevels();
 
-       return cInts;
+                // Iterating through level elements
+                for (ContourLevel lv : levels) {
+
+                    String levelValue = lv.getValue();
+                    String cint = lv.getCint();
+                    String coord = lv.getCoord();
+                    String ckey = "";
+
+                    if (null != coord && 0 < coord.trim().length()) {
+                        ckey += coord;
+                        if (null != levelValue
+                                && 0 < levelValue.trim().length()) {
+                            ckey += "-" + levelValue;
+                        }
+
+                        if (null != cint && 0 < cint.trim().length()) {
+                            cInts.put(ckey, cint);
+                        }
+                    }
+                } // end foreach
+
+            }
+
+        } // end foreach
+
+        return cInts;
     }
 
     /**

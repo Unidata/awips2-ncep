@@ -36,7 +36,7 @@
 	    value will be integer;  if cint = 10/0/100.00,  then the all contour value will have two 
 	    decimal points (0.00, 10.00, ....)
 	    
-	    You can specify a cint value for a parm for all its levels with {level = ""}.
+        Note - "coord" below should have the same value as "parm" has.
 	 -->
      <level value="1000" coord="HGMT" cint="6/420/660"/>
      <level value="850" coord="HGMT" cint="10/0/100"/>

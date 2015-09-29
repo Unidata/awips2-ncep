@@ -131,6 +131,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/01/2015   R8213       P.          CAVE>PGEN 
  *                          Chowdhuri    - Refinements to contoursInfo.xml
  * 08/15        R8552       J. Wu       Limit contours' hotkeys within its own context.
+ * 09/29/2015   R8163       J. Wu       Prevent exception when contour type changes.
  * 
  * </pre>
  * 
@@ -4081,8 +4082,15 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                 contourParm = adc.getParm();
                 contourLevel = adc.getLevel();
                 contourFcstHr = adc.getForecastHour();
-                contourCint = ContoursInfoDlg.getCints().get(
+
+                String defaultCint = ContoursInfoDlg.getCints().get(
                         contourParm + "-" + contourLevel);
+                if (defaultCint != null && defaultCint.trim().length() > 0) {
+                    contourCint = defaultCint;
+                } else {
+                    contourCint = adc.getCint();
+                }
+
                 contourTime1 = adc.getTime1();
                 contourTime2 = adc.getTime2();
             }

@@ -37,6 +37,7 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  * 12/23/2014   R5412       sgurung     Change float to double, fix logic in fillHrAvgTimeGaps()
  *                                      to correctly handle the case when there are missing values 
  *                                      in the beginning of the list hourly average values
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes
  * 
  * </pre>
  * 
@@ -46,8 +47,6 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
 public class DatabaseUtil {
 
     private static final int AVG_DATA_RANGE = 30;
-
-    private static final double MISSING_VAL = 99999.99;
 
     /*
      * from geomag
@@ -277,8 +276,8 @@ public class DatabaseUtil {
             startGapDate.add(Calendar.HOUR_OF_DAY, 1);
 
             dateListFinal.add(startGapDate.getTime());
-            hHrAvgListFinal.add(MISSING_VAL);
-            dHrAvgListFinal.add(MISSING_VAL);
+            hHrAvgListFinal.add(CalcUtil.missingVal);
+            dHrAvgListFinal.add(CalcUtil.missingVal);
         }
 
         // fill missing in the middle
@@ -298,8 +297,8 @@ public class DatabaseUtil {
                         dateListFinal.add(new Date(date0.getTime() + 3600
                                 * 1000 * (j + 1)));
                         // append after i, i+1
-                        hHrAvgListFinal.add(MISSING_VAL);
-                        dHrAvgListFinal.add(MISSING_VAL);
+                        hHrAvgListFinal.add(CalcUtil.missingVal);
+                        dHrAvgListFinal.add(CalcUtil.missingVal);
 
                     }
                 }
@@ -313,8 +312,8 @@ public class DatabaseUtil {
             for (int k = latest; k < 24 * AVG_DATA_RANGE; k++) {
                 dateListFinal.add(new Date(dateListFinal.get(latest - 1)
                         .getTime() + 3600 * 1000 * (k + 1)));
-                hHrAvgListFinal.add(MISSING_VAL);
-                dHrAvgListFinal.add(MISSING_VAL);
+                hHrAvgListFinal.add(CalcUtil.missingVal);
+                dHrAvgListFinal.add(CalcUtil.missingVal);
             }
         }
 

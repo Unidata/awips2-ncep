@@ -1,27 +1,21 @@
 package gov.noaa.nws.ncep.edex.plugin.geomag;
 
-import gov.noaa.nws.ncep.common.dataplugin.geomag.GeoMagRecord;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.calculation.CalcUtil;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.dao.GeoMagDao;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.exception.GeoMagException;
-import gov.noaa.nws.ncep.common.dataplugin.geomag.table.GeoMagSource;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.GeoMagStation;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.Group;
-import gov.noaa.nws.ncep.common.dataplugin.geomag.util.GeoMagStationLookup;
-import gov.noaa.nws.ncep.common.dataplugin.geomag.util.TableTimeStamp;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.MissingValueCodeLookup;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,12 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.datastorage.IDataStore;
-import com.raytheon.uf.common.datastorage.StorageException;
-import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.edex.database.DataAccessLayerException;
-import com.raytheon.uf.edex.database.query.DatabaseQuery;
 
 /**
  * This java class decodes geomagnetic data.
@@ -50,7 +39,7 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  * 04/26/2013   975         qzhou       Added unit checkup. Declared missingVal.
  * 06/07/2013   975         qzhou       Fixed error on conversion
  * 07/16/2013   975         qzhou       Decoder redesign:  
- * 										Changed the data entries in postgreSQL to minute(1440 entries). 
+ *                                      Changed the data entries in postgreSQL to minute(1440 entries). 
  *                                      Changed data overwrite to insert new data. Added insertion loop.
  *                                      Changed the write to from hdf5 to post. Added 5 columns: H,D,Z,F and badData.
  *                                      Removed source and sourcePreference tables.  
@@ -59,6 +48,8 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  *                                      Fixed HAD, NGK, CNB default value
  * Aug 30, 2013 2298       rjpeter      Make getPluginName abstract
  * Dec 23, 2014 R5412      sgurung      Change float to double, add code changes for "debug mode"
+ * 10/07/2015   R11429     sgurung,jtravis  Replaced hard-coded missing value codes, implemented conditions to check
+ *                                          for missing values and perform appropriate actions, refactored method decode()
  * 
  * </pre>
  * 
@@ -71,54 +62,27 @@ public class GeoMagDecoder extends AbstractDecoder {
 
     private final Log logger = LogFactory.getLog(getClass());
 
-    private final SimpleDateFormat obsTimeDateFormat = new SimpleDateFormat(
-            "yyyy-MM-dd");
-
-    private static final String STATION_CODE = "stationCode";
-
-    private static final String OBS_DATE = "obsDate";
-
-    private static final String OBS_YEAR = "obsYear";
-
-    private static final String OBS_TIME = "obsTime";
-
-    private static final String OBS_HOUR = "obsHour";
-
-    private static final String OBS_MINUTE = "obsMinute";
-
-    private static final String OBS_MINUTE_NUM = "obsMinuteNum";
-
-    private static final String OBS_DAY_OF_YEAR = "obsDayOfYear";
-
-    private static final String SOURCE = "source";
-
-    private static final String COMPONENT_1 = "component1";
-
-    private static final String COMPONENT_2 = "component2";
-
-    private static final String COMPONENT_3 = "component3";
-
-    private static final String COMPONENT_4 = "component4";
-
-    private static final String UNIT = "unit";
-
-    private static final double MISSING_VAL = 99999.99;
-
+    /**
+     * Decode any valid input file containing geomag data
+     * 
+     * @param file
+     * 
+     * @return PluginDataObject[]
+     * 
+     * @throws Exception
+     */
     public PluginDataObject[] decode(File file) throws Exception {
-        List<PluginDataObject> retData = new ArrayList<PluginDataObject>();
-        GeoMagRecord record = null;
+
+        BufferedReader in = null;
         int sourceId = 101;
-        String stationCode = "";
-        String suffix = "";
-
-        String format = "yyyy-MM-dd'_'HH:mm:ss.s";
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-
-        List<Date> obsTimesList = new ArrayList<Date>();
-        List<Double> comp1List = new ArrayList<Double>();
-        List<Double> comp2List = new ArrayList<Double>();
-        List<Double> comp3List = new ArrayList<Double>();
-        List<Double> comp4List = new ArrayList<Double>();
+        String dataUriSuffix = null;
+        List<GeoMagData> dataList = new ArrayList<GeoMagData>();
+        PluginDataObject[] pdo = new PluginDataObject[0];
+        Pattern HEADER_EXP = null;
+        Pattern DATA_EXP = null;
+        boolean conversionRequired = false;
+        HashMap<String, Group> headerGroupMap = new HashMap<String, Group>();
+        HashMap<String, Group> dataGroupMap = new HashMap<String, Group>();
 
         logger.info("******** Start magnetometer decoder.");
 
@@ -126,651 +90,212 @@ public class GeoMagDecoder extends AbstractDecoder {
             return new PluginDataObject[0];
         }
 
-        String dataUriSuffix = CalcUtil.parseFileName(file.getName());
-     
-        BufferedReader in = null;
+        dataUriSuffix = CalcUtil.parseFileName(file.getName());
 
         try {
-            String input;
-            in = new BufferedReader(new FileReader(file));
 
-            // get station code from the file name
-            String fileName = file.getName();
-            stationCode = fileName.substring(0, 3).toUpperCase();
-
-            // for Hartland (HAD), Korea (JEJ) data, filename does not have full
-            // station code
-            if (stationCode.startsWith("HA")) {
-                stationCode = "HAD";
-            } else if (stationCode.startsWith("MEA")) {
-                stationCode = "MEA";
-            } else if (stationCode.startsWith("M")) {
-                stationCode = "JEJ";
-            }
-
-            // get the station detail from metadata file 'geoMagStations.xml'
-            // File has header & end with min. File has no header & end with
-            // min. File has no header & not end with min.
-            GeoMagStation station = null;
-            if (!fileName.endsWith(".min")) {
-                station = getStationDetail(stationCode, false);
-            } else {
-                station = getStationDetail(stationCode, true);
-            }
+            GeoMagStation station = GeoMagDecoderUtils.getGeomagStation(file
+                    .getName());
 
             if (station == null) {
                 logger.error("Error decoding geomag file! Station code not found in geoMagStations.xml file.");
                 return new PluginDataObject[0];
             }
 
-            boolean containsHeader = (station.getRawDataFormat()
-                    .getHeaderFormat() != null) ? true : false;
-            boolean containsData = (station.getRawDataFormat().getDataFormat() != null) ? true
-                    : false;
-
-            Pattern HEADER_EXP = null;
-            Pattern DATA_EXP = null;
-            boolean conversionRequired = false;
-            HashMap<String, Group> headerGroupMap = new HashMap<String, Group>();
-            HashMap<String, Group> dataGroupMap = new HashMap<String, Group>();
-
             /*
              * Get regular expression for the header from the station metadata
              * file
              */
-            if (containsHeader) {
+            if (GeoMagDecoderUtils.hasHeader(station)) {
                 HEADER_EXP = Pattern.compile(station.getRawDataFormat()
                         .getHeaderFormat().getPattern());
-
-                Group[] headerGroup = station.getRawDataFormat()
-                        .getHeaderFormat().getGroup();
-                if (headerGroup != null) {
-                    for (Group group : headerGroup) {
-                        headerGroupMap.put(group.getName(), group);
-                    }
-                }
+                headerGroupMap = station.getRawDataFormat().getHeaderFormat()
+                        .getHeaderGroups();
             }
 
             /*
              * Get regular expression for the data from the station metadata
              * file
              */
-            if (containsData) {
+            if (GeoMagDecoderUtils.hasData(station)) {
                 DATA_EXP = Pattern.compile(station.getRawDataFormat()
                         .getDataFormat().getPattern());
 
-                Group[] dataGroup = station.getRawDataFormat().getDataFormat()
-                        .getGroup();
-                if (dataGroup != null) {
-                    for (Group group : dataGroup) {
-                        dataGroupMap.put(group.getName(), group);
-                    }
-                }
+                dataGroupMap = station.getRawDataFormat().getDataFormat()
+                        .getDataGroups();
+
                 conversionRequired = station.getRawDataFormat().getDataFormat()
                         .getConversionRequired();
             }
 
             boolean firstLine = true;
-            String unit = "";
-            // int idx = 0;
-            DataTime headTime = null;
-            Calendar obsTime = null;
+            DataTime headerTime = null;
+            GeoMagHeader header = null;
+            GeoMagData geoMagData = null;
+
+            String input = null;
+            in = new BufferedReader(new FileReader(file));
 
             while ((input = in.readLine()) != null) {
-                int groupId = -1;
 
                 /*
                  * if this is the first line and header exists, parse the header
                  * information
                  */
-                if (firstLine && containsHeader) {
+                if (firstLine && GeoMagDecoderUtils.hasHeader(station)) {
+                    header = GeoMagDecoderUtils.parseHeader(input, HEADER_EXP,
+                            headerGroupMap);
+                    headerTime = header.getHeaderTime();
+                    sourceId = header.getSourceId();
 
-                    Matcher headerMatcher = HEADER_EXP.matcher(input);
-
-                    if (headerMatcher.find()) {
-                        // set the station code
-                        groupId = (headerGroupMap.get(STATION_CODE) != null) ? headerGroupMap
-                                .get(STATION_CODE).getId() : -1;
-                        if (groupId != -1) {
-                            stationCode = headerMatcher.group(groupId);
-                        }
-
-                        // set the source
-                        groupId = (headerGroupMap.get(SOURCE) != null) ? headerGroupMap
-                                .get(SOURCE).getId() : -1;
-
-                        if (groupId != -1) {
-                            String source = headerMatcher.group(groupId);
-                            ArrayList<GeoMagSource> src = getStationDetail(
-                                    stationCode, true).getSource();
-                            // System.out.println("***src "+src.size() +" "+
-                            // stationCode);
-                            for (int i = 0; i < src.size(); i++) {
-                                String name = src.get(i).getName();
-                                if (name.equalsIgnoreCase(source)) {
-                                    sourceId = src.get(i).getPriority();
-                                }
-                            }
-                        }
-
-                        // get the unit
-                        groupId = (headerGroupMap.get(UNIT) != null) ? headerGroupMap
-                                .get(UNIT).getId() : -1;
-                        if (groupId != -1) {
-                            unit = headerMatcher.group(groupId);
-                        }
-
-                        // get the time
-                        headTime = getRecordDataTime(headerMatcher,
-                                headerGroupMap);
-                    }
+                    firstLine = false;
                 }
 
-                if (containsData) {
+                if (GeoMagDecoderUtils.hasData(station)) {
                     /* if data exists, parse the data information */
                     Matcher dataMatcher = DATA_EXP.matcher(input);
 
                     if (dataMatcher.find()) {
-                        // if (dbLastTime == 0 || (dbLastTime != 0 && count >
-                        // dbLastTime)) {
 
                         /* if this is the first line and header does not exist */
-                        if (firstLine && !containsHeader) {
-                            // set the station code, if it exists in the data
-                            // section
-                            groupId = (dataGroupMap.get(STATION_CODE) != null) ? dataGroupMap
-                                    .get(STATION_CODE).getId() : -1;
+                        if (firstLine && !GeoMagDecoderUtils.hasHeader(station)) {
+                            header = new GeoMagHeader();
 
-                            if (groupId != -1) {
-                                stationCode = dataMatcher.group(groupId);
-                            }
-
-                            headTime = getRecordDataTime(dataMatcher,
-                                    dataGroupMap);
+                            headerTime = GeoMagDecoderUtils.getRecordDataTime(
+                                    dataMatcher, dataGroupMap);
 
                             // if no header, the sourceId is 101
-                            if (sourceId == 0) {
-                                sourceId = 101;
-                            }
+                            sourceId = 101;
+                            firstLine = false;
+
+                            header.setHeaderTime(headerTime);
+                            header.setSourceId(sourceId);
+                            header.setStationCode(station.getStationCode());
                         }
 
-                        firstLine = false;
+                        // parse the data
+                        geoMagData = GeoMagDecoderUtils
+                                .parseData(dataMatcher, dataGroupMap,
+                                        headerTime.getRefTimeAsCalendar());
 
-                        Double comp1Val = null;
-                        Double comp2Val = null;
-                        Double comp3Val = null;
-                        Double comp4Val = null;
+                        // substitute station specific missing value codes with
+                        // the default/global missing value code
+                        Vector<Double> missingValueCodes = MissingValueCodeLookup
+                                .getInstance().getMissingValues(
+                                        station.getStationCode());
 
-                        String comp1RefersTo = null;
-                        String comp2RefersTo = null;
-                        // String comp3RefersTo = null;
-                        // String comp4RefersTo = null;
+                        Vector<Double> componentValues = geoMagData
+                                .getComponentValues();
 
-                        // get the observation time for the minute data
-                        obsTime = getObsTime(dataMatcher, dataGroupMap,
-                                headTime.getRefTimeAsCalendar());
+                        for (int i = 0; i <= missingValueCodes.size() - 1; i++) {
+                            double code = missingValueCodes.get(i);
 
-                        // get and set the component values (h or x, d or y ,z,
-                        // f)
-                        groupId = (dataGroupMap.get(COMPONENT_1) != null) ? dataGroupMap
-                                .get(COMPONENT_1).getId() : -1;
-                        if (groupId != -1) {
-                            comp1RefersTo = dataGroupMap.get(COMPONENT_1)
-                                    .getRefersTo();
-                            comp1Val = Double.parseDouble(dataMatcher
-                                    .group(groupId));
-                        }
+                            for (int j = 0; j <= componentValues.size() - 1; j++) {
+                                double cv = componentValues.get(j);
 
-                        groupId = (dataGroupMap.get(COMPONENT_2) != null) ? dataGroupMap
-                                .get(COMPONENT_2).getId() : -1;
-                        if (groupId != -1) {
-                            comp2RefersTo = dataGroupMap.get(COMPONENT_2)
-                                    .getRefersTo();
-                            comp2Val = Double.parseDouble(dataMatcher
-                                    .group(groupId));
-                        }
-
-                        groupId = (dataGroupMap.get(COMPONENT_3) != null) ? dataGroupMap
-                                .get(COMPONENT_3).getId() : -1;
-                        if (groupId != -1) {
-                            // comp3RefersTo =
-                            // dataGroupMap.get(COMPONENT_3).getRefersTo();
-                            comp3Val = Double.parseDouble(dataMatcher
-                                    .group(groupId));
-                            if (comp3Val == null) {
-                                comp3Val = MISSING_VAL;
-                            }
-                        }
-
-                        groupId = (dataGroupMap.get(COMPONENT_4) != null) ? dataGroupMap
-                                .get(COMPONENT_4).getId() : -1;
-                        if (groupId != -1) {
-                            // comp4RefersTo =
-                            // dataGroupMap.get(COMPONENT_4).getRefersTo();
-                            comp4Val = Double.parseDouble(dataMatcher
-                                    .group(groupId)); // for BGS
-                            if (comp4Val == null) {
-                                comp4Val = MISSING_VAL;
-                            }
-                        }
-
-                        // process "abnormal" values
-                        if (unit.equalsIgnoreCase("0.01nT")) {
-                            // title line defined unit, e.g. 0.01nT
-                            comp1Val = comp1Val / 100;
-                            comp2Val = comp2Val / 100;
-                            comp3Val = comp3Val / 100;
-                            comp4Val = comp4Val / 100;
-                        }
-
-                        if (stationCode.equals("HAD")) { // HAD missing values are 99999.9 and 999.999
-                            if (comp1Val == 99999.9) {
-                                comp1Val = MISSING_VAL;
-                            }
-                            if (comp2Val == 999.999) {
-                                comp2Val = MISSING_VAL;
-                            }
-                            if (comp3Val == 99999.9) {
-                                comp3Val = MISSING_VAL;
-                            }
-                        }
-
-                        if (stationCode.equals("CNB")) { // CNB missing values 99999.90
-                            if (comp1Val == 99999.90) {
-                                comp1Val = MISSING_VAL;
-                            }
-                            if (comp2Val == 99999.90) {
-                                comp2Val = MISSING_VAL;
-                            }
-                            if (comp3Val == 99999.90) {
-                                comp3Val = MISSING_VAL;
-                            }
-                            if (comp4Val == 99999.90) {
-                                comp4Val = MISSING_VAL;
-                            }
-                        }
-
-                        if (stationCode.equals("NGK")
-                                || stationCode.equals("WNG")
-                                || stationCode.equals("MEA")) { // NGK, WNG and MEA missing values is 99999.00
-                            if (comp1Val == 99999.00) {
-                                comp1Val = MISSING_VAL;
-                            }
-                            if (comp2Val == 99999.00) {
-                                comp2Val = MISSING_VAL;
-                            }
-                            if (comp3Val == 99999.00) {
-                                comp3Val = MISSING_VAL;
-                            }
-                            if (comp4Val == 99999.00) {
-                                comp4Val = MISSING_VAL;
-                            }
-                        }
-
-                        if ((comp1Val != null) && (comp1Val != MISSING_VAL)
-                                && (comp2Val != null)
-                                && (comp2Val != MISSING_VAL)) {
-                            if (conversionRequired) {
-                                /*
-                                 * Raw data from some providers might not be
-                                 * reported in the appropriate format/units.
-                                 * These data needs to be converted to northward
-                                 * component (X) in nT and eastward component
-                                 * (Y) in nT using the general formula: X = H
-                                 * Cos D; Y = H Sin D;
-                                 */
-                                Double h = null;
-                                Double d = null;
-
-                                if ("H".equalsIgnoreCase(comp1RefersTo)
-                                        && (comp1Val != null)) {
-                                    h = comp1Val;
-                                } else if ("D".equalsIgnoreCase(comp1RefersTo)
-                                        && (comp1Val != null)) {
-                                    d = comp1Val;
+                                if (cv == code) {
+                                    componentValues.set(j, CalcUtil.missingVal);
                                 }
-
-                                if ("H".equalsIgnoreCase(comp2RefersTo)
-                                        && (comp2Val != null)) {
-                                    h = comp2Val;
-                                } else if ("D".equalsIgnoreCase(comp2RefersTo)
-                                        && (comp2Val != null)) {
-                                    d = comp2Val;
-                                }
-
-                                if ((h != null) && (d != null)) {
-                                    comp1Val = (h * Math.cos(Math.toRadians(d)));
-                                    comp2Val = (h * Math.sin(Math.toRadians(d)));
-                                }
-
                             }
 
-                            if (comp1Val != null) {
-                                comp1List.add(comp1Val);
-                            }
-                            if (comp2Val != null) {
-                                comp2List.add(comp2Val);
-                            }
-                            if (comp3Val != null) {
-                                comp3List.add(comp3Val);
-                            }
-                            if (comp4Val != null) {
-                                comp4List.add(comp4Val);
-                            }
-                            obsTimesList.add(obsTime.getTime());
                         }
+
+                        geoMagData.setComp1Val(componentValues.get(0));
+                        geoMagData.setComp2Val(componentValues.get(1));
+                        geoMagData.setComp3Val(componentValues.get(2));
+                        geoMagData.setComp4Val(componentValues.get(3));
+
+                        // Account for the fact that sometimes there
+                        // are "abnormal" values
+                        geoMagData = GeoMagDecoderUtils.processAbnormalValues(
+                                header, geoMagData);
+
+                        // Handle processing of the data based on conditions
+                        if (Conditions.isCondition1Valid(geoMagData,
+                                CalcUtil.missingVal)) {
+
+                            // If the condition is true ignore the record -
+                            // nothing is added to the db.
+                            continue;
+                        } else if (Conditions.isCondition2Valid(geoMagData,
+                                CalcUtil.missingVal)) {
+
+                            // If the condition is true add the record to the
+                            // database and set component_4 to the missing value
+                            // code
+                            geoMagData.setComp4Val(CalcUtil.missingVal);
+                        } else if (Conditions.isCondition3Valid(geoMagData,
+                                CalcUtil.missingVal)) {
+
+                            // If the condition is true add the record to
+                            // the database and set component 1, component 2,
+                            // and component 3 to the missing value
+                            // code
+                            geoMagData.setComp1Val(CalcUtil.missingVal);
+                            geoMagData.setComp2Val(CalcUtil.missingVal);
+                            geoMagData.setComp3Val(CalcUtil.missingVal);
+                        }
+
+                        /**
+                         * Raw data from some providers might not be reported in
+                         * the appropriate format/units. These data needs to be
+                         * converted to northward component (X) in nT and
+                         * eastward component (Y) in nT
+                         */
+                        if (conversionRequired
+                                && (geoMagData.getComp1Val() != CalcUtil.missingVal && geoMagData
+                                        .getComp2Val() != CalcUtil.missingVal)) {
+                            Hashtable<String, Double> convertedValues = Conversion
+                                    .convertHandD(geoMagData.getComp1Val(),
+                                            geoMagData.getComp1RefersTo(),
+                                            geoMagData.getComp2Val(),
+                                            geoMagData.getComp2RefersTo());
+                            geoMagData.setComp1Val(convertedValues
+                                    .get(GeoMagDecoderUtils.COMPONENT_1));
+                            geoMagData.setComp2Val(convertedValues
+                                    .get(GeoMagDecoderUtils.COMPONENT_2));
+                        }
+
+                        dataList.add(geoMagData);
 
                     } // if (dataMatcher.find())
                 } // end if containData
             } // end while
-        } catch (Exception e) {
+
+            pdo = GeoMagDecoderUtils.convertGeoMagDataToGeoMagRecord(header,
+                    dataList, dataUriSuffix, dao);
+
+            if (pdo == null || (pdo.length < 1)) {
+                pdo = new PluginDataObject[0];
+            }
+
+        } catch (GeoMagException exGeoMag) {
             logger.error("Failed to decode file: [" + file.getAbsolutePath()
-                    + "]", e);
+                    + "]", exGeoMag);
+            throw new GeoMagException(exGeoMag.getMessage(), exGeoMag);
+
+        } catch (IOException exIo) {
+            throw new GeoMagException(exIo.getMessage(), exIo);
+
         } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                throw new GeoMagException("", e);
-            }
+            in.close();
         }
 
-        for (int i = 0; i < obsTimesList.size(); i++) {
-            record = new GeoMagRecord();
-
-            // find this time in database
-            Date time = obsTimesList.get(i);
-            String newUriTime = new String(sdf.format(time));
-            // System.out.println("**time "+obsTimesList.get(i)+" "+stationCode
-            // +" "+sourceId);
-            String newUri = null;
-
-            if (dataUriSuffix == null) {
-                newUri = "/geomag/" + newUriTime + "/" + stationCode + "/"
-                        + sourceId + "/GEOMAG";
-            } else {
-                newUri = "/geomag/" + newUriTime + "/" + stationCode + "/"
-                        + sourceId + "/GEOMAG" + dataUriSuffix;
-            }
-
-            List<?> resultsList = findUriFromDb(newUri);
-
-            // set to record
-            if ((resultsList == null) || resultsList.isEmpty()) {
-                if (record.getStationCode() == null) {
-                    record.setStationCode(stationCode);
-                }
-                if (record.getSourceId() == 0) {
-                    record.setSourceId(sourceId);
-                }
-                record.setDataURI(newUri);
-
-                record.setComponent_1(comp1List.get(i));
-                record.setComponent_2(comp2List.get(i));
-                if (!comp3List.isEmpty() && (comp3List.get(i) != null)) {
-                    record.setComponent_3(comp3List.get(i));
-                }
-                if (!comp4List.isEmpty() && (comp4List.get(i) != null)) {
-                    record.setComponent_4(comp4List.get(i));
-                }
-                record.setDataTime(new DataTime(time));
-
-                if (dataUriSuffix == null) {
-                    record.setReportType("GEOMAG");
-                } else {
-                    record.setReportType("GEOMAG" + dataUriSuffix);
-                }
-
-                record.setOverwriteAllowed(false);
-                record.constructDataURI();
-                // System.out.println("record.getDataURI() "+record.getDataURI()+" "+record.getDataTime().getRefTime()+" "+retData.size()
-                // );
-                retData.add(record);
-            }
-        }
-
-        if (retData.isEmpty()) {
-            return new PluginDataObject[0];
-        } else {
-
-            return retData.toArray(new PluginDataObject[retData.size()]);
-        }
+        return pdo;
     }
 
-    public IDataRecord[] findRecordFromDb(String newUri) {
-        // find last obs_time in hdf5.
-        // /geomag/2013-05-20_00:00:00.0/HAD/101/GEOMAG
-        IDataRecord[] dataRec = null;
-        IDataStore dataStore = null;
-        GeoMagRecord record = null;
-
-        DatabaseQuery query = new DatabaseQuery(GeoMagRecord.class.getName());
-        query.addQueryParam("dataURI", newUri);
-
-        List<?> resultsList = null;
-        try {
-            resultsList = dao.queryByCriteria(query);
-        } catch (DataAccessLayerException e1) {
-            e1.printStackTrace();
-        }
-
-        // find dataRec
-        if ((resultsList != null) && (resultsList.size() != 0)) {
-
-            record = new GeoMagRecord(newUri);
-            if (record != null) {
-                dataStore = dao.getDataStore(record);
-            }
-
-            try {
-                // obs_time, compx...//size 7
-                dataRec = dataStore.retrieve(newUri);
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            } catch (StorageException e1) {
-                e1.printStackTrace();
-            }
-        }
-        return dataRec;
-    }
-
-    public List<?> findUriFromDb(String newUri) {
-
-        DatabaseQuery query = new DatabaseQuery(GeoMagRecord.class.getName());
-        query.addQueryParam("dataURI", newUri);
-
-        List<?> resultsList = null;
-        try {
-            resultsList = dao.queryByCriteria(query);
-        } catch (DataAccessLayerException e1) {
-            e1.printStackTrace();
-        }
-
-        return resultsList;
-    }
-
-    public DataTime getRecordDataTime(Matcher matcher,
-            HashMap<String, Group> groupMap) throws ParseException {
-
-        int groupId = -1;
-
-        String obsDateStr = null;
-        String obsYearStr = null;
-        String obsDayOfYearStr = null;
-
-        String format = "dd-MMM-yy";
-
-        Calendar cal = Calendar.getInstance();
-        Date obsDate = cal.getTime();
-        SimpleDateFormat inputDateFormat = new SimpleDateFormat(format);
-
-        groupId = (groupMap.get(OBS_DATE) != null) ? groupMap.get(OBS_DATE)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsDateStr = matcher.group(groupId);
-            format = (groupMap.get(OBS_DATE).getFormat() != null) ? groupMap
-                    .get(OBS_DATE).getFormat() : format;
-        }
-
-        groupId = (groupMap.get(OBS_YEAR) != null) ? groupMap.get(OBS_YEAR)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsYearStr = matcher.group(groupId);
-        }
-
-        groupId = (groupMap.get(OBS_DAY_OF_YEAR) != null) ? groupMap.get(
-                OBS_DAY_OF_YEAR).getId() : -1;
-        if (groupId != -1) {
-            obsDayOfYearStr = matcher.group(groupId);
-        }
-
-        // get Observation Date using obsDate
-        if (obsDateStr != null) {
-            inputDateFormat = new SimpleDateFormat(format);
-            obsDate = obsTimeDateFormat.parse(obsTimeDateFormat
-                    .format(inputDateFormat.parse(obsDateStr)));
-        }
-
-        // get Observation Date using obsYear and obsDayOfYear
-        if ((obsYearStr != null) && (obsDayOfYearStr != null)) {
-            Calendar tmpCal = Calendar.getInstance();
-            tmpCal.set(Calendar.YEAR, Integer.parseInt(obsYearStr));
-            tmpCal.set(Calendar.DAY_OF_YEAR, Integer.parseInt(obsDayOfYearStr));
-
-            obsDate = obsTimeDateFormat.parse(obsTimeDateFormat.format(tmpCal
-                    .getTime()));
-        }
-
-        cal.setTime(obsDate);
-
-        DataTime dataTime = new DataTime(cal);
-
-        return dataTime;
-    }
-
-    public Calendar getObsTime(Matcher matcher,
-            HashMap<String, Group> groupMap, Calendar time)
-            throws ParseException {
-
-        int groupId = -1;
-
-        String obsDateStr = null;
-        String obsTimeStr = null;
-        // String obsYearStr = null;
-        // String obsDayOfYearStr = null;
-        String obsHourStr = null;
-        String obsMinuteStr = null;
-        String obsMinuteNumStr = null;
-
-        String dateFormat = "dd-MMM-yy";
-        String timeFormat = "HH:mm:ss";
-        SimpleDateFormat inputDateFormat = new SimpleDateFormat(dateFormat
-                + " " + timeFormat);
-
-        Calendar obsTime = time; // record.getDataTime().getRefTimeAsCalendar();
-
-        groupId = (groupMap.get(OBS_DATE) != null) ? groupMap.get(OBS_DATE)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsDateStr = matcher.group(groupId);
-            dateFormat = (groupMap.get(OBS_DATE).getFormat() != null) ? groupMap
-                    .get(OBS_DATE).getFormat() : dateFormat;
-
-        }
-
-        groupId = (groupMap.get(OBS_TIME) != null) ? groupMap.get(OBS_TIME)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsTimeStr = matcher.group(groupId);
-            timeFormat = (groupMap.get(OBS_TIME).getFormat() != null) ? groupMap
-                    .get(OBS_TIME).getFormat() : timeFormat;
-            // .out.println("***obsTimeStr "+obsTimeStr +" "+timeFormat);
-        }
-
-        // groupId = (groupMap.get(OBS_YEAR) != null)?
-        // groupMap.get(OBS_YEAR).getId():-1;
-        // if (groupId != -1) {
-        // obsYearStr = matcher.group(groupId);
-        // }
-        //
-        // groupId = (groupMap.get(OBS_DAY_OF_YEAR) != null)?
-        // groupMap.get(OBS_DAY_OF_YEAR).getId():-1;
-        // if (groupId != -1) {
-        // obsDayOfYearStr = matcher.group(groupId);
-        // if (obsYearStr != null && obsDayOfYearStr != null) {
-        // Calendar tmpCal = Calendar.getInstance();
-        // tmpCal.set(Calendar.YEAR, Integer.parseInt(obsYearStr));
-        // tmpCal.set(Calendar.DAY_OF_YEAR, Integer.parseInt(obsDayOfYearStr));
-        //
-        // obsDateStr = obsTimeDateFormat.format(tmpCal.getTime());
-        // System.out.println("***obsNumStr "+obsDateStr);
-        // }
-        // }
-
-        groupId = (groupMap.get(OBS_MINUTE_NUM) != null) ? groupMap.get(
-                OBS_MINUTE_NUM).getId() : -1;
-        if (groupId != -1) {
-            obsMinuteNumStr = matcher.group(groupId);
-
-        }
-
-        groupId = (groupMap.get(OBS_HOUR) != null) ? groupMap.get(OBS_HOUR)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsHourStr = matcher.group(groupId);
-        }
-
-        groupId = (groupMap.get(OBS_MINUTE) != null) ? groupMap.get(OBS_MINUTE)
-                .getId() : -1;
-        if (groupId != -1) {
-            obsMinuteStr = matcher.group(groupId);
-        }
-
-        // get obsTime using obsMinuteNum
-        if (obsMinuteNumStr != null) {
-            obsTime.add(
-                    Calendar.MINUTE,
-                    (obsMinuteNumStr != null) ? Integer
-                            .parseInt(obsMinuteNumStr) : 1);
-        }
-        // get obsTime using obsHour and obsMinute
-        else if ((obsHourStr != null) && (obsMinuteStr != null)) {
-            int minutes = (Integer.parseInt(obsHourStr) * 60)
-                    + Integer.parseInt(obsMinuteStr);
-            obsTime.add(Calendar.MINUTE, minutes);
-        }
-
-        // get obsTime using obsDate and obsTime
-        else if ((obsDateStr != null) && (obsTimeStr != null)) {
-            String obsDateTimeStr = obsDateStr + " " + obsTimeStr;
-            inputDateFormat = new SimpleDateFormat(dateFormat + " "
-                    + timeFormat);
-
-            Date obsDateTime = inputDateFormat.parse(obsDateTimeStr);
-            obsTime.setTime(obsDateTime);
-        }
-
-        return obsTime;
-    }
-
+    /**
+     * @return GeoMagDao
+     */
     public GeoMagDao getDao() {
         return dao;
     }
 
+    /**
+     * @param dao
+     */
     public void setDao(GeoMagDao dao) {
         this.dao = dao;
-    }
-
-    public GeoMagStation getStationDetail(String stnCode, boolean hasHeader)
-            throws GeoMagException {
-        GeoMagStation station = null;
-
-        if (stnCode != null) {
-            TableTimeStamp.updateXmlTables();
-            station = GeoMagStationLookup.getInstance().getStationByCode(
-                    stnCode, hasHeader);
-        }
-
-        return station;
     }
 
 }

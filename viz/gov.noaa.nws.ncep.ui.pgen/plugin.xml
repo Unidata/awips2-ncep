@@ -582,13 +582,44 @@
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow"
             id="gov.noaa.nws.ncep.ui.PGEN"
             name="PGEN"/>
-           <!--stickyView
-                 closeable="true"
-                 id="gov.noaa.nws.ncep.ui.PGEN"
-                 location="RIGHT"
-                 moveable="true">
-           </stickyView-->
+        
    </extension>
+   
+    <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution locationURI="menu:tools?after=lapsTools">
+            <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
+                label="PGEN">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>                        
+                </visibleWhen>
+            </command>
+        </menuContribution>
+       
+       <menuContribution
+           locationURI="toolbar:gov.noaa.nws.ncep.ui.PGEN">
+           <command
+                  commandId="gov.noaa.nws.ncep.ui.pgen.activityManage"
+                  label="Start"
+                  mnemonic="S"
+                  style="pulldown"
+                  id="gov.noaa.nws.ncep.ui.pgen.PGEN.activityLaunch">
+           </command>
+                             
+     
+
+           <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
+                label="Help"
+                mnemonic="H"
+                style="push">
+           </command> 
+                                     
+       </menuContribution>               
+   </extension> 
    
    <extension
        point="org.eclipse.ui.menus">
@@ -602,13 +633,6 @@
                   id="gov.noaa.nws.ncep.ui.pgen.PGEN.activityLaunch">
            </command>
                              
-           <!--command
-                commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure"
-                label="Configure"
-                mnemonic="C"
-                style="push">
-           </command-->
-
            <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
                 label="Help"
@@ -671,13 +695,6 @@
              label="Start Layer"
              commandId="gov.noaa.nws.ncep.ui.pgen.layering"
              icon="icons/layer.gif" />
- <!--
-         <control
-             name="Open Prod"
-             label="Open Prod"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/openprod.gif" />
-   -->
          <control
              name="Save All"
              label="SAVE All Products to EDEX"
@@ -865,12 +882,6 @@
              name="Track"
              label="Track"
              icon="icons/track.gif" />
- <!--
-         <class
-             name="Prod"
-             label="Prod"
-             icon="icons/prod.gif" />
- -->
          <class
              name="Text"
              label="Text"
@@ -897,14 +908,7 @@
              name="Marker"
              label="Marker"
              icon="icons/marker.gif" />
-  <!--
-         <class
-             name="List"
-             label="List"
-             icon="icons/list.gif" />
-   -->
-   
-         <class
+          <class
              name="MET"
              label="MET"
              icon="icons/met.gif" />
@@ -2973,24 +2977,6 @@
              className="Text"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAvnTextDraw"
              icon="icons/avntext.png" />  
-          <!--object
-             name="Freezing Level Text"
-             label="Freezing Level Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/textfrzlvl.gif" />  
-          <object
-             name="Cloud Text"
-             label="Cloud Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/textcloud.gif" />  
-          <object
-             name="Icing Text"
-             label="Icing Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/texticng.gif" /-->  
           <object
              name="MID_LEVEL_CLOUD"
              label="Mid Level Cloud Text"

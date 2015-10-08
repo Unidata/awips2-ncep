@@ -14,11 +14,15 @@ import gov.noaa.nws.ncep.ui.pgen.display.IText;
 import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
 
 import java.awt.Color;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
@@ -53,6 +57,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/11		#?			B. Yin		Re-factor IAttribute
  * 03/13		#928		B. Yin 		Added a separator above the button bar.
  * 07/15        R8903       J. Lopez    Creates a pop up if the text field is left blank
+ * 08/15        R8553       B. Yin      Remember last text per box type
  * </pre>
  * 
  * @author J. Wu
@@ -135,6 +140,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
     // Check boxes for multi-selection
     private Button chkBox[];
+
+    private Map<String, String> lastTextPerBoxType = new HashMap<String, String>();
 
     /**
      * Private constructor
@@ -501,6 +508,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         if (iattr instanceof IText) {
             IText attr = (IText) iattr;
+            this.setBoxText(attr.maskText(), attr.getDisplayType());
             this.setText(attr.getString());
             this.setFontName(attr.getFontName());
             this.setFontSize(attr.getFontSize());
@@ -515,6 +523,12 @@ public class TextAttrDlg extends AttrDlg implements IText {
             Color clr = attr.getColors()[0];
             if (clr != null)
                 this.setColor(clr);
+
+            // Set the default text for the box type
+            String defText = lastTextPerBoxType.get(boxCombo.getText());
+            if (defText != null) {
+                this.setText(new String[] { defText });
+            }
         }
     }
 
@@ -632,6 +646,13 @@ public class TextAttrDlg extends AttrDlg implements IText {
         text.setLayoutData(new GridData(TEXT_WIDTH, TEXT_HEIGHT));
         text.setEditable(true);
 
+        // Update the text/box-type map
+        text.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                lastTextPerBoxType.put(boxCombo.getText(), text.getText());
+            }
+        });
+
     }
 
     /**
@@ -666,9 +687,30 @@ public class TextAttrDlg extends AttrDlg implements IText {
         for (DisplayType type : DisplayType.values()) {
             boxCombo.add(type.name());
             boxCombo.add(type.name() + bgmask);
+
+            // initialize the text/box-type map
+            if (!lastTextPerBoxType.containsKey(type.name())) {
+                lastTextPerBoxType.put(type.name(), "");
+                lastTextPerBoxType.put(type.name() + bgmask, "");
+            }
         }
 
         boxCombo.select(0);
+
+        // Set the text filed with the text string in the text/box-type map
+        boxCombo.addModifyListener(new ModifyListener() {
+
+            @Override
+            public void modifyText(ModifyEvent e) {
+
+                String defText = lastTextPerBoxType.get(boxCombo.getText());
+                if (defText != null) {
+                    setText(new String[] { defText });
+                } else {
+                    setText(new String[] { "" });
+                }
+            }
+        });
     }
 
     /**

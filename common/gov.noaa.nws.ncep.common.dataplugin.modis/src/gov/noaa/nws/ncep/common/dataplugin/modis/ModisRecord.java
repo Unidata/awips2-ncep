@@ -1,13 +1,13 @@
 /**
- * This class performs mapping to database for Modis file plug-in.
+ * This class performs mapping to database for MODIS file plug-in.
  * 
  * 
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 10/2014                  kbugenhagen      Created
+ * Date         Ticket#     Engineer     Description
+ * ------------ ----------  -----------  --------------------------
+ * 10/01/2014   R5116       kbugenhagen  Created
  * </pre>
  * 
  * @author kbugenhagen

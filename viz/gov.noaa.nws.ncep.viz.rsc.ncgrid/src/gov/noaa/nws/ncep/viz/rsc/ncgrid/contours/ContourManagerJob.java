@@ -19,6 +19,8 @@
  ******************************************************************************************/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.contours;
 
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourSupport.ContourGroup;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,10 +34,7 @@ import org.opengis.referencing.operation.MathTransform;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourSupport;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourSupport.ContourGroup;
 
 /**
  * ContourManagerJob
@@ -51,6 +50,7 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourSupport.ContourGroup;
  *    Oct 24, 2007             chammack    Initial Creation.
  *    Mar 01, 2010 #164		   M. Li	   Applied to NC Perspective
  *    Feb 15, 2012             X. Guo      Cached contour information
+ *    Jul 17, 2015  RM6916     B. Yin/rkean Changes for Contour fill images
  * 
  * </pre>
  * 
@@ -62,17 +62,17 @@ public class ContourManagerJob extends Job {
     private static ContourManagerJob instance;
 
     private final Map<String, Request> requestMap;
-    
+
     private final Map<String, ContourGroup> responseMap;
 
     private static class Request {
 
-		public Request(IDataRecord record, int level, IExtent pixelExtent,
+        public Request(IDataRecord record, int level, IExtent pixelExtent,
                 double currentDensity, MathTransform worldGridToCRSTransform,
                 GeneralGridGeometry imageGridGeometry,
                 GeneralGridGeometry mapGridGeometry, IGraphicsTarget target,
-                IMapDescriptor descriptor, ContourAttributes attr, String name, float zoom,
-                ContourGroup contourGp) {
+                IMapDescriptor descriptor, ContourAttributes attr, String name,
+                float zoom, ContourGroup contourGp) {
             super();
             this.record = record;
             this.level = level;
@@ -82,7 +82,7 @@ public class ContourManagerJob extends Job {
             this.mapGridGeometry = mapGridGeometry;
             this.target = target;
             this.descriptor = descriptor;
-			this.attr = attr;
+            this.attr = attr;
             this.zoom = zoom;
             this.currentDensity = currentDensity;
             this.name = name;
@@ -108,11 +108,11 @@ public class ContourManagerJob extends Job {
         IMapDescriptor descriptor;
 
         ContourAttributes attr;
-        
+
         String name;
 
         float zoom;
-        
+
         ContourGroup contourGroup;
 
     }
@@ -159,8 +159,8 @@ public class ContourManagerJob extends Job {
             MathTransform worldGridToCRSTransform,
             GeneralGridGeometry imageGridGeometry,
             GeneralGridGeometry mapGridGeometry, IGraphicsTarget target,
-            IMapDescriptor descriptor, ContourAttributes attr, String name, float zoom,
-            ContourGroup contourGp) {
+            IMapDescriptor descriptor, ContourAttributes attr, String name,
+            float zoom, ContourGroup contourGp) {
 
         synchronized (ContourManagerJob.class) {
 
@@ -182,7 +182,8 @@ public class ContourManagerJob extends Job {
             // later
             Request req = new Request(record, level, extent, currentDensity,
                     worldGridToCRSTransform, imageGridGeometry,
-                    mapGridGeometry, target, descriptor, attr, name, zoom,contourGp);
+                    mapGridGeometry, target, descriptor, attr, name, zoom,
+                    contourGp);
             this.requestMap.put(identifier, req);
 
             if (this.getState() != Job.RUNNING) {
@@ -191,7 +192,6 @@ public class ContourManagerJob extends Job {
         }
 
         return null;
-
     }
 
     /*
@@ -212,33 +212,17 @@ public class ContourManagerJob extends Job {
             }
 
             Request req = requestMap.get(keyToProcess);
-//            try {
-/*                long t0 = System.currentTimeMillis();
-                ContourSupport.ContourGroup cg = ContourSupport.createContours(req.record,
-                        req.level, req.pixelExtent, req.currentDensity,
-                        req.worldGridToCRSTransform, req.imageGridGeometry,
-                        req.mapGridGeometry, req.target, req.descriptor, req.attr, req.name, req.zoom,
-                        req.contourGroup);*/
-                ContourSupport cntrSp = new ContourSupport(req.record,
-                        req.level, req.pixelExtent, req.currentDensity,
-                        req.worldGridToCRSTransform, req.imageGridGeometry,
-                        req.mapGridGeometry, req.target, req.descriptor, req.attr, req.name, req.zoom,
-                        req.contourGroup);
-                ContourSupport.ContourGroup cg = cntrSp.getContours ();
-//                System.out.println("Total time taken: "
-//                        + (System.currentTimeMillis() - t0));
+            ContourSupport cntrSp = new ContourSupport(null, req.record,
+                    req.level, req.pixelExtent, req.currentDensity,
+                    req.worldGridToCRSTransform, req.imageGridGeometry,
+                    req.mapGridGeometry, req.target, req.descriptor, req.attr,
+                    req.name, req.zoom, req.contourGroup);
+            ContourSupport.ContourGroup cg = cntrSp.getContours();
 
-                synchronized (ContourManagerJob.class) {
-                    responseMap.put(keyToProcess, cg);
-                    requestMap.remove(keyToProcess);
-                }
-//            } catch (VizException e) {
-//            	System.err.println("Error creating " + req.attr.getGdpfun().trim().toUpperCase() + " contours: ");
-//                return new Status(Status.ERROR, Activator.PLUGIN_ID,
-//                        "Error creating " + gfunc.toUpperCase() + " contours: ", e);
-//                
-//            }
-            
+            synchronized (ContourManagerJob.class) {
+                responseMap.put(keyToProcess, cg);
+                requestMap.remove(keyToProcess);
+            }
         }
 
         return Status.OK_STATUS;

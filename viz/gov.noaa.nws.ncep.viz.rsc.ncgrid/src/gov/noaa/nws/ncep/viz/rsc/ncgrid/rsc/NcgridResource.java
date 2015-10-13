@@ -141,6 +141,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
  *                                          ensure that preloading of grid data
  *                                          for overlays happens.
+ * 07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
  * </pre>
  * 
  * @author mli
@@ -207,7 +208,7 @@ public class NcgridResource extends
     // is determined later in updateFrameData after the time matching is done.
     // This is because, for the GHM model, the spatialObjects will be different
     // for each time.
-    private class NcGridDataProxy implements IRscDataObject {
+    public class NcGridDataProxy implements IRscDataObject {
 
         private DataTime dataTime;
 
@@ -312,7 +313,7 @@ public class NcgridResource extends
                 }
 
                 processNewRscDataList();
-                
+
                 if (isFirst) {
                     isFirst = false;
                     int cnt = 0;
@@ -389,7 +390,7 @@ public class NcgridResource extends
 
     private NcgridAttrModifiedJob ncgribAttrsModified;
 
-    protected class FrameData extends AbstractFrameData {
+    public class FrameData extends AbstractFrameData {
         ContourRenderable[] contourRenderable;
 
         NcGridDataProxy gdPrxy = null;
@@ -469,7 +470,10 @@ public class NcgridResource extends
             super(time, interval);
         }
 
-        //
+        public NcGridDataProxy getProxy() {
+            return this.gdPrxy;
+        }
+
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof NcGridDataProxy)) {
                 System.out
@@ -479,7 +483,7 @@ public class NcgridResource extends
                         + rscDataObj.getClass().getName());
                 return false;
             }
-            // synchronized (AbstractFrameData.class) {
+
             /*
              * set navigation
              */
@@ -513,7 +517,6 @@ public class NcgridResource extends
                     gdPrxy.setSpatialObject(cov);
                     gdPrxy.setNewSpatialObject(cov);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
                     System.out
                             .println("Error retrieving GEMPAK grid navigation block: "
                                     + e.getMessage());
@@ -940,6 +943,8 @@ public class NcgridResource extends
                                         MapUtil.getGridGeometry(gdPrxy
                                                 .getNewSpatialObject()),
                                         contourAttributes[i], contourName);
+                                contourRenderable[i]
+                                        .setResource(NcgridResource.this);
                                 hasData = true;
                             } catch (Exception npe) {
                                 hasData = false;
@@ -969,7 +974,6 @@ public class NcgridResource extends
                                                 + "***HINT: parts of gdPrxy may have been null\n"
                                                 + npe.getMessage(), npe);
                             }
-
                         } else {
                             if (ncgribLogger.enableDiagnosticLogs()) {
                                 logger.info(this.getClass().getCanonicalName()
@@ -994,8 +998,6 @@ public class NcgridResource extends
                                     + contourAttributes[i].getGvcord()
                                     + ";\nGDPFUN:"
                                     + contourAttributes[i].getGdpfun() + ";");
-
-                            // return false;
                         }
                     }
                     // Attributes or navigation change
@@ -1071,7 +1073,8 @@ public class NcgridResource extends
                     }
 
                     // create HILO symbols
-                    if ((attrType.contains("F") || attrType.contains("C"))
+                    if ((attrType.contains("F") || attrType.contains("I") || attrType
+                            .contains("C"))
                             && (contourRenderable[i] != null)
                             && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
                         if (contourRenderable[i].getGridRelativeHiLo() == null) {
@@ -1113,7 +1116,6 @@ public class NcgridResource extends
                     t12 = System.currentTimeMillis();
                     logger.debug("==init contour took:" + (t12 - t11));
                 }
-
             } // end of for loop
 
             Collections.sort(NcgridResource.this.dataTimes);
@@ -1360,11 +1362,11 @@ public class NcgridResource extends
                                                     + npe.getMessage(), npe);
                                 }
                             }
-
                         }
 
                         // create HILO symbols
-                        if ((attrType.contains("F") || attrType.contains("C"))
+                        if ((attrType.contains("F") || attrType.contains("I") || attrType
+                                .contains("C"))
                                 && (contourRenderable[i] != null)
                                 && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
 
@@ -1454,7 +1456,6 @@ public class NcgridResource extends
                             }
                         }
                     }
-
                 } // end of for loop
 
             } // end of synchronized
@@ -1481,8 +1482,9 @@ public class NcgridResource extends
 
                     ContourRenderable contourGroup = contourRenderable[i];
 
-                    if ((type.contains("C") || type.contains("F") || type
-                            .contains("S")) && (contourGroup != null)) {
+                    if ((type.contains("C") || type.contains("F")
+                            || type.contains("I") || type.contains("S"))
+                            && (contourGroup != null)) {
 
                         try {
                             contourGroup.createContours(getGraphicsTarget(),
@@ -1502,7 +1504,6 @@ public class NcgridResource extends
                                     getGraphicsTarget(), getPaintProperties());
                         }
                     }
-
                 }
             }
             paintAble = true;
@@ -1517,7 +1518,6 @@ public class NcgridResource extends
                         + (t2 - initTime));
             }
             return true;
-            // }
         }
 
         Boolean isFrameLoaded() {
@@ -1646,12 +1646,11 @@ public class NcgridResource extends
                                 + contourAttributes[i].getGvcord() + ";WIND:"
                                 + contourAttributes[i].getWind() + ";");
                     }
-                    logger.debug(
-                            this.getClass().getCanonicalName()
-                                    + ":\n"
-                                    + "Offending statement: gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,ontourAttributes[i], this.cacheData);\n"
-                                    + "***HINT: parts of gdPrxy may have been null\n"
-                                    + npe.getMessage(), npe);
+                    logger.debug(this.getClass().getCanonicalName()
+                            + ":\n"
+                            + "Offending statement: gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,ontourAttributes[i], this.cacheData);\n"
+                            + "***HINT: parts of gdPrxy may have been null\n"
+                            + npe.getMessage() + npe);
                 }
                 long t2 = System.currentTimeMillis();
                 if (gridData != null) {
@@ -1675,7 +1674,6 @@ public class NcgridResource extends
             }
             return gridData;
         }
-
     }
 
     /**
@@ -1726,7 +1724,6 @@ public class NcgridResource extends
                 String[] gridAvailableTimes = GempakGrid.getAvailableGridTimes(
                         dataLocation, cycleTime.toString(), gridRscData
                                 .getGdfile().toLowerCase());
-                // availableTimes = new DataTime[gridAvailableTimes.length];
                 for (int ii = 0; ii < gridAvailableTimes.length; ii++) {
                     availableTimes.add(new DataTime(gridAvailableTimes[ii]));
                 }
@@ -1796,9 +1793,10 @@ public class NcgridResource extends
     public String getName() {
         FrameData currFrame = (FrameData) getCurrentFrame();
         String nameStr = "";
-        TITLE title = new TITLE(gridRscData.getTitle()); // rm 5/-1/. 5/-1/ ~ @
-                                                         // HEIGHTS, ISOTACHS
-                                                         // AND WIND (KTS)!0
+        /*
+         * rm 5/-1/. 5/-1/ ~ @ HEIGHTS, ISOTACHS AND WIND (KTS)!0
+         */
+        TITLE title = new TITLE(gridRscData.getTitle());
         String tit = title.getTitleString();
 
         if (currFrame == null || currFrame.gdPrxy == null || !currFrame.hasData) {
@@ -1880,7 +1878,7 @@ public class NcgridResource extends
         if (!currFrame.isPaintAble()) {
             if (currFrame.getGenCntrJob() == null) {
                 // repaints start here
-                currFrame.generateContours("Generating contours for Frame");
+                currFrame.generateContours("Rendering");
             }
             return;
         }
@@ -1934,8 +1932,8 @@ public class NcgridResource extends
                 }
 
                 if (contourGroup != null
-                        && (type.contains("C") || type.contains("F") || type
-                                .contains("S"))) {
+                        && (type.contains("C") || type.contains("F")
+                                || type.contains("I") || type.contains("S"))) {
                     if (currFrame.getReProjectFlag()) {
                         contourGroup
                                 .setMapProject(currFrame.getReProjectFlag());
@@ -1952,7 +1950,8 @@ public class NcgridResource extends
                 /*
                  * Plot HILO if needed
                  */
-                if (type.contains("C") || type.contains("F")) {
+                if (type.contains("C") || type.contains("F")
+                        || type.contains("I")) {
                     GridRelativeHiLoDisplay gridRelativeHiLoDisplay = contourGroup
                             .getGridRelativeHiLo();
                     if (gridRelativeHiLoDisplay != null) {
@@ -2199,7 +2198,8 @@ public class NcgridResource extends
         } else if (type.toUpperCase().contains("S")) {
             return DisplayType.STREAMLINE;
         } else if (type.toUpperCase().contains("C")
-                || type.toUpperCase().contains("F")) {
+                || type.toUpperCase().contains("F")
+                || type.toUpperCase().contains("I")) {
             return DisplayType.CONTOUR;
         } else {
             return null;
@@ -2615,13 +2615,11 @@ public class NcgridResource extends
                         startInd = componentAfterPosition;
                     }
                 }
-
             }
         }
 
         System.out.println("returnedFunc=" + returnedFunc);
         return returnedFunc;
-
     }
 
     /*
@@ -2672,8 +2670,6 @@ public class NcgridResource extends
     private String replaceTitleSpecialCharacters(String title, DataTime cTime) {
         StringBuilder titleBuilder = new StringBuilder(title);
         int pos, posV, posF;
-
-        DataTime currFrameTm = (DataTime) getCurrentFrameTime();
 
         /*
          * check '!' and remove it for now ???

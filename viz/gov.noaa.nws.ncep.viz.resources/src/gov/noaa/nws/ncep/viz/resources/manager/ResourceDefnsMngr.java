@@ -51,54 +51,56 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * 
  * 
  * <pre>
- * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 06/09/10       #273      Greg Hull    Created
- * 08/31/10       #303      Greg Hull    Update PGEN AttrSetGroups
- * 09/07/10       #307      Greg Hull    add dfltTimeRange, timelineGenMethod
- * 10/14/10       #227      M. Li        add EnsembleRscCategory
- * 11/27/10       #365      Greg Hull    dynamically generated resource types and sub-types
- * 02/08/11       #365      Greg Hull    dynamically generated local radars.
- * 02/28/11       #408      Greg Hull    Replace Forecast/Observed with a filter
- * 06/07/11       #445      Xilin Guo    Data Manager Performance Improvements
- * 07/15/11       #450      Greg Hull    refactor; support Localization using NcPathManager
- * 07/15/11       #450      Greg Hull    Break resourceDefns.xml into multiple files,
- *                                       Break AttrSetGroup files into multiple files
- * 07/15/11       #450      Greg Hull    rm .prm files and put into ResourceDefn
- * 10/25/11       #467      Greg Hull    recreate AttrSet on edit.
- * 10/26/11                 Xilin Guo    Added dynamicUpdateNcGribInventoryDB to update
- *                                       Ncgrid inventory
- * 11/14/11                 Xilin Guo    Fixed stringIndexOutOfBoundsExpection problem in 
- *                                       NcGrib inventory
- * 11/11/11                 Greg Hull    don't store AttrSetGroupNames in the ResourceDefns
- * 12/01/11      #518       Greg Hull    add getDefaultFrameTimesSelections()
- * 12/08/11                 Shova Gurung Modified dynamicUpdateRadarDataResource() to fix a bug (Local Radar
- *                                       data resource names not showing up correctly after being populated, if database was empty at CAVE startup)
- * 01/09/11      #561       Greg Hull    save the Locator Resource
- * 01/20/12      #606       Greg Hull    use '@' to reference plotModel files.
- * 04/23/12      #606       Greg Hull    use '@' to reference conditional filters for plot data
- * 05/27/12      #606       Greg Hull    get a list of inventoryDefinitions from Edex and save the alias in the ResourceDefn.
- * 06/05/12      #816       Greg Hull    return RD comparator. Change method to get RDs by
- *                                       category to return RD instead of type name.
- * 11/2012       #885       T. Lee       processed unmapped satellite projection                                
- * 11/15/12      #950       Greg Hull    don't fail if an empty list of inventorys is returned
- * 12/16/12      #957       Greg Hull    change getAttrSetsForResource to return AttributeSets list
- * 12/18/12      #957       Greg Hull    patch the bug when deleting a localization file
- * 02/13/13      #972       Greg Hull    ResourceCategory class and NcDisplayType
- * 04/10/13      #864       Greg Hull    read/save new ResourceFilters file
- * 04/24/13      #838       B. Hebbard   Allow getAllResourceParameters to handle NTRANS (paramVal2 no longer assumed numeric/km)
- * 06/05/13      #998       Greg Hull    init subTypesList when creating new RD.
- * 08/2013       #1031      Greg Hull    retry on inventory directory request
- * 12/4/13       #1074      Greg Hull    another hack for the rscName<->parameterValues mapping; check for
- *                                       'native' in satellite subType and set to 0 resolution.
- * 05/15/2014    #1131      Quan Zhou    added rparameters dfltGraphRange, dfltHourSnap
- * 
- * 09/18/2014    R4508      S. Gurung    Added "TIME_SERIES_DIR" to refdParamDirectories. Modified getAllResourceParameters()
- *                                       to get params from sub-types for high-cadence data.
- * 08/17/2015    R7755      J. Lopez     Only the lowest level localization file is read, moved isEnabled" flag  is moved to Resource Definitions and 
- *                                       removed "Filterable Labels" section from Resource Definition editor. Replaced serialization with JaxB
- * 09/25/2015    R12042     J. Lopez     Fix the bug where Attribute Set Groups and the Attributes are not loaded
+ *  SOFTWARE HISTORY
+ *  Date         Ticket#     Engineer    Description
+ *  ------------ ----------  ----------- --------------------------
+ *  06/09/10       #273      Greg Hull    Created
+ *  08/31/10       #303      Greg Hull    Update PGEN AttrSetGroups
+ *  09/07/10       #307      Greg Hull    add dfltTimeRange, timelineGenMethod
+ *  10/14/10       #227      M. Li        add EnsembleRscCategory
+ *  11/27/10       #365      Greg Hull    dynamically generated resource types and sub-types
+ *  02/08/11       #365      Greg Hull    dynamically generated local radars.
+ *  02/28/11       #408      Greg Hull    Replace Forecast/Observed with a filter
+ *  06/07/11       #445      Xilin Guo    Data Manager Performance Improvements
+ *  07/15/11       #450      Greg Hull    refactor; support Localization using NcPathManager
+ *  07/15/11       #450      Greg Hull    Break resourceDefns.xml into multiple files,
+ *                                        Break AttrSetGroup files into multiple files
+ *  07/15/11       #450      Greg Hull    rm .prm files and put into ResourceDefn
+ *  10/25/11       #467      Greg Hull    recreate AttrSet on edit.
+ *  10/26/11                 Xilin Guo    Added dynamicUpdateNcGribInventoryDB to update
+ *                                        Ncgrid inventory
+ *  11/14/11                 Xilin Guo    Fixed stringIndexOutOfBoundsExpection problem in 
+ *                                        NcGrib inventory
+ *  11/11/11                 Greg Hull    don't store AttrSetGroupNames in the ResourceDefns
+ *  12/01/11      #518       Greg Hull    add getDefaultFrameTimesSelections()
+ *  12/08/11                 Shova Gurung Modified dynamicUpdateRadarDataResource() to fix a bug (Local Radar
+ *                                        data resource names not showing up correctly after being populated, if database was empty at CAVE startup)
+ *  01/09/11      #561       Greg Hull    save the Locator Resource
+ *  01/20/12      #606       Greg Hull    use '@' to reference plotModel files.
+ *  04/23/12      #606       Greg Hull    use '@' to reference conditional filters for plot data
+ *  05/27/12      #606       Greg Hull    get a list of inventoryDefinitions from Edex and save the alias in the ResourceDefn.
+ *  06/05/12      #816       Greg Hull    return RD comparator. Change method to get RDs by
+ *                                        category to return RD instead of type name.
+ *  11/2012       #885       T. Lee       processed unmapped satellite projection                                
+ *  11/15/12      #950       Greg Hull    don't fail if an empty list of inventorys is returned
+ *  12/16/12      #957       Greg Hull    change getAttrSetsForResource to return AttributeSets list
+ *  12/18/12      #957       Greg Hull    patch the bug when deleting a localization file
+ *  02/13/13      #972       Greg Hull    ResourceCategory class and NcDisplayType
+ *  04/10/13      #864       Greg Hull    read/save new ResourceFilters file
+ *  04/24/13      #838       B. Hebbard   Allow getAllResourceParameters to handle NTRANS (paramVal2 no longer assumed numeric/km)
+ *  06/05/13      #998       Greg Hull    init subTypesList when creating new RD.
+ *  08/2013       #1031      Greg Hull    retry on inventory directory request
+ *  12/4/13       #1074      Greg Hull    another hack for the rscName<->parameterValues mapping; check for
+ *                                        'native' in satellite subType and set to 0 resolution.
+ *  05/15/2014    #1131      Quan Zhou    added rparameters dfltGraphRange, dfltHourSnap
+ *  
+ *  
+ *  09/18/2014    R4508      S. Gurung    Added "TIME_SERIES_DIR" to refdParamDirectories. Modified getAllResourceParameters()
+ *                                        to get params from sub-types for high-cadence data.
+ *  08/17/2015    R7755      J. Lopez     Only the lowest level localization file is read, moved isEnabled" flag  is moved to Resource Definitions and 
+ *                                        removed "Filterable Labels" section from Resource Definition editor. Replaced serialization with JaxB
+ *  09/25/2015    R12042     J. Lopez     Fix the bug where Attribute Set Groups and the Attributes are not loaded
+ *  10/15/2015    R7190     R. Reynolds   Added support for Mcidas
  * 
  * </pre>
  * 
@@ -662,6 +664,7 @@ public class ResourceDefnsMngr {
             }
 
             attrSetGroupsMap.put(asg.getRscAndGroupName().toString(), asg);
+
         }
 
         // Next set the attrSetMap.
@@ -691,6 +694,7 @@ public class ResourceDefnsMngr {
                 attrSetMap.put(rscImpl, new HashMap<String, AttributeSet>());
             }
             try {
+
                 AttributeSet aSet = AttributeSet.createAttributeSet(rscImpl,
                         asLclFile);
 
@@ -835,9 +839,6 @@ public class ResourceDefnsMngr {
                                                     + " and " + edexID
                                                     .getInventoryName()));
                         }
-                        System.out.println("Inventory found for "
-                                + rd.getResourceDefnName() + " is "
-                                + edexID.getInventoryName());
                         rd.setInventoryAlias(edexID.getInventoryName());
 
                     }
@@ -1220,7 +1221,33 @@ public class ResourceDefnsMngr {
 
         String[] subTypeGenParams = rscDefn.getSubTypeGenParamsList();
 
-        if (subTypeGenParams.length == 1) {
+        if (rscDefn.getRscImplementation().equals("McidasSatellite")) {
+
+            String subType = rscName.getRscGroup();
+
+            String subTypeParamsArr[] = subType.split("_");
+
+            if (subTypeParamsArr != null) {
+                for (int i = 0; i < subTypeParamsArr.length; i++) {
+
+                    if (subTypeGenParams[i].toString().equalsIgnoreCase(
+                            "resolution")) {
+                        if (subTypeParamsArr[i].toLowerCase().endsWith(("km"))) {
+                            subTypeParamsArr[i] = subTypeParamsArr[i]
+                                    .substring(0,
+                                            subTypeParamsArr[i].length() - 2);
+                        }
+                        if (subTypeParamsArr[i].equals("native"))
+                            subTypeParamsArr[i] = "0";
+
+                    }
+
+                    paramsMap.put(subTypeGenParams[i], subTypeParamsArr[i]);
+
+                }
+            }
+
+        } else if (subTypeGenParams.length == 1) {
             paramsMap.put(subTypeGenParams[0], rscName.getRscGroup());
         }
 
@@ -1276,6 +1303,7 @@ public class ResourceDefnsMngr {
     //
     public static HashMap<String, String> readAttrSetFile(File asFile)
             throws VizException {
+
         // parse the attrset file to get the attrs to substitude into the
         // Bundle Template file.
         HashMap<String, String> rscAttrMap = new HashMap<String, String>();
@@ -1286,6 +1314,7 @@ public class ResourceDefnsMngr {
 
         try {
             FileReader freader = new FileReader(asFile);
+
             BufferedReader breader = new BufferedReader(freader);
             String prmStr = breader.readLine().trim();
 
@@ -1354,6 +1383,7 @@ public class ResourceDefnsMngr {
                     }
 
                     rscAttrMap.put(prmKey.trim(), prmVal.trim());
+
                 }
                 prmStr = breader.readLine();
 
@@ -1584,7 +1614,6 @@ public class ResourceDefnsMngr {
             return attrSetGroupsList;
         } else {
             for (AttrSetGroup asg : attrSetGroupsMap.values()) {
-
                 if (asg.getResource().equals(rscDefn.getResourceDefnName())) {
                     attrSetGroupsList.add(asg);
                 }

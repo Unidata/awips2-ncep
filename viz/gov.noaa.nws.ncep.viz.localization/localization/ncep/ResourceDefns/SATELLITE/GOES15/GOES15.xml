@@ -6,12 +6,14 @@
 ! This must match the value in the
 ! mcidas DB table valid values are 
 ! (GOES12, GOES13, .....)
-satelliteName=GOES15
+satelliteId=184
 pluginName=mcidas
 legendColor=RGB {200, 200, 200}
     </resourceParameters>
     <rscImplementation>McidasSatellite</rscImplementation>
-    <subTypeGenerator>areaName,resolution</subTypeGenerator>
+    
+    <subTypeGenerator>resolution,areaId,projection,satelliteId</subTypeGenerator>
+    
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
     <frameSpan>60</frameSpan>

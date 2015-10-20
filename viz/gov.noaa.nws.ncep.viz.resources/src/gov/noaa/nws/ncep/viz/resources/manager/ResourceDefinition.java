@@ -55,8 +55,8 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
  *                            Greg Hull   Created
  *  02/26/11      #408        Greg Hull   add filterable labels, rm isForecast, isEvent
  *  03/02/11      #408        Greg Hull   add definitionIndex
@@ -73,7 +73,7 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  09/01/12      #860        Greg Hull   Add smarter caching (for all constraints) of available times.
  *  09/05/12      #860        Greg Hull   Add this to the URICatalog for storing the latest time.
  *  09/13/12      #860        Greg Hull   set default for inventoryEnabled to false.
- *  11/2012		  #885		  T. Lee	  Set unmapped satellite projection resolution to "native"
+ *  11/2012       #885        T. Lee      Set unmapped satellite projection resolution to "native"
  *  01/2013                   Greg Hull   Don't create wildcard inventory constraint
  *  02/2013       #972        Greg Hull   ResourceCategory class and supported display types
  *  03/2013       #972        Greg Hull   AttrSetsOrganization
@@ -93,6 +93,8 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  05/14/15      R7656      A. Su        Retrieved the resource definitions of LocalRadar from an xml file.
  *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
  *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
+ *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
+ * 
  * 
  * </pre>
  * 
@@ -281,13 +283,13 @@ public class ResourceDefinition implements IAlertObserver,
         generatedSubTypesList = new ArrayList<String>();
     }
 
-    //
     // shallow copy of the attrSetGroups and subTypes lists
     public ResourceDefinition(ResourceDefinition rscDefn) {
+
         resourceDefnName = rscDefn.getResourceDefnName();
         resourceCategory = rscDefn.resourceCategory;
-
         subTypeGenerator = rscDefn.getSubTypeGenerator();
+
         rscTypeGenerator = rscDefn.getRscTypeGenerator();
 
         resourceParameters = new HashMap<String, String>(
@@ -335,6 +337,7 @@ public class ResourceDefinition implements IAlertObserver,
         this.localizationFile = lFile;
         if (lFile != null) {
             setLocalizationName(lFile.getName());
+
         } else {
             localizationName = "";
         }
@@ -743,6 +746,12 @@ public class ResourceDefinition implements IAlertObserver,
     }
 
     public RequestConstraint getConstraintFromParamValue(String paramVal) {
+
+        if (paramVal == null) {
+            System.out.println("    BAD paramVal");
+            paramVal = " ";
+            return null;
+        }
         if (paramVal.equals("%")) {
             return RequestConstraint.WILDCARD;
         } else if (paramVal.indexOf("%") != -1) {
@@ -879,7 +888,9 @@ public class ResourceDefinition implements IAlertObserver,
 
         // check that all of the paramValues are specified for the rsc
         // implementation
+
         for (String prm : paramValues.keySet()) {
+
             if (!prm.equals("pluginName") && !rscImplParams.containsKey(prm)) {
 
                 throw new VizException(getResourceDefnName()
@@ -905,16 +916,20 @@ public class ResourceDefinition implements IAlertObserver,
 
             if (implPrmInfo.getParamType() == ResourceParamType.EDITABLE_ATTRIBUTE
                     || implPrmInfo.getParamType() == ResourceParamType.NON_EDITABLE_ATTRIBUTE) {
+
                 // if checking for attributes...
                 continue;
             } else if (implPrmInfo.getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
 
                 // if this param will be generated.
                 if (genParamsList.contains(constraintName)) {
+
                     continue;
                 } else {
+
                     // if the needed param is not set in the resource defn or is
                     // set to empty
+
                     String paramValue = paramValues.get(implPrm);
 
                     if (paramValue == null || paramValue.isEmpty()) {
@@ -1178,6 +1193,7 @@ public class ResourceDefinition implements IAlertObserver,
 
     //
     public ArrayList<String> generatedSubTypesList() throws VizException {
+
         // Grids, Satellite, Radar, etc. all are dynamically updated when new
         // alert updates are received (when new data is ingested). PGEN doesn't
         // have alert updates and so we need to always check for new products.
@@ -1192,6 +1208,7 @@ public class ResourceDefinition implements IAlertObserver,
         // will not be found since the productAlertObserver was not added
         // on startup.
         if (!getInventoryEnabled()) {
+
             return generatedSubTypesList;
         }
 
@@ -1261,6 +1278,7 @@ public class ResourceDefinition implements IAlertObserver,
 
             // the results from the NcInventory are have had spaces replaced
             // with underscores and are delimited with "/"'s.
+
             String[] queryResults = rsltStr.replaceAll("_", " ").split("/");
 
             if (queryResults.length != queryParams.length) {
@@ -1272,29 +1290,36 @@ public class ResourceDefinition implements IAlertObserver,
             }
 
             if (numSubTypeGenParams == 1) {
-                generatedSubTypesList.add(queryResults[0]);
-            }
-            // if there are 2 parameters used to generate the subType query
-            // for the second parameter and create a subType for each unique
-            // combination.
-            else if (numSubTypeGenParams == 2) {
-                String subType = queryResults[0] + "_" + queryResults[1];
 
-                if (getPluginName().equals("mcidas")) {
-                    // if we are going to hard-code the resolution then we may
-                    // as well hard-code its position in the
-                    // list as the seconde param.
-                    if (subTypeParamNames[1].equals("resolution")) { // check
-                                                                     // resolution
-                        // note that the 'km' here will make the code
-                        // to parse the subType non-generic so we might want to
-                        // change it.
-                        subType = queryResults[0]
-                                + "_"
-                                + (queryResults[1].equals("0") ? "native"
-                                        : queryResults[1] + "km");
+                generatedSubTypesList.add(queryResults[0]);
+
+            } else if (getPluginName().equals("mcidas")) {
+
+                String subType = "";
+                for (int i = 0; i < numSubTypeGenParams; i++) {
+                    if ((subTypeParamNames[i].equals("resolution"))
+                            && queryResults[i].equals("0")) {
+                        subType += "native_";
+                    } else {
+                        subType += queryResults[i] + "_";
                     }
                 }
+                subType.replace(subType.substring(subType.length() - 1), "");
+
+                if (!generatedSubTypesList.contains(subType)) {
+                    generatedSubTypesList.add(subType);
+                } else {
+                    out.println("subType already in the list?"); // shouldn't
+                } // happen
+
+                // if there are 2 parameters used to generate the subType query
+                // for the second parameter and create a subType for each unique
+                // combination.
+                //
+
+            } else if (numSubTypeGenParams == 2) {
+
+                String subType = queryResults[0] + "_" + queryResults[1];
 
                 if (!generatedSubTypesList.contains(subType)) {
                     generatedSubTypesList.add(subType);
@@ -1444,6 +1469,7 @@ public class ResourceDefinition implements IAlertObserver,
             getDataTimes(rscName); // this will add the times to the cache.
 
             if (availTimesCache.containsKey(resourceConstraints)) {
+
                 latestTime = availTimesCache.get(resourceConstraints)
                         .getLatestTime();
 
@@ -1456,6 +1482,7 @@ public class ResourceDefinition implements IAlertObserver,
         }
 
         // if 'not set' still return a 'Null' dataTime.
+
         return (latestTime == null ? new DataTime(new Date(0)) : latestTime);
     }
 
@@ -1654,6 +1681,10 @@ public class ResourceDefinition implements IAlertObserver,
             } else if (getSubTypeGenParamsList().length > 0) {
 
                 String[] subParams = getSubTypeGenParamsList();
+                String areaId = "";
+                Integer resolution = 0;
+                String projection = "";
+                String satelliteId = "";
 
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
 
@@ -1671,18 +1702,54 @@ public class ResourceDefinition implements IAlertObserver,
                     StringBuilder sb = new StringBuilder();
 
                     if (getRscImplementation().equals("McidasSatellite")) {
-                        String area = (String) result.get("areaName");
-                        Integer res = (Integer) result.get("resolution");
-                        if (res == 0) {
-                            sb.append(area);
-                            sb.append("_native");
-                        } else {
-                            sb.append(area);
-                            sb.append('_');
-                            sb.append(res.toString());
-                            sb.append("km");
+
+                        SatelliteAreaManager.getInstance().setSubParams(
+                                subParams);
+
+                        areaId = (String) result.get("areaId");
+                        // if (areaId.contains("335"))
+                        // continue; // water vapor
+                        resolution = (Integer) result.get("resolution");
+                        projection = (String) result.get("projection");
+                        satelliteId = (String) result.get("satelliteId");
+
+                        SatelliteNameManager.getInstance().setSatelliteId(
+                                satelliteId);
+
+                        SatelliteAreaManager.getInstance().satelliteId = satelliteId;
+
+                        SatelliteAreaManager.getInstance().satelliteName = SatelliteNameManager
+                                .getInstance()
+                                .getDisplayedNameByID(satelliteId);
+
+                        for (int i = 0; i < subParams.length; i++) {
+
+                            if (subParams[i].equalsIgnoreCase("resolution")) {
+                                if (resolution == 0) {
+                                    sb.append("native");
+                                } else {
+                                    sb.append(resolution.toString());
+
+                                }
+                                sb.append('_');
+
+                            } else if (subParams[i].equalsIgnoreCase("areaId")) {
+                                sb.append(areaId);
+                                sb.append('_');
+                            } else if (subParams[i]
+                                    .equalsIgnoreCase("projection")) {
+                                sb.append(projection);
+                                sb.append('_');
+                            } else if (subParams[i]
+                                    .equalsIgnoreCase("satelliteId")) {
+                                sb.append(satelliteId);
+                                sb.append('_');
+                            }
                         }
+                        sb.delete(sb.length() - 1, sb.length());
+
                     } else {
+
                         for (String param : subParams) {
                             if (sb.length() == 0) {
                                 sb.append(result.get(param));
@@ -1690,6 +1757,7 @@ public class ResourceDefinition implements IAlertObserver,
                                 sb.append('_');
                                 sb.append(result.get(param));
                             }
+
                         }
                     }
 
@@ -1719,6 +1787,9 @@ public class ResourceDefinition implements IAlertObserver,
                                 statusHandler
                                         .handle(Priority.PROBLEM,
                                                 ("Unrecognized PGEN rsc generating subType" + subTypeGenerator));
+                                System.out
+                                        .println("Unrecognized PGEN rsc generating subType"
+                                                + subTypeGenerator);
 
                             }
 
@@ -1736,8 +1807,10 @@ public class ResourceDefinition implements IAlertObserver,
                             if (!generatedSubTypesList.contains(subType)) {
                                 generatedSubTypesList.add(subType);
                             }
+
                         }
                     }
+
                 }
 
             }
@@ -1830,31 +1903,45 @@ public class ResourceDefinition implements IAlertObserver,
             String subType = null;
 
             if (getSubTypeGenParamsList().length == 1) { // ie Gini Satellite
+
                 // the gini decoder puts spaces in the sectorIds and
                 // physicalElements so replace the '_'s from the URI
                 String genPrm = getSubTypeGenParamsList()[0];
                 subType = uriAttrValues.get(genPrm).toString()
                         .replaceAll("_", " ");
-            } else if (getSubTypeGenParamsList().length == 2) { // ie Mcidas
-                                                                // Satellite
-                String genPrm1 = getSubTypeGenParamsList()[0];
-                String genPrm2 = getSubTypeGenParamsList()[1];
-                subType = uriAttrValues.get(genPrm1).toString();
-                if (uriAttrValues.get(genPrm2).toString().equals("0")
-                        && getSubTypeGenParamsList()[1].equals("resolution")) {
-                    subType = subType + "_native";
-                } else {
-                    subType = subType + "_"
-                            + uriAttrValues.get(genPrm2).toString() + "km";
+
+                // this replaces the commented-out stuff below, because mcidas
+                // can now have up to 4 subTypeGenerators and in any order.
+            } else if (getRscImplementation().equals("McidasSatellite")) {
+                String genPrm = "";
+                subType = "";
+                for (int i = 0; i < getSubTypeGenParamsList().length; i++) {
+                    genPrm = getSubTypeGenParamsList()[i];
+                    if ((genPrm.equals("resolution"))
+                            && (uriAttrValues.get(genPrm).toString()
+                                    .equals("0"))) {
+                        subType += "native_";
+                    } else {
+                        subType += uriAttrValues.get(genPrm).toString() + "_";
+                    }
                 }
+
+                subType = subType.replace(
+                        subType.substring(subType.length() - 1), ""); // get rid
+                                                                      // or
+                                                                      // trailing
+                                                                      // "_"
+
             } else if (getSubTypeGenParamsList().length == 3) { // Ghcd
                                                                 // (high-cadence)
                 String genPrm1 = getSubTypeGenParamsList()[0];
                 String genPrm2 = getSubTypeGenParamsList()[1];
+
                 String genPrm3 = getSubTypeGenParamsList()[2];
                 subType = uriAttrValues.get(genPrm1).toString() + "_"
                         + uriAttrValues.get(genPrm2).toString() + "_"
                         + uriAttrValues.get(genPrm3).toString();
+
             }
 
             if (subType != null && !generatedSubTypesList.contains(subType)) {

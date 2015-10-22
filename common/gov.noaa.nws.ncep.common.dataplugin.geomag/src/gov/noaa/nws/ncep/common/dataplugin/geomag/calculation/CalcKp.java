@@ -25,13 +25,14 @@ import java.util.Map;
  * 03/18/2014   #1123       qzhou      default k to 99999
  * 12/23/2014   R5412       sgurung    Change float to double 
  * 06/08/2015   R8416       sgurung    Added new methods, fixed bug in method getKs()
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes
  * 
  * </pre>
  * 
  * @author qzhou
  * @version 1
  */
-//@formatter:off  
+// @formatter:off
 public class CalcKp {
 
     public CalcKp() {
@@ -51,7 +52,7 @@ public class CalcKp {
             } else if (kIndex[i] < 999) {
                 kest[i] = 9.0;
             } else {
-                kest[i] = 99999;
+                kest[i] = CalcUtil.missingVal;
             }
 
         }
@@ -60,7 +61,7 @@ public class CalcKp {
     }
 
     public static double getKest(String station, int kIndex, double gamma) {
-        double kest = 99999;
+        double kest = CalcUtil.missingVal;
 
         double[] kLimit = CalcUtil.getKLimit(station);
         if (kIndex < 9) {
@@ -118,7 +119,7 @@ public class CalcKp {
     }
 
     private static int getKsOfKsThree(int k, KsThree ksThree) {
-        int ks = 99999;
+        int ks = CalcUtil.missingVal.intValue();
 
         if (k == 0) {
             ks = ksThree.getK0();
@@ -162,20 +163,37 @@ public class CalcKp {
         int year = cal.get(Calendar.YEAR);
 
         if (KStationCoefficientLookup.getInstance().useDefaultKsDateRange) {
-            
-            leapYearDates.put("Range2Start", sdf.parse(year + "-02-15"));  // Start Range: Feb 15 – Feb 24
-            leapYearDates.put("Range3Start", sdf.parse(year + "-02-25"));  // Start Range: Feb 25 – Mar 05
-            
-        } else { // Read Ks Date Ranges from the properties file   
-            
-            leapYearDates.put("Range2Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.LEAP_YEAR_START_RANGE_2)));
-            leapYearDates.put("Range3Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.LEAP_YEAR_START_RANGE_3)));
+            // Start Range: Feb 15 – Feb 24
+            leapYearDates.put("Range2Start", sdf.parse(year + "-02-15"));
+
+            // Start Range: Feb 25 – Mar 05
+            leapYearDates.put("Range3Start", sdf.parse(year + "-02-25"));
+
+        } else { // Read Ks Date Ranges from the properties file
+
+            leapYearDates
+                    .put("Range2Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.LEAP_YEAR_START_RANGE_2)));
+            leapYearDates
+                    .put("Range3Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.LEAP_YEAR_START_RANGE_3)));
         }
 
         return leapYearDates;
     }
 
-    
     /**
      * Get Date range for Non-Leap Years
      * 
@@ -194,46 +212,225 @@ public class CalcKp {
         int year = cal.get(Calendar.YEAR);
 
         if (KStationCoefficientLookup.getInstance().useDefaultKsDateRange) {
-            
-            nonLeapYearDates.put("Range1Start", sdf.parse(year + "-01-01")); // Start Range Jan 01 – Feb 13
-            nonLeapYearDates.put("Range2Start", sdf.parse(year + "-02-14")); // Start Range Feb 14 – Feb 23
-            nonLeapYearDates.put("Range3Start", sdf.parse(year + "-02-24")); // Start Range Feb 24 – Mar 05
-            nonLeapYearDates.put("Range4Start", sdf.parse(year + "-03-06")); // Start Range Mar 06 – Mar 15
-            nonLeapYearDates.put("Range5Start", sdf.parse(year + "-03-16")); // Start Range Mar 16 – Apr 15
-            nonLeapYearDates.put("Range6Start", sdf.parse(year + "-04-16")); // Start Range Apr 16 – Apr 25
-            nonLeapYearDates.put("Range7Start", sdf.parse(year + "-04-26")); // Start Range Apr 26 – May 05
-            nonLeapYearDates.put("Range8Start", sdf.parse(year + "-05-06")); // Start Range May 06 – May 15
-            nonLeapYearDates.put("Range9Start", sdf.parse(year + "-05-16")); // Start Range May 16 – Aug 16
-            nonLeapYearDates.put("Range10Start", sdf.parse(year + "-08-17")); // Start Range Aug 17 – Aug 26
-            nonLeapYearDates.put("Range11Start", sdf.parse(year + "-08-27")); // Start Range Aug 27 – Sep 05
-            nonLeapYearDates.put("Range12Start", sdf.parse(year + "-09-06")); // Start Range Sep 06 – Sep 15
-            nonLeapYearDates.put("Range13Start", sdf.parse(year + "-09-16")); // Start Range Sep 16 – Oct 16
-            nonLeapYearDates.put("Range14Start", sdf.parse(year + "-10-17")); // Start Range Oct 17 – Oct 26
-            nonLeapYearDates.put("Range15Start", sdf.parse(year + "-10-27")); // Start Range Oct 27 – Nov 05
-            nonLeapYearDates.put("Range16Start", sdf.parse(year + "-11-06")); // Start Range Nov 06 – Nov 15
-            nonLeapYearDates.put("Range17Start", sdf.parse(year + "-11-16")); // Start Range Nov 16 – Dec 31
-            nonLeapYearDates.put("Range17End", sdf.parse(year + "-12-31")); // End of Range Nov 16 – Dec 31
-            
-        } else {      // Read Ks Date Ranges from the properties file      
-            
-            nonLeapYearDates.put("Range1Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_1)));
-            nonLeapYearDates.put("Range2Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_2)));
-            nonLeapYearDates.put("Range3Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_3)));
-            nonLeapYearDates.put("Range4Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_4)));
-            nonLeapYearDates.put("Range5Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_5)));
-            nonLeapYearDates.put("Range6Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_6)));
-            nonLeapYearDates.put("Range7Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_7)));
-            nonLeapYearDates.put("Range8Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_8)));
-            nonLeapYearDates.put("Range9Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_9)));
-            nonLeapYearDates.put("Range10Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_10)));
-            nonLeapYearDates.put("Range11Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_11)));
-            nonLeapYearDates.put("Range12Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_12)));
-            nonLeapYearDates.put("Range13Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_13)));
-            nonLeapYearDates.put("Range14Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_14)));
-            nonLeapYearDates.put("Range15Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_15)));
-            nonLeapYearDates.put("Range16Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_16)));
-            nonLeapYearDates.put("Range17Start", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_17)));
-            nonLeapYearDates.put("Range17End", sdf.parse(year + "-" + KStationCoefficientLookup.getInstance().getKsDateRange().getProperty(KStationCoefficientLookup.NON_LEAP_YEAR_END_RANGE_17)));
+
+            // Start Range Jan 01 – Feb 13
+            nonLeapYearDates.put("Range1Start", sdf.parse(year + "-01-01"));
+
+            // Start Range Feb 14 – Feb 23
+            nonLeapYearDates.put("Range2Start", sdf.parse(year + "-02-14"));
+
+            // Start Range Feb 24 – Mar 05
+            nonLeapYearDates.put("Range3Start", sdf.parse(year + "-02-24"));
+
+            // Start Range Mar 06 – Mar 15
+            nonLeapYearDates.put("Range4Start", sdf.parse(year + "-03-06"));
+
+            // Start Range Mar 16 – Apr 15
+            nonLeapYearDates.put("Range5Start", sdf.parse(year + "-03-16"));
+
+            // Start Range Apr 16 – Apr 25
+            nonLeapYearDates.put("Range6Start", sdf.parse(year + "-04-16"));
+
+            // Start Range Apr 26 – May 05
+            nonLeapYearDates.put("Range7Start", sdf.parse(year + "-04-26"));
+
+            // Start Range May 06 – May 15
+            nonLeapYearDates.put("Range8Start", sdf.parse(year + "-05-06"));
+
+            // Start Range May 16 – Aug 16
+            nonLeapYearDates.put("Range9Start", sdf.parse(year + "-05-16"));
+
+            // Start Range Aug 17 – Aug 26
+            nonLeapYearDates.put("Range10Start", sdf.parse(year + "-08-17"));
+
+            // Start Range Aug 27 – Sep 05
+            nonLeapYearDates.put("Range11Start", sdf.parse(year + "-08-27"));
+
+            // Start Range Sep 06 – Sep 15
+            nonLeapYearDates.put("Range12Start", sdf.parse(year + "-09-06"));
+
+            // Start Range Sep 16 – Oct 16
+            nonLeapYearDates.put("Range13Start", sdf.parse(year + "-09-16"));
+
+            // Start Range Oct 17 – Oct 26
+            nonLeapYearDates.put("Range14Start", sdf.parse(year + "-10-17"));
+
+            // Start Range Oct 27 – Nov 05
+            nonLeapYearDates.put("Range15Start", sdf.parse(year + "-10-27"));
+
+            // Start Range Nov 06 – Nov 15
+            nonLeapYearDates.put("Range16Start", sdf.parse(year + "-11-06"));
+
+            // Start Range Nov 16 – Dec 31
+            nonLeapYearDates.put("Range17Start", sdf.parse(year + "-11-16"));
+
+            // End of Range Nov 16 – Dec 31
+            nonLeapYearDates.put("Range17End", sdf.parse(year + "-12-31"));
+
+        } else { // Read Ks Date Ranges from the properties file
+
+            nonLeapYearDates
+                    .put("Range1Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_1)));
+            nonLeapYearDates
+                    .put("Range2Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_2)));
+            nonLeapYearDates
+                    .put("Range3Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_3)));
+            nonLeapYearDates
+                    .put("Range4Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_4)));
+            nonLeapYearDates
+                    .put("Range5Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_5)));
+            nonLeapYearDates
+                    .put("Range6Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_6)));
+            nonLeapYearDates
+                    .put("Range7Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_7)));
+            nonLeapYearDates
+                    .put("Range8Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_8)));
+            nonLeapYearDates
+                    .put("Range9Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_9)));
+            nonLeapYearDates
+                    .put("Range10Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_10)));
+            nonLeapYearDates
+                    .put("Range11Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_11)));
+            nonLeapYearDates
+                    .put("Range12Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_12)));
+            nonLeapYearDates
+                    .put("Range13Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_13)));
+            nonLeapYearDates
+                    .put("Range14Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_14)));
+            nonLeapYearDates
+                    .put("Range15Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_15)));
+            nonLeapYearDates
+                    .put("Range16Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_16)));
+            nonLeapYearDates
+                    .put("Range17Start",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_START_RANGE_17)));
+            nonLeapYearDates
+                    .put("Range17End",
+                            sdf.parse(year
+                                    + "-"
+                                    + KStationCoefficientLookup
+                                            .getInstance()
+                                            .getKsDateRange()
+                                            .getProperty(
+                                                    KStationCoefficientLookup.NON_LEAP_YEAR_END_RANGE_17)));
         }
 
         return nonLeapYearDates;
@@ -241,8 +438,8 @@ public class CalcKp {
     }
 
     /**
-     * Calculate the ks value for a given station with a known k value
-     * and known time accounting for leap year vs non-leap years
+     * Calculate the ks value for a given station with a known k value and known
+     * time accounting for leap year vs non-leap years
      * 
      * @param station
      * @param k
@@ -257,6 +454,10 @@ public class CalcKp {
         Calendar cal = Calendar.getInstance();
         cal.setTime(time);
         int year = cal.get(Calendar.YEAR);
+
+        if (k == CalcUtil.missingVal) {
+            return CalcUtil.missingVal;
+        }
 
         // For non-leap years
         //
@@ -400,7 +601,7 @@ public class CalcKp {
                 sumW += wcoeff[i][j];
                 sumWK += wcoeff[i][j] * ks[i];
             }
-            // kpEst[i] = (double) (Math.round(3 * sumWK / sumW)) / 3;
+
             kpEst[j] = sumWK / sumW;
             kpEst[j] = (int) kpEst[j] + CalcUtil.getThird(kpEst[j]);
         }
@@ -462,4 +663,4 @@ public class CalcKp {
     }
 
 }
-//@formatter:on 
+// @formatter:on

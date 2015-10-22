@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.common.dataplugin.geomag.calculation;
 
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.KFitTime;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.util.KStationCoefficientLookup;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.MissingValueCodeLookup;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
  * 06/23/2014   R4152       qzhou      Touched up 3 functions
  * 12/23/2014   R5412       sgurung    Change float to double, added methods related to "debug mode"
  * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit, fixed bug in getKfromTable()
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes and fixed warnings
  * 
  * </pre>
  * 
@@ -38,7 +40,9 @@ import java.util.regex.Pattern;
  */
 
 public class CalcUtil {
-    public static final double MISSING_VAL = 99999.99;
+
+    public static Double missingVal = MissingValueCodeLookup.getInstance()
+            .getDefaultMissingValue();
 
     private static final double K_EXPONENT = 3.3;
 
@@ -221,9 +225,11 @@ public class CalcUtil {
 
     // assume db time format yyyy-mm-dd hh:mm:ss
     public static Date getSPTime(Date currTime) {
-        Date spTime = currTime;
+        Calendar spTime = Calendar.getInstance();
+        spTime.clear();
+        spTime.setTimeInMillis(currTime.getTime());
 
-        int hour = currTime.getHours();
+        int hour = spTime.get(Calendar.HOUR_OF_DAY);
 
         if (hour >= 0 && hour < 3)
             hour = 0;
@@ -242,17 +248,22 @@ public class CalcUtil {
         else if (hour >= 21 && hour < 24)
             hour = 21;
 
-        spTime.setHours(hour);
-        spTime.setMinutes(0);
-        spTime.setSeconds(0);
+        spTime.set(Calendar.HOUR_OF_DAY, hour);
 
-        return spTime;
+        spTime.set(Calendar.MINUTE, 0);
+        spTime.set(Calendar.SECOND, 0);
+
+        return spTime.getTime();
     }
 
     public static Date getEPTime(Date currTime) {
-        Date epTime = (Date) currTime.clone();
 
-        int hour = currTime.getHours();
+        Calendar epTime = Calendar.getInstance();
+        epTime.clear();
+        epTime.setTimeInMillis(currTime.getTime());
+
+        int hour = epTime.get(Calendar.HOUR_OF_DAY);
+
         if (hour >= 0 && hour < 3)
             hour = 3;
         else if (hour >= 3 && hour < 6)
@@ -270,18 +281,19 @@ public class CalcUtil {
         else if (hour >= 21 && hour < 24)
             hour = 0;
 
-        if (hour != 0)
-            epTime.setHours(hour);
-        else {
-            int day = currTime.getDate() + 1;
-            epTime.setDate(day);
-            epTime.setHours(hour);
+        if (hour != 0) {
+            epTime.set(Calendar.HOUR_OF_DAY, hour);
+        } else {
+
+            epTime.set(Calendar.DAY_OF_MONTH,
+                    epTime.get(Calendar.DAY_OF_MONTH) + 1);
+            epTime.set(Calendar.HOUR_OF_DAY, hour);
         }
 
-        epTime.setMinutes(0);
-        epTime.setSeconds(0);
+        epTime.set(Calendar.MINUTE, 0);
+        epTime.set(Calendar.SECOND, 0);
 
-        return epTime;
+        return epTime.getTime();
     }
 
     public static boolean isHalfMissing(double[] items) {
@@ -289,7 +301,7 @@ public class CalcUtil {
 
         int i = 0;
         for (i = 0; i < items.length; i++) {
-            if (items[i] == MISSING_VAL)
+            if (items[i] == missingVal)
                 i++;
         }
         if (i > items.length / 2)
@@ -319,9 +331,9 @@ public class CalcUtil {
     }
 
     public static double maxValue(double[] dev) {
-        double max = -99999;
+        double max = -CalcUtil.missingVal;
         for (int i = 0; i < dev.length; i++) {
-            if (dev[i] > max && dev[i] < MISSING_VAL) {
+            if (dev[i] > max && dev[i] < missingVal) {
                 max = dev[i];
             }
         }
@@ -329,9 +341,9 @@ public class CalcUtil {
     }
 
     public static double minValue(double[] dev) {
-        double min = 99999;
+        double min = CalcUtil.missingVal;
         for (int i = 0; i < dev.length; i++) {
-            if (dev[i] < min && dev[i] > -MISSING_VAL) {
+            if (dev[i] < min && dev[i] > -missingVal) {
                 min = dev[i];
             }
         }
@@ -487,7 +499,7 @@ public class CalcUtil {
         // remove missing data
         List<Double> newArray = new ArrayList<Double>();
         for (int k = 0; k < arraySort.length; k++) {
-            if (arraySort[k] != MISSING_VAL) {
+            if (arraySort[k] != missingVal) {
                 newArray.add(arraySort[k]);
             } else {
                 break;

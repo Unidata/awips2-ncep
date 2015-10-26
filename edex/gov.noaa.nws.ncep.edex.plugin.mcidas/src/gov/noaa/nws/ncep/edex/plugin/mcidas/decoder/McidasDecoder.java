@@ -2,8 +2,8 @@ package gov.noaa.nws.ncep.edex.plugin.mcidas.decoder;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasSpatialFactory;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.dao.McidasDao;
+import gov.noaa.nws.ncep.edex.plugin.mcidas.McidasSpatialFactory;
+import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasDao;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,10 +16,11 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.decodertools.core.DecoderTools;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
+
+//import gov.noaa.nws.ncep.common.dataplugin.mcidas.dao.McidasDao;
 
 /**
  * This java class decodes McIDAS satellite plug-in image and creates area names
@@ -40,6 +41,7 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * 05/2010      144         L. Lin      Migration to TO11DR11.
  * 11/2011                  T. Lee      Enhanced for ntbn
  * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract
+ * 10/2015      7190        R.Reynolds  Send data directly to Mcidas database/no routing through mapping tables
  * </pre>
  * 
  * @author tlee
@@ -72,7 +74,7 @@ public class McidasDecoder extends AbstractDecoder {
         byte[] area = null;
         byte[] nonAreaBlock = new byte[data.length - SIZE_OF_AREA];
         McidasRecord record = new McidasRecord();
-        String areaName = null;
+        // String areaName = null;
 
         /*
          * Separate area file and non-area block.
@@ -100,19 +102,8 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Satellite identification number (SID)
              */
-            int sid = byteArrayToInt(area, 8, endian);
+            String sid = byteArrayToInt(area, 8, endian).toString();
             record.setSatelliteId(sid);
-
-            /*
-             * Get and set the satellite name from SID
-             */
-            String satelliteName = "";
-            if (dao.getSatelliteId(sid) == null) {
-                satelliteName = Integer.toString(sid);
-            } else {
-                satelliteName = dao.getSatelliteId(sid).getSatelliteName();
-            }
-            record.setSatelliteName(satelliteName);
 
             /*
              * Nominal year and Julian day
@@ -198,97 +189,24 @@ public class McidasDecoder extends AbstractDecoder {
              * Get and set image type, e.g., VIS, IR, IR2 from satellite name
              * and image type number
              */
-            int imageTypeNumber = byteArrayToInt(area, 72, endian);
-            record.setImageTypeNumber(imageTypeNumber);
-            if (imageTypeNumber <= 0) {
-                imageTypeNumber = -1;
-            }
-            String imageType = dao
-                    .getImageType(Integer.toString(sid),
-                            Integer.toString(imageTypeNumber)).get(0)
-                    .getImageType();
+            String imageTypeId = byteArrayToInt(area, 72, endian).toString();
 
+            record.setImageTypeId(imageTypeId);
+
+            String areaId = byteArrayToInt(area, 128, endian).toString();
             /*
-             * String memo = byteArrayToString(area,96,endian) +
-             * byteArrayToString(area,100,endian) +
-             * byteArrayToString(area,104,endian) +
-             * byteArrayToString(area,108,endian) +
-             * byteArrayToString(area,112,endian) +
-             * byteArrayToString(area,116,endian) +
-             * byteArrayToString(area,120,endian) +
-             * byteArrayToString(area,124,endian) +
-             * byteArrayToString(area,128,endian);
-             * 
-             * Get area file number (AFN)
+             * Set the area ID.
              */
-            int areaId = byteArrayToInt(area, 128, endian);
 
-            /*
-             * Get and set the area name from AFN. If area name has a "|", parse
-             * the file and the 1st part is the group name for the satellite.
-             * The 2nd part is the area name.
-             */
-            if (dao.getAreaId(areaId) == null) {
-                areaName = Integer.toString(areaId);
-            } else {
-                areaName = dao.getAreaId(areaId).getAreaName();
-            }
-
-            if (areaName.contains("|")) {
-                String[] yyy = areaName.split("\\|", 2);
-
-                /*
-                 * Handle special cases for duplicate area file numbers (see
-                 * Design document)
-                 */
-                if ((areaId == 281) || (areaId == 280)) {
-                    if (satelliteName.equals("Global")) {
-                        if (areaId == 281) {
-                            areaName = "TPW_PCT";
-                        } else {
-                            areaName = "TPW_GPS";
-                        }
-                    } else {
-                        satelliteName = yyy[0];
-                        areaName = yyy[1];
-                        record.setSatelliteName(satelliteName);
-                    }
-                } else {
-                    satelliteName = yyy[0];
-                    areaName = yyy[1];
-                    record.setSatelliteName(satelliteName);
-                }
-            }
-            record.setAreaName(areaName);
+            record.setAreaId(areaId);
             String fileName = "";
             if (headers != null) {
-                // fileName = (String) headers.get("traceId");
+
                 File ingestFile = new File(
                         (String) headers.get(DecoderTools.INGEST_FILE_NAME));
                 fileName = ingestFile.getName();
             }
             record.setInputFileName(fileName);
-
-            /*
-             * Acquire image type from input file name if needed.
-             */
-            if (imageType.equals("UNKNOWN") || satelliteName.equals("VAAC")) {
-                if (fileName.contains("_20")) {
-                    int index = fileName.indexOf("_20");
-                    ;
-                    imageType = fileName.substring(0, index);
-                    if (imageType.contains("_")) {
-                        index = imageType.lastIndexOf("_");
-                        imageType = imageType.substring(index + 1,
-                                imageType.length());
-                    }
-                }
-            }
-            record.setImageType(imageType);
-
-            /*
-             * Area file number int filno = byteArrayToInt (area, 128, endian);
-             */
 
             /*
              * Data offset: byte offset to the start of the data block
@@ -415,6 +333,7 @@ public class McidasDecoder extends AbstractDecoder {
             } else {
                 // native satellite projections ( not remapped )
                 iproj = 7585;
+                resolution = (yres < xres) ? yres : xres;
             }
             record.setResolution(resolution);
 
@@ -690,6 +609,7 @@ public class McidasDecoder extends AbstractDecoder {
 
             }
             record.setProjection(proj);
+            record.setOverwriteAllowed(true);
 
             /*
              * Create map coverage.
@@ -738,11 +658,7 @@ public class McidasDecoder extends AbstractDecoder {
                 record.setTraceId(traceId);
                 record.setCoverage(mapCoverage);
                 record.setPersistenceTime(TimeTools.getSystemCalendar());
-                try {
-                    record.constructDataURI();
-                } catch (PluginException e) {
-                    e.printStackTrace();
-                }
+
             }
             return new PluginDataObject[] { record };
         } else {

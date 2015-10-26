@@ -53,11 +53,14 @@ import com.raytheon.uf.common.localization.PathManagerFactory;
  * 10/01/2014     R5116     K.Bugenhagen Added MODIS style rules constant
  * 10/15/2014     R4508     S. Gurung    Added XAXIS_SCALE_DIR and XAXIS_SCALE_HELP_FILE
  * 05/14/2015     R7656     A. Su        Added LCL_RDA_DIR.
+ * 07/20/2015	  R8051     Jonas Okwara Modified listFiles to recursively read localization files
  * 08/06/2015     R8015     A. Su        Modified the constructor, getting a path manager with no argument.
  *                                       Moved the logic in the method createDeskLevelLocalization
  *                                       to the StartupInitialization class.
- * 07/20/2015	  R8051     Jonas Okwara  Modified listFiles to recursively read localization files
  * 10/01/2015     R8051     Edwin Brown  Clean up work.
+ * 10/15/15       R7190     R. Reynolds  Added support for Mcidas
+ * 
+ * 
  * </pre>
  * 
  * @author ghull
@@ -338,6 +341,15 @@ public class NcPathManager {
 
         public static final String LCL_RDA_DIR = NCEP_ROOT
                 + "localRadarStations";
+
+        public static final String SATELLITE_AREAS_DIR = NCEP_ROOT
+                + "satelliteAreas";
+
+        public static final String SATELLITE_NAMES_DIR = NCEP_ROOT
+                + "satelliteNames";
+
+        public static final String SATELLITE_IMAGETYPES_DIR = NCEP_ROOT
+                + "satelliteImageTypes";
 
     }
 

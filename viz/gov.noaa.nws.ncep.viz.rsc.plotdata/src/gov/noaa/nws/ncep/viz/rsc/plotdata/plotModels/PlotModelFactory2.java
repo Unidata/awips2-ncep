@@ -57,10 +57,10 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgentAdapter;
-import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.eclipse.swt.graphics.RGB;
@@ -109,6 +109,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
  * 10/18/2012     #431,#896sgurung     Added method getStationPlot(... , ...)  
  * 02/26/2013     #936   asubramanian  Updated getStationPlot() to use the system font files 
  *                                     to render the text-based plot elements. 
+ * 10/27/2015     4798     bsteffen    Upgrade batik to 1.8.
  * </pre>
  * 
  * @author BRock97

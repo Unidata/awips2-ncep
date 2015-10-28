@@ -38,7 +38,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -73,6 +72,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 09/13  		?           J. Wu    	Use new "StoreActivityDialog" at exit.
  * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
  * 08/14        TTR962      J. Wu       Format output file with DD, MM, YYYY, HH.
+ * 06/15        R8189       J. Wu       Set Pgen palette per layer.
  * 
  * </pre>
  * 
@@ -235,7 +235,7 @@ public class ProductManageDialog extends ProductDialog {
         createExitPart();
 
         // Set PGEN palette based on the curent product's type.
-        resetPalette(currentProduct);
+        resetPalette(currentProduct, currentLayer);
 
         // load settings
         AttrSettings.getInstance().loadProdSettings(currentProduct.getType());
@@ -938,27 +938,6 @@ public class ProductManageDialog extends ProductDialog {
     }
 
     /**
-     * Edit a selected layer's input/output file names
-     */
-    private void editLayerLpfFileAttr() {
-
-        /*
-         * Pop up layer name editing window
-         */
-        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                .getShell();
-
-        if (layerLpfFileDlg == null) {
-            layerLpfFileDlg = new LayeringLpfFileDialog(shell, this);
-        }
-
-        cleanupDialogs();
-
-        layerLpfFileDlg.open();
-
-    }
-
-    /**
      * Add a new layer.
      */
     private void addLayer() {
@@ -1078,6 +1057,9 @@ public class ProductManageDialog extends ProductDialog {
         }
 
         drawingLayer.removeSelected();
+
+        // Reset PGEN palette
+        resetPalette(currentProduct, currentLayer);
 
         // Reset undo/redo and refresh
         PgenSession.getInstance().disableUndoRedo();
@@ -1503,7 +1485,7 @@ public class ProductManageDialog extends ProductDialog {
         PgenUtil.setSelectingMode();
 
         // Reset PGEN palette
-        resetPalette(currentProduct);
+        resetPalette(currentProduct, currentLayer);
 
         // Reset undo/redo and refresh
         PgenSession.getInstance().disableUndoRedo();
@@ -1665,7 +1647,7 @@ public class ProductManageDialog extends ProductDialog {
         openPrdNameDialog = false;
         if (update) {
 
-            resetPalette(currentProduct);
+            resetPalette(currentProduct, currentLayer);
 
             startProductManage();
         }
@@ -1848,7 +1830,7 @@ public class ProductManageDialog extends ProductDialog {
                 Product prd = prdList.get(prdIndex);
 
                 if (currentProduct.equals(prd)) {
-                    resetPalette(currentProduct);
+                    resetPalette(currentProduct, currentLayer);
                 }
 
                 /*
@@ -1871,94 +1853,23 @@ public class ProductManageDialog extends ProductDialog {
     }
 
     /**
-     * Select and switch to a product type with confirmation.
-     */
-    private void switchProductType1(Combo cmb) {
-
-        if (prdNameDlg != null && (prdNameDlg.isOpen())) {
-            prdNameDlg.close();
-        }
-
-        int prdIndex = Integer.parseInt(cmb.getData().toString());
-        String prevType = prdList.get(prdIndex).getType();
-        boolean typeExist = false;
-
-        for (String ptypName : prdTypesMap.keySet()) {
-            if (prevType.equals(ptypName)) {
-                typeExist = true;
-                break;
-            }
-        }
-
-        if (!typeExist) {
-            prevType = cmb.getItem(0);
-        }
-
-        if (!(cmb.getText().equals(prevType))) {
-
-            MessageDialog confirmDlg = new MessageDialog(PlatformUI
-                    .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm changing product types", null,
-                    "Are you sure you want to change from type " + prevType
-                            + " to type " + cmb.getText() + "?",
-                    MessageDialog.QUESTION, new String[] { "OK", "Cancel" }, 0);
-
-            confirmDlg.open();
-
-            if (confirmDlg.getReturnCode() == MessageDialog.OK) {
-
-                if (currentProduct.getName().equals(
-                        prdList.get(prdIndex).getName())) {
-                    resetPalette(currentProduct);
-                }
-            } else {
-
-                int kk = 0;
-                int isel = 0;
-                for (String str : cmb.getItems()) {
-
-                    if (str.equals(prevType)) {
-                        isel = kk;
-                    }
-
-                    kk++;
-                }
-
-                cmb.select(isel);
-
-            }
-
-            /*
-             * update layers info defined in the new product type.
-             */
-            if (!cmb.getText().equals(prevType)) {
-                Product prd = prdList.get(prdIndex);
-
-                String newTypeName = cmb.getText();
-
-                updateLayerInfoFromNewPrdType(prd, newTypeName);
-
-                if (prd.equals(currentProduct)) {
-                    switchProduct(prdInUse);
-                }
-            }
-
-        }
-    }
-
-    /**
      * Return the status of the "multiSave" check box.
      */
     /*
      * public boolean isMultiSave() { return multiSave; }
      */
     /**
-     * Reset PGEN palette based on a product's type.
+     * Reset PGEN palette based on a product's type and layer.
      */
-    private void resetPalette(Product prd) {
+    private void resetPalette(Product prd, Layer clayer) {
 
         ProductType ptyp = prdTypesMap.get(prd.getType());
-        this.refreshPgenPalette(ptyp);
+
+        if (clayer != null) {
+            this.refreshPgenPalette(ptyp, clayer.getName());
+        } else {
+            this.refreshPgenPalette(ptyp, null);
+        }
 
         PgenSession.getInstance().getPgenPalette().setActiveIcon("Select");
         PgenUtil.setSelectingMode();
@@ -1981,60 +1892,6 @@ public class ProductManageDialog extends ProductDialog {
             prdFileInOutDlg.close();
     }
 
-    /**
-     * Edit a selected product's input/output file names
-     */
-    private void editProductFileAttr() {
-
-        /*
-         * Pop up layer name editing window
-         */
-        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                .getShell();
-
-        if (prdFileInOutDlg == null) {
-            prdFileInOutDlg = new ProductFileNameDialog(shell, this);
-        }
-
-        cleanupDialogs();
-
-        prdFileInOutDlg.open();
-
-    }
-
-    /**
-     * Retrieve the product associated with the file in/out button;
-     */
-    /*
-     * protected Product getProductForPrdFileInOut() {
-     * 
-     * return prdList.get( prdFileBtnInUse );
-     * 
-     * }
-     */
-    /**
-     * Return the name of the product on which the product file in/out button is
-     * clicked.
-     */
-    /*
-     * protected String getPrdNameForFileInOut() {
-     * 
-     * if ( prdList != null && prdFileBtnInUse >= 0 ) { return prdList.get(
-     * prdFileBtnInUse ).getName(); }
-     * 
-     * return null; }
-     */
-    /**
-     * Update a product's input and output file name;
-     */
-    /*
-     * protected void updateProductFileAttr( String fileIn, String fileOut ) {
-     * if ( prdFileBtnInUse >= 0 ) { prdList.get( prdFileBtnInUse
-     * ).setInputFile( fileIn ); prdList.get( prdFileBtnInUse ).setOutputFile(
-     * fileOut ); }
-     * 
-     * }
-     */
     /**
      * Set the flag to open/close the product name dialog;
      */

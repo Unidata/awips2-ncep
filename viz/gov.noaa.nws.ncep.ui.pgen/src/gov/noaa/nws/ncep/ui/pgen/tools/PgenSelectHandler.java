@@ -87,8 +87,9 @@ import com.vividsolutions.jts.geom.Point;
  *                                      Both issues fixed.
  * 05/14        TTR1008     J. Wu       Set "adc" to current contour for PgenContoursTool.
  * 12/14     R5198/TTR1057  J. Wu       Select a label over a line for Contours.
- * 01/15    R5201/TTR1060   J. Wu       Update settings when an element is selected.
- * 05/14     Redmine 7804   S. Russell  Updated handleMouseDownMove()
+ * 01/15     R5201/TTR1060  J. Wu       Update settings when an element is selected.
+ * 05/15     Redmine 7804   S. Russell  Updated handleMouseDownMove()
+ * 07/15        R8352       J. Wu       update hide flag for contour symbol.
  * 
  * </pre>
  * 
@@ -159,12 +160,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     protected int inOut = 1;
 
     protected boolean simulate = false;
-
-    // public PgenSelectHandler(){
-    // editorForHandler = mapEditor;
-    // resourceForHandler = drawingLayer;
-    // attrDlgForHandler = attrDlg;
-    // }
 
     public PgenSelectHandler(AbstractPgenTool tool, AbstractEditor mapEditor,
             PgenResource resource, AttrDlg attrDlg) {
@@ -529,7 +524,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         // Check if mouse is in geographic extent
         Coordinate loc = mapEditor.translateClick(x, y);
-        // if ( loc == null ){ return false;}
 
         DrawableElement tmpEl = pgenrsc.getSelectedDE();
         if (PgenUtil.isUnmovable(tmpEl)) {
@@ -618,11 +612,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((SinglePointElement) tmpEl).setLocationOnly(loc);
                     ContoursAttrDlg cdlg = (ContoursAttrDlg) attrDlg;
 
-                    /*
-                     * if ( tmpEl instanceof Symbol ) { tmpEl.setPgenCategory(
-                     * cdlg.getActiveSymbolClass() ); tmpEl.setPgenType(
-                     * cdlg.getActiveSymbolObjType() ); } else
-                     */if (tmpEl instanceof Text) {
+                    if (tmpEl instanceof Text) {
                         ((Text) tmpEl)
                                 .setText(new String[] { cdlg.getLabel() });
                         ((Text) tmpEl).setAuto(false);
@@ -884,15 +874,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                     ((Text) newEl).setAuto(false);
                                 }
 
-                                if (newEl.getParent() instanceof ContourMinmax) {
-                                    // ContoursAttrDlg cdlg =
-                                    // (ContoursAttrDlg)attrDlg;
-                                    // newEl.setPgenCategory(
-                                    // cdlg.getActiveSymbolClass() );
-                                    // newEl.setPgenType(
-                                    // cdlg.getActiveSymbolObjType() );
-                                }
-
                                 pgenrsc.replaceElement(oldContours, newContours);
                                 ((PgenContoursTool) tool)
                                         .setCurrentContour(newContours);
@@ -971,16 +952,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                             pgenrsc.replaceElement(el, newEl);
 
                             // Update the new Element with the new points
-                            /*
-                             * if("CONV_SIGMET".equalsIgnoreCase(newEl.getPgenType
-                             * () ) ||
-                             * "NCON_SIGMET".equalsIgnoreCase(newEl.getPgenType
-                             * ())) { newEl.setPoints(
-                             * SnapUtil.getSnapWithStation
-                             * (ghostEl.getPoints(),SnapUtil
-                             * .VOR_STATION_LIST,10,8) ); } else
-                             */
-
                             if ("GFA".equalsIgnoreCase(newEl.getPgenType())
                                     && ((IGfa) attrDlg).getGfaFcstHr().indexOf(
                                             "-") > -1) {
@@ -1022,8 +993,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                             }
 
                             // Set this new element as the currently selected
-                            // element
-                            // Collections do not need to reset.
+                            // element Collections do not need to reset.
                             if (!(pgenrsc.getSelectedComp() instanceof DECollection)) {
                                 pgenrsc.setSelected(newEl);
                             }
@@ -1070,12 +1040,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 }
             }
 
-            // reset to normal selecting mode
-            // if ( selectInContours ) {
-            // selectInContours = false;
-            // PgenUtil.setSelectingMode();
-            // }
-
             if (trackExtrapPointInfoDlg != null) {
                 trackExtrapPointInfoDlg.close();
             }
@@ -1086,23 +1050,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             pgenrsc.removeSelected();
             mapEditor.refresh();
 
-            // return false;
-
         }
 
         return false;
 
     }
-
-    /*
-     * @Override public boolean handleKeyDown(int keyCode) { if (
-     * !tool.isResourceEditable() ) return false;
-     * 
-     * if(keyCode == SWT.DEL){ PgenResource pResource =
-     * PgenSession.getInstance().getPgenResource();
-     * pResource.deleteSelectedElements(); mapEditor.refresh(); return true; }
-     * else super.handleKeyDown(keyCode); return false; }
-     */
 
     private void setGhostLineColorForTrack(MultiPointElement multiPointElement,
             int nearestPointIndex) {
@@ -1350,7 +1302,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
             ContoursAttrDlg cdlg = (ContoursAttrDlg) attrDlg;
 
             if (elSelected instanceof Arc) {
-                // cdlg.setDrawingCircle();
                 Text lbl = ((ContourCircle) pele).getLabel();
                 if (lbl != null) {
                     cdlg.setLabel(lbl.getText()[0]);
@@ -1367,33 +1318,27 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 cdlg.setNumOfLabels(((ContourLine) pele).getNumOfLabels());
                 cdlg.setClosed(((Line) elSelected).isClosedLine());
                 cdlg.setActiveLine(elSelected);
-                // cdlg.setContourLineType(elSelected.getPgenType());
-                // cdlg.setDrawingLine();
             } else if (elSelected instanceof Symbol) {
                 Text lbl = ((ContourMinmax) pele).getLabel();
-                // cdlg.setDrawingSymbol();
                 if (lbl != null) {
                     cdlg.setLabel(lbl.getText()[0]);
                     cdlg.setNumOfLabels(1);
                     cdlg.setActiveSymbol(elSelected);
+                    cdlg.setHideSymbolLabel(lbl.getHide());
                 }
             } else if (elSelected instanceof Text) {
                 cdlg.setLabel(((Text) elSelected).getText()[0]);
 
                 if (pele instanceof ContourLine) {
-                    // cdlg.setDrawingLine();
                     cdlg.setNumOfLabels(((ContourLine) pele).getNumOfLabels());
                     cdlg.setClosed(((ContourLine) pele).getLine()
                             .isClosedLine());
                     cdlg.setActiveLine(((ContourLine) pele).getLine());
-                    // cdlg.setContourLineType(((ContourLine) pele).getLine()
-                    // .getPgenType());
                 } else if (pele instanceof ContourMinmax) {
-                    // cdlg.setDrawingSymbol();
                     cdlg.setNumOfLabels(1);
+                    cdlg.setHideSymbolLabel(((Text) elSelected).getHide());
                     cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
                 } else if (pele instanceof ContourCircle) {
-                    // cdlg.setDrawingCircle();
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideCircleLabel(((Text) elSelected).getHide());
                 }

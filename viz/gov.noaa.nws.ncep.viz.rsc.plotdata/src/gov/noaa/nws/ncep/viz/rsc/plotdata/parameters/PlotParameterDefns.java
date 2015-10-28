@@ -90,7 +90,8 @@ public class PlotParameterDefns implements ISerializableObject {
         return null;
     }
 
-    public String[] getAllParameterNames(boolean includeSkyC, boolean includeWndBrb) {
+    public String[] getAllParameterNames(boolean includeSkyC,
+            boolean includeWndBrb) {
         List<String> list = new ArrayList<String>();
 
         for (PlotParameterDefn p : plotParameterDefn) {
@@ -99,7 +100,10 @@ public class PlotParameterDefns implements ISerializableObject {
                 if (includeWndBrb) {
                     list.add(p.getPlotParamName());
                 }
-            } else if (p.getPlotMode() != null && p.getPlotMode().equals("table") && p.getSymbolFont() != null && p.getSymbolFont().equals("SpecialSymbolFont")) {
+            } else if (p.getPlotMode() != null
+                    && p.getPlotMode().equals("table")
+                    && p.getSymbolFont() != null
+                    && p.getSymbolFont().equals("SpecialSymbolFont")) {
                 if (includeSkyC) {
                     list.add(p.getPlotParamName());
                 }
@@ -117,7 +121,9 @@ public class PlotParameterDefns implements ISerializableObject {
         ArrayList<String> list = new ArrayList<String>();
 
         for (PlotParameterDefn p : plotParameterDefn) {
-            if (p.getPlotMode() != null && p.getPlotMode().equals("barb") && p.getPlotParamName() != null) {
+            if (p.getPlotMode() != null
+                    && p.getPlotMode().equals(PlotParameterDefn.PLOT_MODE_BARB)
+                    && p.getPlotParamName() != null) {
 
                 list.add(p.getPlotParamName());
             }
@@ -130,7 +136,9 @@ public class PlotParameterDefns implements ISerializableObject {
         ArrayList<String> list = new ArrayList<String>();
 
         for (PlotParameterDefn p : plotParameterDefn) {
-            if (p.getPlotMode() != null && p.getPlotMode().equals("table") && p.getSymbolFont() != null && p.getSymbolFont().equals("SpecialSymbolFont")
+            if (p.getPlotMode() != null && p.getPlotMode().equals("table")
+                    && p.getSymbolFont() != null
+                    && p.getSymbolFont().equals("SpecialSymbolFont")
                     && p.getPlotParamName() != null) {
 
                 list.add(p.getPlotParamName());
@@ -144,7 +152,10 @@ public class PlotParameterDefns implements ISerializableObject {
         ArrayList<String> list = new ArrayList<String>();
 
         for (PlotParameterDefn p : plotParameterDefn) {
-            if (p.getPlotMode() != null && p.getPlotMode().equals("table") && p.getSymbolFont() != null && p.getSymbolFont().equals("WxSymbolFont") && p.getPlotParamName() != null
+            if (p.getPlotMode() != null && p.getPlotMode().equals("table")
+                    && p.getSymbolFont() != null
+                    && p.getSymbolFont().equals("WxSymbolFont")
+                    && p.getPlotParamName() != null
                     && p.getPlotParamName().endsWith("C")) {
 
                 list.add(p.getPlotParamName());
@@ -154,8 +165,9 @@ public class PlotParameterDefns implements ISerializableObject {
         return list;
     }
 
-    // return  a list of all the Defns with the given metParameter.
-    public ArrayList<PlotParameterDefn> getPlotParamDefnsForMetParam(String metParam) {
+    // return a list of all the Defns with the given metParameter.
+    public ArrayList<PlotParameterDefn> getPlotParamDefnsForMetParam(
+            String metParam) {
         ArrayList<PlotParameterDefn> retList = new ArrayList<PlotParameterDefn>();
         for (PlotParameterDefn pd : plotParameterDefn) {
             if (pd.getMetParamName().equals(metParam)) {

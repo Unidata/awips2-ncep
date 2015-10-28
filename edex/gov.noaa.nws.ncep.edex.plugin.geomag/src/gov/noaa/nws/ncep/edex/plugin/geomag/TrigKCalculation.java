@@ -19,7 +19,6 @@ import gov.noaa.nws.ncep.common.dataplugin.geomag.util.TestCondition;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -36,8 +35,6 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.edex.database.plugin.PluginFactory;
 
 /**
@@ -53,6 +50,9 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
  * 06/26/2014   #1136       qzhou       Calculate hourly average when min>=55 instead of min=59
  * 07/16/2014   R4078       sgurung     Modified method calcK3hr() to add states when a k3hr record is inserted
  * 12/23/2014   R5412       sgurung     Change float to double, add code changes related to "debug mode"
+ * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit
+ * 10/07/2015   R11429     sgurung,jtravis  Replaced hard-coded missing value codes, replaced deprecated code
+ * 
  * 
  * </pre>
  * 
@@ -62,28 +62,13 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
 
 public class TrigKCalculation {
 
-    private static final IUFStatusHandler theHandler = UFStatus
-            .getHandler(TrigKCalculation.class);
-
     private static final String GeoMag = "geomag";
-
-    private static final double MISSING_VAL = 99999.99;
-
     private static final int HOURS = 24;
-
     private static final int MINUTES = 60;
-
     private static final int HD_DATA_RANGE = 3;
-
     private static final int ITERATIONS = 5;
-
-    private GeoMagDao dao; // PluginDao dao;
-
+    private GeoMagDao dao;
     private double[] defLength = new double[HOURS];
-
-    String format = "yyyy-MM-dd'_'HH:mm:ss.s";
-
-    SimpleDateFormat sdf = new SimpleDateFormat(format);
 
     public TrigKCalculation() {
 
@@ -207,8 +192,8 @@ public class TrigKCalculation {
 
                 tempList1.add(dateList.get(i));
                 if (badPointList.get(i) != null && badPointList.get(i) != 0) {
-                    tempList1.add(MISSING_VAL);
-                    tempList1.add(MISSING_VAL);
+                    tempList1.add(CalcUtil.missingVal);
+                    tempList1.add(CalcUtil.missingVal);
                 } else {
                     tempList1.add(comp1List.get(i));
                     tempList1.add(comp2List.get(i));
@@ -222,8 +207,8 @@ public class TrigKCalculation {
                     tempList2.add(dateList.get(i + 1));
                     if (badPointList.get(i + 1) != null
                             && badPointList.get(i + 1) != 0) {
-                        tempList2.add(MISSING_VAL);
-                        tempList2.add(MISSING_VAL);
+                        tempList2.add(CalcUtil.missingVal);
+                        tempList2.add(CalcUtil.missingVal);
                     } else {
                         tempList2.add(comp1List.get(i + 1));
                         tempList2.add(comp2List.get(i + 1));
@@ -238,8 +223,8 @@ public class TrigKCalculation {
                     tempList3.add(dateList.get(i + 2));
                     if (badPointList.get(i + 2) != null
                             && badPointList.get(i + 2) != 0) {
-                        tempList3.add(MISSING_VAL);
-                        tempList3.add(MISSING_VAL);
+                        tempList3.add(CalcUtil.missingVal);
+                        tempList3.add(CalcUtil.missingVal);
                     } else {
                         tempList3.add(comp1List.get(i + 2));
                         tempList3.add(comp2List.get(i + 2));
@@ -258,23 +243,23 @@ public class TrigKCalculation {
                 // Now only check if comp2 (...get(2)) is MISSING_VAL. Could
                 // check both
                 if (newList.get(0).get(2) != null
-                        && (Double) newList.get(0).get(2) != MISSING_VAL) {
+                        && (Double) newList.get(0).get(2) != CalcUtil.missingVal) {
                     bestList.add(newList.get(0));
                 } else if (newList.size() > 1
-                        && (Double) newList.get(0).get(2) == MISSING_VAL
+                        && (Double) newList.get(0).get(2) == CalcUtil.missingVal
                         && i + 1 < size) {
                     // if date i = date(i+1) && comp1 (i+1) != missing
                     if ((Date) newList.get(0).get(1) == (Date) newList.get(1)
                             .get(1)
                             && newList.get(1).get(2) != null
-                            && (Double) newList.get(1).get(2) != MISSING_VAL) {
+                            && (Double) newList.get(1).get(2) != CalcUtil.missingVal) {
                         bestList.add(newList.get(1));
                     } else if (newList.size() > 2
-                            && (Double) newList.get(1).get(2) == MISSING_VAL
+                            && (Double) newList.get(1).get(2) == CalcUtil.missingVal
                             && i + 2 < size) {
                         if ((Date) newList.get(0).get(1) == (Date) newList.get(
                                 2).get(1)
-                                && (Double) newList.get(2).get(2) != MISSING_VAL) {
+                                && (Double) newList.get(2).get(2) != CalcUtil.missingVal) {
                             bestList.add(newList.get(2));
                         } else {
                             bestList.add(newList.get(0));
@@ -295,20 +280,22 @@ public class TrigKCalculation {
         List<List> fullBestList = new ArrayList<List>();
 
         // fill missing in the beginning
-        Date date = (Date) bestList.get(0).get(0); // bestList.get(i) eq.
-                                                   // newList.
-        int min0 = date.getMinutes();
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        cal.setTimeInMillis(((Date) bestList.get(0).get(0)).getTime());
+
+        int min0 = cal.get(Calendar.MINUTE);
 
         if (min0 != 0) {
             for (int k = 0; k < min0; k++) {
                 List newList2 = new ArrayList(); // eq. newList
 
-                Date dateNew = (Date) date.clone();
-                dateNew.setMinutes(k);
+                Calendar dateNew = (Calendar) cal.clone();
+                dateNew.set(Calendar.MINUTE, k);
 
-                newList2.add(dateNew);
-                newList2.add(MISSING_VAL);
-                newList2.add(MISSING_VAL);
+                newList2.add(dateNew.getTime());
+                newList2.add(CalcUtil.missingVal);
+                newList2.add(CalcUtil.missingVal);
                 fullBestList.add(newList2);
 
             }
@@ -332,28 +319,14 @@ public class TrigKCalculation {
 
                         newList2.add(new Date(date0.getTime() + 60 * 1000
                                 * (k + 1)));
-                        newList2.add(MISSING_VAL);
-                        newList2.add(MISSING_VAL);
+                        newList2.add(CalcUtil.missingVal);
+                        newList2.add(CalcUtil.missingVal);
                         fullBestList.add(newList2);
 
                     }
                 }
             }
         }
-
-        // // fill missing in the end
-        // int latest = fullBestList.size();
-        // if (latest < HOURS*MINUTES*HD_DATA_RANGE) {
-        // for (int k = latest; k < HOURS*MINUTES*HD_DATA_RANGE; k++) {
-        // List newList2 = new ArrayList();
-        // Date d = (Date)fullBestList.get(0).get(latest-1);
-        //
-        // newList2.add(new Date(d.getTime() + 60*1000*(k+1)));
-        // newList2.add(MISSING_VAL);
-        // newList2.add(MISSING_VAL);
-        // fullBestList.add( newList2);
-        // }
-        // }
 
         return fullBestList;
     }
@@ -368,15 +341,17 @@ public class TrigKCalculation {
             for (String dataURI : dataURIs) {
                 String stationCode = CalcUtil.getStationFromUri(dataURI);
 
-                Date time = null;
+                Calendar cal = Calendar.getInstance();
+                cal.clear();
 
                 try {
-                    time = CalcUtil.getTimeFromUri(dataURI);
+
+                    cal.setTimeInMillis(CalcUtil.getTimeFromUri(dataURI)
+                            .getTime());
+
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
-                int min = time.getMinutes();
 
                 List<?> dataList = null;
 
@@ -385,9 +360,9 @@ public class TrigKCalculation {
                 // minute 23:59.
                 // Calculating hourly average when min>=35 will not miss any
                 // average data.
-                if (min >= 35)
+                if (cal.get(Calendar.MINUTE) >= 35)
                     dataList = DatabaseUtil.retrieveUriForAvg(dao, dataURI,
-                            time);
+                            cal.getTime());
                 else
                     continue;
 
@@ -399,9 +374,9 @@ public class TrigKCalculation {
                     GeoMagAvg recAvg = new GeoMagAvg();
 
                     // look the avg table to see if the avg already exists
-                    time.setMinutes(30);
+                    cal.set(Calendar.MINUTE, 30);
                     List<GeoMagAvg> avgList = DatabaseUtil.retrieveSingleAvg(
-                            dataURI, time);
+                            dataURI, cal.getTime());
 
                     Integer recId = null;
 
@@ -414,7 +389,7 @@ public class TrigKCalculation {
                         }
                     }
 
-                    recAvg.setAvgTime(time);
+                    recAvg.setAvgTime(cal.getTime());
                     recAvg.setInsertTime(Calendar.getInstance().getTime());
                     recAvg.setStationCode(stationCode);
                     recAvg.sethHrAvg(hrAvg[0]);
@@ -443,16 +418,18 @@ public class TrigKCalculation {
         if (dataURIs != null) {
             for (String dataURI : dataURIs) {
 
-                Date timeBy3 = null;
+                Calendar timeBy3 = Calendar.getInstance();
+                timeBy3.clear();
 
                 try {
-                    timeBy3 = CalcUtil.getTimeFromUri(dataURI);
+                    timeBy3.setTimeInMillis((CalcUtil.getTimeFromUri(dataURI)
+                            .getTime()));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
-                int hour = timeBy3.getHours();
-                int min = timeBy3.getMinutes();
+                int hour = timeBy3.get(Calendar.HOUR_OF_DAY);
+                int min = timeBy3.get(Calendar.MINUTE);
 
                 String stationCode = CalcUtil.getStationFromUri(dataURI);
                 String source = CalcUtil.getSourceFromUri(dataURI);
@@ -465,7 +442,7 @@ public class TrigKCalculation {
                     // define and initialize the test condition
                     // parameters
                     tc = new TestCondition();
-                    tc.setCal(timeBy3.getTime());
+                    tc.setCal(timeBy3.getTimeInMillis());
                     tc.setHourOfInterest(Integer.valueOf(
                             testComponents.get("HOUR")).intValue());
                     tc.setMinuteOfInterest(Integer.valueOf(
@@ -485,12 +462,12 @@ public class TrigKCalculation {
                 /*
                  * Read average
                  */
-                Date spTime = CalcUtil.getSPTime(timeBy3);
+                Date spTime = CalcUtil.getSPTime(timeBy3.getTime());
 
                 List<GeoMagAvg> dataList = null;
 
                 dataList = DatabaseUtil.retrieveUriBy3hr(dataURI,
-                        CalcUtil.getSPTime(timeBy3));
+                        CalcUtil.getSPTime(timeBy3.getTime()));
 
                 if (debug) {
                     rg.generateDataListReport(0, dataList);
@@ -542,15 +519,11 @@ public class TrigKCalculation {
 
                     // added from FMIQDCRT11_3hr.pro
                     for (int k = 0; k < qhravg_h.length; k++) {
-                        // if (qhravg_h[k] == MISSING_VAL
-                        // || qhravg_d[k] == MISSING_VAL) {
-                        // qhravg_h[k] = CalcUtil.getMedian(qhravg_h);
-                        // qhravg_d[k] = CalcUtil.getMedian(qhravg_d);
-                        // }
-                        if (qhravg_h[k] == MISSING_VAL) {
+
+                        if (qhravg_h[k] == CalcUtil.missingVal) {
                             qhravg_h[k] = CalcUtil.getMedian(qhravg_h);
                         }
-                        if (qhravg_d[k] == MISSING_VAL) {
+                        if (qhravg_d[k] == CalcUtil.missingVal) {
                             qhravg_d[k] = CalcUtil.getMedian(qhravg_d);
                         }
                     }
@@ -589,22 +562,30 @@ public class TrigKCalculation {
                      */
                     Map<String, List<double[]>> kIndexMap = new HashMap<String, List<double[]>>();
 
-                    Date timeBy1 = null;
+                    Calendar timeBy1 = Calendar.getInstance();
+                    timeBy1.clear();
+
                     try {
-                        timeBy1 = CalcUtil.getTimeFromUri(dataURI);
+
+                        timeBy1.setTimeInMillis(CalcUtil
+                                .getTimeFromUri(dataURI).getTime());
 
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
 
-                    Date epTime = CalcUtil.getEPTime(timeBy1);
-                    int epHour = epTime.getHours();
+                    // Date epTime = CalcUtil.getEPTime(timeBy1.getTime());\
+                    Calendar epTime = Calendar.getInstance();
+                    epTime.clear();
+                    epTime.setTimeInMillis(CalcUtil
+                            .getEPTime(timeBy1.getTime()).getTime());
+                    int epHour = epTime.get(Calendar.HOUR_OF_DAY);
 
                     /*
                      * change epTime to current time
                      */
                     List<?> hdDataList = DatabaseUtil.retrieveUriForK1min(dao,
-                            dataURI, timeBy1);
+                            dataURI, timeBy1.getTime());
 
                     if (hdDataList != null && hdDataList.size() != 0) {
                         // if dataList <= 1440, can't calculate k-index
@@ -624,8 +605,8 @@ public class TrigKCalculation {
                         double[] ddata = new double[HD_DATA_RANGE * HOURS
                                 * MINUTES];
 
-                        Arrays.fill(hdata, MISSING_VAL);
-                        Arrays.fill(ddata, MISSING_VAL);
+                        Arrays.fill(hdata, CalcUtil.missingVal);
+                        Arrays.fill(ddata, CalcUtil.missingVal);
 
                         for (int i = 0; i < bestListFull.size(); i++) {
                             List<Double> list = (List<Double>) bestListFull
@@ -692,7 +673,7 @@ public class TrigKCalculation {
 
                         // already considered missing in getDev
 
-                        int[] kLimit = CalcUtil.getKLimit(stationCode);
+                        double[] kLimit = CalcUtil.getKLimit(stationCode);
 
                         int missingFlag = 0;
                         List<double[]> kList = CalcEach1min.getKIndex(hDev,
@@ -742,7 +723,7 @@ public class TrigKCalculation {
                         // Harmonic Fit to derive the qdc
                         int foundMiss = 0;
                         for (int i = 0; i < hcA.length; i++) {
-                            if (hcA[i] == MISSING_VAL) {
+                            if (hcA[i] == CalcUtil.missingVal) {
                                 foundMiss = 1;
                                 break;
                             }
@@ -752,7 +733,7 @@ public class TrigKCalculation {
 
                         foundMiss = 0;
                         for (int i = 0; i < dcA.length; i++) {
-                            if (dcA[i] == MISSING_VAL) {
+                            if (dcA[i] == CalcUtil.missingVal) {
                                 foundMiss = 1;
                                 break;
                             }
@@ -856,7 +837,7 @@ public class TrigKCalculation {
                             // Harmonic Fit to derive the qdc
                             foundMiss = 0;
                             for (int i = 0; i < hcA.length; i++) {
-                                if (hcA[i] == MISSING_VAL) {
+                                if (hcA[i] == CalcUtil.missingVal) {
                                     foundMiss = 1;
                                     break;
                                 }
@@ -866,7 +847,7 @@ public class TrigKCalculation {
 
                             foundMiss = 0;
                             for (int i = 0; i < dcA.length; i++) {
-                                if (dcA[i] == MISSING_VAL) {
+                                if (dcA[i] == CalcUtil.missingVal) {
                                     foundMiss = 1;
                                     break;
                                 }
@@ -924,9 +905,9 @@ public class TrigKCalculation {
                         // Count the number of non-missing points for the last 3
                         // hours (180 values)
                         for (int i = 2700; i < 2880; i++) {
-                            if (hdata[i] != MISSING_VAL)
+                            if (hdata[i] != CalcUtil.missingVal)
                                 lastHCount++;
-                            if (ddata[i] != MISSING_VAL)
+                            if (ddata[i] != CalcUtil.missingVal)
                                 lastDCount++;
                         }
 
@@ -936,13 +917,10 @@ public class TrigKCalculation {
                         kList.add(6, count);
                         kIndexMap.put(stationCode + source, kList);
 
-                        // double[] kest = CalcKp.getKest(stationCode,
-                        // kList.get(0), kList.get(1));
-
                         double ks = 0;
                         try {
                             ks = CalcKp.getKs(stationCode, (int) kIndex[7],
-                                    (Date) timeBy1.clone()); // 7 is last point
+                                    timeBy1.getTime()); // 7 is last point
                             // kIndex
                         } catch (ParseException e) {
                             e.printStackTrace();
@@ -975,7 +953,7 @@ public class TrigKCalculation {
                         GeoMagK1min recK1min = new GeoMagK1min();
 
                         List<GeoMagK1min> k1minList = DatabaseUtil
-                                .retrieveSingleK1min(dataURI, timeBy1);
+                                .retrieveSingleK1min(dataURI, timeBy1.getTime());
 
                         if (k1minList != null && k1minList.size() != 0) {
                             for (int i = 0; i < k1minList.size(); i++) { // 1
@@ -987,7 +965,7 @@ public class TrigKCalculation {
                             }
                         }
 
-                        recK1min.setRefTime(timeBy1);
+                        recK1min.setRefTime(timeBy1.getTime());
                         recK1min.setLastUpdate(Calendar.getInstance().getTime());
                         recK1min.setStationCode(stationCode);
                         recK1min.setKestIndex(kest_index);
@@ -1030,16 +1008,18 @@ public class TrigKCalculation {
 
         String stationCode = CalcUtil.getStationFromUri(dataURI);
 
-        Date currTime = null;
+        Calendar currTime = Calendar.getInstance();
+        currTime.clear();
+
         try {
-            currTime = CalcUtil.getTimeFromUri(dataURI);
+            currTime.setTimeInMillis(CalcUtil.getTimeFromUri(dataURI).getTime());
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        int hour = currTime.getHours();
-        int min = currTime.getMinutes();
-        Date epTime = CalcUtil.getEPTime(currTime);
+        int hour = currTime.get(Calendar.HOUR_OF_DAY);
+        int min = currTime.get(Calendar.MINUTE);
+        Date epTime = CalcUtil.getEPTime(currTime.getTime());
 
         GeoMagK3hr recK3hr = new GeoMagK3hr();
 

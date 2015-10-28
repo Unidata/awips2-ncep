@@ -1,0 +1,11 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+  
+   <bean id="SoundingRequestHandler" class="gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler.SoundingRequestHandler"/>
+   <bean factory-bean="handlerRegistry" factory-method="register">
+      <constructor-arg value="gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest"/>
+  	  <constructor-arg ref="SoundingRequestHandler"/>
+   </bean>
+   
+ </beans>

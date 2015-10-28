@@ -17,6 +17,8 @@ import java.util.List;
  * 04/09/2014   #1123       qzhou      Modified getKIndex for gamma value
  * 06/23/2014   R4152       qzhou      Fixed on getQHAQDC formula
  * 12/23/2014   R5412       sgurung    Change float to double
+ * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes
  * </pre>
  * 
  * @author qzhou
@@ -51,7 +53,7 @@ public class CalcEach1min {
             // Find the next missing value
             int flag = 0; // flag used for break
             while (i < size && flag == 0) {
-                if (data[i] == CalcUtil.MISSING_VAL)
+                if (data[i] == CalcUtil.missingVal)
                     flag = 1;
                 else
                     i++;
@@ -64,7 +66,7 @@ public class CalcEach1min {
                 // Find the last missing point
                 flag = 0;
                 while (i < size && flag == 0) {
-                    if (data[i] != CalcUtil.MISSING_VAL)
+                    if (data[i] != CalcUtil.missingVal)
                         flag = 1;
                     else
                         i++;
@@ -111,7 +113,7 @@ public class CalcEach1min {
             ind[i] = (int) Math.floor(i / 3.0f);
             curK[i] = kIndex[ind[i]];
 
-            if (curK[i] != CalcUtil.MISSING_VAL)
+            if (curK[i] != CalcUtil.missingVal)
                 fitLength[i] += kLength[(int) curK[i]];
 
             if (fitLength[i] > 1440.0)
@@ -129,10 +131,8 @@ public class CalcEach1min {
      */
     public static double[] getCentHourAvg(double[] data, double[] fitLength) {
 
-        double[] HrAvg = new double[HOURS]; // double
-        Arrays.fill(HrAvg, CalcUtil.MISSING_VAL);
-
-        StringBuffer buff = new StringBuffer();
+        double[] HrAvg = new double[HOURS];
+        Arrays.fill(HrAvg, CalcUtil.missingVal);
 
         for (int ihr = 0; ihr < HOURS; ihr++) {
             // take middle interval
@@ -145,11 +145,11 @@ public class CalcEach1min {
             // if data[i] have no missing value
             for (int i = start; i < end + 1; i++) {
 
-                if (data[i] != CalcUtil.MISSING_VAL) {
+                if (data[i] != CalcUtil.missingVal) {
                     sum += data[i];
                 } else {
                     missing++;
-                    break;// this loop
+                    break;
                 }
             }
 
@@ -163,7 +163,7 @@ public class CalcEach1min {
         int hr0 = 0;
         int flag = 0;
         while (hr0 < HOURS && flag == 0) {
-            if (HrAvg[hr0] != CalcUtil.MISSING_VAL)
+            if (HrAvg[hr0] != CalcUtil.missingVal)
                 flag = 1;
             else {
                 hr0++;
@@ -177,7 +177,7 @@ public class CalcEach1min {
 
         // Extrapolate the last missing points--missing end
         int hr1 = 23;
-        while ((hr1 > hr0) && (HrAvg[hr1] == CalcUtil.MISSING_VAL)) {
+        while ((hr1 > hr0) && (HrAvg[hr1] == CalcUtil.missingVal)) {
             hr1--;
         }
 
@@ -192,12 +192,12 @@ public class CalcEach1min {
         while (hr0 < hr1) {
             do {
                 hr0++;
-            } while (hr0 < hr1 && HrAvg[hr0] != CalcUtil.MISSING_VAL);
+            } while (hr0 < hr1 && HrAvg[hr0] != CalcUtil.missingVal);
 
             if (hr0 < hr1) {
 
                 int hr = hr0; // first missing hour
-                while ((hr0 < hr1) && (HrAvg[hr0] == CalcUtil.MISSING_VAL))
+                while ((hr0 < hr1) && (HrAvg[hr0] == CalcUtil.missingVal))
                     hr0++;
                 int gapLength = hr0 - hr;
                 double value1 = HrAvg[hr - 1];// not missing
@@ -261,7 +261,7 @@ public class CalcEach1min {
     /*
      * @param hdev,ddev -- double[1440] TODO remove missingFlag
      */
-    public static List getKIndex(double[] hdev, double[] ddev, int[] kLimit,
+    public static List getKIndex(double[] hdev, double[] ddev, double[] kLimit,
             int missingFlag) {
         List<double[]> list = new ArrayList<double[]>();
 
@@ -273,20 +273,22 @@ public class CalcEach1min {
         double[] hGamma = new double[8];
         double[] dGamma = new double[8];
 
-        Arrays.fill(kIndex, CalcUtil.MISSING_VAL);
-        Arrays.fill(hk, CalcUtil.MISSING_VAL);
-        Arrays.fill(dk, CalcUtil.MISSING_VAL);
-        Arrays.fill(gamma, CalcUtil.MISSING_VAL);
-        Arrays.fill(hGamma, CalcUtil.MISSING_VAL);
-        Arrays.fill(dGamma, CalcUtil.MISSING_VAL);
+        Arrays.fill(kIndex, CalcUtil.missingVal);
+        Arrays.fill(hk, CalcUtil.missingVal);
+        Arrays.fill(dk, CalcUtil.missingVal);
+        Arrays.fill(gamma, CalcUtil.missingVal);
+        Arrays.fill(hGamma, CalcUtil.missingVal);
+        Arrays.fill(dGamma, CalcUtil.missingVal);
 
         // Check for bad input data
         int npts = hdev.length;
-        if (npts != ddev.length)
+        if (npts != ddev.length) {
             return list;
+        }
 
-        if (npts < 1261 || npts > 1440) // 21*60+1
+        if (npts < 1261 || npts > 1440) {
             return list;
+        }
 
         // Step through each three hourly interval
         for (int ipd = 0; ipd < 8; ipd++) {
@@ -312,11 +314,11 @@ public class CalcEach1min {
 
             // get hdevGood
             for (i = npdpts - 1; i >= 0; i--)
-                if (hhdev[i] != CalcUtil.MISSING_VAL && hhdev[i] != 0)
+                if (hhdev[i] != CalcUtil.missingVal && hhdev[i] != 0)
                     break;
 
             for (ii = npdpts - 1; ii >= 0; ii--)
-                if (dddev[ii] != CalcUtil.MISSING_VAL && dddev[ii] != 0)
+                if (dddev[ii] != CalcUtil.missingVal && dddev[ii] != 0)
                     break;
 
             // i, ii are the last data that is not missing
@@ -337,19 +339,19 @@ public class CalcEach1min {
                     dGamma[ipd] = CalcUtil.maxValue(ddevGood)
                             - CalcUtil.minValue(ddevGood);
 
-                if (hGamma[ipd] != CalcUtil.MISSING_VAL)
+                if (hGamma[ipd] != CalcUtil.missingVal)
                     hk[ipd] = CalcUtil.getKfromTable(kLimit, hGamma[ipd]);
 
-                if (dGamma[ipd] != CalcUtil.MISSING_VAL)
+                if (dGamma[ipd] != CalcUtil.missingVal)
                     dk[ipd] = CalcUtil.getKfromTable(kLimit, dGamma[ipd]);
 
                 // get bigger one
                 if (hGamma[ipd] >= dGamma[ipd]
-                        && hGamma[ipd] != CalcUtil.MISSING_VAL) {
+                        && hGamma[ipd] != CalcUtil.missingVal) {
                     kIndex[ipd] = hk[ipd];
                     gamma[ipd] = hGamma[ipd];
                 } else if (dGamma[ipd] >= hGamma[ipd]
-                        && dGamma[ipd] != CalcUtil.MISSING_VAL) {
+                        && dGamma[ipd] != CalcUtil.missingVal) {
                     kIndex[ipd] = dk[ipd];
                     gamma[ipd] = dGamma[ipd];
                 }
@@ -371,7 +373,7 @@ public class CalcEach1min {
      * value using a +/- SMOOTH_WINDOW
      */
     public static double[] getQHAQDC(double[] qdc) {
-        double[] data = qdc.clone(); // new double[1440];
+        double[] data = qdc.clone();
 
         if (qdc.length != 1440)
             return data;
@@ -408,16 +410,16 @@ public class CalcEach1min {
      * 
      */
     public static double[] getExtrapolation(double[] dataIn, double[] qhaQdc,
-            int currTimeIndex) { // 4320
+            int currTimeIndex) {
         double[] data = dataIn.clone();
         int j0 = currTimeIndex;// Last good H or D index
 
         if (data.length != 4320 || qhaQdc.length != 1440)
             return data;
 
-        if (data[j0] != CalcUtil.MISSING_VAL) {
+        if (data[j0] != CalcUtil.missingVal) {
             for (int j = j0 + 1; j < 4320; j++) {
-                int w2 = j - j0 - 1; // from .pro
+                int w2 = j - j0 - 1;
                 int w1 = TRANSITION_TIME - w2;
 
                 if (w1 < 0)
@@ -442,18 +444,18 @@ public class CalcEach1min {
 
         for (int i = 0; i < 1440; i++) {
 
-            if (data[i + 1440] != CalcUtil.MISSING_VAL)
-                // && qdc[i] != CalcUtil.MISSING_VAL)
+            if (data[i + 1440] != CalcUtil.missingVal) {
                 dev[i] = data[i + 1440] - qdc[i];
-            else
-                dev[i] = CalcUtil.MISSING_VAL;
+            } else {
+                dev[i] = CalcUtil.missingVal;
+            }
         }
 
         return dev;
     }
 
     public static double[] adjustHrCentAvg(double[] hcAIn, double[] qha,
-            double[] gamma, int[] kLimit) {
+            double[] gamma, double[] kLimit) {
         double[] hcA = hcAIn.clone();
         double wh = 0;
 
@@ -472,7 +474,7 @@ public class CalcEach1min {
 
             for (int j = 0; j < 3; j++) {
                 hcA[ipd * 3 + j] = wh * hcA[ipd * 3 + j] + (1 - wh)
-                        * qha[ipd * 3 + j];// ?
+                        * qha[ipd * 3 + j];
 
             }
         }
@@ -497,7 +499,7 @@ public class CalcEach1min {
 
         double[] hhdata = CalcEach1min.fillGaps(hdata);
 
-        hDev = CalcEach1min.getDev(hhdata, hQdc);// [1440]
+        hDev = CalcEach1min.getDev(hhdata, hQdc);
 
         return hDev;
     }

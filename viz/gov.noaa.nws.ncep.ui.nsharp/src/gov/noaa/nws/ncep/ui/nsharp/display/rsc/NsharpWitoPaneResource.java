@@ -27,6 +27,7 @@ import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground.ViewablePressureContainer;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,6 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.sun.jna.ptr.FloatByReference;
 
 public class NsharpWitoPaneResource extends NsharpAbstractPaneResource{
@@ -92,7 +92,6 @@ public class NsharpWitoPaneResource extends NsharpAbstractPaneResource{
 		windBoxWindRscShapeList.clear();
 		super.disposeInternal();
 	}
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void paintInternal(IGraphicsTarget target,
 			PaintProperties paintProps) throws VizException {
@@ -186,7 +185,7 @@ public class NsharpWitoPaneResource extends NsharpAbstractPaneResource{
 		this.rectangle = new Rectangle((int)windBoxXOrig,(int) windBoxYOrig,
 				(int)witoPanewidth,(int) witoPaneHeight);
 		pe = new PixelExtent(this.rectangle);
-		world = new WGraphics(this.rectangle);
+		world = new NsharpWGraphics(this.rectangle);
 
 		world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
 				NsharpConstants.right, NsharpConstants.bottom);
@@ -546,7 +545,7 @@ public class NsharpWitoPaneResource extends NsharpAbstractPaneResource{
 		}
 		this.rectangle = new Rectangle((int)ext.getMinX(), (int) ext.getMinY(),
 				(int) ext.getWidth(), (int) ext.getHeight());
-		world = new WGraphics(this.rectangle);
+		world = new NsharpWGraphics(this.rectangle);
 
 		/*world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
 				NsharpConstants.right, NsharpConstants.bottom);*/

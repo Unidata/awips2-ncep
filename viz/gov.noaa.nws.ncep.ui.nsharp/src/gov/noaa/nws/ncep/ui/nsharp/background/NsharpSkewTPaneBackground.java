@@ -28,6 +28,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -52,7 +53,6 @@ import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
@@ -92,7 +92,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         //this.rectangle = new Rectangle(-700, 250, 690, 690);
         //this.rectangle = new Rectangle(10,10, 690,690);
         pe = new PixelExtent(this.rectangle);
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
 
         world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
                 NsharpConstants.right, NsharpConstants.bottom);
@@ -154,7 +154,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         return adiabats;
     }
 
-    private void printDryAdiabats(WGraphics world, GC gc) throws VizException {
+    private void printDryAdiabats(NsharpWGraphics world, GC gc) throws VizException {
     	for (Iterator<List<UAPoint>> iterator = dryPoints
     			.iterator(); iterator.hasNext();) {
     		List<UAPoint> points = iterator.next();
@@ -183,7 +183,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
      * 
      * @throws VizException
      */
-    private void printTempLines(WGraphics world, GC gc) throws VizException {
+    private void printTempLines(NsharpWGraphics world, GC gc) throws VizException {
     	for (int i = 70; i > -200; i -= 10) {
     		Coordinate coorStart = NsharpWxMath.getSkewTXY(1050, i);
     		Coordinate coorEnd = NsharpWxMath.getSkewTXY(100, i);
@@ -255,68 +255,67 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         //createPressureLineNumberShape();
         createTempNumberAndLineShape();
     }
-    @SuppressWarnings("unused")
-	private void createPressureLineNumberShape(){
-    	//pressureLineNumberShape
-    	if(target==null)
- 			return;
-        String s = "";
-       
-        presslinesNumbersShape = target.createWireframeShape(false,desc );
-        presslinesNumbersShape.allocate(150);
-       // System.out.println("NsharpConstants.left="+NsharpConstants.left+"NsharpConstants.right"+NsharpConstants.right+" top="+NsharpConstants.top + " bot="+ NsharpConstants.bottom);
-       // System.out.println("MAIN*******************");
-        /*  Chin::::Note:::
-         * move this out to draw them in paintInternal() to fix a bug that will not draw pressure line above 800 after resizing screen.
-         * Does not know why this happened. All pressure lines below 800 are still drew but not for those above 800. 
-         * Mark lines also have same problem, but do not move to paintInternal as they are not as important as pressure lines.
-        for (int i = 0; i < NsharpConstants.PRESSURE_MAIN_LEVELS.length; i++) {
-        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
-        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_MAIN_LEVELS[i],0);
-
-        	double [][] lines = {{world.mapX(NsharpConstants.left), world.mapY(coor.y)},{world.mapX(NsharpConstants.right),
-        		world.mapY(coor.y)}};
-        	presslinesNumbersShape.addLineSegment(lines);
-        	//System.out.println("coor.x="+coor.x+"coor.y="+coor.y);
-        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
-            //		world.mapY(coor.y));
-        }*/
-        //System.out.println("MARK*******************");
-        for (int i = 0; i < NsharpConstants.PRESSURE_MARK_LEVELS.length; i++) {
-        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
-        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_MARK_LEVELS[i],0);
-
-        	double [][] lines = {{world.mapX(NsharpConstants.left), world.mapY(coor.y)},{ world.mapX(NsharpConstants.left)+15* currentZoomLevel*xRatio,
-        		world.mapY(coor.y)}};
-        	presslinesNumbersShape.addLineSegment(lines);
-        	//System.out.println("lines="+ lines[0] + "; "+ lines[1]);
-        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
-            //		world.mapY(coor.y));
-        }
-        IExtent ext = desc.getRenderableDisplay().getExtent();
-        double xmin = ext.getMinX();  //Extent's viewable envelope min x and y
-        double xDefault = world.mapX(NsharpConstants.left);
-        if(xmin <xDefault)
-        	xmin = xDefault;
-        double dispX = xmin + 25 * currentZoomLevel*xRatio;
-       // System.out.println("NUMBER*******************");
-        
-        for (int i = 0; i < NsharpConstants.PRESSURE_NUMBERING_LEVELS.length; i++) {
-        	s = NsharpConstants.pressFormat.format(NsharpConstants.PRESSURE_NUMBERING_LEVELS[i]);
-        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
-        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_NUMBERING_LEVELS[i],0);
-        	double [] lblXy = {dispX,world.mapY(coor.y)};
-        	presslinesNumbersShape.addLabel(s, lblXy);
-        	//System.out.println("coor.x="+coor.x+"coor.y="+coor.y);
-        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
-            //		world.mapY(coor.y));
-
-        }
-        presslinesNumbersShape.compile();
-    }
+//    @SuppressWarnings("unused")
+//	private void createPressureLineNumberShape(){
+//    	//pressureLineNumberShape
+//    	if(target==null)
+// 			return;
+//        String s = "";
+//       
+//        presslinesNumbersShape = target.createWireframeShape(false,desc );
+//        presslinesNumbersShape.allocate(150);
+//       // System.out.println("NsharpConstants.left="+NsharpConstants.left+"NsharpConstants.right"+NsharpConstants.right+" top="+NsharpConstants.top + " bot="+ NsharpConstants.bottom);
+//       // System.out.println("MAIN*******************");
+//        /*  Chin::::Note:::
+//         * move this out to draw them in paintInternal() to fix a bug that will not draw pressure line above 800 after resizing screen.
+//         * Does not know why this happened. All pressure lines below 800 are still drew but not for those above 800. 
+//         * Mark lines also have same problem, but do not move to paintInternal as they are not as important as pressure lines.
+//        for (int i = 0; i < NsharpConstants.PRESSURE_MAIN_LEVELS.length; i++) {
+//        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
+//        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_MAIN_LEVELS[i],0);
+//
+//        	double [][] lines = {{world.mapX(NsharpConstants.left), world.mapY(coor.y)},{world.mapX(NsharpConstants.right),
+//        		world.mapY(coor.y)}};
+//        	presslinesNumbersShape.addLineSegment(lines);
+//        	//System.out.println("coor.x="+coor.x+"coor.y="+coor.y);
+//        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
+//            //		world.mapY(coor.y));
+//        }*/
+//        //System.out.println("MARK*******************");
+//        for (int i = 0; i < NsharpConstants.PRESSURE_MARK_LEVELS.length; i++) {
+//        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
+//        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_MARK_LEVELS[i],0);
+//
+//        	double [][] lines = {{world.mapX(NsharpConstants.left), world.mapY(coor.y)},{ world.mapX(NsharpConstants.left)+15* currentZoomLevel*xRatio,
+//        		world.mapY(coor.y)}};
+//        	presslinesNumbersShape.addLineSegment(lines);
+//        	//System.out.println("lines="+ lines[0] + "; "+ lines[1]);
+//        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
+//            //		world.mapY(coor.y));
+//        }
+//        IExtent ext = desc.getRenderableDisplay().getExtent();
+//        double xmin = ext.getMinX();  //Extent's viewable envelope min x and y
+//        double xDefault = world.mapX(NsharpConstants.left);
+//        if(xmin <xDefault)
+//        	xmin = xDefault;
+//        double dispX = xmin + 25 * currentZoomLevel*xRatio;
+//       // System.out.println("NUMBER*******************");
+//        
+//        for (int i = 0; i < NsharpConstants.PRESSURE_NUMBERING_LEVELS.length; i++) {
+//        	s = NsharpConstants.pressFormat.format(NsharpConstants.PRESSURE_NUMBERING_LEVELS[i]);
+//        	//we only care about pressure for this case, temp is no important  when calling getSkewTXY
+//        	Coordinate coor = NsharpWxMath.getSkewTXY(NsharpConstants.PRESSURE_NUMBERING_LEVELS[i],0);
+//        	double [] lblXy = {dispX,world.mapY(coor.y)};
+//        	presslinesNumbersShape.addLabel(s, lblXy);
+//        	//System.out.println("coor.x="+coor.x+"coor.y="+coor.y);
+//        	//System.out.println("x1="+world.mapX(NsharpConstants.left)+"y1=" +world.mapY(coor.y)+"x2="+world.mapX(NsharpConstants.right)+"y2="+
+//            //		world.mapY(coor.y));
+//
+//        }
+//        presslinesNumbersShape.compile();
+//    }
     // Chin: to handle dynamically moving pressure lines and its number within viewable zone when zooming, I could not use wireframeShape successfully
 	// It will chop off lower part. Therefore use this draw function.
-    @SuppressWarnings("deprecation")
 	private void drawPressureLineNumber(IGraphicsTarget target){
     	//pressureLineNumberShape
     	if(target==null)
@@ -638,8 +637,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
     	//System.out.println("lower min"+ lowTempMin+ " lower nax "+ lowTempMax+ " upper min "+ topTempMin + " topTempMax "+ topTempMax);
     }
 
-    //@SuppressWarnings("deprecation")
-	@Override
+    @Override
     public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
     	float zoomLevel = paintProps.getZoomLevel();
@@ -674,7 +672,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
         
     }
     //this function is used for printing
-    public void paintForPrint( WGraphics world, GC gc){
+    public void paintForPrint( NsharpWGraphics world, GC gc){
     	try {
     		gc.setLineStyle(SWT.LINE_DASH);
     		printDryAdiabats(world, gc);
@@ -691,7 +689,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
      * @see com.raytheon.viz.skewt.ui.AbstractSkewTBackground#computeWorld()
      */
     @Override
-    protected WGraphics computeWorld() {
+    protected NsharpWGraphics computeWorld() {
         return world;
     }
 
@@ -802,7 +800,7 @@ public class NsharpSkewTPaneBackground extends NsharpGenericPaneBackground {
     			(int) ext.getWidth(), (int) ext.getHeight());
     	pe = new PixelExtent(this.rectangle);
     	//desc.setNewPe(pe);
-    	world = new WGraphics(this.rectangle);
+    	world = new NsharpWGraphics(this.rectangle);
 
     	world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
     			NsharpConstants.right, NsharpConstants.bottom);

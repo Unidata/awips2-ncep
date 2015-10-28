@@ -10,6 +10,7 @@
 package gov.noaa.nws.ncep.viz.rtkp.palette;
 
 import gov.noaa.nws.ncep.common.dataplugin.geomag.GeoMagK1min;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.calculation.CalcUtil;
 import gov.noaa.nws.ncep.viz.rtkp.controls.EditNetworkDialog;
 import gov.noaa.nws.ncep.viz.rtkp.rsc.GeoMagWorldActivityResource;
 import gov.noaa.nws.ncep.viz.rtkp.rsc.GeoMagWorldActivityTitleDateResource;
@@ -504,10 +505,17 @@ public class GeoMagRTKpDataBlockWindow extends ViewPart implements
                         continue;
                     }
 
-                    String k_disp = String.format("%.2f", rec.getKestReal());
-                    if ("Ks".equals(kType)) {
+                    String k_disp = CalcUtil.missingVal.toString();
+
+                    if (rec.getKestReal() != CalcUtil.missingVal) {
+                        k_disp = String.format("%.2f", rec.getKestReal());
+                    }
+
+                    if ("Ks".equals(kType)
+                            && rec.getKs() != CalcUtil.missingVal) {
                         k_disp = String.format("%.2f", rec.getKs());
                     }
+
                     String gamma = "" + (int) rec.getKestGamma();
 
                     if (gamma.length() < gammaSize) {
@@ -516,8 +524,8 @@ public class GeoMagRTKpDataBlockWindow extends ViewPart implements
                         }
                     }
 
-                    if (("99999.00".equals(k_disp) || "33333.00".equals(k_disp))
-                            && "99999".equals(gamma)) {
+                    if ((CalcUtil.missingVal.toString().equals(k_disp))
+                            && CalcUtil.missingVal.toString().equals(gamma)) {
                         kStr += "" + ".... " + gammaFiller + filler;
                     } else {
                         kStr += "" + k_disp + "/" + gamma + filler;
@@ -611,7 +619,7 @@ public class GeoMagRTKpDataBlockWindow extends ViewPart implements
         for (int i = 0; i < kDataListSize; i++) {
             GeoMagK1min k1minRec = kDataList.get(i);
             if (k1minRec.getKestGamma() > maxGamma
-                    && k1minRec.getKestGamma() != 99999.99f) {
+                    && k1minRec.getKestGamma() != CalcUtil.missingVal) {
                 maxGamma = k1minRec.getKestGamma();
             }
         }

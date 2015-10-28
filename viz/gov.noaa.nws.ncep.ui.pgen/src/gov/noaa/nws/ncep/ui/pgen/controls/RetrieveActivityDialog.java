@@ -7,7 +7,6 @@
  */
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
-import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
@@ -23,12 +22,11 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.TimeZone;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -44,10 +42,10 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -57,13 +55,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
-import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
-import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
 /**
@@ -77,6 +69,9 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 01/2014      #1105       jwu         Use "subtype" for query as well.
  * 08/2014      TTR867      jwu         Add "time stamp" for activities with same label.
  * 08/2014      ?           jwu         Preserve "outputFile" name when opening an activity.
+ * 06/24/2015   R7806       A. Su       Added two pull-down menus (site & desk), and a list (subtype).
+ *                                      Rearranged three sets of two-choice radio buttons.
+ *                                      Implemented new logic for selecting activity labels.
  * 
  * </pre>
  * 
@@ -84,20 +79,20 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * @version 1
  */
 public class RetrieveActivityDialog extends CaveJFACEDialog {
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(RetrieveActivityDialog.class);
 
     /*
      * Internal class used to hold some characteristics of an Activity
      */
-    class ActivityElement {
+    static class ActivityElement {
+        String site;
+
+        String desk;
+
         String dataURI;
 
-        /*
-         * This will be a combo of "Product"'s activity type/subtype in format
-         * of type(subtype).
-         */
         String activityType;
+
+        String activitySubtype;
 
         String activityLabel;
 
@@ -119,27 +114,109 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
     }
 
+    /**
+     * R7806: This flag determines if the options "All" is hidden in the
+     * pull-down menu for Type.
+     */
+    private final static boolean isToHideOptionAllInType = true;
+
+    /**
+     * R7806: This flag determines if the options "All" is hidden in the
+     * pull-down menu for Subtype.
+     */
+    private final static boolean isToHideOptionAllInSubtype = true;
+
+    /**
+     * The initial value for the width of the area that display Activity labels.
+     */
+    private final static int widthForListArea = 500;
+
+    /**
+     * The initial values for the widths of the areas that display Types and
+     * Subtypes.
+     */
+    private final static int widthForListArea2 = 240;
+
+    /**
+     * The height of the area that displays Activity labels.
+     */
+    private final static int heightForListArea = 200;
+
+    /**
+     * The last selected Site.
+     */
+    private static String lastSelectedSite = null;
+
+    /**
+     * The last selected Desk.
+     */
+    private static String lastSelectedDesk = null;
+
+    /**
+     * The last selected Type.
+     */
+    private static String lastSelectedType = null;
+
+    /**
+     * The last selected Subtype.
+     */
+    private static String lastSelectedSubtype = null;
+
+    /**
+     * This is to access auxiliary methods in the class ActivityCollection.
+     */
+    private final ActivityCollection ac = new ActivityCollection();
+
+    /**
+     * The title of this dialog window.
+     */
     private String title = null;
 
+    /**
+     * The SWT Shell, a window.
+     */
     private Shell shell;
 
-    private Button sortByNameBtn = null;
+    /**
+     * The SWT widget for displaying Site.
+     */
+    private Combo siteFilter = null;
 
-    private Button sortByDateBtn = null;
+    /**
+     * The SWT widget for displaying Desk.
+     */
+    private Combo deskFilter = null;
 
-    private List dirList = null;
+    /**
+     * The SWT widget for displaying Types.
+     */
+    private List typeListWidget = null;
 
+    /**
+     * The SWT widget for displaying Subtypes.
+     */
+    private List subtypeListWidget = null;
+
+    /**
+     * The SWT widget for displaying Activity labels.
+     */
     private ListViewer fileListViewer = null;
 
-    private Button listLatestBtn = null;
+    /**
+     * The radio buttons for the options of listing "latest" or "all" activity
+     * labels.
+     */
+    private Button[] listRadioButtons = new Button[2];
 
-    private Button listAllBtn = null;
+    /**
+     * The radio buttons for the options of sorting order.
+     */
+    private Button[] sortRadioButtons = new Button[2];
 
-    private Button browseBtn = null;
-
-    private Button autoSaveOffBtn = null;
-
-    private Button autoSaveOnBtn = null;
+    /**
+     * The radio buttons for the options of auto saving.
+     */
+    private Button[] autoSaveRadioButtons = new Button[2];
 
     private static final int ADD_ID = IDialogConstants.CLIENT_ID + 7587;
 
@@ -165,10 +242,6 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
     private Button cancelBtn = null;
 
-    private Map<String, java.util.List<ActivityElement>> activityMap;
-
-    private static String selectedDir = null;
-
     private static String fullName = null;
 
     /*
@@ -190,6 +263,9 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         if (btnName.equals("Open")) {
             title = "Retrieve a PGEN Activity";
+
+            // To make this dialog window resizable.
+            setShellStyle(getShellStyle() | SWT.RESIZE);
         }
 
     }
@@ -213,40 +289,502 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
     }
 
     /**
-     * (non-Javadoc) Create all of the widgets on the Dialog
+     * R7806: This method uses SWT GridLayouts (replacing FormLayout) to glue
+     * together the major components, SWT widgets, of the PGEN Open dialog
+     * window, which include two pull-down menus for Site and Desk, two SWT
+     * lists for Type and Subtype, three sets of two-choice radio buttons, and a
+     * SWT list for Activity labels.
      * 
-     * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+     * It relies on the class ActivityCollection to provide the contents of the
+     * SWT widgets.
      */
     @Override
     public Control createDialogArea(Composite parent) {
 
-        Composite dlgAreaForm = (Composite) super.createDialogArea(parent);
+        Composite dialogArea = (Composite) super.createDialogArea(parent);
+        dialogArea.setLayout(new GridLayout(1, false));
 
-        Composite topForm = new Composite(dlgAreaForm, SWT.NONE);
-        topForm.setLayout(new FormLayout());
+        // The dialog area is organized vertically as four sub-areas.
+        //
+        // The first vertical sub-area is for two pull-down menus displaying
+        // Site and Desk.
+        Composite headerArea = new Composite(dialogArea, SWT.RESIZE);
+        GridLayout menusLayout = new GridLayout();
+        menusLayout.numColumns = 2;
+        menusLayout.horizontalSpacing = 45;
+        headerArea.setLayout(menusLayout);
+        GridData headerAreaData = new GridData(GridData.HORIZONTAL_ALIGN_END
+                | GridData.VERTICAL_ALIGN_CENTER);
+        headerAreaData.horizontalAlignment = SWT.CENTER;
+        headerArea.setLayoutData(headerAreaData);
 
-        /*
-         * Create a label and two radio buttons - how to sort the files
-         */
-        Composite sortForm = new Composite(topForm, SWT.NONE);
-        sortForm.setLayout(new FormLayout());
+        Composite superLeftGrid = new Composite(headerArea, SWT.NONE);
+        superLeftGrid.setLayout(new GridLayout(2, false));
 
-        sortByNameBtn = new Button(sortForm, SWT.RADIO);
-        sortByNameBtn.setText("Sort Alphabetically");
+        Label siteLabel = new Label(superLeftGrid, SWT.NONE);
+        siteLabel.setText("Site: ");
 
-        FormData layoutData1 = new FormData(370, 25);
-        layoutData1.top = new FormAttachment(0, 0);
-        layoutData1.left = new FormAttachment(0, 0);
+        siteFilter = new Combo(superLeftGrid, SWT.READ_ONLY | SWT.DROP_DOWN);
 
-        sortByNameBtn.setLayoutData(layoutData1);
+        // The initial value of Site is set to the last selected value if it
+        // exists, or the current site recorded in the system.
+        // A change to Site triggers changes to Desk, Type, Subtype, and
+        // Activity labels.
 
-        sortByNameBtn.setSelection(true);
+        String[] currentSiteList = ac.getCurrentSiteList();
+        siteFilter.setItems(currentSiteList);
 
-        /*
-         * Sort the files by name. when the corresponding radio button is
-         * selected
-         */
-        sortByNameBtn.addSelectionListener(new SelectionAdapter() {
+        if (lastSelectedSite == null) {
+            int defaultIndex = ac.getDefaultSiteIndex();
+            ac.changeSiteIndex(defaultIndex);
+            lastSelectedSite = currentSiteList[defaultIndex];
+        } else {
+            int index = Arrays.asList(currentSiteList)
+                    .indexOf(lastSelectedSite);
+
+            if (index == -1) {
+                index = 0;
+            }
+
+            ac.changeSiteIndex(index);
+            lastSelectedSite = currentSiteList[index];
+        }
+        siteFilter.select(ac.getCurrentSiteIndex());
+
+        // A change to Site by users will trigger changes to Desk, Type,
+        // Subtype, and Activity labels sequentially and immediately.
+        siteFilter.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+
+                int siteIndex = siteFilter.getSelectionIndex();
+                ac.changeSiteIndex(siteIndex);
+                lastSelectedSite = ac.getCurrentSiteList()[siteIndex];
+
+                String[] currentDeskList = ac.getCurrentDeskList();
+                int currentDeskIndex = ac.getCurrentDeskIndex();
+                deskFilter.setItems(currentDeskList);
+                deskFilter.select(currentDeskIndex);
+                lastSelectedDesk = currentDeskList[currentDeskIndex];
+
+                typeListWidget.removeAll();
+                subtypeListWidget.removeAll();
+
+                String[] typeList = ac.getCurrentTypeList();
+                if (isToHideOptionAllInType) {
+                    boolean isToSkip = true;
+
+                    for (String type : typeList) {
+                        if (isToSkip) {
+                            isToSkip = false;
+                            continue;
+                        }
+                        typeListWidget.add(type);
+                    }
+
+                    // The default selection is the first one.
+                    // Since the option "All" is not displayed (index 0
+                    // internally), index 1 is used to change type.
+                    if (typeList.length > 1) {
+                        ac.changeTypeIndex(1);
+                        lastSelectedType = typeList[1];
+                    }
+                } else {
+                    for (String type : typeList) {
+                        typeListWidget.add(type);
+                    }
+                    lastSelectedType = typeList[0];
+                }
+                typeListWidget.select(0);
+
+                String[] subtypeList = ac.getCurrentSubtypeList();
+                if (isToHideOptionAllInSubtype) {
+                    boolean isToSkip = true;
+
+                    for (String subtype : subtypeList) {
+                        if (isToSkip) {
+                            isToSkip = false;
+                            continue;
+                        }
+                        subtypeListWidget.add(subtype);
+                    }
+
+                    // The default selection is the first one.
+                    // Since the option "All" is not displayed (index 0
+                    // internally), index 1 is used to change subtype.
+                    if (subtypeList.length > 1) {
+                        ac.changeSubtypeIndex(1);
+                        lastSelectedSubtype = subtypeList[1];
+                    }
+                } else {
+                    for (String subtype : subtypeList) {
+                        subtypeListWidget.add(subtype);
+                    }
+                    lastSelectedSubtype = subtypeList[0];
+                }
+                subtypeListWidget.select(0);
+
+                listActivities();
+            }
+        });
+
+        Composite superRightGrid = new Composite(headerArea, SWT.NONE);
+        superRightGrid.setLayout(new GridLayout(2, false));
+
+        Label deskLabel = new Label(superRightGrid, SWT.NONE);
+        deskLabel.setText("Desk: ");
+
+        deskFilter = new Combo(superRightGrid, SWT.READ_ONLY | SWT.DROP_DOWN);
+
+        // The initial value of Desk is set to the last selected value if it
+        // exists, or the current desk recorded in the system.
+        // A change to Desk triggers changes to Type, Subtype, and Activity
+        // labels.
+        String[] currentDeskList = ac.getCurrentDeskList();
+        deskFilter.setItems(currentDeskList);
+
+        if (lastSelectedDesk == null) {
+            int defaultIndex = ac.getDefaultDeskListIndex();
+            ac.changeDeskIndex(defaultIndex);
+            lastSelectedDesk = currentDeskList[defaultIndex];
+        } else {
+            int index = Arrays.asList(currentDeskList)
+                    .indexOf(lastSelectedDesk);
+
+            if (index == -1) {
+                index = 0;
+            }
+
+            ac.changeDeskIndex(index);
+            lastSelectedDesk = currentDeskList[index];
+        }
+        deskFilter.select(ac.getCurrentDeskIndex());
+
+        // A change to Desk by users will trigger changes to Type, Subtype, and
+        // Activity labels sequentially and immediately.
+        deskFilter.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+
+                int deskIndex = deskFilter.getSelectionIndex();
+                ac.changeDeskIndex(deskIndex);
+                lastSelectedDesk = ac.getCurrentDeskList()[deskIndex];
+
+                typeListWidget.removeAll();
+                subtypeListWidget.removeAll();
+
+                String[] typeList = ac.getCurrentTypeList();
+                if (isToHideOptionAllInType) {
+
+                    boolean isToSkip = true;
+
+                    for (String type : typeList) {
+                        if (isToSkip) {
+                            isToSkip = false;
+                            continue;
+                        }
+                        typeListWidget.add(type);
+                    }
+
+                    // The default selection is the first one.
+                    // Since the option "All" is not displayed (index 0
+                    // internally), index 1 is used to change type.
+                    if (typeList.length > 1) {
+                        ac.changeTypeIndex(1);
+                        lastSelectedType = typeList[1];
+                    }
+                } else {
+                    for (String type : typeList) {
+                        typeListWidget.add(type);
+                    }
+                    lastSelectedType = typeList[0];
+                }
+                typeListWidget.select(0);
+
+                String[] subtypeList = ac.getCurrentSubtypeList();
+                if (isToHideOptionAllInSubtype) {
+                    boolean isToSkip = true;
+
+                    for (String subtype : subtypeList) {
+                        if (isToSkip) {
+                            isToSkip = false;
+                            continue;
+                        }
+                        subtypeListWidget.add(subtype);
+                    }
+
+                    // The default selection is the first one.
+                    // Since the option "All" is not displayed (index 0
+                    // internally), index 1 is used to change subtype.
+                    if (subtypeList.length > 1) {
+                        ac.changeSubtypeIndex(1);
+                        lastSelectedSubtype = subtypeList[1];
+                    }
+                } else {
+                    for (String subtype : subtypeList) {
+                        subtypeListWidget.add(subtype);
+                    }
+                    lastSelectedSubtype = subtypeList[0];
+                }
+                subtypeListWidget.select(0);
+
+                listActivities();
+            }
+        });
+
+        // The second vertical sub-area is for two SWT lists displaying Type and
+        // Subtype.
+        Composite typeSubtypeArea = new Composite(dialogArea, SWT.RESIZE);
+        typeSubtypeArea.setLayout(new GridLayout(2, false));
+        GridData typeSubtypeAreaData = new GridData(SWT.FILL, GridData.FILL,
+                true, true);
+        typeSubtypeArea.setLayoutData(typeSubtypeAreaData);
+
+        Composite leftGrid = new Composite(typeSubtypeArea, SWT.RESIZE);
+        leftGrid.setLayout(new GridLayout(1, false));
+        GridData midGridLayoutData = new GridData(SWT.FILL, GridData.FILL,
+                true, true);
+        leftGrid.setLayoutData(midGridLayoutData);
+
+        Label typeLabel = new Label(leftGrid, SWT.NONE);
+        typeLabel.setText("Type: ");
+
+        typeListWidget = new List(leftGrid, SWT.SINGLE | SWT.BORDER
+                | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
+        GridData typeListLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+                true);
+        typeListLayoutData.widthHint = widthForListArea2;
+        typeListLayoutData.heightHint = heightForListArea;
+        typeListWidget.setLayoutData(typeListLayoutData);
+
+        // The initial value of Type is set to the last selected value if it
+        // exists, or the first one.
+        // Since the option "All" is not
+        // displayed (index 0 internally), index 1 is used to change type.
+        String[] currentTypeList = ac.getCurrentTypeList();
+
+        if (lastSelectedType == null) {
+            if (isToHideOptionAllInType) {
+                if (currentTypeList.length > 1) {
+                    ac.changeTypeIndex(1);
+                    lastSelectedType = currentTypeList[1];
+                }
+            } else {
+                lastSelectedType = currentTypeList[0];
+            }
+        } else {
+            int index = Arrays.asList(currentTypeList)
+                    .indexOf(lastSelectedType);
+
+            if (index == -1)
+                index = 0;
+
+            ac.changeTypeIndex(index);
+            lastSelectedType = currentTypeList[index];
+        }
+
+        if (isToHideOptionAllInType) {
+            boolean isToSkip = true;
+
+            for (String type : currentTypeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
+                }
+                typeListWidget.add(type);
+            }
+            typeListWidget.select(ac.getCurrentTypeIndex() - 1);
+        } else {
+            for (String type : currentTypeList) {
+                typeListWidget.add(type);
+            }
+            typeListWidget.select(ac.getCurrentTypeIndex());
+        }
+
+        // A change to Type will trigger changes to Subtype and Activity labels
+        // sequentially and immediately.
+        typeListWidget.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+
+                int typeIndex = typeListWidget.getSelectionIndex();
+
+                // Since the option "All" is not displayed, the external index
+                // (typeListWidget) and the internal index (ActivityCollection)
+                // are off by one.
+                if (isToHideOptionAllInType) {
+                    typeIndex += 1;
+                }
+
+                ac.changeTypeIndex(typeIndex);
+                lastSelectedType = ac.getCurrentTypeList()[typeIndex];
+
+                subtypeListWidget.removeAll();
+
+                String[] subtypeList = ac.getCurrentSubtypeList();
+
+                if (isToHideOptionAllInSubtype) {
+                    boolean isToSkip = true;
+
+                    for (String subtype : subtypeList) {
+                        if (isToSkip) {
+                            isToSkip = false;
+                            continue;
+                        }
+                        subtypeListWidget.add(subtype);
+                    }
+
+                    // The default selection is the first one.
+                    // Since the option "All" is not displayed (index 0
+                    // internally), index 1 is used to change subtype.
+                    if (subtypeList.length > 1) {
+                        ac.changeSubtypeIndex(1);
+                        lastSelectedSubtype = subtypeList[1];
+                    }
+                } else {
+                    for (String subtype : subtypeList) {
+                        subtypeListWidget.add(subtype);
+                    }
+                    lastSelectedSubtype = subtypeList[0];
+                }
+                subtypeListWidget.select(0);
+
+                listActivities();
+            }
+        });
+
+        Composite rightGrid = new Composite(typeSubtypeArea, SWT.RESIZE);
+        rightGrid.setLayout(new GridLayout(1, false));
+        GridData rightGridLayoutData = new GridData(SWT.FILL, GridData.FILL,
+                true, true);
+        rightGrid.setLayoutData(rightGridLayoutData);
+
+        Label subtypeLabel = new Label(rightGrid, SWT.NONE);
+        subtypeLabel.setText("Subtype: ");
+
+        subtypeListWidget = new List(rightGrid, SWT.SINGLE | SWT.BORDER
+                | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
+        GridData subTypeLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+                true);
+        subTypeLayoutData.widthHint = widthForListArea2;
+        subTypeLayoutData.heightHint = heightForListArea;
+        subtypeListWidget.setLayoutData(subTypeLayoutData);
+
+        // The initial value of Subtype is set to the last selected value if it
+        // exists, or the first one.
+        // Since the option "All" is not
+        // displayed (index 0 internally), index 1 is used to change subtype.
+
+        String[] currentSubtypeList = ac.getCurrentSubtypeList();
+
+        if (lastSelectedSubtype == null) {
+            if (isToHideOptionAllInSubtype) {
+                if (currentSubtypeList.length > 1) {
+                    ac.changeSubtypeIndex(1);
+                    lastSelectedSubtype = currentSubtypeList[1];
+                }
+            } else {
+                lastSelectedSubtype = currentSubtypeList[0];
+            }
+        } else {
+            int index = Arrays.asList(currentSubtypeList).indexOf(
+                    lastSelectedSubtype);
+
+            if (index == -1) {
+                index = 0;
+            }
+
+            ac.changeSubtypeIndex(index);
+
+            lastSelectedSubtype = currentSubtypeList[index];
+        }
+
+        if (isToHideOptionAllInSubtype) {
+            boolean isToSkip = true;
+
+            for (String subtype : currentSubtypeList) {
+                if (isToSkip) {
+                    isToSkip = false;
+                    continue;
+                }
+                subtypeListWidget.add(subtype);
+            }
+
+            subtypeListWidget.select(ac.getCurrentSubtypeIndex() - 1);
+        } else {
+            for (String subtype : currentSubtypeList) {
+                subtypeListWidget.add(subtype);
+            }
+            subtypeListWidget.select(ac.getCurrentSubtypeIndex());
+        }
+
+        // A change to Subtype will trigger a change to Activity labels.
+        subtypeListWidget.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+                int subtypeIndex = subtypeListWidget.getSelectionIndex();
+
+                // Since the option "All" is not displayed, the external index
+                // (typeListWidget) and the internal index (ActivityCollection)
+                // are off by one.
+                if (isToHideOptionAllInSubtype) {
+                    subtypeIndex += 1;
+                }
+
+                ac.changeSubtypeIndex(subtypeIndex);
+                lastSelectedSubtype = ac.getCurrentSubtypeList()[subtypeIndex];
+
+                listActivities();
+            }
+        });
+
+        // The third vertical sub-area is for three sets of two-choice radio
+        // buttons
+        Composite radioButtonsArea = new Composite(dialogArea, SWT.RESIZE);
+        GridLayout buttonsLayout = new GridLayout();
+        buttonsLayout.numColumns = 3;
+        buttonsLayout.horizontalSpacing = 40;
+        radioButtonsArea.setLayout(buttonsLayout);
+        GridData radioButtonsAreaData = new GridData(
+                GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER);
+        radioButtonsAreaData.horizontalAlignment = SWT.CENTER;
+        radioButtonsArea.setLayoutData(radioButtonsAreaData);
+
+        Composite listButtonsGrid = new Composite(radioButtonsArea, SWT.NONE);
+        listButtonsGrid.setLayout(new GridLayout(2, false));
+
+        Label listLabel = new Label(listButtonsGrid, SWT.NONE);
+        listLabel.setText("Activity Labels: ");
+
+        listRadioButtons[0] = new Button(listButtonsGrid, SWT.RADIO);
+        listRadioButtons[0].setText("Latest");
+        listRadioButtons[0].setSelection(true);
+
+        listRadioButtons[0].addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent ev) {
+                listActivities();
+            }
+        });
+
+        Label emptyLabel1 = new Label(listButtonsGrid, SWT.NONE);
+        emptyLabel1.setText("  ");
+
+        listRadioButtons[1] = new Button(listButtonsGrid, SWT.RADIO);
+        listRadioButtons[1].setText("All");
+
+        listRadioButtons[1].addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent ev) {
+                listActivities();
+            }
+        });
+
+        Composite sortButtonsGrid = new Composite(radioButtonsArea, SWT.NONE);
+        sortButtonsGrid.setLayout(new GridLayout(2, false));
+
+        Label sortLabel = new Label(sortButtonsGrid, SWT.NONE);
+        sortLabel.setText("Sort: ");
+
+        sortRadioButtons[0] = new Button(sortButtonsGrid, SWT.RADIO);
+        sortRadioButtons[0].setText("Alphabetically");
+        sortRadioButtons[0].setSelection(true);
+
+        sortRadioButtons[0].addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 fileListViewer.setComparator(new ViewerComparator());
                 fileListViewer.refresh(true);
@@ -254,19 +792,13 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
             }
         });
 
-        sortByDateBtn = new Button(sortForm, SWT.RADIO);
-        sortByDateBtn.setText("Sort By Date");
+        Label emptyLabel2 = new Label(sortButtonsGrid, SWT.NONE);
+        emptyLabel2.setText("  ");
 
-        FormData layoutData3 = new FormData();
-        layoutData3.top = new FormAttachment(sortByNameBtn, 5, SWT.BOTTOM);
-        layoutData3.left = new FormAttachment(sortByNameBtn, 0, SWT.LEFT);
-        sortByDateBtn.setLayoutData(layoutData3);
+        sortRadioButtons[1] = new Button(sortButtonsGrid, SWT.RADIO);
+        sortRadioButtons[1].setText("By Date");
 
-        /*
-         * Sort the files by date. when the corresponding radio button is
-         * selected
-         */
-        sortByDateBtn.addSelectionListener(new SelectionAdapter() {
+        sortRadioButtons[1].addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 fileListViewer.setComparator(new ActivityTimeComparator());
                 fileListViewer.refresh(true);
@@ -274,98 +806,34 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
             }
         });
 
-        /*
-         * Create a list of directories to select from
-         */
-        Label dirLbl = new Label(topForm, SWT.NONE);
-        dirLbl.setText("Select Activity Type:");
+        Composite autoSaveGrid = new Composite(radioButtonsArea, SWT.NONE);
+        autoSaveGrid.setLayout(new GridLayout(2, false));
 
-        FormData layoutData5 = new FormData();
-        layoutData5.top = new FormAttachment(sortForm, 15, SWT.BOTTOM);
-        layoutData5.left = new FormAttachment(sortForm, 0, SWT.LEFT);
+        Label autoSaveLbl = new Label(autoSaveGrid, SWT.NONE);
+        autoSaveLbl.setText("Auto Save: ");
 
-        dirLbl.setLayoutData(layoutData5);
+        autoSaveRadioButtons[0] = new Button(autoSaveGrid, SWT.RADIO);
+        autoSaveRadioButtons[0].setText("Off");
+        autoSaveRadioButtons[0].setSelection(true);
 
-        dirList = new List(topForm, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+        Label emptyLabel3 = new Label(autoSaveGrid, SWT.NONE);
+        emptyLabel3.setText("  ");
 
-        // for (String str : dirTableMap.keySet()) {
-        activityMap = getActivityMap();
-        for (String str : activityMap.keySet()) {
-            dirList.add(str);
-        }
+        autoSaveRadioButtons[1] = new Button(autoSaveGrid, SWT.RADIO);
+        autoSaveRadioButtons[1].setText("On");
 
-        FormData layoutData6 = new FormData(350, 200);
-        layoutData6.top = new FormAttachment(dirLbl, 5, SWT.BOTTOM);
-        layoutData6.left = new FormAttachment(dirLbl, 0, SWT.LEFT);
-        dirList.setLayoutData(layoutData6);
-
-        dirList.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-                listActivities();
-                /*
-                 * if (dirList.getSelectionCount() > 0) {
-                 * 
-                 * selectedDir = dirList.getSelection()[0];
-                 * fileListViewer.setInput(activityMap.get(selectedDir));
-                 * fileListViewer.getList().setToolTipText(null);
-                 * fileListViewer.refresh();
-                 * 
-                 * // Update the full file name with the new path fullName =
-                 * null; }
-                 */
-            }
-        });
-
-        /*
-         * Create a list to display the product files in a selected directory
-         */
-        Label fileLbl = new Label(topForm, SWT.NONE);
-        fileLbl.setText("Select an Activity Label:");
-
-        FormData layoutData8 = new FormData();
-        layoutData8.top = new FormAttachment(dirList, 20, SWT.BOTTOM);
-        layoutData8.left = new FormAttachment(dirList, 0, SWT.LEFT);
-
-        fileLbl.setLayoutData(layoutData8);
-
-        listLatestBtn = new Button(topForm, SWT.RADIO);
-        listLatestBtn.setText("Latest");
-        listLatestBtn.setSelection(true);
-
-        FormData layoutData20 = new FormData();
-        layoutData20.top = new FormAttachment(dirList, 20, SWT.BOTTOM);
-        layoutData20.left = new FormAttachment(fileLbl, 10, SWT.RIGHT);
-        listLatestBtn.setLayoutData(layoutData20);
-        listLatestBtn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                listActivities();
-            }
-        });
-
-        listAllBtn = new Button(topForm, SWT.RADIO);
-        listAllBtn.setText("All");
-
-        FormData layoutData21 = new FormData();
-        layoutData21.top = new FormAttachment(dirList, 20, SWT.BOTTOM);
-        layoutData21.left = new FormAttachment(listLatestBtn, 10, SWT.RIGHT);
-        listAllBtn.setLayoutData(layoutData21);
-        listAllBtn.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent ev) {
-                listActivities();
-            }
-        });
-
-        fileListViewer = new ListViewer(topForm, SWT.SINGLE | SWT.BORDER
-                | SWT.V_SCROLL);
-
-        FormData layoutData9 = new FormData(350, 200);
-        layoutData9.top = new FormAttachment(fileLbl, 5, SWT.BOTTOM);
-        layoutData9.left = new FormAttachment(fileLbl, 0, SWT.LEFT);
-
-        fileListViewer.getList().setLayoutData(layoutData9);
+        // The fourth vertical sub-area is for a SWT list displaying Activity
+        // labels.
+        fileListViewer = new ListViewer(dialogArea, SWT.SINGLE | SWT.BORDER
+                | SWT.V_SCROLL | SWT.H_SCROLL | SWT.RESIZE);
+        GridData fileListLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+                true);
+        fileListLayoutData.widthHint = widthForListArea;
+        fileListLayoutData.heightHint = heightForListArea;
+        fileListViewer.getList().setLayoutData(fileListLayoutData);
 
         fileListViewer.setContentProvider(ArrayContentProvider.getInstance());
-        if (sortByNameBtn.getSelection()) {
+        if (sortRadioButtons[0].getSelection()) {
             fileListViewer.setComparator(new ViewerComparator());
         } else {
             fileListViewer.setComparator(new ActivityTimeComparator());
@@ -391,10 +859,6 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                         if (selection.getFirstElement() instanceof ActivityElement) {
                             ActivityElement elem = (ActivityElement) selection
                                     .getFirstElement();
-                            // System.out.println(elem.dataURI);
-                            // System.out.println(elem.activityType);
-                            // System.out.println(elem.activityLabel);
-                            // System.out.println(elem.refTime);
                             fileListViewer.getList().setToolTipText(
                                     elem.dataURI);
                         } else
@@ -404,102 +868,9 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                     }
                 });
 
-        /**
-         * Create a browse button to open a file dialog to navigate & select a
-         * file.
-         */
-        browseBtn = new Button(topForm, SWT.PUSH);
+        listActivities();
 
-        FormData layoutData10 = new FormData(355, 25);
-        layoutData10.top = new FormAttachment(fileListViewer.getList(), 20,
-                SWT.BOTTOM);
-        layoutData10.left = new FormAttachment(fileListViewer.getList(), 0,
-                SWT.LEFT);
-
-        browseBtn.setLayoutData(layoutData10);
-        browseBtn.setSize(330, 20);
-        browseBtn.setText("Browse");
-        browseBtn.setEnabled(false);
-
-        /*
-         * Create a label and two radio buttons to turn "auto save" on or off.
-         */
-        Label autoSaveLbl = new Label(topForm, SWT.NONE);
-        autoSaveLbl.setText("Auto Save:");
-
-        FormData layoutData11 = new FormData();
-        layoutData11.top = new FormAttachment(browseBtn, 20, SWT.BOTTOM);
-        layoutData11.left = new FormAttachment(browseBtn, 0, SWT.LEFT);
-        autoSaveLbl.setLayoutData(layoutData11);
-
-        autoSaveOffBtn = new Button(topForm, SWT.RADIO);
-        autoSaveOffBtn.setText("Off");
-        autoSaveOffBtn.setSelection(true);
-
-        FormData layoutData12 = new FormData();
-        layoutData12.top = new FormAttachment(autoSaveLbl, 0, SWT.TOP);
-        layoutData12.left = new FormAttachment(autoSaveLbl, 10, SWT.RIGHT);
-        autoSaveOffBtn.setLayoutData(layoutData12);
-
-        autoSaveOnBtn = new Button(topForm, SWT.RADIO);
-        autoSaveOnBtn.setText("On");
-
-        FormData layoutData13 = new FormData();
-        layoutData13.top = new FormAttachment(autoSaveOffBtn, 0, SWT.TOP);
-        layoutData13.left = new FormAttachment(autoSaveOffBtn, 10, SWT.RIGHT);
-        autoSaveOnBtn.setLayoutData(layoutData13);
-
-        return dlgAreaForm;
-    }
-
-    private Map<String, java.util.List<ActivityElement>> getActivityMap() {
-
-        Map<String, java.util.List<ActivityElement>> activityMap = new HashMap<String, java.util.List<ActivityElement>>();
-
-        DbQueryRequest request = new DbQueryRequest();
-        request.setEntityClass(PgenRecord.class.getName());
-        request.addRequestField(PgenRecord.ACTIVITY_TYPE);
-        request.addRequestField(PgenRecord.ACTIVITY_SUBTYPE);
-        request.addRequestField(PgenRecord.ACTIVITY_LABEL);
-        request.addRequestField(PgenRecord.DATAURI);
-        request.addRequestField(PgenRecord.REF_TIME);
-        request.setOrderByField(PgenRecord.ACTIVITY_TYPE);
-
-        DbQueryResponse response;
-        try {
-            response = (DbQueryResponse) ThriftClient.sendRequest(request);
-            for (Map<String, Object> result : response.getResults()) {
-                ActivityElement elem = new ActivityElement();
-                elem.activityType = (String) result
-                        .get(PgenRecord.ACTIVITY_TYPE);
-
-                if (result.get(PgenRecord.ACTIVITY_SUBTYPE) != null) {
-                    String subtype = (String) result
-                            .get(PgenRecord.ACTIVITY_SUBTYPE);
-                    if (!subtype.isEmpty() && !subtype.equalsIgnoreCase("NONE")) {
-                        elem.activityType += "(" + subtype + ")";
-                    }
-                }
-
-                elem.activityLabel = (String) result
-                        .get(PgenRecord.ACTIVITY_LABEL);
-                elem.dataURI = (String) result.get(PgenRecord.DATAURI);
-                elem.refTime = (Date) result.get(PgenRecord.REF_TIME);
-
-                if (activityMap.containsKey(elem.activityType)) {
-                    ((java.util.List<ActivityElement>) activityMap
-                            .get(elem.activityType)).add(elem);
-                } else {
-                    java.util.List<ActivityElement> elist = new ArrayList<ActivityElement>();
-                    elist.add(elem);
-                    activityMap.put(elem.activityType, elist);
-                }
-            }
-        } catch (VizException e) {
-            // TODO Auto-generated catch block. Please revise as appropriate.
-            statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
-        }
-        return activityMap;
+        return dialogArea;
     }
 
     /**
@@ -596,7 +967,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
 
         }
 
-        pgen.setAutosave(autoSaveOnBtn.getSelection());
+        pgen.setAutosave(autoSaveRadioButtons[1].getSelection());
         if (fullName.endsWith(".lpf")) {
             pgen.setAutoSaveFilename(fullName.replace(".lpf", "xml"));
         } else {
@@ -676,7 +1047,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
             layerMergeDlg.open();
             if (layerMergeDlg.getReturnCode() == MessageDialog.OK) {
 
-                pgen.setAutosave(autoSaveOnBtn.getSelection());
+                pgen.setAutosave(autoSaveRadioButtons[1].getSelection());
                 if (fullName.endsWith(".lpf")) {
                     pgen.setAutoSaveFilename(fullName.replace(".lpf", "xml"));
                 } else {
@@ -746,17 +1117,14 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
     }
 
     /**
-     * List all activities for an activity type/subtype or just the latest ones.
+     * List all activities for given site, desk, type, and subtype.
      */
     private void listActivities() {
 
-        boolean listLatest = listLatestBtn.getSelection();
-        if (dirList.getSelectionCount() > 0) {
+        boolean listLatest = listRadioButtons[0].getSelection();
+        if (typeListWidget.getSelectionCount() > 0) {
 
-            selectedDir = dirList.getSelection()[0];
-            java.util.List<ActivityElement> elems = activityMap
-                    .get(selectedDir);
-
+            java.util.List<ActivityElement> elems = ac.getCurrentActivityList();
             java.util.List<ActivityElement> filterElms = new ArrayList<ActivityElement>();
 
             if (elems.size() > 0) {

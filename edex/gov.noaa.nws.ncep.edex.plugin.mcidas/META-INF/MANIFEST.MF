@@ -10,10 +10,14 @@ Import-Package: com.raytheon.edex.exception,
  com.raytheon.edex.plugin,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.geospatial,
+ com.raytheon.uf.common.numeric.buffer,
  com.raytheon.uf.common.time,
  com.raytheon.uf.edex.decodertools.time,
  com.vividsolutions.jts.geom,
  com.vividsolutions.jts.io,
+ gov.noaa.nws.ncep.common.tools,
+ gov.noaa.nws.ncep.edex.util,
+ org.apache.commons.lang.builder,
  org.apache.commons.logging,
  org.geotools.geometry,
  org.opengis.referencing.crs,
@@ -23,6 +27,7 @@ Require-Bundle: gov.noaa.nws.ncep.common.dataplugin.mcidas;bundle-version="1.0.0
  com.raytheon.uf.edex.decodertools;bundle-version="1.11.17",
  org.geotools;bundle-version="2.5.8",
  org.apache.commons.codec;bundle-version="1.3.0",
- javax.measure;bundle-version="1.0.0"
+ javax.measure;bundle-version="1.0.0",
+ com.raytheon.uf.common.status;bundle-version="1.14.1"
 Export-Package: gov.noaa.nws.ncep.edex.plugin.mcidas.decoder,
  gov.noaa.nws.ncep.edex.plugin.mcidas.util

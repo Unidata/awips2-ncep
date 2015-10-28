@@ -28,6 +28,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpShapeAndLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpHodoPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpHodoPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,6 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -82,7 +82,7 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 		hodoBackground = new NsharpHodoPaneBackground((NsharpHodoPaneDescriptor)descriptor); 
 	}
 
-	private void createRscHodoWindShape(WGraphics world, List<NcSoundingLayer> soundingLays, RGB incolor){
+	private void createRscHodoWindShape(NsharpWGraphics world, List<NcSoundingLayer> soundingLays, RGB incolor){
 
 		Coordinate c0 = null;
 		Coordinate c1;
@@ -255,28 +255,28 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 		//for future createHodoWindMotionBoxShape();
 
 	}
-	@SuppressWarnings("unused")
-	private void createHodoWindMotionBoxShape(/*WGraphics world*/){
-		hodoWindMotionBoxShape = target.createWireframeShape(false,descriptor );
-		hodoWindMotionBoxShape.allocate(12);
-		double xOri = NsharpConstants.WIND_MOTION_REC_X_ORIG;
-    	double yOri = NsharpConstants.WIND_MOTION_REC_Y_ORIG;
-    	double xEnd= NsharpConstants.WIND_MOTION_REC_X_ORIG + NsharpConstants.WIND_MOTION_REC_WIDTH;
-    	double yEnd = NsharpConstants.WIND_MOTION_REC_Y_ORIG + NsharpConstants.WIND_MOTION_REC_HEIGHT;
-    	double ygap = NsharpConstants.WIND_MOTION_REC_HEIGHT/3;
-    	double [][] lines1 = {{xOri, yOri},{xEnd, yOri}};
-    	hodoWindMotionBoxShape.addLineSegment(lines1);
-    	double [][] lines2 = {{xOri, yOri+ygap},{xEnd, yOri+ygap}};
-    	hodoWindMotionBoxShape.addLineSegment(lines2);
-    	double [][] lines3 = {{xOri, yOri+2*ygap},{xEnd, yOri+2*ygap}};
-    	hodoWindMotionBoxShape.addLineSegment(lines3);
-    	double [][] lines4 = {{xOri, yEnd},{xEnd, yEnd}};
-    	hodoWindMotionBoxShape.addLineSegment(lines4);
-    	double [][] lines5 = {{xOri, yOri},{xOri, yEnd}};
-    	hodoWindMotionBoxShape.addLineSegment(lines5);
-    	double [][] lines6 = {{xEnd, yOri},{xEnd, yEnd}};
-    	hodoWindMotionBoxShape.addLineSegment(lines6);
-	}
+//	@SuppressWarnings("unused")
+//	private void createHodoWindMotionBoxShape(){
+//		hodoWindMotionBoxShape = target.createWireframeShape(false,descriptor );
+//		hodoWindMotionBoxShape.allocate(12);
+//		double xOri = NsharpConstants.WIND_MOTION_REC_X_ORIG;
+//    	double yOri = NsharpConstants.WIND_MOTION_REC_Y_ORIG;
+//    	double xEnd= NsharpConstants.WIND_MOTION_REC_X_ORIG + NsharpConstants.WIND_MOTION_REC_WIDTH;
+//    	double yEnd = NsharpConstants.WIND_MOTION_REC_Y_ORIG + NsharpConstants.WIND_MOTION_REC_HEIGHT;
+//    	double ygap = NsharpConstants.WIND_MOTION_REC_HEIGHT/3;
+//    	double [][] lines1 = {{xOri, yOri},{xEnd, yOri}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines1);
+//    	double [][] lines2 = {{xOri, yOri+ygap},{xEnd, yOri+ygap}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines2);
+//    	double [][] lines3 = {{xOri, yOri+2*ygap},{xEnd, yOri+2*ygap}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines3);
+//    	double [][] lines4 = {{xOri, yEnd},{xEnd, yEnd}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines4);
+//    	double [][] lines5 = {{xOri, yOri},{xOri, yEnd}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines5);
+//    	double [][] lines6 = {{xEnd, yOri},{xEnd, yEnd}};
+//    	hodoWindMotionBoxShape.addLineSegment(lines6);
+//	}
 	private void plotHodoEditPoints(IGraphicsTarget target, 
 			 RGB color) throws VizException {
 
@@ -296,7 +296,6 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 	/*
 	 * smvtype: 1: small circle, 2 large circle, 3: square
 	 */
-	@SuppressWarnings("deprecation")
 	public void plotNsharpHodoVectors(IGraphicsTarget target, double zoomLevel,
 			 GC gc,  boolean printEvent) throws VizException {
 		double radiusUnit = 5* xRatio;
@@ -494,7 +493,6 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private void drawHodoDynamicData(IGraphicsTarget target, double zoomLevel) throws VizException {
 		// draw running temp, theta, height etc data at window palette bottom
 		double dispX, xmin;
@@ -521,55 +519,55 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 		}
 	}
     //To be used later...
-	@SuppressWarnings({ "unused", "deprecation" })
-	private void drawHodoWindMotionBox(IGraphicsTarget target, Rectangle rect) throws VizException {
-    	target.drawShadedRect(new PixelExtent(rect.x, rect.x+rect.width, rect.y, rect.y+rect.height), NsharpConstants.color_black, 1.0, null);
-    	target.drawWireframeShape(hodoWindMotionBoxShape, NsharpConstants.color_cyan, commonLinewidth,commonLineStyle,font10);
-    	RGB colorN, colorS, colorM;
-    	switch(currentHodoWindMode){
-    	case HODO_NORMAL:
-    		colorN = NsharpConstants.color_white;
-    		colorS = NsharpConstants.color_cyan;
-    		colorM = NsharpConstants.color_cyan;
-    		break;
-    	case HODO_STORMRELATIVE:
-    		colorN = NsharpConstants.color_cyan;
-    		colorS = NsharpConstants.color_white;
-    		colorM = NsharpConstants.color_cyan;
-    		break;
-    	case HODO_BNDRY:
-    		colorN = NsharpConstants.color_cyan;
-    		colorS = NsharpConstants.color_cyan;
-    		colorM = NsharpConstants.color_cyan;
-    		break;
-    	case HODO_MEANWIND:
-    	default:
-    		colorN = NsharpConstants.color_cyan;
-    		colorS = NsharpConstants.color_cyan;
-    		colorM = NsharpConstants.color_white;
-    		break;
-    	}
-    	double xOri = NsharpConstants.WIND_MOTION_REC_X_ORIG;
-    	double yOri = NsharpConstants.WIND_MOTION_REC_Y_ORIG;
-    	target.drawString(font10, "NORMAL   ", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
-    			yOri+NsharpConstants.WIND_MOTION_REC_HEIGHT/3, 0.0,
-    			IGraphicsTarget.TextStyle.NORMAL,
-    			colorN,
-    			HorizontalAlignment.CENTER,  
-    			VerticalAlignment.BOTTOM, null);
-    	target.drawString(font10, "STORMREL ", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
-    			yOri+ 2* NsharpConstants.WIND_MOTION_REC_HEIGHT/3, 0.0,
-    			IGraphicsTarget.TextStyle.NORMAL,
-    			colorS,
-    			HorizontalAlignment.CENTER,  
-    			VerticalAlignment.BOTTOM, null);
-    	target.drawString(font10, "MEAN WIND", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
-    			yOri+ NsharpConstants.WIND_MOTION_REC_HEIGHT, 0.0,
-    			IGraphicsTarget.TextStyle.NORMAL,
-    			colorM,
-    			HorizontalAlignment.CENTER,  
-    			VerticalAlignment.BOTTOM, null);
-    }
+//	@SuppressWarnings({ "unused", "deprecation" })
+//	private void drawHodoWindMotionBox(IGraphicsTarget target, Rectangle rect) throws VizException {
+//    	target.drawShadedRect(new PixelExtent(rect.x, rect.x+rect.width, rect.y, rect.y+rect.height), NsharpConstants.color_black, 1.0, null);
+//    	target.drawWireframeShape(hodoWindMotionBoxShape, NsharpConstants.color_cyan, commonLinewidth,commonLineStyle,font10);
+//    	RGB colorN, colorS, colorM;
+//    	switch(currentHodoWindMode){
+//    	case HODO_NORMAL:
+//    		colorN = NsharpConstants.color_white;
+//    		colorS = NsharpConstants.color_cyan;
+//    		colorM = NsharpConstants.color_cyan;
+//    		break;
+//    	case HODO_STORMRELATIVE:
+//    		colorN = NsharpConstants.color_cyan;
+//    		colorS = NsharpConstants.color_white;
+//    		colorM = NsharpConstants.color_cyan;
+//    		break;
+//    	case HODO_BNDRY:
+//    		colorN = NsharpConstants.color_cyan;
+//    		colorS = NsharpConstants.color_cyan;
+//    		colorM = NsharpConstants.color_cyan;
+//    		break;
+//    	case HODO_MEANWIND:
+//    	default:
+//    		colorN = NsharpConstants.color_cyan;
+//    		colorS = NsharpConstants.color_cyan;
+//    		colorM = NsharpConstants.color_white;
+//    		break;
+//    	}
+//    	double xOri = NsharpConstants.WIND_MOTION_REC_X_ORIG;
+//    	double yOri = NsharpConstants.WIND_MOTION_REC_Y_ORIG;
+//    	target.drawString(font10, "NORMAL   ", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
+//    			yOri+NsharpConstants.WIND_MOTION_REC_HEIGHT/3, 0.0,
+//    			IGraphicsTarget.TextStyle.NORMAL,
+//    			colorN,
+//    			HorizontalAlignment.CENTER,  
+//    			VerticalAlignment.BOTTOM, null);
+//    	target.drawString(font10, "STORMREL ", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
+//    			yOri+ 2* NsharpConstants.WIND_MOTION_REC_HEIGHT/3, 0.0,
+//    			IGraphicsTarget.TextStyle.NORMAL,
+//    			colorS,
+//    			HorizontalAlignment.CENTER,  
+//    			VerticalAlignment.BOTTOM, null);
+//    	target.drawString(font10, "MEAN WIND", xOri+ NsharpConstants.WIND_MOTION_REC_WIDTH/2,
+//    			yOri+ NsharpConstants.WIND_MOTION_REC_HEIGHT, 0.0,
+//    			IGraphicsTarget.TextStyle.NORMAL,
+//    			colorM,
+//    			HorizontalAlignment.CENTER,  
+//    			VerticalAlignment.BOTTOM, null);
+//    }
 
 	@Override
 	protected void paintInternal(IGraphicsTarget target,

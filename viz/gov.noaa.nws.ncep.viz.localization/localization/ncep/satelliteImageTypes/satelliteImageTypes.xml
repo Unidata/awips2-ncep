@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<satelliteImageTypeList>
+
+    <satelliteImageType>
+        <satelliteId>84</satelliteId>
+        <imageTypeId>2</imageTypeId>
+        <ASImageTypeId>INFRARED</ASImageTypeId>
+    </satelliteImageType>
+
+    <satelliteImageType>
+        <satelliteId>180</satelliteId>
+        <imageTypeId>4</imageTypeId>
+        <ASImageTypeId>WaterVapor</ASImageTypeId>
+    </satelliteImageType>
+    
+        <satelliteImageType>
+        <satelliteId>180</satelliteId>
+        <imageTypeId>1</imageTypeId>
+        <ASImageTypeId>0p6_VIS-Red</ASImageTypeId>
+    </satelliteImageType>
+    
+
+    <satelliteImageType>
+        <satelliteId>180</satelliteId>
+        <imageTypeId>8</imageTypeId>
+        <ASImageTypeId>INFRARED</ASImageTypeId>
+    </satelliteImageType>
+    
+        <satelliteImageType>
+        <satelliteId>180</satelliteId>
+        <imageTypeId>8</imageTypeId>
+        <ASImageTypeId>INFRA8</ASImageTypeId>
+    </satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>184</satelliteId>
+		<imageTypeId>8</imageTypeId>
+		<ASImageTypeId>INFRARED</ASImageTypeId>
+	</satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>185</satelliteId>
+		<imageTypeId>64</imageTypeId>
+		<ASImageTypeId>CAPE</ASImageTypeId>
+	</satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>185</satelliteId>
+		<imageTypeId>64</imageTypeId>
+		<ASImageTypeId>CINH</ASImageTypeId>
+	</satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>185</satelliteId>
+		<imageTypeId>64</imageTypeId>
+		<ASImageTypeId>LI</ASImageTypeId>
+	</satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>185</satelliteId>
+		<imageTypeId>64</imageTypeId>
+		<ASImageTypeId>TPW</ASImageTypeId>
+	</satelliteImageType>
+
+	<satelliteImageType>
+		<satelliteId>default</satelliteId>
+		<imageTypeId>8</imageTypeId>
+		<ASImageTypeId>INFRARED</ASImageTypeId>
+	</satelliteImageType>
+
+
+	<default>
+		<imageTypeId>8</imageTypeId>
+		<ASImageTypeId>INFRARED</ASImageTypeId>
+	</default>
+
+
+
+
+
+</satelliteImageTypeList> 

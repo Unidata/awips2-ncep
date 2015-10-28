@@ -35,6 +35,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Jan,29, 2014 1105       jwu         Added ACTIVITY_SUBTYPE
  * Jun 11, 2014 2061       bsteffen    Remove IDecoderGettable
+ * 06/23/2015   R7806      A. Su       Added SITE and DESK.
  * 
  * </pre>
  * 
@@ -52,6 +53,10 @@ public class PgenRecord extends PersistablePluginDataObject {
     private static final long serialVersionUID = 1L;
 
     public static final String DATAURI = "dataURI";
+
+    public static final String SITE = "site";
+
+    public static final String DESK = "desk";
 
     public static final String ACTIVITY_TYPE = "activityType";
 

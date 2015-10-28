@@ -85,27 +85,27 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Feb, 2010           		M. Li      		Initial creation
- * Jun, 2010			    M. Li	   		Retrieve grid data from Grid Diagnostic instead of HDF5
- * Oct, 2010     #307       G. Hull    		use NcGridDataProxy to support correct time matching
- * Oct, 2010     #320       X. Guo     		Replace special characters in TITLE parameter
- * Oct, 2010	 #307       m.gamazaychikov	Add handling of DgdrivException in getDataRecord method
+ * Feb, 2010                M. Li           Initial creation
+ * Jun, 2010                M. Li           Retrieve grid data from Grid Diagnostic instead of HDF5
+ * Oct, 2010     #307       G. Hull         use NcGridDataProxy to support correct time matching
+ * Oct, 2010     #320       X. Guo          Replace special characters in TITLE parameter
+ * Oct, 2010     #307       m.gamazaychikov Add handling of DgdrivException in getDataRecord method
  * Oct, 2010                X. Guo          Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
- * Oct, 2010	 #277		M. Li			Parsed first model name from ensemble model list
- * Nov, 2010			    M. Li			modified for new vector algorithm
- * 11/29/2010				mgamazaychikov	Updated queryRecords and updateFrameData
+ * Oct, 2010     #277       M. Li           Parsed first model name from ensemble model list
+ * Nov, 2010                M. Li           modified for new vector algorithm
+ * 11/29/2010               mgamazaychikov  Updated queryRecords and updateFrameData
  * 12/06/2010    #363       X. Guo          Plot relative minima and maxima gridded data
  * 12/19/2010     365       Greg Hull       Replace dataSource with pluginName
- * 01/03/11				    M. Li			Add hilo and hlsysm to contourAttributes
- * 01/07/11				    M. Li			Use Vector array
- * 03/08/11					M. Li			refactor ContourRenderable
- * 04/29/11				    M. Li			move gridIndiceDisplay to a separate class
- * 06/2011					mgamazaychikov	Add spatialObject to the Dgdriv fields.
- * 07/2011					mgamazaychikov	Add substituteAlias method.
- * 08/2011					mgamazaychikov	Add dispose method to FrameData class;
- * 											change disposeInternal method of NcgridResource class;
- * 											change aDgdriv from the NcgridResource class variable to local variable.
- * 09/2011					mgamazaychikov	Made changes associated with removal of DatatypeTable class
+ * 01/03/11                 M. Li           Add hilo and hlsysm to contourAttributes
+ * 01/07/11                 M. Li           Use Vector array
+ * 03/08/11                 M. Li           refactor ContourRenderable
+ * 04/29/11                 M. Li           move gridIndiceDisplay to a separate class
+ * 06/2011                  mgamazaychikov  Add spatialObject to the Dgdriv fields.
+ * 07/2011                  mgamazaychikov  Add substituteAlias method.
+ * 08/2011                  mgamazaychikov  Add dispose method to FrameData class;
+ *                                          change disposeInternal method of NcgridResource class;
+ *                                          change aDgdriv from the NcgridResource class variable to local variable.
+ * 09/2011                  mgamazaychikov  Made changes associated with removal of DatatypeTable class
  * 10/2011                  X. Guo          Updated
  * 11/2011                  X. Guo          Updated contour attributes
  * 11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
@@ -128,14 +128,20 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 11/19/2013   #619        T. Lee          Fixed DOW in Title string
  * 11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
  * 1/28/2014    #934        T. Lee          Enabled "colors" bangs for grid points plot
- * 02/4/2014	#936		T. Lee			Implemented textSize for point values
+ * 02/4/2014    #936        T. Lee          Implemented textSize for point values
  * 04/11/2014   #981        D.Sushon        Added fault tolerance for when some data is bad to display the good data rather than fall-through entire frame
  * 04/14/2014               S.Gilbert       Cleaned up old unused methods
  * 04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
  * 06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
  * 08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
  * 12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
- * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and overrode processNewRscDataList for the super class
+ * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
+ *                                          overrode processNewRscDataList for 
+ *                                          the super class
+ * 07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
+ *                                          ensure that preloading of grid data
+ *                                          for overlays happens.
+ * 07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
  * </pre>
  * 
  * @author mli
@@ -177,15 +183,7 @@ public class NcgridResource extends
 
     private static NcgribLogger ncgribLogger;
 
-    // private boolean enableSystemOut = false;
-
     private ArrayList<DataTime> dataTimesForDgdriv = new ArrayList<DataTime>();
-
-    // private MathTransform trans;
-
-    // private SymbolLocationSet gridPointMarkerSet = null;
-
-    // private RGB gridIndiceColor = new RGB(255, 255, 0);
 
     private ContourAttributes[] contourAttributes;
 
@@ -210,7 +208,7 @@ public class NcgridResource extends
     // is determined later in updateFrameData after the time matching is done.
     // This is because, for the GHM model, the spatialObjects will be different
     // for each time.
-    private class NcGridDataProxy implements IRscDataObject {
+    public class NcGridDataProxy implements IRscDataObject {
 
         private DataTime dataTime;
 
@@ -266,18 +264,25 @@ public class NcgridResource extends
             IRscDataObject lastDataObj = null;
             int closestMatch = 0;
 
+            // For each frame
             for (AbstractFrameData fd : frameDataMap.values()) {
                 FrameData frameData = (FrameData) fd;
 
                 frameMatched = false;
+
+                // Scroll each available date for a date that matches the frame
                 for (DataTime dt : dataTimesForDgdriv) {
 
+                    // Get the data associated with that date
                     IRscDataObject[] dataObject = processRecord(dt);
+
+                    // If the date is in the range of the current frame
                     if (frameData.isRscDataObjInFrame(dataObject[0])) {
 
                         closestMatch = frameData.closestToFrame(dataObject[0],
                                 lastDataObj);
 
+                        // Add the data for that date to a list of data objects
                         if (closestMatch == 1) {
                             newRscDataObjsQueue.add(dataObject[0]);
                         } else if (closestMatch == 2) {
@@ -287,19 +292,27 @@ public class NcgridResource extends
                         }
 
                         frameMatched = true;
-                        // lastDataObj = dataObject[0];
                         break;
                     }
                     lastDataObj = dataObject[0];
+
                 }
 
                 if (!frameMatched && lastDataObj != null) {
                     newRscDataObjsQueue.add(lastDataObj);
                 }
 
+                // Add the date based grid data to the frame it was matched to
+                if (!newRscDataObjsQueue.isEmpty()) {
+                    addRscDataToFrame(frameData, newRscDataObjsQueue.poll());
+                    frameData.setPopulated(true);
+                }
+
                 if (cancel) {
                     return Status.CANCEL_STATUS;
                 }
+
+                processNewRscDataList();
 
                 if (isFirst) {
                     isFirst = false;
@@ -312,7 +325,8 @@ public class NcgridResource extends
                             }
                             cnt++;
                         } catch (InterruptedException e) {
-                            //
+                            logger.error("NcgridResource.NcgridLoaderJob.run()"
+                                    + " InterruptedException on thread");
                         }
                     }
 
@@ -376,14 +390,13 @@ public class NcgridResource extends
 
     private NcgridAttrModifiedJob ncgribAttrsModified;
 
-    protected class FrameData extends AbstractFrameData {
+    public class FrameData extends AbstractFrameData {
         ContourRenderable[] contourRenderable;
 
         NcGridDataProxy gdPrxy = null;
 
         GriddedVectorDisplay[] vectorDisplay;
 
-        // GridRelativeHiLoDisplay gridRelativeHiLoDisplay;
         GridPointMarkerDisplay gridPointMarkerDisplay;
 
         GridIndicesDisplay gridIndicesDisplay;
@@ -457,7 +470,10 @@ public class NcgridResource extends
             super(time, interval);
         }
 
-        //
+        public NcGridDataProxy getProxy() {
+            return this.gdPrxy;
+        }
+
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof NcGridDataProxy)) {
                 System.out
@@ -467,7 +483,7 @@ public class NcgridResource extends
                         + rscDataObj.getClass().getName());
                 return false;
             }
-            // synchronized (AbstractFrameData.class) {
+
             /*
              * set navigation
              */
@@ -501,7 +517,6 @@ public class NcgridResource extends
                     gdPrxy.setSpatialObject(cov);
                     gdPrxy.setNewSpatialObject(cov);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
                     System.out
                             .println("Error retrieving GEMPAK grid navigation block: "
                                     + e.getMessage());
@@ -547,11 +562,7 @@ public class NcgridResource extends
                     queryList.put(GridDBConstants.MODEL_NAME_QUERY,
                             new RequestConstraint(modelName,
                                     ConstraintType.EQUALS));
-                    // if ( eventName != null ){
-                    // queryList.put("eventName",
-                    // new RequestConstraint( eventName, ConstraintType.EQUALS )
-                    // );
-                    // }
+
                     if (perturbationNum != null) {
                         queryList.put(GridDBConstants.ENSEMBLE_ID_QUERY,
                                 new RequestConstraint(perturbationNum,
@@ -613,8 +624,7 @@ public class NcgridResource extends
                     }
                     // update the spatial object in the gdProxy
                     long t4 = System.currentTimeMillis();
-                    // ISpatialObject cov = ((NcgribRecord)
-                    // pdoList[0]).getSpatialObject();
+
                     if (cov != null) {
                         if (ncgribLogger.enableRscLogs()) {
                             logger.info("retrieving grid navigation("
@@ -656,7 +666,7 @@ public class NcgridResource extends
             if (vectorDisplay == null) {
                 vectorDisplay = new GriddedVectorDisplay[contourAttributes.length];
             }
-            // System.out.println("contourAttributes.length==="+contourAttributes.length);
+
             NcFloatDataRecord gridData = null;
             long t11, t12;
             for (int i = 0; i < contourAttributes.length; i++) {
@@ -916,7 +926,7 @@ public class NcgridResource extends
 
                     // New creation
                     if (contourRenderable[i] == null) {
-                        // IDataRecord gridData = null;
+
                         // Duplicate data
                         gridData = findGriddedDataFromContourRenderable(i);
 
@@ -933,6 +943,8 @@ public class NcgridResource extends
                                         MapUtil.getGridGeometry(gdPrxy
                                                 .getNewSpatialObject()),
                                         contourAttributes[i], contourName);
+                                contourRenderable[i]
+                                        .setResource(NcgridResource.this);
                                 hasData = true;
                             } catch (Exception npe) {
                                 hasData = false;
@@ -962,7 +974,6 @@ public class NcgridResource extends
                                                 + "***HINT: parts of gdPrxy may have been null\n"
                                                 + npe.getMessage(), npe);
                             }
-
                         } else {
                             if (ncgribLogger.enableDiagnosticLogs()) {
                                 logger.info(this.getClass().getCanonicalName()
@@ -987,19 +998,10 @@ public class NcgridResource extends
                                     + contourAttributes[i].getGvcord()
                                     + ";\nGDPFUN:"
                                     + contourAttributes[i].getGdpfun() + ";");
-
-                            // return false;
                         }
                     }
                     // Attributes or navigation change
                     else {
-                        // gridData =
-                        // (NcFloatDataRecord)contourRenderable[i].getData();
-                        // contourRenderable[i].dispose();
-                        // contourRenderable[i] = new
-                        // ContourRenderable((IDataRecord)gridData, descriptor,
-                        // MapUtil.getGridGeometry(gdPrxy.getSpatialObject()),
-                        // contourAttributes[i], contourName);
                         contourRenderable[i]
                                 .setContourAttributes(contourAttributes[i]);
                     }
@@ -1071,7 +1073,8 @@ public class NcgridResource extends
                     }
 
                     // create HILO symbols
-                    if ((attrType.contains("F") || attrType.contains("C"))
+                    if ((attrType.contains("F") || attrType.contains("I") || attrType
+                            .contains("C"))
                             && (contourRenderable[i] != null)
                             && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
                         if (contourRenderable[i].getGridRelativeHiLo() == null) {
@@ -1113,20 +1116,11 @@ public class NcgridResource extends
                     t12 = System.currentTimeMillis();
                     logger.debug("==init contour took:" + (t12 - t11));
                 }
-
             } // end of for loop
 
             Collections.sort(NcgridResource.this.dataTimes);
 
             frameLoaded = true;
-            // while (getGraphicsTarget() == null || getPaintProperties() ==
-            // null ) {
-            // try {
-            // Thread.sleep(5);
-            // } catch (InterruptedException e) {
-            //
-            // }
-            // }
             long t1 = System.currentTimeMillis();
             if (ncgribLogger.enableRscLogs()) {
                 logger.info("*updateFrameData("
@@ -1139,7 +1133,7 @@ public class NcgridResource extends
             if (getGraphicsTarget() != null && getPaintProperties() != null) {
                 generateContours(gdPrxy.getDataTime().toString());
             }
-            // }
+
             cacheData.clear();
             return true;
         }
@@ -1283,19 +1277,7 @@ public class NcgridResource extends
                                 }
                             }
                         }
-                        /*
-                         * else { NcFloatDataRecord rec = null; rec =
-                         * findGriddedDataFromVector ( i ); // Avoid duplicate
-                         * data retrieval if ( rec == null ) { rec =
-                         * getGriddedData ( i ); }
-                         * 
-                         * // Avoid duplicate data retrieval if (rec == null) {
-                         * rec = getGriddedData ( i ); } if ( rec != null) {
-                         * vectorDisplay[i] = new GriddedVectorDisplay(rec,
-                         * displayType, isDirectionalArrow, descriptor,
-                         * gdPrxy.getNewSpatialObject(),contourAttributes[i]); }
-                         * }
-                         */
+
                     } else if (displayType != DisplayType.ARROW
                             && displayType != DisplayType.BARB) {
                         if (vectorDisplay != null && vectorDisplay[i] != null) {
@@ -1312,20 +1294,6 @@ public class NcgridResource extends
                                     .setContourAttributes(contourAttributes[i]);
                             contourRenderable[i].updatedContourRenderable();
                         }
-                        /*
-                         * else { String contourName = createContourName(gdPrxy,
-                         * contourAttributes[i]); gridData =
-                         * findGriddedDataFromContourRenderable ( i );
-                         * 
-                         * // Avoid duplicate data retrieval if (gridData ==
-                         * null) { gridData = getGriddedData ( i ); }
-                         * 
-                         * if ( gridData != null ) { contourRenderable[i] = new
-                         * ContourRenderable((IDataRecord)gridData, descriptor,
-                         * MapUtil
-                         * .getGridGeometry(gdPrxy.getNewSpatialObject()),
-                         * contourAttributes[i], contourName); } }
-                         */
 
                         // Grid point value
                         if (attrType.contains("P")
@@ -1394,19 +1362,11 @@ public class NcgridResource extends
                                                     + npe.getMessage(), npe);
                                 }
                             }
-
-                            /*
-                             * These lines of code result in
-                             * NullPointerException when editing from the
-                             * legend.
-                             */
-                            // } else if (!attrType.contains("P")
-                            // && gridPointValueDisplay != null) {
-                            // gridPointValueDisplay = null;
                         }
 
                         // create HILO symbols
-                        if ((attrType.contains("F") || attrType.contains("C"))
+                        if ((attrType.contains("F") || attrType.contains("I") || attrType
+                                .contains("C"))
                                 && (contourRenderable[i] != null)
                                 && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
 
@@ -1496,7 +1456,6 @@ public class NcgridResource extends
                             }
                         }
                     }
-
                 } // end of for loop
 
             } // end of synchronized
@@ -1523,8 +1482,9 @@ public class NcgridResource extends
 
                     ContourRenderable contourGroup = contourRenderable[i];
 
-                    if ((type.contains("C") || type.contains("F") || type
-                            .contains("S")) && (contourGroup != null)) {
+                    if ((type.contains("C") || type.contains("F")
+                            || type.contains("I") || type.contains("S"))
+                            && (contourGroup != null)) {
 
                         try {
                             contourGroup.createContours(getGraphicsTarget(),
@@ -1544,7 +1504,6 @@ public class NcgridResource extends
                                     getGraphicsTarget(), getPaintProperties());
                         }
                     }
-
                 }
             }
             paintAble = true;
@@ -1559,7 +1518,6 @@ public class NcgridResource extends
                         + (t2 - initTime));
             }
             return true;
-            // }
         }
 
         Boolean isFrameLoaded() {
@@ -1581,13 +1539,6 @@ public class NcgridResource extends
         private String createContourName(NcGridDataProxy gdPrxy,
                 ContourAttributes contourAttributes) {
             StringBuilder contourName = new StringBuilder();
-            // contourName.append(gridRscData.getGdfile().trim().toUpperCase() +
-            // " ");
-            // contourName.append(contourAttributes.getGdpfun().trim().toUpperCase()
-            // + " ");
-            // contourName.append(" ^" + gdPrxy.getDataTime().toString() + " @"
-            // + contourAttributes.getGlevel() +
-            // " %" + contourAttributes.getGvcord().toUpperCase());
             contourName.append(gdPrxy.getDataTime().toString());
             return contourName.toString();
         }
@@ -1695,12 +1646,11 @@ public class NcgridResource extends
                                 + contourAttributes[i].getGvcord() + ";WIND:"
                                 + contourAttributes[i].getWind() + ";");
                     }
-                    logger.debug(
-                            this.getClass().getCanonicalName()
-                                    + ":\n"
-                                    + "Offending statement: gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,ontourAttributes[i], this.cacheData);\n"
-                                    + "***HINT: parts of gdPrxy may have been null\n"
-                                    + npe.getMessage(), npe);
+                    logger.debug(this.getClass().getCanonicalName()
+                            + ":\n"
+                            + "Offending statement: gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,ontourAttributes[i], this.cacheData);\n"
+                            + "***HINT: parts of gdPrxy may have been null\n"
+                            + npe.getMessage() + npe);
                 }
                 long t2 = System.currentTimeMillis();
                 if (gridData != null) {
@@ -1724,7 +1674,6 @@ public class NcgridResource extends
             }
             return gridData;
         }
-
     }
 
     /**
@@ -1732,15 +1681,15 @@ public class NcgridResource extends
      */
     public NcgridResource(NcgridResourceData data, LoadProperties props) {
         super(data, props);
-        // data.addChangeListener((IResourceDataChanged) this);
         gridRscData = data;
     }
 
-    // override the base version which queries the db based on the metadatamap
-    // since this will return too many objects which won't be used. This will
-    // just
-    // query the availableTimes and use them to time match to the frames.
-    //
+    /**
+     * override the base version which queries the db based on the metadatamap
+     * since this will return too many objects which won't be used. This will
+     * just query the availableTimes and use them to time match to the frames.
+     */
+
     @Override
     public void queryRecords() throws VizException {
         ResourceName rscName = getResourceData().getResourceName();
@@ -1775,7 +1724,6 @@ public class NcgridResource extends
                 String[] gridAvailableTimes = GempakGrid.getAvailableGridTimes(
                         dataLocation, cycleTime.toString(), gridRscData
                                 .getGdfile().toLowerCase());
-                // availableTimes = new DataTime[gridAvailableTimes.length];
                 for (int ii = 0; ii < gridAvailableTimes.length; ii++) {
                     availableTimes.add(new DataTime(gridAvailableTimes[ii]));
                 }
@@ -1783,72 +1731,7 @@ public class NcgridResource extends
                 return;
             }
         } else {
-            /*
-             * // Note that since this is not constraining the grid parameter,
-             * level... there is // still a potential problem if the db is
-             * missing times for the displayed param // while times for other
-             * params exist. HashMap<String, RequestConstraint> queryList = new
-             * HashMap<String, RequestConstraint>(
-             * gridRscData.getMetadataMap());
-             * 
-             * if (gridRscData.getGdfile().startsWith("{") &&
-             * gridRscData.getGdfile().endsWith("}")) { ModelListInfo
-             * modelListInfo = new ModelListInfo(gridRscData.getGdfile());
-             * String modelName =
-             * modelListInfo.getModelList().get(0).getModelName(); String
-             * perturbationNum = null; // String eventName = null; if (
-             * modelName.contains(":") ) { String [] gdfileArrs =
-             * modelName.split(":"); modelName = gdfileArrs[0]; if (
-             * gdfileArrs[0].contains("%")) { modelName =
-             * gdfileArrs[0].split("%")[1]; } // eventName =
-             * gdfileArrs[1].toLowerCase(); if ( isIntNum (gdfileArrs[1])) {
-             * perturbationNum =
-             * String.valueOf(Integer.parseInt(gdfileArrs[1])); } } else { if (
-             * modelName.contains("%")) { modelName = modelName.split("%")[1]; }
-             * }
-             * 
-             * queryList.put("modelInfo.modelName", new RequestConstraint(
-             * modelName, ConstraintType.EQUALS ) ); // if ( eventName != null
-             * ){ // queryList.put("eventName", // new RequestConstraint(
-             * eventName, ConstraintType.EQUALS ) ); // } if ( perturbationNum
-             * != null ){ queryList.put("modelInfo.perturbationNumber", new
-             * RequestConstraint( perturbationNum, ConstraintType.EQUALS ) ); }
-             * } else { queryList.put("modelInfo.modelName", new
-             * RequestConstraint( gridRscData.getGdfile(), ConstraintType.EQUALS
-             * ) ); } LayerProperty property = new LayerProperty();
-             * property.setDesiredProduct( ResourceType.PLAN_VIEW );
-             * getAllTimes(gridRscData.getGdfile());
-             * 
-             * try {
-             * 
-             * long cycMs = cycleTime.getRefTime().getTime()/1000; String
-             * cycTimeStr = new String
-             * (QUERY_DATE_FORMAT.format(cycleTime.getRefTime
-             * ().getTime())+".0");
-             * 
-             * ArrayList<DataTime> frameTimes = getFrameTimes();
-             * Collections.sort(frameTimes);
-             * 
-             * if( frameTimes != null && frameTimes.size() > 0){
-             * 
-             * int frameIntrvl = (int)resourceData.getFrameSpan()/60; int lframe
-             * = frameTimes.size()-1; int fMs =
-             * (int)(((frameTimes.get(0).getRefTime().getTime())/1000 -
-             * cycMs)/3600 - frameIntrvl); if ( fMs < 0 ) fMs = 0; int lMs =
-             * (int)(((frameTimes.get(lframe).getRefTime().getTime())/1000
-             * -cycMs)/3600 + frameIntrvl); // adjust the start and end times to
-             * include the frameIntervals. If this isn't dominant, // we need to
-             * query everything that may match the first/last frames. String
-             * frameStartTimeStr = cycTimeStr + " (" + fMs + ")"; String
-             * frameEndTimeStr = cycTimeStr + " (" + lMs + ")"; String timeStr =
-             * frameStartTimeStr + "--" + frameEndTimeStr;
-             * queryList.put("dataTime", new RequestConstraint (timeStr,
-             * ConstraintType.BETWEEN)); } property.setEntryQueryParameters(
-             * queryList ); availableTimes = property.getEntryTimes(); } catch(
-             * VizException e) { return; }
-             */
             availableTimes = gridRscData.getAvailableDataTimes();
-
         }
 
         ArrayList<DataTime> dataTimes = new ArrayList<DataTime>();
@@ -1867,14 +1750,6 @@ public class NcgridResource extends
                 if (cycleTime.equals(refTime)) {
                     if (!dataTimes.contains(availTime)) {
                         dataTimes.add(availTime);
-                        // reuse the same gribRec this is a bit of a hack but
-                        // hey.
-                        // gribRec.setDataTime(availTime);
-                        // for( IRscDataObject dataObject : processRecord(
-                        // availTime
-                        // ) ) { // gribRec ) ) {
-                        // newRscDataObjsQueue.add(dataObject);
-                        // }
                     }
                 }
             } else { // for grid analysis
@@ -1918,9 +1793,10 @@ public class NcgridResource extends
     public String getName() {
         FrameData currFrame = (FrameData) getCurrentFrame();
         String nameStr = "";
-        TITLE title = new TITLE(gridRscData.getTitle()); // rm 5/-1/. 5/-1/ ~ @
-                                                         // HEIGHTS, ISOTACHS
-                                                         // AND WIND (KTS)!0
+        /*
+         * rm 5/-1/. 5/-1/ ~ @ HEIGHTS, ISOTACHS AND WIND (KTS)!0
+         */
+        TITLE title = new TITLE(gridRscData.getTitle());
         String tit = title.getTitleString();
 
         if (currFrame == null || currFrame.gdPrxy == null || !currFrame.hasData) {
@@ -1935,18 +1811,6 @@ public class NcgridResource extends
 
         if (tit != null) {
             nameStr = generateTitleInfo(tit, currFrame.gdPrxy.getDataTime());
-
-            // if( currFrame == null || currFrame.gdPrxy == null || !
-            // currFrame.hasData ) {
-            // return String.format("%s %s", gridRscData.getGdfile(),
-            // gridRscData.getTitle())+"-No Data";
-            // }
-            //
-            // TITLE title = new TITLE (gridRscData.getTitle());
-            // if ( title.getTitleString() !=null) {
-            // nameStr = generateTitleInfo (title.getTitleString(),
-            // currFrame.gdPrxy.getDataTime());
-            // set legend color
             gridRscData.setLegendColor(title.getTitleColor());
         }
 
@@ -2013,7 +1877,8 @@ public class NcgridResource extends
         }
         if (!currFrame.isPaintAble()) {
             if (currFrame.getGenCntrJob() == null) {
-                currFrame.generateContours("Generating contours for Frame");
+                // repaints start here
+                currFrame.generateContours("Rendering");
             }
             return;
         }
@@ -2067,8 +1932,8 @@ public class NcgridResource extends
                 }
 
                 if (contourGroup != null
-                        && (type.contains("C") || type.contains("F") || type
-                                .contains("S"))) {
+                        && (type.contains("C") || type.contains("F")
+                                || type.contains("I") || type.contains("S"))) {
                     if (currFrame.getReProjectFlag()) {
                         contourGroup
                                 .setMapProject(currFrame.getReProjectFlag());
@@ -2085,7 +1950,8 @@ public class NcgridResource extends
                 /*
                  * Plot HILO if needed
                  */
-                if (type.contains("C") || type.contains("F")) {
+                if (type.contains("C") || type.contains("F")
+                        || type.contains("I")) {
                     GridRelativeHiLoDisplay gridRelativeHiLoDisplay = contourGroup
                             .getGridRelativeHiLo();
                     if (gridRelativeHiLoDisplay != null) {
@@ -2114,11 +1980,6 @@ public class NcgridResource extends
             logger.debug("Paint this frame("
                     + currFrame.gdPrxy.getDataTime().toString() + ") took:"
                     + (t1 - t11));
-            // logger.info( "Paint this frame("+
-            // currFrame.gdPrxy.getDataTime().toString()+") took:" +
-            // (t1-initTime));
-            // logger.info("*****From init resource to complete paint this Frame("+currFrame.gdPrxy.getDataTime().toString()+") took:"
-            // + (t1-initTime));
         }
     }
 
@@ -2170,13 +2031,11 @@ public class NcgridResource extends
                 inputGdfile = inputGdfile + ":" + gridRscData.getEventName();
             }
         }
-        // inputGdfile = checkEnsembleGdfiles(inputGdfile);//for perturbation
-        // number
+
         ArrayList<DataTime> dataTimes = new ArrayList<DataTime>();
         dataTimes.add(gdPrxy.getDataTime());
         synchronized (Dgdriv.class) {
             Dgdriv aDgdriv = new Dgdriv();
-            // aDgdriv.setCycleForecastTimes(dataTimesForDgdriv);
             aDgdriv.setResourceData(gridRscData);
             aDgdriv.setCycleForecastTimes(dataTimes);
             aDgdriv.setSpatialObject(gdPrxy.getSpatialObject());
@@ -2227,16 +2086,10 @@ public class NcgridResource extends
                     subgObj = aDgdriv.getSubgSpatialObj();
                 }
                 return data;
-                // return aDgdriv.execute();
             } catch (DgdrivException e) {
-                // throw new DgdrivException("GEMPAK GD error stack:\n" +
-                // e.getMessage(), e);
                 logger.debug("GEMPAK GD error stack:\n" + e.getMessage());
                 return null;
             }
-            // finally {
-            // aDgdriv = null;
-            // }
         }
     }
 
@@ -2290,12 +2143,6 @@ public class NcgridResource extends
             return null;
         }
 
-        // NcFloatDataRecord rec = null;
-        // try {
-        // rec = (NcFloatDataRecord)getDataRecord(gdPrxy, attr);
-        // } catch (DgdrivException e) {
-        // e.printStackTrace();
-        // }
         if (rec == null || rec.getXdata() == null) {
             return null;
         }
@@ -2351,7 +2198,8 @@ public class NcgridResource extends
         } else if (type.toUpperCase().contains("S")) {
             return DisplayType.STREAMLINE;
         } else if (type.toUpperCase().contains("C")
-                || type.toUpperCase().contains("F")) {
+                || type.toUpperCase().contains("F")
+                || type.toUpperCase().contains("I")) {
             return DisplayType.CONTOUR;
         } else {
             return null;
@@ -2360,11 +2208,10 @@ public class NcgridResource extends
 
     private void separateAttributes() {
         /*
-         * Redmine #5113 - an trailing "!" may cause the field before "!" to be
-         * created twice - so need to remove it before splitting into array.
+         * A trailing "!" may cause the field before "!" to be created twice -
+         * so need to remove it before splitting into array.
          */
-        // String[] gfuncArray = gridRscData.getGdpfun().replaceAll("\\s+", "")
-        // .split("!", -1);
+
         String gfuncStr = gridRscData.getGdpfun().replaceAll("\\s+", "").trim();
         if (gfuncStr != null && gfuncStr.endsWith("!")) {
             gfuncStr = gfuncStr.substring(0, gfuncStr.length() - 1);
@@ -2433,13 +2280,6 @@ public class NcgridResource extends
                      */
                     gfuncArray[j] = substituteAlias(referencedAlias,
                             referencedFunc, gfuncArray[j]);
-                    // boolean isDerived = gfuncArray[j].trim().contains("(");
-                    // boolean isReferenced =
-                    // gfuncArray[j].trim().contains(referencedAlias);
-                    // if ( isReferenced ) {
-                    // gfuncArray[j] = gfuncArray[j].replace(referencedAlias,
-                    // referencedFunc);
-                    // }
                 }
             } else {
 
@@ -2493,11 +2333,6 @@ public class NcgridResource extends
                 }
                 contourAttributes[i].setGvcord(gvcordArray[idx]);
 
-                // if (i > scaleArray.length - 1) {
-                // contourAttributes[i].setScale("0");
-                // } else {
-                // contourAttributes[i].setScale(scaleArray[i]);
-                // }
                 idx = (skipArray.length > i) ? i : skipArray.length - 1;
                 if (skipArray[idx].isEmpty() && idx > 0) {
                     skipArray[idx] = skipArray[idx - 1];
@@ -2780,136 +2615,11 @@ public class NcgridResource extends
                         startInd = componentAfterPosition;
                     }
                 }
-
             }
         }
 
         System.out.println("returnedFunc=" + returnedFunc);
         return returnedFunc;
-        // int parenthesisNumber = returnedFunc.split("\\(").length-1;
-        // parenthesisNumber = openParenthesisNumber;
-        // System.out.println();
-        // System.out.println();
-        //
-        // /*
-        // * Find the indices of opening parenthesis in the returnedFunc
-        // */
-        // int [] openIndxs = new int[parenthesisNumber];
-        // int startOpenIndx = 0;
-        // for (int j=0;j<parenthesisNumber; j++){
-        // openIndxs[j] = returnedFunc.indexOf("(", startOpenIndx);
-        // startOpenIndx = openIndxs[j]+1;
-        // }
-        // /*
-        // * Find the indices of closing parenthesis in the returnedFunc
-        // */
-        // boolean done = false;
-        //
-        // int [] closeIndxs = new int[parenthesisNumber];
-        // int startCloseIndx = 0;
-        // int kk = parenthesisNumber-1;
-        // int jj=0;
-        // int foundCloseParenthesisNumber = 0;
-        // while ( !done ) {
-        // boolean foundMatchingParenthesis = false;
-        // int anIndex = returnedFunc.indexOf(")", startCloseIndx);
-        // kk = 0;
-        // while ( !foundMatchingParenthesis) {
-        // if ( anIndex < openIndxs[kk]) {
-        // jj = kk - 1;
-        // if ( closeIndxs[jj] == 0 && openIndxs[jj] !=0 ) {
-        // foundMatchingParenthesis = true;
-        // closeIndxs[jj] = anIndex;
-        // foundCloseParenthesisNumber++;
-        // kk++;
-        // }
-        // }
-        // else {
-        // kk++;
-        // }
-        // }
-        // if ( foundCloseParenthesisNumber != parenthesisNumber) {
-        // done = false;
-        // }
-        // else {
-        // done = true;
-        // }
-        // }
-        // for (int j=0;j<parenthesisNumber; j++){
-        // openIndxs[j] = returnedFunc.indexOf("(", startOpenIndx);
-        // closeIndxs[kk] = returnedFunc.indexOf(")", startCloseIndx);
-        // startCloseIndx = closeIndxs[kk]+1;
-        // startOpenIndx = openIndxs[j]+1;
-        // kk--;
-        // }
-        //
-        // /*
-        // * Traverse the returnedFunc and substitute each occurrence of
-        // * referencedAlias with referencedFunc, starting with inner most
-        // * argument
-        // */
-        // for (int j=parenthesisNumber;j>=1; j--){
-        // String theNestedArgument = returnedFunc.substring(openIndxs[j-1]+1,
-        // closeIndxs[j-1]);
-        // System.out.println("returnedFunc="+returnedFunc);
-        // System.out.println("returnedFunc="+returnedFunc);
-        // System.out.println("the theNestedArgument="+theNestedArgument);
-        // if ( theNestedArgument.contains(",")) {
-        // String [] nestedArgArray = theNestedArgument.split(",");
-        // for (int nn=0; nn<nestedArgArray.length;nn++){
-        // if (nestedArgArray[nn].equalsIgnoreCase(referencedAlias)) {
-        // StringBuilder strb = new StringBuilder();
-        // int startIndx = returnedFunc.indexOf(nestedArgArray[nn]);
-        // int endIndx = startIndx + nestedArgArray[nn].length();
-        // int returnedFuncLen = returnedFunc.length();
-        // strb.append(returnedFunc, 0, startIndx);
-        // strb.append(referencedFunc);
-        // strb.append(returnedFunc, endIndx, returnedFuncLen);
-        // returnedFunc = strb.toString();
-        // closeIndxs[j-2] = closeIndxs[j-2] + referencedFunc.length() -
-        // referencedAlias.length();
-        // }
-        // else {
-        // StringBuilder strb = new StringBuilder();
-        // int startIndx = returnedFunc.indexOf(nestedArgArray[nn]);
-        // int endIndx = startIndx + nestedArgArray[nn].length();
-        // int returnedFuncLen = returnedFunc.length();
-        // strb.append(returnedFunc, 0, startIndx);
-        // strb.append(nestedArgArray[nn]);
-        // strb.append(returnedFunc, endIndx, returnedFuncLen);
-        // returnedFunc = strb.toString();
-        // }
-        //
-        // }
-        // }
-        // else {
-        // if (theNestedArgument.equalsIgnoreCase(referencedAlias)) {
-        // StringBuilder strb = new StringBuilder();
-        // int startIndx = returnedFunc.indexOf(theNestedArgument);
-        // int endIndx = startIndx + theNestedArgument.length();
-        // int returnedFuncLen = returnedFunc.length();
-        // strb.append(returnedFunc, 0, startIndx);
-        // strb.append(referencedFunc);
-        // strb.append(returnedFunc, endIndx, returnedFuncLen);
-        // returnedFunc = strb.toString();
-        // closeIndxs[j-2] = closeIndxs[j-2] + referencedFunc.length() -
-        // referencedAlias.length();
-        // }
-        // else {
-        // StringBuilder strb = new StringBuilder();
-        // int startIndx = returnedFunc.indexOf(theNestedArgument);
-        // int endIndx = startIndx + theNestedArgument.length();
-        // int returnedFuncLen = returnedFunc.length();
-        // strb.append(returnedFunc, 0, startIndx);
-        // strb.append(theNestedArgument);
-        // strb.append(returnedFunc, endIndx, returnedFuncLen);
-        // returnedFunc = strb.toString();
-        // }
-        // }
-        // System.out.println("returnedFunc="+returnedFunc);
-        // }
-        // return returnedFunc;
-
     }
 
     /*
@@ -2934,7 +2644,6 @@ public class NcgridResource extends
             titleStr = title.substring(0, pos).trim();
         }
 
-        // String modelname = gridRscData.getGdfile();
         String modelname = gridRscData.getResourceName().getRscType();
         if (gridRscData.isEnsemble()) {
             String gdfile = NcEnsembleResourceData
@@ -2961,8 +2670,6 @@ public class NcgridResource extends
     private String replaceTitleSpecialCharacters(String title, DataTime cTime) {
         StringBuilder titleBuilder = new StringBuilder(title);
         int pos, posV, posF;
-
-        DataTime currFrameTm = (DataTime) getCurrentFrameTime();
 
         /*
          * check '!' and remove it for now ???
@@ -3002,7 +2709,7 @@ public class NcgridResource extends
                     }
                 }
             } else {
-                // Redmine 4980: use cycle time (ctime) instead
+                // Use cycle time (ctime) instead of
                 // cal = currFrameTm.getValidTime();
                 cal = cTime.getValidTime();
                 timestampFormat = "%02d%02d%02d/%02d%02dV%s";
@@ -3100,46 +2807,6 @@ public class NcgridResource extends
         return "";
     }
 
-    // private String checkEnsembleGdfiles ( String gdfile ) {
-    // if (gdfile.startsWith("{") && gdfile.endsWith("}") ) {
-    // StringBuffer sba = new StringBuffer();
-    // String [] gdfileArray = gdfile.substring(gdfile.indexOf("{")+1,
-    // gdfile.indexOf("}")).split(",");
-    // for (int igd=0;igd<gdfileArray.length; igd++){
-    // if ( gdfileArray[igd].contains("|") ) {
-    // String [] tempArr = gdfileArray[igd].split("\\|");
-    // if ( tempArr[0].contains(":")) {
-    // if ( ! isIntNum (tempArr[0].split(":")[1]) ) continue;
-    // }
-    //
-    // }
-    // else {
-    // if ( gdfileArray[igd].contains(":")) {
-    // if ( ! isIntNum (gdfileArray[igd].split(":")[1]) ) continue;
-    // }
-    //
-    // }
-    // sba.append(gdfileArray[igd]);
-    // sba.append(",");
-    // }
-    // String retStr = "";
-    // if ( sba.toString().length() > 0 ) {
-    // retStr = sba.toString().substring(0, sba.toString().length()-1);
-    // }
-    // return "{" + retStr + "}";
-    //
-    // }
-    // return gdfile;
-    // }
-    private boolean isIntNum(String num) {
-        String NON_NEGATIVE_INTEGER = "(\\d){1,9}";
-
-        if (num.matches(NON_NEGATIVE_INTEGER)) {
-            return true;
-        }
-        return false;
-    }
-
     public static String getFilename(String dataURI) {
         String filename = null;
         File file = null;
@@ -3159,7 +2826,9 @@ public class NcgridResource extends
             try {
                 number = Integer.parseInt(fhrs);
             } catch (NumberFormatException e) {
-                //
+                logger.error("NcgridResource.getFilename(S): "
+                        + "NumberFormat Exception: error processing \"fhrs\" value == "
+                        + fhrs);
             }
             fhStr = forecastHourFormat.format(number);
         }
@@ -3171,19 +2840,10 @@ public class NcgridResource extends
         sb.append(dataTimeStr);
         sb.append(".h5");
 
-        // if (DataMode.getSystemMode() == DataMode.THRIFT) {
-        // file = new File(File.separator + dataURI.split("/")[1]
-        // + File.separator + path + File.separator + sb.toString());
-        // } else if (DataMode.getSystemMode() == DataMode.PYPIES) {
         file = new File(
         // TODO--OK?? VizApp.getServerDataDir() + File.separator +
                 dataURI.split("/")[1] + File.separator + path + File.separator
                         + sb.toString());
-        // } else {
-        // file = new File(VizApp.getDataDir() + File.separator
-        // + dataURI.split("/")[1] + File.separator + path
-        // + File.separator + sb.toString());
-        // }
 
         if (file != null) {
             filename = file.getAbsolutePath();
@@ -3191,17 +2851,19 @@ public class NcgridResource extends
         return filename;
     }
 
-    /*
-     * Redmine 4980 Overridden fromt he super class to allow use of the the new
-     * time matching method BINNING_FOR_GRID_RESOURCES. Removed unnecessary
-     * autoupdate code and changed the order of the concentric for-loops to
-     * process data appropriately for this new time match method
+    /**
+     * 
+     * Overridden from the super class to allow use of the the new time matching
+     * method BINNING_FOR_GRID_RESOURCES. Removed unnecessary autoupdate code
+     * and changed the order of the concentric for-loops to process data
+     * appropriately for this new time match method
      * 
      * (non-Javadoc)
      * 
      * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
-     * processNewRscDataList()
+     *      processNewRscDataList()
      */
+
     protected synchronized boolean processNewRscDataList() {
 
         // allow resources to pre process the data before it is added to the
@@ -3266,4 +2928,5 @@ public class NcgridResource extends
         autoUpdateReady = false;
         return true;
     }
+
 }

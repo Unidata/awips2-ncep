@@ -3,7 +3,9 @@
     <resourceDefnName>DPD</resourceDefnName>
     <resourceCategory>SATELLITE</resourceCategory>
     <rscImplementation>McidasSatellite</rscImplementation>
-    <subTypeGenerator>areaName,resolution</subTypeGenerator>
+    
+    <subTypeGenerator>projection,resolution,areaId,satelliteId</subTypeGenerator>
+    
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
     <frameSpan>60</frameSpan>
@@ -13,7 +15,7 @@
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
     <resourceParameters>
 pluginName=mcidas
-satelliteName=DPD
+satelliteId=185
 legendColor=RGB {200, 200, 200}
 </resourceParameters>
 </ResourceDefinition>

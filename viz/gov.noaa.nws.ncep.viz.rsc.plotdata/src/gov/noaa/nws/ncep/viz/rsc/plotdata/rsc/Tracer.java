@@ -1,26 +1,10 @@
-/**
- * This software was developed and / or modified by Raytheon Company,
- * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * This software product contains export-restricted data whose
- * export/transfer/disclosure is restricted by U.S. law. Dissemination
- * to non-U.S. persons whether in the United States or abroad requires
- * an export license or other authorization.
- * 
- * Contractor Name:        Raytheon Company
- * Contractor Address:     6825 Pine Street, Suite 340
- *                         Mail Stop B8
- *                         Omaha, NE 68106
- *                         402.291.0100
- * 
- * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
- * further licensing information.
- **/
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
 /**
- * TODO Add Description
+ * Tracer
+ * 
+ * Utility class for logging selected code tracing and timing information,
+ * currently used only withing the point data display (plotdata) resource.
  * 
  * <pre>
  *
@@ -30,6 +14,7 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
  * ------------ ---------- ----------- --------------------------
  * Dec 16, 2013            bhebbard     Initial creation
  * Jul 07, 2014            bhebbard     Assorted updates
+ * Sep 01, 2015  R7757     bhebbard     Assorted updates and cleanup
  *
  * </pre>
  *
@@ -37,6 +22,7 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
  * @version 1.0	
  */
 
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
 
 import java.io.FileNotFoundException;
@@ -44,12 +30,10 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 
 import com.raytheon.uf.common.time.DataTime;
@@ -114,17 +98,9 @@ public class Tracer {
                 try {
                     writer = new PrintWriter(logFileName, "UTF-8");
                 } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block. Please revise as
-                    // appropriate.
-                    // statusHandler.handle(Priority.PROBLEM,
-                    // e.getLocalizedMessage(), e);
                     System.out.println("[" + "FileNotFoundException" + "] "
                             + message);
                 } catch (UnsupportedEncodingException e) {
-                    // TODO Auto-generated catch block. Please revise as
-                    // appropriate.
-                    // statusHandler.handle(Priority.PROBLEM,
-                    // e.getLocalizedMessage(), e);
                     System.out.println("[" + "UnsupportedEncodingException"
                             + "] " + message);
                 }
@@ -141,25 +117,15 @@ public class Tracer {
     }
 
     public static void printX(String message) {
-        // System.out.println("[" + getMethodName(1) + "] " + message);
+        // Do nothing. This is to allow us to turn specific logging points on
+        // and off by changing "print" to "printX", instead of having
+        // commented-out code.
     }
 
     public static String shortTimeString(DataTime dt) {
-        // temporary -- combine with
-        // NcPlotResource2.FrameData.getShortFrameTime(), somehow
-        @SuppressWarnings("deprecation")
-        Date frameDate = dt.getRefTime();
-        int date = frameDate.getDate();
-        int hours = frameDate.getHours();
-        hours += 4; // TODO use actual current local time offset from UTC
-        if (hours > 23) {
-            date += 1; // TODO: eom condition
-            hours -= 24;
-        }
-        int minutes = frameDate.getMinutes();
-        DecimalFormat df = new DecimalFormat("00");
-        String returnString = Integer.toString(date) + "/" + df.format(hours)
-                + df.format(minutes);
+        // TODO -- Consider making common utility
+        String returnString = NmapCommon.getTimeStringFromDataTime(dt, "/")
+                .substring(4);
         if (dt.getFcstTime() != 0) {
             returnString += "(" + dt.getFcstTime() + ")";
         }

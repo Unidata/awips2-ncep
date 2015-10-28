@@ -51,6 +51,9 @@ import org.eclipse.swt.graphics.RGB;
  * Mar 06,2013	 683		  Xiaochuan	   Handle 2 digit number for the colors
  * 										   set in title. Using default color when color
  * 										   number over 32.
+ * Sep 22,2015   R11897       Lopez        Limited the number for parses to prevent the
+ *                                         title from being cut short at a "/"
+ * 
  * 
  * </pre>
  * 
@@ -87,7 +90,7 @@ public class TITLE {
          * check '/' character in the title string and handle the current format
          */
         if (title.indexOf('/') >= 0) {
-            String[] titleStr = title.trim().split("/");
+            String[] titleStr = title.trim().split("/", 3);
             if (titleStr.length >= 1 && titleStr[0] != null
                     && titleStr[0].trim().length() > 0) {
                 tmp = titleStr[0].trim();

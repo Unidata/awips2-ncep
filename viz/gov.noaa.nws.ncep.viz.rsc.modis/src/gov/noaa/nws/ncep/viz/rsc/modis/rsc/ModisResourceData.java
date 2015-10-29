@@ -26,7 +26,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Oct 01, 2014            kbugenhagen Initial creation.
+ * 10/01/2014   R5116      kbugenhagen  Initial creation.
  * 
  * </pre>
  * 

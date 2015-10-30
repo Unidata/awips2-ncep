@@ -23,12 +23,8 @@ import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
-import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.IRenderableDisplayChangedListener;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
-import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
@@ -37,6 +33,8 @@ import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
 /**
+ * An extension to AbstractVizResource for resources used in the NCP.
+ * 
  * <pre>
  * 
  * SOFTWARE HISTORY
@@ -47,9 +45,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 20 Apr 2010               Greg Hull    implement disposeInternal to dispose of the FrameData
  * 30 Apr 2010     #276      Greg Hull    Abstract the dataObject instead of assuming PluginDataObject.
  * 05 Dec 2011               Shova Gurung Added progDiscDone to check if progressive disclosure is run 
- * 										  for frames that are already populated
+ *                                        for frames that are already populated
  * 16 Feb 2012     #555      Shova Gurung Remove progDiscDone. Add call to setAllFramesAsPopulated() in queryRecords().
- * 										  Remove frameData.setPopulated(true) from processNewRscDataList().
+ *                                        Remove frameData.setPopulated(true) from processNewRscDataList().
  * 20 Mar 2012     #700      B. Hebbard   In processNewRscDataList(), when new frame(s) are created by auto update,
  *                                        set frame to LAST and issueRefresh() to force paint (per legacy; TTR 520).
  * 06 Feb 2013     #972      G. Hull      define on IDescriptor instead of IMapDescriptor
@@ -57,26 +55,15 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 25 Aug 2014     RM4097    kbugenhagen  Added EVENT_BEFORE_OR_AFTER time matching
  * 12/14           RM5794    B. Yin       Remove ScriptCreator, use Thrift Client.
  * 09 Feb 2015     RM4980    srussell     Updated timeMatch() & constructor. Added closestToFrame()
+ * 09/28/2015      R11385    njensen      Corrected generics on class declaration
+ * 
  * </pre>
  * 
  * @author ghull
  * @version 1
  */
 public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsRequestableResourceData, D extends INatlCntrsDescriptor>
-        extends
-        AbstractVizResource<AbstractNatlCntrsRequestableResourceData, IDescriptor>
-        implements INatlCntrsResource {
-
-    // NOT USED now but may make sense to have a displayChange listener for all
-    // resources?
-    private class displayChangeListener implements
-            IRenderableDisplayChangedListener {
-
-        @Override
-        public void renderableDisplayChanged(IDisplayPane pane,
-                IRenderableDisplay newRenderableDisplay, DisplayChangeType type) {
-        }
-    }
+        extends AbstractVizResource<T, D> implements INatlCntrsResource {
 
     public static interface IRscDataObject {
         abstract DataTime getDataTime();
@@ -86,7 +73,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     // Data Object.
     //
     public static class DfltRecordRscDataObj implements IRscDataObject {
-        private PluginDataObject pdo;
+        private final PluginDataObject pdo;
 
         public DfltRecordRscDataObj(PluginDataObject o) {
             pdo = o;
@@ -102,18 +89,12 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         }
     }
 
-    // the expected class for the resourceDataObjects
-    // protected Class rscDataObjectClass;
-
-    // protected static DataTime lastFrameEndTime;
-
     public abstract class AbstractFrameData {
 
         protected DataTime frameTime;
 
         // for resources that need to populated the frames only when the frame
-        // is
-        // first displayed.
+        // is first displayed.
         protected boolean populated;
 
         protected DataTime startTime; // valid times without a forecast hour
@@ -144,17 +125,14 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 startTime = new DataTime(frameTime.getValidTime());
                 endTime = new DataTime(frameTime.getValidTime());
             }
+
             // Note : Currently this is implemented the same as Exact. (ie the
-            // frame time
-            // must be between the start/end time of an event.) A more general
-            // algorithm
-            // could be implemented to use the frame span and test whether any
-            // part of the
-            // event overlaps with any part of the frame span. But currently,
-            // for Event resources,
-            // the frame span is taken as the default frame interval for a
-            // manual timeline and so
-            // this would need to be addressed first.)
+            // frame time must be between the start/end time of an event.) A
+            // more general algorithm could be implemented to use the frame span
+            // and test whether any part of the event overlaps with any part of
+            // the frame span. But currently, for Event resources, the frame
+            // span is taken as the default frame interval for a manual timeline
+            // and so this would need to be addressed first.)
             case EVENT: {
                 startTime = new DataTime(frameTime.getValidTime());
                 endTime = new DataTime(frameTime.getValidTime());
@@ -207,11 +185,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return (dataTime == null ? false : timeMatch(dataTime) >= 0);
         }
 
-        // Redmine 4980
         public int closestToFrame(IRscDataObject rscDataObj1,
                 IRscDataObject rscDataObj2) {
 
-            // Check for null objects
             if (rscDataObj1 != null && rscDataObj2 == null)
                 return 1;
             if (rscDataObj1 == null && rscDataObj2 != null)
@@ -243,9 +219,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return iReturn;
         }
 
-        // return -1 if the data doesn't match. if the return value is 0 or
-        // positive
-        // then this is the number of seconds from the perfect match.
+        // Return -1 if the data doesn't match. If the return value is 0 or
+        // positive, then this is the number of seconds from the perfect match.
         public long timeMatch(DataTime dataTime) {
 
             long dataTimeMillis = dataTime.getValidTime().getTimeInMillis();
@@ -255,8 +230,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
             switch (resourceData.getTimeMatchMethod()) {
 
-            case MATCH_ALL_DATA: // everything is a perfect match. (for PGEN
-                                 // Resource)
+            // everything is a perfect match. (for PGEN Resource)
+            case MATCH_ALL_DATA:
                 return 0;
             case EXACT:
             case EVENT: {
@@ -282,9 +257,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                             - dataTimeMillis) / 1000;
                 }
             }
-            // mainly (only?) for lightning. Might be able to remove this
-            // timeMatchMethod
-            // if lighting resource is modified?
+            // Mainly for lightning. Might be able to remove this
+            // timeMatchMethod if lighting resource is modified.
             case BEFORE_OR_EQUAL: {
                 return (dataTimeMillis > endTimeMillis ? -1
                         : (endTimeMillis - dataTimeMillis) / 1000);
@@ -293,30 +267,17 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             case CLOSEST_BEFORE_OR_EQUAL:
             case CLOSEST_AFTER_OR_EQUAL: {
                 // This should be an invalid case. if this is an event type
-                // resource then
-                // it should be an EXACT time match. Still, for now leave this
-                // logic in here.
+                // resource then it should be an EXACT time match. Still, for
+                // now leave this logic in here.
                 if (dataTimeRange.isValid()) {
                     System.out
                             .println("Timematching a dataTime with a valid interval with a non-EXACT\n "
                                     + "TimeMatchMethod.");
                     return -1;
-                    // long dataStartTimeMillis =
-                    // dataTimeRange.getStart().getTime();
-                    // long dataEndTimeMillis =
-                    // dataTimeRange.getEnd().getTime();
-                    //
-                    // if( dataStartTimeMillis > endTimeMillis ||
-                    // dataEndTimeMillis <= startTimeMillis ) {
-                    // return false;
-                    // }
-                    // else {
-                    // return true;
-                    // }
                 }
 
-                // return -1 if this is not a match.
-                // (since the start/end times are based on the timeMatchMethod,
+                // Return -1 if this is not a match.
+                // (Since the start/end times are based on the timeMatchMethod,
                 // we can just check that the datatime is not within the
                 // start/end)
                 //
@@ -336,7 +297,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 }
             }
             case BINNING_FOR_GRID_RESOURCES: {
-                // If Data Time >= Frame Time, It Is A Match
+                // If Data Time >= Frame Time, it is A Match
                 if (dataTimeMillis >= frameTimeMillis) {
                     return 1;
                 } else {
@@ -348,16 +309,14 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return -1;
         }
 
-        // only return true if the data was added to the frame. It is possible
-        // for
-        // some resources for the data to time match but not be added because
-        // there
-        // is already data in the frame that is a better match.
+        // Only return true if the data was added to the frame. It is possible
+        // for some resources for the data to time match but not be added
+        // because there is already data in the frame that is a better match.
         //
         public abstract boolean updateFrameData(IRscDataObject rscDataObj);
 
+        // override this if need to dispose of anything in the Frame.
         public void dispose() {
-            // override this if need to dispose of anything in the Frame.
         }
 
         public DataTime getFrameTime() {
@@ -394,21 +353,19 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     protected ConcurrentLinkedQueue<IRscDataObject> newRscDataObjsQueue;
 
     // This list caches objects that are ingested and are newer than the latest
-    // frame.
-    // When a frame is later created due to auto updating, these objects are
-    // moved to
-    // the newRscDataObjsQueue.
+    // frame. When a frame is later created due to auto updating, these objects
+    // are
+    // moved to the newRscDataObjsQueue.
     protected ArrayList<IRscDataObject> autoUpdateCache;
 
-    // the new frame times that will be created during the next auto update
+    // The new frame times that will be created during the next auto update
     protected ArrayList<DataTime> newFrameTimesList;
 
     protected DataTime currFrameTime;
 
-    // Redmine 4980 private => protected
     protected boolean autoUpdateReady = false;
 
-    // if the frameGenMthd is USE_FRAME_INTERVAL then this is the time
+    // If the frameGenMthd is USE_FRAME_INTERVAL then this is the time
     // when the next frame will be created if autoupdate is on.
     // Note: that more than one frame may be created if the user turns
     // autoupdate on long after the next frame time has past.
@@ -423,9 +380,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         newFrameTimesList = new ArrayList<DataTime>();
         currFrameTime = null;
 
-        // if requestable add a resourceChanged listener that is called by
-        // Raytheon's
-        // AbstractRequestableResource when update() is called.
+        // If requestable, add a resourceChanged listener that is called by
+        // Raytheon's AbstractRequestableResource when update() is called.
         if (resourceData instanceof AbstractNatlCntrsRequestableResourceData) {
             resourceData.addChangeListener(new IResourceDataChanged() {
                 @Override
@@ -441,9 +397,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
                     // TODO : need to make sure that these are the same types of
                     // objects that are returned by the queryRecords method (or
-                    // the method
-                    // that the resource uses to populate the frameData).
-                    //
+                    // the method that the resource uses to populate the
+                    // frameData).
                     if (type == ChangeType.DATA_UPDATE) {
                         if (object instanceof Object[]) {
                             for (Object obj : (Object[]) object) {
@@ -539,7 +494,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     }
 
     // This assumes that the given time is in the map
-    //
     public AbstractFrameData getFrame(DataTime dataTime) {
         AbstractFrameData frameData = null;
 
@@ -570,16 +524,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         return frmTimes;
     }
 
-    @Override
-    public INatlCntrsDescriptor getDescriptor() {
-        if (super.getDescriptor() instanceof INatlCntrsDescriptor) {
-            return (INatlCntrsDescriptor) super.getDescriptor();
-        }
-        System.out
-                .println("AbstractNatlCntrResource.getDescriptor() returning null????");
-        return null;
-    }
-
     // this should only be called by resources that are instantiated with an
     // NcMapDescriptor
     protected NCMapDescriptor getNcMapDescriptor() {
@@ -590,14 +534,13 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         return null;
     }
 
-    //
+    @Override
     public final void initInternal(IGraphicsTarget grphTarget)
             throws VizException {
 
         if (!initialized) {
             // create the frameDataMap based on the timeFrames from the
             // timeMatcher.
-            // ArrayList<DataTime> frameTimes
             NCTimeMatcher timeMatcher = (NCTimeMatcher) descriptor
                     .getTimeMatcher();
             List<DataTime> frameTimes = timeMatcher.getFrameTimes();
@@ -620,10 +563,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             }
 
             // This is now done in the NCMapDescriptor when the timeMatcher is
-            // set
-            //
-            // ((AbstractDescriptor) descriptor).getTimeMatchingMap().put(
-            // this, frameTimes.toArray( new DataTime[0] ) );
+            // set.
             ((INatlCntrsDescriptor) descriptor).setFrameTimesForResource(this,
                     frameTimes.toArray(new DataTime[0]));
             // each resource may decide when and how to populate the frameData.
@@ -635,7 +575,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     abstract public void initResource(IGraphicsTarget grphTarget)
             throws VizException;
 
-    // don't let derived classes override paintInternal. Override paintFrame()
+    @Override
     public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
 
@@ -646,9 +586,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         }
 
         if (paintProps == null || paintProps.getDataTime() == null) {
-            // should we still call the resource's paintFrame in case it needs
-            // to do something
-            // even if there is no time?
             return;
         }
 
@@ -663,11 +600,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return;
         }
 
-        // let the derived resources do this
-        // if( !currFrame.isPopulated() ) {
-        // populateFrame( currFrame );
-        // }
-
         paintFrame(currFrame, target, paintProps);
     }
 
@@ -676,9 +608,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             throws VizException;
 
     // loop thru newDataObjectsList and update frameDataMap. If a frame for a
-    // given
-    // record time doesn't exist then create a new Frame
-    //
+    // given record time doesn't exist then create a new Frame
     protected synchronized boolean processNewRscDataList() { // boolean isUpdate
 
         // allow resources to pre process the data before it is added to the
@@ -695,7 +625,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
             // loop through the frames and add this record to all that it time
             // matches to
-            //
             for (AbstractFrameData frameData : frameDataMap.values()) {
                 if (frameData != null) {
                     if (frameData.isRscDataObjInFrame(rscDataObj)) {
@@ -711,26 +640,21 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 }
             }
 
-            // if not in any frames (or if in the last frame) and if updating
-            // and if this the data is
-            // newer than the latest frame then cache the data for auto update.
-            // NOTE: this will 'drop' (not cache) data from the initial query
-            // that doesn't match the
-            // selected timeline which means that if the user later enables
-            // auto-update, this data will
-            // not be loaded as part of the auto-update. This is by design but
-            // could be changed if the
-            // user wants a different behaviour.)
+            // If not in any frames (or if in the last frame) and if updating
+            // and if this the data is newer than the latest frame then cache
+            // the data for auto update. NOTE: this will 'drop' (not cache) data
+            // from the initial query that doesn't match the selected timeline
+            // which means that if the user later enables auto-update, this data
+            // will not be loaded as part of the auto-update. This is by design
+            // but could be changed if the user wants a different behaviour.)
             // NOTE: if the data is in the last frame then it may still
-            // potentially match the next frame
-            // when an update occurs. (WAPITA) (Note2: the auto update code is
-            // written to update a frame even
-            // if it is not the last frame. (ie. data is received out of order
-            // for some reason.) but this
-            // will cause any non-dominant data to not be displayed on these
-            // frames because we are only
-            // checking for the last frame here.)
-            long dataTimeMs = getDataTimeMs(rscDataObj);// rscDataObj.getDataTime().getValidTime().getTime().getTime();
+            // potentially match the next frame when an update occurs. (WAPITA)
+            // (Note2: the auto update code is written to update a frame even if
+            // it is not the last frame. (ie. data is received out of order for
+            // some reason.) but this will cause any non-dominant data to not be
+            // displayed on these frames because we are only checking for the
+            // last frame here.)
+            long dataTimeMs = getDataTimeMs(rscDataObj);
 
             if (timeMatcher.isAutoUpdateable()) {
 
@@ -763,16 +687,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
         autoUpdateReady = false;
 
-        // if there is data in the auto update cache and if auto update is now
-        // enabled
-        // and if this is the dominant resource for the timeline then we need to
-        // update the timeline and process the data in the cache.
-        //
-
-        // Don;t think this should be here. It causes continuous refresh
-        // in some resources
-        // timeMatcher.updateTimeline(newFrameTimesList);
-
+        // If there is data in the auto update cache and if auto update is now
+        // enabled and if this is the dominant resource for the timeline then
+        // we need to update the timeline and process the data in the cache.
         if (!newFrameTimesList.isEmpty() && getDescriptor().isAutoUpdate()) {
 
             // update the list of times in the timeMatcher.
@@ -821,8 +738,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(queryList);
-      
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
 
         for (Map<String, Object> result : response.getResults()) {
             for (Object pdo : result.values()) {
@@ -857,24 +775,12 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         newRscDataObjsQueue.clear();
     }
 
-    // Don't think this should be called for NatlCntrs resources...?
-    // if so then need to lookup the frame and remove it
+    // Let the resource refresh and do anything else it needs to do after
+    // modifying its attributes. Override if the resource needs this.
     @Override
-    public final void remove(DataTime dataTime) {
-        // super.remove( dataTime );
-        // remove the given frame and call dispose
-        // will the system call this for each resource removed? Need all
-        // resources to be in sync.
-    }
-
-    // let the resource refresh and do anything else it needs to do after
-    // modifying its attributes.
-    // override if the resource needs this
     public void resourceAttrsModified() {
-        // Do nothing
     }
 
-    // override this if needed
     @Override
     protected void disposeInternal() {
         for (AbstractFrameData frameData : frameDataMap.values()) {
@@ -902,7 +808,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     // set the populated flag in all frames
     // this is done when the data for all frames has been queried at one time
     // as opposed to populating as each frame is displayed.
-    //
     protected void setAllFramesAsPopulated() {
         for (AbstractFrameData frameData : frameDataMap.values()) {
             frameData.setPopulated(true);

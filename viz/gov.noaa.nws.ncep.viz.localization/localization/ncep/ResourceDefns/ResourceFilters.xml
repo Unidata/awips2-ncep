@@ -1641,4 +1641,8 @@
 <ResourceDefinitionFilter rscDefnName="NCOM">
 <filters>Analysis,SBN</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HIMAWARI">
+<filters>HIMAWARI</filters>
+</ResourceDefinitionFilter>
+
 </ResourceDefinitionFilters>

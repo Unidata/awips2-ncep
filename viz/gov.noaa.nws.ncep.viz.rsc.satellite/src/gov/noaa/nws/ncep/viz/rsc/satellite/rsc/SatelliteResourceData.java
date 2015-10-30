@@ -35,10 +35,12 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * Apr  15, 2010   #259    ghull       Added ColorBar
  * Nov  20, 2012   #630    ghull       implement IGridGeometryProvider
  * May  08, 2013   #892    ghull       change to IAreaProviderCapable
+ * Sep  28, 2015  11385    njensen     construct NcSatelliteResource instead of GiniSatResource
  * 10/15/2015      R7190   R. Reynolds Added support for Mcidas
+ * 10/28/2015      R7190   kbugenhagen Added support for Himawari
  * 
  * This class is copied from com.raytheon.viz.satellite.rsc.SatResourceData
- * for To 11 integration
+ * for TO 11 integration
  * 
  * </pre>
  * 
@@ -52,7 +54,7 @@ public class SatelliteResourceData extends
         IAreaProviderCapable {
 
     enum SatelliteType {
-        GINI, MCIDAS
+        GINI, MCIDAS, HIMAWARI
     }
 
     @XmlElement
@@ -99,23 +101,18 @@ public class SatelliteResourceData extends
     @Override
     protected AbstractVizResource<?, ?> constructResource(
             LoadProperties loadProperties, PluginDataObject[] objects) {
-
         if (satelliteType == SatelliteType.GINI) {
-            satRsc = new GiniSatResource(this, loadProperties);
-            return satRsc;
+            return new NcSatelliteResource(this, loadProperties);
         } else if (satelliteType == SatelliteType.MCIDAS) {
-            satRsc = new McidasSatResource(this, loadProperties);
-            return satRsc;
+            return new McidasSatResource(this, loadProperties);
+        } else if (satelliteType == SatelliteType.HIMAWARI) {
+            return new NcSatelliteResource(this, loadProperties);
         } else {
             System.out.println("Unrecognized satellite type: "
                     + satelliteType.toString());
             return null;
         }
 
-    }
-
-    public AbstractVizResource<?, ?> getResource() {
-        return satRsc;
     }
 
     public Unit<?> getDisplayUnit() {
@@ -167,6 +164,10 @@ public class SatelliteResourceData extends
 
     public void setAlpha(Float alpha) {
         this.alpha = alpha;
+    }
+
+    public SatelliteType getSatelliteType() {
+        return satelliteType;
     }
 
     public Float getBrightness() {
@@ -238,7 +239,6 @@ public class SatelliteResourceData extends
                 || (this.contrast != null && this.contrast
                         .equals(other.contrast) == false)) {
             return false;
-
         }
 
         return true;
@@ -247,24 +247,28 @@ public class SatelliteResourceData extends
     // this needs to match the source names in the areaProvider ext point.
     @Override
     public AreaSource getSourceProvider() {
-        return (satelliteType == SatelliteType.MCIDAS ? AreaSource
-                .getAreaSource("MCIDAS_AREA_NAME") : AreaSource
-                .getAreaSource("GINI_SECTOR_ID"));
+        switch (satelliteType) {
+        case MCIDAS:
+            return AreaSource.getAreaSource("MCIDAS_AREA_NAME");
+        case GINI:
+            return AreaSource.getAreaSource("GINI_SECTOR_ID");
+        default:
+            return AreaSource.getAreaSource("UNKNOWN");
+        }
+        // return (satelliteType == SatelliteType.MCIDAS ? AreaSource
+        // .getAreaSource("MCIDAS_AREA_NAME") : AreaSource
+        // .getAreaSource("GINI_SECTOR_ID"));
     }
 
-    // NOTE : if reading from the areaNames table then the VAAC satellite is
-    // part of the
-    // areaname in the table but if reading the main table then the area is just
-    // the area name.
-    //
+    /*
+     * NOTE : if reading from the areaNames table then the VAAC satellite is
+     * part of the areaname in the table but if reading the main table then the
+     * area is just the area name.
+     */
     @Override
     public String getAreaName() {
         String areaName = "xxx";
         if (satelliteType == SatelliteType.MCIDAS) {
-
-            System.out.println(metadataMap.get("satelliteId")
-                    .getConstraintValue() + File.separator);
-
             return metadataMap.get("satelliteId").getConstraintValue()
                     + File.separator
                     + metadataMap.get("areaId").getConstraintValue();

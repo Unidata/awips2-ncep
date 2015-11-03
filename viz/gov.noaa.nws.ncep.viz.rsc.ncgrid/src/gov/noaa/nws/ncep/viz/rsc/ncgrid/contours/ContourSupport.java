@@ -103,7 +103,7 @@ import com.raytheon.viz.core.contours.util.StreamLineContainer.StreamLinePoint;
 import com.raytheon.viz.core.contours.util.StrmPak;
 import com.raytheon.viz.core.contours.util.StrmPakConfig;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
-import com.raytheon.viz.grid.rsc.general.GeneralGridData;
+import com.raytheon.uf.viz.core.grid.rsc.data.GeneralGridData;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateArrays;
 import com.vividsolutions.jts.geom.CoordinateList;

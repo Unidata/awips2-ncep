@@ -11,20 +11,21 @@
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 10/2009      144         T. Lee      Created
- * 12/2009		144			T. Lee		Migrated to TO11D6
- * 01/2010	    201		    M. Li		Split into dataplugin project
- * 05/2010		144			L. Lin		Migration to TO11DR11.
+ * 12/2009      144         T. Lee      Migrated to TO11D6
+ * 01/2010      201         M. Li       Split into dataplugin project
+ * 05/2010      144         L. Lin      Migration to TO11DR11.
  * 11/2013      1066        G. Hull     call constructCRSfromWKT
  * Nov 14, 2013 2393        bclement    added getGridGeometry()
- * 03/2014		TTR957		B. Yin		Modified getGridGeometry() to handle native navigation
+ * 03/2014      TTR957      B. Yin      Modified getGridGeometry() to handle native navigation
  * 10/15/2015   R7190       RC Reynolds Modifications to support mcidas area header changes
+ * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
+ * 
  * </pre>
  */
 
 package gov.noaa.nws.ncep.common.dataplugin.mcidas;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import java.awt.geom.Rectangle2D;
 
@@ -281,7 +282,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
     /**
      * Constructs a new SatMapCoverage Object for native satellite navigation
      * 
-     * @param mapProjection
+     * @param projection
      * @param nx
      *            The number of horizontal scan lines
      * @param ny
@@ -368,7 +369,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
     /**
      * Construct grid geometry using grid and geospatial information
      * 
-     * @return
+     * @return the grid geometry of the record
      * @throws MismatchedDimensionException
      * @throws FactoryException
      * @throws TransformException
@@ -376,10 +377,11 @@ public class McidasMapCoverage extends PersistableDataObject implements
     public GridGeometry2D getGridGeometry()
             throws MismatchedDimensionException, FactoryException,
             TransformException {
-
         GridEnvelope gridRange;
         Envelope crsRange;
-        if (projection == McidasMapCoverage.GVAR) { // for native projection
+
+        // for native projection
+        if (projection == McidasMapCoverage.GVAR) {
             minX = getUpperLeftElement();
             int maxX = getUpperLeftElement() + (getNx() * getElementRes());
             minY = getUpperLeftLine() + (getNy() * getLineRes());
@@ -610,11 +612,16 @@ public class McidasMapCoverage extends PersistableDataObject implements
     }
 
     public void setCrsWKT(String crsWKT) {
-        // TODO new 2.6 version of geotools adds \r\n to long String parameters
-        // in WKT format
-        // this temp hack removes the extraneous characters, but we may want to
-        // investigate
-        // using a specific formatter to keep this consistent and in our control
+        /*
+         * TODO new 2.6 version of geotools adds \r\n to long String parameters
+         * in WKT format this temp hack removes the extraneous characters, but
+         * we may want to investigate using a specific formatter to keep this
+         * consistent and in our control
+         * 
+         * FIXME The above TODO appears rather old and may be OBE. The
+         * McidasCRSBuilder.NAV_BLOCK_PATTERN has been updated to account for
+         * newlines.
+         */
         this.crsWKT = crsWKT.replaceAll("\r\n", "");
     }
 

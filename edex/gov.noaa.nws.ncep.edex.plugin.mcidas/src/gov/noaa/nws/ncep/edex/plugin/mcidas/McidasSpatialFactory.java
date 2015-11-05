@@ -13,6 +13,8 @@
  * 03/2014      TTR957      B. Yin      Moved constructCRSfromWKT to McidasCRSBuilder
  * 06/2014      3243        bsteffen    Remove deprecated lambert conformal call.
  * 10/15/2015   R7190       RC Reynolds Added support for mcidas area header data
+ * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
+ *                                       Switched to slf4j logger
  * 
  * </pre>
  * 
@@ -22,18 +24,18 @@
 
 package gov.noaa.nws.ncep.edex.plugin.mcidas;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasCRSBuilder;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasMapCoverageDao;
-import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.operation.MathTransform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
@@ -43,7 +45,8 @@ import com.vividsolutions.jts.io.WKTReader;
 public class McidasSpatialFactory {
 
     /** The logger */
-    private Log logger = LogFactory.getLog(getClass());
+    private final Logger logger = LoggerFactory
+            .getLogger(McidasSpatialFactory.class);
 
     /** The singleton instance */
     private static McidasSpatialFactory instance;
@@ -64,7 +67,7 @@ public class McidasSpatialFactory {
      * Retrieves or generates a satellite map coverage object for remapped
      * projections
      * 
-     * @param mapProjection
+     * @param iproj
      *            The projection
      * @param nx
      *            The number of columns
@@ -302,7 +305,8 @@ public class McidasSpatialFactory {
 
             return MapUtil.constructProjection(name, parameters);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(
+                    "Error constructing South Pole stereographic projection", e);
             return null;
         }
     }
@@ -328,7 +332,7 @@ public class McidasSpatialFactory {
      *            Line resolution
      * @param navigation
      *            Satellite NAV BLOCK
-     * @return
+     * @return the McidasMapCoverage
      * @throws Exception
      */
     public McidasMapCoverage getMapCoverage(Integer iproj, Integer nx,

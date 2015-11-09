@@ -73,6 +73,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     Added getStationLocalTime. Added paintBorderRect, Added paintMidnightNoon, 
  *                                     Added paintXTitle. Modified paintTitles. Added ticks on yAxes.
  * 07/28/2014   R4079      sgurung     Changed graphExtent, and x and y title coordinates.
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author qzhou
@@ -492,7 +493,7 @@ public class GeoMagGraph extends NCTimeSeriesGraph {
             DrawableString parameters = new DrawableString(sdf.format(date),
                     labelColor);
 
-            unitsFont = target.initializeFont((String) null, 14.0f,
+            unitsFont = target.initializeFont((String) null, 12,
                     new IFont.Style[] {});
             parameters.font = unitsFont;
             parameters.horizontalAlignment = HorizontalAlignment.CENTER;

@@ -85,6 +85,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/03/2014    Redmine 4830 S. Russell  Added elements to presWxSymbolNames
  * 11/03/2014    Redmine 5156 B. Hebbard  Allow use of system fonts in addition to file-based 3
  * 11/06/2014    Redmine 5156 B. Hebbard  Rename Helvetica & Times lookalike fonts/files to make clear they aren't Java/AWT logical SansSerif & Serif
+ * 11/05/2015    5070         randerso    Adjust font sizes for dpi scaling
  */
 
 public class NcPlotImageCreator {
@@ -162,7 +163,7 @@ public class NcPlotImageCreator {
 
     private Map<PlotSymbolType, Boolean> symbolExistsMap = null;
 
-    private float initialFontSize = 14;
+    private float initialFontSize = 12;
 
     private PlotParameterDefns plotParameterDefinitions = null;
 

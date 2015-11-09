@@ -53,6 +53,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *    Date          Ticket#     Engineer    Description
  * ----------- ---------- ----------- --------------------------
  * 07/03/13     #1010     ghull       Initial creation
+ * 11/05/2015   #5070     randerso    Adjust font sizes for dpi scaling
  *    
  * </pre>
  * 
@@ -199,7 +200,7 @@ public class PointOverlayResource extends AbstractVizResource<PointOverlayResour
 
 		if( font == null ) {
 			font = target.initializeFont("Monospace",
-					(float) (12 * ptOvrlyRscData.getMarkerTextSize().getSoftwareSize()), null);
+					(float) (10 * ptOvrlyRscData.getMarkerTextSize().getSoftwareSize()), null);
 			font.setSmoothing(false);
 			font.setScaleFont(false);
 			Rectangle2D charSize = target.getStringBounds(font, "N");

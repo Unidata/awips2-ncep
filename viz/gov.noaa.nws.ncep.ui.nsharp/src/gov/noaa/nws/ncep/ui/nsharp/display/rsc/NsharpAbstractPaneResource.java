@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
+ * 05/11/2015   5070        randerso    Adjust font sizes for dpi scaling
  *
  * </pre>
  * 
@@ -202,12 +203,12 @@ public class NsharpAbstractPaneResource extends
     @Override
     protected void initInternal(IGraphicsTarget target) throws VizException {
         this.target = target;
-        this.font9 = target.initializeFont("Monospace", 9, null);
-        this.font10 = target.initializeFont("Monospace", 10, null);
-        this.font11 = target.initializeFont("Monospace", 11, null);
+        this.font9 = target.initializeFont("Monospace", 7.5f, null);
+        this.font10 = target.initializeFont("Monospace", 8, null);
+        this.font11 = target.initializeFont("Monospace", 9, null);
         IFont.Style[] style = { IFont.Style.BOLD };
-        this.font12 = target.initializeFont("Monospace", 12, style);
-        this.font20 = target.initializeFont("Monospace", 20, null); // d2dlite
+        this.font12 = target.initializeFont("Monospace", 10, style);
+        this.font20 = target.initializeFont("Monospace", 17, null); // d2dlite
         this.font9.setSmoothing(false);
         this.font9.setScaleFont(false);
         this.font10.setSmoothing(false);
@@ -240,6 +241,8 @@ public class NsharpAbstractPaneResource extends
     }
 
     protected void adjustFontSize(float canvasW, float canvasH) {
+        // TODO: this is likely to need work after the LX upgrade changes
+
         float font9Size, font10Size, font11Size, font12Size, font20Size; // d2dlite
 
         float fontAdjusted = 0;
@@ -261,16 +264,19 @@ public class NsharpAbstractPaneResource extends
             fontAdjusted = (float) (myDefaultCanvasHeight - canvasH)
                     / fontBaseH;
         }
+
+        // Ron: This would probably work better if the font adjustment was
+        // multiplied like a scale factor instead of added
         // Chin: Can not bigger than 9, otherwise, fint9 size willbe negative.
         // Why 8.8 ? After many "try and error" experiments...
         if (fontAdjusted > 8.8)
             fontAdjusted = 8.8f;
 
-        font9Size = 9 - fontAdjusted;
-        font10Size = 10 - fontAdjusted;
-        font11Size = 11 - fontAdjusted;
-        font12Size = 12 - fontAdjusted;
-        font20Size = 20 - fontAdjusted; // d2dlite
+        font9Size = 7.5f - fontAdjusted;
+        font10Size = 8 - fontAdjusted;
+        font11Size = 9 - fontAdjusted;
+        font12Size = 10 - fontAdjusted;
+        font20Size = 17 - fontAdjusted; // d2dlite
 
         if (font9 != null) {
             font9.dispose();

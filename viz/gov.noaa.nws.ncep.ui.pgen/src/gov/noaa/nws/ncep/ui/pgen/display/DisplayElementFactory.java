@@ -150,6 +150,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 12/14		R5413		B. Yin		Dispose image and font in find*Ranges methods
  * 03/15        R4862       M. Kean     changes related to new point reduced data
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author sgilbert
@@ -5229,7 +5230,7 @@ public class DisplayElementFactory {
                 /*
                  * get pixel size of text string with given font
                  */
-                IFont font = initializeFont("Courier", 14.f, FontStyle.REGULAR);
+                IFont font = initializeFont("Courier", 11.8f, FontStyle.REGULAR);
                 Rectangle2D bounds = target.getStringBounds(font, "Xy");
                 bounds = new Rectangle2D.Double(0.0, 0.0,
                         bounds.getWidth() / 2.0, bounds.getHeight());

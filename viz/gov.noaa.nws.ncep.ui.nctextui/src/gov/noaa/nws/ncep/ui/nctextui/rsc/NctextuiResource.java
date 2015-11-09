@@ -407,9 +407,8 @@ public class NctextuiResource extends
     public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
         // System.out.println("paintInternal called!");
-        IFont font = target.initializeFont("Monospace",
-                (float) (12 * resourceData.getMarkerTextSize()
-                        .getSoftwareSize()), null);
+        IFont font = target.initializeFont("Monospace", 10 * resourceData
+                .getMarkerTextSize().getSoftwareSize(), null);
 
         generateSymbolForDrawing();
 

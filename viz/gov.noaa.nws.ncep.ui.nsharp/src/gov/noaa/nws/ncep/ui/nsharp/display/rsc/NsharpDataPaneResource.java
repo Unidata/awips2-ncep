@@ -54,6 +54,20 @@ import com.raytheon.viz.core.graphing.WindBarbFactory;
 import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
 
+/**
+ * TODO Add Description
+ * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Nov 05, 2015 5070      randerso     Adjust font sizes for dpi scaling
+ * 
+ * </pre>
+ * 
+ */
 public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private int currentTextChapter = 1;
 
@@ -64,6 +78,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                                                // point to a dummy.
 
     private static final String NO_DATA = "NO VALID DATA AVAILABLE FOR THIS PAGE";
+
     private static final String INSUFFICIENT_DATA = "INSUFFICIENT DATA FOR PARAMETERS COMPUTATION";
 
     // private double charHeight = NsharpConstants.CHAR_HEIGHT_;
@@ -156,15 +171,16 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         if (numberPagePerDisplay == 2) {
             dataPanel2Background.paint(target, paintProps);
         }
-        if (rscHandler == null)
+        if (rscHandler == null) {
             return;
+        }
 
         if (!resizedone) {
             resizedone = true;
             handleResize();
         }
 
-        if ((soundingLys != null) && (rscHandler.isGoodData())) {//#5929
+        if ((soundingLys != null) && (rscHandler.isGoodData())) {// #5929
             this.defaultFont.setSmoothing(false);
             this.defaultFont.setScaleFont(false);
             // write to panels
@@ -176,23 +192,23 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             // display panels per design.
             sumP1Visible = false;
             currentTextChapter = rscHandler.getCurrentTextChapter();
-            if (numberPagePerDisplay == 1)
+            if (numberPagePerDisplay == 1) {
                 drawPanel(target, currentTextChapter, 1);
-            else if (numberPagePerDisplay == 2) {
+            } else if (numberPagePerDisplay == 2) {
                 for (int i = currentTextChapter * numberPagePerDisplay - 1, physicalPanelNum = 1; i <= currentTextChapter
                         * numberPagePerDisplay; i++, physicalPanelNum++) {
                     int pageNum = i % NsharpConstants.PAGE_MAX_NUMBER; // d2dlite
-                    if (pageNum == 0)
+                    if (pageNum == 0) {
                         pageNum = NsharpConstants.PAGE_MAX_NUMBER; // d2dlite
+                    }
 
                     drawPanel(target, pageNum, physicalPanelNum);
                     // System.out.println("current chapter="+currentTextChapter+" page num="+pageNum+
                     // " disPanel="+physicalPanelNum);
                 }
             }
-        }
-        else { //#5929
-        	drawInsuffDataMessage(target, panelRectArray[0]);
+        } else { // #5929
+            drawInsuffDataMessage(target, panelRectArray[0]);
         }
     }
 
@@ -218,10 +234,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         panelRectArray[1] = dataPanel2Background.getRectangle();
         dataPanel1Background.initInternal(target);
         dataPanel2Background.initInternal(target);
-        if (numberPagePerDisplay == 1)
+        if (numberPagePerDisplay == 1) {
             defaultFont = font12;
-        else
+        } else {
             defaultFont = font10;
+        }
         handleResize();
         initDone = true;
         // System.out.println(": font char height =" + charHeight);
@@ -246,41 +263,45 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         super.resetData(soundingLys, prevsoundingLys);
         currentParcel = NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE;
     }
-    
-    @SuppressWarnings("deprecation") //#5929
-	private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect)
+
+    @SuppressWarnings("deprecation")
+    // #5929
+    private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect)
             throws VizException {
-    	IFont myfont;
-    	if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) 
+        IFont myfont;
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
             myfont = font9;
-         else 
-        	 myfont = font20;
-    	
-    	defineCharHeight(myfont);
-    	myfont.setSmoothing(false);
-    	myfont.setScaleFont(false);
-    	sumP1Visible = true;
-    	extent = new PixelExtent(rect);
-    	target.setupClippingPlane(extent);
-    	target.drawString(myfont,  INSUFFICIENT_DATA, rect.x,
-    			rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
-    			HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-    	return;
-        
+        } else {
+            myfont = font20;
+        }
+
+        defineCharHeight(myfont);
+        myfont.setSmoothing(false);
+        myfont.setScaleFont(false);
+        sumP1Visible = true;
+        extent = new PixelExtent(rect);
+        target.setupClippingPlane(extent);
+        target.drawString(myfont, INSUFFICIENT_DATA, rect.x, rect.y, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        return;
+
     }
 
     private void drawPanel(IGraphicsTarget target, int pageOrderNumber,
             int dsiplayPanelNumber) throws VizException {
         if (pageOrderNumber > NsharpConstants.PAGE_MAX_NUMBER
-                || dsiplayPanelNumber > numberPagePerDisplay)// NsharpConstants.dsiplayPanelSize)
+                || dsiplayPanelNumber > numberPagePerDisplay) {
             return;
+        }
         int physicalPanelNumber = dsiplayPanelNumber - 1;
         int displayPageNumber = 0;
         // find a page with its order number equal to pageOrderNumber
         for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
-            if (pageDisplayOrderNumberArray[i] == pageOrderNumber)
+            if (pageDisplayOrderNumberArray[i] == pageOrderNumber) {
                 displayPageNumber = i; // array index is the page number and
                                        // value is the order number
+            }
         }
         switch (displayPageNumber) {
         case NsharpConstants.PAGE_SUMMARY1:
@@ -327,10 +348,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     public void setUserPickedParcelLine(Coordinate c) {
         // make sure is in virtualPanel 1 as Parcel Line is defined in it.
         if (rscHandler != null) {
-            if (!sumP1Visible)
+            if (!sumP1Visible) {
                 return;
-        } else
+            }
+        } else {
             return;
+        }
         // System.out.println("setUserPickedParcelLine c.y="+ c.y+
         // " parcelLineYStart="+
         // parcelLineYStart+" parcelLineYEnd="+parcelLineYEnd);
@@ -373,8 +396,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // if we can not Interpolates a temp with 700 mb pressure, then we dont
         // have enough raw data
         if ((nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0)) {
-            target.drawString(myfont,  NO_DATA, rect.x,
-                    rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_cyan,
                     HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
             return;
         }
@@ -474,64 +497,68 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                     sfcdwpt, pcl);
             // draw parcel name
             // draw CAPE
-            if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0f", pcl.bplus),
                         firstToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            else
+            } else {
                 target.drawString(myfont, "M", firstToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
             // draw CINH
-            if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0f", pcl.bminus),
                         secondToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            else
+            } else {
                 target.drawString(myfont, "M", secondToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
             // draw LCL
             float lcl = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
                     .ihght(pcl.lclpres));
-            if (lcl != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (lcl != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0fm", lcl),
                         thirdToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-
-            else
+            } else {
                 target.drawString(myfont, "M", thirdToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
             // draw LI
-            if (pcl.li5 != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (pcl.li5 != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%5.0f", pcl.li5),
                         forthToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            else
+            } else {
                 target.drawString(myfont, "M", forthToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
             // draw LFC
             float lfc = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
                     .ihght(pcl.lfcpres));
-            if (lfc != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (lfc != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0fm", lfc),
                         fifthToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            else
+            } else {
                 target.drawString(myfont, "M", fifthToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
             // draw EL
             float el = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
                     .ihght(pcl.elpres));
-            if (el != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+            if (el != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(
                         myfont,
                         String.format("%.0f'",
@@ -539,10 +566,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                         sixthToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            else
+            } else {
                 target.drawString(myfont, "M", sixthToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
 
             curY = curY + charHeight;
             // get 3CAPE value for later to use
@@ -569,11 +597,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         parcelLineYEnd = curY;
         if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
             layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else
+        } else {
             layerPressure = NsharpNativeConstants.parcelToLayerMap
                     .get(currentParcel);
-        // System.out.println("drawPanel1-2 called define_parcel pType="+currentParcel+" pre="+
-        // layerPressure);
+            // System.out.println("drawPanel1-2 called define_parcel pType="+currentParcel+" pre="+
+            // layerPressure);
+        }
 
         // reset and define current parcel
         nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
@@ -849,8 +878,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.font = myfont;
         double lineXPos = target.getStringsBounds(str).getWidth() * hRatio
                 * xRatio;
-        if (lineXPos < rect.width * 2 / 3)
+        if (lineXPos < rect.width * 2 / 3) {
             lineXPos = rect.width * 2 / 3;
+        }
         firstToken = rect.x + lineXPos;
         target.drawLine(firstToken, curY, 0.0, firstToken,
                 rect.y + rect.height, 0.0, NsharpConstants.color_white, 1);
@@ -1040,8 +1070,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         float ship = nsharpNative.nsharpLib.cave_ship();
         if (nsharpNative.nsharpLib.qc(ship) == 1) {
             textStr = String.format("%.1f", ship);
-        } else
+        } else {
             textStr = " M";
+        }
         str.setText("SHIP=", NsharpConstants.color_red);
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_red);
@@ -1075,15 +1106,15 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         myfont.setScaleFont(false);
         extent = new PixelExtent(rect);
         target.setupClippingPlane(extent);
-        // myfont = target.initializeFont(fontName, 10, null);
+        // myfont = target.initializeFont(fontName, 8, null);
         curY = rect.y;
         String textStr;
 
         // if we can not Interpolates a temp with 700 mb pressure, then we dont
         // have enough raw data
         if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0) {
-            target.drawString(myfont,NO_DATA, rect.x,
-                    rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_cyan,
                     HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
             return;
         }
@@ -1301,9 +1332,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 try {
                     if (oldlplchoice == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
                         pres = NsharpParcelDialog.getUserDefdParcelMb();
-                    } else
+                    } else {
                         pres = NsharpNativeConstants.parcelToLayerMap
                                 .get(oldlplchoice);
+                    }
 
                     // reset and define oldchoice parcel
                     nsharpNative.nsharpLib.define_parcel(oldlplchoice, pres);
@@ -1433,12 +1465,13 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 pcl);
 
         nsharpNative.nsharpLib.cave_bulk_rich2(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1)
+        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
             textStr = String.format("%.0f m%c/s%c", fValue.getValue(),
                     NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
-        else
+        } else {
             textStr = "  M";
+        }
         str.setCoordinates(startX, curY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
         str.verticallAlignment = VerticalAlignment.TOP;
@@ -1528,10 +1561,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // System.out.println("smdir="+smdir.getValue()+"smspd="+
         // smspd.getValue()+"stpTest="+stpTest+
         // "p_bot="+botPF.getValue()+"p_top="+topPF.getValue());
-        if (nsharpNative.nsharpLib.qc(stpTest) == 1)
+        if (nsharpNative.nsharpLib.qc(stpTest) == 1) {
             textStr = String.format("%.1f", stpTest);
-        else
+        } else {
             textStr = " M";
+        }
         str.setText("STPC(test) =", NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
@@ -1688,8 +1722,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         // if we can not Interpolates a temp with 700 mb pressure, then we dont
         // have enough raw data
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0)
+        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0) {
             return;
+        }
         String title = NsharpNativeConstants.PARCEL_DATA_STR;
 
         target.drawString(myfont, title, rect.x + rect.width / 3, curY, 0.0,
@@ -2230,9 +2265,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white, 1);
 
         float ht = nsharpNative.nsharpLib.ihght(975);
-        if (ht == NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+        if (ht == NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
             textStr = NsharpNativeConstants.OPC_975_LINE_MISSING_;
-        else {
+        } else {
             textStr = NsharpNativeConstants.OPC_975_LINE_;
             textStr = String.format(textStr, nsharpNative.nsharpLib.ihght(975),
                     nsharpNative.nsharpLib.itemp(975));
@@ -2249,8 +2284,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         ht = 0;
         // get surface pressure (fValue1), Surface_temp (fValue2)
         nsharpNative.nsharpLib.get_surface(Surfpressure, surfTemp, surfDewpt);
-        if (nsharpNative.nsharpLib.qc(Surfpressure.getValue()) == 1)
+        if (nsharpNative.nsharpLib.qc(Surfpressure.getValue()) == 1) {
             ht = nsharpNative.nsharpLib.ihght(Surfpressure.getValue());
+        }
         if (nsharpNative.nsharpLib.qc(Surfpressure.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(surfTemp.getValue()) == 1) {
             textStr = NsharpNativeConstants.OPC_SURFACE_LINE_;
@@ -2701,8 +2737,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white, 1);
 
         // calculate helicity for sfc-2 km
-        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 2000,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity(0, 2000, smdir.getValue(),
+                smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_SFC2KM_LINE;
@@ -2722,8 +2758,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         curY = curY + charHeight;
         // calculate helicity for sfc-3 km
-        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 3000,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity(0, 3000, smdir.getValue(),
+                smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_SFC3KM_LINE;
@@ -2742,8 +2778,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         curY = curY + charHeight;
         // calculate helicity for LPL - LFC
-        totHeli = nsharpNative.nsharpLib.helicity((float) -1, (float) -1,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity(-1, -1, smdir.getValue(),
+                smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_LPL_LFC_LINE;
@@ -3159,9 +3195,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         float layerPressure;
         if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
             layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else
+        } else {
             layerPressure = NsharpNativeConstants.parcelToLayerMap
                     .get(currentParcel);
+        }
         nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
 
         _parcel pcl = new _parcel();
@@ -3402,8 +3439,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             textStr = String.format(textStr, fvalue.getValue(),
                     NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
-        } else
+        } else {
             textStr = NsharpNativeConstants.STORM_TYPE_BRNSHEAR_MISSING;
+        }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
             target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
@@ -3429,8 +3467,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             if (nsharpNative.nsharpLib.qc(aglft) == 1) {
                 textStr = NsharpNativeConstants.PRECIPITATION_MELTING_LINE;
                 textStr = String.format(textStr, aglft, web);
-            } else
+            } else {
                 textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
+            }
         } else {
             textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
         }
@@ -3778,8 +3817,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // if we can not Interpolates a temp with 700 mb pressure, then we dont
         // have enough raw data
         if ((nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0)) {
-            target.drawString(myfont,  NO_DATA, rect.x,
-                    rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_cyan,
                     HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
             return;
         }
@@ -3932,22 +3971,24 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 // draw CAPE
                 str2.setText("CAPE=", NsharpConstants.color_white);
                 str2.setCoordinates(startX, curY);
-                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                     str3.setText(String.format("%.0f", pcl.bplus),
                             NsharpConstants.color_white);
-                else
+                } else {
                     str3.setText("M", NsharpConstants.color_white);
+                }
                 str3.setCoordinates(firstToken, curY);
 
                 // draw CINH
                 str4.setText("CINH=", NsharpConstants.color_white);
                 str4.setCoordinates(secondToken, curY);
 
-                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                     str5.setText(String.format("%.0f", pcl.bminus),
                             NsharpConstants.color_white);
-                else
+                } else {
                     str5.setText("M", NsharpConstants.color_white);
+                }
                 str5.setCoordinates(thirdToken, curY);
                 curY = curY + charHeight;
                 // draw LCL
@@ -4046,11 +4087,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 // draw CAPE
                 str2.setText("CAPE=", NsharpConstants.color_white);
                 str2.setCoordinates(startX, curY);
-                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                     str3.setText(String.format("%.0f", pcl.bplus),
                             NsharpConstants.color_white);
-                else
+                } else {
                     str3.setText("M", NsharpConstants.color_white);
+                }
                 str3.setCoordinates(firstToken, curY);
 
                 // draw LCL
@@ -4083,11 +4125,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 str8.setText("CINH=", NsharpConstants.color_white);
                 str8.setCoordinates(startX, curY);
 
-                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA)
+                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                     str9.setText(String.format("%.0f", pcl.bminus),
                             NsharpConstants.color_white);
-                else
+                } else {
                     str9.setText("M", NsharpConstants.color_white);
+                }
                 str9.setCoordinates(firstToken, curY);
 
                 // draw LFC
@@ -4128,9 +4171,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
             layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else
+        } else {
             layerPressure = NsharpNativeConstants.parcelToLayerMap
                     .get(currentParcel);
+        }
 
         // reset and define current parcel
         nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
@@ -4233,12 +4277,13 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
                 pcl);
         nsharpNative.nsharpLib.cave_bulk_rich2(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1)
+        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
             textStr = String.format("%.0f m%c/s%c", fValue.getValue(),
                     NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
-        else
+        } else {
             textStr = "M";
+        }
         str4.setText(textStr, NsharpConstants.color_white);
         str4.setCoordinates(thirdToken, curY);
         curY = curY + charHeight;
@@ -4329,19 +4374,21 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     public void setPageDisplayOrderNumberArray(
             int[] pageDisplayOrderNumberArray, int numberPagePerDisplay) {
         this.pageDisplayOrderNumberArray = pageDisplayOrderNumberArray;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR))
+        if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
             // This configuration always show 2 pages layout vertically
             this.numberPagePerDisplay = 2;
-        else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) // d2dlite
+        } else if (paneConfigurationName
+                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
             this.numberPagePerDisplay = 1;
-        else
+        } else {
             this.numberPagePerDisplay = numberPagePerDisplay;
+        }
         if (initDone) {
-            if (this.numberPagePerDisplay == 1)
+            if (this.numberPagePerDisplay == 1) {
                 defaultFont = font12;
-            else
+            } else {
                 defaultFont = font10;
+            }
             handleResize();
         }
 
@@ -4352,10 +4399,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         /*
          * if(canvasH < myDefaultCanvasHeight/3 || canvasW<
          * myDefaultCanvasWidth/3){ if(myfont!=null){ myfont.dispose(); } myfont
-         * = target.initializeFont("Monospace", 8, null); } else if(canvasH <
+         * = target.initializeFont("Monospace", 7, null); } else if(canvasH <
          * myDefaultCanvasHeight/2 || canvasW< myDefaultCanvasWidth/2){
          * if(myfont!=null){ myfont.dispose(); } myfont =
-         * target.initializeFont("Monospace", 8, null); }
+         * target.initializeFont("Monospace", 7, null); }
          */
     }
 

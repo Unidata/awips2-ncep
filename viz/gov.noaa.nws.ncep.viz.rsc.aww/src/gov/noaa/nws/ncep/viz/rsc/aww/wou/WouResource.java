@@ -87,6 +87,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * 9/15/14      4637    J. Huber     Added fipsRangeReparse to handle "character" in UGC line. Also added logic on when to use it.
  *                                   Also fixed a clean up error for the county list array which prevented some counties from being
  *                                   displayed.
+ * 11/05/2015   5070    randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -716,7 +717,7 @@ public class WouResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-        font = grphTarget.initializeFont("Monospace", 14,
+        font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         stationTable = new StationTable(NcPathManager.getInstance()
                 .getStaticFile(NcPathConstants.COUNTY_STN_TBL)

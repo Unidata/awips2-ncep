@@ -128,7 +128,7 @@ public class NsharpGenericPaneBackground implements IRenderable {
     public synchronized void initInternal(IGraphicsTarget target){
     	this.target = target;
     	smallFont = target.initializeFont(
-                target.getDefaultFont().getFontName(), 10, null);
+                target.getDefaultFont().getFontName(), 8, null);
     }
     protected void paintInternal(IGraphicsTarget target,
 			PaintProperties paintProps) throws VizException {

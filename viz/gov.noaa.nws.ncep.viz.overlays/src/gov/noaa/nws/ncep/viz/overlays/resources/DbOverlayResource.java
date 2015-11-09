@@ -68,6 +68,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * Sep 12, 2014            sgilbert    Add world wrap check (needed for 14.3.1).
  *                                     Corrected deprecated calls.
  * Jul 27, 2015  4500      rjpeter     Removed duplicate columns in requests.
+ * Nov 05, 2015  5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * This class is copied over from com.raytheon.viz.core.rsc.DbMapResource
@@ -578,7 +579,7 @@ public class DbOverlayResource extends
 
         if ((labels != null) && isLabeled) {
             IFont font = aTarget.initializeFont(aTarget.getDefaultFont()
-                    .getFontName(), 10, null);
+                    .getFontName(), 8, null);
             font.setSmoothing(false);
             font.setScaleFont(false);
 

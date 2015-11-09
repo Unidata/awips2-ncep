@@ -58,6 +58,7 @@ import com.raytheon.uf.viz.core.status.StatusConstants;
  *    ------------  ----------  ----------- --------------------------
  *    06 Oct 2010   311         B. Hebbard  Initial creation (derived from DistanceTool)
  *    19 Oct 2012   898         sgurung     Fix for fuzzy fonts
+ *    05 Nov 2015   5070        randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -120,7 +121,7 @@ public class ScaleOverlayResource extends AbstractVizResource<ScaleOverlayResour
         toDisplay = SI.METER.getConverterTo(displayUnit);
 
 		IFont font = target.initializeFont(scaleTextFont.getFontName(),
-				(float) (12 * scaleTextSize.getSoftwareSize()), scaleTextStyle.getStyles());
+				(float) (10 * scaleTextSize.getSoftwareSize()), scaleTextStyle.getStyles());
 		font.setSmoothing(false);
 		font.setScaleFont(false);
 

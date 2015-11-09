@@ -4000,7 +4000,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         // TODO Auto-generated method stub
         super.adjustFontSize(canvasW, canvasH);
         // make a bit bigger font10 size for skewT
-        float font10Size = 10;
+        float font10Size = 8;
         if (font10 != null) {
             font10Size = font10.getFontSize() + 1;
             font10.dispose();

@@ -55,6 +55,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/11		#?			B. Yin		Re-factor IAttribute
  * 03/13		#928		B. Yin 		Added a separator above the button bar.
  * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * </pre>
  * 
  * @author J. Wu
@@ -416,12 +417,7 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
             this.setSpeed(attr.getSpeed());
             this.setClear(attr.isClear());
 
-            // Displays the correct direction for Hash
-            if (((Vector) attr).getPgenType().equalsIgnoreCase(HASH)) {
-                this.setDirection(360 - attr.getDirection());
-            } else {
-                this.setDirection(attr.getDirection());
-            }
+            this.setDirection(attr.getDirection());
             this.setSizeScale(attr.getSizeScale());
             this.setLineWidth(attr.getLineWidth());
             this.setArrowHeadSize(attr.getArrowHeadSize());

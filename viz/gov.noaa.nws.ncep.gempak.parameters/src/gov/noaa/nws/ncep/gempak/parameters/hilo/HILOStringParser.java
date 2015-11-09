@@ -56,6 +56,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
  * Nov 09,2010               X. Guo       Change double to float
  * Dec 06,2010               X. Guo       Update Symbol Hi/Lo parser
  * Oct 09,2015   R12016      J. Lopez     Allowed 0 as a valid input for count high/low
+ * 11/09/2015    R13047      J. Lopez     Fixed a bug where character was not parsing
  * </pre>
  * 
  * @author xguo
@@ -371,8 +372,8 @@ public class HILOStringParser {
             // parse character
             String tmp = tmp1.substring(1, tmp1.length());
             // after the first character, set marker number
-            if (cnt == 0) {
-                if (tmp1.matches(hiloExpre)) {
+            if (tmp1.matches(hiloExpre)) {
+                if (cnt == 0) {
 
                     this.hiloBuilder.setSymbolHi(" ");
                     this.hiloBuilder.setSymbolHiMarkerNumber(Integer

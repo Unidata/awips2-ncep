@@ -77,6 +77,7 @@ public class Activator extends AbstractUIPlugin {
                     PgenPreferences.V_WORKING_DIR);
             myprefs.setDefault(PgenPreferences.P_RECOVERY_DIR,
                     PgenPreferences.V_RECOVERY_DIR);
+            myprefs.setDefault(PgenPreferences.P_ICONS_PER_ROW, 5);
             myprefs.setDefault(PgenPreferences.P_AUTO_FREQ, 5);
             myprefs.setDefault(PgenPreferences.P_MAX_DIST, 30);
             myprefs.setDefault(PgenPreferences.P_PGEN_MODE,

@@ -31,6 +31,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  04/23/2015   R6281      B. Hebbard   Support both WaveSat and WaveSatV
  *  06/01/2015   R6281      B. Hebbard   Add Jason-3; update satelliteId for CryoSat-2
  *  06/16/2015   R6281      B. Hebbard   Update per code review comments
+ *  11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -64,7 +65,7 @@ public class WaveSatResourceData extends
     private String fontName = "Times";
 
     @XmlElement
-    private Integer fontSize = 12;
+    private Integer fontSize = 10;
 
     // Note that the following are also in WaveSatResource & WaveSatVResource
     private final static String[] satelliteIdParamNames = { "satelliteId",

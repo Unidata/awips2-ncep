@@ -82,6 +82,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/03/2014    R5156       B. Hebbard   Allow use of system fonts in addition to file-based 3
  * 11/06/2014    R5156       B. Hebbard   Rename Helvetica & Times lookalike fonts/files to make clear they aren't Java/AWT logical SansSerif & Serif
  * 08/14/2015    R7757       B. Hebbard   Add support for directional arrow (no magnitude) parameters; also refactor so imageCreator belongs directly to resource (instead of NcPlotDataRequestor) for better frame status tracking; other cleanups.
+ * 11/05/2015    5070         randerso    Adjust font sizes for dpi scaling
  */
 
 public class NcPlotImageCreator {
@@ -161,7 +162,7 @@ public class NcPlotImageCreator {
 
     private double lastZoomLevel = Double.MIN_VALUE;
 
-    private static final float INITIAL_FONT_SIZE = 14;
+    private static final float INITIAL_FONT_SIZE = 12;
 
     private static final File COURIER_NORMAL_FONT_FILE = NcPathManager
             .getInstance().getStaticFile(

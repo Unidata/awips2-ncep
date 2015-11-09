@@ -50,6 +50,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date           Ticket#    Engineer         Description
  * ------------   ---------- -----------      --------------------------
  * April 16, 2014 1122       sgurung     Initial creation
+ * Nov   05, 2015 5070       randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -158,7 +159,7 @@ public class GeoMagSampling {
             throws VizException {
         if (hoverFont == null) {
             hoverFont = target.initializeFont(target.getDefaultFont()
-                    .getFontName(), 12, new Style[] { Style.BOLD });
+                    .getFontName(), 10, new Style[] { Style.BOLD });
             hoverFont.setSmoothing(false);
             hoverFont.setScaleFont(false);
         }

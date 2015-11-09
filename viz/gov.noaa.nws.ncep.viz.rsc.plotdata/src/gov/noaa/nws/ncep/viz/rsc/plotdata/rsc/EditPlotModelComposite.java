@@ -80,6 +80,7 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  * 06/17/2014    923        S. Russell  TTR 923: altered method initWidgets()
  * 11/03/2014  R5156        B. Hebbard  Add more textFontOptions
  * 08/14/2015  R7757        B. Hebbard  Enable (symbol) size selection for vector parameters
+ * 11/05/2015   5070        randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -109,12 +110,12 @@ public class EditPlotModelComposite extends Composite {
 
     private Button advancedBtn = null;
 
-    private final String[] textSizeOptions = { "10", "12", "14", "16", "18",
-            "20", "22", "24", "32" };
+    private final String[] textSizeOptions = { "8", "10", "12", "14", "16",
+            "18", "20", "22", "28" };
 
     private final String[] textFontOptions = { "Courier", "Helvetica", "Times",
-            // "Dialog", "DialogInput", // same as SansSerif, Monospaced, resp.
-            "Monospaced", "SansSerif", "Serif", "Nimbus Sans L",
+            // "Dialog", "DialogInput", // same as Sans, Monospace, resp.
+            "Monospace", "Sans", "Serif", "Nimbus Sans L",
             "Liberation Serif" };
 
     private final String[] textStyleOptions = { "Normal", "Italic", "Bold",

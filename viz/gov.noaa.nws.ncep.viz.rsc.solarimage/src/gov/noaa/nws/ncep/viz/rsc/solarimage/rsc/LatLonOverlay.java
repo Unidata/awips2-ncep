@@ -34,6 +34,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/19/2013   958        qzhou            Modified CarrLon start/end intervals and display.
  * 11/04/2013   958        qzhou            Refacted code and Combined Cylindrical latlon overlay to here
  * 11/12/2013   958        qzhou            Added latlonOverlay dispose method
+ * 11/05/2015   5070       randerso         Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author qzhou, sgurung
@@ -341,7 +342,7 @@ public class LatLonOverlay {
             TransformException {
 
         IFont labelFont = target.initializeFont(target.getDefaultFont()
-                .getFontName(), 12, fontStyle);
+                .getFontName(), 10, fontStyle);
         labelFont.setSmoothing(false);
         labelFont.setScaleFont(false);
 
@@ -485,7 +486,7 @@ public class LatLonOverlay {
     public void drawLatLines(IGraphicsTarget target) throws VizException {
 
         IFont labelFont = target.initializeFont(target.getDefaultFont()
-                .getFontName(), 12, fontStyle);
+                .getFontName(), 10, fontStyle);
         labelFont.setSmoothing(false);
         labelFont.setScaleFont(false);
 
@@ -499,7 +500,7 @@ public class LatLonOverlay {
             TransformException {
 
         IFont labelFont = target.initializeFont(target.getDefaultFont()
-                .getFontName(), 12, fontStyle);
+                .getFontName(), 10, fontStyle);
         labelFont.setSmoothing(false);
         labelFont.setScaleFont(false);
 

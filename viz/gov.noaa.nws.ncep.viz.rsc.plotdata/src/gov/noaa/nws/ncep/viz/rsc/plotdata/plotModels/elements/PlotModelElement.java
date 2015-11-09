@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.RGB;
  * 08/23/12     844         S. Gurung   Changed default textFont to Standard       
  * 10/18/2012   431         S. Gurung   Added support for ConditionalParameter and ConditionalColorBar     
  * 02/26/2013   936       A.Subramanian Changed the font defaults to match legacy 
+ * 11/05/2015   5070        randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  */
@@ -58,7 +59,7 @@ public class PlotModelElement {
     protected String paramName=null;
     
     @XmlAttribute
-    protected String textSize = "14"; // defaults
+    protected String textSize = "12"; // defaults
     
     @XmlAttribute
     protected String textFont = "Courier";

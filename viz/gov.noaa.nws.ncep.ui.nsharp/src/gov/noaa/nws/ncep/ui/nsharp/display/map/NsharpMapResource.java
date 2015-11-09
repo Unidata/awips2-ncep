@@ -383,7 +383,7 @@ public class NsharpMapResource extends
     public void initInternal(IGraphicsTarget target) throws VizException {
         // System.out.println("NsharpMapResource:initInternal called");
         // mapfont = target.initializeFont("Monospace",
-        // (float) (12 *
+        // (float) (10 *
         // nsharpMapResourceData.getMarkerTextSize().getSoftwareSize()), null);
 
         // make the nsharp map resource editable
@@ -469,7 +469,7 @@ public class NsharpMapResource extends
             throws VizException {
         // System.out.println("paintInternal called!");
         // IFont font = target.initializeFont("Monospace",
-        // (float) (12 *
+        // (float) (10 *
         // nsharpMapResourceData.getMarkerTextSize().getSoftwareSize()), null);
 
         generateSymbolForDrawing();

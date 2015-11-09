@@ -621,7 +621,7 @@ public class NsharpHodoPaneResource extends NsharpAbstractPaneResource{
 		hodoBackground.initInternal(target);
 		createRscHodoWindShapeAll();
 		IFont.Style[] style = {IFont.Style.BOLD};
-		fixedFont = target.initializeFont("Monospace", 12, style);
+		fixedFont = target.initializeFont("Monospace", 10, style);
 		 
 	}
 	@Override

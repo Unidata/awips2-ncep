@@ -88,6 +88,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     to false for horizontal and true for vertical.
  * 10 Jan 2015  R5939      B. Hebbard  (TTR 984) Handle new year change between observation and
  *                                     display time.
+ * 05 Nov 2015   5070      randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -396,7 +397,7 @@ public class NcscatResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-        font = grphTarget.initializeFont("Monospace", 14,
+        font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         // resourceAttrsModified();
         ncscatResourceData.setNcscatMode();

@@ -101,6 +101,7 @@ import com.vividsolutions.jts.io.WKBReader;
  *                                     common method to create display objects for individual counties. Broke out label display from the return of the frame data
  *                                     because of issue found with multiple products being valid at the same time. Added DisplayLabel class to be able to create
  *                                     a list of display labels and draw all labels at one time instead of county by county.
+ * 05-Nov-2015    5070      randerso   Adjust font sizes for dpi scaling
  *                                                                                    
  * </pre>
  * 
@@ -168,7 +169,7 @@ public class WstmResource extends
             PaintProperties paintProps) throws VizException {
 
         if (font == null) {
-            font = target.initializeFont("Monospace", 14,
+            font = target.initializeFont("Monospace", 12,
                     new IFont.Style[] { IFont.Style.BOLD });
         }
 

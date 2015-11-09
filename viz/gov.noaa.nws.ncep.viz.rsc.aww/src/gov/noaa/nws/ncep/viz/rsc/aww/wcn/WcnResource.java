@@ -103,6 +103,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * 10/16/2014     4637      J. Huber    Fixed display label issue. Changed labeling mechanism from each WCN message to each county.
  *                                      Cleaned up deprecated methods as well. Changed gathering of reportType to read phenomena and 
  *                                      significance from VTEC line.
+ * 11/05/2015     5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author ujosyula
@@ -733,7 +734,7 @@ public class WcnResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-        font = grphTarget.initializeFont("Monospace", 14,
+        font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         stationTable = new StationTable(NcPathManager.getInstance()
                 .getStaticFile(NcPathConstants.COUNTY_STN_TBL)// FFG_ZONES_STN_TBL)//COUNTY_STN_TBL)

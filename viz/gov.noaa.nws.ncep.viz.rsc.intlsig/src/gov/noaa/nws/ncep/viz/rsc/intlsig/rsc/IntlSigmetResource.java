@@ -101,6 +101,7 @@ import com.vividsolutions.jts.geom.Polygon;
  * 08/17/2012     655      B. Hebbard  Added paintProps as parameter to IDisplayable draw
  * 10/25/2012              B. Hebbard  [per S. Gurung] Replace 3 WorldWrapChecker.getInverseCentralMeridian() calls,
  *                                     due to split by RTS in OB12.11.1 into get{High|Low}InverseCentralMeridian()
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author Archana
@@ -114,7 +115,7 @@ implements INatlCntrsResource{
 	private IntlSigmetResourceData   intlSigmetResourceDataObj;
 	private final double METRE_TO_NM_CONVERSION_FACTOR = 1852.0;   
     private IFont font=null;
-    float  baseFontSize = 14;
+    float  baseFontSize = 12;
     Rectangle2D charSize;
     double charHeight;
     double charWidth;

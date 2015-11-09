@@ -120,6 +120,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/28/2014   R4078      sgurung     Added code changes to support loading GeoMagResource in a new window.
  * 12/19/2014       ?      B. Yin       Remove ScriptCreator, use Thrift Client.
  * 12/23/2014   R5412      sgurung     Change float to double
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author qzhou
@@ -996,7 +997,7 @@ public class GeoMagResource extends
             /*
              * draw delts data
              */
-            // IFont unitsFont = target.initializeFont((String) null, 14.0f,
+            // IFont unitsFont = target.initializeFont((String) null, 12,
             // new IFont.Style[] {});
             // target.drawString(unitsFont, this.getBaseline(),
             // graph.getExtent()

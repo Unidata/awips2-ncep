@@ -57,6 +57,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
  * 05 Aug 2011    n/a       B. Hebbard  Preserve newRscDataObjsQueue during traversal in processCancelRequest
  * 05/23/12       785       Q. Zhou     Added getName for legend.
  * 17 Aug 2012    655       B. Hebbard  Added paintProps as parameter to IDisplayable draw
+ * 05 Nov 2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author bhebbard 
@@ -182,7 +183,7 @@ public class NonConvSigmetResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-    	font = grphTarget.initializeFont("Monospace", 14, new IFont.Style[] { IFont.Style.BOLD });
+    	font = grphTarget.initializeFont("Monospace", 12, new IFont.Style[] { IFont.Style.BOLD });
     	updateEnableMaps();
     	queryRecords();
     }

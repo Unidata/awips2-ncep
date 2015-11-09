@@ -41,6 +41,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/23/12     785        Q. Zhou     Added getName for legend.
  * 17 Aug 2012  655        B. Hebbard  Added paintProps as parameter to IDisplayable draw
  * 07/14        ?           B. Yin      Fixed several TCM issues (12 feet sea, 24-hour records).
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author bhebbard
@@ -191,7 +192,7 @@ public class HrcnResource extends
 
         // Allocate font and calculate vertical offset parameter for lines of
         // text
-        font = target.initializeFont("Monospace", 14,
+        font = target.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         double screenToWorldRatio = paintProps.getCanvasBounds().width
                 / paintProps.getView().getExtent().getWidth();

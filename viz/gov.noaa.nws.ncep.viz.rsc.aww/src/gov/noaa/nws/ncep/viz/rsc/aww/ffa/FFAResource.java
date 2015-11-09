@@ -93,6 +93,7 @@ import com.vividsolutions.jts.io.WKBReader;
  * 08/14/13     1028        G. Hull     Move to aww project. Use AwwReportType enum.
  * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
  * 1/15/2015     5770       Kris K      Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
+ * 11/05/2015    5070       randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -634,7 +635,7 @@ public class FFAResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-        font = grphTarget.initializeFont("Monospace", 14,
+        font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         countyStationTable = new StationTable(NcPathManager.getInstance()
                 .getStaticFile(NcPathConstants.COUNTY_STN_TBL)

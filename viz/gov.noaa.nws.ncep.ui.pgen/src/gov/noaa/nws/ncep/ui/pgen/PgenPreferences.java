@@ -30,18 +30,18 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * 
  *     SOFTWARE HISTORY
  *    
- *     Date       	Ticket#		Engineer	Description
- *     ------------	----------	-----------	--------------------------
+ *     Date         Ticket#     Engineer    Description
+ *     ------------ ----------  ----------- --------------------------
  *     12/31/09     #158        sgilbert    Initial Creation.
- *     02/10/11		?			B. Yin		Add maximum distance to be selected
- *     02/11	    #405        J. Wu    	Added P_WORKING_DIR.
- *     05/11	    ?        	J. Wu    	Added P_COMP_COORD
- *     08/11	    #335        J. Wu    	Added P_BASE_DIR
+ *     02/10/11     ?           B. Yin      Add maximum distance to be selected
+ *     02/11        #405        J. Wu       Added P_WORKING_DIR.
+ *     05/11        ?           J. Wu       Added P_COMP_COORD
+ *     08/11        #335        J. Wu       Added P_BASE_DIR
  *     04/12        #977        S. Gilbert  PGEN Database support
  *     11/13        TTR752      J. Wu       Added P_AUTOPLACE_TEXT
  *     12/13        TTR776      J. Wu       Added P_LAYER_MERGE
  *     05/14        TTR 995     J. Wu       Added P_AUTOPLACE_CONTOUR_LABEL.
- * 
+ *     11/09/15     R9399       J. Lopez    Added P_ICONS_PER_ROW
  * </pre>
  * 
  * @author sgilbert
@@ -66,6 +66,8 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
 
     public final static String V_WORKING_DIR = System.getProperty("user.home");
 
+    public static final String P_ICONS_PER_ROW = "PGEN_ICONS_PER_ROW";
+
     // Preference for the operational directory to store PGEN product file.
     public final static String P_OPR_DIR = "PGEN_BASE_DIR";
 
@@ -77,7 +79,6 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
 
     public final static String CED_COMP_COORD = "ced/0;0;0|18.00;-137.00;58.00;-54.00";
 
-    // public final static String CED_COMP_COORD = "ced/0;0;0|KS+";
     public final static String STR_COMP_COORD = "str/90;-97;0|19.00;-119.00;47.00;-56.00";
 
     // Preference to place text box automatically (CCFP);
@@ -93,6 +94,9 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
     public final static String P_LAYER_MERGE = "P_LAYER_MERGE";
 
     private BooleanFieldEditor layerLink;
+
+    // Maximum number of icons per row
+    private final static int MAXICONSPERROW = 99;
 
     public PgenPreferences() {
         super(GRID);
@@ -111,6 +115,14 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
 
         this.addField(new DirectoryFieldEditor(P_RECOVERY_DIR,
                 "&PGEN Recovery Directory:", getFieldEditorParent()));
+
+        IntegerFieldEditor iconsPerRow = new IntegerFieldEditor(
+                P_ICONS_PER_ROW, "&PGEN Palette Icons Per Row:",
+                getFieldEditorParent(), String.valueOf(MAXICONSPERROW).length());
+        iconsPerRow.setValidRange(0, MAXICONSPERROW);
+        iconsPerRow
+                .setValidateStrategy(IntegerFieldEditor.VALIDATE_ON_FOCUS_LOST);
+        this.addField(iconsPerRow);
 
         IntegerFieldEditor freqEd = new IntegerFieldEditor(P_AUTO_FREQ,
                 "&Auto Save frequency (min):", getFieldEditorParent(), 2);
@@ -221,6 +233,10 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
                 if (!iField.isValid())
                     iField.setStringValue(getPreferenceStore()
                             .getDefaultString(P_AUTO_FREQ));
+            } else if (iField.getPreferenceName().equals(P_ICONS_PER_ROW)) {
+                if (!iField.isValid())
+                    iField.setStringValue(getPreferenceStore()
+                            .getDefaultString(P_ICONS_PER_ROW));
             }
         }
     }

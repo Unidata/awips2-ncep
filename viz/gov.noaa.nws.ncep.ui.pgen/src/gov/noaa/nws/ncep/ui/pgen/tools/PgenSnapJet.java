@@ -8,6 +8,21 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.display.CurveFitter;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.ISinglePoint;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
+import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
+import gov.noaa.nws.ncep.ui.pgen.elements.IJetTools;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet.JetHash;
+import gov.noaa.nws.ncep.ui.pgen.elements.Jet.JetText;
+import gov.noaa.nws.ncep.ui.pgen.elements.SinglePointElement;
+import gov.noaa.nws.ncep.ui.pgen.elements.Text;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+
 import java.awt.Color;
 import java.util.Iterator;
 
@@ -18,22 +33,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
-
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.CurveFitter;
-import gov.noaa.nws.ncep.ui.pgen.display.ISinglePoint;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.IJetTools;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
-import gov.noaa.nws.ncep.ui.pgen.elements.SinglePointElement;
-import gov.noaa.nws.ncep.ui.pgen.elements.Text;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet.JetHash;
-import gov.noaa.nws.ncep.ui.pgen.elements.Jet.JetText;
-//import gov.noaa.nws.ncep.viz.ui.display.NCMapEditor;
 
 /**
  * Implements snap functions for jet.
@@ -48,15 +47,16 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Jet.JetText;
  * 10/05/09     #169        Greg Hull   integrate with NCMapEditor
  * 10/14/09		?			B. Yin		Added hashes from the max wind to two ends.
  * 12/10		#366		B. Yin		comment out adding hash
- *										fixed text location for SHEM. 
+ * 									fixed text location for SHEM. 
  * 04/11		?			B. Yin		fixed zoom/unzoom problem in R1G2-9
  * 04/11		?			B. Yin		Re-factor IAttribute
  * 10/11		?			B. Yin		Fixed the flight level text location issue.
  * 06/12		TTR102		B. Yin		Added addBarbHashFromAnotherJet() for 'DelPart'
- *
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 
  * </pre>
  * 
- * @author	B. Yin
+ * @author B. Yin
  */
 
 public class PgenSnapJet implements IJetTools{
@@ -64,7 +64,6 @@ public class PgenSnapJet implements IJetTools{
 	// Map editor is needed for zooming.
 	// Map descriptor  is needed when projection changes
 	private IMapDescriptor descriptor;
-//	private NCMapEditor mapEditor;
 	private AbstractEditor mapEditor;
 	private JetAttrDlg jetDlg;
 	private JetHash hashTmp;
@@ -74,7 +73,6 @@ public class PgenSnapJet implements IJetTools{
 	 * public constructor
 	 * @param mapEditor
 	 */
-//	public PgenSnapJet( IMapDescriptor des, NCMapEditor editor, JetAttrDlg dlg ){
 	public PgenSnapJet( IMapDescriptor des, AbstractEditor editor, JetAttrDlg dlg ){
 		this.descriptor = des;
 		this.mapEditor = editor;
@@ -101,7 +99,6 @@ public class PgenSnapJet implements IJetTools{
 		}
 		
 		snapAllHashs( aJet );
-		//addHashOnJet(aJet, lineCurvePts);
 		checkHashOnJet(aJet);
 	}
 	
@@ -113,9 +110,7 @@ public class PgenSnapJet implements IJetTools{
 		
 		double[][] lineCurvePts = getJetCurve( aJet );
 		snapBarbOnJet(barb, lineCurvePts);
-		
-		//addHashOnJet(aJet, lineCurvePts);
-		
+
 		checkHashOnJet(aJet);
 
 	}
@@ -513,8 +508,10 @@ public class PgenSnapJet implements IJetTools{
 		
 		double mapDir = translateDir(dir, nearestPt.y, nearestPt.x, true);
 	
-		mapDir = 180- mapDir;
-		if( mapDir < 0 ) mapDir = 360+mapDir;
+        mapDir += 180.0;
+        if (mapDir >= 360.0) {
+            mapDir -= 360.0;
+        }
 		
 		JetHash hash;
 		if ( hashTmp != null ){
@@ -551,8 +548,10 @@ public class PgenSnapJet implements IJetTools{
 		// get the hash direction
 		double dir  = getDirectionAtPoint( lineCurvePts, nearestId);
 		double mapDir = translateDir(dir, nearestPt.y, nearestPt.x, true);
-		mapDir = 180- mapDir;
-		if( mapDir < 0 ); mapDir = 360+mapDir;
+        mapDir += 180.;
+        if (mapDir >= 360.0) {
+            mapDir -= 360.0;
+        }
 		
 		hash.setLocationOnly(nearestPt);
 		hash.setDirection(mapDir);

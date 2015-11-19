@@ -152,6 +152,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * 08/15        R7757       B. Hebbard  Upgrade createDisplayElements(List<IVector>,--) to handle heterogeneous
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * </pre>
  * 
  * @author sgilbert
@@ -4013,13 +4014,15 @@ public class DisplayElementFactory {
         double[] tmp = { vect.getLocation().x, vect.getLocation().y, 0.0 };
         double[] start = iDescriptor.worldToPixel(tmp);
 
-        // TODO - Orientation issues
         /*
          * calculate the angle and distance to the four points defining the hash
          * mark
+         * 
+         * Note: hash direction is clockwise. Rotate to counter clockwise for
+         * display.
          */
         double angle = northOffsetAngle(vect.getLocation())
-                + vect.getDirection();
+                + (360.0 - vect.getDirection());
         double theta = Math.toDegrees(Math.atan(spacing / scaleSize));
         double dist = 0.5 * Math.sqrt((spacing * spacing)
                 + (scaleSize * scaleSize));

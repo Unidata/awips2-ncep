@@ -84,4 +84,7 @@
                     plotMode="barb" symbolFont="WindSymbolFont" 
                     plotUnit="m/s"/>
 
+<!-- MARKERs -->
+ <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
+
 </PlotParameterDefns>

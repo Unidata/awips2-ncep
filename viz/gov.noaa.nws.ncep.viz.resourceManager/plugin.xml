@@ -88,5 +88,42 @@
 	         extensionFilter=".xml">
        </path>
     </extension>
+    
+        <extension
+          point="com.raytheon.uf.viz.localization.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Satellite Areas"
+             recursive="false"
+             value="ncep/satelliteAreas"
+             extensionFilter=".xml">
+       </path>
+    </extension>
+    
+            <extension
+          point="com.raytheon.uf.viz.localization.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Satellite Names"
+             recursive="false"
+             value="ncep/satelliteNames"
+             extensionFilter=".xml">
+       </path>
+    </extension>
+    
+            <extension
+          point="com.raytheon.uf.viz.localization.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Satellite Image Types"
+             recursive="false"
+             value="ncep/satelliteImageTypes"
+             extensionFilter=".xml">
+       </path>
+    </extension>
+    
 
 </plugin>

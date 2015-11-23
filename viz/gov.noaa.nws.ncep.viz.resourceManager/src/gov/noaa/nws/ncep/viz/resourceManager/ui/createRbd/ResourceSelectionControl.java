@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
 import static java.lang.System.out;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
@@ -53,6 +54,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 
@@ -99,6 +103,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 05/18/2015     R7656      A. Su       Displayed the aliases of local radar stations in the menu.
  * 06/10/2015     R7656      A. Su       Rewrote the displaying logic for LocalRadar for clarity.
  * 10/15/2015     R7190      R. Reynolds Display subTypeGenerator and attributes mods.
+ * 12/03/2015     R12953     R. Reynolds Added constants and status handler
  * 
  * 
  * </pre>
@@ -107,6 +112,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @version 1
  */
 public class ResourceSelectionControl extends Composite {
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ResourceSelectionControl.class);
 
     protected ResourceDefnsMngr rscDefnsMngr;
 
@@ -122,6 +129,8 @@ public class ResourceSelectionControl extends Composite {
 
     // a map to store the previous selections for each category.
     protected static HashMap<ResourceCategory, ResourceName> prevCatSeldRscNames;
+
+    protected static HashMap<String, String> attributeNamesAndAliases = new HashMap<String, String>();
 
     // this list must stay in sync with the cycleTimeCombo.
     protected ArrayList<DataTime> cycleTimes = new ArrayList<DataTime>();
@@ -425,6 +434,7 @@ public class ResourceSelectionControl extends Composite {
         fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
         fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
         cycleTimeLbl.setLayoutData(fd);
+
     }
 
     private void setContentProviders() {
@@ -469,12 +479,10 @@ public class ResourceSelectionControl extends Composite {
 
                         return rscTypes.toArray();
                     } catch (VizException e) {
-                        MessageDialog errDlg = new MessageDialog(NcDisplayMngr
-                                .getCaveShell(), "Error", null,
-                                "Error getting Resource Types\n"
-                                        + e.getMessage(), MessageDialog.ERROR,
-                                new String[] { "OK" }, 0);
-                        errDlg.open();
+                        statusHandler.handle(
+                                Priority.ERROR,
+                                "Error getting Resource Types "
+                                        + e.getMessage());
                     }
                 }
                 return new ResourceDefinition[] {};
@@ -556,45 +564,68 @@ public class ResourceSelectionControl extends Composite {
 
                     displayName = "";
 
-                    for (int k = 0; k < subParams.length; k++) {
+                    try {
 
-                        if (subParams[k].toString().equalsIgnoreCase(
-                                "resolution")) {
+                        for (int k = 0; k < subParams.length; k++) {
 
-                            if (!subParams[k].contains("km"))
-                                str[k] += "km";
-                            displayName = displayName + " " + str[k];
+                            if (subParams[k].toString().equalsIgnoreCase(
+                                    McidasConstants.RESOLUTION)) {
 
-                        } else if (subParams[k].toString().equalsIgnoreCase(
-                                "projection")) {
+                                if (!subParams[k].contains("km"))
+                                    str[k] += "km";
+                                displayName = displayName + " " + str[k];
 
-                            displayName = displayName + " " + str[k];
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(
+                                            McidasConstants.PROJECTION)) {
 
-                        } else if (subParams[k].toString().equalsIgnoreCase(
-                                "areaId")) {
+                                displayName = displayName + " " + str[k];
 
-                            SatelliteAreaManager satAreaMgr = SatelliteAreaManager
-                                    .getInstance();
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
 
-                            String areaIdName = satAreaMgr
-                                    .getDisplayedName(SatelliteAreaManager.ResourceDefnName
-                                            + SatelliteAreaManager.delimiter
-                                            + str[k].toString());
+                                SatelliteAreaManager satAreaMgr = SatelliteAreaManager
+                                        .getInstance();
 
-                            if (areaIdName == null)
-                                areaIdName = str[k].toString();
+                                String areaIdName = satAreaMgr
+                                        .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                                                + SatelliteAreaManager.delimiter
+                                                + str[k].toString());
 
-                            displayName = displayName + " " + areaIdName;
+                                if (areaIdName == null)
+                                    areaIdName = str[k].toString();
 
-                        } else if (subParams[k].toString().equalsIgnoreCase(
-                                "satelliteId")) {
+                                displayName = displayName + " " + areaIdName;
 
-                            displayName = displayName
-                                    + " "
-                                    + SatelliteNameManager.getInstance()
-                                            .getDisplayedNameByID(str[k]);
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(
+                                            McidasConstants.SATELLITE_ID)) {
 
+                                displayName = displayName
+                                        + " "
+                                        + SatelliteNameManager.getInstance()
+                                                .getDisplayedNameByID(str[k]);
+
+                            }
                         }
+                    } catch (Exception ex) {
+                        // TODO: DEBUG... Remove System.out.println's if this
+                        // error goes away
+                        // replace with statusHandler/ex.getStackTrace()
+                        ex.printStackTrace();
+                        System.out.println("*subParms[] length ="
+                                + subParams.length);
+                        for (int k = 0; k < subParams.length; k++) {
+                            System.out.println("subParams[" + k + "] = "
+                                    + subParams[k].toString());
+                        }
+                        System.out
+                                .println("*displayName.length =" + str.length);
+                        for (int k = 0; k < str.length; k++) {
+                            System.out.println("displayName[" + k + "] = "
+                                    + str[k].toString());
+                        }
+
                     }
 
                 }
@@ -659,7 +690,6 @@ public class ResourceSelectionControl extends Composite {
             @Override
             public Object[] getElements(Object inputElement) {
                 String rscType = seldResourceName.getRscType();
-
                 if (!rscType.isEmpty()) {
                     // if this resource uses attrSetGroups then get get the list
                     // of groups. (PGEN uses groups but we will list the
@@ -794,7 +824,7 @@ public class ResourceSelectionControl extends Composite {
                 // get satellite ID e.g. 180
                 HashMap<String, String> resParm = rscDefn
                         .getResourceParameters(true);
-                satId = resParm.get("satelliteId");
+                satId = resParm.get(McidasConstants.SATELLITE_ID);
 
                 HashMap<String, String> atrSet = ((AttributeSet) element)
                         .getAttributes();
@@ -807,7 +837,8 @@ public class ResourceSelectionControl extends Composite {
                 // "digit value" is returned and assigned as attribute value
                 // "custom_name" appears in GUI
 
-                if (rscDefn.getRscImplementation().equals("McidasSatellite")) {
+                if (rscDefn.getRscImplementation().equals(
+                        McidasConstants.MCIDAS_SATELLITE)) {
 
                     if (satName == null || satId == null)
                         return "";
@@ -815,20 +846,35 @@ public class ResourceSelectionControl extends Composite {
                     SatelliteImageTypeManager satImMan = SatelliteImageTypeManager
                             .getInstance();
 
-                    if (!atrSet.containsKey("imageTypeIdCustomName")) {
+                    if (!atrSet.containsKey(McidasConstants.IMAGE_TYPE_ID
+                            + "CustomName")) {
 
-                        attrSetName = atrSet.get("imageTypeId");
+                        attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID);
                         if (attrSetName == null) {
                             return null;
                         }
-                        atrSet.put("imageTypeIdCustomName", attrSetName);
+                        atrSet.put(
+                                McidasConstants.IMAGE_TYPE_ID + "CustomName",
+                                attrSetName);
 
-                        atrSet.put("imageTypeId", satImMan
+                        atrSet.put(McidasConstants.IMAGE_TYPE_ID, satImMan
                                 .getImageId_using_satId_and_ASname(satId,
                                         attrSetName));
                         ((AttributeSet) element).setAttributes(atrSet);
                     }
-                    attrSetName = atrSet.get("imageTypeIdCustomName");
+                    attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
+                            + "CustomName");
+
+                    attributeNamesAndAliases.put(satId + ":"
+                            + ((AttributeSet) element).getName().toString(),
+                            attrSetName);
+
+                    SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
+                            .getInstance();
+
+                    satImageMngr.setSelectedAttrName(attributeNamesAndAliases);
+
+                    return attrSetName;
 
                 } else {
 
@@ -980,12 +1026,18 @@ public class ResourceSelectionControl extends Composite {
 
                     public void selectionChanged(SelectionChangedEvent event) {
 
+                        SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
+                                .getInstance();
+
                         StructuredSelection seld_elem = (StructuredSelection) event
                                 .getSelection();
 
                         seldResourceName
                                 .setRscAttrSetName(((AttributeSet) seld_elem
                                         .getFirstElement()).getName());
+
+                        satImageMngr
+                                .setSelectedAttrName(attributeNamesAndAliases);
 
                         updateCycleTimes();
 
@@ -1244,6 +1296,7 @@ public class ResourceSelectionControl extends Composite {
         updateCycleTimes();
 
         updateSelectedResource();
+
     }
 
     // when an attrSetName is selected and resource name, with possible cycle

@@ -29,7 +29,7 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Nov 10, 2015  10436     njensen     Initial creation
- * 
+ * 12/04/2015    R12953    R Reynolds  Added projection and resolution
  * </pre>
  * 
  * @author njensen
@@ -43,5 +43,13 @@ public class McidasConstants {
     public static final String SATELLITE_ID = "satelliteId";
 
     public static final String AREA_ID = "areaId";
+
+    public static final String RESOLUTION = "resolution";
+
+    public static final String PROJECTION = "projection";
+
+    public static final String MCIDAS_SATELLITE = "McidasSatellite";
+
+    public static final String IMAGE_TYPE_ID = "imageTypeId";
 
 }

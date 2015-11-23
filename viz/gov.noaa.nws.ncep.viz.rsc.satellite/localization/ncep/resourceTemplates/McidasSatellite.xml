@@ -52,7 +52,11 @@
                  <mapping key="resolution">
                     <constraint constraintValue="${resolution}" 
                                 constraintType="EQUALS"/>
-                 </mapping>                
+                 </mapping>      
+                 <mapping key="projection">
+                    <constraint constraintValue="${projection}" 
+                                constraintType="EQUALS"/>
+                 </mapping>           
  
                </metadataMap>
               </resourceData>

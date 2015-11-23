@@ -1,9 +1,16 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.manager.SatelliteAreaManager;
+import gov.noaa.nws.ncep.viz.resources.manager.SatelliteImageTypeManager;
+import gov.noaa.nws.ncep.viz.resources.manager.SatelliteNameManager;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 
 import java.util.ArrayList;
@@ -38,6 +45,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  02/13/2015    #R6345     mkean      add areaName, resolution and getRscAttrSetName 
  *                                      to legendStr
  *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
+ *  12/03/2015    R12953     R. Reynolds Modified to enhance Legend title
  * </pre>
  * 
  * @author ghull
@@ -51,46 +59,76 @@ public class McidasSatResource extends AbstractSatelliteResource implements
 
     protected NcIRPixelToTempConverter pixelToTemperatureConverter = null;
 
-    // McidasMapCoverage coverage = null;
-
     public McidasSatResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
         satRscData = data;
+        ResourceName rscName = satRscData.getResourceName();
 
-        // set the legend from:
-        // satellite name, areaName, resolution and resource
-        // NOTE: this assumes that the request type of EQUALS
-        // (ie only one kind of imageType and satellite name)
+        try {
+            legendStr = "";
+            String subtypeParamAlias = "";
+            String subtypeParamValue = "";
+            String satId = "";
 
-        if (satRscData.getMetadataMap().containsKey("satelliteId")
-                && satRscData.getMetadataMap().containsKey("areaId")) {
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+            SatelliteAreaManager satAreaMgr = SatelliteAreaManager
+                    .getInstance();
+            SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
+                    .getInstance();
 
-            legendStr = satRscData.getMetadataMap().get("satelliteId")
-                    .getConstraintValue()
-                    + " "
-                    + satRscData.getMetadataMap().get("areaId")
-                            .getConstraintValue();
+            String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
 
-            try {
-                // Note: if the value of "resolution" is <= zero,
-                // do not include it in the legend string.
-                // if the value of "resolution" > 0,
-                // add the string 'km' to the resolution to indicate kilometers.
+            for (int k = 0; k < subtypeParam.length; k++) {
 
-                String tmpRes = satRscData.getMetadataMap().get("resolution")
-                        .getConstraintValue();
+                subtypeParamValue = subtypeParam[k].toString();
 
-                //
-                // if (Double.parseDouble(tmpRes) > 0.0) {
-                // legendStr += "_" + tmpRes + "km";
-                // }
-            } catch (NumberFormatException e) {
-                statusHandler.handle(Priority.INFO,
-                        "NumberFormatException parsing resolution - omitted");
+                // subtypeParamAlias could be resolution, sateliteId, areaId or
+                // projection
+                subtypeParamAlias = satRscData.getMetadataMap()
+                        .get(subtypeParamValue).getConstraintValue().toString();
+                // projection is already a String, but...
+                if (subtypeParamValue
+                        .equalsIgnoreCase(McidasConstants.RESOLUTION)) {
+                    subtypeParamAlias += "km";
+
+                } else if (subtypeParamValue.toString().equalsIgnoreCase(
+                        McidasConstants.AREA_ID)) {
+                    // get custom name for areaId as defined in
+                    // satelliteAreas.xml
+                    subtypeParamAlias = satAreaMgr
+                            .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                                    + SatelliteAreaManager.delimiter
+                                    + subtypeParamAlias);
+
+                } else if (subtypeParamValue.toString().equalsIgnoreCase(
+                        McidasConstants.SATELLITE_ID)) {
+                    // get custom name for satelliteId as defined in
+                    // satelliteNames.xml
+                    satId = subtypeParamAlias;
+                    subtypeParamAlias = SatelliteNameManager.getInstance()
+                            .getDisplayedNameByID(subtypeParamAlias);
+
+                }
+
+                legendStr += subtypeParamAlias + " ";
+
             }
 
-            legendStr += " " + satRscData.getRscAttrSet().getRscAttrSetName();
+            legendStr += satImageMngr.getSelectedAttrName(satId + ":"
+                    + satRscData.getRscAttrSet().getRscAttrSetName());
+
+            legendStr.trim();
+
+        } catch (Exception ex) {
+
+            statusHandler.handle(Priority.ERROR,
+                    "Error building legend string ", ex.getStackTrace()
+                            .toString());
+
         }
+
     }
 
     public boolean isCloudHeightCompatible() {
@@ -108,14 +146,7 @@ public class McidasSatResource extends AbstractSatelliteResource implements
             }
         }
         return false;
-        // can't do this since imageTypes is not set til a record is processed
-        // and
-        // we need the dataUnits before that.
-        // for( String physElmt : getImageTypes() ) {
-        // if( !physElmt.equals("IR") ) {
-        // return false;
-        // }
-        // }
+
     }
 
     String getImageTypeFromRecord(PluginDataObject pdo) {

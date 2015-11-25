@@ -18,6 +18,7 @@ import java.util.Map;
  * 03/18/2014   #1123       qzhou      Add getHQdcOrDQdc
  * 06/23/2014   R4152       qzhou      Touched up functions that do not affect the results
  * 12/23/2014   R5412       sgurung    Change float to double, fixed equation in getQuietLevelHourAvg()
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes
  * 
  * </pre>
  * 
@@ -61,11 +62,11 @@ public class CalcEach3hr {
             double comp1 = list.get(1);
             double comp2 = list.get(2);
 
-            if (comp1 != CalcUtil.MISSING_VAL) {
+            if (comp1 != CalcUtil.missingVal) {
                 sum1 += comp1;
                 rec1++;
             }
-            if (comp2 != CalcUtil.MISSING_VAL) {
+            if (comp2 != CalcUtil.missingVal) {
                 sum2 += comp2;
                 rec2++;
             }
@@ -74,12 +75,12 @@ public class CalcEach3hr {
         if (rec1 > 30) // less than half missing value
             simpHrAvg1 = (double) sum1 / rec1;
         else
-            simpHrAvg1 = CalcUtil.MISSING_VAL;
+            simpHrAvg1 = CalcUtil.missingVal;
 
         if (rec2 > 30) // less than half missing value
             simpHrAvg2 = (double) sum2 / rec2;
         else
-            simpHrAvg2 = CalcUtil.MISSING_VAL;
+            simpHrAvg2 = CalcUtil.missingVal;
 
         simpHrAvg[0] = simpHrAvg1;
         simpHrAvg[1] = simpHrAvg2;
@@ -102,7 +103,7 @@ public class CalcEach3hr {
 
             for (int i = ihr * MINUTES; i < ihr * MINUTES + MINUTES; i++) {
 
-                if (data[i] != CalcUtil.MISSING_VAL)
+                if (data[i] != CalcUtil.missingVal)
                     sum += data[i];
                 else
                     missing++;
@@ -111,7 +112,7 @@ public class CalcEach3hr {
             if (missing < 30) // less than half missing value
                 simpHrAvg[ihr] = (double) sum / (MINUTES - missing);
             else
-                simpHrAvg[ihr] = CalcUtil.MISSING_VAL;
+                simpHrAvg[ihr] = CalcUtil.missingVal;
         }
 
         return simpHrAvg;
@@ -134,14 +135,14 @@ public class CalcEach3hr {
 
         if (data.length <= hour * MINUTES + MINUTES)
             for (int i = hour * MINUTES; i < data.length; i++) {
-                if (data[i] != CalcUtil.MISSING_VAL) {
+                if (data[i] != CalcUtil.missingVal) {
                     sum += data[i];
                     rec++;
                 }
             }
         else
             for (int i = hour * MINUTES; i < hour * MINUTES + MINUTES; i++) {
-                if (data[i] != CalcUtil.MISSING_VAL) {
+                if (data[i] != CalcUtil.missingVal) {
                     sum += data[i];
                     rec++;
                 }
@@ -150,7 +151,7 @@ public class CalcEach3hr {
         if (rec > 30) // less than half missing value
             simpHrAvg = (double) sum / (rec);
         else
-            simpHrAvg = CalcUtil.MISSING_VAL;
+            simpHrAvg = CalcUtil.missingVal;
 
         return simpHrAvg;
     }
@@ -171,10 +172,10 @@ public class CalcEach3hr {
             for (int i = 0; i < 23; i++) {
                 int ii = j * HOURS + i;
 
-                if (simpHrAvgH[ii] != CalcUtil.MISSING_VAL
-                        && simpHrAvgD[ii] != CalcUtil.MISSING_VAL
-                        && simpHrAvgH[ii + 1] != CalcUtil.MISSING_VAL
-                        && simpHrAvgD[ii + 1] != CalcUtil.MISSING_VAL) {
+                if (simpHrAvgH[ii] != CalcUtil.missingVal
+                        && simpHrAvgD[ii] != CalcUtil.missingVal
+                        && simpHrAvgH[ii + 1] != CalcUtil.missingVal
+                        && simpHrAvgD[ii + 1] != CalcUtil.missingVal) {
                     sum += Math
                             .sqrt(Math.pow(
                                     (simpHrAvgH[ii + 1] - simpHrAvgH[ii]), 2)
@@ -189,7 +190,7 @@ public class CalcEach3hr {
             if (count >= 12) // not 12 or more missing
                 dB[j] = (double) sum / count;
             else
-                dB[j] = CalcUtil.MISSING_VAL;
+                dB[j] = CalcUtil.missingVal;
 
         }
 
@@ -215,8 +216,8 @@ public class CalcEach3hr {
 
         Arrays.sort(dBDup);
 
-        double dupIndex = (int) CalcUtil.MISSING_VAL;
-        double wk = 0;
+        double dupIndex = (int) CalcUtil.missingVal.doubleValue();
+
         // take 5 smallest dBDup
         for (int j = 0; j < 5; j++) {
             for (int i = 0; i < dB.length; i++) {
@@ -246,7 +247,7 @@ public class CalcEach3hr {
             return simpHrAvg;
 
         double[] quietHrAvg = new double[24];
-        Arrays.fill(quietHrAvg, CalcUtil.MISSING_VAL);
+        Arrays.fill(quietHrAvg, CalcUtil.missingVal);
         int[] index = new int[5];
         double[] dB = new double[5];
 
@@ -293,7 +294,7 @@ public class CalcEach3hr {
                     wk = 1.0 / wk;
                 }
 
-                if (smallHrAvg[ind] != CalcUtil.MISSING_VAL) {
+                if (smallHrAvg[ind] != CalcUtil.missingVal) {
                     sumAvg += wk * smallHrAvg[ind];
                     sumWk += wk;
                 }
@@ -373,7 +374,6 @@ public class CalcEach3hr {
      */
     public static double[] getHQdcOrDQdc(double[] hHrAvgs, double[] dHrAvgs) {
         double[] hQdc = null;
-        double[] qhaQdc = null;
 
         double[] dB = CalcEach3hr.getDisturbanceLevel(hHrAvgs, dHrAvgs);
 
@@ -385,7 +385,7 @@ public class CalcEach3hr {
 
         // added from FMIQDCRT11_3hr.pro
         for (int k = 0; k < quietHHrAvg.length; k++) {
-            if (quietHHrAvg[k] == CalcUtil.MISSING_VAL) {
+            if (quietHHrAvg[k] == CalcUtil.missingVal) {
                 quietHHrAvg[k] = CalcUtil.getMedian(quietHHrAvg);
             }
         }
@@ -393,8 +393,6 @@ public class CalcEach3hr {
         double[] qha = CalcEach3hr.getQHA(quietHHrAvg);
 
         hQdc = CalcEach1min.getHarmonicFit(qha);// [1440]
-
-        // qhaQdc = CalcEach1min.getQHAQDC(hQdc);// [1440]
 
         return hQdc;
     }

@@ -1,6 +1,6 @@
 colorMapName=gdpicinh
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=CINH
+imageTypeId=CINH
 displayUnitStr=C
 alpha=1.0
 brightness=1.0

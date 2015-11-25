@@ -25,6 +25,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,6 @@ import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpTurbulencePaneBackground extends NsharpGenericPaneBackground{
@@ -63,13 +63,13 @@ public class NsharpTurbulencePaneBackground extends NsharpGenericPaneBackground{
         this.rectangle = new Rectangle(turbXOrig, turbYOrig,
         		NsharpConstants.TURB_WIDTH, NsharpConstants.TURB_HEIGHT);
         pe = new PixelExtent(this.rectangle);
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
         NsharpConfigManager configMgr = NsharpConfigManager.getInstance();
         graphConfigProperty = configMgr.retrieveNsharpConfigStoreFromFs().getGraphProperty();
         this.desc = desc;
     }
 	@Override
-	protected WGraphics computeWorld() {
+	protected NsharpWGraphics computeWorld() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -317,7 +317,7 @@ public class NsharpTurbulencePaneBackground extends NsharpGenericPaneBackground{
 				turbWidth, (int) ext.getHeight()-2*(int)labelSpace);
         pe = new PixelExtent(this.rectangle);
         //desc.setNewPe(pe);
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
         
         if(linesNumbersShape!= null){
 			linesNumbersShape.dispose();

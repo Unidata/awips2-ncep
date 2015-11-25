@@ -12,7 +12,9 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 05/30/2013				Chin J. Chen	Initial coding
- * Aug 05, 2015 4486        rjpeter       Changed Timestamp to Date.
+ * Aug 05, 2015 4486        rjpeter       Changed Timestamp to Date . < This is 16.2.1 code
+ * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ *
  * </pre>
  * 
  * @author Chin J. Chen
@@ -1656,8 +1658,8 @@ public class GenericPointDataDao extends
                         + "' AND slat BETWEEN -89.9 AND 89.9 AND slon BETWEEN -179.9 AND 179.9");
         rtnobjArray = executeSQLQuery(queryStr);
         String stnId = "";
-        Double slat, slon;
         Date synoptictime = null, rsTime = null;
+        Float slat, slon;
         for (int j = 0; j < rtnobjArray.length; j++) {
             Object[] objArray = (Object[]) rtnobjArray[j];
             // ids.add(((Integer)objArray[2]));
@@ -1665,8 +1667,8 @@ public class GenericPointDataDao extends
             // To make sure the double number get the same precision as the
             // float number saved in DB
             // we have to do the following conversion.
-            slat = new Double(objArray[0].toString());
-            slon = new Double(objArray[1].toString());
+            slat = new Float(objArray[0].toString());
+            slon = new Float(objArray[1].toString());
             stnId = (String) objArray[3];
             stnId = stnId.replace("1000-", "");
             synoptictime = (Date) objArray[4];

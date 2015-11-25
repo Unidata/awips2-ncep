@@ -74,6 +74,15 @@
     	<complexType>
     		<sequence>
     			<element ref="tns:Color"></element>
+    			<element ref="tns:PgenControls" maxOccurs="1"
+                    minOccurs="0">
+                </element>
+                <element ref="tns:PgenActions" maxOccurs="1"
+                    minOccurs="0">
+                </element>
+                <element ref="tns:PgenClass" maxOccurs="unbounded"
+                    minOccurs="0">
+                </element>    			
     		</sequence>
     		<attribute name="OutputFile" type="string"></attribute>
             <attribute name="InputFile" type="string"></attribute>

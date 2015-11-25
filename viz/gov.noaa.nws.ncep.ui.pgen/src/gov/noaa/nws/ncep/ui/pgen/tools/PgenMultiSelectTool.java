@@ -32,7 +32,12 @@ import java.util.List;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.PlatformUI;
+import org.opengis.coverage.grid.GridEnvelope;
 
+import com.raytheon.uf.viz.core.IDisplayPane;
+import com.raytheon.uf.viz.core.IExtent;
+import com.raytheon.uf.viz.core.PixelExtent;
+import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -43,15 +48,16 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 08/09		#149		B. Yin   	Initial Creation.
- * 04/10		#165		G. Zhang	add support for VAA.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 08/09        #149        B. Yin      Initial Creation.
+ * 04/10        #165        G. Zhang    add support for VAA.
  * 10/10        #289       Archana    Added logic to handle the delete key    
- * 07/12		#610		B. Yin		Make the multi-select work for GFA.
- * 12/12		#908		B. Yin		Do not change to selecting mode. 
- * 04/13		#874		B. Yin		Handle elements in contours.
+ * 07/12        #610        B. Yin      Make the multi-select work for GFA.
+ * 12/12        #908        B. Yin      Do not change to selecting mode. 
+ * 04/13        #874        B. Yin      Handle elements in contours.
  * 12/13        #1065       J. Wu       use LineAttrDlg for kink lines.
+ * 09/15        R8535       J. Lopez    Made multi-select work outside of the map area
  * </pre>
  * 
  * @author B. Yin
@@ -98,6 +104,14 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
         private String pgenObj;
 
         private List<Coordinate> polyPoints;
+
+        private DrawableElementFactory def;
+
+        private PgenMultiSelectHandler() {
+            super();
+            def = new DrawableElementFactory();
+
+        }
 
         /*
          * (non-Javadoc)
@@ -153,8 +167,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     drawingLayer.removeSelected();
                     mapEditor.refresh();
 
-                    // Keep in multi-selecting mode
-                    // PgenUtil.setSelectingMode();
                 }
                 return true;
 
@@ -172,26 +184,68 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
          * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDownMove(int,
          * int, int)
          */
-        public boolean handleMouseDownMove(int anX, int aY, int button) {
 
+        public boolean handleMouseDownMove(int anX, int aY, int button) {
             if (!isResourceEditable() || button != 1 || noCat) {
                 return false;
             }
 
             selectRect = true;
 
+            IDisplayPane activePane = mapEditor.getActiveDisplayPane();
+            IExtent extent = activePane.getRenderableDisplay().getExtent();
+            org.eclipse.swt.graphics.Rectangle bounds = activePane.getBounds();
+            IDescriptor mapDesc = activePane.getDescriptor();
+            GridEnvelope ge = mapDesc.getGridGeometry().getGridRange();
+
+            // Convert screen coordinates to canvas coordinates
+            int canvasPointX1 = (int) ((theFirstMouseX
+                    * (extent.getMaxX() - extent.getMinX()) / bounds.width) + extent
+                    .getMinX());
+            int canvasPointX2 = (int) ((anX
+                    * (extent.getMaxX() - extent.getMinX()) / bounds.width) + extent
+                    .getMinX());
+            int canvasPointY1 = (int) ((theFirstMouseY
+                    * (extent.getMaxY() - extent.getMinY()) / bounds.height) + extent
+                    .getMinY());
+            int canvasPointY2 = (int) ((aY
+                    * (extent.getMaxY() - extent.getMinY()) / bounds.height) + extent
+                    .getMinY());
+
+            IExtent worldExtent = new PixelExtent(ge);
+            IExtent box = new PixelExtent(canvasPointX1, canvasPointX2,
+                    canvasPointY1, canvasPointY2);
+            IExtent drawingBox = worldExtent.intersection(box);
+
+            // Convert canvas coordinates to Lat/Lon coordinates
+            double[] worldPoint1 = mapDesc.pixelToWorld(new double[] {
+                    drawingBox.getMinX(), drawingBox.getMinY() });
+            double[] worldPoint2 = mapDesc.pixelToWorld(new double[] {
+                    drawingBox.getMinX(), drawingBox.getMaxY() });
+            double[] worldPoint3 = mapDesc.pixelToWorld(new double[] {
+                    drawingBox.getMaxX(), drawingBox.getMaxY() });
+            double[] worldPoint4 = mapDesc.pixelToWorld(new double[] {
+                    drawingBox.getMaxX(), drawingBox.getMinY() });
+            double[] worldPoint5 = mapDesc.pixelToWorld(new double[] {
+                    ((drawingBox.getMinX() + drawingBox.getMaxX()) / 2),
+                    drawingBox.getMinY() });
+            double[] worldPoint6 = mapDesc.pixelToWorld(new double[] {
+                    ((drawingBox.getMinX() + drawingBox.getMaxX()) / 2),
+                    drawingBox.getMaxY() });
+
+            // Set the points in the ghost box
+            ArrayList<Coordinate> ghostPoints = new ArrayList<Coordinate>();
+            ghostPoints.add(new Coordinate(worldPoint1[0], worldPoint1[1]));
+            ghostPoints.add(new Coordinate(worldPoint5[0], worldPoint5[1]));
+            ghostPoints.add(new Coordinate(worldPoint4[0], worldPoint4[1]));
+
+            ghostPoints.add(new Coordinate(worldPoint3[0], worldPoint3[1]));
+            ghostPoints.add(new Coordinate(worldPoint6[0], worldPoint6[1]));
+            ghostPoints.add(new Coordinate(worldPoint2[0], worldPoint2[1]));
+
             // draw the selected area
-            ArrayList<Coordinate> points = new ArrayList<Coordinate>();
-
-            points.add(mapEditor.translateClick(theFirstMouseX, theFirstMouseY));
-            points.add(mapEditor.translateClick(theFirstMouseX, aY));
-            points.add(mapEditor.translateClick(anX, aY));
-            points.add(mapEditor.translateClick(anX, theFirstMouseY));
-
-            DrawableElementFactory def = new DrawableElementFactory();
             Line ghost = (Line) def.create(DrawableType.LINE, null, "Lines",
-                    "LINE_SOLID", points, drawingLayer.getActiveLayer());
-
+                    "LINE_SOLID", ghostPoints, drawingLayer.getActiveLayer());
             ghost.setLineWidth(1.0f);
             ghost.setColors(new Color[] { new java.awt.Color(255, 255, 255),
                     new java.awt.Color(255, 255, 255) });
@@ -199,7 +253,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
             ghost.setSmoothFactor(0);
 
             drawingLayer.setGhostLine(ghost);
-
             mapEditor.refresh();
             return true;
         }
@@ -304,14 +357,12 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                                 pgenType = adc.getPgenType();
                             }
 
-                            // if ( adc.getPgenType().equalsIgnoreCase("GFA")){
-
                             if (!drawingLayer.getAllSelected().contains(adc)) {
                                 drawingLayer.addSelected(adc);
                             } else {
                                 drawingLayer.removeSelected(adc);
                             }
-                            // }
+
                         }
                     }
                 }
@@ -367,11 +418,9 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 if (attrDlg instanceof VolcanoVaaAttrDlg)
                     return false;
 
-                // attrDlg.setBlockOnOpen(false);
                 if (attrDlg != null) {
                     attrDlg.setBlockOnOpen(false);
                     attrDlg.open();
-                    // attrDlg.setMultiSelectFlag(true);
                     attrDlg.enableButtons();
                     attrDlg.setPgenCategory(pgenCat);
                     attrDlg.setPgenType(null);
@@ -400,7 +449,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 }
 
             }
-            // System.out.println("From handleMouseUp()");
             mapEditor.setFocus();
             mapEditor.refresh();
 
@@ -414,7 +462,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 return false;
             }
 
-            // draw a ghost ploygon
+            // draw a ghost polygon
             if (polyPoints != null && !polyPoints.isEmpty()) {
 
                 polyPoints.add(new Coordinate(anX, aY));
@@ -460,7 +508,6 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 PgenResource pResource = PgenSession.getInstance()
                         .getPgenResource();
                 pResource.deleteSelectedElements();
-                // System.out.println("Pgen elements deleted from PgenMultiSelect");
             }
             return true;
         }

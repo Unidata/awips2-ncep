@@ -18,6 +18,7 @@
  * 01/22/2014	            Chin Chen   DR17003 issue:  NSHARP sounding display throws errors when swapping into main pane when show text is turned on.
  * 10/20/2014               Chin Chen   DR16864, D2D does not use unload button. Check to make sure not D2D instance before access unload button.                                      
  * 02/04/2015   DR16888     Chin Chen   do not allow swap between Skewt and hodo when comparison is on, check in with DR17079
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  * </pre>
  * 
  * @author Chin Chen
@@ -428,9 +429,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     // will be considered
                     // an error since the grid inventory should/must be on the
                     // server.
-                    System.out
-                            .println("NsharpGridInventory initialize attempt #"
-                                    + a + " failed");
+//                    System.out
+//                            .println("NsharpGridInventory initialize attempt #"
+//                                    + a + " failed");
 
                     try {
                         Thread.sleep(a * 500);
@@ -1448,7 +1449,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             }
         });
 
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             createD2dLiteAwcGp();
         } else {
             createAwcGp();
@@ -1968,7 +1970,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     public void updateSpecialGraphBtn(String paneConfigurationName) {
         this.paneConfigurationName = paneConfigurationName;
 
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             if (awcGp != null)
                 disposeAwcGp();
             if (d2dliteAwcGp == null)

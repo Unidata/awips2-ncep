@@ -1,6 +1,6 @@
 colorMapName=gdpipw
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=TPW
+imageTypeId=TPW
 displayUnitStr=C
 alpha=1.0
 brightness=1.0

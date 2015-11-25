@@ -17,12 +17,14 @@
  * 11/2013      1066        G. Hull     call constructCRSfromWKT
  * Nov 14, 2013 2393        bclement    added getGridGeometry()
  * 03/2014		TTR957		B. Yin		Modified getGridGeometry() to handle native navigation
+ * 10/15/2015   R7190       RC Reynolds Modifications to support mcidas area header changes
  * </pre>
  */
 
 package gov.noaa.nws.ncep.common.dataplugin.mcidas;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import java.awt.geom.Rectangle2D;
 
@@ -357,8 +359,7 @@ public class McidasMapCoverage extends PersistableDataObject implements
             try {
                 crsObject = CRS.parseWKT(crsWKT);
             } catch (Exception e) {
-                crsObject = McidasSpatialFactory.getInstance()
-                        .constructCRSfromWKT(crsWKT);
+                crsObject = McidasCRSBuilder.constructCRSfromWKT(crsWKT);
             }
         }
         return crsObject;
@@ -615,7 +616,6 @@ public class McidasMapCoverage extends PersistableDataObject implements
         // investigate
         // using a specific formatter to keep this consistent and in our control
         this.crsWKT = crsWKT.replaceAll("\r\n", "");
-        // this.crsWKT = crsWKT;
     }
 
     public Polygon getLocation() {

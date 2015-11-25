@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.contours;
 
-import gov.noaa.nws.ncep.common.log.logger.NcepLogger;
-import gov.noaa.nws.ncep.common.log.logger.NcepLoggerManager;
 import gov.noaa.nws.ncep.edex.common.dataRecords.NcFloatDataRecord;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
@@ -18,6 +16,8 @@ import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.geospatial.ReferencedObject.Type;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
@@ -65,15 +65,18 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
  *                                      request. Altered code in constructor,
  *                                      paint(),paintGlobalImage,paintImage() and paintBarb().
  *                                      Added getFilledShape()
+ * Sep 25, 2015  R12041                 Update the vgconfig.setMinimumMagnitude
+ *                                      call in the constructor
  * </pre>
  * 
  * @author bsteffen
  * @version 1.0
+ * 
  */
 public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
-    private static NcepLogger logger = NcepLoggerManager
-            .getNcepLogger(GriddedVectorDisplay.class);
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(GriddedVectorDisplay.class);
 
     private final FloatBuffer magnitude;
 
@@ -121,6 +124,10 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     private static final double barbSPDIncrease = 2.5;
 
+    /**
+     * @param NcFloatDataRecord
+     * @param DisplayType
+     */
     public GriddedVectorDisplay(NcFloatDataRecord rec, DisplayType displayType,
             boolean directional, IMapDescriptor descriptor,
             ISpatialObject gridLocation, ContourAttributes attrs) {
@@ -178,7 +185,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         String windAttr = attrs.getWind();
         if (windAttr != null && !windAttr.isEmpty()) {
 
-            // TTR 880, remove all chars except 0-9,.,/
             windAttr = windAttr.replaceAll("[^0-9./]", "");
 
             String[] attr = windAttr.trim().split("/");
@@ -204,11 +210,12 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         setSize(sizeFactor * SIZE);
         setColor(GempakColor.convertToRGB(colorIndex));
 
-        // Redmine 7058
         vgconfig = new VectorGraphicsConfig();
-        vgconfig.setSizeScaler(0.55); // use this to increase/dec barb size
+        // Change this to change wind barb size
+        vgconfig.setSizeScaler(0.55);
         vgconfig.setOffsetRatio(0.0);
-        vgconfig.setMinimumMagnitude(2.5);
+        // Needs to be zero for calm circles to plot
+        vgconfig.setMinimumMagnitude(0.0);
         vgconfig.setBarbRotationDegrees(75);
         vgconfig.setBarbRotationRadians(Math.toRadians(65));
         vgconfig.setBarbLengthRatio(0.3);
@@ -221,6 +228,10 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     }
 
+    /**
+     * @param NcgridResourceData
+     * @param IGraphicsTarget
+     */
     @Override
     public void paint(NcgridResourceData gridRscData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
@@ -230,15 +241,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         /*
-         * R5113 - Check the view extent using a 1 pixel sentinel instead of
-         * using "equals" check. "equals" checks the equality of two doubles,
-         * which is not quite reliable. This helps avoid re-creating the
-         * wireframeShape unless a "real" change in view extent happens, e.g.,
-         * simply clicking or moving mouse won't cause the shape to be
-         * re-created.
+         * Check the view extent using a 1 pixel sentinel instead of using
+         * "equals" check. "equals" checks the equality of two doubles, which is
+         * not quite reliable. This helps avoid re-creating the wireframeShape
+         * unless a "real" change in view extent happens, e.g., simply clicking
+         * or moving mouse won't cause the shape to be re-created.
          */
-        // if (lastExtent == null
-        // || !lastExtent.equals(paintProps.getView().getExtent())) {
+
         if (viewExtentChanged(lastExtent, paintProps.getView().getExtent())) {
             disposeImages();
             lastExtent = paintProps.getView().getExtent().clone();
@@ -252,7 +261,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
         target.drawWireframeShape(lastShape, color, lineWidth, lineStyle);
 
-        // Redmine 7058
         if (filledShape != null) {
             if (filledShape.isDrawable()) {
                 Map<Object, RGB> colorMap = new HashMap<Object, RGB>();
@@ -264,6 +272,12 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
     }
 
+    /**
+     * 
+     * @param NcgridResourceData
+     * @param IGraphicsTarget
+     * @param PaintProperties
+     */
     public void createWireFrame(NcgridResourceData gridRscData,
             IGraphicsTarget target, PaintProperties paintProps) {
 
@@ -292,7 +306,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
     }
 
-    // Redmine 7058
     private IColormapShadedShape getFilledShape(IGraphicsTarget target)
             throws VizException {
 
@@ -361,7 +374,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             paintArrow(plotLoc, adjSize, spd, dir);
             break;
         case BARB:
-            // Redmine 7058
             if (vgconfig.isBarbFillFiftyTriangle() && filledShape == null)
                 filledShape = getFilledShape(target);
             paintBarb(plotLoc, adjSize, spd, dir);
@@ -421,11 +433,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         double staff = adjSize * vgconfig.getSizeScaler();
         double barb = staff * vgconfig.getBarbLengthRatio();
         double add = staff * vgconfig.getBarbSpacingRatio();
-
-        // int speed = (int) (spd + 2.5);
-        // double staff = adjSize * .4;
-        // double barb = staff * 0.30;
-        // double add = staff * 0.105;
 
         if (latLon.y >= 0)
             vgconfig.setBarbRotationRadians(Math.toRadians(75));
@@ -646,6 +653,10 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         this.scale = scale;
     }
 
+    /**
+     * 
+     * @param float lineWidth
+     */
     public void setLineWidth(float lineWidth) {
         this.lineWidth = lineWidth;
     }
@@ -726,10 +737,20 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         return coord;
     }
 
+    /**
+     * @return NcFloatDataRecord
+     */
     public NcFloatDataRecord getData() {
         return data;
     }
 
+    /**
+     * 
+     * @param type
+     * @param dir
+     * @param Stri
+     * @return boolean
+     */
     public boolean checkAttrsChanged(DisplayType type, boolean dir, String attr) {
         boolean isChanged = false;
         if (this.displayType != type || this.isDirectional != dir
@@ -739,6 +760,11 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         return isChanged;
     }
 
+    /**
+     * 
+     * @param attr
+     * @return
+     */
     public boolean isMatch(ContourAttributes attr) {
         boolean match = false;
         if (this.contourAttributes == null) {
@@ -757,13 +783,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         return match;
     }
 
-    @Override
-    /*
-     * HACK hack hack ... this version of paintImage is being used for global
-     * grids. I don't think the grid <-> latlon transforms are working, so the
-     * index calculation has been modified. This is not a good solution, but was
-     * implemented due to time crunch for 13.5.2
+    /**
+     * TODO: HACK hack hack ... this version of paintImage is being used for
+     * global grids. I don't think the grid <-> latlon transforms are working,
+     * so the index calculation has been modified. This is not a good solution,
+     * but was implemented due to time crunch for 13.5.2
      */
+    @Override
     protected void paintGlobalImage(int x, int y, PaintProperties paintProps,
             double adjSize) throws VizException {
         int adjx = x - 1;
@@ -776,10 +802,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
         int idx = adjx + adjy * this.gridDims[0];
 
-        // System.out.println("paintImage idx==="+idx+" x=="+ijcoord.x+"  y====="+ijcoord.y);
-        // System.out.println("INDEX " + idx + " : " + x + "," + y + " : " +
-        // adjx
-        // + "," + adjy + " : " + gridDims[0] + "," + gridDims[1]);
         if (idx < 0 || idx >= (gridDims[0] * gridDims[1])) {
             return;
         }
@@ -801,7 +823,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         try {
             plotLoc = newrco.asPixel(this.descriptor.getGridGeometry());
             latLon = newrco.asLatLon();
-            // System.out.println("plotloc = " + latLon);
 
             if (latLon.x > 180 || latLon.x < -180 || latLon.y < -90
                     || latLon.y > 90) {
@@ -835,7 +856,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
             paintArrow(plotLoc, adjSize, spd, dir);
             break;
         case BARB:
-            // Redmine 7058
             if (vgconfig.isBarbFillFiftyTriangle() && filledShape == null)
                 filledShape = getFilledShape(target);
             paintBarb(plotLoc, adjSize, spd, dir);

@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.viz.common.ui;
 
-import gov.noaa.nws.ncep.viz.common.Activator;
-import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
-import gov.noaa.nws.ncep.viz.common.preferences.NcepPreferences;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.text.NumberFormat;
@@ -21,11 +16,10 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.ProgramArguments;
 
 /**
- * Common class for constants, utility methods ...
- *  * 
+ * Common class for constants, utility methods ... *
+ * 
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
@@ -80,278 +74,268 @@ import com.raytheon.uf.viz.core.ProgramArguments;
  * 11/10/12                 G. Hull         onlyShowResourcesWithData
  * 11/14/13       #1051     G. Hull         add pref for desk, set from command line. now gets triggered
  *                                          from spring bean.
+ * 08/06/2015     R8015     A. Su           Moved the initializer to the class StartupInitialition.
  * 
  * </pre>
  * 
- * @author 
+ * @author
  * @version 1
  */
 
 public class NmapCommon {
-	
-	// The desk is stored as a preference but is actually set from the 
-	// command line.
-	//
-	public static final String DESK_ARG = "-desk"; 
-	
-	private static IPreferenceStore ncPrefStore = Activator.getDefault().getPreferenceStore();
-	{
-		ncPrefStore.setDefault( NcepGeneralPreferencesPage.PromptOnDisplayClose, false );
-		ncPrefStore.setDefault( NcepGeneralPreferencesPage.ShowLatestResourceTimes, true );
-		ncPrefStore.setDefault( NcepGeneralPreferencesPage.OnlyShowResourcesWithData, true );
 
-		String desk = ProgramArguments.getInstance().getString( DESK_ARG ); 
+    private static IPreferenceStore ncPrefStore = StartupInitialization
+            .getNcepPreferenceStore();
 
-		if( desk != null && !desk.trim().isEmpty() ) {
-			desk = desk.trim().toUpperCase();
-			System.out.println("Setting Desk to "+ desk+" from Program Arguement.");
-		}
-		else {
-			desk = "NONE";
-		}
-
-		ncPrefStore.setDefault( NcepPreferences.DeskNamePref, desk );
-		
-		NcPathManager.getInstance().createDeskLevelLocalization(  desk );
-	}
-		    
     private final static String BaseOverlay = "GeoPolitical";
-//    private final static String DefaultMap = "BasicWX_US";
 
     // commands associated with GUI Elements that can be updated/refreshed.
     public final static String[] guiUpdateElementCommands = {
-//    	"gov.noaa.nws.ncep.viz.tools.pan",
-    	"gov.noaa.nws.ncep.viz.ui.options.SyncPanes",
-    	"com.raytheon.viz.ui.tools.looping.loop"
-    	// ? frameTool, looping
-    };
+            "gov.noaa.nws.ncep.viz.ui.options.SyncPanes",
+            "com.raytheon.viz.ui.tools.looping.loop" };
 
     public final static String NatlCntrsPerspectiveID = "gov.noaa.nws.ncep.viz.ui.NCPerspective";
 
-    private static String pgenWorkingDirectory=".";
-    
+    private static String pgenWorkingDirectory = ".";
+
     public static String getPgenWorkingDirectory() {
-		return pgenWorkingDirectory;
-	}
-
-	public static void setPgenWorkingDirectory(String pgenWorkingDirectory) {
-		NmapCommon.pgenWorkingDirectory = pgenWorkingDirectory;
-	}
-
-	public static String getBaseOverlay() {
-    	return new String( BaseOverlay );
+        return pgenWorkingDirectory;
     }
 
-    // Added this to make it more clear that this plugin's store is used for 
+    public static void setPgenWorkingDirectory(String pgenWorkingDirectory) {
+        NmapCommon.pgenWorkingDirectory = pgenWorkingDirectory;
+    }
+
+    public static String getBaseOverlay() {
+        return new String(BaseOverlay);
+    }
+
+    // Added this to make it more clear that this plugin's store is used for
     // all Ncep preferences
-    // 
-    public static IPreferenceStore getNcepPreferenceStore() {
-    	// 
-    	return ncPrefStore;
-    }
-        
-    // Only non-svn directories.
-	public static FileFilter createDirFilter() {
-		return new FileFilter() {
-			public boolean accept( File f ) {
-				return ( f.isDirectory() &&
-						 !f.getAbsolutePath().contains(".svn") ? true : false );
-			}
-		};
-	}
-
-	// filter out directories and files that don't end in one of the file extensions given.
-	public static FileFilter createFileFilter( String[] fileExts ) {
-		class FileExtFilter implements FileFilter {
-			String[] file_exts=null;
-			public FileExtFilter( String[] exts ) {
-				file_exts = exts;
-			}
-			public boolean accept( File f ) {
-				if( f.isDirectory() ) 
-					return false;
-				else if( file_exts.length == 0 )
-					return true;
-				else { 
-					for( int i=0 ; i<file_exts.length ; i++ ) {
-						if( f.getName().endsWith(file_exts[i]) ) {
-							return true;
-						}
-					}
-					return false;
-				}
-			}
-		}
-
-		return new FileExtFilter( fileExts );
-	}
-    
-    
-	public static LabelProvider createFileLabelProvider( ) {
-		return createFileLabelProvider( new String[]{} );
-	}
-
-	public static LabelProvider createFileLabelProvider( String[] fileExts ) {
-		// If the element is a directory then return the name of the directory. 
-		// If it is a file then return the filename w/o extension.
-		class FileLabelProvider extends LabelProvider {
-			String[] file_exts = null;
-			FileLabelProvider( String[] exts ) {
-				file_exts = exts;
-			}
-			
-	    	public String getText( Object element ) {
-	    		if( !(element instanceof File) )
-	    			return new String("Error: "+element.toString() );
-	    		
-	    		File f=(File)element;
-
-	    		if( !f.exists() ) { // sanity check
-	    			return new String("BadFileOrDirError");
-	    		}
-	    		if( f.isDirectory() || file_exts == null || file_exts.length == 0 ) {
-	    			return f.getName();
-	    		}
-	    		else { // if the file name ends with one of the file extentions then return minus the extension.
-	    			for( int i=0 ; i<file_exts.length ; i++ ) {
-	    				String l = f.getName(); 
-	    				if( l.endsWith( file_exts[i] ) ) {
-	    					return l.substring(0, l.length()-file_exts[i].length() );
-	    				}
-	    			}
-	    		}
-	    		return f.getName();
-	    	}
-	    }
-
-		return new FileLabelProvider( fileExts );
-    }
-    // Input is a File and the Elements are the sub-directories
-    // This is used by the RscType and RscGroup listViewers for the Rsc Bndl Defn Mngr and the Group list 
-	// on the Load Rsc Bundle window.
     //
-	public static IStructuredContentProvider createSubDirContentProvider() {
-		return createSubDirContentProvider(null);
-	}
-	
-	public static IStructuredContentProvider createSubDirContentProvider(final Comparator<File> dirSortComparator) {
-		class SubDirContentProvider implements IStructuredContentProvider {
-			public void dispose() { }
-			public void inputChanged(Viewer viewer, Object oldInput,
-					Object newInput) {
-			}
-			// the input element is a File and the elements are the sub-directories
-			public Object[] getElements(Object inputElement) {
-				File dir= (File)inputElement;
-				if( !dir.exists() ) 
-				{
-					return new File[]{}; //BadFileOrDirError
-				}else{
-					//Object[] subdirs = (Object[])dir.listFiles( NmapCommon.createDirFilter() );
-					File[] subdirs = dir.listFiles( NmapCommon.createDirFilter() );
-					
-					if( (dirSortComparator == null)) {
-						
-					    	//if no comparator is defined the default comparator for files is used
-					     	Arrays.sort( subdirs );
-					}
-					else {
-						    List<File> dirList = Arrays.asList(subdirs);
-						    Collections.sort( dirList, dirSortComparator );
-					}
-					return subdirs;
-				}
-				
-			}
-		}
-		
-		return new SubDirContentProvider();		
-		
-	}
-	public static IStructuredContentProvider createFileContentProvider( String[] exts ) {
-		return createFileContentProvider( exts, null );
-	}
+    public static IPreferenceStore getNcepPreferenceStore() {
+        //
+        return ncPrefStore;
+    }
 
-	public static IStructuredContentProvider createFileContentProvider( String[] exts, 
-														final Comparator<File> fileSortComparator ) {
-		class FileContentProvider implements IStructuredContentProvider {
-			String[] file_exts = null; 
+    // Only non-svn directories.
+    public static FileFilter createDirFilter() {
+        return new FileFilter() {
+            public boolean accept(File f) {
+                return (f.isDirectory()
+                        && !f.getAbsolutePath().contains(".svn") ? true : false);
+            }
+        };
+    }
 
-			FileContentProvider( String[] ext ) {
-				file_exts = (ext == null ? new String[]{} : ext );
-			}
-			public void dispose() { }
-			public void inputChanged(Viewer viewer, Object oldInput,
-					Object newInput) {
-				
-			}
-			public Object[] getElements(Object inputElement) {
-				File dir= (File)inputElement;
-				if( !dir.exists() ) {
-					return new File[]{}; // BadFileOrDirError
-				}
-				//Object[] files = (Object[])dir.listFiles( NmapCommon.createFileFilter( file_exts ) );
-				File[] files = dir.listFiles( NmapCommon.createFileFilter( file_exts ) );
-				
-				if( fileSortComparator == null ) {
-					Arrays.sort( files );
-				}
-				else {
-					List<File> filesList = Arrays.asList( files );
-					Collections.sort( filesList, fileSortComparator );
-				}
-				return files;
-			}
-		}
-		return new FileContentProvider( exts );
-	}
-	
-	public static String[] getGUIUpdateElementCommands() {
-		return guiUpdateElementCommands;
-	}	
-		
-	// DataTime refTime -> YYMMDD"connStr"HHMM --- connStr = '_', '/', ':' or....
-	public static String getTimeStringFromDataTime( DataTime dt, String connStr ) {
+    // filter out directories and files that don't end in one of the file
+    // extensions given.
+    public static FileFilter createFileFilter(String[] fileExts) {
+        class FileExtFilter implements FileFilter {
+            String[] file_exts = null;
+
+            public FileExtFilter(String[] exts) {
+                file_exts = exts;
+            }
+
+            public boolean accept(File f) {
+                if (f.isDirectory())
+                    return false;
+                else if (file_exts.length == 0)
+                    return true;
+                else {
+                    for (int i = 0; i < file_exts.length; i++) {
+                        if (f.getName().endsWith(file_exts[i])) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+
+        return new FileExtFilter(fileExts);
+    }
+
+    public static LabelProvider createFileLabelProvider() {
+        return createFileLabelProvider(new String[] {});
+    }
+
+    public static LabelProvider createFileLabelProvider(String[] fileExts) {
+        // If the element is a directory then return the name of the directory.
+        // If it is a file then return the filename w/o extension.
+        class FileLabelProvider extends LabelProvider {
+            String[] file_exts = null;
+
+            FileLabelProvider(String[] exts) {
+                file_exts = exts;
+            }
+
+            public String getText(Object element) {
+                if (!(element instanceof File))
+                    return new String("Error: " + element.toString());
+
+                File f = (File) element;
+
+                if (!f.exists()) { // sanity check
+                    return new String("BadFileOrDirError");
+                }
+                if (f.isDirectory() || file_exts == null
+                        || file_exts.length == 0) {
+                    return f.getName();
+                } else { // if the file name ends with one of the file
+                         // extentions then return minus the extension.
+                    for (int i = 0; i < file_exts.length; i++) {
+                        String l = f.getName();
+                        if (l.endsWith(file_exts[i])) {
+                            return l.substring(0,
+                                    l.length() - file_exts[i].length());
+                        }
+                    }
+                }
+                return f.getName();
+            }
+        }
+
+        return new FileLabelProvider(fileExts);
+    }
+
+    // Input is a File and the Elements are the sub-directories
+    // This is used by the RscType and RscGroup listViewers for the Rsc Bndl
+    // Defn Mngr and the Group list
+    // on the Load Rsc Bundle window.
+    //
+    public static IStructuredContentProvider createSubDirContentProvider() {
+        return createSubDirContentProvider(null);
+    }
+
+    public static IStructuredContentProvider createSubDirContentProvider(
+            final Comparator<File> dirSortComparator) {
+        class SubDirContentProvider implements IStructuredContentProvider {
+            public void dispose() {
+            }
+
+            public void inputChanged(Viewer viewer, Object oldInput,
+                    Object newInput) {
+            }
+
+            // the input element is a File and the elements are the
+            // sub-directories
+            public Object[] getElements(Object inputElement) {
+                File dir = (File) inputElement;
+                if (!dir.exists()) {
+                    return new File[] {}; // BadFileOrDirError
+                } else {
+                    File[] subdirs = dir
+                            .listFiles(NmapCommon.createDirFilter());
+
+                    if ((dirSortComparator == null)) {
+
+                        // if no comparator is defined the default comparator
+                        // for files is used
+                        Arrays.sort(subdirs);
+                    } else {
+                        List<File> dirList = Arrays.asList(subdirs);
+                        Collections.sort(dirList, dirSortComparator);
+                    }
+                    return subdirs;
+                }
+
+            }
+        }
+
+        return new SubDirContentProvider();
+
+    }
+
+    public static IStructuredContentProvider createFileContentProvider(
+            String[] exts) {
+        return createFileContentProvider(exts, null);
+    }
+
+    public static IStructuredContentProvider createFileContentProvider(
+            String[] exts, final Comparator<File> fileSortComparator) {
+        class FileContentProvider implements IStructuredContentProvider {
+            String[] file_exts = null;
+
+            FileContentProvider(String[] ext) {
+                file_exts = (ext == null ? new String[] {} : ext);
+            }
+
+            public void dispose() {
+            }
+
+            public void inputChanged(Viewer viewer, Object oldInput,
+                    Object newInput) {
+
+            }
+
+            public Object[] getElements(Object inputElement) {
+                File dir = (File) inputElement;
+                if (!dir.exists()) {
+                    return new File[] {}; // BadFileOrDirError
+                }
+                File[] files = dir.listFiles(NmapCommon
+                        .createFileFilter(file_exts));
+
+                if (fileSortComparator == null) {
+                    Arrays.sort(files);
+                } else {
+                    List<File> filesList = Arrays.asList(files);
+                    Collections.sort(filesList, fileSortComparator);
+                }
+                return files;
+            }
+        }
+        return new FileContentProvider(exts);
+    }
+
+    public static String[] getGUIUpdateElementCommands() {
+        return guiUpdateElementCommands;
+    }
+
+    // DataTime refTime -> YYMMDD"connStr"HHMM --- connStr = '_', '/', ':'
+    // or....
+    public static String getTimeStringFromDataTime(DataTime dt, String connStr) {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumIntegerDigits(2);
         nf.setMinimumFractionDigits(0);
         nf.setMaximumFractionDigits(2);
         nf.setMaximumIntegerDigits(2);
 
-        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone("GMT") );
-        cal.setTime( dt.getRefTime() );
-        int yy = cal.get(Calendar.YEAR)%100;
-        String yyStr = nf.format( yy );
-        String mon = nf.format( cal.get(Calendar.MONTH)+1 );
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.setTime(dt.getRefTime());
+        int yy = cal.get(Calendar.YEAR) % 100;
+        String yyStr = nf.format(yy);
+        String mon = nf.format(cal.get(Calendar.MONTH) + 1);
         String dd = nf.format(cal.get(Calendar.DAY_OF_MONTH));
         String hh = nf.format(cal.get(Calendar.HOUR_OF_DAY));
         String min = nf.format(cal.get(Calendar.MINUTE));
 
-		return String.format("%s%s%s%s%s%s", yyStr, mon, dd, connStr, hh, min);
-	}
-	
-	// YYMMDD/HHMM -> DataTime
-	public static DataTime parseDataTimeFromCycleTimeString( String cycTimeStr ) {
-		if( cycTimeStr == null || cycTimeStr.isEmpty() ) {
-			return null;
-		}
-		else if( cycTimeStr.length() != 2+2+2+1+2+2 ) {
-			System.out.println("Can't parse cycle time:"+cycTimeStr );
-			return null;
-		}
-		
-		int yy = Integer.parseInt( cycTimeStr.substring(0,2) );
-		yy = ( yy > 60 ? 1900 + yy : 2000 + yy );
-		int mon = Integer.parseInt( cycTimeStr.substring(2,4))-1;
-		int dd  = Integer.parseInt( cycTimeStr.substring(4, 6));
-		int hh  = Integer.parseInt( cycTimeStr.substring(7, 9));
-		int min = Integer.parseInt( cycTimeStr.substring(9,11));
+        return String.format("%s%s%s%s%s%s", yyStr, mon, dd, connStr, hh, min);
+    }
 
-        Calendar cal = Calendar.getInstance( TimeZone.getTimeZone("GMT") );
-        
-        cal.set( yy, mon, dd, hh, min, 0 );
-        cal.set( Calendar.MILLISECOND, 0 );
-        
-        return new DataTime( cal );
-	}	
+    // YYMMDD/HHMM -> DataTime
+    public static DataTime parseDataTimeFromCycleTimeString(String cycTimeStr) {
+        if (cycTimeStr == null || cycTimeStr.isEmpty()) {
+            return null;
+        } else if (cycTimeStr.length() != 2 + 2 + 2 + 1 + 2 + 2) {
+            System.out.println("Can't parse cycle time:" + cycTimeStr);
+            return null;
+        }
+
+        int yy = Integer.parseInt(cycTimeStr.substring(0, 2));
+        yy = (yy > 60 ? 1900 + yy : 2000 + yy);
+        int mon = Integer.parseInt(cycTimeStr.substring(2, 4)) - 1;
+        int dd = Integer.parseInt(cycTimeStr.substring(4, 6));
+        int hh = Integer.parseInt(cycTimeStr.substring(7, 9));
+        int min = Integer.parseInt(cycTimeStr.substring(9, 11));
+
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+        cal.set(yy, mon, dd, hh, min, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        return new DataTime(cal);
+    }
 }

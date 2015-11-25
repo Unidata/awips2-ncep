@@ -5,11 +5,11 @@
 // Generated on: 2009.05.14 at 10:35:29 AM EDT 
 //
 
-
 package gov.noaa.nws.ncep.ui.pgen.file;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,11 +17,22 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+/**
+ * <pre>
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 08/15        R8188      J. Lopez    Changed rotation of Hash Mark to match legacy  
+ * </pre>
+ */
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -48,33 +59,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "color",
-    "point"
-})
+@XmlType(name = "", propOrder = { "color", "point" })
 @XmlRootElement(name = "Vector")
 public class Vector {
 
     @XmlElement(name = "Color", required = true)
     protected List<Color> color;
+
     @XmlElement(name = "Point", required = true)
     protected Point point;
+
     @XmlAttribute
     protected Boolean clear;
+
     @XmlAttribute
     protected Double sizeScale;
+
     @XmlAttribute
     protected Float lineWidth;
+
     @XmlAttribute
     protected Boolean directionOnly;
+
     @XmlAttribute
     protected Double arrowHeadSize;
+
     @XmlAttribute
     protected Double speed;
+
     @XmlAttribute
     protected Double direction;
+
     @XmlAttribute
     protected String pgenType;
+
     @XmlAttribute
     protected String pgenCategory;
 
@@ -82,21 +100,21 @@ public class Vector {
      * Gets the value of the color property.
      * 
      * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the color property.
+     * This accessor method returns a reference to the live list, not a
+     * snapshot. Therefore any modification you make to the returned list will
+     * be present inside the JAXB object. This is why there is not a
+     * <CODE>set</CODE> method for the color property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
+     * 
      * <pre>
-     *    getColor().add(newItem);
+     * getColor().add(newItem);
      * </pre>
      * 
      * 
      * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Color }
+     * Objects of the following type(s) are allowed in the list {@link Color }
      * 
      * 
      */
@@ -110,10 +128,8 @@ public class Vector {
     /**
      * Gets the value of the point property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Point }
-     *     
+     * @return possible object is {@link Point }
+     * 
      */
     public Point getPoint() {
         return point;
@@ -123,9 +139,8 @@ public class Vector {
      * Sets the value of the point property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Point }
-     *     
+     *            allowed object is {@link Point }
+     * 
      */
     public void setPoint(Point value) {
         this.point = value;
@@ -134,10 +149,8 @@ public class Vector {
     /**
      * Gets the value of the clear property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isClear() {
         return clear;
@@ -147,9 +160,8 @@ public class Vector {
      * Sets the value of the clear property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setClear(Boolean value) {
         this.clear = value;
@@ -158,10 +170,8 @@ public class Vector {
     /**
      * Gets the value of the sizeScale property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getSizeScale() {
         return sizeScale;
@@ -171,9 +181,8 @@ public class Vector {
      * Sets the value of the sizeScale property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setSizeScale(Double value) {
         this.sizeScale = value;
@@ -182,10 +191,8 @@ public class Vector {
     /**
      * Gets the value of the lineWidth property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Float }
-     *     
+     * @return possible object is {@link Float }
+     * 
      */
     public Float getLineWidth() {
         return lineWidth;
@@ -195,9 +202,8 @@ public class Vector {
      * Sets the value of the lineWidth property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Float }
-     *     
+     *            allowed object is {@link Float }
+     * 
      */
     public void setLineWidth(Float value) {
         this.lineWidth = value;
@@ -206,10 +212,8 @@ public class Vector {
     /**
      * Gets the value of the directionOnly property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     * @return possible object is {@link Boolean }
+     * 
      */
     public Boolean isDirectionOnly() {
         return directionOnly;
@@ -219,9 +223,8 @@ public class Vector {
      * Sets the value of the directionOnly property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *            allowed object is {@link Boolean }
+     * 
      */
     public void setDirectionOnly(Boolean value) {
         this.directionOnly = value;
@@ -230,10 +233,8 @@ public class Vector {
     /**
      * Gets the value of the arrowHeadSize property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getArrowHeadSize() {
         return arrowHeadSize;
@@ -243,9 +244,8 @@ public class Vector {
      * Sets the value of the arrowHeadSize property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setArrowHeadSize(Double value) {
         this.arrowHeadSize = value;
@@ -254,10 +254,8 @@ public class Vector {
     /**
      * Gets the value of the speed property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getSpeed() {
         return speed;
@@ -267,9 +265,8 @@ public class Vector {
      * Sets the value of the speed property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setSpeed(Double value) {
         this.speed = value;
@@ -278,10 +275,8 @@ public class Vector {
     /**
      * Gets the value of the direction property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     * @return possible object is {@link Double }
+     * 
      */
     public Double getDirection() {
         return direction;
@@ -291,21 +286,24 @@ public class Vector {
      * Sets the value of the direction property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *            allowed object is {@link Double }
+     * 
      */
     public void setDirection(Double value) {
-        this.direction = value;
+
+        // rotates the hash mark clockwise to match legacy
+        if (pgenType.equalsIgnoreCase("Hash")) {
+            this.direction = 360 - value;
+        } else {
+            this.direction = value;
+        }
     }
 
     /**
      * Gets the value of the pgenType property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenType() {
         return pgenType;
@@ -315,9 +313,8 @@ public class Vector {
      * Sets the value of the pgenType property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenType(String value) {
         this.pgenType = value;
@@ -326,10 +323,8 @@ public class Vector {
     /**
      * Gets the value of the pgenCategory property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
+     * 
      */
     public String getPgenCategory() {
         return pgenCategory;
@@ -339,13 +334,11 @@ public class Vector {
      * Sets the value of the pgenCategory property.
      * 
      * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *            allowed object is {@link String }
+     * 
      */
     public void setPgenCategory(String value) {
         this.pgenCategory = value;
     }
 
 }
-

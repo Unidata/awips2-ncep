@@ -27,6 +27,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._lplvalues;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._parcel;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.HashMap;
 
@@ -46,7 +47,6 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.sun.jna.ptr.FloatByReference;
 
 public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
@@ -200,7 +200,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
     		target.drawWireframeShape(srWindMRscShape, NsharpConstants.color_magenta, commonLinewidth, LineStyle.SOLID,font10);
     		target.clearClippingPlane();
     		//plot storm slinky - currently always on page 1 and page 2
-    		WGraphics plotWorld =  stormSlinkyBackground.getWorld();
+    		NsharpWGraphics plotWorld =  stormSlinkyBackground.getWorld();
     		plotNsharpStormSlinky(target, currentZoomLevel, plotWorld, stormSlinkyBackground.getRectangle());
     		currentInsetPage = rscHandler.getCurrentInsetPage();
     		if(currentInsetPage == 1){
@@ -215,7 +215,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
     			// Chin: Note: 
     			// To fix an initial watch type not correct issue: TTR6191.
     			// always create it when painting.
-    			WGraphics WGc = psblWatchTypeBackground.getWorld();
+    			NsharpWGraphics WGc = psblWatchTypeBackground.getWorld();
     			createBkgPsblWatchShape(WGc); 
     			extent = new PixelExtent(psblWatchTypeBackground.getRectangle());
     			target.setupClippingPlane(extent);
@@ -299,7 +299,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
 		disposeInsetWireFrameShapes();
 		if(soundingLys != null && rscHandler.isGoodData()){ //#5929
 
-			WGraphics WGc=  thetaEPresureBackground.getWorld();		
+			NsharpWGraphics WGc=  thetaEPresureBackground.getWorld();		
 			createRscThetaEPressureShape(WGc);
 			WGc=  thetaEHeightBackground.getWorld();		
 			createRscThetaEHeightShape(WGc);
@@ -309,7 +309,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
 	}
 	/*
 	private void plotPsblWatchShape(IGraphicsTarget target, double zoomLevel,
-            WGraphics world, Rectangle rect) throws VizException {
+            NsharpWGraphics world, Rectangle rect) throws VizException {
 		String wwtypeStr;
 		
     	double dispX, dispY;
@@ -408,7 +408,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
 		return wwtypeStr;
 	}
 
-	public void createBkgPsblWatchShape(WGraphics world){
+	public void createBkgPsblWatchShape(NsharpWGraphics world){
 		String wwtypeStr;
 		
     	double dispX, dispY;
@@ -434,7 +434,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
 		psblWatchTypeBkgShape.addLineSegment(lines);
 		psblWatchTypeBkgShape.compile();
 	}
-	public void createRscSrWindShape(WGraphics world){
+	public void createRscSrWindShape(NsharpWGraphics world){
     	/*
     	 * Chin:: NOTE:::
     	 *
@@ -626,7 +626,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
        
 	}
 
-	private void createRscThetaEHeightShape(WGraphics world){
+	private void createRscThetaEHeightShape(NsharpWGraphics world){
     	/*
     	 * Chin:: NOTE:::
     	 * This plotting function is based on the algorithm of plot_thetae() at xwvid5.c of native nsharp source code
@@ -759,7 +759,7 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
         thetaEHeightRRscShape.compile();
  
 	}
-	private void createRscThetaEPressureShape(WGraphics world){
+	private void createRscThetaEPressureShape(NsharpWGraphics world){
 		/*
     	 * Chin:: NOTE:::
     	 * This plotting function is based on the algorithm of plot_thetae() at xwvid5.c of native nsharp source code
@@ -906,9 +906,8 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
         thetaEPressureWRscShape.compile();
         thetaEPressureRRscShape.compile();
     }
-    @SuppressWarnings("deprecation")
-	private void plotNsharpStormSlinky(IGraphicsTarget target, double zoomLevel,
-            WGraphics world, Rectangle rect) throws VizException {
+    private void plotNsharpStormSlinky(IGraphicsTarget target, double zoomLevel,
+            NsharpWGraphics world, Rectangle rect) throws VizException {
     	/*
     	 * Chin:: NOTE:::
     	 *
@@ -994,9 +993,8 @@ public class NsharpInsetPaneResource extends NsharpAbstractPaneResource{
                 VerticalAlignment.BOTTOM, null);
      }
     
-    @SuppressWarnings("deprecation")
-	private void plotNsharpSRWindVectors(IGraphicsTarget target, double zoomLevel,
-            WGraphics world, Rectangle rect) throws VizException {
+    private void plotNsharpSRWindVectors(IGraphicsTarget target, double zoomLevel,
+            NsharpWGraphics world, Rectangle rect) throws VizException {
     	/*
     	 * Chin:: NOTE:::
     	 *

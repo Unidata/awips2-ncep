@@ -15,6 +15,9 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  * 11/15/2010	TBD			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
+ * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * 07/08/2015   RM#9172     Chin Chen   Fixed problem caused by Raytheon's change lat/lon data type from double to 
+ *                                      float in SurfaceObsLocation class at 14.4.1
  * </pre>
  * 
  * @author Chin Chen
@@ -41,10 +44,10 @@ public class NcSoundingStnInfo {
     private float stationElevation;
     @DynamicSerializeElement
     //private float	stationLatitude;
-    private double	stationLatitude;
+    private float	stationLatitude;
     @DynamicSerializeElement
     //private float	stationLongitude;
-    private double	stationLongitude;
+    private float	stationLongitude;
     @DynamicSerializeElement
     private String stnId;
     @DynamicSerializeElement
@@ -68,16 +71,16 @@ public class NcSoundingStnInfo {
 	public void setStationElevation(float stationElevation) {
 		this.stationElevation = stationElevation;
 	}
-	public double getStationLatitude() {
+	public float getStationLatitude() {
 		return stationLatitude;
 	}
-	public void setStationLatitude(double stationLatitude) {
+	public void setStationLatitude(float stationLatitude) {
 		this.stationLatitude = stationLatitude;
 	}
-	public double getStationLongitude() {
+	public float getStationLongitude() {
 		return stationLongitude;
 	}
-	public void setStationLongitude(double stationLongitude) {
+	public void setStationLongitude(float stationLongitude) {
 		this.stationLongitude = stationLongitude;
 	}
 	public String getStnId() {

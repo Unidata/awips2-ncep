@@ -227,6 +227,11 @@
       <command
           id="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
           name="Manage Product Store">
+          <commandParameter
+               id="action"
+               name="action"
+               optional="false">
+          </commandParameter>                             
       </command>
       <command
           id="gov.noaa.nws.ncep.ui.pgen.productRetrieveManage"
@@ -577,49 +582,22 @@
             class="gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow"
             id="gov.noaa.nws.ncep.ui.PGEN"
             name="PGEN"/>
-           <!--stickyView
-                 closeable="true"
-                 id="gov.noaa.nws.ncep.ui.PGEN"
-                 location="RIGHT"
-                 moveable="true">
-           </stickyView-->
+        
    </extension>
    
-   <extension
+    <extension
        point="org.eclipse.ui.menus">
        <menuContribution locationURI="menu:tools?after=lapsTools">
-			<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-				label="PGEN">
-				<visibleWhen>
-					<reference
-						definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-					</reference>						
-				</visibleWhen>
-			</command>
-		</menuContribution>
- <!--menuContribution
-			locationURI="toolbar:org.eclipse.ui.main.toolbar?after=plugins">
-			<toolbar
-				id="plugins">
-				<command
-				commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-					label="PGEN">
-					<visibleWhen>
-					    <and>
-							<reference
-								definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-							</reference>
-							<test
-	        					args="WFO"
-	        					forcePluginActivation="true"
-	        					property="com.raytheon.viz.warngen.site.SiteMode">
-	                      	</test>
-                       </and>
-					</visibleWhen>
-				</command>
-			</toolbar>
-		</menuContribution-->      
+            <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
+                label="PGEN">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>                        
+                </visibleWhen>
+            </command>
+        </menuContribution>
        
        <menuContribution
            locationURI="toolbar:gov.noaa.nws.ncep.ui.PGEN">
@@ -631,13 +609,30 @@
                   id="gov.noaa.nws.ncep.ui.pgen.PGEN.activityLaunch">
            </command>
                              
-           <!--command
-                commandId="gov.noaa.nws.ncep.ui.pgen.activityConfigure"
-                label="Configure"
-                mnemonic="C"
-                style="push">
-           </command-->
+     
 
+           <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
+                label="Help"
+                mnemonic="H"
+                style="push">
+           </command> 
+                                     
+       </menuContribution>               
+   </extension> 
+   
+   <extension
+       point="org.eclipse.ui.menus">
+       <menuContribution
+           locationURI="toolbar:gov.noaa.nws.ncep.ui.PGEN">
+           <command
+                  commandId="gov.noaa.nws.ncep.ui.pgen.activityManage"
+                  label="Start"
+                  mnemonic="S"
+                  style="push"
+                  id="gov.noaa.nws.ncep.ui.pgen.PGEN.activityLaunch">
+           </command>
+                             
            <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.PgenHelp"
                 label="Help"
@@ -700,13 +695,6 @@
              label="Start Layer"
              commandId="gov.noaa.nws.ncep.ui.pgen.layering"
              icon="icons/layer.gif" />
- <!--
-         <control
-             name="Open Prod"
-             label="Open Prod"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/openprod.gif" />
-   -->
          <control
              name="Save All"
              label="SAVE All Products to EDEX"
@@ -751,6 +739,21 @@
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeleteElement"
              actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteElementHandler"
              icon="icons/delete.gif" />
+             
+         <action
+             name="Delete Label"
+             label="Delete Label"
+             alwaysVisible="false"
+             commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteLabel"
+             actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenDeleteLabelHandler"
+             icon="" />    
+         <action
+             name="Add Label"
+             label="Add Label"
+             alwaysVisible="false"
+             commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenAddSymbolLabel"
+             actionHandlerClass="gov.noaa.nws.ncep.ui.pgen.tools.PgenAddSymbolLabelHandler"
+             icon=""/>      
          <action
              name="Copy"
              label="copy Object"
@@ -869,6 +872,7 @@
              name="Symbol"
              label="Symbol"    
              actions="Delete"
+             actionsxtra="Delete Label,Add Label"
              icon="icons/symbol.gif" />
          <class
              name="Any"
@@ -878,12 +882,6 @@
              name="Track"
              label="Track"
              icon="icons/track.gif" />
- <!--
-         <class
-             name="Prod"
-             label="Prod"
-             icon="icons/prod.gif" />
- -->
          <class
              name="Text"
              label="Text"
@@ -910,14 +908,7 @@
              name="Marker"
              label="Marker"
              icon="icons/marker.gif" />
-  <!--
-         <class
-             name="List"
-             label="List"
-             icon="icons/list.gif" />
-   -->
-   
-         <class
+          <class
              name="MET"
              label="MET"
              icon="icons/met.gif" />
@@ -2986,24 +2977,6 @@
              className="Text"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAvnTextDraw"
              icon="icons/avntext.png" />  
-          <!--object
-             name="Freezing Level Text"
-             label="Freezing Level Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/textfrzlvl.gif" />  
-          <object
-             name="Cloud Text"
-             label="Cloud Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/textcloud.gif" />  
-          <object
-             name="Icing Text"
-             label="Icing Text"
-             className="Text"
-             commandId="com.raytheon.viz.ui.actions.notImplemented"
-             icon="icons/texticng.gif" /-->  
           <object
              name="MID_LEVEL_CLOUD"
              label="Mid Level Cloud Text"
@@ -3181,6 +3154,12 @@
                     id="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                     name="Natl Centers PGEN Context">
            </context>
+           <!-- A context for PGEN contours hotkeys -->
+           <context 
+                    description="The Natl Centers Product Genaration Context"
+                    id="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
+                    name="Natl Centers PGEN Context">
+           </context>
    </extension>
    
    <extension
@@ -3193,7 +3172,7 @@
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
-                sequence="M1+U">
+                sequence="M1+Z">
                 <parameter  id="action" value="Undo" />
          </key>         
 
@@ -3201,7 +3180,7 @@
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
-                sequence="M1+R">
+                sequence="M1+Y">
                 <parameter  id="action" value="Redo" />
          </key>  
          <!-- Hot keys to activate layers 1-10-->
@@ -3385,17 +3364,27 @@
                 sequence="M1+A">
                 <parameter  id="action" value="SELECTALL" />
          </key> 
-         <!-- Hot keys to move contour level up/down -->       
+          
+         <!-- Hot key to save PGEN elements -->       
+         <key
+                commandId="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                schemeId="com.raytheon.viz.ui.awips.scheme"
+                sequence="M1+S">
+                <parameter  id="action" value="Save" />
+         </key>         
+          
+         <!-- Hot keys to move contour level up/down within pgenContoursContext -->       
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
-                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
                 sequence="ARROW_UP">
                 <parameter  id="action" value="ARROW_UP" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
-                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
+                contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
                 schemeId="com.raytheon.viz.ui.awips.scheme"
                 sequence="ARROW_DOWN">
                 <parameter  id="action" value="ARROW_DOWN" />
@@ -3424,14 +3413,4 @@
              </contextId>
          </classContext>
    </extension>
-  <extension point="org.eclipse.ui.perspectiveExtensions">
-  <perspectiveExtension 
-	targetID="com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane">
-    	<view id="gov.noaa.nws.ncep.ui.PGEN"
-    		relative="org.eclipse.ui.editorss" 
-    		relationship="right"
-    		ratio="0.8"
-    		visible="false"/>
-  </perspectiveExtension> 
-</extension>
 </plugin>

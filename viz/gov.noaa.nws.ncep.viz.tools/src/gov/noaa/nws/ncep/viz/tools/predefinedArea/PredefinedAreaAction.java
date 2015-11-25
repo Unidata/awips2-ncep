@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.tools.predefinedArea;
 
-import java.util.Iterator;
-
 import gov.noaa.nws.ncep.viz.common.area.AreaName;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IGridGeometryProvider;
@@ -10,28 +8,18 @@ import gov.noaa.nws.ncep.viz.common.area.PredefinedArea;
 import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapRenderableDisplay;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
+
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.globals.VizGlobalsManager;
-import com.raytheon.uf.viz.core.rsc.ResourceList;
-import com.raytheon.viz.core.CorePlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
@@ -61,7 +49,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * Dec 12  2012    #630     G. Hull      replace ZoomUtil.allowZoom with refreshGUIelements
  * Feb 12  2012    #972     G. Hull      change to INatlCntrsRenderableDisplay
  * May 15  2013    #862     G. Hull      replace code to get areas from displays or resources with call to 
- *                                       new NcAreaProviderMngr.createGeomProvider() with areaSource & name 
+ *                                       new NcAreaProviderMngr.createGeomProvider() with areaSource & name
+ * Jul 15  2015    #R8899   J. Lopez     Disables the zoom if it is specified in the XML file
  * 
  * </pre>
  * 
@@ -77,54 +66,56 @@ public class PredefinedAreaAction extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         AreaName areaName = null;
-        
+
         try {
-        	try {
-        		areaName = new AreaName( 
-        				AreaSource.getAreaSource( event.getParameter("areaSource") ),
-        										  event.getParameter("areaName") );
-        	} catch (Exception e) {
-        		throw new VizException("areaName or areaSource parameter not recognized");
-        	}
+            try {
+                areaName = new AreaName(AreaSource.getAreaSource(event
+                        .getParameter("areaSource")),
+                        event.getParameter("areaName"));
+            } catch (Exception e) {
+                throw new VizException(
+                        "areaName or areaSource parameter not recognized");
+            }
 
-        	AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
-        	NcDisplayType dt = NcEditorUtil.getNcDisplayType( editor );
-        	if( dt != NcDisplayType.NMAP_DISPLAY ) {
-        		return null;
-        	}
+            AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
+            NcDisplayType dt = NcEditorUtil.getNcDisplayType(editor);
+            if (dt != NcDisplayType.NMAP_DISPLAY) {
+                return null;
+            }
 
-        	IGridGeometryProvider geomProv = 
-        				NcAreaProviderMngr.createGeomProvider( areaName );
+            IGridGeometryProvider geomProv = NcAreaProviderMngr
+                    .createGeomProvider(areaName);
 
-        	if( geomProv == null ) { 
-            	throw new VizException("Unable to create area for,"+areaName.toString() );
-        	}
-        		
-        	PredefinedArea pArea = PredefinedAreaFactory.createPredefinedArea( geomProv );
+            if (geomProv == null) {
+                throw new VizException("Unable to create area for,"
+                        + areaName.toString());
+            }
 
-        	// get the panes to set the area in.
-        	IDisplayPane[] displayPanes = (IDisplayPane[])
-        			(NcEditorUtil.arePanesGeoSynced(editor) ? editor.getDisplayPanes() : 
-        					NcEditorUtil.getSelectedPanes(editor));
+            PredefinedArea pArea = PredefinedAreaFactory
+                    .createPredefinedArea(geomProv);
 
-        	for( IDisplayPane pane : displayPanes ) {
+            // get the panes to set the area in.
+            IDisplayPane[] displayPanes = (IDisplayPane[]) (NcEditorUtil
+                    .arePanesGeoSynced(editor) ? editor.getDisplayPanes()
+                    : NcEditorUtil.getSelectedPanes(editor));
 
-        		setPredefinedArea( pane, pArea );
-        	}
+            for (IDisplayPane pane : displayPanes) {
 
-        	NcEditorUtil.refreshGUIElements(editor);
+                setPredefinedArea(pane, pArea);
+            }
 
-        	VizGlobalsManager.getCurrentInstance().updateUI(editor);
+            NcEditorUtil.refreshGUIElements(editor);
 
-        	editor.refresh();
+            VizGlobalsManager.getCurrentInstance().updateUI(editor);
 
-        } 
-        catch (VizException e) {        	
-        	MessageDialog errDlg = new MessageDialog( 
-        			NcDisplayMngr.getCaveShell(), "Error", null, 
-        			"Error Changing Area:\n\n"+e.getMessage(),
-        			MessageDialog.ERROR, new String[]{"OK"}, 0);
-        	errDlg.open();
+            editor.refresh();
+
+        } catch (VizException e) {
+            MessageDialog errDlg = new MessageDialog(
+                    NcDisplayMngr.getCaveShell(), "Error", null,
+                    "Error Changing Area:\n\n" + e.getMessage(),
+                    MessageDialog.ERROR, new String[] { "OK" }, 0);
+            errDlg.open();
         }
 
         return null;
@@ -132,27 +123,29 @@ public class PredefinedAreaAction extends AbstractHandler {
 
     /**
      * @param areaName
-     * @throws VizException 
+     * @throws VizException
      */
-    public static void setPredefinedArea( IDisplayPane pane,
-    									  PredefinedArea pArea ) throws VizException {
+    public static void setPredefinedArea(IDisplayPane pane, PredefinedArea pArea)
+            throws VizException {
 
-    	INatlCntrsRenderableDisplay existingDisplay = 
-    		(INatlCntrsRenderableDisplay) pane.getRenderableDisplay();
+        INatlCntrsRenderableDisplay existingDisplay = (INatlCntrsRenderableDisplay) pane
+                .getRenderableDisplay();
 
-    	// Note: setGridGeometry does an implicit reproject of all
-    	// resources
-    	// on the descriptor, so don't need to do this explicitly
-    	existingDisplay.setInitialArea( pArea );
-    	
-    	pane.setZoomLevel( existingDisplay.getZoomLevel() );
- 
-    	pane.scaleToClientArea();
-    	existingDisplay.recenter( existingDisplay.getMapCenter() );
-    	
-    	existingDisplay.getView().zoom( 
-    			existingDisplay.getZoomLevel() );
+        boolean zoomDisable = pArea.getZoomDisable();
 
-    	((INatlCntrsDescriptor)existingDisplay.getDescriptor()).setSuspendZoom(false);
+        // Note: setGridGeometry does an implicit reproject of all
+        // resources
+        // on the descriptor, so don't need to do this explicitly
+        existingDisplay.setInitialArea(pArea);
+
+        pane.setZoomLevel(existingDisplay.getZoomLevel());
+
+        pane.scaleToClientArea();
+        existingDisplay.recenter(existingDisplay.getMapCenter());
+
+        existingDisplay.getView().zoom(existingDisplay.getZoomLevel());
+
+        ((INatlCntrsDescriptor) existingDisplay.getDescriptor())
+                .setSuspendZoom(zoomDisable);
     }
 }

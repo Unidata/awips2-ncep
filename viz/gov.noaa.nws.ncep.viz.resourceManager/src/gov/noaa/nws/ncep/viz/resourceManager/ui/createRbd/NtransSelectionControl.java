@@ -14,6 +14,7 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,15 +53,21 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 07/23/2014                B. Hebbard  Fork off NTRANS-specific code from ResourceSelectionControl
- * 08/26/2014                B. Hebbard  Adjust metafile column comparator to put latest data at top
- * 09/15/2014                B. Hebbard  At CPC request, persist model selected across dialog close/open 
- *                                       even if resource not preselected (from existing RBD contents).
- *                                       (This now differs from non-NTRANS behavior.)
- * 09/15/2014                B. Hebbard  Remove bogus "km" from product group name if it appears (per CPC)
- * 
+ * Date         Ticket#     Engineer     Description
+ * ------------ ----------  -----------  --------------------------
+ * 07/23/2014                B. Hebbard   Fork off NTRANS-specific code from ResourceSelectionControl
+ * 08/26/2014                B. Hebbard   Adjust metafile column comparator to put latest data at top
+ * 09/15/2014                B. Hebbard   At CPC request, persist model selected across dialog close/open 
+ *                                        even if resource not preselected (from existing RBD contents).
+ *                                        (This now differs from non-NTRANS behavior.)
+ * 09/15/2014                B. Hebbard   Remove bogus "km" from product group name if it appears (per CPC)
+ * 05/20/2015                P. Chowdhuri #R8048 "Select New Resource" dialog should remember last selection
+ *                                        for NMAP
+ * 06/08/2015                P. Chowdhuri #R8048 "Select New Resource" dialog should remember last selection
+ *                                        for NTRANS
+ * 06/11/2015                P. Chowdhuri #R8048 "Select New Resource" dialog should remember last selection
+ *                                        for NTRANS/NMAP Code Review
+ *
  * </pre>
  * 
  * @author bhebbard
@@ -68,53 +75,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 public class NtransSelectionControl extends ResourceSelectionControl {
 
-    // protected ResourceDefnsMngr rscDefnsMngr;
-
-    // protected Combo filterCombo = null;
-
-    // protected ResourceName seldResourceName = null;
-
-    // protected String seldFilterStr = "";
-
-    // protected static ResourceCategory prevSeldCat =
-    // ResourceCategory.NullCategory;
-
     protected static String prevSelectedModel; // needed ??
-
-    // a map to store the previous selections for each category.
-    // protected static HashMap<ResourceCategory, ResourceName>
-    // prevCatSeldRscNames;
 
     // a map to store the previous selections for each type (model)y.
     protected static HashMap<String, ResourceName> prevModelSelectedRscNames;
-
-    // this list must stay in sync with the cycleTimeCombo.
-    // protected ArrayList<DataTime> cycleTimes = new ArrayList<DataTime>();
-
-    // protected Composite sel_rsc_comp = null;
-
-    // protected Text seldRscNameTxt = null;
-
-    // protected Label availDataTimeLbl = null;
-
-    // protected Label cycleTimeLbl = null;
-
-    // protected Combo cycleTimeCombo = null;
-
-    // For now only one of these will be visible but we may want to allow both
-    // later
-    // (and remove the Modify button from the Create RBD tab)
-    // protected Button addResourceBtn = null;
-
-    // protected Button replaceResourceBtn = null;
-
-    // protected Boolean replaceBtnVisible;
-
-    // protected Boolean replaceBtnEnabled;
-
-    // protected Button addToAllPanesBtn = null;
-
-    // protected Label rscTypeLbl = null;
 
     protected Label rscGroupLbl = null;
 
@@ -122,13 +86,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
     protected Label productLbl = null;
 
-    // protected ListViewer rscCatLViewer = null;
-
-    protected ResourceCategory resourceCategory;
-
-    // protected ListViewer rscTypeLViewer = null;
-
-    // protected ListViewer rscGroupLViewer = null;
+    // #R8048 "Select New Resource" dialog should remember last selection
+    private ResourceCategory resourceCategory = ResourceCategory.NtransRscCategory;
 
     protected ListViewer metafileLViewer; // = null; // this makes it fail.
                                           // why??
@@ -138,33 +97,11 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     protected Map<String, ArrayList<String>> metafileToProductsMap = null;
 
     protected String selectedMetafile = ""; // or null?
+    
+    protected String prevSeldMetafile = ""; // or null?
 
-    // protected ListViewer rscAttrSetLViewer = null;
-
-    // protected final static int rscListViewerHeight = 220;
-
-    // protected static Rectangle prevShellBounds = new Rectangle(0, 0, 800,
-    // 460);
-
-    // protected Boolean showLatestTimes = false;
-
-    // protected Boolean onlyShowResourcesWithData = false;
-
-    // protected Integer maxLengthOfSelectableAttrSets = 0; // used in
-    // justifying
-    // the
-    // times in the
-    // attrSetsList
-
-    // public interface IResourceSelectedListener {
-    // public void resourceSelected(ResourceName rscName, boolean replace,
-    // boolean addAllPanes, boolean done);
-    // }
-
-    // protected Set<IResourceSelectedListener> rscSelListeners = new
-    // HashSet<IResourceSelectedListener>();
-
-    // protected NcDisplayType seldDisplayType;
+    // #R8048 "Select New Resource" dialog should remember last selection
+    protected String selectedProductName = "";
 
     public NtransSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
@@ -190,9 +127,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         resourceCategory = rscDefnsMngr.getResourceCategories(false,
                 new NcDisplayType[] { seldDisplayType })[0];
-
-        // seldResourceName = new ResourceName();
-        // seldResourceName.setRscCategory(resourceCategory);
 
         sel_rsc_comp = this;
 
@@ -228,34 +162,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     //
     protected void createSelectResourceGroup(Boolean multiPane) {
 
-        // @formatter:off
-        /*
-        rscCatLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
-        FormData fd = new FormData();// 100, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
-        fd.top = new FormAttachment(0, 75);
-        fd.left = new FormAttachment(0, 10);
-        // fd.right = new FormAttachment( 15, 0 );
-        fd.right = new FormAttachment(0, 110);
-        // fd.height = 10;
-        // fd.width = 10;
-
-        // This allows a resize to change the size of the lists.
-        fd.bottom = new FormAttachment(100, -125);
-        rscCatLViewer.getList().setLayoutData(fd);
-
-        // rscCatLViewer.getList().setVisible(false);
-
-        Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscCatLbl.setText("VANISH!!");
-        fd = new FormData();
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscCatLViewer.getList(), -3, SWT.TOP);
-        rscCatLbl.setLayoutData(fd);
-        */
-        // @formatter:on
-
         // first create the lists and then attach the label to the top of them
         rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -270,16 +176,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         // This allows a resize to change the size of the lists.
         fd.bottom = new FormAttachment(100, -125);
-        /*
-         * fd = new FormData();// 150, rscListViewerHeight); fd.height =
-         * rscListViewerHeight; fd.top = new
-         * FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP); fd.left = new
-         * FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT); fd.right = new
-         * FormAttachment(20, 0);
-         * 
-         * fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0,
-         * SWT.BOTTOM);
-         */
+
         rscTypeLViewer.getList().setLayoutData(fd);
 
         rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -304,29 +201,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         fd.bottom = new FormAttachment(filterCombo, -3, SWT.TOP);
         filt_lbl.setLayoutData(fd);
 
-        // @formatter:off
-        /*
-        // first create the lists and then attach the label to the top of them
-        rscGroupLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
-                | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
-        fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
-        fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(40, 0);
-
-        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.BOTTOM);
-        rscGroupLViewer.getList().setLayoutData(fd);
-
-        rscGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscGroupLbl.setText("Group - VANISH!!");
-        fd = new FormData();
-        fd.left = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -3, SWT.TOP);
-        rscGroupLbl.setLayoutData(fd);
-
-*/
-        // @formatter:on
         // first create the lists and then attach the label to the top of them
         metafileLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -437,7 +311,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         replaceResourceBtn.setText(" Replace Resource "); // ie Modify
 
         // both for now unless we change it to be one or the other
-        // addResourceBtn.setVisible( !replaceBtnVisible );
         replaceResourceBtn.setVisible(replaceBtnVisible);
 
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
@@ -470,39 +343,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
     protected void setContentProviders() {
 
-        // input is the rscDefnsMngr and output is a list of categories based
-        // on the forecast flag
-        // @formatter:off
-        /*
-        rscCatLViewer.setContentProvider(new IStructuredContentProvider() {
-            @Override
-            public Object[] getElements(Object inputElement) {
-                return rscDefnsMngr.getResourceCategories(false,
-                        new NcDisplayType[] { seldDisplayType }); // don't show
-                                                                  // disabled
-                                                                  // dfns
-            }
-
-            @Override
-            public void dispose() {
-            }
-
-            @Override
-            public void inputChanged(Viewer viewer, Object oldInput,
-                    Object newInput) {
-            }
-        });
-        */
-        // @formatter:on
-
-        // rscCatLViewer.setLabelProvider(new LabelProvider() {
-        // public String getText(Object element) {
-        // ResourceDefinition rd = (ResourceDefinition) element;
-        // return (rd == null ? "null" : rd.getResourceDefnName().replace(
-        // "_NT", ""));
-        // }
-        // });
-
         // order the Categories according to the
 
         rscTypeLViewer.setContentProvider(new IStructuredContentProvider() {
@@ -517,7 +357,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                                         seldFilterStr, seldDisplayType, true, // include
                                                                               // generated
                                                                               // types
-                                        false); // only include enabled types
+                                        false);                               // only include enabled types
 
                         return rscTypes.toArray();
                     } catch (VizException e) {
@@ -572,69 +412,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             }
         });
 
-        // @formatter:off
-        /*
-        rscGroupLViewer.setContentProvider(new IStructuredContentProvider() {
-            @Override
-            public Object[] getElements(Object inputElement) {
-                String rscType = seldResourceName.getRscType();
-
-                if (!rscType.isEmpty()) {
-                    // if this resource uses attrSetGroups then get get the list
-                    // of
-                    // groups. (PGEN uses groups but we will list the subTypes
-                    // (products)
-                    // and not the single PGEN attr set group)
-                    if (rscDefnsMngr.doesResourceUseAttrSetGroups(rscType)
-                            && !seldResourceName.isPgenResource()) {
-
-                        List<String> rscAttrSetsList = rscDefnsMngr
-                                .getAttrSetGroupNamesForResource(rscType);
-
-                        if (rscAttrSetsList != null
-                                && !rscAttrSetsList.isEmpty()) {
-                            return rscAttrSetsList.toArray();
-                        }
-                    } else {
-                        try {
-                            String[] rscGroups = rscDefnsMngr
-                                    .getResourceSubTypes(rscType);
-
-                            if (rscGroups != null && rscGroups.length != 0) {
-                                return rscGroups;// .toArray();
-                            }
-                        } catch (VizException e) {
-                            MessageDialog errDlg = new MessageDialog(
-                                    NcDisplayMngr.getCaveShell(), "Error",
-                                    null, "Error getting sub-types\n"
-                                            + e.getMessage(),
-                                    MessageDialog.ERROR, new String[] { "OK" },
-                                    0);
-                            errDlg.open();
-                        }
-                    }
-                }
-                return new String[] {};
-            }
-
-            @Override
-            public void dispose() {
-            }
-
-            @Override
-            public void inputChanged(Viewer viewer, Object oldInput,
-                    Object newInput) {
-            }
-        });
-
-        rscGroupLViewer.setComparator(new ViewerComparator() {
-            @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
-                return super.compare(viewer, e1, e2);
-            }
-        });
-        */
-        // @formatter:on
 
         metafileLViewer.setContentProvider(new IStructuredContentProvider() {
             @Override
@@ -740,12 +517,13 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             @Override
             public Object[] getElements(Object inputElement) {
 
-                if (metafileToProductsMap == null || selectedMetafile == null) {
+                // #R8048 "Select New Resource" dialog should remember last selection
+                if (metafileToProductsMap == null || selectedMetafile.isEmpty()) {
                     return new String[] {};
                 }
+
                 // return all product names associated with the selected
                 // metafile
-
                 ArrayList<String> products = metafileToProductsMap
                         .get(selectedMetafile);
 
@@ -793,13 +571,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             @Override
             public Object[] getElements(Object inputElement) {
 
-                // if there is a group selected then
-                // if( !seldResourceName.getRscGroup().isEmpty() ) {
-                // if( rscDefnsMngr.getAttrSetsForResource( seldResourceName ))
-                // }
-
-                // if an attrSetGroup is selected, return the attrSets in the
-                // group
+                //
+                // if there is a model selected then
                 if (!seldResourceName.getRscType().isEmpty()) {
                     List<AttributeSet> attrSets = rscDefnsMngr
                             .getAttrSetsForResource(seldResourceName, true);
@@ -884,8 +657,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 // for the gui.
                 // TODO : If the inventory doesn't pan out then we could either
                 // implement this in another thread and accept the delay or add
-                // a
-                // 'Check Availability' button.
+                // a 'Check Availability' button.
                 //
                 if (rscName.isValid() && rscDefn.usesInventory()
                         && rscDefn.getInventoryEnabled()) {
@@ -934,8 +706,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 ArrayList<String> products = metafileToProductsMap
                         .get(metafile);
                 // if map doesn't yet contain an entry (products list) for
-                // this
-                // metafile, add one
+                // this metafile, add one
                 if (products == null) {
                     products = new ArrayList<String>();
                     metafileToProductsMap.put(metafile, products);
@@ -948,38 +719,34 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     // add all of the listeners for widgets on this dialog
     protected void addSelectionListeners() {
 
-        // @formatter:off
-/*
-        rscCatLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
-                                .getSelection();
-                        ResourceCategory seldCat = (ResourceCategory) seld_elem
-                                .getFirstElement();
+        // R#8048 "Select New Resource" dialog should remember last selection
+        rscTypeLViewer
+        .addSelectionChangedListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                StructuredSelection seld_elem = (StructuredSelection) event
+                        .getSelection();
+                String seld_rsc_type = ((ResourceDefinition) seld_elem
+                        .getFirstElement()).getResourceDefnName();
 
-                        // get the previously selected resource for this
-                        // category
+                // formerly on category selection listener
+                seldResourceName = new ResourceName();
+                seldResourceName.setRscCategory(resourceCategory);
 
-                        seldResourceName = new ResourceName();
-                        seldResourceName.setRscCategory(seldCat);
+                prevSelectedModel = seld_rsc_type;
 
-                        prevSeldCat = seldResourceName.getRscCategory();
+                if (prevModelSelectedRscNames
+                        .containsKey(seld_rsc_type)) {
+                    seldResourceName = prevModelSelectedRscNames
+                            .get(seld_rsc_type);
+                } else {
+                    seldResourceName.setRscType(seld_rsc_type);
+                    seldResourceName.setRscAttrSetName("");
+                    seldResourceName.setCycleTime(null);
+                }
 
-                        // if a resource was previously selected for this
-                        // category, select it
-                        //
-                        if (prevCatSeldRscNames.containsKey(seldCat)) {
-                            seldResourceName = prevCatSeldRscNames.get(seldCat);
-                        }
-
-                        updateResourceFilters();
-
-                        updateResourceTypes();
-                    }
-                });
-                */
-        // @formatter:on
+                updateMetafiles();
+            }
+        });
 
         filterCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
@@ -999,57 +766,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 updateResourceTypes();
             }
         });
-
-        rscTypeLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
-                                .getSelection();
-                        String seld_rsc_type = ((ResourceDefinition) seld_elem
-                                .getFirstElement()).getResourceDefnName();
-
-                        // formerly on category selection listener
-                        seldResourceName = new ResourceName();
-                        seldResourceName.setRscCategory(resourceCategory);
-
-                        prevSelectedModel = seld_rsc_type;
-
-                        if (prevModelSelectedRscNames
-                                .containsKey(seld_rsc_type)) {
-                            seldResourceName = prevModelSelectedRscNames
-                                    .get(seld_rsc_type);
-                        } else {
-                            seldResourceName.setRscType(seld_rsc_type);
-                            seldResourceName.setRscGroup("");
-                            seldResourceName.setRscAttrSetName("");
-                            seldResourceName.setCycleTime(null);
-                        }
-
-                        // updateCycleTimes();
-
-                        // updateResourceGroups();
-
-                        updateMetafiles();
-                    }
-                });
-
-        // @formatter:off
-        /*
-        rscGroupLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
-                                .getSelection();
-                        seldResourceName.setRscGroup((String) seld_elem
-                                .getFirstElement());
-                        seldResourceName.setRscAttrSetName("");
-
-                        updateResourceAttrSets();
-                    }
-                });
-        */
-        // @formatter:on
-
+        
         metafileLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
                     public void selectionChanged(SelectionChangedEvent event) {
@@ -1063,17 +780,16 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 });
 
         productLViewer
-                .addSelectionChangedListener(new ISelectionChangedListener() {
-                    public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
-                                .getSelection();
-                        seldResourceName.setRscGroup(selectedMetafile + "_"
-                                + (String) seld_elem.getFirstElement());
-                        seldResourceName.setRscAttrSetName("");
+        .addSelectionChangedListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                StructuredSelection seld_elem = (StructuredSelection) event
+                        .getSelection();
+                seldResourceName.setRscGroup((String) seld_elem.getFirstElement());
+                seldResourceName.setRscAttrSetName("");
 
-                        updateResourceAttrSets();
-                    }
-                });
+                updateResourceAttrSets();
+            }
+        });
 
         rscAttrSetLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
@@ -1149,12 +865,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         seldFilterStr = "";
 
-        // update the cat list
-        /*
-         * rscCatLViewer.setInput(rscDefnsMngr); rscCatLViewer.refresh();
-         * rscCatLViewer.getList().deselectAll();
-         */
-
         //
         addToAllPanesBtn.setSelection(false);
 
@@ -1162,14 +872,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 || seldResourceName.getRscCategory() == ResourceCategory.NullCategory) {
             return;
         }
-        // @formatter:off
-        /*
-        if (rscTypeLViewer.getList().getSelectionCount() == 0) {
-            seldResourceName = new ResourceName();
-            seldResourceName.setRscCategory(resourceCategory); // NTRANS
-        }
-        */
-        // @formatter:on
 
         updateResourceFilters();
 
@@ -1199,97 +901,14 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
             if (rscTypeLViewer.getList().getSelectionCount() == 0) {
                 seldResourceName.setRscType("");
-                seldResourceName.setRscGroup("");
+                //seldResourceName.setRscGroup("");   //--- AWIPS2 NCEP - NCEP_A2CP #8048 ---
                 seldResourceName.setRscAttrSetName("");
                 seldResourceName.setCycleTime(null);
             }
         }
 
-        // if no type is selected or it is not found for some reason, select the
-        // first
-        // why???
-        // @formatter:off
-        /*
-        if (seldResourceName.getRscType().isEmpty()
-                && rscTypeLViewer.getList().getItemCount() > 0) {
-
-            rscTypeLViewer.getList().select(0);
-            StructuredSelection seld_elem = (StructuredSelection) rscTypeLViewer
-                    .getSelection();
-            String rscType = ((ResourceDefinition) seld_elem.getFirstElement())
-                    .getResourceDefnName();
-            seldResourceName.setRscType(rscType);
-            seldResourceName.setRscGroup("");
-            seldResourceName.setRscAttrSetName("");
-            seldResourceName.setCycleTime(null);
-        }
-        */
-
-        // updateCycleTimes();
-
-        // updateResourceGroups();
-
         updateMetafiles();
     }
-
-    // @formatter:off
-    /*
-    protected void updateResourceGroups() {
-        rscGroupLViewer.setInput(rscDefnsMngr);
-        rscGroupLViewer.refresh();
-
-        // if there are no groups
-        if (rscGroupLViewer.getList().getItemCount() == 0) {
-            if (!seldResourceName.getRscGroup().isEmpty()) {
-                // ????
-                seldResourceName.setRscGroup("");
-                seldResourceName.setRscAttrSetName("");
-                seldResourceName.setCycleTime(null);
-            }
-        } else { // there are items in the groups list
-                 // if a group has been selected then select it in the list,
-                 // otherwise
-                 // select the first in the list and update the seldResourceName
-                 //
-            rscGroupLViewer.getList().deselectAll();
-
-            //
-            if (!seldResourceName.getRscGroup().isEmpty()) {
-                for (int itmIndx = 0; itmIndx < rscGroupLViewer.getList()
-                        .getItemCount(); itmIndx++) {
-
-                    if (rscGroupLViewer.getList().getItem(itmIndx)
-                            .equals(seldResourceName.getRscGroup())) {
-                        rscGroupLViewer.getList().select(itmIndx);
-                        break;
-                    }
-                }
-
-                if (rscGroupLViewer.getList().getSelectionCount() == 0) {
-                    seldResourceName.setRscGroup("");
-                    seldResourceName.setRscAttrSetName("");
-                }
-            }
-
-            // if no type is selected or it is not found for some reason, select
-            // the first
-            if (seldResourceName.getRscGroup().isEmpty()
-                    && rscGroupLViewer.getList().getItemCount() > 0) {
-
-                rscGroupLViewer.getList().select(0);
-                StructuredSelection seld_elem = (StructuredSelection) rscGroupLViewer
-                        .getSelection();
-
-                seldResourceName.setRscGroup((String) seld_elem
-                        .getFirstElement());
-                seldResourceName.setRscAttrSetName("");
-            }
-        }
-
-        updateMetafiles();
-    }
-    */
-    // @formatter:on
 
     protected void updateMetafiles() {
         metafileLViewer.setInput(rscDefnsMngr);
@@ -1299,12 +918,9 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         // if there are no metafiles
         if (metafileLViewer.getList().getItemCount() == 0) {
-            // if (!seldResourceName.getRscGroup().isEmpty()) {
-            // ????
-            seldResourceName.setRscGroup("");
+            // #R8048 "Select New Resource" dialog should remember last selection
             seldResourceName.setRscAttrSetName("");
             seldResourceName.setCycleTime(null);
-            // }
         } else { // there are items in the metafiles list
                  // if a metafile has been selected (before?) then select it in
                  // the list,
@@ -1327,77 +943,83 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 }
 
                 if (metafileLViewer.getList().getSelectionCount() == 0) {
-                    seldResourceName.setRscGroup("");
                     seldResourceName.setRscAttrSetName("");
                 }
             }
 
-            // if no metafile is selected or it is not found for some reason,
-            // select
-            // the first -- NO, don't!
-            // @formatter:off
-            /*
+            // #R8048 if no metafile is selected or it is not found for some reason,
+            // select the first
+            //
             if (seldResourceName.getRscGroup().isEmpty()
                     && metafileLViewer.getList().getItemCount() > 0) {
 
                 metafileLViewer.getList().select(0);
                 StructuredSelection seld_elem = (StructuredSelection) metafileLViewer
-                        .getSelection();
+                                    .getSelection();
 
-                seldResourceName.setRscGroup((String) seld_elem
-                        .getFirstElement());
-                seldResourceName.setRscAttrSetName("");
+                selectedMetafile = ((String) seld_elem.getFirstElement());
+                if (!selectedMetafile.isEmpty()
+                 && !selectedProductName.isEmpty()) {
+                       seldResourceName.setRscGroup(selectedMetafile + "_" + selectedProductName);
+                 }
+
             }
-            */
-            // @formatter:on
+
         }
 
         updateProducts();
+
     }
 
     protected void updateProducts() {
+        String tmpMeta;
+        String tmpRscGrp;
         productLViewer.setInput(rscDefnsMngr);
         productLViewer.refresh();
 
-        // if there are no groups
-        if (productLViewer.getList().getItemCount() == 0) {
-            if (!seldResourceName.getRscGroup().isEmpty()) {
-                // ????
-                seldResourceName.setRscGroup("");
-                seldResourceName.setRscAttrSetName("");
-                seldResourceName.setCycleTime(null);
-            }
-        } else { // there are items in the groups list
-                 // if a group has been selected then select it in the list,
-                 // otherwise
-                 // select the first in the list and update the seldResourceName
-                 //
             productLViewer.getList().deselectAll();
 
-            //
+            // #R8048 If a product was selected
             if (!seldResourceName.getRscGroup().isEmpty()) {
-                String selectedProductName = seldResourceName.getRscGroup()
+                
+                tmpMeta = seldResourceName.getRscGroup()
+                        .split("_")[0];
+                tmpRscGrp = seldResourceName.getRscGroup()
+                        .split("_")[1];
+                if (!tmpMeta.equals(selectedMetafile)) {
+                    seldResourceName.setRscGroup(selectedMetafile + "_" + tmpRscGrp);
+                }
+
+                String selectedProduct = seldResourceName.getRscGroup()
                         .split("_")[1];
                 for (int itmIndx = 0; itmIndx < productLViewer.getList()
                         .getItemCount(); itmIndx++) {
 
                     if (productLViewer.getList().getItem(itmIndx)
-                            .equals(selectedProductName)) {
+                            .equals(selectedProduct)) {
                         productLViewer.getList().select(itmIndx);
                         break;
                     }
                 }
 
                 if (productLViewer.getList().getSelectionCount() == 0) {
-                    seldResourceName.setRscGroup("");
+                    ArrayList<String> products = (ArrayList<String>) metafileToProductsMap.get(selectedMetafile);
+                    Collections.sort(products);
+                    selectedProductName = (String)products.get(0);
+
+                    if (!selectedMetafile.equals(prevSeldMetafile)) {
+                        productLViewer.getList().select(0);
+                    }
+
+                    if (!selectedMetafile.isEmpty()
+                            && !selectedProductName.isEmpty()) {
+                                   seldResourceName.setRscGroup(selectedMetafile + "_" + selectedProductName);
+                    }
+
                     seldResourceName.setRscAttrSetName("");
                 }
             }
 
-            // if no type is selected or it is not found for some reason, select
-            // the first -- NO, don't!
-            // @formatter:off
-            /*
             if (seldResourceName.getRscGroup().isEmpty()
                     && productLViewer.getList().getItemCount() > 0) {
 
@@ -1405,20 +1027,21 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 StructuredSelection seld_elem = (StructuredSelection) productLViewer
                         .getSelection();
 
-                seldResourceName.setRscGroup(selectedMetafile + "_"
-                        + (String) seld_elem.getFirstElement());
+                selectedProductName = ((String) seld_elem
+                                    .getFirstElement());
+                if (!selectedMetafile.isEmpty()
+                 && !selectedProductName.isEmpty()) {
+                        seldResourceName.setRscGroup(selectedMetafile + "_" + selectedProductName);
+                }
+                // #R8048 "Select New Resource" dialog should remember last selection
                 seldResourceName.setRscAttrSetName("");
             }
-            */
-            // @formatter:on
-        }
 
         updateResourceAttrSets();
     }
 
     protected void updateResourceAttrSets() {
         rscAttrSetLViewer.setInput(rscDefnsMngr);
-        // rscAttrSetLViewer.refresh();
 
         rscAttrSetLViewer.getList().deselectAll();
 
@@ -1461,12 +1084,12 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     }
 
     // when an attrSetName is selected and resource name, with possible cycle
-    // time,
-    // is ready for selection
+    // time, is ready for selection
     //
     public void updateSelectedResource() {
 
         String availMsg = "Data Not Available";
+        String temp = "";
 
         // enable/disable the Add Resource Button
         // and set the name of the Resource
@@ -1521,6 +1144,16 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 enableSelections = false;
             }
             // }
+            
+            //#R8048 create the product group for user-selected metafile
+            String rscGroup = seldResourceName.getRscGroup();
+            int indexSep = rscGroup.lastIndexOf("_");
+            
+            if (-1 == indexSep) {
+                temp = selectedMetafile + "_" + seldResourceName.getRscGroup();
+                seldResourceName.setRscGroup(temp);
+            }
+
         }
 
         if (enableSelections) {
@@ -1545,7 +1178,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 } else if (seldCycleTimeIndx < cycleTimes.size()) {
                     seldResourceName.setCycleTime(cycleTimes
                             .get(seldCycleTimeIndx));
-                } else { // shoulndn't happen
+                } else { // shouldn't happen
                     seldResourceName.setCycleTimeLatest();
                 }
 
@@ -1599,7 +1232,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             cycleTimeCombo.setEnabled(true);
             cycleTimeLbl.setVisible(rscDefn.isForecast());
             cycleTimeCombo.setVisible(rscDefn.isForecast());
-            cycleTimeLbl.setVisible(false); // TODO - cleanup ; off for NTRANS
+            cycleTimeLbl.setVisible(false);   // TODO - cleanup ; off for NTRANS
             cycleTimeCombo.setVisible(false); // TODO - cleanup ; off for NTRANS
             availDataTimeLbl.setVisible(!rscDefn.isForecast());
 
@@ -1610,9 +1243,9 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         try {
             // if this is reading from gempak
-            //
             // would like to use the constant in NcGridData but E dependency
             // again.
+            //
             if (rscDefn.getPluginName().equals(GempakGrid.gempakPluginName)) {
                 /*
                  * For a GEMPAK dataSource get gridCycleTimes from the
@@ -1659,8 +1292,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             // If the timeline is generated using frame intervals from a given
             // reference/cycle time, then get a list of selectable ref times.
             // Ideally this would also specify a way to generate the ref times
-            // but its really
-            // just for nctaf right now so just do it like taf needs.
+            // but its really just for nctaf right now so just do it like taf needs.
+            //
             if (rscDefn.getTimelineGenMethod() == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME) {
                 // rscDefn.getPluginName().equals( "nctaf" ) ) {
                 // Integer frameIntvl = rscDefn.getFrameSpan() *

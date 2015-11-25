@@ -11,6 +11,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenClass;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 
@@ -42,6 +43,7 @@ import org.eclipse.swt.widgets.Shell;
  * 02/12  		#656		J. Wu		Retain the last location of the dialog. 
  * 07/12  		#822		J. Wu		Add createShell() so it can be overrided 
  *                                      to create shell with different styles.
+ * 06/15        R8189        J. Wu      Set Pgen palette per layer.
  * 
  * </pre>
  * 
@@ -280,12 +282,78 @@ public class ProductDialog extends Dialog {
     }
 
     /**
+     * Get a list of names for selected button in a PgenLayer, regardless of if
+     * it is control, action, class, or object.
+     */
+    public List<String> getButtonList(PgenLayer plyr) {
+
+        List<String> btnList = null;
+
+        if (plyr != null) {
+
+            btnList = new ArrayList<String>();
+
+            if (plyr.getPgenControls() != null) {
+                btnList.addAll(plyr.getPgenControls().getName());
+            }
+
+            if (plyr.getPgenActions() != null) {
+                btnList.addAll(plyr.getPgenActions().getName());
+            }
+
+            for (PgenClass cls : plyr.getPgenClass()) {
+                btnList.add(cls.getName());
+
+                if (cls != null && cls.getPgenObjects() != null) {
+                    btnList.addAll(cls.getPgenObjects().getName());
+                }
+            }
+        }
+
+        return btnList;
+    }
+
+    /**
      * Reset the PGEN palette based on the settings of a product type.
      */
     public void refreshPgenPalette(ProductType ptyp) {
         if (PgenSession.getInstance().getPgenPalette() != null)
             PgenSession.getInstance().getPgenPalette()
                     .resetPalette(getButtonList(ptyp));
+    }
+
+    /**
+     * Reset the PGEN palette based on the settings of a product type or a
+     * layer.
+     */
+    public void refreshPgenPalette(ProductType ptyp, String curLayer) {
+        List<String> btnList = null;
+
+        // First try to find the selected buttons on the "curLayer".
+        if (ptyp != null && curLayer != null) {
+            int indx = -1;
+            int kk = 0;
+            for (PgenLayer plyr : ptyp.getPgenLayer()) {
+                if (plyr.getName().equals(curLayer)) {
+                    indx = kk;
+                    break;
+                }
+                kk++;
+            }
+
+            if (indx >= 0) {
+                btnList = getButtonList(ptyp.getPgenLayer().get(indx));
+            }
+        }
+
+        // If nothing found "curLayer", go to the "activity" level.
+        if (btnList == null || btnList.size() == 0) {
+            btnList = getButtonList(ptyp);
+        }
+
+        // Reset palette.
+        if (PgenSession.getInstance().getPgenPalette() != null)
+            PgenSession.getInstance().getPgenPalette().resetPalette(btnList);
     }
 
     /*
@@ -315,6 +383,29 @@ public class ProductDialog extends Dialog {
     protected boolean needSaving() {
         return PgenSession.getInstance().getPgenResource().getResourceData()
                 .isNeedsSaving();
+    }
+
+    /**
+     * Utility function to find a PgenLayer within a ProductType by its name.
+     */
+    public PgenLayer getPgenLayer(ProductType ptyp, String layerName) {
+        PgenLayer tlayer = null;
+        if (ptyp != null && layerName != null) {
+            int indx = -1;
+            int kk = 0;
+            for (PgenLayer plyr : ptyp.getPgenLayer()) {
+                if (plyr.getName().equals(layerName)) {
+                    indx = kk;
+                    break;
+                }
+                kk++;
+            }
+
+            if (indx >= 0)
+                tlayer = ptyp.getPgenLayer().get(indx);
+        }
+
+        return tlayer;
     }
 
 }

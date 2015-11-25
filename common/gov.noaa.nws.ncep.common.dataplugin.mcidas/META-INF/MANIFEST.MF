@@ -18,7 +18,5 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.17",
  edu.wisc.ssec.mcidas;bundle-version="1.0.0",
  com.raytheon.uf.common.numeric;bundle-version="1.14.0",
  com.raytheon.uf.common.status;bundle-version="1.14.1"
-Export-Package: gov.noaa.nws.ncep.common.dataplugin.mcidas,
- gov.noaa.nws.ncep.common.dataplugin.mcidas.dao,
- gov.noaa.nws.ncep.common.dataplugin.mcidas.fixed
+Export-Package: gov.noaa.nws.ncep.common.dataplugin.mcidas
 Import-Package: org.apache.commons.logging

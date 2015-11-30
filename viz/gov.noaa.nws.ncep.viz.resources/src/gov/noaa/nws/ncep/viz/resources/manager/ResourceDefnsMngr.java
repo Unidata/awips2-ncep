@@ -2174,7 +2174,7 @@ public class ResourceDefnsMngr {
                         + ". Missing entry in the filtersMap.");
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         } catch (InterruptedException e) {
             throw new VizException(e);
@@ -2246,7 +2246,7 @@ public class ResourceDefnsMngr {
         } catch (SerializationException e) {
             throw new VizException("Error Serializing AttrSetGroup file:"
                     + e.getMessage());
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }
     }
@@ -2365,7 +2365,7 @@ public class ResourceDefnsMngr {
 
             attrSetGroupsMap.put(asg.getRscAndGroupName().toString(), asg);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e.getMessage());
         }
     }
@@ -2535,7 +2535,7 @@ public class ResourceDefnsMngr {
                 }
             }
 
-        } catch (LocalizationOpFailedException lopex) {
+        } catch (LocalizationException lopex) {
             throw new VizException(lopex.getMessage());
         }
 
@@ -2638,9 +2638,7 @@ public class ResourceDefnsMngr {
                     rscFiltersLFile.getFile().getAbsolutePath());
 
             rscFiltersLFile.save();
-        } catch (LocalizationOpFailedException e) {
-            throw new VizException(e);
-        } catch (SerializationException e) {
+        } catch (LocalizationException| SerializationException e) {
             throw new VizException(e);
         }
     }
@@ -2755,7 +2753,7 @@ public class ResourceDefnsMngr {
         } catch (SerializationException e) {
             throw new VizException("Error Serializing AttrSetGroup file:"
                     + e.getMessage());
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }
 

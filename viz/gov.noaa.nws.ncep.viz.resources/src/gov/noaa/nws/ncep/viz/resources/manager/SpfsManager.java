@@ -21,7 +21,7 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
@@ -510,7 +510,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             lFile.addFileUpdatedObserver(this);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         } catch (JAXBException e) {
             throw new VizException(e);
@@ -582,7 +582,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                 throw new VizException("Error deleting file:"
                         + groupLocDir.getFile().getAbsolutePath());
             }
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -684,7 +684,7 @@ public class SpfsManager implements ILocalizationFileObserver {
             } catch (InterruptedException e) {
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -704,7 +704,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         // remove the Rbd from the map
         try {
             lFile.delete();
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
 

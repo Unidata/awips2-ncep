@@ -6,24 +6,17 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
+import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
-import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -202,7 +195,7 @@ public class PlotModelMngr {
 			// update this PlotModel in the map
 			plotModels.put( plotModel.getPlugin()+plotModel.getName(), plotModel );		
 						
-		} catch (LocalizationOpFailedException e) {
+		} catch (LocalizationException e) {
 			throw new VizException( e );
 		} catch (SerializationException e) {
 			// TODO Auto-generated catch block
@@ -269,7 +262,7 @@ public class PlotModelMngr {
 
 			// TODO : check if there is a base or site level file of the same name and 
 			// update with it....
-		} catch ( LocalizationOpFailedException e ) {
+		} catch ( LocalizationException e ) {
 			throw new VizException( "Error Deleting PlotModel, "+pltMdlName+
 					", for plugin, "+pluginName +"\n"+e.getMessage() );
 		}				

@@ -14,6 +14,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * -------		------- 	-------- 	-----------
  * 11/1/2010	362			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
+ * 07142015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query observed sounding data
  *
  * </pre>
  * 
@@ -21,12 +22,12 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * @version 1.0
  */
 
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,15 +78,22 @@ public class NsharpObservedSoundingQuery {
             }
 
         }
-        double[][] latLon = new double[coords.size()][2];
+        Coordinate[] latLonAry = new Coordinate[coords.size()];
         for (int i = 0; i < coords.size(); i++) {
-            latLon[i][0] = coords.get(i).y; // lat
-            latLon[i][1] = coords.get(i).x; // lon
+        	latLonAry[i] = coords.get(i); 
         }
-        NcSoundingCube cube = NcSoundingQuery
-                .uaGenericSoundingQuery(refTimeLst.toArray(new Long[0]),
-                        latLon, stnPtDataLineLst.get(0).getSndType(),
-                        NcSoundingLayer.DataType.ALLDATA, !rawData, "-1");
+        //RM#9173
+//        NcSoundingCube cube = NcSoundingQuery
+//                .uaGenericSoundingQuery(refTimeLst.toArray(new Long[0]),
+//                        latLon, stnPtDataLineLst.get(0).getSndType(),
+//                        NcSoundingLayer.DataType.ALLDATA, !rawData, "-1");
+        Long[] refTimeArray = refTimeLst.toArray(new Long[0]);
+        long[]  refTimelArray = new long[refTimeArray.length];
+        for(int i=0; i< refTimeArray.length;i++)
+        	refTimelArray[i]= refTimeArray[i];
+        NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery( refTimelArray, null, null, null,latLonAry,  
+        		null,stnPtDataLineLst.get(0).getSndType(),  NcSoundingLayer.DataType.ALLDATA,  !rawData,  null,null,true,false,false);
+      //end RM#9173
         // NcSoundingCube cube =
         // NcSoundingQuery.soundingQueryByLatLon(stnPtDataLineLst.get(0).getReftime().getTime(),
         // coords, stnPtDataLineLst.get(0).getSndType(),

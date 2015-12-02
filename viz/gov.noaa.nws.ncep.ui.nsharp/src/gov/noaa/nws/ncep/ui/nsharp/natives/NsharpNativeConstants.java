@@ -339,7 +339,7 @@ public class NsharpNativeConstants {
 
     public static final String OPC_TOPMIXLAYER_MISSING = "Top Mix Layer Wind     _=    M / M\r\n";
 
-    public static final String OPC_MIXLAYERMAX_MISSING = "Mix Layer Max Wind     _=    M / M r\n";
+    public static final String OPC_MIXLAYERMAX_MISSING = "Mix Layer Max Wind     _=    M / M \r\n";
 
     public static final String OPC_LAYER_LAPSE_LINE = "Layer Lapse Rate       _=    %.2f C/%.1fC/Km\r\n";
 

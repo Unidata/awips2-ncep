@@ -10,7 +10,6 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.contours.ContourMinmax;
 import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
@@ -34,6 +33,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------	----------	-----------	--------------------------
  * 04/13		927			B. Yin   	Moved from the PgenDeleteElement class
  * 04/14        1117        J. Wu       Added confirmation for deleting contours
+ * 07/15        R8352       J. Wu       "Delete" contours components, not whole contours.
  * 
  * </pre>
  * 
@@ -101,8 +101,8 @@ public class PgenDeleteElementHandler extends InputHandlerDefaultImpl {
                         && pgenrsc.getNearestElement(loc).getPgenType()
                                 .equalsIgnoreCase("POINTED_ARROW")) {
                     elSelected = pgenrsc.getNearestElement(loc);
-                } else if (elSelected instanceof Outlook
-                        && ((Outlook) elSelected).getDEs() > 1) {
+                } else if ((elSelected instanceof Outlook && ((Outlook) elSelected)
+                        .getDEs() > 1) || (elSelected instanceof Contours)) {
                     AbstractDrawableComponent adc = pgenrsc
                             .getNearestElement(loc);
                     elSelected = adc.getParent();
@@ -158,6 +158,7 @@ public class PgenDeleteElementHandler extends InputHandlerDefaultImpl {
     public void preprocess() {
 
         if (pgenrsc.getSelectedComp() != null) {
+
             if (attrDlg != null
                     && (pgenrsc.getSelectedComp().getParent() instanceof Layer || pgenrsc
                             .getSelectedComp().getParent().getName()
@@ -198,9 +199,8 @@ public class PgenDeleteElementHandler extends InputHandlerDefaultImpl {
         }
 
         if (deleteContour) {
-            if (adc.getParent() instanceof ContourMinmax
-                    || adc.getParent().getName()
-                            .equalsIgnoreCase("labeledSymbol")) {
+
+            if (adc.getParent().getName().equalsIgnoreCase("labeledSymbol")) {
                 pgenrsc.removeElement(adc.getParent());
             } else {
                 pgenrsc.removeElement(adc);

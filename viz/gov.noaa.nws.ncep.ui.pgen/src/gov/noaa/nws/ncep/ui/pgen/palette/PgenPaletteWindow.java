@@ -8,6 +8,9 @@
 
 package gov.noaa.nws.ncep.ui.pgen.palette;
 
+import gov.noaa.nws.ncep.ui.pgen.Activator;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
@@ -47,7 +50,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -106,15 +108,23 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/10		?		    S. Gilbert  Initial Creation.
- * 08/13		TTR696/774	J. Wu		Reset title/Close product manage dialog.
- * 11/13		#1081		B. Yin		Get selected DE to change front/line type.
- * 12/14        R5413       B. Yin      Removed unused variables, loops.
- * 01/15        R5413       B. Yin      Set perspective ID and editor for PGEN session.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 01/10        ?           S. Gilbert  Initial Creation.
+ * 08/13        TTR696/774  J. Wu       Reset title/Close product manage dialog.
+ * 11/13        #1081       B. Yin      Get selected DE to change front/line type.
  * 04/15        R7805       J. Wu       Highlight only one PGEN action mode at a time.
+ * 06/15        R8354       J. Wu       Deactivate Pgen Context when palette is closed, 
+ *                                      hidden, or deactivated.
+ * 06/15        R8199       S. Russell  Updated createPaletteSection() to suppress
+ *                                      unwanted button creation. Converted literals
+ *                                      from the legacy into constants there.
+ *                                      
+ * 09/04/2015   RM 11495    S. Russell  Update a loop in createPaletteSection()
+ *                                      to fix a merge conflict
  * 
+ * 11/09/2015   R9399       J. Lopez    Added the ability to specify the number
+ *                                      of buttons per row
  * </pre>
  * 
  * @author sgilbert
@@ -130,11 +140,11 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      * change it. We need to find a way to deal with these constants.
      */
 
-    // private final int bgcolor = (178 * 65536 ) + ( 34 * 256 ) + 34;
-    // private final int fgcolor = (255 * 65536 ) + ( 215 * 256 ) + 0;
-    private final int bgcolor = (0 * 65536) + (0 * 256) + 255; // blue
+    // blue
+    private final int bgcolor = (0 * 65536) + (0 * 256) + 255;
 
-    private final int fgcolor = (255 * 65536) + (255 * 256) + 255; // white
+    // white
+    private final int fgcolor = (255 * 65536) + (255 * 256) + 255;
 
     private final String EXTENSION_POINT = "gov.noaa.nws.ncep.ui.pgen.palette";
 
@@ -192,23 +202,34 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     private String currentAction = "";
 
-    private HashMap<String, Button> buttonMap = null; // map of buttons
-                                                      // currently displayed on
-                                                      // palette
+    // map of buttons currently displayed on palette
+    private HashMap<String, Button> buttonMap = null;
 
-    private HashMap<String, Image> iconMap = null; // map of available icons
+    // map of available icons
+    private HashMap<String, Image> iconMap = null;
 
-    private HashMap<String, Image> activeIconMap = null; // map of available
-                                                         // "active" icons
+    // map of available "active" icons
 
-    private List<String> buttonList = null; // Names of items that should appear
-                                            // on the palette
+    private HashMap<String, Image> activeIconMap = null;
+
+    // Names of items that should appear on the palette
+
+    private List<String> buttonList = null;
 
     private IContextActivation pgenContextActivation;
 
     private AbstractEditor currentIsMultiPane = null;
-    
+
     public static final String CATEGORY_ANY = "Any";
+
+    // List of items thats control the palette size
+    private static Group groupOutline;
+
+    private static GridLayout gridLayout;
+
+    private static int paletteSize;
+
+    private static int rowSizePreference;
 
     /**
      * Constructor
@@ -238,10 +259,9 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         page = site.getPage();
         page.addPartListener(this);
 
-        /*
-         * Get a list from registry of all elements that registered with the
-         * gov.noaa.nws.ncep.ui.pgen.palette extension point
-         */
+        // Get a list from registry of all elements that registered with the
+        // gov.noaa.nws.ncep.ui.pgen.palette extension point
+
         if (paletteElements == null) {
 
             IExtensionRegistry registry = Platform.getExtensionRegistry();
@@ -256,8 +276,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
          * gov.noaa.nws.ncep.ui.pgen.palette extension point, using the item's
          * name attribute as the key
          */
-        // itemMap = new HashMap<String, IConfigurationElement>(
-        // paletteElements.length );
         itemMap = new LinkedHashMap<String, IConfigurationElement>(
                 paletteElements.length);
         controlNames = new ArrayList<String>();
@@ -271,33 +289,28 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             String itemName = paletteElements[i].getAttribute("name");
             itemMap.put(itemName, paletteElements[i]);
 
-            /*
-             * create a list of item names that have been registered with each
-             * section of the palette
-             */
+            // create a list of item names that have been registered with each
+            // section of the palette
             String type = paletteElements[i].getName();
-            if (type.equals(CONTROL_SECTION))
+            if (type.equals(CONTROL_SECTION)) {
                 controlNames.add(itemName);
-            else if (type.equals(ACTION_SECTION))
+            } else if (type.equals(ACTION_SECTION)) {
                 actionNames.add(itemName);
-            else if (type.equals(CLASS_SECTION))
+            } else if (type.equals(CLASS_SECTION)) {
                 classNames.add(itemName);
-            else if (type.equals(OBJECT_SECTION))
+            } else if (type.equals(OBJECT_SECTION)) {
                 objectNames.add(itemName);
+            }
 
         }
 
-        /*
-         * create hashmaps that will keep track of the buttons that appear on
-         * the palette along with their images.
-         */
+        // create hashmaps that will keep track of the buttons that appear on
+        // the palette along with their images.
         buttonMap = new HashMap<String, Button>();
         iconMap = new HashMap<String, Image>();
         activeIconMap = new HashMap<String, Image>();
 
-        /*
-         * change the title to show cycle day and cycle hour
-         */
+        // change the title to show cycle day and cycle hour
         PgenCycleTool.updateTitle();
 
     }
@@ -307,29 +320,18 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      */
     public void dispose() {
 
-        // System.out.println("Palette is being Disposed!!");
-        /* TODO: save on exit? dialog */
         super.dispose();
 
-        /*
-         * remove this palette from Pgen Session
-         */
+        // remove this palette from Pgen Session
         PgenSession.getInstance().removePalette();
 
-        /*
-         * remove the workbench part listener
-         */
+        // remove the workbench part listener
         page.removePartListener(this);
 
-        /*
-         * clear map of SWT buttons on the palette
-         */
+        // clear map of SWT buttons on the palette
         buttonMap.clear();
 
-        /*
-         * dispose of icons
-         */
-        // System.out.println("DISPOSING ICONS NOW ");
+        // dispose of icons
         for (Image icon : iconMap.values()) {
             icon.dispose();
         }
@@ -341,10 +343,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         iconMap.clear();
         activeIconMap.clear();
 
-        /*
-         * change the title back to "CAVE"
-         */
-        // NmapUiUtils.resetCaveTitle();
+        // change the title back to "CAVE"
         PgenUtil.resetCaveTitle();
     }
 
@@ -354,51 +353,47 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      */
     @Override
     public void createPartControl(Composite comp) {
+        // Gets the number of icons per row from preferences
+        rowSizePreference = Activator.getDefault().getPreferenceStore()
+                .getInt(PgenPreferences.P_ICONS_PER_ROW);
+        gridLayout = new GridLayout(rowSizePreference, true);
 
         mainComp = comp;
-        scroll = new ScrolledComposite(comp, SWT.V_SCROLL | SWT.BORDER);
+        scroll = new ScrolledComposite(comp, SWT.H_SCROLL | SWT.V_SCROLL
+                | SWT.BORDER);
         paletteComp = new Composite(scroll, SWT.NONE);
+
         scroll.setContent(paletteComp);
 
-        /*
-         * Single column, no equal width.
-         */
+        // Single column, no equal width.
         paletteComp.setLayout(new GridLayout(1, false));
 
-        /*
-         * Add listener to scrolled composite to change palette size when scroll
-         * size changes
-         */
+        // Add listener to scrolled composite to
+        // change palette size when scroll size changes
         scroll.addControlListener(new ControlAdapter() {
             public void controlResized(ControlEvent e) {
-                Rectangle r = scroll.getClientArea();
-                paletteComp.setSize(paletteComp.computeSize(r.width,
-                        SWT.DEFAULT));
-                paletteComp.layout();
+                paletteResize();
             }
         });
 
-        /*
-         * create each section of the palette
-         */
+        // create each section of the palette
         resetPalette(null);
 
-        /*
-         * Set this palette with the Pgen Session
-         */
+        // Set this palette with the Pgen Session
         PgenSession.getInstance().setPalette(this);
 
-        /*
-         * Check current editor for a PgenResource. If found, register it with
-         * the PgenSession
-         */
+        // Check current editor for a PgenResource. If found, register it with
+        // the PgenSession
+
         PgenResource current = PgenUtil.findPgenResource(null);
         if (current != null) {
             PgenSession.getInstance().setResource(current);
             PgenUtil.setSelectingMode();
-            
+
             AbstractEditor actEditor = PgenUtil.getActiveEditor();
-            if ( actEditor != null && !PgenSession.getInstance().getEditors().contains(actEditor)){
+            if (actEditor != null
+                    && !PgenSession.getInstance().getEditors()
+                            .contains(actEditor)) {
                 PgenSession.getInstance().getEditors().add(actEditor);
             }
         }
@@ -415,11 +410,21 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         Label control = new Label(parent, SWT.NONE);
         control.setText(OBJECT_LABEL);
-
         objectBox = new Group(parent, SWT.SHADOW_IN);
-        // objectBox.setLayout( new GridLayout( NCOLUMN, true ) );
-        objectBox.setLayout(new RowLayout(SWT.HORIZONTAL));
-        objectBox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        // Uses grid layout if the row size is 1
+        // to accommodate the larger symbol buttons
+        if (rowSizePreference == 1) {
+            objectBox.setLayout(gridLayout);
+            objectBox.setLayoutData(new GridData());
+
+        } else {
+            RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
+            rowLayout.marginLeft = gridLayout.horizontalSpacing;
+            objectBox.setLayout(rowLayout);
+            objectBox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        }
 
     }
 
@@ -435,68 +440,89 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      */
     private void createPaletteSection(Composite parent, String section) {
 
-        /*
-         * Create label for the section
-         */
+        // Should attribute always be displayed in palette
+        boolean isAlwaysVisible = true;
+
+        // Create label for the section
         Label control = new Label(parent, SWT.NONE);
         control.setText(section);
 
-        /*
-         * create new composite widget for buttons and set a GridLayout
-         */
-        Group box = new Group(parent, SWT.SHADOW_IN);
+        // Creates the box around the buttons and set it as GridLayout
+        groupOutline = new Group(parent, SWT.SHADOW_IN);
+        groupOutline.setLayout(gridLayout);
+        groupOutline.setLayoutData(new GridData());
 
-        // box.setLayout( new GridLayout( NCOLUMN, true ) );
-        box.setLayout(new RowLayout(SWT.HORIZONTAL));
-        box.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        /*
-         * Get a list of buttons that are registered for this section of the
-         * palette
-         */
+        // Get a list of buttons that are registered
+        // for this section of the palette
         List<String> buttons = null;
-        if (section.equals(CONTROL_LABEL))
+        if (section.equals(CONTROL_LABEL)) {
             buttons = getControlNames();
-        else if (section.equals(ACTION_LABEL))
+        } else if (section.equals(ACTION_LABEL)) {
             buttons = getActionNames();
-        else if (section.equals(CLASS_LABEL))
+        } else if (section.equals(CLASS_LABEL)) {
             buttons = getClassNames();
+        }
 
         /*
          * Loop through each item registered with this section, and add the item
-         * to the palette if it is also in the buttonList. If the buttonList is
+         * to the palate if it is also in the buttonList. If the buttonList is
          * null, add all items.
          */
         for (String bname : buttons) {
 
             IConfigurationElement element = itemMap.get(bname);
 
-            /*
-             * determine if button should be added to palette
-             */
-            String always = element.getAttribute("alwaysVisible");
-            if ((always == null) || always.equalsIgnoreCase("false")) {
+            // Determine if button should be added to palette
+            String always = element.getAttribute(PgenConstant.ALWAYS_VISIBLE);
+
+            // IF ALWAYS_VISIBLE was not specified
+            if (always == null) {
+
+                // Skip this loop iteration
+                // If the buttonList doesn't list this button
                 if (buttonList != null) {
-                    if (!buttonList.contains(bname))
+                    if (!buttonList.contains(bname)) {
                         continue;
+                    }
                 }
+
+                // Set it as true
+                isAlwaysVisible = true;
+
+            } // If ALWAYS_VISIBLE is FALSE
+            else if (always.equalsIgnoreCase(PgenConstant.FALSE)) {
+                // Set it as FALSE
+                isAlwaysVisible = false;
+
+                // Skip this loop iteration if
+                // buttonList doesn't have this button name
+                if (buttonList != null) {
+                    if (!buttonList.contains(bname)) {
+                        continue;
+                    }
+                }
+
+            } // If ALWAYS_VISIBLE is TRUE
+            else if (always.equalsIgnoreCase(PgenConstant.TRUE)) {
+                isAlwaysVisible = true;
             }
 
-            Button item = new Button(box, SWT.PUSH);
+            // Skip this loop iteration, no button
+            if (!isAlwaysVisible) {
+                continue;
+            }
 
-            /*
-             * set label of button
-             */
-            if (element.getAttribute("label") != null)
-                item.setToolTipText(element.getAttribute("label"));
+            Button item = new Button(groupOutline, SWT.PUSH);
 
-            /*
-             * create an icon image for the button, if an icon was specified in
-             * the registered item.
-             */
-            if (element.getAttribute("icon") != null) {
+            // set label of button
+            if (element.getAttribute(PgenConstant.LABEL) != null)
+                item.setToolTipText(element.getAttribute(PgenConstant.LABEL));
 
-                Image icon = getIcon(element.getAttribute("icon"));
+            // create an icon image for the button, if an icon was specified in
+            // the registered item.
+            if (element.getAttribute(PgenConstant.ICON) != null) {
+
+                Image icon = getIcon(element.getAttribute(PgenConstant.ICON));
 
                 if (icon != null) {
 
@@ -506,40 +532,60 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                 } else {
 
                     // No icon available. Set text to display on button
-                    item.setText(element.getAttribute("name"));
+                    item.setText(element.getAttribute(PgenConstant.NAME));
 
                 }
             } else {
 
                 // No icon available. Set text to display on button
-                item.setText(element.getAttribute("name"));
+                item.setText(element.getAttribute(PgenConstant.NAME));
 
             }
 
-            /*
-             * set the ConfigurationElement name in the button, so that all the
-             * endpoint info can be accessed by the widgetSelected listener
-             */
-            item.setData(element.getAttribute("name"));
+            // set the ConfigurationElement name in the button, so that all the
+            // endpoint info can be accessed by the widgetSelected listener
+            item.setData(element.getAttribute(PgenConstant.NAME));
             item.addSelectionListener(this);
 
-            // Add button name to map of all buttons currently displayed in the
-            // palette
-            buttonMap.put(element.getAttribute("name"), item);
+            // Add button name to map of all
+            // buttons currently displayed in the palette
+            buttonMap.put(element.getAttribute(PgenConstant.NAME), item);
 
-            /*
-             * Save references to Undo and Redo buttons for future use
-             */
-            if (item.getData().equals("Undo")) {
+            // Save references to Undo and Redo buttons for future use
+            if (item.getData().equals(PgenConstant.UNDO)) {
                 undoButton = item;
             }
-            if (item.getData().equals("Redo")) {
+            if (item.getData().equals(PgenConstant.REDO)) {
                 redoButton = item;
             }
 
         }
-        box.pack();
-        box.redraw();
+        groupOutline.pack();
+        groupOutline.redraw();
+
+    }
+
+    /**
+     * Resizes the palette to match the size of each section
+     */
+    private void paletteResize() {
+
+        // Resizes the palette when the object box is larger than the palette
+        // Only occurs when the icons per row is 1
+        if (objectBox.getSize().x > groupOutline.getSize().x
+                && rowSizePreference == 1) {
+            paletteSize = objectBox.getSize().x
+                    + (gridLayout.horizontalSpacing + gridLayout.marginWidth);
+        } else {
+            // matches the spacing of the object section
+            gridLayout.horizontalSpacing = new RowLayout().spacing;
+            paletteSize = groupOutline.getSize().x
+                    + gridLayout.horizontalSpacing + gridLayout.marginWidth;
+
+        }
+
+        paletteComp.setSize(paletteComp.computeSize(paletteSize, SWT.DEFAULT));
+        paletteComp.layout();
 
     }
 
@@ -556,31 +602,25 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         // save for later use
         buttonList = buttonNames;
 
-        /*
-         * Dispose of all widgets currently in the palette
-         */
+        // Dispose of all widgets currently in the palette
         Control[] kids = paletteComp.getChildren();
         for (int j = 0; j < kids.length; j++) {
             kids[j].dispose();
         }
 
-        /*
-         * create each section of the palette
-         */
+        // create each section of the palette
         createPaletteSection(paletteComp, CONTROL_LABEL);
         createPaletteSection(paletteComp, ACTION_LABEL);
         createPaletteSection(paletteComp, CLASS_LABEL);
+
         createObjectSection(paletteComp);
 
-        /*
-         * Force a resize
-         */
-        Rectangle r = scroll.getClientArea();
-        paletteComp.setSize(paletteComp.computeSize(r.width, SWT.DEFAULT));
-        paletteComp.layout();
+        // Force a resize
+        paletteResize();
 
         // wait for buttons to be created
         disableUndoRedo();
+
     }
 
     /**
@@ -608,29 +648,25 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         IEditorPart editor = VizWorkbenchManager.getInstance()
                 .getActiveEditor();
-        
-        //Set perspective ID in session
-        if ( PgenSession.getInstance().getPerspectiveId() == null ||
-                PgenSession.getInstance().getPerspectiveId().isEmpty()){
-            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener.getCurrentPerspectiveManager();
-            if ( pMngr != null ){
-                PgenSession.getInstance().setPerspectiveId(pMngr.getPerspectiveId());
+
+        // Set perspective ID in session
+        if (PgenSession.getInstance().getPerspectiveId() == null
+                || PgenSession.getInstance().getPerspectiveId().isEmpty()) {
+            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener
+                    .getCurrentPerspectiveManager();
+            if (pMngr != null) {
+                PgenSession.getInstance().setPerspectiveId(
+                        pMngr.getPerspectiveId());
             }
         }
-        
-        if (editor instanceof AbstractEditor) {// && ((NCMapEditor)
-                                               // editor).getApplicationName().equals("NA")
-                                               // ) {
 
-            /*
-             * get the endpoint information associated with this button.
-             */
+        if (editor instanceof AbstractEditor) {
+
+            // get the endpoint information associated with this button.
             Button btn = (Button) se.getSource();
             IConfigurationElement elem = itemMap.get(btn.getData());
 
-            /*
-             * get the section of the palette that this item was registered with
-             */
+            // get the section of the palette that this item was registered with
             String point = elem.getName();
 
             /*
@@ -658,14 +694,10 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     resetIcon(currentObject);
                 }
 
-                /*
-                 * R7805 - reset current action if it is different from the
-                 * newly-selected one.
-                 */
+                // reset current action if it is different from the
+                // newly-selected one.
                 if (point.equals(ACTION_SECTION)) {
                     if (!btn.getData().toString().equals(currentAction)) {
-                        System.out.println("reset currentAction "
-                                + currentAction);
                         resetIcon(currentAction);
                     }
                 }
@@ -676,10 +708,13 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                         && currentAction.equalsIgnoreCase("Select")
                         && (currentCategory.equalsIgnoreCase("Front") || currentCategory
                                 .equalsIgnoreCase("Lines"))) {
+
                     AbstractVizPerspectiveManager mgr = VizPerspectiveListener
                             .getCurrentPerspectiveManager();
+
                     for (AbstractModalTool tool : mgr.getToolManager()
                             .getSelectedModalTools()) {
+
                         // check selecting tool and change front/line type
                         if (tool instanceof PgenSelectingTool) {
                             DrawableElement currentDe = ((PgenSelectingTool) tool)
@@ -714,13 +749,14 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                         currentAction = elem.getAttribute("name");
                     }
                 }
-            } else if (point.equals(CLASS_SECTION)) {
-                /*
-                 * If a button in the "Class" section of the palette was
-                 * pressed, unload the current set of buttons in the Object
-                 * section, and load the object buttons registered as part of
-                 * the class selected.
-                 */
+
+            }
+            /*
+             * If a button in the "Class" section of the palette was pressed,
+             * unload the current set of buttons in the Object section, and load
+             * the object buttons registered as part of the class selected.
+             */
+            else if (point.equals(CLASS_SECTION)) {
 
                 // remove currently loaded buttons from the Object section
                 org.eclipse.swt.widgets.Control[] kids = objectBox
@@ -739,17 +775,14 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                 // display "active" icon on the current Class's button
                 setActiveIcon(currentCategory);
 
-                /*
-                 * Loop threough each object registered with the current
-                 * Class/Category
-                 */
+                // Loop threough each object registered
+                // with the currentClass/Category
                 for (String bname : getObjectNames(currentCategory)) {
 
                     IConfigurationElement element = itemMap.get(bname);
 
-                    /*
-                     * determine if button should be added to palette
-                     */
+                    // determine if button should be added to palette
+
                     if (buttonList != null) {
                         if (!buttonList.contains(bname))
                             continue;
@@ -761,10 +794,9 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     if (element.getAttribute("label") != null)
                         item.setToolTipText(element.getAttribute("label"));
 
-                    /*
-                     * create an icon image for the button, if an icon was
-                     * specified in the registered item.
-                     */
+                    // create an icon image for the button, if an icon was
+                    // specified in the registered item.
+
                     if (element.getAttribute("icon") != null) {
 
                         Image icon = getIcon(element.getAttribute("icon"));
@@ -779,26 +811,26 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     }
 
                     // set the ConfigurationElement name in the button, add to
-                    // map of currently
-                    // displayed buttons
+                    // map of currently displayed buttons
+
                     item.setData(element.getAttribute("name"));
                     item.addSelectionListener(this);
                     buttonMap.put(element.getAttribute("name"), item);
 
-                    objectBox.setSize(objectBox.computeSize(SWT.DEFAULT,
+                    objectBox.setSize(objectBox.computeSize(paletteSize,
                             SWT.DEFAULT, true));
                     objectBox.pack();
                     objectBox.layout(true);
                     objectBox.redraw();
+
                 }
 
-                /*
-                 * if multiSelect is current tool, reload it now after category
-                 * selection
-                 */
+                // if multiSelect is current tool,
+                // reload it now after category selection
                 if (currentAction != null) {
-                    if (currentAction.isEmpty())
+                    if (currentAction.isEmpty()) {
                         currentAction = "Select";
+                    }
                     if (currentAction.equalsIgnoreCase("Select")
                             || currentAction.equalsIgnoreCase("MultiSelect")
                             || currentAction.equalsIgnoreCase("Copy")
@@ -810,15 +842,13 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                             || currentAction.equalsIgnoreCase("Extrap")
                             || currentAction.equalsIgnoreCase("Interp")) {
                         elem = itemMap.get(currentAction);
-                        if (elem != null)
+                        if (elem != null) {
                             exeCommand(elem);
+                        }
                     }
                 }
 
-                Rectangle r = scroll.getClientArea();
-                paletteComp.setSize(paletteComp.computeSize(r.width,
-                        SWT.DEFAULT));
-                paletteComp.layout();
+                paletteResize();
             }
         } else {
             Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
@@ -836,19 +866,16 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     }
 
-    /*
+    /**
      * invoked when widget is disposed
      * 
-     * @see
-     * org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt
-     * .events.DisposeEvent)
+     * @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt
+     *      .events.DisposeEvent)
      */
     public void widgetDisposed(DisposeEvent event) {
 
-        /*
-         * If a button is being disposed, remove it from the map of currently
-         * displayed items in the palette
-         */
+        // If a button is being disposed, remove it from the map of currently
+        // displayed items in the palette
         if (event.getSource() instanceof Button) {
 
             Button btn = (Button) event.getSource();
@@ -889,23 +916,19 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partActivated(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something Activated: "+part.getClass().getCanonicalName()
-        // );
-        // if ( part instanceof NCMapEditor &&((NCMapEditor)
-        // part).getApplicationName().equals("NA")) {
 
         if (PgenUtil.isNatlCntrsEditor(part) || part instanceof VizMapEditor) {
 
-            //Prevent PGEN going to another perspective
-            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener.getCurrentPerspectiveManager();
-            if ( pMngr != null && pMngr.getPerspectiveId() != PgenSession.getInstance().getPerspectiveId() ){
+            // Prevent PGEN going to another perspective
+            AbstractVizPerspectiveManager pMngr = VizPerspectiveListener
+                    .getCurrentPerspectiveManager();
+            if (pMngr != null
+                    && pMngr.getPerspectiveId() != PgenSession.getInstance()
+                            .getPerspectiveId()) {
                 return;
             }
-            
-            PgenResource rsc = PgenUtil.findPgenResource((AbstractEditor) part);
 
-            // if ( PgenSession.getInstance().getPgenResource().getDescriptor()
-            // != )
+            PgenResource rsc = PgenUtil.findPgenResource((AbstractEditor) part);
 
             if ((rsc == null) && (PgenUtil.getPgenMode() == PgenMode.SINGLE)) {
                 rsc = PgenUtil.createNewResource();
@@ -913,16 +936,15 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
             if (rsc != null) {
                 rsc.setCatFilter(new CategoryFilter(
-                        (currentCategory == null) ? CATEGORY_ANY : currentCategory));
+                        (currentCategory == null) ? CATEGORY_ANY
+                                : currentCategory));
             }
 
             PgenSession.getInstance().setResource(rsc);
 
             AbstractEditor editor = (AbstractEditor) part;
-            // if ( editor.getNumberofPanes() > 1 ) {
             if (PgenUtil.getNumberofPanes(editor) > 1) {
                 currentIsMultiPane = editor;
-                // editor.addSelectedPaneChangedListener( this );
                 PgenUtil.addSelectedPaneChangedListener(editor, this);
             }
             activatePGENContext();
@@ -930,7 +952,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             activatePGENContext();
 
             // found NCMapEditor
-            // AbstractEditor editor = NmapUiUtils.getActiveNatlCntrsEditor();
             AbstractEditor editor = PgenUtil.getActiveEditor();
             if (editor != null) {
                 IRenderableDisplay display = editor.getActiveDisplayPane()
@@ -961,8 +982,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partBroughtToTop(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something BroughtToTop: "+part.getClass().getCanonicalName()
-        // );
         partActivated(partRef);
 
         if (PgenUtil.isNatlCntrsEditor(part) || part instanceof VizMapEditor) {
@@ -995,26 +1014,24 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partClosed(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something Closed: "+part.getClass().getCanonicalName()
-        // );
 
         if (part instanceof PgenPaletteWindow) {
-            // if SINGLEMODE, foreach editor; remove pgen rsc
             if (PgenUtil.getPgenMode() == PgenMode.SINGLE) {
                 PgenUtil.resetResourceData();
-                if (VizPerspectiveListener.getCurrentPerspectiveManager() == null)
-                    return; // workbench probably closing
-
+                if (VizPerspectiveListener.getCurrentPerspectiveManager() == null) {
+                    return;
+                }
                 for (AbstractEditor editor : PgenSession.getInstance()
                         .getEditors()) {
                     unloadPgenResource(editor);
                 }
-                
+
                 PgenSession.getInstance().endSession();
+
+                // R8354.
+                deactivatePGENContext();
             }
 
-            // if ( currentIsMultiPane != null )
-            // currentIsMultiPane.removeSelectedPaneChangedListener( this );
             if (currentIsMultiPane != null) {
                 PgenUtil.removeSelectedPaneChangedListener(currentIsMultiPane,
                         this);
@@ -1024,6 +1041,10 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     .findPgenResource((AbstractEditor) part);
             if (pgen != null) {
                 pgen.closeDialogs();
+
+                // R8354
+                deactivatePGENContext();
+                ((AbstractEditor) part).refresh();
             }
         }
     }
@@ -1031,8 +1052,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partDeactivated(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something Deactivated: "+part.getClass().getCanonicalName()
-        // );
 
         if (PgenUtil.isNatlCntrsEditor(part)) {
 
@@ -1058,10 +1077,8 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             }
 
             AbstractEditor editor = (AbstractEditor) part;
-            // if ( editor.getNumberofPanes() > 1 ) {
             if (PgenUtil.getNumberofPanes(editor) > 1) {
                 currentIsMultiPane = null;
-                // editor.removeSelectedPaneChangedListener( this );
                 PgenUtil.removeSelectedPaneChangedListener(editor, this);
             }
 
@@ -1075,8 +1092,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     @Override
     public void partOpened(IWorkbenchPartReference partRef) {
-        // System.out.println("Something Opened: "+part.getClass().getCanonicalName()
-        // );
         IWorkbenchPart part = partRef.getPart(false);
         if (part instanceof PgenPaletteWindow) {
             ((PgenPaletteWindow) part).setPartName("PGEN");
@@ -1086,8 +1101,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partHidden(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something Hidden: "+part.getClass().getCanonicalName()
-        // );
 
         if (PgenUtil.isNatlCntrsEditor(part) || part instanceof VizMapEditor) {
             PgenResource pgen = PgenUtil
@@ -1095,20 +1108,25 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             if (pgen != null) {
                 pgen.closeDialogs();
                 pgen.deactivatePgenTools();
+
+                // R8354
+                deactivatePGENContext();
+                ((AbstractEditor) part).refresh();
             }
+        } else if (part instanceof PgenPaletteWindow) { // R8354
+            deactivatePGENContext();
         }
+
     }
 
     @Override
     public void partInputChanged(IWorkbenchPartReference partRef) {
-        // TODO Auto-generated method stub
+
     }
 
     @Override
     public void partVisible(IWorkbenchPartReference partRef) {
         IWorkbenchPart part = partRef.getPart(false);
-        // System.out.println("Something Opened: "+part.getClass().getCanonicalName()
-        // );
         if (PgenUtil.isNatlCntrsEditor(part) && !PreloadGfaDataThread.loaded) {
             // preload the classes to reduce the first GFA format time
             new PreloadGfaDataThread().start();
@@ -1170,31 +1188,29 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         return currentAction;
     }
 
-    /*
+    /**
      * Finds the button with the given name, and sets its image to an "active"
      * version of the icon
      */
     public void setActiveIcon(String name) {
 
         // if name not recognized, do nothing
-        if (!itemMap.containsKey(name))
+        if (!itemMap.containsKey(name)) {
             return;
+        }
         // if button not currently displayed on palette, do nothing
-        if (!buttonMap.containsKey(name))
+        if (!buttonMap.containsKey(name)) {
             return;
-
+        }
         String iconLocation = itemMap.get(name).getAttribute("icon");
 
-        /*
-         * If an active version of the icon exists, use it
-         */
+        // If an active version of the icon exists, use it
         if (activeIconMap.containsKey(iconLocation)) {
             Image im = activeIconMap.get(iconLocation);
             buttonMap.get(name).setImage(im);
         } else {
-            /*
-             * create an "active" version of the icon from the original.
-             */
+
+            // create an "active" version of the icon from the original.
             Image im = iconMap.get(iconLocation);
             ImageData id = im.getImageData();
 
@@ -1215,10 +1231,9 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     }
 
-    /*
-     * Finds the button with the given name, and sets its image to the original
-     * icon specified with the extension point
-     */
+    // Finds the button with the given name, and sets its image to the original
+    // icon specified with the extension point
+
     public void resetIcon(String name) {
 
         // if name not recognized, do nothing
@@ -1230,19 +1245,15 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         IConfigurationElement elem = itemMap.get(name);
 
-        /*
-         * reset to original icon
-         */
+        // reset to original icon
         Image icon = getIcon(elem.getAttribute("icon"));
         if (icon != null) {
             buttonMap.get(name).setImage(icon);
         }
     }
 
-    /*
-     * Sets up an eclipse Command and ExecuteEvent for a registered commandId,
-     * and then executes it.
-     */
+    // Sets up an eclipse Command and ExecuteEvent
+    // for a registered commandId, and then executes it.
     private void exeCommand(IConfigurationElement elem) {
 
         // Get the commandId for this item
@@ -1262,9 +1273,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
             try {
 
-                /*
-                 * Set up information to pass to the AbstractHandler
-                 */
+                // Set up information to pass to the AbstractHandler
                 HashMap<String, Object> params = new HashMap<String, Object>();
                 params.put("editor", part);
                 params.put("name", elem.getAttribute("name"));
@@ -1283,7 +1292,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
             } catch (Exception e) {
                 // Error executing Handler
-
                 e.printStackTrace();
                 String msg = "Could not set PGEN drawing mode for the current map";
                 ErrorDialog.openError(Display.getCurrent().getActiveShell(),
@@ -1363,9 +1371,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      */
     public Image createNewImage(Image im, int fg, int bg) {
 
-        /*
-         * create an "active" version of the icon from the original.
-         */
+        // create an "active" version of the icon from the original.
         ImageData id = im.getImageData();
 
         for (int ii = 0; ii < id.height; ii++) {
@@ -1395,8 +1401,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             IContextService ctxSvc = (IContextService) PlatformUI
                     .getWorkbench().getService(IContextService.class);
             ctxSvc.deactivateContext(pgenContextActivation);
-            // System.out.println("Deactivated " +
-            // pgenContextActivation.getContextId());
             pgenContextActivation = null;
         }
     }
@@ -1407,8 +1411,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     .getWorkbench().getService(IContextService.class);
             pgenContextActivation = ctxSvc
                     .activateContext("gov.noaa.nws.ncep.ui.pgen.pgenContext");
-            // System.out.println("Activated " +
-            // pgenContextActivation.getContextId());
         }
     }
 
@@ -1421,15 +1423,6 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     @Override
     public void selectedPanesChanged(String id, IDisplayPane[] pane) {
-        // @Override
-        // public void paneSelected(NCMapEditor editor, ArrayList<NCDisplayPane>
-        // panes) {
-        // TODO Auto-generated method stub
-        // System.out.println("YOYOYYOYYOYYYOY");
-
-        // PgenResource rsc = PgenUtil.findPgenResourceInPane(panes.get(0));
-        // if ( rsc != null ) PgenSession.getInstance().setResource(rsc);
-        // }
     }
 
     /**
@@ -1439,7 +1432,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         return currentObject;
     }
 
-    /*
+    /**
      * Sets the category and its icon.
      */
     public void setCurrentCategory(String currentCategory) {

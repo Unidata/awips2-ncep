@@ -13,6 +13,7 @@ package gov.noaa.nws.ncep.ui.nsharp;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 05/23/2010   229         Chin Chen   Initial coding
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  *
  * </pre>
  * 
@@ -45,7 +46,6 @@ public class NsharpConstants {
 
     public static final int DEFAULT_CANVAS_WIDTH = 1100;
 
-    // public static double TEMPERATURE_MIN = -115.0;
     public static float KnotsToMetersPerSecond = 0.5144444F;
 
     public static final UnitConverter kelvinToCelsius = SI.KELVIN
@@ -56,14 +56,6 @@ public class NsharpConstants {
 
     public static final UnitConverter feetToMeters = NonSI.FOOT
             .getConverterTo(SI.METRE);
-
-    // public static double WIND_SPEED_MIN = 0.0;
-
-    // public static double WIND_SPEED_MAX = 250.0;
-
-    // public static double WIND_DIR_MIN = 0.0;
-
-    // public static double WIND_DIR_MAX = 360.0;
 
     public static final int WINDBARB_DISTANCE_DEFAULT = 600; // in meters
 
@@ -213,9 +205,9 @@ public class NsharpConstants {
 
     public static double height = top - bottom;
 
-    public static double left = -height * 0.45;// (-height / 2) - 1;
+    public static double left = -height * 0.45;
 
-    public static double right = height * 0.55;// (height / 2) + 1;
+    public static double right = height * 0.55;
 
     public static double center = (left + right) / 2;
 
@@ -305,9 +297,6 @@ public class NsharpConstants {
             color_dodgerblue, color_chocolate, color_navy };
 
     public static final HashMap<Integer, RGB> gempakColorToRGB = new HashMap<Integer, RGB>() {
-        /**
-         * 
-         */
         private static final long serialVersionUID = 1L;
         {
             put(0, NsharpConstants.color_white);
@@ -361,7 +350,7 @@ public class NsharpConstants {
      ****/
     public static final int OMEGA_X_TOP = -40;
 
-    public static final int OMEGA_Y_TOP = 200;// 225;
+    public static final int OMEGA_Y_TOP = 200;
 
     public static final int SKEWT_REC_X_ORIG = OMEGA_X_TOP + 160;
 
@@ -409,9 +398,9 @@ public class NsharpConstants {
 
     public static final int DATAPANEL_REC_HEIGHT = 630;
 
-    public static final int INSET_REC_WIDTH = DATAPANEL_REC_WIDTH / 2;// 250;//300;
+    public static final int INSET_REC_WIDTH = DATAPANEL_REC_WIDTH / 2;
 
-    public static final int INSET_REC_HEIGHT = DATAPANEL_REC_HEIGHT / 2;// SKEWT_REC_HEIGHT/3;;
+    public static final int INSET_REC_HEIGHT = DATAPANEL_REC_HEIGHT / 2;
 
     public static final int WIND_BOX_WIDTH = 175;
 
@@ -436,13 +425,12 @@ public class NsharpConstants {
 
     public static final int HODO_REC_Y_ORIG = SKEWT_REC_Y_ORIG;
 
-    public static final int HODO_REC_WIDTH = SKEWT_REC_WIDTH;// 750;//1000;
+    public static final int HODO_REC_WIDTH = SKEWT_REC_WIDTH;
 
-    public static final int HODO_REC_HEIGHT = SKEWT_REC_HEIGHT;// /3 * 2;
+    public static final int HODO_REC_HEIGHT = SKEWT_REC_HEIGHT;
 
     public static final int HODO_VIEW_X_END = HODO_REC_X_ORIG + HODO_REC_WIDTH;
 
-    // public static final int HODO_VIEW_Y_END = HODO_REC_Y_ORIG +
     // HODO_REC_HEIGHT;
     public static final float HODO_CENTER_X = HODO_REC_X_ORIG
             + (float) (5.00 / 12.00) * HODO_REC_WIDTH;
@@ -480,11 +468,8 @@ public class NsharpConstants {
 
     public static final int DATA_TIMELINE_NEXT_PAGE_END = DATA_TIMELINE_REC_Y_ORIG + 30;
 
-    public static final int DATA_TIMELINE_NOTATION_Y_START = DATA_TIMELINE_VIEW_Y_END;// -
-                                                                                      // 100;
+    public static final int DATA_TIMELINE_NOTATION_Y_START = DATA_TIMELINE_VIEW_Y_END;
 
-    // public static final int DATA_TIMELINE_SORT_X_START =
-    // DATA_TIMELINE_REC_X_ORIG+(7*DATA_TIMELINE_REC_WIDTH/18);
     public static final int STATION_ID_REC_X_ORIG = DATA_TIMELINE_VIEW_X_END;
 
     public static final int STATION_ID_REC_Y_ORIG = DATA_TIMELINE_REC_Y_ORIG;
@@ -499,8 +484,6 @@ public class NsharpConstants {
     public static final int STATION_ID_VIEW_Y_END = STATION_ID_REC_Y_ORIG
             + STATION_ID_REC_HEIGHT;
 
-    // public static final int STATION_ID_NOTATION_Y_START =
-    // STATION_ID_VIEW_Y_END-90;
     public static final int COLOR_NOTATION_REC_X_ORIG = DATA_TIMELINE_REC_X_ORIG;
 
     public static final int COLOR_NOTATION_REC_Y_ORIG = DATA_TIMELINE_VIEW_Y_END;
@@ -672,15 +655,6 @@ public class NsharpConstants {
      * 
      * 
      ****/
-    /*
-     * public static final int DISPLAY_SKEWT=0; public static final int
-     * DISPLAY_WITO= DISPLAY_SKEWT+1; //Wind box + InferredTemp + Omega public
-     * static final int DISPLAY_INSET= DISPLAY_WITO+1; public static final int
-     * DISPLAY_HODO= DISPLAY_INSET+1; public static final int DISPLAY_TIMESTN=
-     * DISPLAY_HODO+1; public static final int DISPLAY_DATA=DISPLAY_TIMESTN+1;
-     * public static final int DISPLAY_SPC_GRAPHS= DISPLAY_DATA+1; public static
-     * final int DISPLAY_TOTAL= DISPLAY_SPC_GRAPHS+1;
-     */
     public static final int CHAR_HEIGHT_ = 15;
 
     // note: dimensions are used as reference for its components inside its pane
@@ -691,37 +665,31 @@ public class NsharpConstants {
 
     public static final int DISPLAY_HEIGHT = 820;
 
-    public static final int SKEWT_PANE_REC_WIDTH = DISPLAY_WIDTH / 2 * 11 / 16; // 800
-                                                                                // *11/16=550
+    public static final int SKEWT_PANE_REC_WIDTH = DISPLAY_WIDTH / 2 * 11 / 16; 
 
-    public static final int SKEWT_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 8 / 10; // 820*0.8
-                                                                             // =656;
+    public static final int SKEWT_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 8 / 10; 
 
     public static final int WITO_PANE_REC_WIDTH = DISPLAY_WIDTH / 2
-            - SKEWT_PANE_REC_WIDTH; // 800-550=250
+            - SKEWT_PANE_REC_WIDTH; 
 
-    public static final int WITO_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 8 / 10; // 820*0.8
-                                                                            // =656;
+    public static final int WITO_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 8 / 10; 
 
-    public static final int HODO_PANE_REC_WIDTH = (DISPLAY_WIDTH / 2) * 13 / 20;// 800x0.65=520;;
+    public static final int HODO_PANE_REC_WIDTH = (DISPLAY_WIDTH / 2) * 13 / 20;
 
-    public static final int HODO_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 7 / 10; // 820*0.7
-                                                                            // =574;
+    public static final int HODO_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 7 / 10;
 
     public static final int TIMESTN_PANE_REC_WIDTH = DISPLAY_WIDTH / 2
-            - HODO_PANE_REC_WIDTH;// 800-520=280
+            - HODO_PANE_REC_WIDTH;
 
-    public static final int TIMESTN_PANE_REC_HEIGHT = HODO_PANE_REC_HEIGHT; // 574
+    public static final int TIMESTN_PANE_REC_HEIGHT = HODO_PANE_REC_HEIGHT; 
 
     public static final int INSET_PANE_REC_WIDTH = DISPLAY_WIDTH / 2;
 
-    public static final int INSET_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 2 / 10; // 820*0.2
-                                                                             // =164;
+    public static final int INSET_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 2 / 10; 
 
-    public static final int DATA_PANE_REC_WIDTH = DISPLAY_WIDTH / 2; // 800
+    public static final int DATA_PANE_REC_WIDTH = DISPLAY_WIDTH / 2; 
 
-    public static final int DATA_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 3 / 10; // 820*0.3
-                                                                            // =246;
+    public static final int DATA_PANE_REC_HEIGHT = DISPLAY_HEIGHT * 3 / 10; 
 
     public static Rectangle SKEWT_DISPLAY_REC = new Rectangle(0, 0,
             SKEWT_PANE_REC_WIDTH, SKEWT_PANE_REC_HEIGHT);
@@ -747,13 +715,13 @@ public class NsharpConstants {
     public static Rectangle SPC_GRAPH_DISPLAY_REC = new Rectangle(0, 0,
             DATA_PANE_REC_WIDTH, DATA_PANE_REC_HEIGHT);
 
-    public static final int SKEWT_WIDTH = SKEWT_PANE_REC_WIDTH;// =550
+    public static final int SKEWT_WIDTH = SKEWT_PANE_REC_WIDTH;
 
-    public static final int SKEWT_HEIGHT = SKEWT_PANE_REC_HEIGHT;// 570
+    public static final int SKEWT_HEIGHT = SKEWT_PANE_REC_HEIGHT;
 
     public static final int SKEWT_X_ORIG = 0;
 
-    public static final int SKEWT_Y_ORIG = 0;// 70;
+    public static final int SKEWT_Y_ORIG = 0;
 
     public static final int SKEWT_X_END = SKEWT_X_ORIG + SKEWT_WIDTH;
 
@@ -819,7 +787,7 @@ public class NsharpConstants {
 
     public static final int HODO_X_ORIG = 0;
 
-    public static final int HODO_Y_ORIG = 0;// 40;
+    public static final int HODO_Y_ORIG = 0;
 
     public static final int HODO_WIDTH = HODO_PANE_REC_WIDTH;
 
@@ -847,8 +815,7 @@ public class NsharpConstants {
 
     public static final int DATA_TIMELINE_Y_ORIG = 40;
 
-    public static final int DATA_TIMELINE_WIDTH = TIMESTN_PANE_REC_WIDTH * 35 / 100;// FixMark:nearByStnCompSnd
-                                                                                    // d2dlite
+    public static final int DATA_TIMELINE_WIDTH = TIMESTN_PANE_REC_WIDTH * 35 / 100;
 
     public static final int COLOR_NOTATION_HEIGHT = 165;
 
@@ -991,7 +958,6 @@ public class NsharpConstants {
 
     public static final int SRWINDVTRS_Y_END = SRWINDVTRS_Y_ORIG + INSET_HEIGHT;
 
-    // public static final String PANE_LEGACY_CFG_STR =
     // "Legacy Configuration (obsoleting)";
     public static final String PANE_DEF_CFG_1_STR = "Default Configuration 1";
 
@@ -1001,10 +967,12 @@ public class NsharpConstants {
 
     public static final String PANE_SIMPLE_D2D_CFG_STR = "D2D Skewt Standard Screen Configuration";
 
-    public static final String PANE_LITE_D2D_CFG_STR = "D2D Lite Screen Configuration"; // d2dlite
+    public static final String PANE_LITE_D2D_CFG_STR = "D2D Lite Screen Configuration"; 
+
+    public static final String PANE_OPC_CFG_STR = "OPC Screen Configuration"; 
 
     public static final String[] PANE_CONFIGURATION_NAME = {
-            PANE_SPCWS_CFG_STR, PANE_SIMPLE_D2D_CFG_STR, PANE_LITE_D2D_CFG_STR }; // d2dlite
+            PANE_SPCWS_CFG_STR, PANE_SIMPLE_D2D_CFG_STR, PANE_LITE_D2D_CFG_STR, PANE_OPC_CFG_STR };
 
     // pane width and height ratio to full canvas size
     // pane default configuration 1
@@ -1081,17 +1049,17 @@ public class NsharpConstants {
     public static final double PANE_DEF_CFG_2_DATA_HEIGHT_RATIO = 1 - PANE_DEF_CFG_2_HODO_HEIGHT_RATIO;
 
     // pane SPC wide screen configuration
-    public static final double PANE_SPCWS_CFG_TOP_GP_HEIGHT_RATIO = 0.714; // 5/7
+    public static final double PANE_SPCWS_CFG_TOP_GP_HEIGHT_RATIO = 0.714; 
 
     public static final double PANE_SPCWS_CFG_BOT_GP_HEIGHT_RATIO = 1 - PANE_SPCWS_CFG_TOP_GP_HEIGHT_RATIO;
 
     // skewt, wito, hodo/inset (hodo stack on inset) panes are located on top
     // group
-    public static final double PANE_SPCWS_CFG_SKEWT_WIDTH_RATIO = 0.4938;// 5/10.125;
+    public static final double PANE_SPCWS_CFG_SKEWT_WIDTH_RATIO = 0.4938;
 
     public static final double PANE_SPCWS_CFG_SKEWT_HEIGHT_RATIO = 1;
 
-    public static final double PANE_SPCWS_CFG_WITO_WIDTH_RATIO = 0.1111;// 1.125/10.125;
+    public static final double PANE_SPCWS_CFG_WITO_WIDTH_RATIO = 0.1111;
 
     public static final double PANE_SPCWS_CFG_WITO_HEIGHT_RATIO = 1;
 
@@ -1099,7 +1067,7 @@ public class NsharpConstants {
             - PANE_SPCWS_CFG_SKEWT_WIDTH_RATIO
             - PANE_SPCWS_CFG_WITO_WIDTH_RATIO;
 
-    public static final double PANE_SPCWS_CFG_HODO_HEIGHT_RATIO = 0.825;// 4.125/5;
+    public static final double PANE_SPCWS_CFG_HODO_HEIGHT_RATIO = 0.825;
 
     public static final double PANE_SPCWS_CFG_INSET_WIDTH_RATIO = PANE_SPCWS_CFG_HODO_WIDTH_RATIO;
 
@@ -1128,7 +1096,7 @@ public class NsharpConstants {
 
     public static final double PANE_SIMPLE_D2D_CFG_TIMESTN_WIDTH_RATIO = 1 - PANE_SIMPLE_D2D_CFG_SKEWT_WIDTH_RATIO;
 
-    public static final double PANE_SIMPLE_D2D_CFG_TIMESTN_HEIGHT_RATIO = 1; // d2dlite
+    public static final double PANE_SIMPLE_D2D_CFG_TIMESTN_HEIGHT_RATIO = 1; 
 
     public static final double PANE_SIMPLE_D2D_CFG_FUTURE_WIDTH_RATIO = PANE_SIMPLE_D2D_CFG_TIMESTN_WIDTH_RATIO;
 
@@ -1163,7 +1131,24 @@ public class NsharpConstants {
 
     public static final double PANE_LITE_D2D_CFG_DATA_HEIGHT_RATIO = 1 - PANE_LITE_D2D_CFG_TIMESTN_HEIGHT_RATIO;
 
-    // d2dlite end
+    // OPC Pane
+    
+    public static final double PANE_OPC_CFG_SKEWT_WIDTH_RATIO = 0.66;
+    
+    public static final double PANE_OPC_CFG_SKEWT_HEIGHT_RATIO = 1;
+ 
+    public static final double PANE_OPC_CFG_HODO_WIDTH_RATIO = 0.66;
+
+    public static final double PANE_OPC_CFG_HODO_HEIGHT_RATIO = 1;
+
+    public static final double PANE_OPC_CFG_TIMESTN_WIDTH_RATIO = 1 - PANE_OPC_CFG_SKEWT_WIDTH_RATIO;
+
+    public static final double PANE_OPC_CFG_TIMESTN_HEIGHT_RATIO = 0.5;
+
+    public static final double PANE_OPC_CFG_DATA_WIDTH_RATIO = PANE_OPC_CFG_TIMESTN_WIDTH_RATIO;
+
+    public static final double PANE_OPC_CFG_DATA_HEIGHT_RATIO = 1 - PANE_OPC_CFG_TIMESTN_HEIGHT_RATIO;
+
     /***
      * 
      * MULTIPLE PANES IMPLEMENTATIONS end
@@ -1172,7 +1157,6 @@ public class NsharpConstants {
      ****/
 
     // Dialog
-    // public static final int dialogX = 300;
     public static int btnWidth = 120;
 
     public static int btnHeight = 20;
@@ -1332,9 +1316,9 @@ public class NsharpConstants {
 
     public final static int PAGE_SEVERE_POTENTIAL = 10;
 
-    public final static int PAGE_D2DLITE = 11; // d2dlite
+    public final static int PAGE_D2DLITE = 11; 
 
-    public final static int PAGE_FUTURE = 12; // d2dlite, a dummy page, for when
+    public final static int PAGE_FUTURE = 12; // a dummy page, for when
                                               // showing 2 pages per time
 
     public final static int PAGE_MAX_NUMBER = PAGE_FUTURE;
@@ -1351,10 +1335,9 @@ public class NsharpConstants {
         CURRENT, ACTIVE, INACTIVE, NOTAVAIL, AVAIL, ACTIVE_SRC_COMP, INACTIVE_SRC_COMP, ACTIVE_TM_COMP, INACTIVE_TM_COMP
     }
 
-    // public enum LoadState { NOTAVAIL , AVAIL}
     public enum ActState {
         CURRENT, ACTIVE, INACTIVE
-    }// , ACTIVE_SRC_COMP, INACTIVE_SRC_COMP,ACTIVE_TM_COMP, INACTIVE_TM_COMP}
+    }
 
     public enum SPCGraph {
         EBS, STP, SHIP, WINTER, FIRE, HAIL, SARS

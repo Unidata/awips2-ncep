@@ -13,6 +13,10 @@
  *                                                           interpreted as dates decades in the future.
  * B. Hebbard        R5939                   01/2015         Handle new year change between observation and
  *                                                           decoding time.
+ * B. Hebbard        R7739                   05/2015         Strengthen error checking to abort and throw
+ *                                                           DecoderException in cases where:  
+ *                                                           (1) data format (satellite/density) unrecognized 
+ *                                                           (2) any date/time field out of range, in any row
  * </pre>
  *
  * This code has been developed by the SIB for use in the AWIPS system.
@@ -33,6 +37,8 @@ import java.util.NoSuchElementException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
+
+import com.raytheon.edex.exception.DecoderException;
 
 public class NcscatProcessing {
 
@@ -61,7 +67,7 @@ public class NcscatProcessing {
     public NcscatProcessing() {
     }
 
-    public byte[] separate(byte[] data) {
+    public byte[] separate(byte[] data) throws DecoderException {
         doSeparate(data);
         try {
             if (newMessage == null) {
@@ -80,8 +86,9 @@ public class NcscatProcessing {
     /**
      * @param message
      *            separate bulletins
+     * @throws DecoderException
      */
-    private void doSeparate(byte[] message) {
+    private void doSeparate(byte[] message) throws DecoderException {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(message.length);
         byteBuffer.put(message, 0, message.length);
@@ -100,7 +107,8 @@ public class NcscatProcessing {
         }
 
         if (matchedMode == NcscatMode.UNKNOWN) {
-            // TODO: Log error/warning -- and quit?
+            throw new DecoderException(
+                    "Data format does not match any known satellite/density types");
         }
 
         ncscatMode = matchedMode;
@@ -156,8 +164,8 @@ public class NcscatProcessing {
 
                     if (day < 1 || day > 366 || hour < 0 || hour > 23
                             || min < 0 || min > 59 || sec < 0 || sec > 60) {
-                        // TODO log error?
-                        continue; // TODO break?
+                        throw new DecoderException(
+                                "Out-of-range date/time field encountered; decoding of file aborted");
                     }
 
                     if (ji < 8) { // first row

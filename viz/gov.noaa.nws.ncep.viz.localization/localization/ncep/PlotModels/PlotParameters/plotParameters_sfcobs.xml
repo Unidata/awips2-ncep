@@ -119,7 +119,7 @@
 -->
 <PlotParameterDefn  plotParamName="SKYC" metParamName="SkyCoverage" plotMode="table" symbolFont="WxSymbolFont" 
                     dbParamName="totCloudAmount" prioritySelectTable="cloud_select.txt" 
-                    plotLookupTable="pgen_total_cloud_amount.txt" />	   
+                    plotLookupTable="pgen_total_cloud_amount.txt" />
 
  <PlotParameterDefn  plotParamName="BRGK" metParamName="WindDirection,WindGust" 
                      plotMode="barb" symbolFont="WindSymbolFont" 
@@ -134,7 +134,7 @@
                      plotUnit="m/s"/>
 
  <PlotParameterDefn plotParamName="GUST" metParamName="WindGust"  
-                    dbParamName="windGust" plotUnit="kts" plotFormat="%3.0f"/>      
+                    dbParamName="windGust" plotUnit="kts" plotFormat="%3.0f"/>
  
  
     <!-- TSKC/WSKC for testing simulate TAF only -->
@@ -195,11 +195,12 @@
     <PlotParameterDefn  plotParamName="WHGT" metParamName="WaveHeight"    plotMode="text" dbParamName="waveHeight" plotUnit="m"  plotFormat="%.2f" />
     <PlotParameterDefn  plotParamName="WHFT" metParamName="WaveHeight"    plotMode="text" dbParamName="waveHeight" plotUnit="ft" plotFormat="%3.0f" />
     <PlotParameterDefn  plotParamName="WPER" metParamName="WavePeriod"    plotMode="text" dbParamName="wavePeriod" plotUnit="s"/>
+    <PlotParameterDefn  plotParamName="DAWV" metParamName="PredomSwellWaveDir" plotMode="directional" dbParamName="primarySwellWaveDir" plotUnit="°" />
+    <PlotParameterDefn  plotParamName="DASH" metParamName="PlatformTrueDirection,PlatformTrueSpeed" plotMode="directional" dbParamName="platformTrueDirection" plotUnit="kts" transform="reverse"/>
 
-    
     <!-- MISCELLANEOUS -->
     <PlotParameterDefn  plotParamName="VSBK" metParamName="Visibility" plotMode="text" dbParamName="visibility" plotUnit="km" plotFormat="%4.0f"/>
-    <PlotParameterDefn  plotParamName="VSBY" metParamName="Visibility" plotMode="text" dbParamName="visibility" plotUnit="mi" plotFormat="%4.0f"/>      
+    <PlotParameterDefn  plotParamName="VSBY" metParamName="Visibility" plotMode="text" dbParamName="visibility" plotUnit="mi" plotFormat="%4.0f"/>
     <PlotParameterDefn  plotParamName="FOSB" metParamName="FosbergFireWxIndex" plotMode="text" 
     deriveParams="all" plotFormat="%3.0f"/>
     <PlotParameterDefn  plotParamName="HEAT" metParamName="HeatIndex"  plotMode="text" deriveParams="all" plotUnit="°F" plotFormat="%4.0f"/>
@@ -228,20 +229,3 @@
 
         
 </PlotParameterDefns>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

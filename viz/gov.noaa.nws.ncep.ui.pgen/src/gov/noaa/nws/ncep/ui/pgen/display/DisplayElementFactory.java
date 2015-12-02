@@ -135,7 +135,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 09/12					B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
  * 11/12		#901/917  	J. Wu		Set the symbol in GFA text box in proper location/size
  * 05/13                    Chin Chen   use IDescriptor instead of IMapDescriptor for used by Nsharp wind barb drawing
- * 07/13        #988        Archana 	added createDisplayElements() to add all symbols in the same color to a single wire-frame. 									
+ * 07/13        #988        Archana 	added createDisplayElements() to add all symbols in the same color to a single wire-frame.
  * 09/23/13                 Chin Chen   changed several private variables/methods to protected, for NsharpDisplayElementFactory now extend from
  * 										this class
  * 11/13        TTR 752     J. Wu       added methods to compute an element's range record.
@@ -150,6 +150,9 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 12/14		R5413		B. Yin		Dispose image and font in find*Ranges methods
  * 03/15        R4862       M. Kean     changes related to new point reduced data
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
+ * 08/15        R7757       B. Hebbard  Upgrade createDisplayElements(List<IVector>,--) to handle heterogeneous
+ *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * </pre>
  * 
  * @author sgilbert
@@ -1332,51 +1335,73 @@ public class DisplayElementFactory {
     }
 
     /**
-     * Create IDisplayables of multiple "wind" drawable elements. Aggregates
-     * into relatively few IDisplayables, for (much) faster performance esp.
-     * with large numbers of wind vectors. Can create displayables of wind speed
-     * and direction as wind barbs, arrows, or hash marks.
+     * Create IDisplayables of multiple "vector" (e.g. wind) drawable elements.
+     * Aggregates into relatively few IDisplayables, for (much) faster
+     * performance esp. with large numbers of vectors. Can create displayables
+     * of speed and direction as wind barbs, arrows, or hash marks.
      * 
      * @param vectors
-     *            A list of PGEN Drawable Elements of wind objects
+     *            A list of PGEN Drawable Elements of Vector (e.g., wind barb or
+     *            arrow) objects
      * @param paintProps
      *            The paint properties associated with the target
      * @return A list of (relatively few, combined) IDisplayable elements
      */
     public ArrayList<IDisplayable> createDisplayElements(List<IVector> vectors,
             PaintProperties paintProps) {
-        // double sfactor = deviceScale * vect.getSizeScale();
         setScales(paintProps);
 
-        ArrayList<IDisplayable> slist = null;
+        /* Sort incoming (potentially mixed type) vectors by type */
+
+        ArrayList<IVector> arrowVectors = null;
+        ArrayList<IVector> barbVectors = null;
+        ArrayList<IVector> hashVectors = null;
+
+        for (IVector vector : vectors) {
+            switch (vector.getVectorType()) {
+
+            case ARROW:
+                if (arrowVectors == null) {
+                    arrowVectors = new ArrayList<IVector>();
+                }
+                arrowVectors.add(vector);
+                break;
+
+            case WIND_BARB:
+                if (barbVectors == null) {
+                    barbVectors = new ArrayList<IVector>();
+                }
+                barbVectors.add(vector);
+                break;
+
+            case HASH_MARK:
+                if (hashVectors == null) {
+                    hashVectors = new ArrayList<IVector>();
+                }
+                hashVectors.add(vector);
+                break;
+
+            default:
+                // Unrecognized vector type; ignore
+                break;
+            }
+        }
 
         /*
-         * Create appropriate vector representation
+         * For each type, create (high-efficiency, aggregated by color)
+         * displayables, and add to combined list for return
          */
-        if (vectors == null || vectors.size() < 1) {
-            return new ArrayList<IDisplayable>();
+
+        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+
+        if (arrowVectors != null) {
+            slist.addAll(createArrows(arrowVectors));
         }
-        switch (vectors.get(0).getVectorType()) { // TODO: Assumes all same type
-                                                  // -- generalize!
-
-        case ARROW:
-            slist = createArrows(vectors);
-            break;
-
-        case WIND_BARB:
-            slist = createWindBarbs(vectors);
-            break;
-
-        case HASH_MARK:
-            slist = createHashMarks(vectors);
-            break;
-
-        default:
-            /*
-             * Unrecognized vector type; return empty list
-             */
-            return new ArrayList<IDisplayable>();
-
+        if (barbVectors != null) {
+            slist.addAll(createWindBarbs(barbVectors));
+        }
+        if (hashVectors != null) {
+            slist.addAll(createHashMarks(hashVectors));
         }
 
         return slist;
@@ -1918,18 +1943,10 @@ public class DisplayElementFactory {
             if (!dash) {
                 double thisSine = Math.sin(Math.toRadians(angle));
                 double thisCosine = Math.cos(Math.toRadians(angle));
-                // Can maybe use simpler less expensive calculations for circle,
-                // if ever necessary.
-                // if ( arc.getAxisRatio() == 1.0 ) {
-                // path[j][0] = center[0] + (major * thisCosine );
-                // path[j][1] = center[1] + (minor * thisSine );
-                // }
-                // else {
                 path[kk][0] = center[0] + (major * cosineAxis * thisCosine)
                         - (minor * sineAxis * thisSine);
                 path[kk][1] = center[1] + (major * sineAxis * thisCosine)
                         + (minor * cosineAxis * thisSine);
-                // }
 
                 // add a line segment for dash line
                 kk++;
@@ -3997,13 +4014,15 @@ public class DisplayElementFactory {
         double[] tmp = { vect.getLocation().x, vect.getLocation().y, 0.0 };
         double[] start = iDescriptor.worldToPixel(tmp);
 
-        // TODO - Orientation issues
         /*
          * calculate the angle and distance to the four points defining the hash
          * mark
+         * 
+         * Note: hash direction is clockwise. Rotate to counter clockwise for
+         * display.
          */
         double angle = northOffsetAngle(vect.getLocation())
-                + vect.getDirection();
+                + (360.0 - vect.getDirection());
         double theta = Math.toDegrees(Math.atan(spacing / scaleSize));
         double dist = 0.5 * Math.sqrt((spacing * spacing)
                 + (scaleSize * scaleSize));
@@ -4150,7 +4169,7 @@ public class DisplayElementFactory {
     }
 
     /**
-     * Creates IDisplayables of a arrow representing wind direction
+     * Creates IDisplayables of an arrow representing direction (e.g., wind)
      * 
      * @param vect
      *            A PGEN Drawable Element of a wind object
@@ -4386,12 +4405,6 @@ public class DisplayElementFactory {
          * (or shaded shapes) of that color, package them into a single display
          * element, and add to return list
          */
-
-        for (Color color : arrowMap.keySet()) {
-            IWireframeShape arrows = arrowMap.get(color);
-            arrows.compile();
-            slist.add(new LineDisplayElement(arrows, color, lineWidth));
-        }
 
         for (Color color : maskMap.keySet()) {
             IWireframeShape masks = maskMap.get(color);
@@ -5881,8 +5894,8 @@ public class DisplayElementFactory {
      */
     public PgenRangeRecord findTextBoxRange(IText txt,
             PaintProperties paintProps) {
-    	
-    	 /*	
+
+        /*
          * For AvnText and MidCloudText, getString() is not defined and may
          * cause exception if the xml is converted from VGF. So a default range
          * record is added here. We may need to write a method to find the true
@@ -5892,7 +5905,7 @@ public class DisplayElementFactory {
                 && txt.getString() == null) {
             return new PgenRangeRecord();
         }
-        
+
         setScales(paintProps);
 
         double[] tmp = { txt.getPosition().x, txt.getPosition().y, 0.0 };
@@ -6024,10 +6037,10 @@ public class DisplayElementFactory {
         List<Coordinate> textPos = new ArrayList<Coordinate>();
         textPos.add(new Coordinate(loc[0], loc[1]));
 
-        if ( font != null ){
-        	font.dispose();
+        if (font != null) {
+            font.dispose();
         }
-        
+
         return new PgenRangeRecord(rngBox, textPos, false);
     }
 
@@ -6101,10 +6114,10 @@ public class DisplayElementFactory {
         List<Coordinate> symPos = new ArrayList<Coordinate>();
         symPos.add(sym.getLocation());
 
-        if ( pic != null ){
-        	pic.dispose();
+        if (pic != null) {
+            pic.dispose();
         }
-        
+
         return new PgenRangeRecord(rngBox, symPos, false);
 
     }
@@ -6503,19 +6516,19 @@ public class DisplayElementFactory {
 
         return new PgenRangeRecord(allpts, false);
     }
-    
-        /*
-         * Check if PaintProperties indicate the display is zooming
-         * 
-         * @param paintProps The paint properties associated with the target
-         * 
-         * @return A boolean indicating a zoom event
-         */
-        private boolean zoomEvent(PaintProperties paintProps) {
-            boolean zoomChk = paintProps.isZooming()
-                    || paintProps.getZoomLevel() != zoomLevel;
-            zoomLevel = paintProps.getZoomLevel();
-    
-            return zoomChk;
-        }
+
+    /*
+     * Check if PaintProperties indicate the display is zooming
+     * 
+     * @param paintProps The paint properties associated with the target
+     * 
+     * @return A boolean indicating a zoom event
+     */
+    private boolean zoomEvent(PaintProperties paintProps) {
+        boolean zoomChk = paintProps.isZooming()
+                || paintProps.getZoomLevel() != zoomLevel;
+        zoomLevel = paintProps.getZoomLevel();
+
+        return zoomChk;
+    }
 }

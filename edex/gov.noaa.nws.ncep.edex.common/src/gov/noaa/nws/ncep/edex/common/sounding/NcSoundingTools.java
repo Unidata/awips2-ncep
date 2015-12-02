@@ -1,6 +1,20 @@
 package gov.noaa.nws.ncep.edex.common.sounding;
 
+import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
+import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
+import gov.noaa.nws.ncep.edex.common.metparameters.DewPointTemp;
+import gov.noaa.nws.ncep.edex.common.metparameters.HeightAboveSeaLevel;
+import gov.noaa.nws.ncep.edex.common.metparameters.Omega;
+import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
+import gov.noaa.nws.ncep.edex.common.metparameters.WindDirection;
+import gov.noaa.nws.ncep.edex.common.metparameters.WindSpeed;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 
 /**
  * 
@@ -15,6 +29,7 @@ import java.util.List;
  * -------      -------     --------    -----------
  * 07/24/2014               Chin Chen   Initial coding 
  *                                      Support PW computation
+ * 07/20/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery, and Obsolete NcSoundingQuery2 and MergeSounding2
  * 
  * 
  * </pre>
@@ -77,52 +92,52 @@ public class NcSoundingTools {
         return pw;
     }
 
-    public static float precip_water2(List<NcSoundingLayer2> sndlayers) {
-        float pw = 0;
-        float d1, p1, d2, p2, tot, w1, w2, wbar;
-        if (sndlayers == null || sndlayers.size() <= 0)
-            return 0;
-        // ----- Start with interpolated bottom layer -----
-        // find surface layer or first layer with valid dewpoint
-        int sfcIndex = 0;
-        for (int i = 0; i < sndlayers.size(); i++) {
-            if (sndlayers.get(i).getDewpoint().getValue().floatValue() != -9999f) {
-                sfcIndex = i;
-                break;
-            }
-        }
-        d1 = sndlayers.get(sfcIndex).getDewpoint().getValue().floatValue(); // dewp
-                                                                            // in
-                                                                            // C
-        p1 = sndlayers.get(sfcIndex).getPressure().getValue().floatValue(); // pressure
-                                                                            // n
-                                                                            // mb
-
-        tot = 0;
-        for (int i = sfcIndex + 1; i < sndlayers.size(); i++) {
-            /* ----- Calculate every level that reports a dwpt ----- */
-            d2 = sndlayers.get(i).getDewpoint().getValue().floatValue(); // dewp
-                                                                         // in C
-            if (d2 == -9999f)
-                continue;
-            p2 = sndlayers.get(i).getPressure().getValue().floatValue(); // pressure
-                                                                         // n mb
-            w1 = mixingRatio(d1, p1);
-            w2 = mixingRatio(d2, p2);
-            wbar = (w1 + w2) / 2;
-            tot = tot + wbar * (p1 - p2);
-            d1 = d2;
-            p1 = p2;
-            // test the case when top level is 400 mb
-            // if (p2 == 400)
-            // break;
-        }
-
-        /* ----- Convert to mm (from g*mb/kg) ----- */
-        pw = tot * 0.00040173f * 25.4f;
-
-        return pw;
-    }
+//    public static float precip_water2(List<NcSoundingLayer2> sndlayers) {
+//        float pw = 0;
+//        float d1, p1, d2, p2, tot, w1, w2, wbar;
+//        if (sndlayers == null || sndlayers.size() <= 0)
+//            return 0;
+//        // ----- Start with interpolated bottom layer -----
+//        // find surface layer or first layer with valid dewpoint
+//        int sfcIndex = 0;
+//        for (int i = 0; i < sndlayers.size(); i++) {
+//            if (sndlayers.get(i).getDewpoint().getValue().floatValue() != -9999f) {
+//                sfcIndex = i;
+//                break;
+//            }
+//        }
+//        d1 = sndlayers.get(sfcIndex).getDewpoint().getValue().floatValue(); // dewp
+//                                                                            // in
+//                                                                            // C
+//        p1 = sndlayers.get(sfcIndex).getPressure().getValue().floatValue(); // pressure
+//                                                                            // n
+//                                                                            // mb
+//
+//        tot = 0;
+//        for (int i = sfcIndex + 1; i < sndlayers.size(); i++) {
+//            /* ----- Calculate every level that reports a dwpt ----- */
+//            d2 = sndlayers.get(i).getDewpoint().getValue().floatValue(); // dewp
+//                                                                         // in C
+//            if (d2 == -9999f)
+//                continue;
+//            p2 = sndlayers.get(i).getPressure().getValue().floatValue(); // pressure
+//                                                                         // n mb
+//            w1 = mixingRatio(d1, p1);
+//            w2 = mixingRatio(d2, p2);
+//            wbar = (w1 + w2) / 2;
+//            tot = tot + wbar * (p1 - p2);
+//            d1 = d2;
+//            p1 = p2;
+//            // test the case when top level is 400 mb
+//            // if (p2 == 400)
+//            // break;
+//        }
+//
+//        /* ----- Convert to mm (from g*mb/kg) ----- */
+//        pw = tot * 0.00040173f * 25.4f;
+//
+//        return pw;
+//    }
 
     /*
      * Compute mixing ratio from DWPC and PRES. Chin: copy from
@@ -175,5 +190,72 @@ public class NcSoundingTools {
     // pol = (pol * pol);
     // return (6.1078f / (float) (pol * pol));
     // }
+
+	 /*
+     * Convert sounding data saved in NcSoundingLayer list to NcSoundingLayer2
+     * list remove NcSoundingLayer data to have a smaller size for sending back
+     * to client
+     */
+	public static void convertNcSoundingLayerToNcSoundingLayer2(
+            List<NcSoundingProfile> pfLst) 
+	{
+		if(pfLst==null)
+			return;
+        for (NcSoundingProfile pf : pfLst) {
+            List<NcSoundingLayer2> soundLy2List = new ArrayList<NcSoundingLayer2>();
+            for (NcSoundingLayer level : pf.getSoundingLyLst()) {
+                NcSoundingLayer2 soundingLy2;
+                try {
+                    soundingLy2 = new NcSoundingLayer2();
+                    AirTemperature airTemp;
+                    airTemp = new AirTemperature();
+                    airTemp.setValue(new Amount(level.getTemperature(),
+                            SI.CELSIUS));
+                    soundingLy2.setTemperature(airTemp);
+
+                    DewPointTemp dewPoint = new DewPointTemp();
+                    dewPoint.setValue(new Amount(level.getDewpoint(),
+                            SI.CELSIUS));
+                    soundingLy2.setDewpoint(dewPoint);
+
+                    PressureLevel pressure = new PressureLevel();
+                    pressure.setValue(new Amount(level.getPressure(),
+                            NcUnits.MILLIBAR));
+                    soundingLy2.setPressure(pressure);
+
+                    WindDirection windDirection = new WindDirection();
+                    windDirection.setValue(level.getWindDirection(),
+                            NonSI.DEGREE_ANGLE);
+                    soundingLy2.setWindDirection(windDirection);
+
+                    WindSpeed windSpeed = new WindSpeed();
+                    // HDF5 data in unit of Knots, no conversion needed
+                    windSpeed.setValue(level.getWindSpeed(), NonSI.KNOT);
+                    soundingLy2.setWindSpeed(windSpeed);
+
+                    HeightAboveSeaLevel height = new HeightAboveSeaLevel();
+                    height.setValue(level.getGeoHeight(), SI.METER);
+                    soundingLy2.setGeoHeight(height);
+
+                    Omega omega = new Omega();
+                    omega.setValueAs(level.getOmega(), "");
+                    soundingLy2.setOmega(omega);
+                    // soundingLy.setPressure(level.getPressure().floatValue()/100);
+                    // soundingLy.setWindU(level.getUcWind().floatValue()); //
+                    // HDF5 data in unit of Knots, no conversion needed
+                    // soundingLy.setWindV(level.getVcWind().floatValue());
+                    // soundingLy.setSpecHumidity(level.getSpecificHumidity().floatValue());
+                    soundLy2List.add(soundingLy2);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+            // Collections.sort(soundLyList,reversePressureComparator());
+            pf.setSoundingLyLst2(soundLy2List);
+            pf.getSoundingLyLst().clear();
+        }
+    }
 
 }

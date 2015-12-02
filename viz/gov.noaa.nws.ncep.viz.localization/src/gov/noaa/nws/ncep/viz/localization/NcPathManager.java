@@ -12,15 +12,12 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.PathManagerFactory;
-import com.raytheon.uf.viz.core.localization.CAVELocalizationAdapter;
-import com.raytheon.uf.viz.core.localization.LocalizationManager;
 
 /**
  * A Facade over the PathManager. This was initially created to create a
  * pathMngr with a NatlCntrsLocalizationAdapter but now is just a convenience
- * wrapper around the same PathManager as the rest of CAVE.
- * 
- * Would it be ok/better to derive from PathManager directly and bypass the
+ * wrapper around the same PathManager as the rest of CAVE. Would it be
+ * ok/better to derive from PathManager directly and bypass the
  * PathManagerFactory?
  * 
  * <pre>
@@ -55,6 +52,15 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
  * 09/15/2014     R4508     S. Gurung    Added TIME_SERIES_DIR
  * 10/01/2014     R5116     K.Bugenhagen Added MODIS style rules constant
  * 10/15/2014     R4508     S. Gurung    Added XAXIS_SCALE_DIR and XAXIS_SCALE_HELP_FILE
+ * 05/14/2015     R7656     A. Su        Added LCL_RDA_DIR.
+ * 07/20/2015	  R8051     Jonas Okwara Modified listFiles to recursively read localization files
+ * 08/06/2015     R8015     A. Su        Modified the constructor, getting a path manager with no argument.
+ *                                       Moved the logic in the method createDeskLevelLocalization
+ *                                       to the StartupInitialization class.
+ * 10/01/2015     R8051     Edwin Brown  Clean up work.
+ * 10/15/15       R7190     R. Reynolds  Added support for Mcidas
+ * 
+ * 
  * </pre>
  * 
  * @author ghull
@@ -82,7 +88,6 @@ public class NcPathManager {
 
         // static directories.
         public static final String SPFS_DIR = NCEP_ROOT + "SPFs"; // the Groups
-                                                                  // dir
 
         public static final String RSC_TMPLTS_DIR = NCEP_ROOT
                 + "resourceTemplates";
@@ -122,10 +127,6 @@ public class NcPathManager {
         public static final String AREA_MENUS_FILE = PREDEFINED_AREAS_DIR
                 + File.separator + "menus" + File.separator + "AreaMenus.xml";
 
-        // No longer used. location is now a parameter for the
-        // StaticPgenOverlayResource.
-        // public static final String PGEN_XML_OVERLAYS = NCEP_ROOT +
-        // "StaticPgenOverlays";
         public static final String STYLE_RULES_DIR = NCEP_ROOT + "styleRules"
                 + File.separator;
 
@@ -211,22 +212,16 @@ public class NcPathManager {
         public static final String SEEK_STN_TBL = NCEP_ROOT + "Seek"
                 + File.separator + "seekStns.xml";
 
-        // public static final String GRID_DATATYPE_TBL = NCEP_ROOT +
-        // "grid"+File.separator+"datatype.tbl";
-        // public static final String ENSEMBLE_MODELS_TBL= NCEP_ROOT +
-        // "grid"+File.separator+"ensemble_models.tbl";
         public static final String GEMPAK_MARKER_TYPE = NCEP_ROOT + "Gempak"
                 + File.separator + "gempakMarkerType.tbl";
 
         // Note: These are read by Raytheon's code which just takes the
         // directory as input and
-        // assumes the filename. So don't change the fileNames.
+        // assumes the filename. So don't change the fileNames.plotModelFile
         // the files.
         public static final String RADAR_INFO = NCEP_ROOT + "Radar"
                 + File.separator + "radarInfo.txt";
 
-        // public static final String MOSAIC_INFO = NCEP_ROOT +
-        // "Radar"+File.separator+"mosaicInfo.txt";
         public static final String MCIDAS_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "mcidasSatelliteImageryStyleRules.xml";
 
@@ -235,6 +230,9 @@ public class NcPathManager {
 
         public static final String GINI_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "giniSatelliteImageryStyleRules.xml";
+
+        public static final String HIMAWARI_IMG_STYLE_RULES = STYLE_RULES_DIR
+                + "himawariSatelliteImageryStyleRules.xml";
 
         public static final String SOLAR_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "solarImageryStyleRules.xml";
@@ -297,7 +295,6 @@ public class NcPathManager {
         public static final String PGEN_PHENOMENONS = PGEN_ROOT
                 + "phenomenons.xml";
 
-        //
         public static final String PGEN_PROD_SCHEMA = PGEN_ROOT + "product.xsd";
 
         public static final String PGEN_RED_CROSS_IMG = PGEN_ROOT
@@ -333,6 +330,7 @@ public class NcPathManager {
                 + File.separator + "sup.txt";
 
         // nsharp configuration
+
         public static final String NSHARP_CONFIG = NCEP_ROOT + "nsharp"
                 + File.separator + "nsharpConfig.xml";
 
@@ -344,6 +342,18 @@ public class NcPathManager {
         public static final String XAXIS_SCALE_HELP_FILE = XAXIS_SCALE_DIR
                 + File.separator + "XAxisScalesHelp.txt";
 
+        public static final String LCL_RDA_DIR = NCEP_ROOT
+                + "localRadarStations";
+
+        public static final String SATELLITE_AREAS_DIR = NCEP_ROOT
+                + "satelliteAreas";
+
+        public static final String SATELLITE_NAMES_DIR = NCEP_ROOT
+                + "satelliteNames";
+
+        public static final String SATELLITE_IMAGETYPES_DIR = NCEP_ROOT
+                + "satelliteImageTypes";
+
     }
 
     public static synchronized NcPathManager getInstance() {
@@ -354,34 +364,7 @@ public class NcPathManager {
     }
 
     private NcPathManager() {
-
-        // Uses the same CAVELocalizationAdapter.
-        pathMngr = PathManagerFactory
-                .getPathManager(new CAVELocalizationAdapter());
-
-    }
-
-    public void createDeskLevelLocalization(String deskName) {
-        // SITE < DESK < USER
-
-        // NOTE : order of 650 is between SITE(order=500) and USER(order=1000).
-        LocalizationLevel DESK = LocalizationLevel.createLevel(
-                NcPathConstants.DESK_LEVEL, 650);
-
-        // sanity check to make sure the order is correct
-        //
-        if (LocalizationLevel.SITE.compareTo(DESK) >= 0) {
-            System.out
-                    .println("WARNING: the SITE level order >= the DESK???? ");
-        }
-        if (LocalizationLevel.USER.compareTo(DESK) <= 0) {
-            System.out
-                    .println("WARNING: the USER level order <= the DESK???? ");
-        }
-
-        LocalizationManager.getInstance();
-
-        LocalizationManager.registerContextName(DESK, deskName);
+        pathMngr = PathManagerFactory.getPathManager();
     }
 
     public LocalizationLevel getDeskLevel() {
@@ -405,13 +388,13 @@ public class NcPathManager {
 
     // Use this method if we don't care which context the file comes from but we
     // need to know which one it was from.
-    //
+
     public LocalizationFile getStaticLocalizationFile(String name) {
         return pathMngr.getStaticLocalizationFile(name);
     }
 
     // This can be used to create a new LocalizationFile.
-    //
+
     public LocalizationFile getLocalizationFile(LocalizationContext context,
             String name) {
         return pathMngr.getLocalizationFile(context, name);
@@ -419,19 +402,22 @@ public class NcPathManager {
 
     // only include 1 version of each filename. Assume CAVE_STATIC (can change
     // this later)
-    //
+
+    /**
+     * plotModelListFiles method that reads localization level files and returns
+     * them as a map
+     * 
+     * @param contexts
+     * @param name
+     * @param filter
+     * @param recursive
+     * @param filesOnly
+     * @return Map
+     */
     public Map<String, LocalizationFile> listFiles(String name,
             String[] filter, boolean recursive, boolean filesOnly) {
+
         LocalizationContext[] contexts = getLocalSearchHierarchy(LocalizationType.CAVE_STATIC);
-
-        return listFiles(contexts, name, filter, recursive, filesOnly);
-    }
-
-    // created to allow listFiles for COMMON_STATIC contexts
-    //
-    public Map<String, LocalizationFile> listFiles(
-            LocalizationContext[] contexts, String name, String[] filter,
-            boolean recursive, boolean filesOnly) {
 
         Map<String, LocalizationFile> lFileMap = new HashMap<String, LocalizationFile>();
 
@@ -439,9 +425,8 @@ public class NcPathManager {
                 contexts, name, filter, recursive, filesOnly));
 
         // loop thru the files and add them to the map if there is not already a
-        // file
-        // present from a higher level.
-        //
+        // file present from a higher level.
+
         for (LocalizationFile lFile : lFilesList) {
             String lName = lFile.getName();
             LocalizationLevel lLvl = lFile.getContext().getLocalizationLevel();
@@ -449,16 +434,15 @@ public class NcPathManager {
             if (!lFileMap.containsKey(lName)
                     || (lFileMap.get(lName).getContext().getLocalizationLevel()
                             .compareTo(lLvl) < 0)) {
-                // System.out.println("listFiles "+lFile.getFile().getAbsolutePath());
                 lFileMap.put(lFile.getName(), lFile);
             }
-
         }
 
         return lFileMap;
     }
 
-    // convienence method to get all the versions of a file. Assume CAVE_STATIC.
+    // convenience methods to get all the versions of a file. Assume
+    // CAVE_STATIC.
     public Map<LocalizationLevel, LocalizationFile> getTieredLocalizationFile(
             String name) {
         return pathMngr.getTieredLocalizationFile(LocalizationType.CAVE_STATIC,
@@ -477,49 +461,4 @@ public class NcPathManager {
     public LocalizationContext[] getLocalSearchHierarchy(LocalizationType type) {
         return pathMngr.getLocalSearchHierarchy(type);
     }
-
-    // return a map of all files from all contexts
-    // this would make it easier to 'revert' files
-    //
-    // public Map<String, LocalizationFile> listFilesFromAllContexts(
-    // // getTieredLocalizationFile(
-    // // LocalizationType type,
-    // String name, String[] filter, boolean recursive, boolean filesOnly ) {
-    // Map<String, LocalizationFile> map = new HashMap<String,
-    // LocalizationFile>();
-    //
-    // for( LocalizationLevel level : ncLevels ) {
-    // LocalizationContext context = getContext( LocalizationType.CAVE_STATIC,
-    // level );
-    //
-    // LocalizationFile[] lFiles =
-    // pathMngr.listFiles( getLocalSearchHierarchy( LocalizationType.CAVE_STATIC
-    // ),
-    // name, filter, recursive, filesOnly );
-    // // LocalizationFile lf = getLocalizationFile( context, name );
-    //
-    // if( lf.exists() ) {
-    // map.put(, lf);
-    // }
-    // }
-    //
-    // return map;
-    // }
-
-    // delete the file and also return a superceding file if one exists.
-    //
-    // public LocalizationFile revert( File file, LocalizationContext context,
-    // String fileName, boolean findReplacement )
-    // throws LocalizationOpFailedException {
-    // super.delete(file, context, fileName);
-    //
-    // if( findReplacement ) {
-    // // LocalizationContext superContext = new LocalizationContext(
-    // // context.getLocalizationType(),
-    // // LocalizationManager.getInstance().get
-    // }
-    //
-    // return null;
-    // }
-
 }

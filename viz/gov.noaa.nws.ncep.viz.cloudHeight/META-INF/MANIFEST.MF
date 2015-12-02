@@ -31,4 +31,5 @@ Import-Package: com.raytheon.uf.common.inventory.exception,
  gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.edex.common.sounding,
  gov.noaa.nws.ncep.edex.common.stationTables,
- gov.noaa.nws.ncep.gempak.parameterconversionlibrary
+ gov.noaa.nws.ncep.gempak.parameterconversionlibrary,
+ gov.noaa.nws.ncep.viz.soundingrequest

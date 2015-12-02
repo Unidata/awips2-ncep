@@ -42,7 +42,6 @@ import java.util.TreeSet;
 
 import org.eclipse.swt.graphics.RGB;
 
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
@@ -52,16 +51,12 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.catalog.LayerProperty;
-import com.raytheon.uf.viz.core.catalog.ScriptCreator;
-import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.MagnificationCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
@@ -84,6 +79,7 @@ import com.raytheon.viz.core.graphing.xy.XYDataList;
  * ------------  ---------- ----------- --------------------------
  * Sep 5, 2014   R4508       sgurung     Initial creation
  * Jun 6, 2015	 R5413		 jhuber		 Remove Script Creator and use Thrift Client
+ * Mar 12, 2015  R6920       sgurung     Add fix to improve load times
  * </pre>
  * 
  * @author sgurung
@@ -108,7 +104,7 @@ public class GhcdResource extends
             "yyyyMMdd/HHmm");
 
     /** The data in xy form */
-    protected volatile XYDataList data = new XYDataList();
+    protected volatile XYDataList xyDataList = new XYDataList();
 
     /** The graph to draw to */
     protected IGraph graph = null;
@@ -120,6 +116,16 @@ public class GhcdResource extends
     protected DataTime timelineStart;
 
     protected DataTime timelineEnd;
+
+    private boolean timelineChanged = false;
+
+    private boolean updatePlot = false;
+
+    private Date lastDisplayedDataDate = null;
+
+    private Date queryStartTime = null;
+
+    private Date queryEndTime = null;
 
     protected List<GenericHighCadenceDataRecord> ghcdRecords;
 
@@ -161,10 +167,10 @@ public class GhcdResource extends
     @Override
     protected void disposeInternal() {
 
-        if (data != null) {
-            data.dispose();
+        if (xyDataList != null) {
+            xyDataList.dispose();
         }
-        this.data = null;
+        this.xyDataList = null;
 
         if (currentPane != null)
             currentPane.dispose();
@@ -238,12 +244,28 @@ public class GhcdResource extends
     @Override
     public void queryRecords() throws VizException {
 
-        HashMap<String, RequestConstraint> reqConstraints = new HashMap<String, RequestConstraint>();
-        reqConstraints.put("pluginName", new RequestConstraint(resourceData.getPluginName()));
-        RequestConstraint reqConstr = new RequestConstraint();
+        if (timelineChanged || queryStartTime == null) {
+            queryStartTime = timelineStart.getRefTime();
+        }
 
-        String startTimeStr = timelineStart.toString().substring(0, 19);
-        String endTimeStr = timelineEnd.toString().substring(0, 19);
+        // get records for 1 hour at a time to speed up data retrieval time
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(queryStartTime);
+        cal.add(Calendar.HOUR_OF_DAY, 1);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        queryEndTime = cal.getTime();
+
+        SimpleDateFormat queryDateFmt = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss");
+
+        String endTimeStr = queryDateFmt.format(queryEndTime);
+        String startTimeStr = queryDateFmt.format(queryStartTime);
+
+        HashMap<String, RequestConstraint> reqConstraints = new HashMap<String, RequestConstraint>();
+        reqConstraints.put("pluginName",
+                new RequestConstraint(resourceData.getPluginName()));
+        RequestConstraint reqConstr = new RequestConstraint();
 
         String[] constraintList = { startTimeStr, endTimeStr };
         reqConstr.setBetweenValueList(constraintList);
@@ -251,67 +273,99 @@ public class GhcdResource extends
 
         reqConstraints.put("dataTime.refTime", reqConstr);
         DbQueryRequest request = new DbQueryRequest();
-        request.setConstraints( reqConstraints );
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+        request.setConstraints(reqConstraints);
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
+
         ghcdRecords = new ArrayList<GenericHighCadenceDataRecord>();
-        
-        for( Map<String, Object> result : response.getResults())  {
-        	for (Object pdo : result.values()) {
-        		for (IRscDataObject dataObject : processRecord(pdo)) {		
-        			newRscDataObjsQueue.add((IRscDataObject) dataObject);
-        			ghcdRecords.add((GenericHighCadenceDataRecord) ((DfltRecordRscDataObj) dataObject)
-                                .getPDO());
-        		}
-        	}
+
+        for (Map<String, Object> result : response.getResults()) {
+            for (Object pdo : result.values()) {
+                for (IRscDataObject dataObject : processRecord(pdo)) {
+                    newRscDataObjsQueue.add((IRscDataObject) dataObject);
+                    ghcdRecords
+                            .add((GenericHighCadenceDataRecord) ((DfltRecordRscDataObj) dataObject)
+                                    .getPDO());
+                }
+            }
         }
-        sortRecord();
-        data = loadInternal(ghcdRecords);
+
+        sortRecords();
+
+        setXYDataList();
 
         // Append null to ghcdRecords if data does not exist up to the graph end
         // time.
-        int recSize = data.getData().size();
+        int recSize = xyDataList.getData().size();
         if (recSize > 0) {
-            DataTime last = (DataTime) data.getData().get(recSize - 1).getX();
-            Calendar lastCal = last.getRefTimeAsCalendar();
-            Calendar cal = (Calendar) lastCal.clone();
+            DataTime lastDisplayed = (DataTime) xyDataList.getData()
+                    .get(recSize - 1).getX();
+            Calendar lastDisplayedCal = lastDisplayed.getRefTimeAsCalendar();
+
+            Calendar timelineEndCal = timelineEnd.getRefTimeAsCalendar();
+            cal = (Calendar) timelineEndCal.clone();
             cal = GraphTimelineUtil.snapTimeToNext(cal,
                     timeMatcher.getHourSnap());
-            int fill = (int) (cal.getTimeInMillis() - lastCal.getTimeInMillis()) / 60000;
+
+            int fill = (int) (cal.getTimeInMillis() - lastDisplayedCal
+                    .getTimeInMillis()) / 60000;
 
             for (int i = 0; i < fill; i++) {
                 if (ghcdData.getDataResolUnits().startsWith("min")) {
-                    lastCal.add(Calendar.MINUTE, ghcdData.getDataResolVal());
+                    lastDisplayedCal.add(Calendar.MINUTE,
+                            ghcdData.getDataResolVal());
                 } else if (ghcdData.getDataResolUnits().startsWith("hour")) {
-                    lastCal.add(Calendar.HOUR, ghcdData.getDataResolVal());
+                    lastDisplayedCal.add(Calendar.HOUR,
+                            ghcdData.getDataResolVal());
                 }
 
-                Calendar appendCal = (Calendar) lastCal.clone();
+                Calendar appendCal = (Calendar) lastDisplayedCal.clone();
+                if (appendCal.getTime().after(timelineEnd.getRefTime())) {
+                    break;
+                }
 
                 XYData d = new XYData(new DataTime(appendCal), null);
-                data.getData().add(d);
+                xyDataList.getData().add(d);
             }
 
             dataTimes = new TreeSet<DataTime>();
-            for (XYData d : data.getData()) {
+            for (XYData d : xyDataList.getData()) {
                 dataTimes.add((DataTime) d.getX());
+            }
+        }
+
+        queryStartTime = queryEndTime;
+    }
+
+    private void setXYDataList() throws VizException {
+
+        if (ghcdRecords.size() == 0
+                && queryStartTime.equals(timelineStart.getRefTime())) {
+            xyDataList = new XYDataList();
+        } else {
+
+            List<Date> refTimes = new ArrayList<Date>();
+
+            for (GenericHighCadenceDataRecord rec : ghcdRecords) {
+
+                refTimes.add(rec.getDataTime().getRefTime());
+            }
+
+            if (refTimes.size() > 0) {
+                lastDisplayedDataDate = refTimes.get(refTimes.size() - 1);
+
+                // load data from hdf5 for the selected reference times
+                loadInternal(refTimes);
             }
         }
 
     }
 
-    private XYDataList loadInternal(
-            List<GenericHighCadenceDataRecord> recordsList) throws VizException {
+    private void loadInternal(List<Date> refTimes) throws VizException {
 
-        ArrayList<XYData> data = new ArrayList<XYData>();
-        if (recordsList.size() <= 1)
-            return new XYDataList();
+        ArrayList<XYData> xyData = new ArrayList<XYData>();
 
         // get data from hdf5
-        List<Date> refTimes = new ArrayList<Date>();
-        for (GenericHighCadenceDataRecord rec : recordsList) {
-            refTimes.add(rec.getDataTime().getRefTime());
-        }
-
         List<GenericHighCadenceDataItem> dataItems = GhcdUtil.getGhcdDataItems(
                 refTimes, ghcdData.getSource(), ghcdData.getInstrument(),
                 ghcdData.getDatatype(), ghcdData.getDataResolUnits(),
@@ -320,27 +374,45 @@ public class GhcdResource extends
         if (dataItems.size() > 0) {
             int i = 0;
             for (GenericHighCadenceDataItem dataItem : dataItems) {
-                DataTime x = recordsList.get(i).getDataTime();
+                DataTime x = new DataTime(refTimes.get(i));
                 Float y = 0f;
                 for (GenericHighCadenceDataField field : dataItem
                         .getGhcdFields()) {
                     if (field.getName().equalsIgnoreCase(ghcdData.getYData())) {
-                        y = Float.parseFloat(field.getValue());
-
-                        data.add(new XYData(x, y));
+                        try {
+                            y = Float.parseFloat(field.getValue());
+                            xyData.add(new XYData(x, y));
+                        } catch (NumberFormatException e) {
+                            statusHandler
+                                    .warn("GhcdResource:  Number format exception for value =  "
+                                            + field.getValue()
+                                            + ", fieldName = "
+                                            + ghcdData.getYData());
+                        }
                     }
                 }
                 i++;
             }
         }
 
-        XYDataList list = new XYDataList();
-        list.setData(data);
+        int xyDataSize = (xyDataList.getData() != null) ? xyDataList.getData()
+                .size() : 0;
 
-        return list;
-    }
+        if (xyDataSize == 0 || timelineChanged) {
+            // reset xyDataList
+            xyDataList.setData(xyData);
+        } else {
+            // update xyDataList with values for newly available data
+            for (int i = 0; i < xyDataSize; i++) {
+                XYData tmpData = xyDataList.getData().get(i);
 
-    public void autoupdateRecords() {
+                for (int j = 0; j < xyData.size(); j++) {
+                    if (tmpData.getX().equals(xyData.get(j).getX())) {
+                        xyDataList.getData().get(i).setY(xyData.get(j).getY());
+                    }
+                }
+            }
+        }
 
     }
 
@@ -366,16 +438,28 @@ public class GhcdResource extends
 
     @Override
     public void resourceChanged(ChangeType type, Object object) {
+        issueRefresh();
+    }
+
+    @Override
+    public void resourceDataChanged(ChangeType type, Object object) {
         if (type == ChangeType.DATA_UPDATE) {
-            PluginDataObject[] objects = (PluginDataObject[]) object;
-            // for (PluginDataObject pdo : objects) {
-            // addRecord(pdo);
-            // }
+            queryStartTime = lastDisplayedDataDate;
+            updatePlot = true;
         }
         issueRefresh();
     }
 
-    private void sortRecord() {
+    /**
+     * <p>
+     * Sorts list of GenericHighCadenceDataRecord objects based on
+     * data/reference time.
+     * </p>
+     * 
+     * @param ghcdRecords
+     *            the list of GenericHighCadenceDataRecord objects to sort
+     */
+    private void sortRecords() {
         Collections.sort(ghcdRecords,
                 new Comparator<GenericHighCadenceDataRecord>() {
 
@@ -397,7 +481,7 @@ public class GhcdResource extends
      * @return the data
      */
     public XYDataList getData() {
-        return data;
+        return xyDataList;
     }
 
     /**
@@ -405,7 +489,7 @@ public class GhcdResource extends
      *            the data to set
      */
     public void setData(XYDataList data) {
-        this.data = data;
+        this.xyDataList = data;
     }
 
     /*
@@ -423,7 +507,7 @@ public class GhcdResource extends
         Double magnification = getCapability(MagnificationCapability.class)
                 .getMagnification();
 
-        if (data == null) {
+        if (xyDataList == null) {
             return;
         }
 
@@ -439,14 +523,15 @@ public class GhcdResource extends
             reconstructGraph = false;
         }
 
-        boolean changeExtent = false;
         if (timeMatcher.isAutoUpdateable()) {
 
             while (!newRscDataObjsQueue.isEmpty()) {
+
                 IRscDataObject rscDataObj = newRscDataObjsQueue.poll();
 
                 if (rscDataObj.getDataTime().compareTo(timelineEnd) > 0) {
-                    changeExtent = true;
+                    timelineChanged = true;
+
                     timelineStart = RetrieveUtils.moveToNextSynop(
                             timelineStart, timeMatcher.getHourSnap());
 
@@ -457,7 +542,7 @@ public class GhcdResource extends
                 }
             }
 
-            if (changeExtent) {
+            if (timelineChanged) {
                 ArrayList<DataTime> newList = new ArrayList<DataTime>();
                 for (int i = 0; i < newRscDataObjsQueue.size(); i++) {
                     DataTime dataTime = newRscDataObjsQueue.poll()
@@ -473,10 +558,12 @@ public class GhcdResource extends
 
             }
 
-            newRscDataObjsQueue.clear();
-            queryRecords();
+            if (timelineChanged || updatePlot
+                    || queryEndTime.before(timelineEnd.getRefTime())) {
 
-            if (changeExtent) {
+                newRscDataObjsQueue.clear();
+                queryRecords();
+
                 issueRefresh();
             }
 
@@ -525,9 +612,9 @@ public class GhcdResource extends
 
         RGB color = ((GhcdResourceData) resourceData).getDataColor();
 
-        for (int i = 0; i < data.getData().size(); i++) {
+        for (int i = 0; i < xyDataList.getData().size(); i++) {
 
-            XYData point = data.getData().get(i);
+            XYData point = xyDataList.getData().get(i);
 
             if (point.getY() != null) {
 
@@ -545,6 +632,9 @@ public class GhcdResource extends
 
             target.clearClippingPlane();
         }
+
+        timelineChanged = false;
+        updatePlot = false;
     }
 
     protected boolean checkPaneId(NCTimeSeriesDescriptor desc, IDisplayPane pane) {
@@ -592,10 +682,10 @@ public class GhcdResource extends
         sb.append("-");
         sb.append(((GhcdResourceData) resourceData).getDataResolUnits()
                 .substring(0, 3));
-        if (data == null || data.getData().size() == 0) {
+        if (xyDataList == null || xyDataList.getData().size() == 0) {
             sb.append(" - NO DATA");
         } else {
-            XYData point = data.getData().get(0);
+            XYData point = xyDataList.getData().get(0);
             DataTime time = (DataTime) point.getX();
 
             dateFmt.format(time.getValidTimeAsDate());
@@ -635,18 +725,13 @@ public class GhcdResource extends
     }
 
     public DataTime getLastDataTime() {
-
-        if (ghcdRecords != null && ghcdRecords.size() > 0) {
-            return ghcdRecords.get(ghcdRecords.size() - 1).getDataTime();
-        }
-
-        return null;
+        return new DataTime(lastDisplayedDataDate);
     }
 
     public double getMinDataValue() {
         double min = Double.POSITIVE_INFINITY;
-        if (data != null) {
-            for (XYData d : data.getData()) {
+        if (xyDataList != null) {
+            for (XYData d : xyDataList.getData()) {
                 if (d.getY() instanceof Number) {
                     double y = ((Number) d.getY()).doubleValue();
                     min = Math.min(min, y);
@@ -658,8 +743,8 @@ public class GhcdResource extends
 
     public double getMaxDataValue() {
         double max = Double.NEGATIVE_INFINITY;
-        if (data != null) {
-            for (XYData d : data.getData()) {
+        if (xyDataList != null) {
+            for (XYData d : xyDataList.getData()) {
                 if (d.getY() instanceof Number) {
                     double y = ((Number) d.getY()).doubleValue();
                     max = Math.max(max, y);

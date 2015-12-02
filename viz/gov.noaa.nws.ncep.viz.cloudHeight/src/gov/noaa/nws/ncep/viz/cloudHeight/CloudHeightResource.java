@@ -48,7 +48,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      "nil" flag is FALSE
  * 06/01/12		#747		B. Yin		Comment out the part to draw all stations.
  * 02/11/2013   972         G. Hull     AbstractEditor instead of NCMapEditor
- *
+ * 07/08/2015   RM#9172     Chin Chen   Fixed problem caused by Raytheon's change lat/lon data type from double to 
+ *                                      float in SurfaceObsLocation class at 14.4.1
  * </pre>
  * 
  * @version 1
@@ -225,8 +226,8 @@ public class CloudHeightResource extends AbstractVizResource<CloudHeightResource
   						DataTime stationTime = new DataTime(stationRefTime);
 //  						Float latitude = (Float)(eachObjectArray[1]);
 //  						Float longitude = (Float)(eachObjectArray[2]);
-  						Double latitude = (Double)(eachObjectArray[1]);
-  						Double longitude = (Double)(eachObjectArray[2]);  						
+  						Float latitude = (Float)(eachObjectArray[1]);
+  						Float longitude = (Float)(eachObjectArray[2]);  						
   						/*Sanity check to avoid creating a StationData object with invalid coordinates*/
   						if ( (latitude.doubleValue() >= -90.0 && latitude.doubleValue() <= 90.0) 
   								&& (longitude.doubleValue() >= -180.0 && longitude.doubleValue() <= 180.0)) {

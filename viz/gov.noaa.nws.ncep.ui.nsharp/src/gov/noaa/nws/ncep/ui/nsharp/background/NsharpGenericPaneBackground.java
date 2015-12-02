@@ -23,6 +23,7 @@ package gov.noaa.nws.ncep.ui.nsharp.background;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,13 +36,12 @@ import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IRenderable;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpGenericPaneBackground implements IRenderable {
     protected Rectangle rectangle;
     protected NsharpAbstractPaneDescriptor desc;
-    protected WGraphics world;
+    protected NsharpWGraphics world;
     protected IGraphicsTarget target;
     protected IFont smallFont=null;
     protected PixelExtent pe;
@@ -54,7 +54,7 @@ public class NsharpGenericPaneBackground implements IRenderable {
 	public NsharpGenericPaneBackground(Rectangle rect) {
 		super();
 		this.rectangle = rect;
-		world = new WGraphics(this.rectangle);
+		world = new NsharpWGraphics(this.rectangle);
 
         world.setWorldCoordinates(rectangle.x,rectangle.y,
         		rectangle.x + rectangle.width, rectangle.y+rectangle.height);
@@ -100,7 +100,7 @@ public class NsharpGenericPaneBackground implements IRenderable {
         return this.rectangle;
     }
 
-    public WGraphics getWorld() {
+    public NsharpWGraphics getWorld() {
          return this.world;
     }
 
@@ -146,7 +146,7 @@ public class NsharpGenericPaneBackground implements IRenderable {
     }
     
 
-    protected  WGraphics computeWorld(){
+    protected  NsharpWGraphics computeWorld(){
     	return world;
     }
     public class ViewablePressureContainer{
@@ -189,7 +189,7 @@ public class NsharpGenericPaneBackground implements IRenderable {
     	this.rectangle = rectangle;
          pe = new PixelExtent(this.rectangle);
          //desc.setNewPe(pe);
-         world = new WGraphics(this.rectangle);
+         world = new NsharpWGraphics(this.rectangle);
          world.setWorldCoordinates(rectangle.x,rectangle.y,
          		rectangle.x + rectangle.width, rectangle.y+rectangle.height);
 	}

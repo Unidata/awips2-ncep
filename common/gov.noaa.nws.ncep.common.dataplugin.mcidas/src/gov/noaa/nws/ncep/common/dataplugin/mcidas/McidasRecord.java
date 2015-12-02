@@ -32,8 +32,6 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
 
 import java.util.Calendar;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -62,7 +60,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "mcidasseq")
-@Table(name = "mcidas", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@Table(name = "mcidas", uniqueConstraints = { @UniqueConstraint(columnNames = {
+        "refTime", "satelliteId", "areaId", "resolution", "imageTypeId" }) })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
@@ -78,19 +77,19 @@ public class McidasRecord extends PersistablePluginDataObject implements
 
     private static final long serialVersionUID = 1L;
 
-    /** The satellite name */
+    /** The satellite ID */
     @Column(length = 32)
     @DataURI(position = 1)
     @XmlAttribute
     @DynamicSerializeElement
-    private String satelliteName;
+    private String satelliteId;
 
-    /** The area name */
+    /** The area ID */
     @Column(length = 64)
     @DataURI(position = 2)
     @XmlAttribute
     @DynamicSerializeElement
-    private String areaName;
+    private String areaId;
 
     /** The resolution */
     @Column
@@ -104,7 +103,7 @@ public class McidasRecord extends PersistablePluginDataObject implements
     @DataURI(position = 4)
     @XmlAttribute
     @DynamicSerializeElement
-    private String imageType;
+    private String imageTypeId;
 
     /**
      * The creation time
@@ -147,18 +146,6 @@ public class McidasRecord extends PersistablePluginDataObject implements
     @XmlAttribute
     @DynamicSerializeElement
     private String calType;
-
-    /** The satellite ID */
-    @Column
-    @XmlAttribute
-    @DynamicSerializeElement
-    private Integer satelliteId;
-
-    /** The image type number */
-    @Column
-    @XmlAttribute
-    @DynamicSerializeElement
-    private Integer imageTypeNumber;
 
     /*
      * Length of prefix in bytes.
@@ -203,12 +190,12 @@ public class McidasRecord extends PersistablePluginDataObject implements
      * No-arg constructor.
      */
     public McidasRecord() {
-        satelliteName = null;
-        imageType = null;
+        satelliteId = null;
+        imageTypeId = null;
         resolution = null;
         projection = null;
         imageTime = null;
-        areaName = null;
+        areaId = null;
     }
 
     /**
@@ -247,8 +234,8 @@ public class McidasRecord extends PersistablePluginDataObject implements
         this.reportType = reportType;
     }
 
-    public String getSatelliteName() {
-        return satelliteName;
+    public String getSatelliteId() {
+        return satelliteId;
     }
 
     public Calendar getCreationTime() {
@@ -275,16 +262,16 @@ public class McidasRecord extends PersistablePluginDataObject implements
         this.projection = projection;
     }
 
-    public void setSatelliteName(String satelliteName) {
-        this.satelliteName = satelliteName;
+    public void setSatelliteId(String satelliteId) {
+        this.satelliteId = satelliteId;
     }
 
-    public String getImageType() {
-        return imageType;
+    public String getImageTypeId() {
+        return imageTypeId;
     }
 
-    public void setImageType(String imageType) {
-        this.imageType = imageType;
+    public void setImageTypeId(String imageTypeId) {
+        this.imageTypeId = imageTypeId;
     }
 
     public Integer getResolution() {
@@ -303,12 +290,12 @@ public class McidasRecord extends PersistablePluginDataObject implements
         this.headerBlock = headerBlock;
     }
 
-    public String getAreaName() {
-        return areaName;
+    public String getAreaId() {
+        return areaId;
     }
 
-    public void setAreaName(String areaName) {
-        this.areaName = areaName;
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
     }
 
     public Integer getPrefix() {
@@ -341,29 +328,6 @@ public class McidasRecord extends PersistablePluginDataObject implements
 
     public void setCalType(String calType) {
         this.calType = calType;
-    }
-
-    public Integer getSatelliteId() {
-        return satelliteId;
-    }
-
-    public void setSatelliteId(Integer satelliteId) {
-        this.satelliteId = satelliteId;
-    }
-
-    public Integer getImageTypeNumber() {
-        return imageTypeNumber;
-    }
-
-    public void setImageTypeNumber(Integer imageTypeNumber) {
-        this.imageTypeNumber = imageTypeNumber;
-    }
-
-    @Override
-    @Column
-    @Access(AccessType.PROPERTY)
-    public String getDataURI() {
-        return super.getDataURI();
     }
 
     @Override

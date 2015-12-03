@@ -17,10 +17,18 @@
       <dfltTimeRange>${dfltTimeRange}</dfltTimeRange>
       <fontName>${fontName}</fontName>
       <fontSize>${fontSize}</fontSize>
-	  <timeDisplayInterval>${timeDisplayInterval}</timeDisplayInterval>
-	  <timeDisplayColor>${timeDisplayColor}</timeDisplayColor>
+      <timeDisplayInterval>${timeDisplayInterval}</timeDisplayInterval>
+      <timeDisplayColor>${timeDisplayColor}</timeDisplayColor>
       <useFeetInsteadOfMeters>${useFeetInsteadOfMeters}</useFeetInsteadOfMeters>
-	  
+      <latParam>CLATH</latParam>   
+      <latParamInPdo>clath</latParamInPdo> 
+      <lonParam>CLONH</lonParam>
+      <lonParamInPdo>clonh</lonParamInPdo>
+      <satIdParam>SAID</satIdParam>
+      <satIdParamInPdo>said</satIdParamInPdo>
+      <waveHeightParam>SGWH</waveHeightParam>
+      <windSpeedParam>WS10G3R1</windSpeedParam>
+      
       ${colorBarForMeters}
       
       ${colorBarForFeet}

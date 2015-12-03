@@ -39,6 +39,7 @@ import com.raytheon.uf.common.time.DataTime;
  * 08/2014               B. Hebbard  Revise createDataTime() to correct end-of-month boundary bug
  * 08/2014               B. Hebbard  Enhance to use (cycle) time info from metafile name, if available
  * 09/2014               B. Hebbard  Normalize (shorten) metafile name to remove directory artifacts added during dataflow, so user will see that they're used to and will fit selection dialog column
+ * 11/20/2015   R12988   J. Lopez    Fixed "Unable to create property map" error
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -96,18 +97,10 @@ public class NtransDecoder extends AbstractDecoder {
     public// synchronized
     PluginDataObject[] decode(File inputFile) throws DecoderException,
             PluginException {
-        byte[] fileData = null;
-        byte[] headerData = null;
         InputStream inputStream = null;
-        String fileTitle = null;
         int fileMaxFrame = 0;
-        int fileVersion = 0;
-        int fileMachineType = 0;
         int frameSizeX = 0;
         int frameSizeY = 0;
-        byte[] fileReservedSpace = new byte[NTRANS_RESERVED_SPACE_SIZE]; // TODO
-                                                                         // symbolic
-
         List<FrameHeader> frameHeaders = new ArrayList<FrameHeader>();
         List<NtransRecord> records = new ArrayList<NtransRecord>();
 
@@ -156,12 +149,7 @@ public class NtransDecoder extends AbstractDecoder {
 
             byte[] fileTitleBytes = new byte[NTRANS_FILE_TITLE_SIZE];
             byteBuffer.get(fileTitleBytes);
-            fileTitle = new String(fileTitleBytes).trim();
-            // System.out.println("[File title:  " + fileTitle + "]");
-
             fileMaxFrame = toUnsigned(byteBuffer.getShort());
-            fileVersion = toUnsigned(byteBuffer.getShort());
-            fileMachineType = toUnsigned(byteBuffer.getShort());
             frameSizeX = toUnsigned(byteBuffer.getShort());
             frameSizeY = toUnsigned(byteBuffer.getShort());
 
@@ -185,12 +173,11 @@ public class NtransDecoder extends AbstractDecoder {
                 if ((startPos == 0) && (endPos == 0)) {
                     break;
                 }
-                // System.out.println("[startPos " + startPos + " endPos " +
-                // endPos + "]");
+
                 FrameHeader fh = new FrameHeader();
                 if (labelTitle.length() < NTRANS_FRAME_LABEL_TIME_SUBSTRING_SIZE) {
                     fh.frameHeaderTimeString = labelTitle;
-                    fh.productNameString = "";
+                    fh.productNameString = null;
                 } else {
                     fh.frameHeaderTimeString = labelTitle.substring(0,
                             NTRANS_FRAME_LABEL_TIME_SUBSTRING_SIZE);
@@ -204,14 +191,13 @@ public class NtransDecoder extends AbstractDecoder {
 
             // Read NTRANS frames (CGM coded images)
 
-            // for (FrameHeader fh : frameHeaders) {
             for (int frame = 0; frame < frameHeaders.size(); frame++) {
                 FrameHeader fh = frameHeaders.get(frame);
                 int startPos = (int) (fh.startPos - 4);
                 int endPos = (int) (fh.endPos + 0);
                 int imageLength = (endPos - startPos) + 0;
                 byte[] frameImage = new byte[imageLength];
-                // int imageBytesRead = inputStream.read(frameImage);
+
                 byteBuffer.position(startPos);
                 byteBuffer.get(frameImage);
 
@@ -255,11 +241,12 @@ public class NtransDecoder extends AbstractDecoder {
                 records.add(record);
             }
 
+            // TODO Investigate the cause of these exception and correctly
+            // handle them
         } catch (IOException ioe) {
             logger.error("Error reading input file " + inputFile.getName(), ioe);
-            fileData = null;
         } catch (Exception e) {
-            fileData = null;
+            logger.error("Error decoding input file " + inputFile.getName(), e);
         } finally {
             if (inputStream != null) {
                 try {
@@ -286,15 +273,15 @@ public class NtransDecoder extends AbstractDecoder {
         //
         // @formatter:off
         // Darn... Following is thwarted by these cases:
-        //   gfs_gfs.20140901_gfsver_20140901_18_na_mar
-        //   ukmet.2014090_ukmet.2014090._ukmetver_20140901_00
-        //   wave_wave.20140901_nww3_20140901_12
-        //   wave_wave.20140902_nww3_20140902_00_akw
+        // gfs_gfs.20140901_gfsver_20140901_18_na_mar
+        // ukmet.2014090_ukmet.2014090._ukmetver_20140901_00
+        // wave_wave.20140901_nww3_20140901_12
+        // wave_wave.20140902_nww3_20140902_00_akw
         //
         // final Pattern p = Pattern.compile("^(\\w+)_\\1\\.(\\d{6,8})_\\1_\\2");
         // Matcher m = p.matcher(fileName);
         // if (m.find()) {
-        //     fileName = fileName.replaceFirst("^(\\w+)_\\1\\.(\\d{6,8})_", "");
+        //      fileName = fileName.replaceFirst("^(\\w+)_\\1\\.(\\d{6,8})_", "");
         // }
         //
         // @formatter:on
@@ -347,19 +334,19 @@ public class NtransDecoder extends AbstractDecoder {
         // of 0-based ones. (We're 0-based [array] here, too, but
         // WE control the order, and shield it from the caller.)
         // @formatter:off
-        final int[] CalendarMonthConstants = {
-            Calendar.JANUARY,
-            Calendar.FEBRUARY,
-            Calendar.MARCH,
-            Calendar.APRIL,
-            Calendar.MAY,
-            Calendar.JUNE,
-            Calendar.JULY,
-            Calendar.AUGUST,
-            Calendar.SEPTEMBER,
-            Calendar.OCTOBER,
-            Calendar.NOVEMBER,
-            Calendar.DECEMBER,
+        final int[] CalendarMonthConstants = { 
+                Calendar.JANUARY,
+                Calendar.FEBRUARY, 
+                Calendar.MARCH, 
+                Calendar.APRIL,
+                Calendar.MAY, 
+                Calendar.JUNE, 
+                Calendar.JULY, 
+                Calendar.AUGUST,
+                Calendar.SEPTEMBER, 
+                Calendar.OCTOBER, 
+                Calendar.NOVEMBER,
+                Calendar.DECEMBER, 
         };
         return CalendarMonthConstants[goodOldMonthNumber - 1];
         // @formatter:on
@@ -403,7 +390,6 @@ public class NtransDecoder extends AbstractDecoder {
         String year = "";
         String month = "";
         String date = "";
-        String hour = "";
 
         while (m.find()) {
             if (m.group(0).length() >= matchString.length()) {
@@ -669,48 +655,48 @@ public class NtransDecoder extends AbstractDecoder {
         // @formatter:off
         OPC_ENS,
         CMCE_AVGSPR,
-        CMCE,
-        CMCVER,
-        CMC,
-        CPC,
-        DGEX,
-        ECENS_AVGSPR,
-        ECENS,
-        ECMWFVER,
-        ECMWF_HR,
-        ECMWF,
-        ENSVER,
-        FNMOCWAVE,
-        GDAS,
-        GEFS_AVGSPR,
-        GEFS,
-        GFSP,
-        GFSVERP,
-        GFSVER,
-        GFS,
-        GHM,
-        HPCQPF,
-        HPCVER,
-        HWRF,
-        ICEACCR,
-        JMAP,
-        JMA,
-        MEDRT,
-        NAEFS,
-        NAM20,
-        NAM44,
-        NAMVER,
-        NAM,
-        NAVGEM,
-        NOGAPS,
-        NWW3P,
-        NWW3,
-        RAPP,
-        RAP,
-        SREFX,
-        SST,
-        UKMETVER,
-        UKMET,
+        CMCE, 
+        CMCVER, 
+        CMC, 
+        CPC, 
+        DGEX, 
+        ECENS_AVGSPR, 
+        ECENS, 
+        ECMWFVER, 
+        ECMWF_HR, 
+        ECMWF, 
+        ENSVER, 
+        FNMOCWAVE, 
+        GDAS, 
+        GEFS_AVGSPR, 
+        GEFS, 
+        GFSP, 
+        GFSVERP, 
+        GFSVER, 
+        GFS, 
+        GHM, 
+        HPCQPF, 
+        HPCVER, 
+        HWRF, 
+        ICEACCR, 
+        JMAP, 
+        JMA, 
+        MEDRT, 
+        NAEFS, 
+        NAM20, 
+        NAM44, 
+        NAMVER, 
+        NAM, 
+        NAVGEM, 
+        NOGAPS, 
+        NWW3P, 
+        NWW3, 
+        RAPP, 
+        RAP, 
+        SREFX, 
+        SST, 
+        UKMETVER, 
+        UKMET, 
         VAFTAD
         // @formatter:on
     };
@@ -732,14 +718,6 @@ public class NtransDecoder extends AbstractDecoder {
             modelName = "HYSPLIT";
         } else if (fileName.contains("_GFS")) {
             modelName = "vaftad";
-            /*
-             * } else if (fileName.contains("_2")) { modelName =
-             * fileName.substring(0, fileName.indexOf("_2")); if
-             * (modelName.equals("jma")) { modelName = "jmap"; } }
-             * 
-             * return modelName;
-             */
-
         } else {
             for (Model model : Model.values()) {
                 if (fileName.toLowerCase().contains(model.name().toLowerCase())) {

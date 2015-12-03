@@ -17,21 +17,31 @@
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
  **/
+package gov.noaa.nws.ncep.common.dataplugin.mcidas;
+
 /**
- * TODO Add Description
+ * Constants useful to McidasRecord and the mcidas plugins.
  * 
  * <pre>
- *
+ * 
  * SOFTWARE HISTORY
- *
+ * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Jul 22, 2015            rcreynolds     Initial creation
- *
+ * Nov 10, 2015  10436     njensen     Initial creation
+ * 
  * </pre>
- *
- * @author rcreynolds
- * @version 1.0	
+ * 
+ * @author njensen
+ * @version 1.0
  */
 
-package gov.noaa.nws.ncep.edex.plugin.mcidas;
+public class McidasConstants {
+
+    public static final String PLUGIN_NAME = "mcidas";
+
+    public static final String SATELLITE_ID = "satelliteId";
+
+    public static final String AREA_ID = "areaId";
+
+}

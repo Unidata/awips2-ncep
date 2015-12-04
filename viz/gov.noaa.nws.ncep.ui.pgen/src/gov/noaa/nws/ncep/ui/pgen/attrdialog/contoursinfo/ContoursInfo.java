@@ -9,8 +9,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourFiles;
-
 /**
  * Contour information dialog.
  * 
@@ -20,6 +18,7 @@ import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourFiles;
  * ------------ ----------  -----------  --------------------------
  * 08/01/2015   8213        P.           CAVE>PGEN 
  *                          Chowdhuri     - Refinements to contoursInfo.xml
+ * 11/20/2015   12829       J. Wu        Link Contour Parm with layer
  * </pre>
  * 
  * @author pchowdhuri
@@ -37,6 +36,9 @@ public class ContoursInfo {
 
   public ContoursInfo()	{ }
 
+    @XmlElement(name = "default", required = false, nillable = false, type = ContourDefault.class)
+    private ContourDefault defaults;
+  
   @XmlElement(name = "level", required=false, nillable=false, type = ContourLevel.class)
   private ArrayList<ContourLevel> levels;
 
@@ -54,7 +56,15 @@ public class ContoursInfo {
 
   @XmlElement(name = "cfiles", required=false, nillable=false, type = ContourFiles.class)
   private ContourFiles cFiles;
-  
+
+    public ContourDefault getDefaults() {
+        return defaults;
+    }
+
+    public void setDefaults(ContourDefault defaults) {
+        this.defaults = defaults;
+    }
+
   public List<ContourLevel> getLevels() {
 	return levels;
   }

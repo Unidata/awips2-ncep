@@ -19,6 +19,8 @@
  * 03/2014      TTR957      B. Yin      Modified getGridGeometry() to handle native navigation
  * 10/15/2015   R7190       RC Reynolds Modifications to support mcidas area header changes
  * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
+ * Dec 07, 2015 10436       bmabe       Moved McidasCRSBuilder back to original location
+ *                                      b/c of build issues
  * 
  * </pre>
  */
@@ -26,6 +28,7 @@
 package gov.noaa.nws.ncep.common.dataplugin.mcidas;
 
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import java.awt.geom.Rectangle2D;
 

@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.common.area;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasCRSBuilder;
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;

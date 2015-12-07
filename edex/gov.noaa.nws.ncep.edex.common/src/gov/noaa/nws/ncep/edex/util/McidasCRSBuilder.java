@@ -6,8 +6,7 @@
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
  */
 
-package gov.noaa.nws.ncep.common.dataplugin.mcidas;
-
+package gov.noaa.nws.ncep.edex.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

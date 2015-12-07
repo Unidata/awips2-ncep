@@ -24,10 +24,10 @@
 
 package gov.noaa.nws.ncep.edex.plugin.mcidas;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasCRSBuilder;
+
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasMapCoverageDao;
-
+import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
 import org.apache.commons.codec.binary.Base64;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;

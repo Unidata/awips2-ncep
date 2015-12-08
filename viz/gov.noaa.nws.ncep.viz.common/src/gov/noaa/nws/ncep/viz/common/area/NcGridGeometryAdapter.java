@@ -19,15 +19,16 @@ import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.adapters.GridGeometrySerialized;
 
 /**
- * catch exception for native CRS's and create w/o wkt.
+ * Serialization adapter for grid geometries unique to NCEP.
  * 
  * <pre>
  * 
  * SOFTWARE HISTORY 
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 11/2013		1066		G. Hull     Created.
+ * 11/2013      1066        G. Hull     Created.
  * 03/2014      TTR957      B. Yin      Handle native satellite navigation.
+ * Nov 05, 2015 10436       njensen     Updated import, cleaned up
  * 
  * </pre>
  * 
@@ -39,13 +40,7 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
     @Override
     public GridGeometrySerialized marshal(GeneralGridGeometry v)
             throws Exception {
-        try {
-            System.out.println(v.getCoordinateReferenceSystem().getName()
-                    .toString());
-            return super.marshal(v);
-        } catch (Exception e) {
-            throw e;
-        }
+        return super.marshal(v);
     }
 
     @Override
@@ -55,6 +50,7 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
         try {
             crs = CRS.parseWKT(v.CRS);
         } catch (Exception e) {
+            // TODO: there's probably a better way to do this
             crs = McidasCRSBuilder.constructCRSfromWKT(v.CRS);
         }
 
@@ -87,43 +83,8 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
         }
 
         return ggg;
-
-        // CoordinateReferenceSystem crs = CRS.parseWKT(v.CRS);
-        // GeneralEnvelope env = new GeneralEnvelope(crs);
-        // env.setRange(0, v.envelopeMinX, v.envelopeMaxX);
-        // env.setRange(1, v.envelopeMinY, v.envelopeMaxY);
-        //
-        // GeneralGridGeometry ggg = null;
-        // final int gridX = v.rangeX[1];
-        // final int gridY = v.rangeY[1];
-        //
-        // if (v.envelopeMinZ == null && v.envelopeMaxZ == null
-        // && v.rangeZ == null) {
-        // GridEnvelope2D ge = new GridEnvelope2D(v.rangeX[0], v.rangeY[0],
-        // v.rangeX[1] - v.rangeX[0] + 1, v.rangeY[1] - v.rangeY[0]
-        // + 1);
-        // ggg = new GeneralGridGeometry(ge, env);
-        // } else {
-        // final int gridZ = v.rangeZ[1];
-        //
-        // env.setRange(2, v.envelopeMinZ, v.envelopeMaxZ);
-        // GeneralGridEnvelope gge = new GeneralGridEnvelope(new int[] {
-        // gridX / -2, gridY / -2, gridZ / -2 }, new int[] {
-        // gridX / 2, gridY / 2, gridZ / 2 }, false);
-        // ggg = new GeneralGridGeometry(gge, env);
-        // }
-        //
-        // return ggg;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.uf.common.serialization.ISerializationTypeAdapter#serialize
-     * (com.raytheon.uf.common.serialization.ISerializationContext,
-     * java.lang.Object)
-     */
     @Override
     public void serialize(ISerializationContext serializer,
             GeneralGridGeometry object) throws SerializationException {
@@ -141,13 +102,6 @@ public class NcGridGeometryAdapter extends GridGeometryAdapter {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.uf.common.serialization.ISerializationTypeAdapter#deserialize
-     * (com.raytheon.uf.common.serialization.IDeserializationContext)
-     */
     @Override
     public GeneralGridGeometry deserialize(IDeserializationContext deserializer)
             throws SerializationException {

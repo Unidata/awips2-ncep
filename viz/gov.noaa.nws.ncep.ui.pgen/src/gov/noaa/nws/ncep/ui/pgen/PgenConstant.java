@@ -10,7 +10,8 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Jun 26, 2015  R8198     srussell     Initial creation
+ * Jun 26, 2015  R8198     srussell    Initial creation
+ * 11/18/2015    R12829    J. Wu       Add more common constants.
  * 
  * </pre>
  * 
@@ -56,5 +57,15 @@ public final class PgenConstant {
     public static final String PGENCATEGORY_TEXT = "Text";
 
     public static final String PGENTYPE_GENERAL_TEXT = "General Text";
+
+    public static final String PARM = "Parm";
+
+    public static final String LEVEL = "Level";
+
+    public static final String FORECAST_HOUR = "ForecastHour";
+
+    public static final String NONE = "None";
+
+    public static String DEFAULT_SUBTYPE = "None";
 
 }

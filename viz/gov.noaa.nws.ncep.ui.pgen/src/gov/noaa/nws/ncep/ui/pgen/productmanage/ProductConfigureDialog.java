@@ -14,6 +14,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursInfoDlg;
 import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
 import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenActions;
@@ -75,6 +76,9 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 /**
@@ -101,6 +105,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 09/01/2015   R11365      S. Russell  Altered retrievePgenPalette() to ignore
  *                                      Pgen actions that only appear on in
  *                                      the Pgen context menu for Symbols
+ * 11/18/2015   R12829      J. Wu       Add "Contours Parameter" in PgenLayer.
  * 
  * </pre>
  * 
@@ -110,6 +115,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 
 public class ProductConfigureDialog extends ProductDialog {
+
+    // Status handling
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ProductConfigureDialog.class);
 
     private static ProductConfigureDialog INSTANCE = null;
 
@@ -124,10 +133,8 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private static final String PGEN_PRODUCT_TYPES = "productTypes.xml";
 
-    private HashMap<String, IConfigurationElement> itemMap = null; // map of
-                                                                   // PGEN
-                                                                   // configuration
-                                                                   // elements
+    // map of PGEN configuration elements
+    private HashMap<String, IConfigurationElement> itemMap = null;
 
     private static ArrayList<String> controls = null;
 
@@ -137,11 +144,11 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private static ArrayList<String> objects = null;
 
-    private HashMap<String, Image> iconMap = null; // map of all buttons on
-                                                   // palette
+    // map of all buttons on palette
+    private HashMap<String, Image> iconMap = null;
 
-    private HashMap<String, Image> iconMapSelected = null; // map of all buttons
-                                                           // if selected
+    // map of all selected buttons
+    private HashMap<String, Image> iconMapSelected = null;
 
     private final int numColumns = 10;
 
@@ -186,8 +193,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private Text subtypeText = null;
 
-    private static String DEFAULT_SUBTYPE = "None";
-
     private Text aliasText = null;
 
     private Combo layerPalCombo = null;
@@ -223,8 +228,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private Button layerFillBtn = null;
 
-    // private Text inputFileTxt = null;
-    // private Text outputFileTxt = null;
     private Group layerTempGrp = null;
 
     private ArrayList<Button> layerNameBtns = null;
@@ -233,16 +236,17 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private Text settingsTxt = null;
 
+    private Combo contourParameterCombo = null;
+
+    private final int contourParameterLength = 4;
+
     private Text metaTxt;
 
     /*
      * Product "Save" tab attributes
      */
-    private static String autoSavePath;
-
     private static int autoSaveInterval;
 
-    // private Text saveInputTxt = null;
     private Text saveOutputTxt = null;
 
     private Button saveIndividualLayerBtn = null;
@@ -257,7 +261,7 @@ public class ProductConfigureDialog extends ProductDialog {
 
     private Combo boundsListCbo;
 
-    /**
+    /*
      * Default colors for the default and active product of layer name button.
      */
     private final Color defaultButtonColor = Color.lightGray;
@@ -297,7 +301,9 @@ public class ProductConfigureDialog extends ProductDialog {
             try {
                 INSTANCE = new ProductConfigureDialog(parShell);
             } catch (VizException e) {
-                e.printStackTrace();
+                statusHandler
+                        .handle(Priority.ERROR,
+                                "ProductConfigureDlg: Cannot create instance of this dialog");
             }
 
         }
@@ -363,7 +369,6 @@ public class ProductConfigureDialog extends ProductDialog {
          */
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
         autoSaveInterval = prefs.getInt(PgenPreferences.P_AUTO_FREQ);
-        autoSavePath = prefs.getString(PgenPreferences.P_RECOVERY_DIR);
 
         /*
          * create main composite
@@ -685,7 +690,8 @@ public class ProductConfigureDialog extends ProductDialog {
                 skey = new String(ptype.getType());
                 String subtyp = ptype.getSubtype();
                 if (subtyp != null && subtyp.trim().length() > 0
-                        && !subtyp.equalsIgnoreCase(DEFAULT_SUBTYPE)) {
+                        && !subtyp
+                                .equalsIgnoreCase(PgenConstant.DEFAULT_SUBTYPE)) {
                     skey = new String(ptype.getType() + "(" + subtyp + ")");
                 }
             }
@@ -880,7 +886,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
         if (updateProductTypes()) {
             saveProductTypes();
-            // dlgCntlBtn[1].setText( "Apply" );
         }
 
         refreshPaletteSelections();
@@ -915,12 +920,8 @@ public class ProductConfigureDialog extends ProductDialog {
                     String pdName = typeText.getText();
                     String settings = getSettingFullPath(pdName);
 
-                    if (!settings.equalsIgnoreCase("settings_tbl.xml")) { // don't
-                                                                          // delete
-                                                                          // the
-                                                                          // default
-                                                                          // file
-
+                    // don't delete the default file
+                    if (!settings.equalsIgnoreCase("settings_tbl.xml")) {
                         LocalizationContext userContext = PgenStaticDataProvider
                                 .getProvider().getLocalizationContext(
                                         LocalizationType.CAVE_STATIC,
@@ -933,8 +934,9 @@ public class ProductConfigureDialog extends ProductDialog {
                         lFile.delete();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
-
+                    statusHandler.handle(Priority.WARN,
+                            "ProductConfigureDlg: Cannot delete settings tabke for "
+                                    + typeText.getText());
                 }
 
                 int typeAt = -1;
@@ -1015,19 +1017,12 @@ public class ProductConfigureDialog extends ProductDialog {
      */
     private void saveProductTypes() {
 
-        // TODO : write code to check the context of the current productTypes
-        // and
-        // check if it is BASE/SITE/DESK and create a new USER context. (also
-        // copy over the
-        // localization type.)
-
         // create a USER Level Localization File.
-        //
         try {
-            // NOTE: if the current file is not from the USER level then this
-            // will not prompt
-            // for a confirmation.
-            //
+            /*
+             * NOTE: if the current file is not from the USER level then this
+             * will not prompt for a confirmation.
+             */
             if (prdTypesFile.getContext().getLocalizationLevel() == LocalizationLevel.USER) {
                 MessageDialog confirmDlg = new MessageDialog(PlatformUI
                         .getWorkbench().getActiveWorkbenchWindow().getShell(),
@@ -1114,7 +1109,7 @@ public class ProductConfigureDialog extends ProductDialog {
                     && subtypeInputName.trim().length() > 0) {
                 pTyp.setSubtype(new String(subtypeInputName));
             } else {
-                pTyp.setSubtype(DEFAULT_SUBTYPE);
+                pTyp.setSubtype(PgenConstant.DEFAULT_SUBTYPE);
             }
 
             if (aliasName != null && aliasName.trim().length() > 0) {
@@ -1306,8 +1301,6 @@ public class ProductConfigureDialog extends ProductDialog {
                 }
 
                 if (objStr.contains(str)) {
-                    // if ( objStr.size() == 0 || btnAlwaysOn( str ) ||
-                    // objStr.contains( str ) ) {
                     objectBtns[ii].setSelection(true);
                     objectBtns[ii].setImage(iconMapSelected.get(str));
                 }
@@ -1692,7 +1685,6 @@ public class ProductConfigureDialog extends ProductDialog {
         editComp2.setLayout(gl3);
 
         // Create a composite for layer names
-        // Composite nameComp = new Composite(layerEditGrp, SWT.NONE);
         Composite nameComp = new Composite(editComp1, SWT.NONE);
         nameComp.setLayout(new GridLayout(4, false));
 
@@ -1744,7 +1736,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
         layerOnOffBtn = new Button(dispComp, SWT.CHECK);
         layerOnOffBtn.setText("OnOff");
-        // layerOnOffBtn.setSelection( true );
         layerOnOffBtn.setSelection(false);
 
         layerMonoBtn = new Button(dispComp, SWT.CHECK);
@@ -1770,6 +1761,25 @@ public class ProductConfigureDialog extends ProductDialog {
         metaTxt.setLayoutData(new GridData(190, 15));
         metaTxt.setEditable(true);
         metaTxt.setText("");
+
+        /*
+         * Create a composite for layer-specific contour parameter, and load
+         * with the entries in contoursInfo.xml.
+         */
+        Composite contourParameterComp = new Composite(editComp1, SWT.NONE);
+        contourParameterComp.setLayout(new GridLayout(2, false));
+
+        Label contourParameterLbl = new Label(contourParameterComp, SWT.LEFT);
+        contourParameterLbl.setText("Contour Parameter:");
+
+        contourParameterCombo = new Combo(contourParameterComp, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+        contourParameterCombo.add(PgenConstant.DEFAULT_SUBTYPE);
+        for (String ceParm : ContoursInfoDlg.getContourParms()) {
+            contourParameterCombo.add(ceParm);
+        }
+
+        contourParameterCombo.select(0);
 
         // Add a button to allow switching to "Palette" tab.
         Button configPalBtn = new Button(editComp2, SWT.PUSH);
@@ -1951,7 +1961,6 @@ public class ProductConfigureDialog extends ProductDialog {
         currentSettingLbl.setText("Settings: ");
 
         currentSettingsTxt = new Text(parent, SWT.SINGLE | SWT.BORDER);
-        // currentSettingsTxt.setLayoutData( new RowData( 300, 15 ) );
         currentSettingsTxt.setEditable(false);
         currentSettingsTxt.setText("Localization\\NCP\\PGEN\\"
                 + this.getCurrentSetting(typeText.getText()));
@@ -2204,8 +2213,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                // TODO Auto-generated method stub
-
             }
 
         });
@@ -2235,8 +2242,6 @@ public class ProductConfigureDialog extends ProductDialog {
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                // TODO Auto-generated method stub
-
             }
 
         });
@@ -2432,6 +2437,7 @@ public class ProductConfigureDialog extends ProductDialog {
             pgenlyr.setName(inputName);
             pgenlyr.setOnOff(layerOnOffBtn.getSelection());
             pgenlyr.setMetaInfo(metaTxt.getText());
+            pgenlyr.setContourParm(contourParameterCombo.getText());
 
             // Add or replace using the new PgenLayer
             ProductType oldType = getCurrentPrdTyp();
@@ -2466,6 +2472,12 @@ public class ProductConfigureDialog extends ProductDialog {
                     newpgenlyr.setInputFile(plyr.getInputFile());
                     newpgenlyr.setOutputFile(plyr.getOutputFile());
 
+                    if (plyr.getContourParm() != null) {
+                        newpgenlyr.setContourParm(plyr.getContourParm());
+                    } else {
+                        newpgenlyr.setContourParm(PgenConstant.NONE);
+                    }
+
                     ptyp.getPgenLayer().add(newpgenlyr);
                 }
 
@@ -2495,8 +2507,6 @@ public class ProductConfigureDialog extends ProductDialog {
         if (inputName == null || inputName.trim().length() == 0) {
             validNewLayerName = false;
             msg = "Layer name cannot be empty.\n";
-
-            // return validNewLayerName;
         } else if (inputName.equalsIgnoreCase("New")) {
             validNewLayerName = false;
             msg = "cannot be any variations of 'New'.\n";
@@ -2740,6 +2750,14 @@ public class ProductConfigureDialog extends ProductDialog {
                     } else {
                         metaTxt.setText("");
                     }
+                    
+                    // Set contourParameter.
+                    if (pgenlyr.getContourParm() != null
+                            && pgenlyr.getContourParm().trim().length() == contourParameterLength) {
+                        contourParameterCombo.setText(pgenlyr.getContourParm());
+                    } else {
+                        contourParameterCombo.setText(PgenConstant.NONE);
+                    }
                 }
 
                 // Set the color of the layer name buttons.
@@ -2763,7 +2781,6 @@ public class ProductConfigureDialog extends ProductDialog {
     private void setDefaultLayerInput() {
 
         layerNameTxt.setText("");
-        // layerOnOffBtn.setSelection( true );
         layerOnOffBtn.setSelection(false);
         layerMonoBtn.setSelection(false);
 
@@ -2773,6 +2790,7 @@ public class ProductConfigureDialog extends ProductDialog {
 
         layerFillBtn.setSelection(false);
         metaTxt.setText("");
+        contourParameterCombo.setText(PgenConstant.NONE);
 
     }
 
@@ -3134,14 +3152,17 @@ public class ProductConfigureDialog extends ProductDialog {
                     lFile.write(bytes);
 
                 } catch (FileNotFoundException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
+                    statusHandler.handle(Priority.WARN,
+                            "ProductConfigureDlg: Cannot find settings table "
+                                    + settingsFile);
                 } catch (LocalizationException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    statusHandler.handle(Priority.WARN,
+                            "ProductConfigureDlg: Cannot load settings table "
+                                    + settingsFile);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    statusHandler.handle(Priority.WARN,
+                            "ProductConfigureDlg: Cannot load settings table "
+                                    + settingsFile);
                 }
             }
         }
@@ -3220,7 +3241,7 @@ public class ProductConfigureDialog extends ProductDialog {
         ProductType atyp = null;
         String ss = null;
         if (subtype == null || subtype.trim().length() == 0) {
-            ss = new String(DEFAULT_SUBTYPE);
+            ss = new String(PgenConstant.DEFAULT_SUBTYPE);
         } else {
             ss = new String(subtype);
         }
@@ -3273,7 +3294,7 @@ public class ProductConfigureDialog extends ProductDialog {
                     if (stp != null && stp.trim().length() > 0) {
                         subtypes.add(stype.getSubtype());
                     } else {
-                        subtypes.add(DEFAULT_SUBTYPE);
+                        subtypes.add(PgenConstant.DEFAULT_SUBTYPE);
                     }
                 }
             }
@@ -3370,7 +3391,8 @@ public class ProductConfigureDialog extends ProductDialog {
             fname.append(ptype.getType().replace(' ', '_') + ".");
             if (ptype.getSubtype() != null
                     && ptype.getSubtype().trim().length() > 0
-                    && !ptype.getSubtype().equalsIgnoreCase(DEFAULT_SUBTYPE)) {
+                    && !ptype.getSubtype().equalsIgnoreCase(
+                            PgenConstant.DEFAULT_SUBTYPE)) {
                 fname.append(ptype.getSubtype().replace(' ', '_') + ".");
             }
         }

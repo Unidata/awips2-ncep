@@ -3,22 +3,18 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Data Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.resourceManager;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Activator: gov.noaa.nws.ncep.viz.resourceManager.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.viz.core,
  com.raytheon.viz.ui,
- org.geotools,
  gov.noaa.nws.ncep.viz.common,
- com.raytheon.viz.alerts,
- gov.noaa.nws.ncep.viz.overlays;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.rsc.pgen,
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.gempak;bundle-version="1.0.0",
- com.raytheon.uf.viz.core.maps;bundle-version="1.12.1174"
-Eclipse-LazyStart: true
+ gov.noaa.nws.ncep.viz.gempak;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.viz.resourceManager.timeline,
  gov.noaa.nws.ncep.viz.resourceManager.ui,
@@ -26,6 +22,4 @@ Export-Package: gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd,
  gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources
 Import-Package: gov.noaa.nws.ncep.common.dataplugin.mcidas,
- gov.noaa.nws.ncep.viz.resourceManager.timeline,
- gov.noaa.nws.ncep.viz.rsc.pgen,
- org.apache.commons.lang
+ gov.noaa.nws.ncep.viz.resourceManager.timeline

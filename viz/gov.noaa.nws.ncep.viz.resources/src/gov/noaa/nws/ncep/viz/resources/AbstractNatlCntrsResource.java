@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package gov.noaa.nws.ncep.viz.resources;
 
@@ -21,6 +21,8 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -44,7 +46,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 11 Mar 2010     #257      Greg Hull    add overridable preProcessFrameUpdate()
  * 20 Apr 2010               Greg Hull    implement disposeInternal to dispose of the FrameData
  * 30 Apr 2010     #276      Greg Hull    Abstract the dataObject instead of assuming PluginDataObject.
- * 05 Dec 2011               Shova Gurung Added progDiscDone to check if progressive disclosure is run 
+ * 05 Dec 2011               Shova Gurung Added progDiscDone to check if progressive disclosure is run
  *                                        for frames that are already populated
  * 16 Feb 2012     #555      Shova Gurung Remove progDiscDone. Add call to setAllFramesAsPopulated() in queryRecords().
  *                                        Remove frameData.setPopulated(true) from processNewRscDataList().
@@ -56,7 +58,10 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 12/14           RM5794    B. Yin       Remove ScriptCreator, use Thrift Client.
  * 09 Feb 2015     RM4980    srussell     Updated timeMatch() & constructor. Added closestToFrame()
  * 09/28/2015      R11385    njensen      Corrected generics on class declaration
- * 
+ * 11/20/2015	   RM11819	 srussell     Added deprecation annotations as part
+ *                                        of a redesign.  Removed clearFrames()
+ *                                        as it did exactly the same thing as
+ *                                        disposeInternal()
  * </pre>
  * 
  * @author ghull
@@ -65,13 +70,40 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsRequestableResourceData, D extends INatlCntrsDescriptor>
         extends AbstractVizResource<T, D> implements INatlCntrsResource {
 
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(AbstractNatlCntrsResource.class);
+
+    /*
+     * Deprecated as part of the Redmine 11819 redesign. For more information
+     * about that please see the title block comment of class
+     * AbstractNatlCntrsResource2 {@link
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2
+     * 
+     * {@link gov.noaa.nws.ncep.viz.resources.IRscDataObject
+     * 
+     * @deprecated
+     */
+
+    @Deprecated
     public static interface IRscDataObject {
         abstract DataTime getDataTime();
     }
 
-    // a wrapper for the common case when a PluginDataObject is the resource
-    // Data Object.
-    //
+    /*
+     * Deprecated as part of the Redmine 11819 redesign. For more information
+     * about that please see the title block comment of class
+     * AbstractNatlCntrsResource2 {@link
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2
+     * 
+     * {@link gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj
+     * 
+     * a wrapper for the common case when a PluginDataObject is the resource
+     * Data Object.
+     * 
+     * @deprecated
+     */
+
+    @Deprecated
     public static class DfltRecordRscDataObj implements IRscDataObject {
         private final PluginDataObject pdo;
 
@@ -89,6 +121,18 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         }
     }
 
+    /*
+     * Deprecated as part of the Redmine 11819 redesign. For more information
+     * about that please see the title block comment of class
+     * AbstractNatlCntrsResource2 {@link
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2
+     * 
+     * {@link gov.noaa.nws.ncep.viz.resources.AbstractFrameData
+     * 
+     * @deprecated
+     */
+
+    @Deprecated
     public abstract class AbstractFrameData {
 
         protected DataTime frameTime;
@@ -270,9 +314,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 // resource then it should be an EXACT time match. Still, for
                 // now leave this logic in here.
                 if (dataTimeRange.isValid()) {
-                    System.out
-                            .println("Timematching a dataTime with a valid interval with a non-EXACT\n "
-                                    + "TimeMatchMethod.");
+                    logger.debug("Timematching a dataTime with a valid interval with a non-EXACT\n "
+                            + "TimeMatchMethod.");
                     return -1;
                 }
 
@@ -312,7 +355,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         // Only return true if the data was added to the frame. It is possible
         // for some resources for the data to time match but not be added
         // because there is already data in the frame that is a better match.
-        //
         public abstract boolean updateFrameData(IRscDataObject rscDataObj);
 
         // override this if need to dispose of anything in the Frame.
@@ -339,6 +381,30 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             populated = p;
         }
 
+        public void setFrameTime(DataTime frameTime) {
+            this.frameTime = frameTime;
+        }
+
+        public void setStartTime(DataTime startTime) {
+            this.startTime = startTime;
+        }
+
+        public void setEndTime(DataTime endTime) {
+            this.endTime = endTime;
+        }
+
+        public void setStartTimeMillis(long startTimeMillis) {
+            this.startTimeMillis = startTimeMillis;
+        }
+
+        public void setEndTimeMillis(long endTimeMillis) {
+            this.endTimeMillis = endTimeMillis;
+        }
+
+        public void setResourceData(T resourceDataIn) {
+            resourceData = resourceDataIn;
+        }
+
     }
 
     protected boolean initialized = false;
@@ -354,8 +420,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
     // This list caches objects that are ingested and are newer than the latest
     // frame. When a frame is later created due to auto updating, these objects
-    // are
-    // moved to the newRscDataObjsQueue.
+    // are moved to the newRscDataObjsQueue.
     protected ArrayList<IRscDataObject> autoUpdateCache;
 
     // The new frame times that will be created during the next auto update
@@ -388,10 +453,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 public void resourceChanged(ChangeType type, Object object) {
 
                     if (object == null) {
-                        System.out
-                                .println("resourceChanged called with null object for "
-                                        + getResourceData().getResourceName()
-                                                .toString());
+                        logger.debug("resourceChanged called with null object for "
+                                + getResourceData().getResourceName()
+                                        .toString());
                         return;
                     }
 
@@ -413,11 +477,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                         }
 
                         // can't call processNewRscDataList here since we are
-                        // not in the UI thread when
-                        // the AutoUpdater calls us and this will end up
-                        // updating the status line's
+                        // not in the UI thread when the AutoUpdater calls us
+                        // and this will end up updating the status line's
                         // frame time is a new frame is created.
-                        //
                         autoUpdateReady = true;
                     }
                 }
@@ -426,17 +488,14 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     }
 
     // the timeline (times in the timeMatcher) have changed so we must update
-    // the
-    // frames in the frameDataMap and process any data saved in the
+    // the frames in the frameDataMap and process any data saved in the
     // autoUpdateCache.
-    //
     public Boolean updateTimeline() {
         NCTimeMatcher timeMatcher = (NCTimeMatcher) descriptor.getTimeMatcher();
         List<DataTime> newFrameTimes = timeMatcher.getFrameTimes();
 
         // loop thru all of the new frame times and if the frameDataMap doesn't
-        // have an entry for
-        // this time create a new entry.
+        // have an entry for this time create a new entry.
         for (DataTime frameTime : newFrameTimes) {
             if (!frameDataMap.containsKey(frameTime.getValidTime().getTime()
                     .getTime())) {
@@ -448,8 +507,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         }
 
         // loop thru all of the times in the frameDataMap and if the time is not
-        // in the
-        // new frameTimes then remove the frame from the map.
+        // in the new frameTimes then remove the frame from the map.
         ArrayList<Long> frameTimesInMap = new ArrayList<Long>(
                 frameDataMap.keySet());
 
@@ -470,21 +528,17 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
     // This is the default implementation for the common case where the Resource
     // simply wants to process the PluginDataObject itself but some resources
-    // may
-    // want to override this method if a record contains more than one 'data
-    // object' and
-    // these objects are to be time matched. (ex. some sigmet resources have
-    // multiple sigmets
-    // per record and each has a separate valid time.)
-    //
+    // may want to override this method if a record contains more than one 'data
+    // object' and these objects are to be time matched. (ex. some sigmet
+    // resources have multiple sigmets per record and each has a separate
+    // valid time.)
     protected IRscDataObject[] processRecord(Object pdo) {
         if (!(pdo instanceof PluginDataObject)) {
-            System.out
-                    .println("Resource Impl "
-                            + getClass().getName()
-                            + " must override "
-                            + "the processRecord method to process data objects of class: "
-                            + pdo.getClass().getName());
+            logger.debug("Resource Impl "
+                    + getClass().getName()
+                    + " must override "
+                    + "the processRecord method to process data objects of class: "
+                    + pdo.getClass().getName());
             return null;
         }
 
@@ -530,7 +584,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         if (getDescriptor() instanceof NCMapDescriptor) {
             return (NCMapDescriptor) getDescriptor();
         }
-        System.out.println("GetNcMapDescriptor() returning null????");
+        logger.debug("GetNcMapDescriptor() returning null????");
         return null;
     }
 
@@ -594,9 +648,8 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 .getValidTime().getTime().getTime());
 
         if (currFrame == null) {
-            System.out
-                    .println("paint(): Unable to find Frame Data for current Time "
-                            + currFrameTime);
+            logger.debug("paint(): Unable to find Frame Data for current Time "
+                    + currFrameTime);
             return;
         }
 
@@ -783,12 +836,6 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
     @Override
     protected void disposeInternal() {
-        for (AbstractFrameData frameData : frameDataMap.values()) {
-            frameData.dispose();
-        }
-    }
-
-    protected void clearFrames() {
         for (AbstractFrameData frameData : frameDataMap.values()) {
             frameData.dispose();
         }

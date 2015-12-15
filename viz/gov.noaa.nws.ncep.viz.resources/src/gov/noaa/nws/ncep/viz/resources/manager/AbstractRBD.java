@@ -41,12 +41,16 @@ import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.adapters.GridGeometrySerialized;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
 import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.VariableSubstitutionUtil;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.reflect.SubClassLocator;
+import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -73,6 +77,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    10/29/13       #2491     bsteffen    Use custom JAXB context instead of SerializationUtil.
  *    05/15/2014     #1131     Quan Zhou   Added GRAPH_DISPLAY.
  *    05/24/14       R4078     S. Gurung   Added NMAP_RTKP_WORLD_DISPLAY in getDefaultRBD().
+ *    11/12/2015       R8829     B. Yin      Sort resources in RBD by rendering order.
  * 
  * </pre>
  * 
@@ -95,10 +100,10 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     protected NcPaneLayout paneLayout = new NcPaneLayout(1, 1);
 
     // TODO : wanted this to be an INcPaneID but JAXB can't handle interfaces.
-    // Since
-    // there is actually only the NcPaneID now, just make this an NcPaneID.
+    // Since there is actually only the NcPaneID now, just make this an
+    // NcPaneID.
     @XmlElement
-    protected NcPaneID selectedPaneId = new NcPaneID(); // 0,0
+    protected NcPaneID selectedPaneId = new NcPaneID();
 
     @XmlElement
     protected boolean geoSyncedPanes;
@@ -121,10 +126,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     @XmlElementWrapper(name = "displayList")
     protected T[] displays;
 
-    // protected INatlCntrsRenderableDisplay[] displays;
-
     // if created from a loaded display, this it the display id.
-    //
     protected int displayId = -1;
 
     @XmlAttribute
@@ -136,17 +138,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     // true if this Rbd was created from the DefaultRbd
     @XmlElement
     protected Boolean isDefaultRbd = false;
-
-    // @XmlElement
-    // protected Date dateCreated = null;
-    //
-    // @XmlElement
-    // protected String createdBy = null;
-    // @XmlElement
-    // protected String description = null;
-
-    // private HashMap<String,AbstractRenderableDisplay> displayPaneMap =
-    // new HashMap<String,AbstractRenderableDisplay>
 
     public boolean isAutoUpdate() {
         return autoUpdate;
@@ -247,28 +238,27 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         return rbdSequence;
     }
 
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(AbstractRBD.class);
+
     /**
      * Default constructor
      */
     public AbstractRBD() {
         timeMatcher = null;
-        // ncEditor = null;
     }
 
     // used when creating an RBD to be written out.
     public AbstractRBD(NcPaneLayout paneLayout) {
         timeMatcher = null;
-        // ncEditor = null;
         setPaneLayout(paneLayout);
         try {
             displays = (T[]) NcDisplayMngr.createDisplaysForNcDisplayType(this,
                     paneLayout);
         } catch (VizException e) {
-            System.out.println(e.getMessage());
+            statusHandler.handle(Priority.PROBLEM, e.getMessage());
         }
     }
-
-    // protected abstract T[] createDisplays( int num );
 
     public static AbstractRBD<?> clone(AbstractRBD<?> rbdBndl)
             throws VizException {
@@ -278,15 +268,12 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             File tempRbdFile = File.createTempFile("tempRBD-", ".xml");
 
             // HACK Alert ; for Mcidas GVAR projections, the NAV_BLOCK_BASE64
-            // parameter is a String, but
-            // since the wkt format is assuming all projection params are
-            // doubles, the CRS string will throw an
-            // error on unmarshalling.
-            // This temporary hack will substitude a dummy projection and save
-            // off the wkt for the GVARs
-            // and then call the McidasSpatialFactory to handle the parsing.
-            //
-            // Map<String,String> crsWktMap = new HashMap<String,String>();
+            // parameter is a String, but since the wkt format is assuming all
+            // projection params are doubles, the CRS string will throw an error
+            // on unmarshalling. This temporary hack will substitude a dummy
+            // projection and save off the wkt for the GVARs and then call the
+            // McidasSpatialFactory to handle the parsing.
+
             Map<String, GridGeometrySerialized> ggsMap = new HashMap<String, GridGeometrySerialized>();
             Map<String, AbstractRenderableDisplay> dispMap = new HashMap<String, AbstractRenderableDisplay>();
 
@@ -304,12 +291,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                             .toString(), ggs);
                     dispMap.put(((INatlCntrsRenderableDisplay) disp)
                             .getPaneId().toString(), disp);
-                    // DefaultProjectedCRS pCRS =
-                    // (DefaultProjectedCRS)geom.getCoordinateReferenceSystem();
-                    // String crsWkt = pCRS.toWKT();
-                    // crsWktMap.put(
-                    // ((INatlCntrsRenderableDisplay)disp).getPaneId().toString(),
-                    // crsWkt );
+
                     // something valid as a placeholder....
                     disp.getDescriptor().setGridGeometry(
                             PredefinedAreaFactory
@@ -331,15 +313,13 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                     GeneralGridGeometry geom = geomAdapter.unmarshal(ggsMap
                             .get(ggsKey));
                     disp.getDescriptor().setGridGeometry(geom);
-
-                    // another copy (should we save the original and set it
-                    // back?)
+                    // another copy
                     geom = geomAdapter.unmarshal(ggsMap.get(ggsKey));
                     dispMap.get(ggsKey).getDescriptor().setGridGeometry(geom);
                 }
             }
-
-            clonedRbd.displayId = rbdBndl.displayId; // not serialized
+            // not serialized
+            clonedRbd.displayId = rbdBndl.displayId;
 
             if (clonedRbd.getDisplayType() == null) {
                 clonedRbd.setDisplayType(NcDisplayType.NMAP_DISPLAY);
@@ -369,7 +349,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         } catch (VizException e) {
             throw new VizException("Error loading rbd " + rbdBndl.rbdName
                     + " :" + e.getMessage());
-        } catch (IOException e) { // from createTempFile
+        } catch (IOException e) {
             throw new VizException(e);
         } catch (Exception e) {
             throw new VizException(e);
@@ -427,23 +407,11 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
     public void initRbdFromEditor(AbstractEditor ncEditor) throws VizException {
 
-        selectedPaneId = new NcPaneID(); // 0,0
+        selectedPaneId = new NcPaneID();
 
         NcDisplayName rbdDispName = NcEditorUtil.getDisplayName(ncEditor);
         displayId = rbdDispName.getId();
-        // NcDisplayMngr.getNcDisplayID( NcEditorUtil.getDisplayName(ncEditor)
-        // );
         rbdName = rbdDispName.getName();
-        // NcDisplayMngr.getNcDisplayNameWithoutID(
-        // NcEditorUtil.getDisplayName(ncEditor) );
-
-        if (NcEditorUtil.isDisplayAvailableToLoad(ncEditor)) {
-            // System.out.println("initializing RBD from an Available Editor??");
-        }
-
-        // NCDisplayPane[] dispPanes = (NCDisplayPane[])
-        // ncEditor.getDisplayPanes();
-
         geoSyncedPanes = NcEditorUtil.arePanesGeoSynced(ncEditor);
         autoUpdate = NcEditorUtil.getAutoUpdate(ncEditor);
 
@@ -452,7 +420,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
         for (int paneIndx = 0; paneIndx < paneLayout.getNumberOfPanes(); paneIndx++) {
             IDisplayPane pane = NcEditorUtil.getDisplayPane(ncEditor,
-                    paneLayout.createPaneId(paneIndx));// new NcPaneID(r, c));
+                    paneLayout.createPaneId(paneIndx));
 
             T rDispPane = (T) pane.getRenderableDisplay();
 
@@ -489,75 +457,36 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
     }
 
-    //
     public INatlCntrsRenderableDisplay getDisplayPane(INcPaneID pid) {
         if (!paneLayout.containsPaneId(pid)) {
-            System.out.println("NcMapRBD.getDisplayPane: pane id "
-                    + pid.toString() + " is out of range.");
+            statusHandler.handle(Priority.INFO,
+                    "NcMapRBD.getDisplayPane: pane id " + pid.toString()
+                            + " is out of range.");
             return null;
         }
-        //
+
         return (INatlCntrsRenderableDisplay) displays[paneLayout
                 .getPaneIndex(pid)];
     }
 
     public abstract boolean addDisplayPane(T dispPane, NcPaneID pid);
-
-    // if( !paneLayout.containsPaneId(pid) ) {
-    // System.out.println("NcMapRBD.getDisplayPane: pane id "
-    // + pid.toString() + " is out of range.");
-    // return false;
-    // }
-    //
-    // displays[paneLayout.getPaneIndex(pid)] = dispPane;
-    //
-    // // sync the descriptor's auto update with the value of this RBD.
-    // ((INatlCntrsDescriptor)
-    // displays[paneLayout.getPaneIndex(pid)].getDescriptor())
-    // .setAutoUpdate( isAutoUpdate() );
-    //
-    // return true;
-    // }
-
-    // public INatlCntrsRenderableDisplay[] getINatlCntrsRenderableDisplays() {
-    // IRenderableDisplay[] ncdisps = new IRenderableDisplay[displays.length];
-    // int i=0;
-    //
-    // for( AbstractRenderableDisplay d : displays ) {
-    // if( !(d instanceof INatlCntrsRenderableDisplay) ) {
-    // System.out.println("Sanity Check in NcMapRBD: setting displays with non-INatlCntrsRenderableDisplay");
-    // }
-    // ncdisps[i++] = (INatlCntrsRenderableDisplay) d;
-    // }
-    // return (IRenderableDisplay[]) displays;
-    // }
-
+    
     public T[] getDisplays() {
         return displays;
     }
 
     public void setDisplays(T[] displays) {
-        // for( AbstractRenderableDisplay d : displays ) {
-        // if( !(d instanceof INatlCntrsRenderableDisplay ) ) {
-        // System.out.println("Sanity Check in NcMapRBD: setting displays with non-INatlCntrsRenderableDisplay");
-        // }
-        // }
-        // if( !(displays instanceof INatlCntrsRenderableDisplay[] ) ) {
-        // System.out.println("Sanity Check in NcMapRBD: setting displays with non-INatlCntrsRenderableDisplay");
-        // }
         this.displays = displays;
     }
 
     // TODO : add the ability to define what the default display type is. Ie.
     // NMAP or SWPC.
-    //
     public static AbstractRBD<?> getDefaultRBD() throws VizException {
         NcDisplayType dfltDisplayType = NcDisplayType.NMAP_DISPLAY;
         return getDefaultRBD(dfltDisplayType);
     }
 
     // TODO : change/move this to be able to get user-based default RBDs.
-    //
     public static AbstractRBD<?> getDefaultRBD(NcDisplayType displayType)
             throws VizException {
 
@@ -569,15 +498,14 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             break;
 
         // If/when we need to we can save an NTRANS or SWPC default rbd to a
-        // file and save in localization.
-        // Right now there is nothing in the RBD so we just create an 'empty'
-        // one.
+        // file and save in localization. Right now there is nothing in the RBD
+        // so we just create an 'empty' one.
         case NTRANS_DISPLAY:
-            dfltRbdName = null; // NcPathConstants.DFLT_NTRANS_RBD;
+            dfltRbdName = null;
             return AbstractRBD.createEmptyRbdForDisplayType(displayType,
                     new NcPaneLayout(1, 1));
         case SOLAR_DISPLAY:
-            dfltRbdName = null; // NcPathConstants.DFLT_SOLAR_RBD;
+            dfltRbdName = null;
             return AbstractRBD.createEmptyRbdForDisplayType(displayType,
                     new NcPaneLayout(1, 1));
 
@@ -606,8 +534,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             AbstractRBD<?> dfltRbd = AbstractRBD.unmarshalRBD(rbdFile, null);
 
             // shouldn't need this but just in case the user creates a default
-            // with
-            // real resources in it
+            // with real resources in it
             dfltRbd.resolveLatestCycleTimes();
             dfltRbd.setIsDefaultRbd(true);
 
@@ -630,20 +557,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             throw new VizException(
                     "Error unmarshalling RBD: the renderable display list is null");
         }
-        // getInitialArea can't return null.
-        // for( AbstractRenderableDisplay d : rbd.getDisplays() ) {
-        // if( ((INatlCntrsRenderableDisplay) d).getInitialArea() == null ) {
-        // PredefinedArea dfltArea =
-        // PredefinedAreaFactory.getDefaultPredefinedAreaForDisplayType(
-        // rbd.getDisplayType() );
-        // ((INatlCntrsRenderableDisplay) d).setInitialArea( dfltArea );
-        // }
-        // }
-
-        // set the RbdName inside the renderable display panes
-        // no longer need to do this since panes can now reference back to the
-        // RBD to get name
-        // rbd.setRbdName( rbd.getRbdName() );
 
         return rbd;
     }
@@ -705,71 +618,41 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                     .unmarshalFromXml(substStr);
 
             if (b == null) {
-                System.out.println("Unmarshalled rbd file is not a valid RBD?");
+                statusHandler.handle(Priority.INFO,
+                        "Unmarshalled rbd file is not a valid RBD.");
                 return null;
             }
 
-            // Make sure that all descriptors use the same timeMatcher instance.
-            // All the timeMatchers should be the same but we need to share
-            // them.
-            // for( AbstractRenderableDisplay pane : b.getDisplays() ) {
-            // MapDescriptor descr = (MapDescriptor)pane.getDescriptor();
-            //
-            // if( b.getTimeMatcher() == null ) {
-            // b.setTimeMatcher( (NCTimeMatcher)descr.getTimeMatcher() );
-            // }
-            //
-            // descr.setTimeMatcher( b.getTimeMatcher() );
-            // }
+            b.sortResourcesByRenderingOrder();
 
             if (b.getTimeMatcher() == null) {
                 b.setTimeMatcher(new NCTimeMatcher());
             }
 
             // This will make sure that all descriptors use the same timeMatcher
-            // instance.
-            // All the timeMatchers should be the same but we need to share
-            // them.
+            // instance. All the timeMatchers should be the same but we need to
+            // share them.
             b.setTimeMatcher(b.getTimeMatcher());
-
-            // if the dominant resource is not set then find the name
-            // of the dominant resource in the list of all the resources in all
-            // of the panes
-            // in the descriptor and set the resource for the timeMatcher.
-            // The dominant resource will be null if there are no requestable
-            // resources.
-            // The dominant resource has to be set...
-            // if( b.getTimeMatcher().getDominantResource() == null ) {
-            // String domRscName = b.getTimeMatcher().getDominantResourceName();
-            // if( domRscName != null ) {
-            // for( AbstractRenderableDisplay pane : b.getDisplays() ) {
-            // MapDescriptor descr = (MapDescriptor)pane.getDescriptor();
-            // ResourceList rscList = descr.getResourceList();
-            // for( ResourcePair rscPair : rscList ) {
-            // if( rscPair.getResourceData() instanceof
-            // AbstractNatlCntrsRequestableResourceData ) {
-            // AbstractNatlCntrsRequestableResourceData rscData =
-            // (AbstractNatlCntrsRequestableResourceData)
-            // rscPair.getResourceData();
-            //
-            // // NOTE that it is very possible that there are other resources
-            // in this RBD with
-            // // the same name but this shouldn't matter since they should all
-            // yield the same times.
-            // //
-            // if( domRscName.equals( rscData.getResourceName() ) ) {
-            // b.getTimeMatcher().setDominantResource(rscData);
-            // break;
-            // }
-            // }
-            // }
-            // }
-            // }
-            // }
 
             return b;
         } catch (Exception e) {
             throw new VizException("Error loading bundle", e);
+        }
+    }
+
+    /*
+     * Sorts resources by rendering order.
+     */
+    private void sortResourcesByRenderingOrder() {
+        for (T disp : getDisplays()) {
+            for (ResourcePair rscPair : disp.getDescriptor().getResourceList()) {
+                if (rscPair.getProperties().getRenderingOrderId() != null) {
+                    rscPair.getProperties().setRenderingOrder(
+                            RenderingOrderFactory.getRenderingOrder(rscPair
+                                    .getProperties().getRenderingOrderId()));
+                }
+            }
+            disp.getDescriptor().getResourceList().sort();
         }
     }
 
@@ -812,9 +695,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     public void setTimeMatcher(NCTimeMatcher timeMatcher) {
-        // if( this.timeMatcher != null ) {
-        // this.timeMatcher.removeDescriptor(desc)
-        // }
+
         this.timeMatcher = timeMatcher;
 
         for (T disp : getDisplays()) {
@@ -832,7 +713,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     // Rbd after unmarshalling it so we do this as a separate step here.
     //
     public boolean resolveLatestCycleTimes() {
-        // loop through all of the
         for (T disp : getDisplays()) {
             ResourceList rl = disp.getDescriptor().getResourceList();
             for (int r = 0; r < rl.size(); r++) {
@@ -852,8 +732,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                         // to have to be able to handle this case.
                         //
                         if (rscName.isLatestCycleTime()) {
-                            System.out
-                                    .println("Unable to Resolve Latest cycle time for :"
+                            statusHandler.handle(Priority.PROBLEM,
+                                    "Unable to Resolve Latest cycle time for :"
                                             + rscName);
                         }
                     }
@@ -865,8 +745,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     // if the dominantResourceName is set for the timeMatcher but the
-    // dominantResourceData isn't then
-    // find the dominant resource in the list and set it.
+    // dominantResourceData isn't then find the dominant resource in the list
+    // and set it.
     public void resolveDominantResource() {
 
         ResourceName domRscName = timeMatcher.getDominantResourceName();
@@ -875,7 +755,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 && timeMatcher.getDominantResource() == null) {
 
             // loop thru the displays looking for the dominant resource
-            //
             for (T disp : getDisplays()) {
                 ResourceList rl = disp.getDescriptor().getResourceList();
                 for (int r = 0; r < rl.size(); r++) {
@@ -894,30 +773,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 }
             }
         }
-
-    }
-
-    public void resolveAreaProvider() {
-        // if the initial area provider name is not the same area as is stored
-        // in the
-        // renderable displays then create the areaProvider by either getting
-        // the PredefinedArea
-        // or by looking up the area-capable resource in the list of resources.
-
-        // for( NCMapRenderableDisplay disp : displays ) {
-        // if( )
-        // ResourceList rl = disp.getDescriptor().getResourceList();
-        // for (int r = 0; r < rl.size(); r++) {
-        // ResourcePair rp = rl.get(r);
-        // if (rp.getResourceData() instanceof
-        // AbstractNatlCntrsRequestableResourceData) {
-        // AbstractNatlCntrsRequestableResourceData rdata =
-        // (AbstractNatlCntrsRequestableResourceData) rp
-        // .getResourceData();
-        //
-        // }
-        // }
-        // }
 
     }
 

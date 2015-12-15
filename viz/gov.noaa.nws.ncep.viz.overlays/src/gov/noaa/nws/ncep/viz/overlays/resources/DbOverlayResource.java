@@ -23,6 +23,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -53,9 +54,12 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.WKBReader;
 
 /**
- * TODO Add Description
- * 
  * <pre>
+ * (non-Javadoc)
+ * 
+ * This class is copied over from com.raytheon.viz.core.rsc.DbMapResource. It is
+ * the NCEP resource implementation for overlays drawn using data in database
+ * tables.
  * 
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -65,15 +69,16 @@ import com.vividsolutions.jts.io.WKBReader;
  * Nov 18,  2009           ghull       Incorporate to11d6 changes 
  * Oct 19, 2012  898       sgurung     Fix for fuzzy fonts
  * Sep 12, 2014            sgilbert    Add world wrap check (needed for 14.3.1).
- *                                     Corrected deprecated calls.
+ * 12/01/2015    R9407     pchowdhuri  Maps/overlays need to be able to reference the 
+ *                                     Localization Cave>Bundles>Maps XML files                                  Corrected deprecated calls.
  * 
- * </pre>
  * 
- * This class is copied over from com.raytheon.viz.core.rsc.DbMapResource
  * 
  * @author mgao
  * @version 1.0
+ * </pre>
  */
+
 public class DbOverlayResource extends
         AbstractVizResource<DbOverlayResourceData, MapDescriptor> implements
         INatlCntrsResource {
@@ -109,7 +114,7 @@ public class DbOverlayResource extends
 
         private static final int QUEUE_LIMIT = 1;
 
-        private String dbName = null;// uma
+        private String dbName = null;
 
         private static class Request {
             static Random rand = new Random(System.currentTimeMillis());
@@ -179,9 +184,9 @@ public class DbOverlayResource extends
 
         private boolean canceled;
 
-        public MapQueryJob(String dbname) {// uma
+        public MapQueryJob(String dbname) {
             super("Retrieving map...");
-            dbName = dbname;// uma
+            dbName = dbname;
         }
 
         public void request(IGraphicsTarget target, IMapDescriptor descriptor,
@@ -190,6 +195,7 @@ public class DbOverlayResource extends
             if (requestQueue.size() == QUEUE_LIMIT) {
                 requestQueue.poll();
             }
+
             requestQueue.add(new Request(target, descriptor, query, labeled,
                     shaded, colorMap));
 
@@ -204,36 +210,28 @@ public class DbOverlayResource extends
         /*
          * (non-Javadoc)
          * 
-         * @seeorg.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.
+         * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.
          * IProgressMonitor)
          */
         @Override
         protected IStatus run(IProgressMonitor monitor) {
             Request req = requestQueue.poll();
+
             while (req != null) {
                 try {
-                    // System.out.println(req.query);
-                    // long t0 = System.currentTimeMillis();
-                    /*
-                     * List<Object[]> results = NcDirectDbQuery.executeQuery(
-                     * req.query, "maps", QueryLanguage.SQL);
-                     */// uma
+
                     List<Object[]> results = NcDirectDbQuery.executeQuery(
                             req.query, dbName, QueryLanguage.SQL);
 
-                    // long t1 = System.currentTimeMillis();
-                    // System.out.println("Maps DB query took: " + (t1 - t0)
-                    // + "ms");
-
                     IWireframeShape newOutlineShape = req.target
-                            .createWireframeShape(false, req.descriptor, 0.0f);
+                            .createWireframeShape(false, req.descriptor);
 
                     List<LabelNode> newLabels = new ArrayList<LabelNode>();
 
                     IShadedShape newShadedShape = null;
                     if (req.shaded) {
                         newShadedShape = req.target.createShadedShape(false,
-                                req.descriptor.getGridGeometry(), true);
+                                req.descriptor.getGridGeometry());
                     }
 
                     JTSCompiler jtsCompiler = new JTSCompiler(newShadedShape,
@@ -245,13 +243,12 @@ public class DbOverlayResource extends
                     for (Object[] result : results) {
                         if (canceled) {
                             canceled = false;
-                            // System.out.println("MapQueryJob Canceled.");
                             return Status.CANCEL_STATUS;
                         }
+
                         int i = 0;
                         byte[] wkb = (byte[]) result[i++];
                         Geometry g = wkbReader.read(wkb);
-                        // System.out.println(name + ": " + g.toText());
 
                         if (req.labeled && result[i] != null && g != null) {
                             LabelNode node = new LabelNode(
@@ -270,13 +267,8 @@ public class DbOverlayResource extends
                             try {
                                 jtsCompiler.handle(g, jtsData);
                             } catch (VizException e) {
-                                // UFStatus.handle(Priority.PROBLEM,
-                                // Activator.PLUGIN_ID,
-                                // StatusConstants.CATEGORY_WORKSTATION,
-                                // null, "Error reprojecting map outline", e);
-                                System.out
-                                        .println("Error reprojecting map outline:"
-                                                + e.getMessage());
+                                statusHandler.handle(Priority.PROBLEM,
+                                        "Error reprojecting map outline:", e);
                             }
                         }
                     }
@@ -290,19 +282,14 @@ public class DbOverlayResource extends
                     if (resultQueue.size() == QUEUE_LIMIT) {
                         resultQueue.poll();
                     }
+
                     resultQueue.add(new Result(newOutlineShape, newLabels,
                             newShadedShape, req.colorMap));
                     req.target.setNeedsRefresh(true);
 
-                    // long t2 = System.currentTimeMillis();
-                    // System.out.println("Wireframe construction took: "
-                    // + (t2 - t1) + "ms");
-                    // System.out.println("Total map retrieval took: " + (t2 -
-                    // t0)
-                    // + "ms");
                 } catch (Exception e) {
                     statusHandler.handle(Priority.PROBLEM,
-                            "Error processing map query rquest", e);
+                            "Error processing map query request", e);
                 }
 
                 req = requestQueue.poll();
@@ -354,7 +341,7 @@ public class DbOverlayResource extends
             LoadProperties loadProperties) {
         super(data, loadProperties);
         ncRscData = this.resourceData;
-        queryJob = new MapQueryJob(resourceData.getDbName());// uma
+        queryJob = new MapQueryJob(resourceData.getDbName());
     }
 
     @Override
@@ -399,8 +386,9 @@ public class DbOverlayResource extends
 
         if (env.getMinX() == Double.NaN || env.getMaxX() == Double.NaN
                 || env.getMinY() == Double.NaN || env.getMaxY() == Double.NaN) {
-            System.out.println("Extents is not valid for DB Overlay query");
+            statusHandler.info("Extents is not valid for DB Overlay query");
         }
+
         // create the geospatial constraint from the envelope
         String geoConstraint = String.format(
                 "%s && ST_SetSrid('BOX3D(%f %f, %f %f)'::box3d,4326)",
@@ -449,10 +437,14 @@ public class DbOverlayResource extends
         query.append(geoConstraint);
 
         // add any additional constraints
-        if (resourceData.getConstraints() != null) {
-            for (String constraint : resourceData.getConstraints()) {
-                query.append(" AND ");
-                query.append(constraint);
+        if (resourceData.getConstraint() != null) {
+            for (String constraint : resourceData.getConstraint()) {
+                // Parse constraint and add if valid
+                if (!constraint.equals(RequestConstraint.WILDCARD
+                        .getConstraintValue())) {
+                    query.append(" AND ");
+                    query.append(constraint);
+                }
             }
         }
 
@@ -485,7 +477,7 @@ public class DbOverlayResource extends
             }
             simpLev = level;
         }
-        // System.out.println("dpp: " + dpp + ", simpLev: " + simpLev);
+
         return simpLev;
     }
 
@@ -545,6 +537,7 @@ public class DbOverlayResource extends
             if (shadedShape != null) {
                 shadedShape.dispose();
             }
+
             outlineShape = result.outlineShape;
             labels = result.labels;
             shadedShape = result.shadedShape;
@@ -592,6 +585,7 @@ public class DbOverlayResource extends
                 }
 
             }
+
             aTarget.drawStrings(labelStrings);
             font.dispose();
         }
@@ -630,10 +624,7 @@ public class DbOverlayResource extends
                 query.append("' AND f_geometry_column LIKE '");
                 query.append(resourceData.getGeomField());
                 query.append("_%';");
-                /*
-                 * List<Object[]> results = NcDirectDbQuery.executeQuery(query
-                 * .toString(), "maps", QueryLanguage.SQL);/
-                 */// uma
+
                 List<Object[]> results = NcDirectDbQuery.executeQuery(
                         query.toString(), resourceData.getDbName(),
                         QueryLanguage.SQL);
@@ -653,6 +644,7 @@ public class DbOverlayResource extends
             }
 
         }
+
         return levels;
     }
 
@@ -668,10 +660,7 @@ public class DbOverlayResource extends
                 query.append("' AND f_table_name='");
                 query.append(table);
                 query.append("' LIMIT 1;");
-                /*
-                 * List<Object[]> results = NcDirectDbQuery.executeQuery(query
-                 * .toString(), "maps", QueryLanguage.SQL);
-                 */// uma
+
                 List<Object[]> results = NcDirectDbQuery.executeQuery(
                         query.toString(), resourceData.getDbName(),
                         QueryLanguage.SQL);

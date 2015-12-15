@@ -12,6 +12,7 @@
             <labelField>${labelField}</labelField>
             <displayLabelField>${displayLabelField}</displayLabelField>
             <mapName>${mapName}</mapName>
+            <constraint>${constraint}</constraint>
             <lineWidth>${lineWidth}</lineWidth>
             <lineStyle>${lineStyle}</lineStyle>
             <legendColor>${color}</legendColor>

@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>World</resourceDefnName>
+    <resourceDefnName>FixesAndIntersections</resourceDefnName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
-! The relative path name from localization (ie 'ncep/') or an absolute file name
-! pgenStaticProductLocation=ncep/ResourceDefns/OVERLAYS/PgenXmlOverlay
-dbName=maps
-tableName=mapdata.world
-labelField=name
-mapName=World
+sourceType=LPI_FILE
+sourceName=fix.lpi
+sourceParams=not_used
+mapName=Fixes/Intersections
     </resourceParameters>
-    <rscImplementation>DbOverlay</rscImplementation>
+    <rscImplementation>PointOverlay</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>

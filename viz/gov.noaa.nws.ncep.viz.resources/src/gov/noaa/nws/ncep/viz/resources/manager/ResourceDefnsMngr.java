@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -101,6 +102,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *                                        removed "Filterable Labels" section from Resource Definition editor. Replaced serialization with JaxB
  *  09/25/2015    R12042     J. Lopez     Fix the bug where Attribute Set Groups and the Attributes are not loaded
  *  10/15/2015    R7190     R. Reynolds   Added support for Mcidas
+ *  12/08/2015    #12868     P. Moyer     Added alphabetical sort for Resource Defintion filter combo box
  * 
  * </pre>
  * 
@@ -738,8 +740,9 @@ public class ResourceDefnsMngr {
 
                 attrSetMap.get(rscType).put(aSet.getName(), aSet);
             } catch (VizException e) {
-                out.println("Error Creating AttributeSet "
-                        + asLclFile.getName() + ": " + e.getMessage());
+                statusHandler.handle(Priority.PROBLEM,
+                        ("Error Creating AttributeSet " + asLclFile.getName()
+                                + ": " + e.getMessage()));
             }
         }
 
@@ -764,9 +767,12 @@ public class ResourceDefnsMngr {
                         || !attrSetMap.get(attrSetMapKey).containsKey(asName)) {
 
                     asg.removeAttrSet(asName);
-                    out.println("attrSet " + asName + " in attrSetGroup "
-                            + asg.getResource() + File.separator
-                            + asg.getAttrSetGroupName() + " doesn't exist.");
+                    statusHandler
+                            .handle(Priority.PROBLEM,
+                                    ("attrSet " + asName + " in attrSetGroup "
+                                            + asg.getResource()
+                                            + File.separator
+                                            + asg.getAttrSetGroupName() + " doesn't exist."));
                 }
             }
         }
@@ -1519,6 +1525,9 @@ public class ResourceDefnsMngr {
             statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
         }
 
+        // sorts list items into ascending alphabetical order
+        Collections.sort(filterLabelsList);
+
         return filterLabelsList;
     }
 
@@ -1839,7 +1848,8 @@ public class ResourceDefnsMngr {
             if (lFile != null) {
                 // sanity check
                 if (lFile.getContext().getLocalizationLevel() == LocalizationLevel.USER) {
-                    out.println("??? a User-level file still exists??");
+                    statusHandler.handle(Priority.PROBLEM,
+                            ("A User-level file still exists."));
 
                     lFile = NcPathManager.getInstance()
                             .getStaticLocalizationFile(lFileName);
@@ -1999,7 +2009,8 @@ public class ResourceDefnsMngr {
 
             // sanity check (is failing)
             if (lFile.getContext().getLocalizationLevel() == LocalizationLevel.USER) {
-                out.println("??? a User-level ASG file still exists??");
+                statusHandler.handle(Priority.PROBLEM,
+                        ("A User-level ASG file still exists."));
 
                 try {
                     Thread.sleep(1000);

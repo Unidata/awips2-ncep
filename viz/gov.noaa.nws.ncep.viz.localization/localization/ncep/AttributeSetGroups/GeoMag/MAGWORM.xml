@@ -2,5 +2,21 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>GEOMAG</resource>
     <attrSetGroupName>MAGWORM</attrSetGroupName>
-    <attrSetNames>H_Magworm,D_Magworm,HQdc_Magworm,DQdc_Magworm</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>H_Magworm</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>D_Magworm</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>HQdc_Magworm</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>DQdc_Magworm</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

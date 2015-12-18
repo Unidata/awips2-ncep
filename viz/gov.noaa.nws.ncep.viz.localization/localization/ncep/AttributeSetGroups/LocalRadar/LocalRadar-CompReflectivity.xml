@@ -2,5 +2,18 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>CompReflectivity</attrSetGroupName>
-    <attrSetNames>CREF_1.00,CREF_4.00,CREFP_4.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>CREF_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREFP_4.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

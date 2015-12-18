@@ -2,5 +2,33 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>DGEX_US</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>pmsl_1000-500thk,500mb_hght_absv_wnd,700mb_hght_tmp_wind,850mb_hght_tmp_wind,850mb_thtae_advection,250mb_hght_wind</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>pmsl_1000-500thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_absv_wnd</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_thtae_advection</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>250mb_hght_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

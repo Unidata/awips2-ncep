@@ -2,5 +2,18 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>Misc</attrSetGroupName>
-    <attrSetNames>DIGSCAN_1.00,RCM_0.00,STRAC_1.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>DIGSCAN_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>RCM_0.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>STRAC_1.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

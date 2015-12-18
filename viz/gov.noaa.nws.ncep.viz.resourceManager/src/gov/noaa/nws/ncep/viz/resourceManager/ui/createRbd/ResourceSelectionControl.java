@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
-import static java.lang.System.out;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
@@ -8,6 +7,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
+import gov.noaa.nws.ncep.viz.resources.manager.AttrSetLabelsManager;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.LocalRadarStationManager;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
@@ -21,6 +21,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,9 +66,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  * <pre>
  * SOFTWARE HISTORY
- *  
  * 
- *  
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 01/26/10 	 #226	     Greg Hull	 Broke out from RscBndlDefnDialog
@@ -100,11 +99,14 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 10/24/2013     #1043      G. Hull     init Select Resource GUI to highlighted rsc
  * 07/23/2014		?		 B. Yin		 Handle grid analysis 
  * 07/23/2014       ?        B. Hebbard  Make extensible for NTRANS-specific subclass
+ * 05/18/2015     R8048     P. Chowdhuri "Select New Resource" dialog should remember last selection
  * 05/18/2015     R7656      A. Su       Displayed the aliases of local radar stations in the menu.
  * 06/10/2015     R7656      A. Su       Rewrote the displaying logic for LocalRadar for clarity.
  * 10/15/2015     R7190      R. Reynolds Display subTypeGenerator and attributes mods.
- * 12/03/2015     R12953     R. Reynolds Added constants and status handler
- * 
+ * 10/30/2015     R8824      A. Su       Added display aliases for Grid resource attributes.
+ * 11/03/2015     R8554     P. Chowdhuri Filter was set to last filter used per data category
+ * 12/03/2015     R12953    R. Reynolds  Added Mcidas constants
+ * 12/17/2015     R8554     A. Su        Modified to remember last selected Resource and filter per RBD type.
  * 
  * </pre>
  * 
@@ -112,28 +114,67 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @version 1
  */
 public class ResourceSelectionControl extends Composite {
-    private static final transient IUFStatusHandler statusHandler = UFStatus
+
+    protected static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(ResourceSelectionControl.class);
+
+    // All GRID resource attributes are specified in this directory.
+    public static final String GRID_DATA = "ModelFcstGridContours";
+
+    public static final String NATL_MOSAIC_DISPLAY_NAME = "NatlMosaic";
+
+    public static final String LOCAL_RADAR_PREFIX = "LocalRadar:";
+
+    public static final String RADAR_CATEGORY = "RADAR";
+
+    public static final String RSC_FILTER_ALL = "All";
+
+    public static final String GMT = "GMT";
+
+    public static final String GDFILE = "GDFILE";
+
+    public static final String DEFAULT = "default";
+
+    public static final String STANDARD = "standard";
+
+    public static final String OK = "OK";
+
+    protected NcDisplayType displayType = null;
+
+    protected ResourceName prevSelectedRscName = null;
+
+    /**
+     * A mapping from NcDisplayType to last selected ResourceName for this type.
+     */
+    protected static HashMap<NcDisplayType, ResourceName> prevDisplayType2RscName = new HashMap<NcDisplayType, ResourceName>();;
+
+    /**
+     * A mapping from Category to last selected filter for this category.
+     */
+    protected static HashMap<ResourceCategory, String> prevCat2SelectedFilter = new HashMap<ResourceCategory, String>();;
+
+    /**
+     * A mapping from Category to last selected ResourceName for this category.
+     */
+    protected static HashMap<ResourceCategory, ResourceName> prevCat2SelectedRscName = new HashMap<ResourceCategory, ResourceName>();
+
+    /**
+     * A Mcidas-specific mapping
+     */
+    protected static HashMap<String, String> mcidasAttrNamesNAliases = new HashMap<String, String>();
+
+    private static ResourceCategory prevSelectedCat = ResourceCategory.NullCategory;
 
     protected ResourceDefnsMngr rscDefnsMngr;
 
-    protected Combo filterCombo = null;
+    protected ResourceName selectedRscName = null;
 
-    protected ResourceName seldResourceName = null;
-
-    protected String seldFilterStr = "";
-
-    private static ResourceCategory prevSeldCat = ResourceCategory.NullCategory;
-
-    private static ResourceName prevSeldRscName = null;
-
-    // a map to store the previous selections for each category.
-    protected static HashMap<ResourceCategory, ResourceName> prevCatSeldRscNames;
-
-    protected static HashMap<String, String> attributeNamesAndAliases = new HashMap<String, String>();
+    protected String selectedFilterString = "";
 
     // this list must stay in sync with the cycleTimeCombo.
     protected ArrayList<DataTime> cycleTimes = new ArrayList<DataTime>();
+
+    protected Combo filterCombo = null;
 
     protected Composite sel_rsc_comp = null;
 
@@ -147,7 +188,6 @@ public class ResourceSelectionControl extends Composite {
 
     // For now only one of following two will be visible but we may want to
     // allow both later (and remove the Modify button from the Create RBD tab)
-
     protected Button addResourceBtn = null;
 
     protected Button replaceResourceBtn = null;
@@ -170,7 +210,7 @@ public class ResourceSelectionControl extends Composite {
 
     protected ListViewer rscAttrSetLViewer = null;
 
-    protected final static int rscListViewerHeight = 220;
+    protected static final int RSC_LIST_VIEWER_HEIGHT = 220;
 
     protected static Rectangle prevShellBounds = new Rectangle(0, 0, 800, 460);
 
@@ -178,10 +218,8 @@ public class ResourceSelectionControl extends Composite {
 
     protected Boolean onlyShowResourcesWithData = false;
 
-    protected Integer maxLengthOfSelectableAttrSets = 0; // used in justifying
-                                                         // the
-                                                         // times in the
-                                                         // attrSetsList
+    // Used in justifying the times in the attrSetsList.
+    protected Integer maxLengthOfSelectableAttrSets = 0;
 
     public interface IResourceSelectedListener {
         public void resourceSelected(ResourceName rscName, boolean replace,
@@ -190,29 +228,22 @@ public class ResourceSelectionControl extends Composite {
 
     private Set<IResourceSelectedListener> rscSelListeners = new HashSet<IResourceSelectedListener>();
 
-    protected NcDisplayType seldDisplayType;
-
     public ResourceSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
             Boolean multiPane, NcDisplayType dispType) throws VizException {
         super(parent, SWT.SHADOW_NONE);
 
-        seldDisplayType = dispType;
+        displayType = dispType;
+        prevSelectedRscName = prevDisplayType2RscName.get(displayType);
 
         showLatestTimes = NmapCommon.getNcepPreferenceStore().getBoolean(
                 NcepGeneralPreferencesPage.ShowLatestResourceTimes);
-        onlyShowResourcesWithData = false; // NmapCommon.getNcepPreferenceStore().getBoolean(
-                                           // NcepGeneralPreferencesPage.OnlyShowResourcesWithData
-                                           // );
+        onlyShowResourcesWithData = false;
 
         rscDefnsMngr = ResourceDefnsMngr.getInstance();
 
         replaceBtnVisible = replaceVisible;
         replaceBtnEnabled = replaceEnabled;
-
-        if (prevCatSeldRscNames == null) {
-            prevCatSeldRscNames = new HashMap<ResourceCategory, ResourceName>();
-        }
 
         sel_rsc_comp = this;
 
@@ -236,42 +267,43 @@ public class ResourceSelectionControl extends Composite {
 
         createSelectResourceGroup(multiPane);
 
-        // set up the content providers for the ListViewers
         setContentProviders();
         addSelectionListeners();
 
         initWidgets(initRscName);
     }
 
+    /**
+     * This is a pass-thru constructor, so NtransSelectionControl can call the
+     * grandparent constructor, but do its own version of the useful work of the
+     * main constructor above.
+     * 
+     * @param Composite
+     *            parent
+     * 
+     *            Discussion: Better solution might be to do a refactor "pull"
+     *            AbstractResourceSelectionControl superclass out of
+     *            ResourceSelectionControl and have NtransSelectionControl
+     *            extend the former. But that could disturb existing
+     *            ResourceSelectionControl, which is working and tested with
+     *            non-NTRANS resources.
+     */
     public ResourceSelectionControl(Composite parent) throws VizException {
-        // TODO: dorky?? This is a pass-thru constructor, just so
-        // NtransSelectionControl can call the grandparent constructor, but do
-        // its own version of the useful work of the main constructor above.
-        // See discussion at:
-        // http://stackoverflow.com/questions/1878558/jump-over-parent-constructor-to-call-grandparents
-        // Better solution might be to do a refactor "pull"
-        // AbstractResourceSelectionControl superclass out of
-        // ResourceSelectionControl
-        // and have NtransSelectionControl extend the former. But that would
-        // mess with existing ResourceSelectionControl, which is working and
-        // tested
-        // with non-NTRANS resources. Maybe someday...?
-
         super(parent, SWT.SHADOW_NONE);
     }
 
-    // create all the widgets in the Resource Selection (top) section of the
-    // sashForm.
-    //
+    /*
+     * create all the widgets in the Resource Selection (top) section of the
+     * sashForm.
+     */
     private void createSelectResourceGroup(Boolean multiPane) {
 
         rscCatLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        FormData fd = new FormData();// 100, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        FormData fd = new FormData();
+        fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(0, 75);
         fd.left = new FormAttachment(0, 10);
-        // fd.right = new FormAttachment( 15, 0 );
         fd.right = new FormAttachment(0, 110);
 
         // This allows a resize to change the size of the lists.
@@ -288,8 +320,8 @@ public class ResourceSelectionControl extends Composite {
         // first create the lists and then attach the label to the top of them
         rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd = new FormData();
+        fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
         fd.right = new FormAttachment(37, 0);
@@ -322,8 +354,8 @@ public class ResourceSelectionControl extends Composite {
         // first create the lists and then attach the label to the top of them
         rscGroupLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();// 150, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd = new FormData();
+        fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
         fd.right = new FormAttachment(62, 0);
@@ -340,8 +372,8 @@ public class ResourceSelectionControl extends Composite {
 
         rscAttrSetLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE
                 | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();// 260, rscListViewerHeight);
-        fd.height = rscListViewerHeight;
+        fd = new FormData();
+        fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 8, SWT.RIGHT);
         fd.right = new FormAttachment(100, -10);
@@ -365,10 +397,7 @@ public class ResourceSelectionControl extends Composite {
 
         seldRscNameTxt = new Text(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.READ_ONLY);
-        // fd = new FormData(360,20);
         fd = new FormData();
-        // fd.bottom = new FormAttachment( 100, -50 ); // change to
-        // addResourceBtn
         fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
         fd.right = new FormAttachment(75, 0);
@@ -392,8 +421,6 @@ public class ResourceSelectionControl extends Composite {
             fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
             fd.left = new FormAttachment(50, 20);
         }
-        // fd.left = new FormAttachment( seldRscNameTxt, 75, SWT.RIGHT );
-        // fd.bottom = new FormAttachment( 100, -10 );
         addResourceBtn.setLayoutData(fd);
         addResourceBtn.setText("  Add Resource "); // Add To RBD
 
@@ -402,10 +429,9 @@ public class ResourceSelectionControl extends Composite {
         fd.left = new FormAttachment(50, 20);
         fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
         replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace Resource "); // ie Modify
+        replaceResourceBtn.setText(" Replace Resource ");
 
         // both for now unless we change it to be one or the other
-        // addResourceBtn.setVisible( !replaceBtnVisible );
         replaceResourceBtn.setVisible(replaceBtnVisible);
 
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
@@ -420,10 +446,8 @@ public class ResourceSelectionControl extends Composite {
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
-        // fd.left = new FormAttachment( addResourceBtn, 30, SWT.RIGHT );
         fd.left = new FormAttachment(80, 0);
         fd.right = new FormAttachment(100, -20);
-        // fd.bottom = new FormAttachment( 100, -10 );
         fd.top = new FormAttachment(seldRscNameTxt, 0, SWT.TOP);
 
         cycleTimeCombo.setLayoutData(fd);
@@ -434,7 +458,6 @@ public class ResourceSelectionControl extends Composite {
         fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
         fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
         cycleTimeLbl.setLayoutData(fd);
-
     }
 
     private void setContentProviders() {
@@ -445,10 +468,9 @@ public class ResourceSelectionControl extends Composite {
             @Override
             public Object[] getElements(Object inputElement) {
 
+                // don't show disabled definitions.
                 return rscDefnsMngr.getResourceCategories(false,
-                        new NcDisplayType[] { seldDisplayType }); // don't show
-                                                                  // disabled
-                                                                  // dfns
+                        new NcDisplayType[] { displayType });
             }
 
             @Override
@@ -461,28 +483,32 @@ public class ResourceSelectionControl extends Composite {
             }
         });
 
-        // order the Categories according to the
-
         rscTypeLViewer.setContentProvider(new IStructuredContentProvider() {
             @Override
             public Object[] getElements(Object inputElement) {
-                // String rscCat = (String)inputElement;
-                if (seldResourceName.getRscCategory() != ResourceCategory.NullCategory) {
+
+                if (selectedRscName.getRscCategory() != ResourceCategory.NullCategory) {
                     try {
+                        String newFilterString = selectedFilterString;
+                        if (newFilterString.equals(RSC_FILTER_ALL)) {
+                            newFilterString = "";
+                        }
+
+                        // Include generated types; only include enabled types.
                         List<ResourceDefinition> rscTypes = rscDefnsMngr
                                 .getResourceDefnsForCategory(
-                                        seldResourceName.getRscCategory(),
-                                        seldFilterStr, seldDisplayType, true, // include
-                                                                              // generated
-                                                                              // types
-                                        false); // only include enabled types
+                                        selectedRscName.getRscCategory(),
+                                        newFilterString, displayType, true,
+                                        false);
 
                         return rscTypes.toArray();
                     } catch (VizException e) {
-                        statusHandler.handle(
-                                Priority.ERROR,
-                                "Error getting Resource Types "
-                                        + e.getMessage());
+                        MessageDialog errDlg = new MessageDialog(NcDisplayMngr
+                                .getCaveShell(), "Error", null,
+                                "Error getting Resource Types\n"
+                                        + e.getMessage(), MessageDialog.ERROR,
+                                new String[] { OK }, 0);
+                        errDlg.open();
                     }
                 }
                 return new ResourceDefinition[] {};
@@ -500,22 +526,18 @@ public class ResourceSelectionControl extends Composite {
 
         rscTypeLViewer.setComparator(new ViewerComparator() {
 
-            // TODO : implement this if we want to group definitions according
-            // to some meaningful category....
-            //
             public int category(Object element) {
                 ResourceDefinition rd = (ResourceDefinition) element;
                 return (rd.isForecast() ? 1 : 0);
-                // return super.category(element);
             }
 
             @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
-                int catComp = category(e1) - category(e2);
+            public int compare(Viewer viewer, Object obj1, Object obj2) {
+                int catComp = category(obj1) - category(obj2);
                 return (catComp != 0 ? catComp : rscDefnsMngr
                         .getDefaultRscDefnComparator().compare(
-                                (ResourceDefinition) e1,
-                                (ResourceDefinition) e2));
+                                (ResourceDefinition) obj1,
+                                (ResourceDefinition) obj2));
             }
         });
 
@@ -523,116 +545,25 @@ public class ResourceSelectionControl extends Composite {
 
             public String getText(Object element) {
                 if (element == null)
-                    return "null"; // Defensive programming.
+                    return "null";
 
                 ResourceDefinition rd = (ResourceDefinition) element;
                 String rdName = rd.getResourceDefnName();
 
-                // R7656: Display aliases for LocalRadar.
+                // Display aliases for LocalRadar.
                 if (rd.getResourceCategory().equals(
                         ResourceCategory.RadarRscCategory)) {
 
-                    String displayedName = LocalRadarStationManager
-                            .getInstance().getDisplayedName(rdName);
+                    String alias = LocalRadarStationManager.getInstance()
+                            .getDisplayedName(rdName);
 
-                    if (displayedName != null)
-                        rdName = displayedName;
+                    if (alias != null) {
+                        rdName = alias;
+                    }
                 }
 
                 return rdName;
             }
-        });
-
-        rscGroupLViewer.setLabelProvider(new LabelProvider() {
-
-            public String getText(Object element) {
-
-                String[] str;
-                String displayName = (String) element;
-
-                str = displayName.split("_");
-
-                ResourceName rscName = new ResourceName(seldResourceName);
-
-                ResourceDefinition rscDefn = rscDefnsMngr
-                        .getResourceDefinition(rscName.getRscType());
-
-                if (rscDefn.getRscImplementation().equals("McidasSatellite")) {
-
-                    String[] subParams = rscDefn.getSubTypeGenerator().split(
-                            ",");
-
-                    displayName = "";
-
-                    try {
-
-                        for (int k = 0; k < subParams.length; k++) {
-
-                            if (subParams[k].toString().equalsIgnoreCase(
-                                    McidasConstants.RESOLUTION)) {
-
-                                if (!subParams[k].contains("km"))
-                                    str[k] += "km";
-                                displayName = displayName + " " + str[k];
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(
-                                            McidasConstants.PROJECTION)) {
-
-                                displayName = displayName + " " + str[k];
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
-
-                                SatelliteAreaManager satAreaMgr = SatelliteAreaManager
-                                        .getInstance();
-
-                                String areaIdName = satAreaMgr
-                                        .getDisplayedName(SatelliteAreaManager.ResourceDefnName
-                                                + SatelliteAreaManager.delimiter
-                                                + str[k].toString());
-
-                                if (areaIdName == null)
-                                    areaIdName = str[k].toString();
-
-                                displayName = displayName + " " + areaIdName;
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(
-                                            McidasConstants.SATELLITE_ID)) {
-
-                                displayName = displayName
-                                        + " "
-                                        + SatelliteNameManager.getInstance()
-                                                .getDisplayedNameByID(str[k]);
-
-                            }
-                        }
-                    } catch (Exception ex) {
-                        // TODO: DEBUG... Remove System.out.println's if this
-                        // error goes away
-                        // replace with statusHandler/ex.getStackTrace()
-                        ex.printStackTrace();
-                        System.out.println("*subParms[] length ="
-                                + subParams.length);
-                        for (int k = 0; k < subParams.length; k++) {
-                            System.out.println("subParams[" + k + "] = "
-                                    + subParams[k].toString());
-                        }
-                        System.out
-                                .println("*displayName.length =" + str.length);
-                        for (int k = 0; k < str.length; k++) {
-                            System.out.println("displayName[" + k + "] = "
-                                    + str[k].toString());
-                        }
-
-                    }
-
-                }
-
-                return displayName;
-            }
-
         });
 
         // Override the method "compare" in the class "ViewerSorter" to
@@ -640,46 +571,44 @@ public class ResourceSelectionControl extends Composite {
         rscTypeLViewer.setSorter(new ViewerSorter() {
 
             @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
+            public int compare(Viewer viewer, Object obj1, Object obj2) {
 
-                // If it is not for LocalRadar,
-                // then do not override the compare() method,
-                // i.e. use super's compare() method.
-                boolean isItForLocalRadar = (e1 != null && ((ResourceDefinition) e1)
+                boolean isLocalRadar = (obj1 != null && ((ResourceDefinition) obj1)
                         .getResourceCategory().equals(
                                 ResourceCategory.RadarRscCategory))
-                        || (e2 != null && ((ResourceDefinition) e2)
+                        || (obj2 != null && ((ResourceDefinition) obj2)
                                 .getResourceCategory().equals(
                                         ResourceCategory.RadarRscCategory));
 
-                if (!isItForLocalRadar)
-                    return super.compare(viewer, e1, e2);
+                if (!isLocalRadar)
+                    return super.compare(viewer, obj1, obj2);
 
-                // Defensive programming for null input parameters.
-                if (e1 == null)
+                if (obj1 == null)
                     return 1;
 
-                if (e2 == null)
+                if (obj2 == null)
                     return -1;
 
-                final String firstOnRadarMenu = "NatlMosaic";
-                String label1 = ((ResourceDefinition) e1).getResourceDefnName();
+                final String firstOnRadarMenu = NATL_MOSAIC_DISPLAY_NAME;
+                String label1 = ((ResourceDefinition) obj1)
+                        .getResourceDefnName();
                 if (label1.equals(firstOnRadarMenu))
                     return -1;
 
-                String label2 = ((ResourceDefinition) e2).getResourceDefnName();
+                String label2 = ((ResourceDefinition) obj2)
+                        .getResourceDefnName();
                 if (label2.equals(firstOnRadarMenu))
                     return 1;
 
-                String displayedName1 = LocalRadarStationManager.getInstance()
+                String displayName1 = LocalRadarStationManager.getInstance()
                         .getDisplayedName(label1);
-                if (displayedName1 != null)
-                    label1 = displayedName1;
+                if (displayName1 != null)
+                    label1 = displayName1;
 
-                String displayedName2 = LocalRadarStationManager.getInstance()
+                String displayName2 = LocalRadarStationManager.getInstance()
                         .getDisplayedName(label2);
-                if (displayedName2 != null)
-                    label2 = displayedName2;
+                if (displayName2 != null)
+                    label2 = displayName2;
 
                 return (label1.compareTo(label2));
 
@@ -689,14 +618,15 @@ public class ResourceSelectionControl extends Composite {
         rscGroupLViewer.setContentProvider(new IStructuredContentProvider() {
             @Override
             public Object[] getElements(Object inputElement) {
-                String rscType = seldResourceName.getRscType();
+                String rscType = selectedRscName.getRscType();
+
                 if (!rscType.isEmpty()) {
                     // if this resource uses attrSetGroups then get get the list
-                    // of groups. (PGEN uses groups but we will list the
-                    // subTypes
+                    // of groups.
+                    // (PGEN uses groups but we will list the subTypes
                     // (products) and not the single PGEN attr set group)
                     if (rscDefnsMngr.doesResourceUseAttrSetGroups(rscType)
-                            && !seldResourceName.isPgenResource()) {
+                            && !selectedRscName.isPgenResource()) {
 
                         List<String> rscAttrSetsList = rscDefnsMngr
                                 .getAttrSetGroupNamesForResource(rscType);
@@ -711,15 +641,14 @@ public class ResourceSelectionControl extends Composite {
                                     .getResourceSubTypes(rscType);
 
                             if (rscGroups != null && rscGroups.length != 0) {
-                                return rscGroups;// .toArray();
+                                return rscGroups;
                             }
                         } catch (VizException e) {
                             MessageDialog errDlg = new MessageDialog(
                                     NcDisplayMngr.getCaveShell(), "Error",
                                     null, "Error getting sub-types\n"
                                             + e.getMessage(),
-                                    MessageDialog.ERROR, new String[] { "OK" },
-                                    0);
+                                    MessageDialog.ERROR, new String[] { OK }, 0);
                             errDlg.open();
                         }
                     }
@@ -739,9 +668,94 @@ public class ResourceSelectionControl extends Composite {
 
         rscGroupLViewer.setComparator(new ViewerComparator() {
             @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
+            public int compare(Viewer viewer, Object obj1, Object obj2) {
 
-                return super.compare(viewer, e1, e2);
+                return super.compare(viewer, obj1, obj2);
+            }
+        });
+
+        rscGroupLViewer.setLabelProvider(new LabelProvider() {
+
+            public String getText(Object element) {
+
+                String displayName = (String) element;
+
+                ResourceName rscName = new ResourceName(selectedRscName);
+                ResourceDefinition rscDefn = rscDefnsMngr
+                        .getResourceDefinition(rscName.getRscType());
+
+                if (rscDefn.getRscImplementation().equals("McidasSatellite")) {
+
+                    String[] subParams = rscDefn.getSubTypeGenerator().split(
+                            ",");
+
+                    String[] strings = displayName.split("_");
+                    displayName = "";
+
+                    try {
+                        for (int k = 0; k < subParams.length; k++) {
+
+                            if (subParams[k].toString().equalsIgnoreCase(
+                                    McidasConstants.RESOLUTION)) {
+
+                                if (!subParams[k].contains("km"))
+                                    strings[k] += "km";
+                                displayName = displayName + " " + strings[k];
+
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(
+                                            McidasConstants.PROJECTION)) {
+
+                                displayName = displayName + " " + strings[k];
+
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
+
+                                SatelliteAreaManager satAreaMgr = SatelliteAreaManager
+                                        .getInstance();
+
+                                String areaIdName = satAreaMgr
+                                        .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                                                + SatelliteAreaManager.delimiter
+                                                + strings[k].toString());
+
+                                if (areaIdName == null)
+                                    areaIdName = strings[k].toString();
+
+                                displayName = displayName + " " + areaIdName;
+
+                            } else if (subParams[k].toString()
+                                    .equalsIgnoreCase(
+                                            McidasConstants.SATELLITE_ID)) {
+
+                                displayName = displayName
+                                        + " "
+                                        + SatelliteNameManager.getInstance()
+                                                .getDisplayedNameByID(
+                                                        strings[k]);
+
+                            }
+                        }
+                    } catch (Exception ex) {
+                        // TODO: DEBUG... Remove System.out.println's if this
+                        // error goes away
+                        // replace with statusHandler/ex.getStackTrace()
+                        ex.printStackTrace();
+                        System.out.println("*subParms[] length ="
+                                + subParams.length);
+                        for (int k = 0; k < subParams.length; k++) {
+                            System.out.println("subParams[" + k + "] = "
+                                    + subParams[k].toString());
+                        }
+                        System.out.println("*displayName.length ="
+                                + strings.length);
+                        for (int k = 0; k < strings.length; k++) {
+                            System.out.println("displayName[" + k + "] = "
+                                    + strings[k].toString());
+                        }
+                    }
+                }
+                return displayName;
             }
         });
 
@@ -749,25 +763,21 @@ public class ResourceSelectionControl extends Composite {
             @Override
             public Object[] getElements(Object inputElement) {
 
-                // if an attrSetGroup is selected, return the attrSets in the
-                // group
-                if (!seldResourceName.getRscType().isEmpty()) {
+                if (!selectedRscName.getRscType().isEmpty()) {
                     List<AttributeSet> attrSets = rscDefnsMngr
-                            .getAttrSetsForResource(seldResourceName, true);
+                            .getAttrSetsForResource(selectedRscName, true);
 
                     maxLengthOfSelectableAttrSets = 0;
 
-                    for (AttributeSet as : attrSets) {
-                        if (as != null
-                                && as.getName().length() > maxLengthOfSelectableAttrSets) {
-                            maxLengthOfSelectableAttrSets = as.getName()
-                                    .length();
+                    for (AttributeSet attributeSet : attrSets) {
+                        if (attributeSet != null
+                                && attributeSet.getName().length() > maxLengthOfSelectableAttrSets) {
+                            maxLengthOfSelectableAttrSets = attributeSet
+                                    .getName().length();
                         }
                     }
-
                     return attrSets.toArray(new AttributeSet[0]);
                 }
-
                 return new String[] {};
             }
 
@@ -783,37 +793,53 @@ public class ResourceSelectionControl extends Composite {
 
         rscAttrSetLViewer.setComparator(new ViewerComparator() {
             @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
-                AttributeSet a1 = (AttributeSet) e1;
-                AttributeSet a2 = (AttributeSet) e2;
+            public int compare(Viewer viewer, Object obj1, Object obj2) {
+                AttributeSet attr1 = (AttributeSet) obj1;
+                AttributeSet attr2 = (AttributeSet) obj2;
 
-                if (a1.getName().equals("default")
-                        || a1.getName().equals("standard")) {
+                String label1 = attr1.getName();
+                if (label1.equals(DEFAULT) || label1.equals(STANDARD)) {
                     return -1;
-                } else if (a2.getName().equals("default")
-                        || a2.getName().equals("standard")) {
-                    return 1;
-                } else {
-                    // super calls getText which can trigger a bunch of
-                    // inventory queries in some cases
-                    return (a1.getName().compareTo(a2.getName())); // super.compare(viewer,
-                                                                   // e1, e2);
                 }
+
+                String label2 = attr2.getName();
+                if (label2.equals(DEFAULT) || label2.equals(STANDARD)) {
+                    return 1;
+                }
+
+                // Display aliases for Grid resource attributes.
+                boolean isGridAttributeSet = attr1.getApplicableResource()
+                        .equals(GRID_DATA)
+                        || attr2.getApplicableResource().equals(GRID_DATA);
+
+                if (isGridAttributeSet) {
+
+                    String type = selectedRscName.getRscType();
+                    String group = selectedRscName.getRscGroup();
+                    String alias1 = AttrSetLabelsManager.getInstance()
+                            .getAlias(type, group, label1);
+                    if (alias1 != null) {
+                        label1 = alias1;
+                    }
+
+                    String alias2 = AttrSetLabelsManager.getInstance()
+                            .getAlias(type, group, label2);
+                    if (alias2 != null) {
+                        label2 = alias2;
+                    }
+                }
+
+                // super calls getText which can trigger a bunch of
+                // inventory queries in some cases
+                return (label1.compareTo(label2));
             }
         });
 
         rscAttrSetLViewer.setLabelProvider(new LabelProvider() {
             public String getText(Object element) {
 
-                String attrSetName = "";
-                String satName = "";
-                String satId = "";
-
-                // get satelliteName e.g. GOES13
-                satName = ((AttributeSet) element).getApplicableResource();
-
-                ResourceName rscName = new ResourceName(seldResourceName);
-
+                String attrSetName;
+                ResourceName rscName = new ResourceName(selectedRscName);
                 ResourceDefinition rscDefn = rscDefnsMngr
                         .getResourceDefinition(rscName.getRscType());
 
@@ -821,25 +847,29 @@ public class ResourceSelectionControl extends Composite {
                     return "";
                 }
 
-                // get satellite ID e.g. 180
-                HashMap<String, String> resParm = rscDefn
-                        .getResourceParameters(true);
-                satId = resParm.get(McidasConstants.SATELLITE_ID);
-
-                HashMap<String, String> atrSet = ((AttributeSet) element)
-                        .getAttributes();
-
-                // typical infra-red attribute file= IR.attr
-                // contained inside the file is imageTypeId=custom_name
-
-                // "custom_name" is associated with the "digital value" for IR
-                // in an XML file
-                // "digit value" is returned and assigned as attribute value
-                // "custom_name" appears in GUI
-
                 if (rscDefn.getRscImplementation().equals(
-                        McidasConstants.MCIDAS_SATELLITE)) {
+                        McidasConstants.SATELLITE_ID)) {
 
+                    String satName = "";
+                    String satId = "";
+
+                    // get satelliteName e.g. GOES13
+                    satName = ((AttributeSet) element).getApplicableResource();
+
+                    // get satellite ID e.g. 180
+                    HashMap<String, String> resParm = rscDefn
+                            .getResourceParameters(true);
+                    satId = resParm.get(McidasConstants.SATELLITE_ID);
+
+                    HashMap<String, String> atrSet = ((AttributeSet) element)
+                            .getAttributes();
+
+                    // typical infra-red attribute file= IR.attr
+                    // contained inside the file is imageTypeId=custom_name.
+                    // "custom_name" is associated with the "digital value" for
+                    // IR in an XML file.
+                    // "digit value" is returned and assigned as attribute value
+                    // "custom_name" appears in GUI.
                     if (satName == null || satId == null)
                         return "";
 
@@ -865,125 +895,121 @@ public class ResourceSelectionControl extends Composite {
                     attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
                             + "CustomName");
 
-                    attributeNamesAndAliases.put(satId + ":"
+                    mcidasAttrNamesNAliases.put(satId + ":"
                             + ((AttributeSet) element).getName().toString(),
                             attrSetName);
 
-                    SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
-                            .getInstance();
-
-                    satImageMngr.setSelectedAttrName(attributeNamesAndAliases);
+                    SatelliteImageTypeManager.getInstance()
+                            .setSelectedAttrName(mcidasAttrNamesNAliases);
 
                     return attrSetName;
+                }
 
-                } else {
+                attrSetName = ((AttributeSet) element).getName();
 
-                    attrSetName = ((AttributeSet) element).getName();
+                if (attrSetName.endsWith(".attr")) {
+                    attrSetName = attrSetName.substring(0,
+                            attrSetName.length() - 5);
+                }
 
-                    if (attrSetName.endsWith(".attr")) {
-                        attrSetName = attrSetName.substring(0,
-                                attrSetName.length() - 5);
-                    }
+                rscName.setRscAttrSetName(attrSetName);
 
-                    rscName.setRscAttrSetName(attrSetName);
+                // Display aliases for Grid resource attributes.
+                if (rscDefn.getResourceCategory().equals(
+                        ResourceCategory.GridRscCategory)) {
 
-                    if (!showLatestTimes ||
-                    // !onlyShowResourcesWithData ||
-                            rscDefn.isForecast()) {
-                        return attrSetName;
-                    }
+                    String type = selectedRscName.getRscType();
+                    String group = selectedRscName.getRscGroup();
+                    String alias = AttrSetLabelsManager.getInstance().getAlias(
+                            type, group, attrSetName);
 
-                    while (attrSetName.length() < maxLengthOfSelectableAttrSets) {
-                        attrSetName = attrSetName + " ";
-                    }
-
-                    // If we aren't using the inventory then the query is too
-                    // slow
-                    // for the gui.
-                    // TODO : If the inventory doesn't pan out then we could
-                    // either
-                    // implement this in another thread and accept the delay or
-                    // add
-                    // a 'Check Availability' button.
-                    //
-                    if (rscName.isValid() && rscDefn.usesInventory()
-                            && rscDefn.getInventoryEnabled()) {
-
-                        try {
-
-                            DataTime latestTime = rscDefn
-                                    .getLatestDataTime(rscName);
-
-                            if (latestTime.isNull()) {
-                                attrSetName = attrSetName + " (No Data)";
-                            } else {
-                                DataTime refTime = new DataTime(latestTime
-                                        .getRefTime());
-                                String latestTimeStr = NmapCommon
-                                        .getTimeStringFromDataTime(latestTime,
-                                                "_");
-
-                                attrSetName = attrSetName + " ("
-                                        + latestTimeStr + ")";
-                            }
-
-                        } catch (VizException vizex) {
-                            out.println(vizex.getMessage());
-                        }
+                    if (alias != null) {
+                        attrSetName = alias;
                     }
                 }
 
+                if (!showLatestTimes || rscDefn.isForecast()) {
+                    return attrSetName;
+                }
+
+                while (attrSetName.length() < maxLengthOfSelectableAttrSets) {
+                    attrSetName = attrSetName + " ";
+                }
+
+                // If we aren't using the inventory then the query is too
+                // slow for the gui.
+                // TODO : If the inventory doesn't pan out then we could
+                // either implement this in another thread and accept the
+                // delay or add a 'Check Availability' button.
+                if (rscName.isValid() && rscDefn.usesInventory()
+                        && rscDefn.getInventoryEnabled()) {
+
+                    try {
+                        DataTime latestTime = rscDefn
+                                .getLatestDataTime(rscName);
+
+                        if (latestTime.isNull()) {
+                            attrSetName = attrSetName + " (No Data)";
+                        } else {
+                            String latestTimeStr = NmapCommon
+                                    .getTimeStringFromDataTime(latestTime, "_");
+
+                            attrSetName = attrSetName + " (" + latestTimeStr
+                                    + ")";
+                        }
+                    } catch (VizException e) {
+                        statusHandler.handle(Priority.INFO, e.getMessage());
+                    }
+                }
                 return attrSetName;
             }
         });
     }
 
-    // add all of the listeners for widgets on this dialog
+    /*
+     * add all of the listeners for widgets on this dialog
+     */
     private void addSelectionListeners() {
 
         rscCatLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
                     public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
+                        StructuredSelection selectedElements = (StructuredSelection) event
                                 .getSelection();
-                        ResourceCategory seldCat = (ResourceCategory) seld_elem
+                        ResourceCategory selectedCat = (ResourceCategory) selectedElements
                                 .getFirstElement();
 
-                        // get the previously selected resource for this
-                        // category
+                        if ((selectedCat != null)
+                                && (selectedCat.equals(prevSelectedCat))) {
+                            return;
+                        }
 
-                        seldResourceName = new ResourceName();
-                        seldResourceName.setRscCategory(seldCat);
+                        selectedRscName = new ResourceName();
+                        selectedRscName.setRscCategory(selectedCat);
+                        prevSelectedCat = selectedCat;
 
-                        prevSeldCat = seldResourceName.getRscCategory();
-
-                        // if a resource was previously selected for this
-                        // category, select it
-                        //
-                        if (prevCatSeldRscNames.containsKey(seldCat)) {
-                            seldResourceName = prevCatSeldRscNames.get(seldCat);
+                        if (prevCat2SelectedRscName.containsKey(selectedCat)) {
+                            selectedRscName = prevCat2SelectedRscName
+                                    .get(selectedCat);
                         }
 
                         updateResourceFilters();
-
                         updateResourceTypes();
                     }
                 });
 
         filterCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                String filtStr = null; // init to no filter
+                String filterString = filterCombo.getText();
 
-                if (filterCombo.getSelectionIndex() == 0) { // "All"
-                    filtStr = "";
-                } else {
-                    filtStr = filterCombo.getText();
-                }
-
-                if (filtStr.equals(seldFilterStr)) {
+                if (filterString != null
+                        && filterString.equals(selectedFilterString)) {
                     return;
                 }
-                seldFilterStr = filtStr;
+
+                selectedFilterString = filterString;
+                prevCat2SelectedFilter.put(prevSelectedCat,
+                        selectedFilterString);
 
                 updateResourceTypes();
             }
@@ -992,15 +1018,21 @@ public class ResourceSelectionControl extends Composite {
         rscTypeLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
                     public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
+                        StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
-                        String seld_rsc_type = ((ResourceDefinition) seld_elem
+                        String selectedType = ((ResourceDefinition) selectedElement
                                 .getFirstElement()).getResourceDefnName();
 
-                        seldResourceName.setRscType(seld_rsc_type);
-                        seldResourceName.setRscGroup("");
-                        seldResourceName.setRscAttrSetName("");
-                        seldResourceName.setCycleTime(null);
+                        String prevSelectedType = selectedRscName.getRscType();
+                        if ((selectedType != null)
+                                && (selectedType.equals(prevSelectedType))) {
+                            return;
+                        }
+
+                        selectedRscName.setRscType(selectedType);
+                        selectedRscName.setRscGroup("");
+                        selectedRscName.setRscAttrSetName("");
+                        selectedRscName.setCycleTime(null);
 
                         updateCycleTimes();
 
@@ -1011,11 +1043,20 @@ public class ResourceSelectionControl extends Composite {
         rscGroupLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
                     public void selectionChanged(SelectionChangedEvent event) {
-                        StructuredSelection seld_elem = (StructuredSelection) event
+                        StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
-                        seldResourceName.setRscGroup((String) seld_elem
-                                .getFirstElement());
-                        seldResourceName.setRscAttrSetName("");
+                        String selectedGroup = (String) selectedElement
+                                .getFirstElement();
+
+                        String prevSelectedGroup = selectedRscName
+                                .getRscGroup();
+                        if ((selectedGroup != null)
+                                && (selectedGroup.equals(prevSelectedGroup))) {
+                            return;
+                        }
+
+                        selectedRscName.setRscGroup(selectedGroup);
+                        selectedRscName.setRscAttrSetName("");
 
                         updateResourceAttrSets();
                     }
@@ -1025,36 +1066,47 @@ public class ResourceSelectionControl extends Composite {
                 .addSelectionChangedListener(new ISelectionChangedListener() {
 
                     public void selectionChanged(SelectionChangedEvent event) {
-
-                        SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
-                                .getInstance();
-
-                        StructuredSelection seld_elem = (StructuredSelection) event
+                        StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
+                        String selectedAttrSetName = ((AttributeSet) selectedElement
+                                .getFirstElement()).getName();
 
-                        seldResourceName
-                                .setRscAttrSetName(((AttributeSet) seld_elem
-                                        .getFirstElement()).getName());
+                        String prevSelectedAttrName = selectedRscName
+                                .getRscAttrSetName();
 
-                        satImageMngr
-                                .setSelectedAttrName(attributeNamesAndAliases);
+                        if ((selectedAttrSetName != null)
+                                && (selectedAttrSetName
+                                        .equals(prevSelectedAttrName))) {
+                            return;
+                        }
+
+                        selectedRscName.setRscAttrSetName(selectedAttrSetName);
+
+                        // Mcidas only
+                        ResourceName rscName = new ResourceName(selectedRscName);
+                        ResourceDefinition rscDefn = rscDefnsMngr
+                                .getResourceDefinition(rscName.getRscType());
+
+                        if (rscDefn.getRscImplementation().equals(
+                                McidasConstants.SATELLITE_ID)) {
+                            SatelliteImageTypeManager.getInstance()
+                                    .setSelectedAttrName(
+                                            mcidasAttrNamesNAliases);
+                        }
 
                         updateCycleTimes();
-
                         updateSelectedResource();
                     }
                 });
 
         // get the selected rsc and add to the list.
         // ignoring the cycle time for now.
-        //
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 selectResource(false, false);
             }
         });
 
-        // TODO : do we want replace to pop down the dialog?
         replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
                 selectResource(true, false);
@@ -1080,229 +1132,246 @@ public class ResourceSelectionControl extends Composite {
         });
     }
 
-    // set the initial values of the widgets. (base this on previously selected
-    // values??)
-    //
+    /*
+     * set the initial values of the widgets.
+     */
     protected void initWidgets(ResourceName initRscName) {
 
-        // set the current and previous user-selected resource names
-        if ((null != prevSeldRscName) && prevSeldRscName.isValid()) {
-            seldResourceName = new ResourceName(prevSeldRscName);
-            prevSeldRscName = null;
+        if (prevSelectedRscName != null && prevSelectedRscName.isValid()) {
+            selectedRscName = new ResourceName(prevSelectedRscName);
         } else {
-            seldResourceName = new ResourceName(initRscName);
+            selectedRscName = new ResourceName(initRscName);
         }
 
-        if (seldResourceName != null) {
-            prevSeldCat = seldResourceName.getRscCategory();
+        if (selectedRscName != null) {
+            prevSelectedCat = selectedRscName.getRscCategory();
         }
 
-        filterCombo.setItems(new String[] { "All" });
+        filterCombo.setItems(new String[] { RSC_FILTER_ALL });
         filterCombo.select(0);
+        selectedFilterString = RSC_FILTER_ALL;
 
-        seldFilterStr = "";
-
-        // update the cat list
         rscCatLViewer.setInput(rscDefnsMngr);
         rscCatLViewer.refresh();
         rscCatLViewer.getList().deselectAll();
 
-        //
         addToAllPanesBtn.setSelection(false);
 
-        // if
-        if (seldResourceName == null
-                || seldResourceName.getRscCategory() == ResourceCategory.NullCategory) {
+        if (selectedRscName == null
+                || selectedRscName.getRscCategory() == ResourceCategory.NullCategory) {
             return;
         }
 
-        for (int itmIndx = 0; itmIndx < rscCatLViewer.getList().getItemCount(); itmIndx++) {
+        for (int i = 0; i < rscCatLViewer.getList().getItemCount(); i++) {
 
-            if (rscCatLViewer.getList().getItem(itmIndx)
-                    .equals(seldResourceName.getRscCategory().toString())) {
+            if (rscCatLViewer.getList().getItem(i)
+                    .equals(selectedRscName.getRscCategory().toString())) {
 
-                rscCatLViewer.getList().select(itmIndx);
+                rscCatLViewer.getList().select(i);
                 break;
             }
         }
 
         if (rscCatLViewer.getList().getSelectionCount() == 0) {
-            seldResourceName = new ResourceName();
+            selectedRscName = new ResourceName();
         }
 
         updateResourceFilters();
-
         updateResourceTypes();
     }
 
-    // get a list of all the possible filter labels from all of the resources
-    // in this category
+    /*
+     * get a list of all the possible filter labels from all of the resources in
+     * this category
+     */
     protected void updateResourceFilters() {
-        ResourceCategory seldCat = seldResourceName.getRscCategory();
+        ResourceCategory selectedCat = selectedRscName.getRscCategory();
 
-        // TODO : add code to save the prev seld filter for each cat
-        List<String> filtLabels = rscDefnsMngr.getAllFilterLabelsForCategory(
-                seldCat, seldDisplayType);
-        filtLabels.add(0, "All");
-        filterCombo.setItems(filtLabels.toArray(new String[0]));
-        filterCombo.select(0);
-        seldFilterStr = "";
+        List<String> filterList = rscDefnsMngr.getAllFilterLabelsForCategory(
+                selectedCat, displayType);
+
+        Collections.sort(filterList);
+        filterList.add(0, RSC_FILTER_ALL);
+
+        String[] filterArray = new String[0];
+        filterArray = filterList.toArray(filterArray);
+        filterCombo.setItems(filterArray);
+
+        String prevFilter = prevCat2SelectedFilter.get(selectedCat);
+        if (prevFilter != null) {
+            for (int i = 0; i < filterCombo.getItemCount(); i++) {
+                if (filterCombo.getItem(i).equals(prevFilter)) {
+                    filterCombo.select(i);
+                    selectedFilterString = prevFilter;
+                    break;
+                }
+            }
+        } else {
+            filterCombo.select(0);
+            selectedFilterString = RSC_FILTER_ALL;
+        }
     }
 
-    // refresh the types list based on the type in the seldResourceName
-    // use seldResourceName to select the type
+    /*
+     * refresh the types list based on the type in the seldResourceName use
+     * seldResourceName to select the type
+     */
     protected void updateResourceTypes() {
 
         rscTypeLViewer.setInput(rscDefnsMngr);
         rscTypeLViewer.refresh();
 
-        rscTypeLViewer.getList().deselectAll();
+        org.eclipse.swt.widgets.List typeList = rscTypeLViewer.getList();
+        typeList.deselectAll();
 
-        //
-        if (!seldResourceName.getRscType().isEmpty()) {
-            for (int itmIndx = 0; itmIndx < rscTypeLViewer.getList()
-                    .getItemCount(); itmIndx++) {
+        String selectedRscType = selectedRscName.getRscType();
 
-                if (rscTypeLViewer.getList().getItem(itmIndx)
-                        .equals(seldResourceName.getRscType())) {
-                    rscTypeLViewer.getList().select(itmIndx);
+        if (!selectedRscType.isEmpty()) {
+            String selectedDisplayType = selectedRscType;
+
+            if (selectedRscName.getRscCategory().getCategoryName()
+                    .equals(RADAR_CATEGORY)
+                    && selectedRscType.startsWith(LOCAL_RADAR_PREFIX)) {
+
+                String alias = LocalRadarStationManager.getInstance()
+                        .getDisplayedName(selectedRscType);
+
+                if (alias != null && !alias.isEmpty()) {
+                    selectedDisplayType = alias;
+                }
+            }
+
+            for (int i = 0; i < typeList.getItemCount(); i++) {
+                String displayType = typeList.getItem(i);
+
+                if (selectedDisplayType.equals(displayType)) {
+                    typeList.select(i);
                     break;
                 }
             }
 
-            if (rscTypeLViewer.getList().getSelectionCount() == 0) {
-                seldResourceName.setRscType("");
-                seldResourceName.setRscGroup("");
-                seldResourceName.setRscAttrSetName("");
-                seldResourceName.setCycleTime(null);
+            if (typeList.getSelectionCount() == 0) {
+                selectedRscName.setRscType("");
+                selectedRscName.setRscGroup("");
+                selectedRscName.setRscAttrSetName("");
+                selectedRscName.setCycleTime(null);
             }
         }
 
         // if no type is selected or it is not found for some reason, select the
         // first
-        if (seldResourceName.getRscType().isEmpty()
+        if (selectedRscName.getRscType().isEmpty()
                 && rscTypeLViewer.getList().getItemCount() > 0) {
 
-            rscTypeLViewer.getList().select(0);
-            StructuredSelection seld_elem = (StructuredSelection) rscTypeLViewer
+            typeList.select(0);
+            StructuredSelection selectedElement = (StructuredSelection) rscTypeLViewer
                     .getSelection();
-            String rscType = ((ResourceDefinition) seld_elem.getFirstElement())
-                    .getResourceDefnName();
-            seldResourceName.setRscType(rscType);
-            seldResourceName.setRscGroup("");
-            seldResourceName.setRscAttrSetName("");
-            seldResourceName.setCycleTime(null);
+            String rscType = ((ResourceDefinition) selectedElement
+                    .getFirstElement()).getResourceDefnName();
+            selectedRscName.setRscType(rscType);
+            selectedRscName.setRscGroup("");
+            selectedRscName.setRscAttrSetName("");
+            selectedRscName.setCycleTime(null);
         }
 
         updateCycleTimes();
-
         updateResourceGroups();
     }
 
     protected void updateResourceGroups() {
+
         rscGroupLViewer.setInput(rscDefnsMngr);
         rscGroupLViewer.refresh();
 
-        // if there are no groups
+        // If a group has been selected, then select it in the list.
+        // Otherwise, select the first in the list and update the
+        // seldResourceName.
         if (rscGroupLViewer.getList().getItemCount() == 0) {
-            if (!seldResourceName.getRscGroup().isEmpty()) {
-                // ????
-                seldResourceName.setRscGroup("");
-                seldResourceName.setRscAttrSetName("");
-                seldResourceName.setCycleTime(null);
+            if (!selectedRscName.getRscGroup().isEmpty()) {
+                selectedRscName.setRscGroup("");
+                selectedRscName.setRscAttrSetName("");
+                selectedRscName.setCycleTime(null);
             }
-        } else { // there are items in the groups list
-                 // if a group has been selected then select it in the list,
-                 // otherwise
-                 // select the first in the list and update the seldResourceName
-                 //
+        } else {
             rscGroupLViewer.getList().deselectAll();
 
-            //
-            if (!seldResourceName.getRscGroup().isEmpty()) {
-                for (int itmIndx = 0; itmIndx < rscGroupLViewer.getList()
-                        .getItemCount(); itmIndx++) {
+            if (!selectedRscName.getRscGroup().isEmpty()) {
+                for (int i = 0; i < rscGroupLViewer.getList().getItemCount(); i++) {
 
-                    if (rscGroupLViewer.getList().getItem(itmIndx)
-                            .equals(seldResourceName.getRscGroup())) {
-                        rscGroupLViewer.getList().select(itmIndx);
+                    if (rscGroupLViewer.getList().getItem(i)
+                            .equals(selectedRscName.getRscGroup())) {
+                        rscGroupLViewer.getList().select(i);
                         break;
                     }
                 }
 
                 if (rscGroupLViewer.getList().getSelectionCount() == 0) {
-                    seldResourceName.setRscGroup("");
-                    seldResourceName.setRscAttrSetName("");
+                    selectedRscName.setRscGroup("");
+                    selectedRscName.setRscAttrSetName("");
                 }
             }
 
             // if no type is selected or it is not found for some reason, select
             // the first
-            if (seldResourceName.getRscGroup().isEmpty()
+            if (selectedRscName.getRscGroup().isEmpty()
                     && rscGroupLViewer.getList().getItemCount() > 0) {
 
                 rscGroupLViewer.getList().select(0);
-                StructuredSelection seld_elem = (StructuredSelection) rscGroupLViewer
+                StructuredSelection selectedElement = (StructuredSelection) rscGroupLViewer
                         .getSelection();
 
-                seldResourceName.setRscGroup((String) seld_elem
+                selectedRscName.setRscGroup((String) selectedElement
                         .getFirstElement());
-                seldResourceName.setRscAttrSetName("");
+                selectedRscName.setRscAttrSetName("");
             }
         }
-
         updateResourceAttrSets();
     }
 
     private void updateResourceAttrSets() {
         rscAttrSetLViewer.setInput(rscDefnsMngr);
-        // rscAttrSetLViewer.refresh();
-
         rscAttrSetLViewer.getList().deselectAll();
 
-        //
-        if (!seldResourceName.getRscAttrSetName().isEmpty()) {
-            for (int itmIndx = 0; itmIndx < rscAttrSetLViewer.getList()
-                    .getItemCount(); itmIndx++) {
+        String prevSelectedAttrSetName = selectedRscName.getRscAttrSetName();
+        if (!prevSelectedAttrSetName.isEmpty()) {
 
-                AttributeSet attrSet = (AttributeSet) rscAttrSetLViewer
-                        .getElementAt(itmIndx);
+            for (int i = 0; i < rscAttrSetLViewer.getList().getItemCount(); i++) {
 
-                if (attrSet.getName().equals(
-                        seldResourceName.getRscAttrSetName())) {
-                    rscAttrSetLViewer.getList().select(itmIndx);
+                String attrSetName = ((AttributeSet) rscAttrSetLViewer
+                        .getElementAt(i)).getName();
+
+                if (attrSetName.equals(prevSelectedAttrSetName)) {
+                    rscAttrSetLViewer.getList().select(i);
                     break;
                 }
             }
 
             if (rscAttrSetLViewer.getList().getSelectionCount() == 0) {
-                seldResourceName.setRscAttrSetName("");
+                selectedRscName.setRscAttrSetName("");
             }
         }
 
         // if no attr set is selected or it is not found for some reason, select
         // the first
-        if (seldResourceName.getRscAttrSetName().isEmpty()
+        if (selectedRscName.getRscAttrSetName().isEmpty()
                 && rscAttrSetLViewer.getList().getItemCount() > 0) {
 
             rscAttrSetLViewer.getList().select(0);
-            StructuredSelection seld_elem = (StructuredSelection) rscAttrSetLViewer
+            StructuredSelection selectedElement = (StructuredSelection) rscAttrSetLViewer
                     .getSelection();
 
-            seldResourceName.setRscAttrSetName(((AttributeSet) seld_elem
+            selectedRscName.setRscAttrSetName(((AttributeSet) selectedElement
                     .getFirstElement()).getName());
         }
 
         updateCycleTimes();
-
         updateSelectedResource();
-
     }
 
-    // when an attrSetName is selected and resource name, with possible cycle
-    // time,
-    // is ready for selection
-    //
+    /*
+     * when an attrSetName is selected and resource name, with possible cycle
+     * time, is ready for selection
+     */
     public void updateSelectedResource() {
 
         String availMsg = "Data Not Available";
@@ -1312,26 +1381,20 @@ public class ResourceSelectionControl extends Composite {
         boolean enableSelections = true;
 
         ResourceDefinition rscDefn = rscDefnsMngr
-                .getResourceDefinition(seldResourceName.getRscType());
+                .getResourceDefinition(selectedRscName.getRscType());
 
-        if (!seldResourceName.isValid() || rscDefn == null) {
+        if (!selectedRscName.isValid() || rscDefn == null) {
             enableSelections = false;
-
         }
 
-        //
         if (enableSelections) {
-            // if( onlyShowResourcesWithData ) {
             try {
                 // this call will query just for the inventory params needed to
                 // instantiate the resource
                 // (ie imageType, productCode...) and not the actual dataTimes.
-                // rscDefnsMngr.verifyParametersExist( seldResourceName );
-
                 if (this.isForecast()) {
                     if (cycleTimes.isEmpty()) {
                         enableSelections = false;
-
                     }
                 } else if (rscDefn.isPgenResource()) {
                     availMsg = "";
@@ -1341,12 +1404,10 @@ public class ResourceSelectionControl extends Composite {
                     // If we aren't using the inventory then the query is too
                     // slow for the gui.
                     // TODO : If the inventory doesn't pan out then we could
-                    // either
-                    // implement this in another thread and accept the delay or
-                    // add a
-                    // 'Check Availability' button.
+                    // either implement this in another thread and accept the
+                    // delay or add a 'Check Availability' button.
                     DataTime latestTime = rscDefn
-                            .getLatestDataTime(seldResourceName);
+                            .getLatestDataTime(selectedRscName);
 
                     if (latestTime == null || latestTime.isNull()) {
                         enableSelections = false;
@@ -1357,13 +1418,11 @@ public class ResourceSelectionControl extends Composite {
                                         latestTime, "/");
                     }
                 }
-            } catch (VizException vizex) {
-                out.println(vizex.getMessage());
+            } catch (VizException e) {
+                statusHandler.handle(Priority.INFO, e.getMessage());
                 availMsg = "Error getting latest time.";
                 enableSelections = false;
-
             }
-            // }
         }
 
         if (enableSelections) {
@@ -1377,18 +1436,17 @@ public class ResourceSelectionControl extends Composite {
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
-                int seldCycleTimeIndx = cycleTimeCombo.getSelectionIndex(); // Cycle
-                                                                            // for
-                                                                            // Ensemble
+                // Cycle for Ensemble
+                int seldCycleTimeIndx = cycleTimeCombo.getSelectionIndex();
 
                 // TODO : Allow the user to select 'LATEST' specifically
                 if (seldCycleTimeIndx == -1) {
-                    seldResourceName.setCycleTimeLatest();
+                    selectedRscName.setCycleTimeLatest();
                 } else if (seldCycleTimeIndx < cycleTimes.size()) {
-                    seldResourceName.setCycleTime(cycleTimes
+                    selectedRscName.setCycleTime(cycleTimes
                             .get(seldCycleTimeIndx));
                 } else { // shoulndn't happen
-                    seldResourceName.setCycleTimeLatest();
+                    selectedRscName.setCycleTimeLatest();
                 }
 
                 availDataTimeLbl.setVisible(false);
@@ -1402,13 +1460,13 @@ public class ResourceSelectionControl extends Composite {
             }
 
             // For now, don't let the user select 'Latest'
-            if (seldResourceName.isLatestCycleTime()) {
+            if (selectedRscName.isLatestCycleTime()) {
 
                 addResourceBtn.setEnabled(false);
                 replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
             } else {
-                seldRscNameTxt.setText(seldResourceName.toString());
+                seldRscNameTxt.setText(selectedRscName.toString());
             }
         } else {
             seldRscNameTxt.setText("");
@@ -1422,44 +1480,52 @@ public class ResourceSelectionControl extends Composite {
             cycleTimeCombo.setVisible(false);
         }
 
-        prevCatSeldRscNames.put(seldResourceName.getRscCategory(),
-                seldResourceName);
+        prevDisplayType2RscName.put(displayType, new ResourceName(
+                selectedRscName));
+        prevCat2SelectedRscName.put(selectedRscName.getRscCategory(),
+                new ResourceName(selectedRscName));
+        prevSelectedRscName = selectedRscName;
     }
 
-    // code for the Listeners for the Add Resource button and the double Click
-    // on the list
+    /*
+     * code for the Listeners for the Add Resource button and the double Click
+     * /on the list
+     */
     public void selectResource(boolean replaceRsc, boolean done) {
 
         boolean addToAllPanes = (addToAllPanesBtn.isVisible() && addToAllPanesBtn
                 .getSelection());
-        if (seldResourceName.isValid()) {
+        if (selectedRscName != null && selectedRscName.isValid()) {
             for (IResourceSelectedListener lstnr : rscSelListeners) {
-                lstnr.resourceSelected(seldResourceName, replaceRsc,
+                lstnr.resourceSelected(selectedRscName, replaceRsc,
                         addToAllPanes, done);
             }
-            // "Select New Resource" dialog should remember last
-            // selection
-            prevSeldRscName = seldResourceName;
+            // "Select New Resource" dialog should remember last selection
+            prevSelectedRscName = selectedRscName;
+        } else {
+            prevSelectedRscName = null;
 
+            statusHandler
+                    .handle(Priority.WARN, "An invalid resource selected!");
         }
     }
 
     public ResourceName getCurrentlySelectedResource() {
-        return seldResourceName;
+        return selectedRscName;
     }
 
     public void addResourceSelectionListener(IResourceSelectedListener lstnr) {
         rscSelListeners.add(lstnr);
     }
 
-    // TODO: add a way to let the user specifically choose the "LATEST" cycle
-    // time.
-    // Currently the user cannot select a forecast resource without selecting an
-    // available cycle time.
-    //
+    /*
+     * TODO: add a way to let the user specifically choose the "LATEST" cycle
+     * time. Currently the user cannot select a forecast resource without
+     * selecting an available cycle time.
+     */
     public void updateCycleTimes() {
         ResourceDefinition rscDefn = rscDefnsMngr
-                .getResourceDefinition(seldResourceName);
+                .getResourceDefinition(selectedRscName);
 
         if (rscDefn == null) {
             cycleTimeLbl.setEnabled(false);
@@ -1473,7 +1539,7 @@ public class ResourceSelectionControl extends Composite {
             availDataTimeLbl.setVisible(!rscDefn.isForecast());
 
             if (!isForecast()) {
-                seldResourceName.setCycleTime(null);
+                selectedRscName.setCycleTime(null);
                 return;
             }
         }
@@ -1484,12 +1550,11 @@ public class ResourceSelectionControl extends Composite {
             // would like to use the constant in NcGridData but E dependency
             // again.
             if (rscDefn.getPluginName().equals(GempakGrid.gempakPluginName)) {
-                /*
-                 * For a GEMPAK dataSource get gridCycleTimes from the
-                 * dataLocation
-                 */
+
+                // For a GEMPAK dataSource get gridCycleTimes from the
+                // dataLocation.
                 HashMap<String, String> rscParams = rscDefnsMngr
-                        .getAllResourceParameters(seldResourceName);
+                        .getAllResourceParameters(selectedRscName);
 
                 cycleTimeCombo.removeAll();
                 cycleTimes.clear();
@@ -1497,13 +1562,12 @@ public class ResourceSelectionControl extends Composite {
                     String dataLocation = null;
                     try {
                         dataLocation = GempakGrid.getGempakGridPath(rscParams
-                                .get("GDFILE"));
+                                .get(GDFILE));
                     } catch (VizException e) {
                         throw new VizException(e);
                     }
-                    String[] gridCycleTimes = GempakGrid
-                            .getGridCycleTimes(dataLocation,
-                                    rscParams.get("GDFILE").toLowerCase());
+                    String[] gridCycleTimes = GempakGrid.getGridCycleTimes(
+                            dataLocation, rscParams.get(GDFILE).toLowerCase());
                     for (String gct : gridCycleTimes) {
                         String gct2DataTimeFormat = "20" + gct.substring(0, 2)
                                 + "-" + gct.substring(2, 4) + "-"
@@ -1517,8 +1581,9 @@ public class ResourceSelectionControl extends Composite {
                         cycleTimeCombo.select(0);
                     }
                 } catch (VizException e) {
-                    out.println("Error querying cycle times: "
-                            + e.getMessage().split(":")[1]);
+                    statusHandler.handle(Priority.ERROR,
+                            "Error querying cycle times: "
+                                    + e.getMessage().split(":")[1]);
                 }
 
                 return;
@@ -1531,15 +1596,12 @@ public class ResourceSelectionControl extends Composite {
             // Ideally this would also specify a way to generate the ref times
             // but its really just for nctaf right now so just do it like taf
             // needs.
-            //
             if (rscDefn.getTimelineGenMethod() == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME) {
-
                 availableTimes = rscDefn.getNormalizedDataTimes(
-                        seldResourceName, 24 * 60);
+                        selectedRscName, 24 * 60);
             } else if (rscDefn.getTimelineGenMethod() == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION) {
                 int startTime = Integer.parseInt(rscDefn.getCycleReference());
-                Calendar cal = Calendar
-                        .getInstance(TimeZone.getTimeZone("GMT"));
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(GMT));
                 cal.setTime(new Date());
 
                 DayReference day = (rscDefn.getDayReference() != null ? rscDefn
@@ -1565,17 +1627,15 @@ public class ResourceSelectionControl extends Composite {
                     availableTimes.add(new DataTime(cal));
                 }
             } else {
-                availableTimes = rscDefn.getDataTimes(seldResourceName);
+                availableTimes = rscDefn.getDataTimes(selectedRscName);
             }
 
             // save the currently selected cycle time.
-            //
             String curSelTime = cycleTimeCombo.getText();
 
             cycleTimeCombo.removeAll();
             cycleTimes.clear();
 
-            //
             for (int t = availableTimes.size() - 1; t >= 0; t--) {
                 DataTime dt = availableTimes.get(t);
                 DataTime refTime = new DataTime(dt.getRefTime());
@@ -1604,11 +1664,11 @@ public class ResourceSelectionControl extends Composite {
                 cycleTimeCombo.select(0);
             }
 
-        } catch (VizException ve) {
+        } catch (VizException e) {
             MessageDialog errDlg = new MessageDialog(
                     NcDisplayMngr.getCaveShell(), "Error", null,
-                    "Error Requesting Cycle Times:" + ve.getMessage(),
-                    MessageDialog.ERROR, new String[] { "OK" }, 0);
+                    "Error Requesting Cycle Times:" + e.getMessage(),
+                    MessageDialog.ERROR, new String[] { OK }, 0);
             errDlg.open();
             return;
         }
@@ -1626,11 +1686,10 @@ public class ResourceSelectionControl extends Composite {
         if (!isDisposed()) {
             updateSelectedResource();
         }
-
     }
 
     public ResourceName getPrevSelectedResource() {
-        return seldResourceName;
+        return prevSelectedRscName;
     }
 
     private boolean isForecast() {
@@ -1648,7 +1707,7 @@ public class ResourceSelectionControl extends Composite {
         }
 
         ResourceDefinition rscDefn = rscDefnsMngr
-                .getResourceDefinition(seldResourceName.getRscType());
+                .getResourceDefinition(selectedRscName.getRscType());
 
         return rscDefn.isForecast() && !gridAnalysis;
     }

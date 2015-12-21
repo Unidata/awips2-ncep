@@ -42,6 +42,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  *     12/13        TTR776      J. Wu       Added P_LAYER_MERGE
  *     05/14        TTR 995     J. Wu       Added P_AUTOPLACE_CONTOUR_LABEL.
  *     11/09/15     R9399       J. Lopez    Added P_ICONS_PER_ROW
+ *     12/17/2015   R12990      J. Wu       Added default spacing between contour symbol and label
  * </pre>
  * 
  * @author sgilbert
@@ -90,6 +91,10 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
     public final static String P_AUTOPLACE_CONTOUR_LABEL = "PGEN_AUTOPLACE_CONTOUR_LABEL";
 
     private BooleanFieldEditor autoPlaceContourLabel;
+
+    public static final String P_CONTOUR_SYMBOL_LABEL_SPACING_X = "PGEN_CONTOUR_SYMBOL_LABEL_SPACING_X";
+
+    public static final String P_CONTOUR_SYMBOL_LABEL_SPACING_Y = "PGEN_CONTOUR_SYMBOL_LABEL_SPACING_Y";
 
     public final static String P_LAYER_MERGE = "P_LAYER_MERGE";
 
@@ -170,6 +175,24 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
                 BooleanFieldEditor.DEFAULT, getFieldEditorParent());
         this.addField(autoPlaceContourLabel);
 
+        IntegerFieldEditor cSymbolSpacingX = new IntegerFieldEditor(
+                P_CONTOUR_SYMBOL_LABEL_SPACING_X,
+                "&Default Spacing Between Contour Symbol and Label (X-direction, -10 to 10) :",
+                getFieldEditorParent(), 0);
+        cSymbolSpacingX.setValidRange(-10, 10);
+        cSymbolSpacingX
+                .setValidateStrategy(IntegerFieldEditor.VALIDATE_ON_FOCUS_LOST);
+        this.addField(cSymbolSpacingX);
+
+        IntegerFieldEditor cSymbolSpacingY = new IntegerFieldEditor(
+                P_CONTOUR_SYMBOL_LABEL_SPACING_Y,
+                "&Default Spacing Between Contour Symbol and Label (Y-direction, -10 to 10) :",
+                getFieldEditorParent(), 5);
+        cSymbolSpacingY.setValidRange(-10, 10);
+        cSymbolSpacingY
+                .setValidateStrategy(IntegerFieldEditor.VALIDATE_ON_FOCUS_LOST);
+        this.addField(cSymbolSpacingY);
+
         ComboFieldEditor layerMerge = new ComboFieldEditor(P_LAYER_MERGE,
                 "&Default Action for PGEN Layer Merge:", new String[][] {
                         { "Take no action", "0" },
@@ -237,6 +260,16 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
                 if (!iField.isValid())
                     iField.setStringValue(getPreferenceStore()
                             .getDefaultString(P_ICONS_PER_ROW));
+            } else if (iField.getPreferenceName().equals(
+                    P_CONTOUR_SYMBOL_LABEL_SPACING_X)) {
+                if (!iField.isValid())
+                    iField.setStringValue(getPreferenceStore()
+                            .getDefaultString(P_CONTOUR_SYMBOL_LABEL_SPACING_X));
+            } else if (iField.getPreferenceName().equals(
+                    P_CONTOUR_SYMBOL_LABEL_SPACING_Y)) {
+                if (!iField.isValid())
+                    iField.setStringValue(getPreferenceStore()
+                            .getDefaultString(P_CONTOUR_SYMBOL_LABEL_SPACING_Y));
             }
         }
     }

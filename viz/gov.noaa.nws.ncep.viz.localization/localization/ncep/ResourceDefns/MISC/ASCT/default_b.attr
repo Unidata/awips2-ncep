@@ -1,11 +1,11 @@
-! Attributes for ASCAT - High Resolution - Ambiguity 1
+! Attributes for ASCAT-B - Low Resolution
 !
 ! frame interval in minutes
 ! the reportType could alternatively be set in the .prm file
-reportType=ascat-hi-ambig1
+reportType=ascat-b
 
-colorBar1=@ColorBars/SCAT/ambig1ColorBar1.xml
-colorBar2=@ColorBars/SCAT/ambig1ColorBar2.xml
+colorBar1=@ColorBars/SCAT/defaultColorBar1.xml
+colorBar2=@ColorBars/SCAT/defaultColorBar2.xml
 ! 
 skipEnable=false
 skipValue=5

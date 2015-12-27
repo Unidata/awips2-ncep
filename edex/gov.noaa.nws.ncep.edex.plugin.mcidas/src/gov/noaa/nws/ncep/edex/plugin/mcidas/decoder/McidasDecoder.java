@@ -387,7 +387,7 @@ public class McidasDecoder extends AbstractDecoder {
             /*
              * Calibration type: 'RAW', "TEMP', 'BRIT'
              */
-            String caltyp = byteArrayToString(area, 208, endian);
+            String caltyp = byteArrayToString(area, 208, endian); // W53
             record.setCalType(caltyp);
 
             /*
@@ -403,14 +403,14 @@ public class McidasDecoder extends AbstractDecoder {
              */
 
             /*
-             * Byte offset to the start of the calibration block
+             * Byte offset to the start of the calibration block 
              */
-            int offcal = byteArrayToInt(area, 248, endian);
+            int offcal = byteArrayToInt(area, 248, endian); // W63
 
             /*
              * Number of card image comments
              */
-            int icomment = byteArrayToInt(area, 252, endian);
+            int icomment = byteArrayToInt(area, 252, endian); // W64
 
             /*
              * Create navigation block

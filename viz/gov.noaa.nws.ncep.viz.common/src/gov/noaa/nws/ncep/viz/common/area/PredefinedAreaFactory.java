@@ -87,7 +87,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
     // could be changed in the future to allow for NonMap NTRANS and
     // for SWPC displays to have more than the 1 default area.
     //
-    private void readPredefinedAreas() throws VizException {
+    private static void readPredefinedAreas() throws VizException {
 
         // only null the first time. Empty if read and error.
         if (predefinedAreasMap == null) {
@@ -173,45 +173,13 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
         return areaNamesArray;
     }
 
-    // // to sort the list of area names. The default goes first
-    // public static class AreaNamesComparator implements Comparator<String> {
-    // private NcDisplayType dispType=NcDisplayType.NMAP_DISPLAY;
-    //
-    // public AreaNamesComparator( NcDisplayType dt ) {
-    // dispType = dt;
-    // }
-    //
-    // @Override
-    // public int compare(String a1, String a2) {
-    // if( a1.equals(a2) ) {
-    // return 0;
-    // }
-    // if( a1.equals( dispType.getDefaultMap() ) ) {
-    // return -1;
-    // }
-    // if( a2.equals( dispType.getDefaultMap() ) ) {
-    // return 1;
-    // }
-    //
-    // int a1menuIndx = (areaMenuNames == null ? 999 :
-    // (areaMenuNames.contains(a1) ? areaMenuNames.indexOf(a1) : 999) );
-    // int a2menuIndx = (areaMenuNames == null ? 999 :
-    // (areaMenuNames.contains(a2) ? areaMenuNames.indexOf(a2) : 999) );
-    //
-    // if( a1menuIndx == a2menuIndx ) { // ie both -1
-    // return a1.compareTo( a2 );
-    // }
-    // return (a1menuIndx < a2menuIndx ? -1 : 1 );
-    // }
-    // }
-
-    // // it might be nice create a class specifically to store the predefined
-    // // area but for now this will just be the Display (we need the zoomLevel
-    // and
-    // // mapCenter as well as the gridGeometry)
-    // //
+	// it might be nice create a class specifically to store the predefined
+	// area but for now this will just be the Display (we need the zoomLevel and
+	// mapCenter as well as the gridGeometry)
+	//
     public static PredefinedArea getDefaultPredefinedAreaForDisplayType(
             NcDisplayType dt) throws VizException {
+    	readPredefinedAreas();
         switch (dt) {
         case NMAP_DISPLAY:
             return getPredefinedArea(dt.getDefaultMap());

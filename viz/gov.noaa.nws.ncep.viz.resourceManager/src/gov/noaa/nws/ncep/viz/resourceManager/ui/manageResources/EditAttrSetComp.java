@@ -119,6 +119,7 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
 		fd = new FormData();
     	fd.bottom = new FormAttachment( attrSetNameTxt, -3, SWT.TOP );
     	fd.left = new FormAttachment( attrSetNameTxt, 0, SWT.LEFT );
+    	fd.width = 180;
     	attrSetNameLbl.setLayoutData( fd );
 
 		editAttrSetValuesTxt = new Text( top_form, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL );
@@ -126,7 +127,7 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
     	
     	fd = new FormData();
     	fd.top = new FormAttachment( attrSetNameTxt, 0, SWT.TOP );
-    	fd.left = new FormAttachment( 40, 0 ); // attrSetNameTxt, 0, SWT.LEFT );
+    	fd.left = new FormAttachment( attrSetNameTxt, 10, SWT.RIGHT ); // attrSetNameTxt, 0, SWT.LEFT );
     	fd.right = new FormAttachment( 100, -10 );
     	fd.bottom = new FormAttachment( 100, -60 );
     	editAttrSetValuesTxt.setLayoutData( fd );
@@ -417,7 +418,7 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
 
 	@Override
 	public String getTitle() {
-		return "Edit Attribute Set";			
+		return "";			
 	}
 
 	// NOTE : Currently this is written to not delete an attributeSet if the 

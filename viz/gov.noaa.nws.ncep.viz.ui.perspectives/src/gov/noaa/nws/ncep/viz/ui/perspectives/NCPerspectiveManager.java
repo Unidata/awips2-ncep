@@ -228,19 +228,10 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 NcGridInventory.getInstance().initialize(5);
             } catch (final VizException e) {
 
-                MessageDialog errDlg = new MessageDialog(
-                        perspectiveWindow.getShell(),
-                        "Error",
-                        null,
-                        "Error initializing NcGridInventory\n"
-                                + "Please click OK and wait while a new inventory is created",
-                        MessageDialog.ERROR, new String[] { "OK" }, 0);
-                errDlg.open();
-
                 try {
                     NcGridInventory.getInstance().createInventory();
                 } catch (VizException e1) {
-                    errDlg = new MessageDialog(perspectiveWindow.getShell(),
+                	MessageDialog errDlg = new MessageDialog(perspectiveWindow.getShell(),
                             "Error", null, "Error creating NcGridInventory\n",
                             MessageDialog.ERROR, new String[] { "OK" }, 0);
                     errDlg.open();
@@ -382,7 +373,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                                 perspectiveWindow.getShell(), "Warning", null,
                                 msgBuf.toString(), MessageDialog.WARNING,
                                 new String[] { "OK" }, 0);
-                        warnDlg.open();
+                        //warnDlg.open();
                     }
                 });
             }

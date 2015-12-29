@@ -59,7 +59,7 @@ C
 	ELSE
 	    IF  ( igrdfn (igdfln) .lt. 0 ) THEN
 	        iret = -4
-	        print *, 'gdfchk.f: igrdfn (',igdfln,') = ',igrdfn(igdfln)
+	        print *, 'NSHARP: gdfchk.f: igrdfn (',igdfln,') = ',igrdfn(igdfln)
 	    END IF
 	END IF
 C*

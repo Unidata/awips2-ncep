@@ -1,6 +1,6 @@
 colorMapName=watvap
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageTypeId=WaterVapor
+imageType=WV
 displayUnitStr=BRIT
 alpha=1.0
 brightness=1.0

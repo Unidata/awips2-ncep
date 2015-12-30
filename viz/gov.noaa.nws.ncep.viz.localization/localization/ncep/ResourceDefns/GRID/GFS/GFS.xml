@@ -4,13 +4,13 @@
     <resourceDefnName>GFS</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=GFS
+GDFILE=gfs
 pluginName=grid
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
-    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
     <frameSpan>60</frameSpan>
     <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>

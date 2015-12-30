@@ -41,15 +41,16 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.commands.ICommandService;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.SatelliteUnits;
+import com.raytheon.uf.common.derivparam.library.DerivedParameterGenerator;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.viz.core.ProgramArguments;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IVizEditorChangedListener;
+import com.raytheon.uf.viz.core.ProgramArguments;
 import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -112,6 +113,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/17/2013   #863        G. Hull     Initialize Predefined Areas
  * 11/14/2013   #2361       N. Jensen   Initialize SerializationUtil when activated
  * 11/13/2013   #1051       G. Hull     override getTitle() to include the desk.
+ * 07/28/2015   R7785       A. Su       Added the runAsyncTasks() method to run asynchronous tasks,
+ *                                      such as getting an instance of DerivedParameterGenerator.
  * </pre>
  * 
  * @author
@@ -194,8 +197,27 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         return null;
     }
 
+    /**
+     * Run any tasks here that are desired to be started as early as possible.
+     * The tasks should be put into different threads to take advantage of
+     * multicore processor.
+     */
+    protected void runAsyncTasks() {
+
+        Thread newThread = new Thread() {
+            public void run() {
+                // Initialize derived parameters in order to speed up
+                // the first-time data selection of SURFACE or UPPER_AIR.
+                DerivedParameterGenerator.getInstance();
+            }
+        };
+        newThread.start();
+    }
+
     @Override
     protected void open() {
+        runAsyncTasks();
+
         contextActivator = new NcContextActivator(page);
 
         // force DESK level to be created.

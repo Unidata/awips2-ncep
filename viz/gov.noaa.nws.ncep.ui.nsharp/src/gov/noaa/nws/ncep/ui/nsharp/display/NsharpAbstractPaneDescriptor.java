@@ -71,12 +71,11 @@ public class NsharpAbstractPaneDescriptor extends GraphDescriptor implements
 //        this.paneNumber = paneNumber;
         //System.out.println("NsharpAbstractPaneDescriptor  created " + this.toString());       
     }
-    @SuppressWarnings("deprecation") 
     @Override
     public void changeFrame(FrameChangeOperation operation,  FrameChangeMode mode) {
         //Chin: 12.8.1: Each pane has its own pane descriptor. For multiple pane architecture, we only 
     	// let skewtPaneDescriptor to handle this function. Otherwise, stepping will cause X times frame change
-    	// as each pane will change frame once.
+    	// as each pane will change frame once.s
     }
     //@Override
     public void checkDrawTime(LoopProperties loopProperties) {

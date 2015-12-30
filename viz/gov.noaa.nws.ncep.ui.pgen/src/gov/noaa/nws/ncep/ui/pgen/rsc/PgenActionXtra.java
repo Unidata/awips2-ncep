@@ -27,6 +27,10 @@ import org.eclipse.core.runtime.IConfigurationElement;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jul 13, 2015 R8198      srussell     Initial creation
+ * Sep 01, 2015 R11365     srussell     added a new form of getActionsXtra()
+ *                                      that returns a List<String> for a 
+ *                                      specified PgenType and does not apply
+ *                                      rules for inclusion to a context menu.
  * 
  * </pre>
  * 
@@ -70,6 +74,38 @@ public class PgenActionXtra {
         }
 
         return actionsxtra;
+
+    }
+
+    /**
+     * Get a List of Pgen context menu choices (actionsxtra ) associated with a
+     * PgenType ( aka the "name" attribute in the plugin.xml ) represented as an
+     * IConfigurationElement input argument
+     * 
+     * @param IConfigurationElement
+     *            ice,
+     * 
+     * @return List<String> context menu choices, actionsxtra, Pgen actions that
+     *         never appear as buttons for PgenType represented by the input
+     *         argument
+     */
+
+    public static List<String> getActionsXtra(IConfigurationElement ice) {
+        String actionsxtra = null;
+        List<String> actionsxtraList = null;
+
+        if (ice != null) {
+            actionsxtra = ice.getAttribute(PgenConstant.ACTIONSXTRA);
+            actionsxtra = (actionsxtra != null) ? actionsxtra.trim()
+                    : actionsxtra;
+        }
+
+        if (actionsxtra != null && !actionsxtra.isEmpty()) {
+            actionsxtraList = Arrays.asList(actionsxtra
+                    .split(PgenConstant.PLUGINXML_ATTRIBUTE_DELIMETER));
+        }
+
+        return actionsxtraList;
 
     }
 

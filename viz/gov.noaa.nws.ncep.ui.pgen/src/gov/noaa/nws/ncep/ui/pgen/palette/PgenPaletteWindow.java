@@ -118,6 +118,9 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 06/15        R8199       S. Russell  Updated createPaletteSection() to suppress
  *                                      unwanted button creation. Converted literals
  *                                      from the legacy into constants there.
+ *                                      
+ * 09/04/2015   RM 11495    S. Russell  Update a loop in createPaletteSection()
+ *                                      to fix a merge conflict
  * 
  * </pre>
  * 
@@ -465,24 +468,47 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         /*
          * Loop through each item registered with this section, and add the item
-         * to the palette if it is also in the buttonList. If the buttonList is
+         * to the palate if it is also in the buttonList. If the buttonList is
          * null, add all items.
          */
         for (String bname : buttons) {
 
             IConfigurationElement element = itemMap.get(bname);
 
-            /*
-             * determine if button should be added to palette
-             */
+            // Determine if button should be added to palette
             String always = element.getAttribute(PgenConstant.ALWAYS_VISIBLE);
-            if (always == null)
-                isAlwaysVisible = true;
-            else if (always.equalsIgnoreCase(PgenConstant.FALSE))
-                isAlwaysVisible = false;
-            else if (always.equalsIgnoreCase(PgenConstant.TRUE))
+
+            // IF ALWAYS_VISIBLE was not specified
+            if (always == null) {
+
+                // Skip this loop iteration
+                // If the buttonList doesn't list this button
+                if (buttonList != null) {
+                    if (!buttonList.contains(bname))
+                        continue;
+                }
+
+                // Set it as true
                 isAlwaysVisible = true;
 
+            } // If ALWAYS_VISIBLE is FALSE
+            else if (always.equalsIgnoreCase(PgenConstant.FALSE)) {
+                // Set it as FALSE
+                isAlwaysVisible = false;
+
+                // Skip this loop iteration
+                // if buttonList doesn't have this button name
+                if (buttonList != null) {
+                    if (!buttonList.contains(bname))
+                        continue;
+                }
+
+            } // If ALWAYS_VISIBLE is TRUE
+            else if (always.equalsIgnoreCase(PgenConstant.TRUE)) {
+                isAlwaysVisible = true;
+            }
+
+            // Skip this loop iteration, no button
             if (!isAlwaysVisible) {
                 continue;
             }

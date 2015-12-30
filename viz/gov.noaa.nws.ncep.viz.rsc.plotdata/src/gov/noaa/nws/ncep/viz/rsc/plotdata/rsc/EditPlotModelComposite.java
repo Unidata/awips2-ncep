@@ -46,6 +46,10 @@ import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
+
 /**
  * UI for editing Point data resource attributes.
  * 
@@ -75,6 +79,7 @@ import org.eclipse.swt.widgets.Scale;
  * 03/10/2014    921        S. Russell  TTR 921: implemented the Clear & Reset buttons
  * 06/17/2014    923        S. Russell  TTR 923: altered method initWidgets()
  * 11/03/2014  R5156        B. Hebbard  Add more textFontOptions
+ * 08/14/2015  R7757        B. Hebbard  Enable (symbol) size selection for vector parameters
  * 
  * </pre>
  * 
@@ -82,6 +87,9 @@ import org.eclipse.swt.widgets.Scale;
  * @version 1.0
  */
 public class EditPlotModelComposite extends Composite {
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(EditPlotModelComposite.class);
 
     private PlotModel editedPlotModel = null;
 
@@ -140,11 +148,9 @@ public class EditPlotModelComposite extends Composite {
     private ArrayList<String> availSkyCoverParams = null;
 
     // declare here for setting the text to reflect the actual size
-    private Label symSizeLabel = null;
+    private Label symbolSizeLabel = null;
 
     // center parameter only Buttons
-    // private Button brGrpChkBtn = null;
-    // private Button skycChkBtn = null;
     private Label skycLbl = null;
 
     private Label wndBrbLbl = null;
@@ -157,7 +163,7 @@ public class EditPlotModelComposite extends Composite {
         super(parent, style);
         editedPlotModel = pm;
         this.rscData = rscData;
-        topComposite = this;// new Group( parent, SWT.SHADOW_NONE );
+        topComposite = this;
         GridLayout mainLayout = new GridLayout(1, true);
         mainLayout.marginHeight = 1;
         mainLayout.marginWidth = 1;
@@ -201,7 +207,6 @@ public class EditPlotModelComposite extends Composite {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement().setTextSize(
                             textSizeCombo.getText());
-
                     if (applyToAllBtn.getSelection()) {
                         applyTextChangesToAllParameters();
                     }
@@ -218,13 +223,6 @@ public class EditPlotModelComposite extends Composite {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement().setTextFont(
                             textFontCombo.getText());
-
-                    // if ("Standard".equals(textFontCombo.getText())) {
-                    // textStyleCombo.select(0);
-                    // textStyleCombo.setEnabled(false);
-                    // } else {
-                    // textStyleCombo.setEnabled(true);
-                    // }
                     textStyleCombo.setEnabled(true);
                     if (applyToAllBtn.getSelection()) {
                         applyTextChangesToAllParameters();
@@ -242,7 +240,6 @@ public class EditPlotModelComposite extends Composite {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement().setTextStyle(
                             textStyleCombo.getText());
-
                     if (applyToAllBtn.getSelection()) {
                         applyTextChangesToAllParameters();
                     }
@@ -255,7 +252,6 @@ public class EditPlotModelComposite extends Composite {
         applyToAllBtn.setToolTipText("Apply changes to all text parameters");
         applyToAllBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-
                 if (applyToAllBtn.getSelection()) {
                     applyTextChangesToAllParameters();
                 }
@@ -301,10 +297,10 @@ public class EditPlotModelComposite extends Composite {
         GridData gd2 = new GridData(45, 114);
         Group symbolSizeGrp = new Group(comp, SWT.SHADOW_NONE);
         symbolSizeGrp.setLayout(new GridLayout(1, false));
-        symbolSizeGrp.setText("Symbol\n   Size");
+        symbolSizeGrp.setText("Size");
 
-        symSizeLabel = new Label(symbolSizeGrp, SWT.BOLD);
-        symSizeLabel.setText("    0.5");
+        symbolSizeLabel = new Label(symbolSizeGrp, SWT.BOLD);
+        symbolSizeLabel.setText("    0.5");
 
         symbolSizeScale = new Scale(symbolSizeGrp, SWT.VERTICAL);
         symbolSizeScale.setLayoutData(gd2);
@@ -319,7 +315,7 @@ public class EditPlotModelComposite extends Composite {
             public void handleEvent(Event event) {
                 double selection = symbolSizeScale.getSelection();
 
-                symSizeLabel.setText(String.valueOf(selection / 10));
+                symbolSizeLabel.setText(String.valueOf(selection / 10));
 
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.setSymbolSize(selection / 10);
@@ -338,20 +334,8 @@ public class EditPlotModelComposite extends Composite {
             public void propertyChange(PropertyChangeEvent event) {
                 if (seldPlotModelElemButton != null) {
                     RGB rgb = cms.getColorValue();
-
-                    // if (seldPlotModelElemButton instanceof
-                    // PlotModelElemComboButton) {
-                    // System.out.println("==> listener using combo btn");
-                    // ((PlotModelElemComboButton)
-                    // seldPlotModelElemButton).setColor(rgb);
-                    // ((PlotModelElemComboButton)
-                    // seldPlotModelElemButton).setButtonAsSelected();
-                    // } else {
-                    // System.out.println("==> listener using single btn");
-
                     seldPlotModelElemButton.setColor(rgb);
                     seldPlotModelElemButton.setButtonAsSelected();
-                    // }
                 }
             }
         });
@@ -452,9 +436,7 @@ public class EditPlotModelComposite extends Composite {
             }
 
             try {
-
-                // the center button stores the sky coverage and wind barb
-                // params
+                // center button stores the sky coverage and wind barb params
                 if (plotModelElementPositions[i].equals("MC")) {
                     PlotModelElemCenterButton cntrBtn = new PlotModelElemCenterButton(
                             comp, pme, editedPlotModel.getSkyCoverageElement(),
@@ -468,11 +450,11 @@ public class EditPlotModelComposite extends Composite {
                     plotModelElementsUIMap.put(plotModelElementPositions[i],
                             pmeBtn);
                 }
-
-            }// end try
-            catch (Exception e) {
-                e.printStackTrace();
-
+            } catch (Exception e) {
+                statusHandler
+                        .handle(Priority.PROBLEM,
+                                "Exception when setting up plotModelElementsUIMap in EditPlotModelComposite.createPlotModelGuiElements(): "
+                                        + e);
             }
         }
 
@@ -535,16 +517,11 @@ public class EditPlotModelComposite extends Composite {
 
         protected Group grp = null;
 
-        protected Group advGrp = null;
-
-        protected Group parmGrp = null;
-
         protected Button parmBtn = null;;
 
         protected Button checkBtn = null;
 
-        // create the widgets and add the listeners. init() will be called to
-        // set the
+        // create the widgets and add the listeners
         public PlotModelElemButton(Composite topComp, final PlotModelElement pme) {
             pltMdlElmt = pme;
 
@@ -593,14 +570,11 @@ public class EditPlotModelComposite extends Composite {
         }
 
         public void checkButtonSelected() {
-            // pltMdlElmt.setEnable( checkBtn.getSelection() );
 
-            // if unchecking then remove this element from the plotModel
-            // else if checking and the param name is set, add it back to the
-            // plotModel
-            // (if checking and no param is set then the element will be added
-            // to the
-            // plotModel when the param is selected.
+            // if unchecking then remove this element from the plotModel, else
+            // if checking and the param name is set, add it back to the
+            // plotModel (if checking and no param is set then the element will
+            // be added to the plotModel when the param is selected.
 
             if (!checkBtn.getSelection()) {
                 editedPlotModel.removePlotModelElement(pltMdlElmt);
@@ -632,13 +606,13 @@ public class EditPlotModelComposite extends Composite {
                         }
                     }
 
-                    // Set color in the ColorMatricSelector widget
+                    // Set color in the ColorMatrixSelector widget
                     cms.setColorValue(getColor());
 
                     // set the fore/background colors of the button and group
                     setButtonAsSelected();
                 } else { // Parm not selected yet
-                         // Set color in the ColorMatricSelector widget
+                         // Set color in the ColorMatrixSelector widget
                     cms.setColorValue(getColor());
                 }
 
@@ -716,7 +690,7 @@ public class EditPlotModelComposite extends Composite {
             // Set foreground and background color.
             if (isParamNameSelected()) {
                 checkBtn.setEnabled(true);
-                checkBtn.setSelection(true); // pltMdlElmt.getEnable() );
+                checkBtn.setSelection(true);
 
                 parmBtn.setForeground(new Color(getParent().getDisplay(),
                         getColor().red, getColor().green, getColor().blue));
@@ -819,8 +793,7 @@ public class EditPlotModelComposite extends Composite {
                 PlotModelElement pme, PlotModelElement sce, PlotModelElement wbe) {
             super(topComp, pme);
             // if either is null then create a new PlotModelElement but don't
-            // add it to the
-            // editedPlotModel unless a param name is set.
+            // add it to the editedPlotModel unless a param name is set.
             skyCovElmt = sce;
 
             if (skyCovElmt == null) {
@@ -857,8 +830,7 @@ public class EditPlotModelComposite extends Composite {
             super.checkButtonSelected();
 
             // if unchecking then remove the wndBrb and skyCov elements from the
-            // plotModel
-            // else add it back
+            // plotModel else add it back
             if (!checkBtn.getSelection()) {
                 editedPlotModel.removePlotModelElement(wndBrbElmt);
                 editedPlotModel.removePlotModelElement(skyCovElmt);
@@ -873,24 +845,19 @@ public class EditPlotModelComposite extends Composite {
 
         }
 
-        // if a 'normal' param is selected in the center then the SkyC and
-        // WindBarb are disabled and if
-        // a skyC or WindBarb is selected then the normal param is not allowed.
+        // If a 'normal' param is selected in the center then the SkyC and
+        // WindBarb are disabled and if a skyC or WindBarb is selected then the
+        // normal param is not allowed.
         @Override
         public void setParmName(String prm) {
             super.setParmName(prm);
 
-            // skyCovElmt.setEnable( false );
-            // wndBrbElmt.setEnable( false );
             setSkyCoverageParamName(null);
             setWindBarbParamName(null);
 
             // update the label and combo menus with new selections
             setSelectedSkyAndWindParams();
             parmBtn.setText(getButtonLabel());
-
-            // skycChkBtn.setSelection( false );
-            // brGrpChkBtn.setSelection( false );
         }
 
         public String getWindBarbParamName() {
@@ -949,10 +916,7 @@ public class EditPlotModelComposite extends Composite {
         public String getButtonLabel() {
             if (skyCovElmt.getParamName() == null
                     && wndBrbElmt.getParamName() == null) {
-
-                // parmBtn.setText( getParmName() )
                 return super.getButtonLabel();
-
             } else if (skyCovElmt.getParamName() == null) {
                 return wndBrbElmt.getParamName();
             } else if (wndBrbElmt.getParamName() == null) {
@@ -970,14 +934,6 @@ public class EditPlotModelComposite extends Composite {
         public PlotModelElement getWindBarbPlotModelElement() {
             return wndBrbElmt;
         }
-
-        // public void setSkyCoveragePlotModelElement(PlotModelElement sce) {
-        // skyCovElmt = sce;
-        // }
-        //
-        // public void setWindBarbPlotModelElement(PlotModelElement wbe) {
-        // wndBrbElmt = wbe;
-        // }
 
         @Override
         public Double getSymbolSize() {
@@ -1029,9 +985,8 @@ public class EditPlotModelComposite extends Composite {
 
             if (parmBtn.getSelection()) {
 
-                // if any param is selected then set the background color
+                // If any param is selected then set the background color
                 // ('normal' param selections are checked in the super.)
-                //
                 if (wndBrbElmt.getParamName() != null
                         || skyCovElmt.getParamName() != null) {
 
@@ -1099,18 +1054,7 @@ public class EditPlotModelComposite extends Composite {
     private void createCtrParamControls() {
 
         availWindBarpParams = plotParamDefns.getWindBarbParams();
-        availSkyCoverParams = plotParamDefns.getSkyCoverageParams(); // plotParamDefns.getSpecialTableParams();
-
-        // if( availWindBarpParams.size() == 0 &&
-        // availSkyCoverParams.size() == 0 ) {
-        // return;
-        // }
-
-        PlotModelElemCenterButton cntrBtn = (PlotModelElemCenterButton) plotModelElementsUIMap
-                .get("MC");
-
-        PlotModelElement wndBrbPme = cntrBtn.getWindBarbPlotModelElement();
-        PlotModelElement skyCovPme = cntrBtn.getSkyCoveragePlotModelElement();
+        availSkyCoverParams = plotParamDefns.getSkyCoverageParams();
 
         ctrGrp = new Group(topComposite, SWT.SHADOW_NONE);
         GridLayout gl = new GridLayout(6, false);
@@ -1121,8 +1065,6 @@ public class EditPlotModelComposite extends Composite {
         ctrGrp.setLayout(gl);
         ctrGrp.setText("Center Only Parameters");
 
-        // skycChkBtn = new Button( ctrGrp, SWT.CHECK );
-        // skycChkBtn.setText( "Sky Coverage" );
         skycLbl = new Label(ctrGrp, SWT.None);
         skycLbl.setText("Sky Coverage");
 
@@ -1145,8 +1087,6 @@ public class EditPlotModelComposite extends Composite {
         Label sepe = new Label(ctrGrp, 0);
         sepe.setText("     ");
 
-        // brGrpChkBtn = new Button(ctrGrp, SWT.CHECK);
-        // brGrpChkBtn.setText("Wind Barb ");
         wndBrbLbl = new Label(ctrGrp, SWT.None);
         wndBrbLbl.setText("Wind Barb ");
 
@@ -1183,24 +1123,17 @@ public class EditPlotModelComposite extends Composite {
         String seldSkyCovParam = cntrBtn.getSkyCovParamName();
 
         if (seldSkyCovParam == null) {
-            // skycChkBtn.setSelection( false );
-            // comboSky.deselectAll();
             comboSky.select(0);
         } else {
-            // skycChkBtn.setSelection( skyCovPme.getEnable() );
-            comboSky.select(availSkyCoverParams.indexOf(seldSkyCovParam) + 1); // 0
-                                                                               // indx
-                                                                               // is
-                                                                               // 'None'
+            // 0 indx is 'None'
+            comboSky.select(availSkyCoverParams.indexOf(seldSkyCovParam) + 1);
         }
 
         String seldWndBarbParam = cntrBtn.getWindBarbParamName();
 
         if (seldWndBarbParam == null) {
-            // brGrpChkBtn.setSelection( false );
             comboBrbk.select(0);
         } else {
-            // brGrpChkBtn.setSelection( wndBrbPme.getEnable() );
             comboBrbk.select(availWindBarpParams.indexOf(seldWndBarbParam) + 1);
         }
     }
@@ -1216,40 +1149,28 @@ public class EditPlotModelComposite extends Composite {
 
             advancedBtn.setEnabled(true);
 
-            // if( seldPlotModelElemButton.getPlotModelElement().getParamName()
-            // != null ) {
             prmDefn = plotParamDefns.getPlotParamDefn(seldPlotModelElemButton
                     .getPlotModelElement().getParamName());
 
-            // add further constraints here on the plot class if necessary
+            // Add further constraints here on the plot class if necessary
             if (prmDefn != null) {
                 isTextApplicable = prmDefn.getPlotMode().equalsIgnoreCase(
                         "text");
                 isSymbApplicable = prmDefn.getPlotMode().equalsIgnoreCase(
-                        "table");
+                        "table")
+                        || prmDefn.isVectorParameter();
             }
-            // if this is the center button and a 'regular' parameter isn't set
-            // then
-            // check if a skyc or wind barb is set and check if the symbol is
-            // applicable
-            //
+            // If this is the center button and a 'regular' parameter isn't set
+            // then check if a skyc or wind barb is set and check if the symbol
+            // is applicable
             else if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) {
                 PlotModelElemCenterButton cntrBtn = (PlotModelElemCenterButton) seldPlotModelElemButton;
-
                 if (cntrBtn.getSkyCovParamName() != null
                         || cntrBtn.getWindBarbParamName() != null) {
-                    // prmDefn = plotParamMngr.getParamDefn(
-                    // cntrBtn.getSkyCovParamName() );
                     isTextApplicable = false;
-                    isSymbApplicable = true; // (prmDefn != null);
+                    isSymbApplicable = true;
                 }
-
-                // if (cntrBtn.getSkyCovParamName() != null &&
-                // cntrBtn.getWindBarbParamName() != null) {
-                // advancedBtn.setEnabled(false);
-                // }
             }
-            // }
 
         }
 
@@ -1286,11 +1207,6 @@ public class EditPlotModelComposite extends Composite {
                 }
             }
 
-            // if ("Standard".equals(textFontCombo.getText())) {
-            // textStyleCombo.select(0);
-            // textStyleCombo.setEnabled(false);
-            // }
-
             if (applyToAllBtn.getSelection()) {
                 applyTextChangesToAllParameters();
             }
@@ -1302,7 +1218,6 @@ public class EditPlotModelComposite extends Composite {
             textStyleCombo.deselectAll();
             textStyleCombo.setEnabled(false);
             applyToAllBtn.setEnabled(false);
-            // advancedBtn.setEnabled(false);
         }
 
         // Set symbol size if applicable
@@ -1312,16 +1227,16 @@ public class EditPlotModelComposite extends Composite {
 
             if (seldPlotModelElemButton.getSymbolSize() > 3) {
                 symbolSizeScale.setSelection(30);
-                symSizeLabel.setText("    " + 3.0);
+                symbolSizeLabel.setText("    " + 3.0);
             } else {
                 double size = seldPlotModelElemButton.getSymbolSize();
                 symbolSizeScale.setSelection((int) (size * 10));
-                symSizeLabel.setText("    " + size);
+                symbolSizeLabel.setText("    " + size);
             }
         } else {
             symbolSizeScale.setSelection(0);
             symbolSizeScale.setEnabled(false);
-            symSizeLabel.setText("    ");
+            symbolSizeLabel.setText("    ");
         }
     }
 
@@ -1332,7 +1247,6 @@ public class EditPlotModelComposite extends Composite {
         comboBrbk.setEnabled(enable);
     }
 
-    // TTR 921 changed to protected
     public PlotModel getEditedPlotModel() {
         return this.editedPlotModel;
     }
@@ -1345,7 +1259,6 @@ public class EditPlotModelComposite extends Composite {
                 PlotParameterDefn prmDefn = plotParamDefns
                         .getPlotParamDefn(pmeBtn.getPlotModelElement()
                                 .getParamName());
-
                 if (prmDefn != null) {
                     if (prmDefn.getPlotMode().equalsIgnoreCase("text")) {
                         pmeBtn.getPlotModelElement().setTextSize(
@@ -1375,7 +1288,7 @@ public class EditPlotModelComposite extends Composite {
             if (skycPltMdlElmt != null) {
                 pltMdlElmt = skycPltMdlElmt;
             } else if (wbPltMdlElmt != null) {
-                pltMdlElmt = skycPltMdlElmt;
+                pltMdlElmt = wbPltMdlElmt;
 
             } else {
                 return;
@@ -1440,18 +1353,9 @@ public class EditPlotModelComposite extends Composite {
 
         PlotModelElemCenterButton pmecb = null;
         PlotModelElemButton pmeBtn = null;
-        PlotModelElemButton blnkPMEBtn = origPltMdlElmntsUIMap.get("TC");
-        PlotModelElement temp_pme, temp_spme, temp_wpme = null;
-        String blnkPMEBtnLbl = blnkPMEBtn.getButtonLabel();
-        RGB parm_orig_color = null;
         Color widget_background = null;
         Color widget_foreground = null;
         Display display = Display.getDefault();
-
-        // Get the color of an empty button, labeled "Parm"
-        if (blnkPMEBtn != null && blnkPMEBtnLbl.equalsIgnoreCase("Parm")) {
-            parm_orig_color = blnkPMEBtn.getColor();
-        }
 
         // Get the background & foreground colors of an empty button
         widget_background = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -1510,8 +1414,6 @@ public class EditPlotModelComposite extends Composite {
         PlotModel origPlotModel = new PlotModel(this.getOriginalPlotModel());
         PlotModelElement opme = null;
         PlotModelElement oskypme, owindpme, tpme = null;
-        PlotModelElement oprimepme = null;
-        PlotModelElement osecondpme = null;
         PlotModelElemButton pmeBtn = null;
         PlotModelElemCenterButton cntrBtn = null;
         RGB rgb = null;
@@ -1594,8 +1496,7 @@ public class EditPlotModelComposite extends Composite {
 
             if (opme.getParamName() != null) {
                 editedPlotModel.putPlotModelElement(opme);
-            }// opme null paramname
-            else {
+            } else { // opme null paramname
                 editedPlotModel.removePlotModelElement(opme);
             }
 
@@ -1617,9 +1518,6 @@ public class EditPlotModelComposite extends Composite {
                 ResourceAttrSet origAttrSet = null;
 
                 resource_name = rscData.getResourceName();
-                // System.out.print("resoure_name: " + resource_name);
-                // System.out.println("==> resource_version: " +
-                // resource_version);
                 original_resource = ResourceFactory
                         .createResource(resource_name);
                 origResourceData = original_resource.getResourceData();

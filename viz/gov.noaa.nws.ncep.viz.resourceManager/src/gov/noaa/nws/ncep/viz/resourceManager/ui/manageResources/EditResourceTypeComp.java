@@ -1,11 +1,8 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources;
 
-import gov.noaa.nws.ncep.viz.common.StringListAdapter;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl.IEditResourceComposite;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
@@ -17,7 +14,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -41,6 +37,9 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationFile;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 /**
@@ -66,12 +65,18 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 06/10/13       #997	    Greg Hull    Copy AttrSets with RDs
  * 07/18/13      #1011      Greg Hull    Add ALL_DATA as a frameSpan option.
  * 06/26/2014    #1136      Quan Zhou    Disable dfltNumFramesLbl & dfltNumFramesSpnr when TIMESERIES
+ * 08/17/2015    R7755      J. Lopez     Only the lowest level localization file is read, moved isEnabled" flag  is moved to Resource Definitions and 
+ *                                       removed "Filterable Labels" section from Resource Definition editor
+ * 
  * </pre>
  * 
  * @author
  * @version 1
  */
 class EditResourceTypeComp extends Composite implements IEditResourceComposite {
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(EditResourceTypeComp.class);
+
     ResourceDefnsMngr rscDefnMngr;
 
     ManageResourceControl mngrControl; // the parent composite
@@ -88,7 +93,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
     Spinner dfltTimeRangeHrsSpnr;
 
-    // Spinner timeIntervalSpnr;
     Label frameIntLbl; // either 'Frame Span' or 'Default Frame Interval'
 
     Combo frameSpanCombo;
@@ -107,7 +111,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
     Button useFcstFrameIntrvlBtn;
 
-    // Combo timelineGenMethodCombo;
     Combo timeMatchMethodCombo;
 
     Button binDataBtn;
@@ -192,13 +195,10 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         dfltNumFramesSpnr.setLayoutData(fd);
 
         dfltNumFramesLbl = new Label(top_form, SWT.NONE);
-        dfltNumFramesLbl.setText("Num Frames");// Default Num\nFrames");
+        dfltNumFramesLbl.setText("Num Frames");
         fd = new FormData();
         fd.bottom = new FormAttachment(dfltNumFramesSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(dfltNumFramesSpnr, 0, SWT.LEFT); // rscTypeTxt,
-                                                                      // 20,
-                                                                      // SWT.RIGHT
-                                                                      // );
+        fd.left = new FormAttachment(dfltNumFramesSpnr, 0, SWT.LEFT);
         dfltNumFramesLbl.setLayoutData(fd);
 
         dfltNumFramesSpnr.setMinimum(1);
@@ -214,7 +214,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         fd.left = new FormAttachment(45, 0);
         fd.top = new FormAttachment(dfltNumFramesSpnr, 0, SWT.TOP);
         fd.right = new FormAttachment(100, -10);
-        // fd.bottom = new FormAttachment( 65, 0 );
+
         editParamsTxt.setLayoutData(fd);
 
         editParamsLbl = new Label(top_form, SWT.NONE);
@@ -225,33 +225,12 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         fd.right = new FormAttachment(editParamsTxt, 0, SWT.RIGHT);
         editParamsLbl.setLayoutData(fd);
 
-        filterLabelsTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER); // |
-                                                                       // SWT.V_SCROLL
-                                                                       // |
-                                                                       // SWT.H_SCROLL
-                                                                       // );
-        fd = new FormData();
-        fd.height = 20;
-        fd.left = new FormAttachment(editParamsTxt, 0, SWT.LEFT);
-        fd.right = new FormAttachment(editParamsTxt, 0, SWT.RIGHT);
-        fd.top = new FormAttachment(editParamsTxt, 40, SWT.BOTTOM);
-        filterLabelsTxt.setLayoutData(fd);
-        filterLabelsTxt.setToolTipText("comma-separated labels.");
-
-        filterLabelsLbl = new Label(top_form, SWT.NONE);
-        filterLabelsLbl.setText("Filterable Labels");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(filterLabelsTxt, -3, SWT.TOP);
-        fd.left = new FormAttachment(filterLabelsTxt, 0, SWT.LEFT);
-        // the text will be changed for the localization level so make it wider
-        fd.right = new FormAttachment(filterLabelsTxt, 0, SWT.RIGHT);
-        filterLabelsLbl.setLayoutData(fd);
-
         rscImplTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER);
         fd = new FormData();
         fd.width = 150;
-        fd.left = new FormAttachment(filterLabelsTxt, 0, SWT.LEFT);
-        fd.top = new FormAttachment(filterLabelsTxt, 40, SWT.BOTTOM);
+        fd.left = new FormAttachment(editParamsTxt, 0, SWT.LEFT);
+        fd.right = new FormAttachment(editParamsTxt, 0, SWT.RIGHT);
+        fd.top = new FormAttachment(editParamsTxt, 40, SWT.BOTTOM);
         rscImplTxt.setLayoutData(fd);
         rscImplTxt.setToolTipText(rscImplToolTipText);
         rscImplTxt.setBackground(top_form.getBackground());
@@ -267,8 +246,9 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         subTypeGenTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER);
         fd = new FormData();
         fd.width = 140;
-        fd.left = new FormAttachment(rscImplTxt, 15, SWT.RIGHT);
-        fd.top = new FormAttachment(rscImplTxt, 0, SWT.TOP);
+        fd.left = new FormAttachment(editParamsTxt, 0, SWT.LEFT);
+        fd.right = new FormAttachment(editParamsTxt, 0, SWT.RIGHT);
+        fd.top = new FormAttachment(editParamsTxt, 100, SWT.BOTTOM);
         subTypeGenTxt.setLayoutData(fd);
         subTypeGenTxt.setToolTipText(subTypeGenToolTipText);
         subTypeGenTxt.setVisible(false);
@@ -287,7 +267,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         fd.top = new FormAttachment(rscTypeTxt, 40, SWT.BOTTOM);
         fd.left = new FormAttachment(rscTypeTxt, 0, SWT.LEFT);
         frameSpanCombo.setLayoutData(fd);
-        // frameIntervalCombo.setToolTipText( frameIntervalToolTipText );
+
         frameSpanCombo.setItems(availFrameSpanStrings);
 
         frameIntLbl = new Label(top_form, SWT.NONE);
@@ -316,13 +296,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         dfltTimeRangeDaysSpnr.setIncrement(1);
         dfltTimeRangeDaysSpnr.setTextLimit(4);
         dfltTimeRangeDaysSpnr.setPageIncrement(30);
-
-        // Label timeRangeDaysLbl = new Label( top_form, SWT.NONE );
-        // timeRangeDaysLbl.setText("Days");
-        // fd = new FormData();
-        // fd.top = new FormAttachment( dfltTimeRangeDaysSpnr, 3, SWT.TOP );
-        // fd.left = new FormAttachment( dfltTimeRangeDaysSpnr, 3, SWT.RIGHT );
-        // timeRangeDaysLbl.setLayoutData( fd );
 
         dfltTimeRangeHrsSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
@@ -482,13 +455,9 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         cancelBtn.setLayoutData(fd);
 
         // initialize the combo boxes with selectable items.
-        //
         for (TimeMatchMethod tmm : TimeMatchMethod.values()) {
             timeMatchMethodCombo.add(tmm.toString());
         }
-
-        ArrayList<String> availRscImplementations = ResourceExtPointMngr
-                .getInstance().getAvailResources();
 
         rscTypeTxt.addModifyListener(new ModifyListener() {
             @Override
@@ -510,9 +479,8 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
                     // if the name has been changed, the 'save' button acts as a
                     // 'Rename' or Save As
-                    //
+
                     // disable the New button if the name hasn't been changed.
-                    //
                     if (seldRscDefn.getResourceDefnName().equals(newTextStr)) {
                         saveTypeBtn.setText("Save");
 
@@ -525,9 +493,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
                         // exists
                         String rscType = newTextStr;
 
-                        // ResourceDefinition.getResourceType(
-                        // rscTypeTxt.getText().trim() );
-
                         if (rscDefnMngr.findResourceDefinition(rscType)) {
                             saveTypeBtn.setEnabled(false);
                         }
@@ -538,11 +503,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
         useFrameIntrvlBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                // frameIntervalCombo.setEnabled(
-                // useTimeIntrvlBtn.getSelection() );
-                // timeIntervalCombo.setVisible( useTimeIntrvlBtn.getSelection()
-                // );
-                // minsLbl1.setVisible( useTimeIntrvlBtn.getSelection() );
+
             }
         });
 
@@ -562,20 +523,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
             public void modifyText(ModifyEvent e) {
             }
         });
-
-        // subTypeGenTxt.addVerifyListener( new VerifyListener() {
-        // @Override
-        // public void verifyText(VerifyEvent event) {
-        // String text = ((Text) event.widget).getText();
-        // String newText = event.text;
-        //
-        // if( !text.startsWith("${") ||
-        // !text.endsWith("}" ) ) {
-        // event.doit = false;
-        // return;
-        // }
-        // }
-        // });
 
         saveTypeBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
@@ -661,8 +608,8 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
                     rscDefnMngr.getResourceDefinition(seldRscName));
 
             if (seldRscDefn == null) { // ????
-                System.out.println("Unable to get Resource Defn for:"
-                        + seldRscName);
+                statusHandler.handle(Priority.PROBLEM,
+                        ("Unable to get Resource Defn for:" + seldRscName));
                 return;
             }
 
@@ -741,8 +688,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
                 // for Event resources the frameSpan is the default Frame
                 // Interval
                 frameIntLbl.setText("Dflt Frame Interval");
-                // frameSpanCombo.add( "N/A" );
-                // frameSpanCombo.select(0);
+
                 frameSpanCombo.setItems(availFrameSpanStrings);
                 frameSpanCombo
                         .setToolTipText("For this Event-Type resource the Default Frame Interval is \n"
@@ -815,51 +761,29 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
                 editParamsLbl.setVisible(true);
             }
 
-            ResourceDefinitionFilter rdFilt = rscDefnMngr
-                    .getResourceDefnFilter(seldRscDefn.getResourceDefnName());
-            StringListAdapter sla = new StringListAdapter();
-
-            String filtLabelsStr = "";
-            try {
-                filtLabelsStr = sla.marshal(rdFilt.getFilters());
-            } catch (Exception e) {
-            }
-
-            filterLabelsTxt.setText(filtLabelsStr);
-            filterLabelsLbl.setText("Filterable Labels ("
-                    + rdFilt.getLocLevel().toString() + " Level)");
-
             editParamsLbl.setText("Edit Parameters for "
                     + seldRscDefn.getRscImplementation());
 
             rscImplTxt.setText(seldRscDefn.getRscImplementation());
 
-            // if( seldRscDefn.getResourceCategory().equals(
-            // ResourceName.RadarRscCategory ) ||
-            // seldRscDefn.getResourceCategory().equals(
-            // ResourceName.SatelliteRscCategory ) ) {
             if (!seldRscDefn.getSubTypeGenerator().isEmpty()) {
-                // subTypeGenTxt.setEnabled( true );
+
                 subTypeGenTxt.setVisible(true);
                 subTypeGenLbl.setVisible(true);
                 subTypeGenTxt.setText(seldRscDefn.getSubTypeGenerator());
             } else {
-                // subTypeGenTxt.setEnabled( false );
                 subTypeGenTxt.setVisible(false);
                 subTypeGenLbl.setVisible(false);
                 subTypeGenTxt.setText("");
             }
 
-            // BinOffset binOffset = seldRscDefn.getBinOffset();
+            binStartIntrvlSpnr.setVisible(false);
+            binEndIntrvlSpnr.setVisible(false);
+            startLbl.setVisible(false);
+            endLbl.setVisible(false);
 
-            // binDataBtn.setSelection( binOffset != null );
-            binStartIntrvlSpnr.setVisible(false);// binDataBtn.getSelection() );
-            binEndIntrvlSpnr.setVisible(false);// binDataBtn.getSelection() );
-            startLbl.setVisible(false);// binDataBtn.getSelection() );
-            endLbl.setVisible(false);// binDataBtn.getSelection() );
-
-            minsLbl2.setVisible(false);// binDataBtn.getSelection() );
-            minsLbl3.setVisible(false);// binDataBtn.getSelection() );
+            minsLbl2.setVisible(false);
+            minsLbl3.setVisible(false);
         }
     }
 
@@ -907,31 +831,11 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
         setSelectedRscDefnFromGUI(newRscDefn);
 
-        // get the filters and create an entry in the filters map and save the
-        // file
-        //
-        StringListAdapter strListAdptr = new StringListAdapter();
-
-        List<String> filtersList = null;
-        try {
-            filtersList = strListAdptr.unmarshal(filterLabelsTxt.getText()
-                    .trim());
-        } catch (Exception e1) {
-            MessageDialog warnDlg = new MessageDialog(
-                    getShell(),
-                    "Resource",
-                    null,
-                    "Unable to parse the filters string.\n"
-                            + "This should be a list of comma separated strings.",
-                    MessageDialog.WARNING, new String[] { "OK" }, 0);
-            warnDlg.open();
-        }
-
         ResourceDefinitionFilter rdFilt = rscDefnMngr
                 .getResourceDefnFilter(seldRscDefn.getResourceDefnName());
 
         rdFilt = new ResourceDefinitionFilter(newRscDefn.getResourceDefnName(),
-                rdFilt.getIsEnabled(), filtersList, LocalizationLevel.USER);
+                newRscDefn.isEnabled(), null, LocalizationLevel.USER);
 
         rscDefnMngr.setResourceDefnFilters(rdFilt);
 
@@ -964,9 +868,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
         newRscDefn.setLocalizationFile(null);
         newRscDefn.setLocalizationName(newLocFilename);
-
-        // seldRscDefn.setResourceDefnName( rscTypeName );
-        // String origRscType = seldRscDefn.getResourceDefnName();
 
         try {
             rscDefnMngr.saveResourceDefn(newRscDefn);
@@ -1026,61 +927,17 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     }
 
     // The name of the resource type hasn't changed
-    //
     protected void saveResourceDefinition() {
 
         ResourceDefinition saveRD = new ResourceDefinition(seldRscDefn);
 
         setSelectedRscDefnFromGUI(seldRscDefn);
 
-        Boolean filtersChanged = false;
-
-        String newFiltsStr = filterLabelsTxt.getText().trim();
-        StringListAdapter listAdpr = new StringListAdapter();
-
-        try {
-            String curFiltsStr = listAdpr.marshal(
-                    rscDefnMngr.getResourceDefnFilter(
-                            seldRscDefn.getResourceDefnName()).getFilters())
-                    .trim();
-
-            if (!curFiltsStr.equals(newFiltsStr)) {
-                filtersChanged = true;
-
-                // save the new filters to the map and the File
-                ResourceDefinitionFilter rdFilt = rscDefnMngr
-                        .getResourceDefnFilter(seldRscDefn
-                                .getResourceDefnName());
-                rdFilt.setFilters(listAdpr.unmarshal(newFiltsStr));
-                rscDefnMngr.setResourceDefnFilters(rdFilt);
-
-                rscDefnMngr.saveResourceDefnFiltersFile();
-            }
-        } catch (Exception e) {
-            MessageDialog errDlg = new MessageDialog(getShell(),
-                    "Save Resource Filters", null,
-                    "Error Saving Filters for Rsc Defn:\n\n" + e.getMessage(),
-                    MessageDialog.ERROR, new String[] { "OK" }, 0);
-            errDlg.open();
-        }
-
         // check to see if the user has made any changes to the RD and if
         // not we don't need to save it.
         if (saveRD.equals(seldRscDefn)) {
-            if (filtersChanged) {
-                MessageDialog msgDlg = new MessageDialog(
-                        getShell(),
-                        "Saved",
-                        null,
-                        "The Filters for "
-                                + seldRscDefn.getResourceDefnName()
-                                + " have been saved to :.\n"
-                                + NcPathConstants.RESOURCE_FILTERS
-                                + ". No changes were made to the Rsc Defn File.",
-                        MessageDialog.INFORMATION, new String[] { "OK" }, 0);
-                msgDlg.open();
-                return;
-            }
+            return;
+
         }
 
         String rscTypeName = rscTypeTxt.getText().trim();
@@ -1113,35 +970,14 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
                 return;
             }
         }
-        // else { // create a new user-level lFile
-        // LocalizationContext newContext =
-        // NcPathManager.getInstance().getContext(
-        // lFile.getContext().getLocalizationType(),
-        // LocalizationLevel.USER );
-        // lFile = NcPathManager.getInstance().getLocalizationFile( newContext,
-        // lFile.getName() );
-        // seldRscDefn.setLocalizationFile(lFile);
-        // }
 
         try {
             rscDefnMngr.saveResourceDefn(seldRscDefn);
 
-            if (filtersChanged) {
-                MessageDialog msgDlg = new MessageDialog(getShell(), "Saved",
-                        null, "The Resource " + rscTypeName
-                                + " has been saved to a USER-level file.\n"
-                                + "and the Filters in the "
-                                + NcPathConstants.RESOURCE_FILTERS
-                                + " file have been updated.",
-                        MessageDialog.INFORMATION, new String[] { "OK" }, 0);
-                msgDlg.open();
-            } else {
-                MessageDialog msgDlg = new MessageDialog(getShell(), "Saved",
-                        null, "The Resource " + rscTypeName
-                                + " has been saved.\n",
-                        MessageDialog.INFORMATION, new String[] { "OK" }, 0);
-                msgDlg.open();
-            }
+            MessageDialog msgDlg = new MessageDialog(getShell(), "Saved", null,
+                    "The Resource " + rscTypeName + " has been saved.\n",
+                    MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+            msgDlg.open();
 
         } catch (VizException e) {
             MessageDialog confirmDlg = new MessageDialog(getShell(),
@@ -1158,7 +994,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     }
 
     // update the seldRscDefn with the GUI selections
-    //
     private void setSelectedRscDefnFromGUI(ResourceDefinition rscDefn) {
 
         rscDefn.setDfltFrameCount(dfltNumFramesSpnr.getSelection());
@@ -1196,16 +1031,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         int timeRangeHrs = dfltTimeRangeDaysSpnr.getSelection() * 24
                 + dfltTimeRangeHrsSpnr.getSelection();
         rscDefn.setDfltTimeRange(timeRangeHrs);
-
-        // The GUI is in minutes and binOffset is in seconds
-        // if( binDataBtn.getSelection() ) {
-        // rscDefn.setBinOffset(
-        // new BinOffset( binEndIntrvlSpnr.getSelection()*60,
-        // binStartIntrvlSpnr.getSelection()*60 ) );
-        // }
-        // else {
-        // rscDefn.setBinOffset( null );
-        // }
 
         if (editParamsTxt.isVisible()) {
             if (!rscDefn.getResourceParametersAsString().equals(

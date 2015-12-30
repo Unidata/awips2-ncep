@@ -1,6 +1,6 @@
 ! Parameters and Attributes for the default WaveSat Resource
 !
-colorBar=@ColorBars/WaveSat/waveSatColorBar.xml
+colorBar=@ColorBars/WaveSat/waveSatColorBarFeet.xml
 fontSize=12
 fontName=Times
 timeDisplayInterval=30

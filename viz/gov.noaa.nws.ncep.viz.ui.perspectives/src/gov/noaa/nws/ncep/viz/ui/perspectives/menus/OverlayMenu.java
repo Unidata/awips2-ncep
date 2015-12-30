@@ -41,7 +41,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 06/05/12      #816        G. Hull      update for ResourceDefns returned by getResourceDefnsForCategory()                                        
  * 02/22/13      #972        G. Hull      only for supported display types
  * 04/09/13      #864        G. Hull      add sub-menus for filters and isEnabled.
- * 01/21/14					 M. James	  reconfigured overlay menu to toggle/unload.
+ * 01/21/14					 mjames@ucar  reconfigured overlay menu to toggle/unload.
+ * 12/30/15					 mjames@ucar  Call getResourceMapName() for menu text.
  * </pre>
  * 
  * @author ghull
@@ -146,12 +147,12 @@ public class OverlayMenu extends CompoundContributionItem {
 		Map<String, String> params = new HashMap<String, String>();
 		ovrlyRsc.getResourceParameters(isEnabled());
 		params.put("overlayName", ovrlyRsc.getResourceDefnName() );
-		params.put("resourceMapName", ovrlyRsc.getMapName() );
+		params.put("resourceMapName", ovrlyRsc.getResourceMapName() );
 		
 		CommandContributionItemParameter param = new CommandContributionItemParameter(
 				PlatformUI.getWorkbench(), null,
 				"gov.noaa.nws.ncep.viz.ui.actions.loadOverlay", params,
-				null, null, null, ovrlyRsc.getMapName(), null, null,
+				null, null, null, ovrlyRsc.getResourceMapName(), null, null,
 				CommandContributionItem.STYLE_CHECK, null, true);
 		
 		return new CommandContributionItem( param );

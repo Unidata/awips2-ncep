@@ -94,7 +94,7 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
  *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
  *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
- * 
+ *  12/30/2015				 mjames@ucar  Add resourceMapName and getResourceMapName() 
  * 
  * </pre>
  * 
@@ -112,6 +112,9 @@ public class ResourceDefinition implements IAlertObserver,
     @XmlElement
     private String resourceDefnName;
 
+    @XmlElement
+    private String resourceMapName;
+    
     @XmlElement
     @XmlJavaTypeAdapter(ResourceCategory.ResourceCategoryAdapter.class)
     private ResourceCategory resourceCategory;
@@ -260,6 +263,7 @@ public class ResourceDefinition implements IAlertObserver,
 
     public ResourceDefinition() {
         resourceDefnName = "";
+        resourceMapName = "";
         resourceCategory = ResourceCategory.NullCategory;
         subTypeGenerator = "";
         rscTypeGenerator = "";
@@ -287,6 +291,7 @@ public class ResourceDefinition implements IAlertObserver,
     public ResourceDefinition(ResourceDefinition rscDefn) {
 
         resourceDefnName = rscDefn.getResourceDefnName();
+        resourceMapName  = rscDefn.getResourceMapName();
         resourceCategory = rscDefn.resourceCategory;
         subTypeGenerator = rscDefn.getSubTypeGenerator();
 
@@ -377,6 +382,10 @@ public class ResourceDefinition implements IAlertObserver,
 
     public String getResourceDefnName() {
         return resourceDefnName;
+    }
+    
+    public String getResourceMapName() {
+        return resourceMapName;
     }
 
     public Boolean getAddToURICatalog() {

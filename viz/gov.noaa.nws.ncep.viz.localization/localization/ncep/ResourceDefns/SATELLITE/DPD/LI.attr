@@ -1,6 +1,6 @@
 colorMapName=gdpili
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=LI
+imageTypeId=LI
 displayUnitStr=C
 alpha=1.0
 brightness=1.0

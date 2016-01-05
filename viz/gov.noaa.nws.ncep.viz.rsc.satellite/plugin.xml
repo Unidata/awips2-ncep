@@ -124,25 +124,24 @@
             paramClass="String"
             paramName="sectorID"
             paramType="REQUEST_CONSTRAINT">
-      </nc-resourceParameter>
-      
+      </nc-resourceParameter>     
       <nc-resourceParameter
             ncResourceName="McidasSatellite"
             paramClass="String"
-            paramName="satelliteName"
+            paramName="satelliteId"
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>
       <nc-resourceParameter
             ncResourceName="McidasSatellite"
             paramClass="String"
-            paramName="imageType"
+            paramName="imageTypeId"
             defaultValue="not-specified"
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>
       <nc-resourceParameter
             ncResourceName="McidasSatellite"
             paramClass="String"
-            paramName="areaName"
+            paramName="areaId"
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>
       <nc-resourceParameter

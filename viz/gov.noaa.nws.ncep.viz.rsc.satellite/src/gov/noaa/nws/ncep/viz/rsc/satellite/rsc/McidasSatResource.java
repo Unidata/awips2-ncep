@@ -37,6 +37,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  11/29/2012    #630       ghull      IGridGeometryProvider
  *  02/13/2015    #R6345     mkean      add areaName, resolution and getRscAttrSetName 
  *                                      to legendStr
+ *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
  * </pre>
  * 
  * @author ghull
@@ -61,13 +62,13 @@ public class McidasSatResource extends AbstractSatelliteResource implements
         // NOTE: this assumes that the request type of EQUALS
         // (ie only one kind of imageType and satellite name)
 
-        if (satRscData.getMetadataMap().containsKey("satelliteName")
-                && satRscData.getMetadataMap().containsKey("areaName")) {
+        if (satRscData.getMetadataMap().containsKey("satelliteId")
+                && satRscData.getMetadataMap().containsKey("areaId")) {
 
-            legendStr = satRscData.getMetadataMap().get("satelliteName")
+            legendStr = satRscData.getMetadataMap().get("satelliteId")
                     .getConstraintValue()
                     + " "
-                    + satRscData.getMetadataMap().get("areaName")
+                    + satRscData.getMetadataMap().get("areaId")
                             .getConstraintValue();
 
             try {
@@ -79,9 +80,10 @@ public class McidasSatResource extends AbstractSatelliteResource implements
                 String tmpRes = satRscData.getMetadataMap().get("resolution")
                         .getConstraintValue();
 
-                if (Double.parseDouble(tmpRes) > 0.0) {
-                    legendStr += "_" + tmpRes + "km";
-                }
+                //
+                // if (Double.parseDouble(tmpRes) > 0.0) {
+                // legendStr += "_" + tmpRes + "km";
+                // }
             } catch (NumberFormatException e) {
                 statusHandler.handle(Priority.INFO,
                         "NumberFormatException parsing resolution - omitted");
@@ -93,7 +95,7 @@ public class McidasSatResource extends AbstractSatelliteResource implements
 
     public boolean isCloudHeightCompatible() {
         RequestConstraint imgTypeConstraint = satRscData.getMetadataMap().get(
-                "imageType");
+                "imageTypeId");
         if (imgTypeConstraint != null) {
             // TODO : Not sure if we could handle a constraint type like 'IN' or
             // not?
@@ -117,7 +119,7 @@ public class McidasSatResource extends AbstractSatelliteResource implements
     }
 
     String getImageTypeFromRecord(PluginDataObject pdo) {
-        return ((McidasRecord) pdo).getImageType();
+        return ((McidasRecord) pdo).getImageTypeId();
     }
 
     String getDataUnitsFromRecord(PluginDataObject pdo) {
@@ -125,13 +127,13 @@ public class McidasSatResource extends AbstractSatelliteResource implements
     }
 
     String getCreatingEntityFromRecord(PluginDataObject pdo) {
-        return ((McidasRecord) pdo).getSatelliteName();
+        return ((McidasRecord) pdo).getSatelliteId();
     }
 
     List<String> getParameterList(PluginDataObject pdo) {
 
-        String paramStr = ((McidasRecord) pdo).getSatelliteName() + "_"
-                + ((McidasRecord) pdo).getImageType();
+        String paramStr = ((McidasRecord) pdo).getSatelliteId() + "_"
+                + ((McidasRecord) pdo).getImageTypeId();
         List<String> paramList = new ArrayList<String>(0);
         paramList.add(paramStr);
         return paramList;
@@ -142,7 +144,7 @@ public class McidasSatResource extends AbstractSatelliteResource implements
     }
 
     int getImageTypeNumber(PluginDataObject pdo) {
-        return ((McidasRecord) pdo).getImageTypeNumber().intValue();
+        return Integer.parseInt(((McidasRecord) pdo).getImageTypeId());
     }
 
     @Override

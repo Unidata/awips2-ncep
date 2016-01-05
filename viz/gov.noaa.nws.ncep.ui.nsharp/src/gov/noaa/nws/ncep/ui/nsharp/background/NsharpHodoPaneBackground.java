@@ -22,6 +22,7 @@ package gov.noaa.nws.ncep.ui.nsharp.background;
 
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpHodoPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
@@ -35,7 +36,6 @@ import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
@@ -57,7 +57,7 @@ public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
         //		NsharpConstants.HODO_WIDTH, NsharpConstants.HODO_HEIGHT);
         this.rectangle = new Rectangle(0,0,NsharpConstants.HODO_COORDINATE_X2-NsharpConstants.HODO_COORDINATE_X1, NsharpConstants.HODO_COORDINATE_Y2-NsharpConstants.HODO_COORDINATE_Y1);
         pe = new PixelExtent(this.rectangle);
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
         world.setWorldCoordinates(NsharpConstants.HODO_COORDINATE_X1,NsharpConstants.HODO_COORDINATE_Y1,NsharpConstants.HODO_COORDINATE_X2,NsharpConstants.HODO_COORDINATE_Y2);
         //coordinateWtoHRatio = ((float)NsharpConstants.HODO_COORDINATE_X2-(float)NsharpConstants.HODO_COORDINATE_X1)/ (NsharpConstants.HODO_COORDINATE_Y1-NsharpConstants.HODO_COORDINATE_Y2);
         //System.out.println("NsharpHodoPaneBackground constructed");
@@ -165,7 +165,7 @@ public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
 		
     }
     //this function is used for printing
-    public void paintForPrint( WGraphics world, GC gc){
+    public void paintForPrint( NsharpWGraphics world, GC gc){
     	Coordinate c = new Coordinate(world.mapX(0), world.mapY(0));
     	// label the spokes
     	gc.drawString( "180" + NsharpConstants.DEGREE_SYMBOL,(int) c.x,
@@ -221,7 +221,7 @@ public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
      * @see com.raytheon.viz.skewt.ui.AbstractSkewTBackground#computeWorld()
      */
     @Override
-    public WGraphics computeWorld() {
+    public NsharpWGraphics computeWorld() {
 
         
         //set coordinate from -50 to 90 knots on both x and y 
@@ -236,7 +236,7 @@ public class NsharpHodoPaneBackground extends NsharpGenericPaneBackground {
     			(int) ext.getWidth(), (int) ext.getHeight());
     	pe = new PixelExtent(this.rectangle);
     	desc.setNewPe(pe);
-    	world = new WGraphics(this.rectangle);
+    	world = new NsharpWGraphics(this.rectangle);
     	float hRatio = (NsharpConstants.HODO_COORDINATE_Y1-NsharpConstants.HODO_COORDINATE_Y2)/ (float)ext.getHeight();
     	float x1 = NsharpConstants.HODO_COORDINATE_X1;
     	if(paneConfigurationName.equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR))

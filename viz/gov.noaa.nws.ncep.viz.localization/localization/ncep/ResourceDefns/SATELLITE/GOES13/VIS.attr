@@ -1,6 +1,6 @@
 colorMapName=lingray
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=VIS
+imageTypeId=0p6_VIS-Red
 displayUnitStr=BRIT
 alpha=1.0
 brightness=1.0

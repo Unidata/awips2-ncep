@@ -14,7 +14,6 @@ import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinitionFilters.ResourceDefinitionFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +36,9 @@ import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.serialization.ISerializableObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.alerts.AlertMessage;
 import com.raytheon.uf.viz.core.catalog.CatalogQuery;
@@ -54,8 +55,8 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
  *                            Greg Hull   Created
  *  02/26/11      #408        Greg Hull   add filterable labels, rm isForecast, isEvent
  *  03/02/11      #408        Greg Hull   add definitionIndex
@@ -72,7 +73,7 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  09/01/12      #860        Greg Hull   Add smarter caching (for all constraints) of available times.
  *  09/05/12      #860        Greg Hull   Add this to the URICatalog for storing the latest time.
  *  09/13/12      #860        Greg Hull   set default for inventoryEnabled to false.
- *  11/2012		  #885		  T. Lee	  Set unmapped satellite projection resolution to "native"
+ *  11/2012       #885        T. Lee      Set unmapped satellite projection resolution to "native"
  *  01/2013                   Greg Hull   Don't create wildcard inventory constraint
  *  02/2013       #972        Greg Hull   ResourceCategory class and supported display types
  *  03/2013       #972        Greg Hull   AttrSetsOrganization
@@ -89,6 +90,11 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *                                        changed uEngine request to ThriftClinet
  *  12/24/14      R4508      S. Gurung    Add special handling for GHCD (generic high-cadence data) compound subType
  *  01/21/15	  R4646	  	 B. Yin       Handle PGEN resource group (subtype)
+ *  05/14/15      R7656      A. Su        Retrieved the resource definitions of LocalRadar from an xml file.
+ *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
+ *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
+ *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
+ * 
  * 
  * </pre>
  * 
@@ -97,8 +103,11 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  */
 @XmlRootElement(name = "ResourceDefinition")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ResourceDefinition implements ISerializableObject, IAlertObserver,
+public class ResourceDefinition implements IAlertObserver,
         Comparable<ResourceDefinition> {
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ResourceDefinition.class);
 
     @XmlElement
     private String resourceDefnName;
@@ -168,6 +177,9 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     @XmlElement
     private DayReference dayReference;
 
+    @XmlElement
+    private Boolean isEnabled = true;
+
     // the hours range in graph display.
     @XmlElement
     private int dfltGraphRange;
@@ -226,6 +238,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     //
     private Map<Map<String, RequestConstraint>, DataTimesCacheEntry> availTimesCache = null;
 
+    // This variable is specific for the resource definition of LocalRadar.
+    private static boolean isLocalRadarProcessed = false;
+
+    // The name of resource definition for LocalRadar.
+    private static String localRadarResourceDefnName = LocalRadarStationManager.ResourceDefnName;
+
     // Set this to true and store the latestTimes in the URICatalog.
     // Some RscDefns have a lot of possible constraints (i.e. radar and some
     // satellites...) which means that the inventory queries can get hit all
@@ -242,8 +260,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     public ResourceDefinition() {
         resourceDefnName = "";
-        resourceCategory = ResourceCategory.NullCategory; // new
-                                                          // ArrayList<String>();
+        resourceCategory = ResourceCategory.NullCategory;
         subTypeGenerator = "";
         rscTypeGenerator = "";
         resourceParameters = new HashMap<String, String>();
@@ -258,7 +275,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         timelineGenMethod = TimelineGenMethod.USE_DATA_TIMES;
         inventoryAlias = null;
         availTimesCache = new HashMap<Map<String, RequestConstraint>, DataTimesCacheEntry>();
-
+        isEnabled = true;
         inventoryEnabled = false;
 
         generatedTypesList = new ArrayList<String>();
@@ -266,13 +283,13 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         generatedSubTypesList = new ArrayList<String>();
     }
 
-    //
     // shallow copy of the attrSetGroups and subTypes lists
     public ResourceDefinition(ResourceDefinition rscDefn) {
+
         resourceDefnName = rscDefn.getResourceDefnName();
         resourceCategory = rscDefn.resourceCategory;
-
         subTypeGenerator = rscDefn.getSubTypeGenerator();
+
         rscTypeGenerator = rscDefn.getRscTypeGenerator();
 
         resourceParameters = new HashMap<String, String>(
@@ -291,6 +308,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         rscImplementation = rscDefn.rscImplementation;
 
         setLocalizationFile(rscDefn.getLocalizationFile());
+        isEnabled = rscDefn.isEnabled;
 
         inventoryAlias = null;
 
@@ -319,6 +337,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         this.localizationFile = lFile;
         if (lFile != null) {
             setLocalizationName(lFile.getName());
+
         } else {
             localizationName = "";
         }
@@ -369,7 +388,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     }
 
     // resourceParameters includes the comments but don't return them.
-    //
     public HashMap<String, String> getResourceParameters(boolean includeDefaults) {
         HashMap<String, String> prmsWithoutComments = new HashMap<String, String>();
 
@@ -400,7 +418,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     // parameter is defined. (except we'd need to figure out what to do in the
     // case of parameters like imageType's that are normally specified in the
     // attribute sets.
-    //
     public String getResourceParametersAsString() {
         if (resourceParameters.isEmpty()) {
             return "";
@@ -432,7 +449,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     public void setResourceParametersFromString(String prmsStr) {
 
         // sanity check that the keys are all the same.
-        //
         String[] prmStrs = prmsStr.split("\n");
 
         for (String prmStr : prmStrs) {
@@ -456,20 +472,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         this.resourceParametersModified = rscTypeParamsModified;
     }
 
-    // isEnabled used to be stored here so instead of changing the code that
-    // called this method, just implement it here.
     public boolean isEnabled() {
-        ResourceDefinitionFilter rdf;
-        try {
-            rdf = ResourceDefnsMngr.getInstance().getResourceDefnFilter(
-                    resourceDefnName);
-        } catch (VizException e) {
-            return false;
-        }
-        // TODO : somewhere there should be logic to determine the default
-        // enabled state of a RD that doesn't have an entry in the filters file.
-        // Here? or in mngr?
-        return (rdf == null ? false : rdf.getIsEnabled());
+        return isEnabled;
+    }
+
+    public void setIsEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled;
     }
 
     public Boolean isDisplayTypeSupported(NcDisplayType dispType) {
@@ -498,17 +506,17 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 return ((AbstractNatlCntrsResourceData) rscData)
                         .getSupportedDisplayTypes();
             } else {
-                System.out.println("??? Rsc Impl " + rscImplementation
-                        + "has non-NC resource class");
+                statusHandler.handle(Priority.PROBLEM, ("Rsc Impl "
+                        + rscImplementation + "has non-NC resource class"));
             }
         } catch (InstantiationException e) {
-            System.out.println("Error instantiating class ("
-                    + implClass.getName() + ") for resource: "
-                    + rscImplementation);
+            statusHandler.handle(Priority.PROBLEM,
+                    ("Error instantiating class (" + implClass.getName()
+                            + ") for resource: " + rscImplementation), e);
         } catch (IllegalAccessException e) {
-            System.out.println("Error instantiating class ("
-                    + implClass.getName() + ") for resource: "
-                    + rscImplementation);
+            statusHandler.handle(Priority.PROBLEM,
+                    ("Error instantiating class (" + implClass.getName()
+                            + ") for resource: " + rscImplementation), e);
         }
 
         return new NcDisplayType[0];
@@ -519,7 +527,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         return (timelineGenMethod == TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS
                 || timelineGenMethod == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME || timelineGenMethod == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION);
         // @formatter:on
-        // return filterLabels.contains("Forecast");
+
     }
 
     public ResourceCategory getResourceCategory() {
@@ -652,7 +660,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             return resourceCategory == ResourceCategory.GridRscCategory
                     || resourceCategory == ResourceCategory.RadarRscCategory
                     || resourceCategory == ResourceCategory.GraphRscCategory
-                    // resourceCategory == ResourceCategory.PGENRscCategory ||
                     || resourceCategory == ResourceCategory.EnsembleRscCategory
                     || resourceCategory == ResourceCategory.SpaceRscCategory;
         } else if (attrSetOrg == AttrSetsOrganization.BY_ATTR_SET_GROUP) {
@@ -663,7 +670,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     }
 
     // the plugin must be given as a resource parameter
-    //
     public String getPluginName() {
         return getResourceParameters(false).get("pluginName");
     }
@@ -730,17 +736,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                         inventoryConstraints.put(cnstrName, reqConstr);
                     }
                 }
-                // @formatter:off
-                // else {
-                // 'LIKE' doesn't work for integers. Just leave this out.
-                // if (prmInfo.getParamClass() == Integer.class) {
-                // inventoryConstraints.put (cnstrName,
-                // RequestConstraint.WILDCARD);
-                // }
-                // inventoryConstraints.put (cnstrName,
-                // RequestConstraint.WILDCARD);
-                // }
-                // @formatter:on
             }
         }
         return inventoryConstraints;
@@ -751,6 +746,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     }
 
     public RequestConstraint getConstraintFromParamValue(String paramVal) {
+
+        if (paramVal == null) {
+            System.out.println("    BAD paramVal");
+            paramVal = " ";
+            return null;
+        }
         if (paramVal.equals("%")) {
             return RequestConstraint.WILDCARD;
         } else if (paramVal.indexOf("%") != -1) {
@@ -765,7 +766,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     public boolean isInventoryInitialized() {
         return (inventoryAlias != null && !inventoryAlias.isEmpty());
-        // inventoryInitialized;
+
     }
 
     // This alias is either read from the existing inventory, or
@@ -805,13 +806,11 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     // disabling the inventory means we will need to query the types/sub-type
     // and maintain the list with the data URI notifications.
-    //
     public void disableInventoryUse() throws VizException {
 
         setInventoryEnabled(false);
 
         // if we need to initialize and maintain any generated types or subTypes
-        //
         if (isRequestable()
                 && (getSubTypeGenParamsList().length > 0 || !getRscTypeGenerator()
                         .isEmpty())) {
@@ -823,7 +822,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     }
 
     // based of the base class of the resource implementation
-    //
     public boolean isRequestable() {
         if (isRequestable == null && rscImplementation != null) {
             isRequestable = false;
@@ -836,18 +834,17 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 isRequestable = (rscData instanceof AbstractNatlCntrsRequestableResourceData);
 
             } catch (InstantiationException e) {
-                System.out.println("Error instantiating class ("
-                        + implClass.getName() + ") for resource: "
-                        + rscImplementation);
+                statusHandler.handle(Priority.PROBLEM,
+                        ("Error instantiating class (" + implClass.getName()
+                                + ") for resource: " + rscImplementation), e);
+
             } catch (IllegalAccessException e) {
-                System.out.println("Error instantiating class ("
-                        + implClass.getName() + ") for resource: "
-                        + rscImplementation);
+                statusHandler.handle(Priority.PROBLEM,
+                        ("Error instantiating class (" + implClass.getName()
+                                + ") for resource: " + rscImplementation), e);
             }
         }
         return (isRequestable == null ? false : isRequestable);
-        // !(getResourceCategory() == ResourceCategory.OverlayRscCategory
-        // /*|| isPgenResource()*/ );
     }
 
     public boolean usesInventory() {
@@ -884,14 +881,16 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // sanity check on timelineGen
         if (rscImplementation == "ModelFcstGridContours"
                 && timelineGenMethod != TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS) {
-            System.out
-                    .println("Sanity Check: GRID rsc has a non-forecast timelineGenMethod???");
+            statusHandler
+                    .handle(Priority.PROBLEM,
+                            ("Sanity Check: GRID rsc has a non-forecast timelineGenMethod???"));
         }
 
         // check that all of the paramValues are specified for the rsc
         // implementation
-        //
+
         for (String prm : paramValues.keySet()) {
+
             if (!prm.equals("pluginName") && !rscImplParams.containsKey(prm)) {
 
                 throw new VizException(getResourceDefnName()
@@ -911,38 +910,38 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // check that all the parameters defined for the implementation either
         // have a value given in the rsc params, will be generated, or have a
         // default value
-        //
         for (ResourceParamInfo implPrmInfo : rscImplParams.values()) {
             String implPrm = implPrmInfo.getParamName();
             String constraintName = implPrmInfo.getConstraintName();
 
             if (implPrmInfo.getParamType() == ResourceParamType.EDITABLE_ATTRIBUTE
                     || implPrmInfo.getParamType() == ResourceParamType.NON_EDITABLE_ATTRIBUTE) {
+
                 // if checking for attributes...
                 continue;
             } else if (implPrmInfo.getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
 
                 // if this param will be generated.
-                //
                 if (genParamsList.contains(constraintName)) {
+
                     continue;
                 } else {
+
                     // if the needed param is not set in the resource defn or is
                     // set to empty
+
                     String paramValue = paramValues.get(implPrm);
 
                     if (paramValue == null || paramValue.isEmpty()) {
 
                         // paramValue = dfltParamValues.get( implPrm );
-                        //
-                        // // if there is no default value specified by the
+                        // if there is no default value specified by the
                         // implementation
-                        // //
-                        // if( paramValue == null || paramValue.isEmpty() ) {
+
                         throw new VizException(getResourceDefnName()
                                 + " is missing a value for the parameter "
                                 + implPrm + ".");
-                        // }
+
                     }
                 }
             }
@@ -1005,12 +1004,10 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // loop thru all of the request constraint parameters defined for the
         // implementation and add it to either the base constraints or the
         // inventory constraints
-        //
         for (ResourceParamInfo prmInfo : rscImplParams.values()) {
             if (prmInfo.getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
 
                 // if the parameter has a value then
-                //
                 if (paramValues.containsKey(prmInfo.getParamName())) {
 
                     String prmValue = paramValues.get(prmInfo.getParamName())
@@ -1019,7 +1016,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                     // if the parameter value is a wildcard or a non-constant
                     // value (e.g. a list of reportTypes), then we will need
                     // to put this parameter in the inventory
-                    //
                     if (prmValue.indexOf(',') != -1) {
                         inventoryParamNames.add(prmInfo.getConstraintName());
                         baseConstraints.put(prmInfo.getConstraintName(),
@@ -1061,9 +1057,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // Make sure that the inventory tree is ordered with the pluginName
         // first followed by the generating params and any defined in the
         // attrSets and with the dataTimes as end nodes.
-        //
-        // inventoryParamNames = new ArrayList<String>(
-        // inventoryConstraints.keySet() );
 
         Collections.sort(inventoryParamNames, new Comparator<String>() {
             @Override
@@ -1126,32 +1119,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 inventoryParamNames);
     }
 
-    // @formatter:off
-    // private void initInventory (Boolean reload) throws VizException {
-    //
-    // if (!usesInventory()) {
-    // return;
-    // }
-    // else if (getPluginName() == null) {
-    // throw new VizException ("Error creating ResourceDefn (" +
-    // resourceDefnName +
-    // ") The pluginName must be given as a resource parameter." );
-    // }
-    // else if (getPluginName().equals(GempakGrid.gempakPluginName)) {
-    // return;
-    // }
-    // else if (isInventoryInitialized() && !reload) {
-    // return;
-    // }
-    // else if (!isInventoryInitialized() && reload) {
-    // // can't reload if not created yet
-    // //reload =
-    // }
-    // return;
-    // }
-    // @formatter:on
-
-    //
     public ArrayList<String> getGeneratedTypesList() throws VizException {
 
         if (!getInventoryEnabled()) {
@@ -1165,27 +1132,15 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         } else if (getRscTypeGenerator().isEmpty()) {
             return generatedTypesList;
         } else if (!isInventoryInitialized()) {
-            // out.println("getGeneratedTypesList: inventory not loaded");
             throw new VizException("Inventory Not Initialized.");
-            // if( inventoryLoadStrategy == InventoryLoadStrategy.NO_INVENTORY )
-            // {
-            // out.println("RscDefn "+ getResourceDefnName() +
-            // " has a generating type "+
-            // " which requires an inventory" );
-            // setInventoryLoadStrategy( InventoryLoadStrategy.ON_DEMAND );
-            // }
+
         }
 
         // get a list of the generated Resource Types from the inventory.
-        //
         Map<String, RequestConstraint> searchConstraints = getInventoryConstraintsFromParameters(getResourceParameters(true));
 
         // Create an NcInventoryRequest script to get query the ncInventory for
         // the types.
-        //
-        // String inventoryName =
-        // LocalizationManager.getInstance().getCurrentUser() + ":" +
-        // getResourceDefnName();
 
         NcInventoryRequestMsg reqMsg = NcInventoryRequestMsg.makeQueryRequest();
         reqMsg.setInventoryName(inventoryAlias);
@@ -1227,16 +1182,10 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         String[] rsltsArray = (String[]) rslts;
 
-        // out.println("Inventory Query for RscTypes for "+ resourceDefnName +
-        // " took "+ (t02-t01)+ "msecs for "+ rsltsArray.length + " results." );
-        // out.println("    RscTypes = "+ (rsltsArray.toString() ) );
-
         // just 1 requested param so the result string will be the 1 value
         for (String rsltStr : rsltsArray) {
-            // String genTypesArr[] = rsltStr.split("/");
-            generatedTypesList.add(getResourceDefnName() + ":" + rsltStr);// genTypesArr[
-                                                                          // genTypesArr.length-1]
-                                                                          // );
+
+            generatedTypesList.add(getResourceDefnName() + ":" + rsltStr);
         }
 
         return generatedTypesList;
@@ -1244,10 +1193,10 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     //
     public ArrayList<String> generatedSubTypesList() throws VizException {
+
         // Grids, Satellite, Radar, etc. all are dynamically updated when new
         // alert updates are received (when new data is ingested). PGEN doesn't
         // have alert updates and so we need to always check for new products.
-        //
         if (isPgenResource()) {
             queryGeneratedTypes();
             return generatedSubTypesList;
@@ -1258,8 +1207,8 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // and not queryGeneratedTypes. Also, any new sub types ingested
         // will not be found since the productAlertObserver was not added
         // on startup.
-        //
         if (!getInventoryEnabled()) {
+
             return generatedSubTypesList;
         }
 
@@ -1279,7 +1228,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // any type or sub-type generating params and any parameters that
         // are specified in an attribute set. (e.g. radar product codes
         // and satellite imageTypes.)
-        //
         Map<String, RequestConstraint> searchConstraints = getInventoryConstraintsFromParameters(getResourceParameters(true));
 
         // get the names of the db fields which may be different than the
@@ -1302,7 +1250,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         // Create an NcInventoryRequest script to get query the ncInventory
         // for the types.
-        //
         NcInventoryRequestMsg reqMsg = NcInventoryRequestMsg.makeQueryRequest();
         reqMsg.setInventoryName(inventoryAlias);
         reqMsg.setReqConstraintsMap(searchConstraints);
@@ -1331,40 +1278,48 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
             // the results from the NcInventory are have had spaces replaced
             // with underscores and are delimited with "/"'s.
-            //
+
             String[] queryResults = rsltStr.replaceAll("_", " ").split("/");
 
             if (queryResults.length != queryParams.length) {
-                System.out
-                        .println("sanity check: number of requested params doesn't match returned values");
+
+                statusHandler
+                        .handle(Priority.PROBLEM,
+                                ("sanity check: number of requested params doesn't match returned values"));
                 continue;
             }
 
             if (numSubTypeGenParams == 1) {
-                generatedSubTypesList.add(queryResults[0]);
-            }
-            // if there are 2 parameters used to generate the subType query
-            // for the second parameter and create a subType for each unique
-            // combination.
-            //
-            else if (numSubTypeGenParams == 2) {
-                String subType = queryResults[0] + "_" + queryResults[1];
 
-                if (getPluginName().equals("mcidas")) {
-                    // if we are going to hard-code the resolution then we may
-                    // as well hard-code its position in the
-                    // list as the seconde param.
-                    if (subTypeParamNames[1].equals("resolution")) { // check
-                                                                     // resolution
-                        // note that the 'km' here will make the code
-                        // to parse the subType non-generic so we might want to
-                        // change it.
-                        subType = queryResults[0]
-                                + "_"
-                                + (queryResults[1].equals("0") ? "native"
-                                        : queryResults[1] + "km");
+                generatedSubTypesList.add(queryResults[0]);
+
+            } else if (getPluginName().equals("mcidas")) {
+
+                String subType = "";
+                for (int i = 0; i < numSubTypeGenParams; i++) {
+                    if ((subTypeParamNames[i].equals("resolution"))
+                            && queryResults[i].equals("0")) {
+                        subType += "native_";
+                    } else {
+                        subType += queryResults[i] + "_";
                     }
                 }
+                subType.replace(subType.substring(subType.length() - 1), "");
+
+                if (!generatedSubTypesList.contains(subType)) {
+                    generatedSubTypesList.add(subType);
+                } else {
+                    out.println("subType already in the list?"); // shouldn't
+                } // happen
+
+                // if there are 2 parameters used to generate the subType query
+                // for the second parameter and create a subType for each unique
+                // combination.
+                //
+
+            } else if (numSubTypeGenParams == 2) {
+
+                String subType = queryResults[0] + "_" + queryResults[1];
 
                 if (!generatedSubTypesList.contains(subType)) {
                     generatedSubTypesList.add(subType);
@@ -1396,16 +1351,8 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             throw new VizException("Inventory Not Initialized.");
         }
 
-        // Create an NcInventoryRequest script to get query the ncInventory for
-        // the types.
-        //
-        // String inventoryName =
-        // LocalizationManager.getInstance().getCurrentUser() + ":" +
-        // getResourceDefnName();
-        // this will create constraints for all of the REQUEST_CONSTRAINT
-        // parameters
+        // create constraints for all of the REQUEST_CONSTRAINT parameters
         // specified in the RD, AS, and generated type/subType in the name.
-        //
         HashMap<String, RequestConstraint> searchConstraints = getInventoryConstraintsFromParameters(ResourceDefnsMngr
                 .getInstance().getAllResourceParameters(rscName));
 
@@ -1439,7 +1386,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         for (DataTime dt : dataTimes) {
             long intervalMillis = intervalMins * 1000 * 60; // minutes to
-                                                            // millisecons
+                                                            // Milliseconds
             long millis = dt.getValidTime().getTimeInMillis()
                     + (intervalMillis / 2);
             millis = ((millis / intervalMillis) * intervalMillis);
@@ -1457,13 +1404,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         List<ResourceName> rscNamesList = new ArrayList<ResourceName>();
         rscNamesList.add(rscName);
-        // if the cache is empty go ahead and initialize entries for all
-        // possible resources.
-        // rscNamesList =
-        // ResourceDefnsMngr.getInstance().getAllSelectableResourceNamesForResourcDefn(
-        // this );
 
-        // for( ResourceName rName : rscNamesList ) {
         ResourceName rName = rscName;
 
         Map<String, RequestConstraint> resourceConstraints = getInventoryConstraintsFromParameters(ResourceDefnsMngr
@@ -1471,12 +1412,10 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         // many resourceNames will have the same set of constraints so only
         // store the unique ones.
-        //
         if (!availTimesCache.containsKey(resourceConstraints)) {
             availTimesCache.put(resourceConstraints, new DataTimesCacheEntry(
                     resourceConstraints));
         }
-        // }
 
         // There can be more than 1 entry in the cache for each RD. Generated
         // types/sub-types for example, or for cases where the attribute sets
@@ -1488,8 +1427,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // called many times by the LabelProvider when showing the attrSet
         // List and there can be a slight delay for example with all (40)
         // radar products.
-        //
-        //
         if (availTimesCache.size() == 4) {
             for (DataTimesCacheEntry uriRefreshCallback : availTimesCache
                     .values()) {
@@ -1502,7 +1439,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
     // Return the latest time or if there either is NoData or if the time
     // hasn't been set yet, return a Null DataTime.
-    //
+
     public DataTime getLatestDataTime(ResourceName rscName) throws VizException {
 
         if (!isRequestable()) {
@@ -1514,20 +1451,11 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
 
         // if times are cached for these constraints, and if the times
         // haven't expired, then just return the cached times.
-        //
         DataTime latestTime = null;
-
-        // TTR1034 - the latest time should comes from DB - so we comment this
-        // out.
-        if (availTimesCache.containsKey(resourceConstraints)) {
-            // latestTime = availTimesCache.get(resourceConstraints)
-            // .getLatestTime();
-        }
 
         // if not found then force a query to be made to get the
         // times/latestTime.
         // ( ??? Do we still want to do this if the inventory is not enabled?)
-        //
         if (latestTime == null) {
             long t0 = System.currentTimeMillis();
 
@@ -1541,12 +1469,12 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             getDataTimes(rscName); // this will add the times to the cache.
 
             if (availTimesCache.containsKey(resourceConstraints)) {
+
                 latestTime = availTimesCache.get(resourceConstraints)
                         .getLatestTime();
 
                 // if the query took a long time, then go ahead and add this to
                 // the URI Catalog.
-                //
                 if (System.currentTimeMillis() - t0 > 2000) {
                     availTimesCache.get(resourceConstraints).addToUriCatalog();
                 }
@@ -1554,12 +1482,13 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         }
 
         // if 'not set' still return a 'Null' dataTime.
+
         return (latestTime == null ? new DataTime(new Date(0)) : latestTime);
     }
 
     // update this to optionally either return all times or only matching cycle
     // times
-    //
+
     public List<DataTime> getDataTimes(ResourceName rscName)
             throws VizException {
 
@@ -1578,24 +1507,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             addTimesCacheEntry(rscName);
         }
 
-        // if times are cached for these constraints, and if the times haven't
-        // expired, then just return the cached times.
-        //
-
-        DataTimesCacheEntry cachedTimesEntry = availTimesCache
-                .get(resourceConstraints);
-
-        List<DataTime> availTimes = cachedTimesEntry.getAvailableTimes();
-
-        // TTR1034 - should update from DB for latest time - so comment this
-        // out.
-        // if (availTimes != null) {
-        // return availTimes;
-        // }
-
-        // (Do not remove the entry in the cache since this may be being
-        // refreshed with the latestTimes from the URICatalog.
-
         try {
             DataTime dataTimeArr[] = null;
 
@@ -1613,7 +1524,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 Object rslts;
 
                 rslts = ThriftClient.sendRequest(reqMsg);
-
+                // @ Formatter: off
                 if (!(rslts instanceof String[])) {
                     out.println("Inventory Request Failed: " + rslts.toString());
 
@@ -1631,7 +1542,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                             new Date(0)) : new DataTime(rsltsList[i]));
                 }
             } else { // if the inventory is not enabled
-                     //
+
                 LayerProperty property = new LayerProperty();
 
                 property.setDesiredProduct(ResourceType.PLAN_VIEW);
@@ -1700,7 +1611,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
     }
 
     public void dispose() {
-        //
+
         generatedSubTypesList.clear();
         generatedTypesList.clear();
 
@@ -1711,7 +1622,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         // the URI catalog, the DataTimesCacheEntry objects may stick around and
         // still get updated. But we can't remove them and it won't hurt
         // anything
-        //
         for (Map<String, RequestConstraint> rCon : availTimesCache.keySet()) {
             availTimesCache.get(rCon).getAvailableTimes(true).clear();
         }
@@ -1728,6 +1638,24 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
         generatedSubTypesList.clear();
         generatedTypesList.clear();
 
+        // R7656: Special case for LocalRadar:
+        // Retrieve the station IDs of radar stations from an XML file,
+        // bypassing its original CatalogQuery.performQuery.
+
+        if (!isLocalRadarProcessed
+                && getResourceDefnName().equals(localRadarResourceDefnName)) {
+
+            List<String> stationIDs = LocalRadarStationManager.getInstance()
+                    .getStationIDs();
+
+            if (stationIDs != null)
+                for (String id : stationIDs)
+                    generatedTypesList.add(id);
+
+            isLocalRadarProcessed = true;
+            return;
+        }
+
         try {
             // the parameters used to define the data that gets stored in the
             // inventory. this will be all the request constraint params
@@ -1735,22 +1663,14 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             // will be any type or sub-type generating params and any
             // parameters that are specified in an attribute set. (ex. radar
             // product codes and satellite imageTypes.)
-            //
-            // int numSubTypeGenParams = getSubTypeGenParamsList().length;
-            // String queryParam = getSubTypeGenParamsList()[
-            // numSubTypeGenParams-1 ];
 
             HashMap<String, RequestConstraint> requestConstraints = getInventoryConstraintsFromParameters(getResourceParameters(false));
-
-            // requestConstraints.put( "pluginName", new RequestConstraint(
-            // getPluginName() ) );
 
             if (!getRscTypeGenerator().isEmpty()) {
 
                 String genTypesRslts[] = CatalogQuery.performQuery(
                         getRscTypeGenerator(), requestConstraints);
 
-                //
                 for (String genType : genTypesRslts) {
                     genType = getResourceDefnName() + ":" + genType;
 
@@ -1761,6 +1681,10 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             } else if (getSubTypeGenParamsList().length > 0) {
 
                 String[] subParams = getSubTypeGenParamsList();
+                String areaId = "";
+                Integer resolution = 0;
+                String projection = "";
+                String satelliteId = "";
 
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
 
@@ -1778,18 +1702,54 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                     StringBuilder sb = new StringBuilder();
 
                     if (getRscImplementation().equals("McidasSatellite")) {
-                        String area = (String) result.get("areaName");
-                        Integer res = (Integer) result.get("resolution");
-                        if (res == 0) {
-                            sb.append(area);
-                            sb.append("_native");
-                        } else {
-                            sb.append(area);
-                            sb.append('_');
-                            sb.append(res.toString());
-                            sb.append("km");
+
+                        SatelliteAreaManager.getInstance().setSubParams(
+                                subParams);
+
+                        areaId = (String) result.get("areaId");
+                        // if (areaId.contains("335"))
+                        // continue; // water vapor
+                        resolution = (Integer) result.get("resolution");
+                        projection = (String) result.get("projection");
+                        satelliteId = (String) result.get("satelliteId");
+
+                        SatelliteNameManager.getInstance().setSatelliteId(
+                                satelliteId);
+
+                        SatelliteAreaManager.getInstance().satelliteId = satelliteId;
+
+                        SatelliteAreaManager.getInstance().satelliteName = SatelliteNameManager
+                                .getInstance()
+                                .getDisplayedNameByID(satelliteId);
+
+                        for (int i = 0; i < subParams.length; i++) {
+
+                            if (subParams[i].equalsIgnoreCase("resolution")) {
+                                if (resolution == 0) {
+                                    sb.append("native");
+                                } else {
+                                    sb.append(resolution.toString());
+
+                                }
+                                sb.append('_');
+
+                            } else if (subParams[i].equalsIgnoreCase("areaId")) {
+                                sb.append(areaId);
+                                sb.append('_');
+                            } else if (subParams[i]
+                                    .equalsIgnoreCase("projection")) {
+                                sb.append(projection);
+                                sb.append('_');
+                            } else if (subParams[i]
+                                    .equalsIgnoreCase("satelliteId")) {
+                                sb.append(satelliteId);
+                                sb.append('_');
+                            }
                         }
+                        sb.delete(sb.length() - 1, sb.length());
+
                     } else {
+
                         for (String param : subParams) {
                             if (sb.length() == 0) {
                                 sb.append(result.get(param));
@@ -1797,6 +1757,7 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                                 sb.append('_');
                                 sb.append(result.get(param));
                             }
+
                         }
                     }
 
@@ -1823,9 +1784,13 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                             } else if (subTypeGenerator.indexOf("forecaster") > -1) {
                                 subType = pgenRec.getForecaster();
                             } else {
+                                statusHandler
+                                        .handle(Priority.PROBLEM,
+                                                ("Unrecognized PGEN rsc generating subType" + subTypeGenerator));
                                 System.out
                                         .println("Unrecognized PGEN rsc generating subType"
                                                 + subTypeGenerator);
+
                             }
 
                             if (subType != null && !subType.trim().isEmpty()) {
@@ -1842,15 +1807,17 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                             if (!generatedSubTypesList.contains(subType)) {
                                 generatedSubTypesList.add(subType);
                             }
+
                         }
                     }
+
                 }
 
             }
         } catch (VizException e) {
             // if this is a stack trace we don't need to display the whole stack
             if (e.getMessage().length() > 200) {
-                System.out.println(e.getMessage());
+                statusHandler.handle(Priority.PROBLEM, e.getMessage());
                 e = new VizException(e.getClass().getName()
                         + " exception in queryGeneratedTypes ");
             }
@@ -1877,14 +1844,6 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
                 if (attribsObj instanceof String
                         && !attrName.equals("dataTime")) {
 
-                    // String attrStr = ((String) attribsObj);
-                    // if( attrStr.indexOf(' ') != -1 ) {
-                    // uriAttrValues.put(attrName, attrStr.replace(' ', '_') );
-                    // out.println( "WARNING: URI update message for "+
-                    // alrtMsg.dataURI +
-                    // "\n     Attribute "+ attrName +" has a space : '"+
-                    // (String)attribsObj +"'" );
-                    // }
                 }
             }
 
@@ -1944,31 +1903,45 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             String subType = null;
 
             if (getSubTypeGenParamsList().length == 1) { // ie Gini Satellite
+
                 // the gini decoder puts spaces in the sectorIds and
                 // physicalElements so replace the '_'s from the URI
                 String genPrm = getSubTypeGenParamsList()[0];
                 subType = uriAttrValues.get(genPrm).toString()
                         .replaceAll("_", " ");
-            } else if (getSubTypeGenParamsList().length == 2) { // ie Mcidas
-                                                                // Satellite
-                String genPrm1 = getSubTypeGenParamsList()[0];
-                String genPrm2 = getSubTypeGenParamsList()[1];
-                subType = uriAttrValues.get(genPrm1).toString();
-                if (uriAttrValues.get(genPrm2).toString().equals("0")
-                        && getSubTypeGenParamsList()[1].equals("resolution")) {
-                    subType = subType + "_native";
-                } else {
-                    subType = subType + "_"
-                            + uriAttrValues.get(genPrm2).toString() + "km";
+
+                // this replaces the commented-out stuff below, because mcidas
+                // can now have up to 4 subTypeGenerators and in any order.
+            } else if (getRscImplementation().equals("McidasSatellite")) {
+                String genPrm = "";
+                subType = "";
+                for (int i = 0; i < getSubTypeGenParamsList().length; i++) {
+                    genPrm = getSubTypeGenParamsList()[i];
+                    if ((genPrm.equals("resolution"))
+                            && (uriAttrValues.get(genPrm).toString()
+                                    .equals("0"))) {
+                        subType += "native_";
+                    } else {
+                        subType += uriAttrValues.get(genPrm).toString() + "_";
+                    }
                 }
+
+                subType = subType.replace(
+                        subType.substring(subType.length() - 1), ""); // get rid
+                                                                      // or
+                                                                      // trailing
+                                                                      // "_"
+
             } else if (getSubTypeGenParamsList().length == 3) { // Ghcd
                                                                 // (high-cadence)
                 String genPrm1 = getSubTypeGenParamsList()[0];
                 String genPrm2 = getSubTypeGenParamsList()[1];
+
                 String genPrm3 = getSubTypeGenParamsList()[2];
                 subType = uriAttrValues.get(genPrm1).toString() + "_"
                         + uriAttrValues.get(genPrm2).toString() + "_"
                         + uriAttrValues.get(genPrm3).toString();
+
             }
 
             if (subType != null && !generatedSubTypesList.contains(subType)) {
@@ -2077,4 +2050,5 @@ public class ResourceDefinition implements ISerializableObject, IAlertObserver,
             return false;
         return true;
     }
+
 }

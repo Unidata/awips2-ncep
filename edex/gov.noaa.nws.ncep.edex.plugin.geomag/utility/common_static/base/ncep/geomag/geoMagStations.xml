@@ -313,7 +313,7 @@
             <kpStation>1</kpStation>    
             <kStation>1</kStation>          
             <source name="direct" priority="101"/> 
-            <dataOrder>HDZF</dataOrder>    
+            <dataOrder>DHZ</dataOrder>    
             <location latitude="51.0" longitude="355.517"/>
             <rawDataFormat>
                  <dataFormat conversionRequired="true">

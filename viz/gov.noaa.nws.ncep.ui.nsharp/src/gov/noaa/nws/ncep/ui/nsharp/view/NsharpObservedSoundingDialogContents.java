@@ -13,6 +13,8 @@
  * 01/2011	    229			Chin Chen	Initial coding
  * 09/14/2011   457         S. Gurung   Renamed H5UAIR to NCUAIR
  * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
+ * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query grid model sounding data
+ *
  * </pre>
  * 
  * @author Chin Chen
@@ -20,6 +22,7 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
@@ -27,7 +30,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
@@ -138,8 +140,8 @@ public class NsharpObservedSoundingDialogContents {
         String stnInfoStr;
 
         // use NcSoundingQuery to query stn info
-        NcSoundingStnInfoCollection sndStnInfoCol = NcSoundingQuery
-                .soundingStnInfoQuery(currentSndType.toString(), selectTimetr);
+        NcSoundingStnInfoCollection sndStnInfoCol = NcSoundingQuery.genericSoundingStnInfoQuery(currentSndType.toString(),null, selectTimetr) ;
+               // .soundingStnInfoQuery(currentSndType.toString(), selectTimetr);
         if (sndStnInfoCol != null && sndStnInfoCol.getStationInfo() != null) {
 
             NcSoundingStnInfo[] stnInfoAry = sndStnInfoCol.getStationInfo();

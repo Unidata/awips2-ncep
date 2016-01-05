@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.common.dataplugin.geomag.calculation;
 
 import gov.noaa.nws.ncep.common.dataplugin.geomag.table.KFitTime;
 import gov.noaa.nws.ncep.common.dataplugin.geomag.util.KStationCoefficientLookup;
+import gov.noaa.nws.ncep.common.dataplugin.geomag.util.MissingValueCodeLookup;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -29,6 +30,9 @@ import java.util.regex.Pattern;
  * 05/14/2013   #989        qzhou      Initial Creation
  * 06/23/2014   R4152       qzhou      Touched up 3 functions
  * 12/23/2014   R5412       sgurung    Change float to double, added methods related to "debug mode"
+ * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit, fixed bug in getKfromTable()
+ * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes and fixed warnings
+ * 
  * </pre>
  * 
  * @author qzhou
@@ -36,7 +40,9 @@ import java.util.regex.Pattern;
  */
 
 public class CalcUtil {
-    public static final double MISSING_VAL = 99999.99;
+
+    public static Double missingVal = MissingValueCodeLookup.getInstance()
+            .getDefaultMissingValue();
 
     private static final double K_EXPONENT = 3.3;
 
@@ -184,30 +190,21 @@ public class CalcUtil {
         return wCoeff;
     }
 
-    public static int[] getKLimit(String station) {
-        int[] kLimit = new int[10];
+    public static double[] getKLimit(String station) {
+        double[] kLimit = new double[10];
         int k9Limit = getK9Limit(station);
         for (int i = 0; i < kLimit.length; i++) {
-            kLimit[i] = k9Limit * getKConst(i) / 500;
+            kLimit[i] = k9Limit * getKConst(i) / 500.0;
         }
         return kLimit;
     }
 
-    // public static int[] getAIndex(String station, double[] k-index) {
-    // int[] aIndex = new int[10];
-    // //int k9Limit = getK9Limit(station);
-    // for (int i = 0; i < kLimit.length; i++) {
-    // aIndex[i] = Math.round( getK2a(i));
-    // }
-    // return aIndex;
-    // }
-
-    public static int getKfromTable(int[] kLimit, double gamma) {
+    public static int getKfromTable(double[] kLimit, double gamma) {
         int kIndex;
 
         int i = 0;
         for (i = 0; i < 10; i++) {
-            if (gamma > kLimit[i])
+            if (gamma >= kLimit[i])
                 continue;
             else
                 break;
@@ -226,17 +223,13 @@ public class CalcUtil {
         return kIndex;
     }
 
-    // public static int getGammaFromK(String station, int kIndex) {
-    // int gamma = getK9Limit(station) * getKConst(kIndex) / 500;
-    //
-    // return gamma;
-    // }
-
     // assume db time format yyyy-mm-dd hh:mm:ss
     public static Date getSPTime(Date currTime) {
-        Date spTime = currTime;
+        Calendar spTime = Calendar.getInstance();
+        spTime.clear();
+        spTime.setTimeInMillis(currTime.getTime());
 
-        int hour = currTime.getHours();
+        int hour = spTime.get(Calendar.HOUR_OF_DAY);
 
         if (hour >= 0 && hour < 3)
             hour = 0;
@@ -255,17 +248,22 @@ public class CalcUtil {
         else if (hour >= 21 && hour < 24)
             hour = 21;
 
-        spTime.setHours(hour);
-        spTime.setMinutes(0);
-        spTime.setSeconds(0);
+        spTime.set(Calendar.HOUR_OF_DAY, hour);
 
-        return spTime;
+        spTime.set(Calendar.MINUTE, 0);
+        spTime.set(Calendar.SECOND, 0);
+
+        return spTime.getTime();
     }
 
     public static Date getEPTime(Date currTime) {
-        Date epTime = (Date) currTime.clone();
 
-        int hour = currTime.getHours();
+        Calendar epTime = Calendar.getInstance();
+        epTime.clear();
+        epTime.setTimeInMillis(currTime.getTime());
+
+        int hour = epTime.get(Calendar.HOUR_OF_DAY);
+
         if (hour >= 0 && hour < 3)
             hour = 3;
         else if (hour >= 3 && hour < 6)
@@ -283,18 +281,19 @@ public class CalcUtil {
         else if (hour >= 21 && hour < 24)
             hour = 0;
 
-        if (hour != 0)
-            epTime.setHours(hour);
-        else {
-            int day = currTime.getDate() + 1;
-            epTime.setDate(day);
-            epTime.setHours(hour);
+        if (hour != 0) {
+            epTime.set(Calendar.HOUR_OF_DAY, hour);
+        } else {
+
+            epTime.set(Calendar.DAY_OF_MONTH,
+                    epTime.get(Calendar.DAY_OF_MONTH) + 1);
+            epTime.set(Calendar.HOUR_OF_DAY, hour);
         }
 
-        epTime.setMinutes(0);
-        epTime.setSeconds(0);
+        epTime.set(Calendar.MINUTE, 0);
+        epTime.set(Calendar.SECOND, 0);
 
-        return epTime;
+        return epTime.getTime();
     }
 
     public static boolean isHalfMissing(double[] items) {
@@ -302,7 +301,7 @@ public class CalcUtil {
 
         int i = 0;
         for (i = 0; i < items.length; i++) {
-            if (items[i] == MISSING_VAL)
+            if (items[i] == missingVal)
                 i++;
         }
         if (i > items.length / 2)
@@ -332,9 +331,9 @@ public class CalcUtil {
     }
 
     public static double maxValue(double[] dev) {
-        double max = -99999;
+        double max = -CalcUtil.missingVal;
         for (int i = 0; i < dev.length; i++) {
-            if (dev[i] > max && dev[i] < MISSING_VAL) {
+            if (dev[i] > max && dev[i] < missingVal) {
                 max = dev[i];
             }
         }
@@ -342,9 +341,9 @@ public class CalcUtil {
     }
 
     public static double minValue(double[] dev) {
-        double min = 99999;
+        double min = CalcUtil.missingVal;
         for (int i = 0; i < dev.length; i++) {
-            if (dev[i] < min && dev[i] > -MISSING_VAL) {
+            if (dev[i] < min && dev[i] > -missingVal) {
                 min = dev[i];
             }
         }
@@ -433,48 +432,7 @@ public class CalcUtil {
         return isLeap;
     }
 
-    // public static String getMonthDayFromNumber(int year, int number) {
-    // //CL22013041.min
-    // String temp = "";
-    // String month = "";
-    // String day = "";
-    // String monthDay = "";
-    // Boolean isLeapYear = isLeapYear( year);
-    // int[] days = {31,28,31,30,31,30,31,31,30,31,30,31};
-    // int[] leapDays = {31,29,31,30,31,30,31,31,30,31,30,31};
-    // Calendar cal = Calendar.getInstance();
-    // cal.get(Calendar.DAY_OF_MONTH);
-    // cal.get(Calendar.MONTH);
-    // cal.get(Calendar.DAY_OF_YEAR);
-    // cal.set(Calendar.DAY_OF_YEAR, number);
-    // int[] num =
-    // if (isLeapYear) {
-    //
-    // }
-    // else {
-    //
-    // }
-    // if (number<=31){ //JEJ, m130212.txt
-    // month = "01";
-    // day = String.valueOf(number);
-    // }
-    // else if (number > 31 && number <= 59){
-    // month = "02";
-    // day = String.valueOf(number-31);
-    // }
-    // else if (number > 31 && number <= 59){
-    // month = "03";
-    // day = String.valueOf(number-31);
-    // }
-    // else if (fileName.startsWith("ha")){ CNB,NGK, WNG
-    // temp = fileName.substring(3, 10);
-    // year = temp.substring(0, 4);
-    // }
-    //
-    // return monthDay;
-    // }
-
-    public static String getTimeFromFileName(String fileName) { // CL22013041.min
+    public static String getTimeFromFileName(String fileName) {
         String time = "";
         String temp = "";
         String year = "";
@@ -484,7 +442,7 @@ public class CalcUtil {
 
         Calendar cal = Calendar.getInstance();
 
-        if (fileName.startsWith("m")) { // JEJ, m130212.txt
+        if (fileName.startsWith("m")) {
             temp = fileName.substring(1, 7);
             year = "20" + temp.substring(4, 6);
             month = temp.substring(2, 4);
@@ -540,17 +498,20 @@ public class CalcUtil {
 
         // remove missing data
         List<Double> newArray = new ArrayList<Double>();
-        for (int k = 0; k < arraySort.length; k++)
-            if (arraySort[k] != MISSING_VAL)
+        for (int k = 0; k < arraySort.length; k++) {
+            if (arraySort[k] != missingVal) {
                 newArray.add(arraySort[k]);
-            else
-                break; // to sorted arraySort
+            } else {
+                break;
+            }
+        }
 
         int size = newArray.size();
-        if (size % 2 == 0)
+        if (size % 2 == 0) {
             median = (newArray.get(size / 2) + newArray.get(size / 2 - 1)) / 2;
-        else
+        } else {
             median = newArray.get((size - 1) / 2);
+        }
 
         return median;
     }

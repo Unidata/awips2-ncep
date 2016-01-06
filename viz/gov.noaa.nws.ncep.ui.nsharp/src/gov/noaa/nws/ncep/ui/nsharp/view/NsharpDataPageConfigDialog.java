@@ -1,4 +1,24 @@
 package gov.noaa.nws.ncep.ui.nsharp.view;
+/**
+ * 
+ * NsharpDataPageConfigDialog
+ * 
+ * 
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 05/23/2010               Chin Chen   Initial coding
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
+ *
+ * </pre>
+ * 
+ * @author Chin Chen
+ * @version 1.0
+ */
 
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
@@ -154,7 +174,8 @@ public class NsharpDataPageConfigDialog extends Dialog {
         dpp = configStore.getDataPageProperty();
         paneConfigurationName = configStore.getGraphProperty()
                 .getPaneConfigurationName();
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) // d2dlite
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) 
             btnGp.setVisible(false);
         else
             btnGp.setVisible(true);
@@ -176,7 +197,7 @@ public class NsharpDataPageConfigDialog extends Dialog {
             public void handleEvent(Event event) {
                 // System.out.println("save listener is called, also apply changes");
                 if (sanityCheck() == false) {
-                    System.out.println("sanity check failed");
+                    //System.out.println("sanity check failed");
                     return;
                 }
                 applyChange();
@@ -227,7 +248,7 @@ public class NsharpDataPageConfigDialog extends Dialog {
                     if (pnum >= 1 && pnum <= NsharpConstants.PAGE_MAX_NUMBER)
                         editingOrderNumberArray[i] = pnum;
                     else {
-                        System.out.println("wrong order =" + pnum);
+                        //System.out.println("wrong order =" + pnum);
                         mb.setMessage("Wrong Configuration! Order number should be within [1-12]");
                         mb.open();
                         return false;
@@ -309,7 +330,7 @@ public class NsharpDataPageConfigDialog extends Dialog {
         // System.out.println("CR is pressed");
         setReturnCode(OK);
         if (sanityCheck() == false) {
-            System.out.println("sanity check failed");
+            //System.out.println("sanity check failed");
             return;
         }
         applyChange();
@@ -327,7 +348,8 @@ public class NsharpDataPageConfigDialog extends Dialog {
 
         btnGp = new Group(top, SWT.SHADOW_ETCHED_IN);
         btnGp.setText("number of page per display");
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) // d2dlite
+        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) 
             btnGp.setVisible(false);
 
         Button oneBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);

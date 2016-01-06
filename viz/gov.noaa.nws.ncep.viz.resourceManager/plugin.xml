@@ -53,6 +53,19 @@
 	         extensionFilter=".xml,.attr">
        </path>
     </extension>
+    
+    <extension
+          point="com.raytheon.uf.viz.localization.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Local Radar Stations"
+             recursive="false"
+             value="ncep/localRadarStations"
+             extensionFilter=".xml">
+       </path>
+    </extension>
+    
    <extension
           point="com.raytheon.uf.viz.localization.localizationpath">
        <path

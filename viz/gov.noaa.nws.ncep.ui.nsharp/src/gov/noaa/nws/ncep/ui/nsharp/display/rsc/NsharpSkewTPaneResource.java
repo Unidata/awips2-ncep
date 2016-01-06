@@ -33,6 +33,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpShapeAndLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpIcingPaneBackground;
@@ -40,15 +41,12 @@ import gov.noaa.nws.ncep.ui.nsharp.background.NsharpSkewTPaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.background.NsharpTurbulencePaneBackground;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._lplvalues;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._parcel;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpLoadDialog;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
@@ -88,7 +86,6 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -148,7 +145,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     private double dPressure;
 
-    private ArrayList<IDisplayable> windBarbShapeList;
+    //private ArrayList<IDisplayable> windBarbShapeList;
 
     private IWireframeShape heightMarkRscShape = null;
 
@@ -234,7 +231,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     private boolean windBarbMagnify = false;
 
-    private int currentWindBarbSoundingLayerIndex;
+    //private int currentWindBarbSoundingLayerIndex;
 
     public boolean isWindBarbMagnify() {
         return windBarbMagnify;
@@ -304,7 +301,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     }
 
     private void plotPressureTempEditPoints(IGraphicsTarget target,
-            WGraphics world, RGB color, int type,
+            NsharpWGraphics world, RGB color, int type,
             List<NcSoundingLayer> soundingLys) throws VizException {
         double maxPressure = NsharpWxMath.reverseSkewTXY(new Coordinate(0,
                 world.getWorldYmax())).y;
@@ -405,73 +402,73 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         effectiveLayerLineShape.compile();
     }
 
-    @SuppressWarnings({ "deprecation", "unused" })
-    private void drawEffectiveLayerLines(IGraphicsTarget target)
-            throws VizException {
+//    @SuppressWarnings({ "deprecation", "unused" })
+//    private void drawEffectiveLayerLines(IGraphicsTarget target)
+//            throws VizException {
+//
+//        FloatByReference topPF = new FloatByReference(0);
+//        FloatByReference botPF = new FloatByReference(0);
+//        nsharpNative.nsharpLib.get_effectLayertopBotPres(topPF, botPF);
+//        if (botPF.getValue() < 1)
+//            return;
+//        double dispX0;
+//        double dispX1;
+//        double dispX2;
+//        double dispX3;
+//        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
+//        dispX0 = ext.getMinX() + ext.getWidth() / 5;
+//        dispX1 = dispX0 + 20 * currentZoomLevel * xRatio;
+//        dispX2 = dispX1 + 20 * currentZoomLevel * xRatio;
+//        dispX3 = dispX2 + 20 * currentZoomLevel * xRatio;
+//        String botStr, topStr;
+//        float aglTop, aglBot;
+//        aglTop = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib.ihght(topPF
+//                .getValue()));
+//        aglBot = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib.ihght(botPF
+//                .getValue()));
+//        // Draw effective sfc level
+//        if (aglBot < 1) {
+//            botStr = "SFC";
+//        } else {
+//            botStr = String.format("%.0fm", aglBot);
+//        }
+//        double y = world.mapY(NsharpWxMath.getSkewTXY(botPF.getValue(), 10).y);
+//        target.drawLine(dispX1, y, 0.0, dispX3, y, 0.0,
+//                NsharpConstants.color_cyan_md, 2);
+//        target.drawString(font10, botStr, dispX3, y, 0.0, TextStyle.NORMAL,
+//                NsharpConstants.color_cyan_md, HorizontalAlignment.LEFT,
+//                VerticalAlignment.MIDDLE, null);
+//        // Draw effective top level
+//        topStr = String.format("%.0fm", aglTop);
+//        double y1 = world.mapY(NsharpWxMath.getSkewTXY(topPF.getValue(), 10).y);
+//        target.drawLine(dispX1, y1, 0.0, dispX3, y1, 0.0,
+//                NsharpConstants.color_cyan_md, 2);
+//        if (aglTop > aglBot) {
+//            target.drawString(font10, topStr, dispX3, y1, 0.0,
+//                    TextStyle.NORMAL, NsharpConstants.color_cyan_md,
+//                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//            // System.out.println("aglbot="+aglBot+" agltop="+aglTop);
+//        }
+//
+//        // Draw connecting line
+//        target.drawLine(dispX2, y, 0.0, dispX2, y1, 0.0,
+//                NsharpConstants.color_cyan_md, 2);
+//        // Compute and display effective helicity
+//        topPF.setValue(0); // just a placeholder
+//        botPF.setValue(0);
+//        float helicity = nsharpNative.nsharpLib.helicity(aglBot, aglTop,
+//                rscHandler.getSmWindDir(), rscHandler.getSmWindSpd(), topPF,
+//                botPF);
+//        String helicityStr = String.format("%4.0f m%cs%c", helicity,
+//                NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
+//
+//        // draw kelicity
+//        target.drawString(font10, helicityStr, dispX0, y1 - 10 * yRatio, 0.0,
+//                TextStyle.NORMAL, NsharpConstants.color_cyan_md,
+//                HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//    }
 
-        FloatByReference topPF = new FloatByReference(0);
-        FloatByReference botPF = new FloatByReference(0);
-        nsharpNative.nsharpLib.get_effectLayertopBotPres(topPF, botPF);
-        if (botPF.getValue() < 1)
-            return;
-        double dispX0;
-        double dispX1;
-        double dispX2;
-        double dispX3;
-        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
-        dispX0 = ext.getMinX() + ext.getWidth() / 5;
-        dispX1 = dispX0 + 20 * currentZoomLevel * xRatio;
-        dispX2 = dispX1 + 20 * currentZoomLevel * xRatio;
-        dispX3 = dispX2 + 20 * currentZoomLevel * xRatio;
-        String botStr, topStr;
-        float aglTop, aglBot;
-        aglTop = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib.ihght(topPF
-                .getValue()));
-        aglBot = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib.ihght(botPF
-                .getValue()));
-        // Draw effective sfc level
-        if (aglBot < 1) {
-            botStr = "SFC";
-        } else {
-            botStr = String.format("%.0fm", aglBot);
-        }
-        double y = world.mapY(NsharpWxMath.getSkewTXY(botPF.getValue(), 10).y);
-        target.drawLine(dispX1, y, 0.0, dispX3, y, 0.0,
-                NsharpConstants.color_cyan_md, 2);
-        target.drawString(font10, botStr, dispX3, y, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan_md, HorizontalAlignment.LEFT,
-                VerticalAlignment.MIDDLE, null);
-        // Draw effective top level
-        topStr = String.format("%.0fm", aglTop);
-        double y1 = world.mapY(NsharpWxMath.getSkewTXY(topPF.getValue(), 10).y);
-        target.drawLine(dispX1, y1, 0.0, dispX3, y1, 0.0,
-                NsharpConstants.color_cyan_md, 2);
-        if (aglTop > aglBot) {
-            target.drawString(font10, topStr, dispX3, y1, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan_md,
-                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-            // System.out.println("aglbot="+aglBot+" agltop="+aglTop);
-        }
-
-        // Draw connecting line
-        target.drawLine(dispX2, y, 0.0, dispX2, y1, 0.0,
-                NsharpConstants.color_cyan_md, 2);
-        // Compute and display effective helicity
-        topPF.setValue(0); // just a placeholder
-        botPF.setValue(0);
-        float helicity = nsharpNative.nsharpLib.helicity(aglBot, aglTop,
-                rscHandler.getSmWindDir(), rscHandler.getSmWindSpd(), topPF,
-                botPF);
-        String helicityStr = String.format("%4.0f m%cs%c", helicity,
-                NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
-
-        // draw kelicity
-        target.drawString(font10, helicityStr, dispX0, y1 - 10 * yRatio, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_cyan_md,
-                HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-    }
-
-    @SuppressWarnings("deprecation")
+    
     public void createLCLEtcLinesShape() {
         if (target == null)
             return;
@@ -634,141 +631,141 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     }
 
-    @SuppressWarnings({ "deprecation", "unused" })
-    private void drawLclLine(IGraphicsTarget target) throws VizException {
-        // System.out.println("drawLclLine called define_parcel pType="+currentParcel+" pre="+
-        // currentParcelLayerPressure);
-        double dispX1;
-        double dispX2;
-        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
-        dispX1 = ext.getMaxX() - ext.getWidth() / 3;
-        dispX2 = dispX1 + 40 * currentZoomLevel * xRatio;
-        nsharpNative.nsharpLib.define_parcel(rscHandler.getCurrentParcel(),
-                rscHandler.getCurrentParcelLayerPressure());
-        _lplvalues lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        _parcel pcl = new _parcel();
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-        // draw LCL line
-        float lcl = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                .ihght(pcl.lclpres));
-        if (lcl != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-            double pressure = nsharpNative.nsharpLib.ipres(lcl
-                    + (int) (soundingLys.get(0).getGeoHeight()));
-            // System.out.println("lcl= " + lcl + " lclpres ="+pcl.lclpres
-            // +" pressure="+ pressure);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
-            target.drawLine(dispX1/* world.mapX(NsharpConstants.right)-220 */,
-                    y, 0.0, dispX2/* world.mapX(NsharpConstants.right) -180 */,
-                    y, 0.0, NsharpConstants.color_green, 2);
-            target.drawString(font10, "LCL", dispX1 /*
-                                                     * world.mapX(NsharpConstants
-                                                     * .right)-220
-                                                     */, y + 5 * yRatio, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_green,
-                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-        }
-        // draw LFC line
-        if (pcl.lclpres != pcl.lfcpres) {
-            float lfc = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.lfcpres));
-            if (lfc != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                double pressure = nsharpNative.nsharpLib.ipres(lfc
-                        + (int) (soundingLys.get(0).getGeoHeight()));
-                // System.out.println("lfcpres ="+pcl.lfcpres +" pressure="+
-                // pressure);
-                double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
-                target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
-                        NsharpConstants.color_yellow, 2);
-                target.drawString(font10, "LFC", dispX1, y, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_yellow,
-                        HorizontalAlignment.RIGHT, VerticalAlignment.MIDDLE,
-                        null);
-            }
-        }
-        // draw EL line
-        if (pcl.lclpres != pcl.elpres && pcl.elpres != pcl.lfcpres) {
-            float el = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.elpres));
-            if (el != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                double pressure = nsharpNative.nsharpLib.ipres(el
-                        + (int) (soundingLys.get(0).getGeoHeight()));
-                // System.out.println("elpres ="+pcl.elpres +" pressure="+
-                // pressure);
-                double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
-                target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
-                        NsharpConstants.color_red, 2);
-                target.drawString(font10, "EL", dispX1, y - 10 * yRatio, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_red,
-                        HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE,
-                        null);
-            }
-        }
-        // draw FGZ line
-        FloatByReference fValue = new FloatByReference(0);
-        float fgzm = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                .ihght(nsharpNative.nsharpLib.temp_lvl(0, fValue)));
-        float fgzft = nsharpNative.nsharpLib.mtof(fgzm);
-        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
-            double pressure = nsharpNative.nsharpLib.ipres(fgzm
-                    + (int) (soundingLys.get(0).getGeoHeight()));
-            // System.out.println("elpres ="+pcl.elpres +" pressure="+
-            // pressure);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
-            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
-                    NsharpConstants.color_cyan, 2);
-            String textStr = "FZL= %.0f'";
-            textStr = String.format(textStr, fgzft);
-            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-        }
-        // draw -20Cline
-        float h20m = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                .ihght(nsharpNative.nsharpLib.temp_lvl(-20, fValue)));
-        float h20ft = nsharpNative.nsharpLib.mtof(h20m);
-        if (nsharpNative.nsharpLib.qc(h20ft) == 1) {
-            double pressure = nsharpNative.nsharpLib.ipres(h20m
-                    + (int) (soundingLys.get(0).getGeoHeight()));
-            // System.out.println("elpres ="+pcl.elpres +" pressure="+
-            // pressure);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, -20).y);
-            // double x = world.mapX(NsharpWxMath.getSkewTXY(pressure, -20).x);
-            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
-                    NsharpConstants.color_cyan, 2);
-            String textStr = "-20C= %.0f'";
-            textStr = String.format(textStr, h20ft);
-            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-        }
-        // draw -30Cline
-        float h30m = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                .ihght(nsharpNative.nsharpLib.temp_lvl(-30, fValue)));
-        float h30ft = nsharpNative.nsharpLib.mtof(h30m);
-        if (nsharpNative.nsharpLib.qc(h30ft) == 1) {
-            double pressure = nsharpNative.nsharpLib.ipres(h30m
-                    + (int) (soundingLys.get(0).getGeoHeight()));
-            // System.out.println("elpres ="+pcl.elpres +" pressure="+
-            // pressure);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
-            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
-                    NsharpConstants.color_cyan, 2);
-            String textStr = "-30C= %.0f'";
-            textStr = String.format(textStr, h30ft);
-            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
-        }
-    }
+//    @SuppressWarnings({ "deprecation", "unused" })
+//    private void drawLclLine(IGraphicsTarget target) throws VizException {
+//        // System.out.println("drawLclLine called define_parcel pType="+currentParcel+" pre="+
+//        // currentParcelLayerPressure);
+//        double dispX1;
+//        double dispX2;
+//        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
+//        dispX1 = ext.getMaxX() - ext.getWidth() / 3;
+//        dispX2 = dispX1 + 40 * currentZoomLevel * xRatio;
+//        nsharpNative.nsharpLib.define_parcel(rscHandler.getCurrentParcel(),
+//                rscHandler.getCurrentParcelLayerPressure());
+//        _lplvalues lpvls = new _lplvalues();
+//        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
+//
+//        float sfctemp, sfcdwpt, sfcpres;
+//        sfctemp = lpvls.temp;
+//        sfcdwpt = lpvls.dwpt;
+//        sfcpres = lpvls.pres;
+//        // get parcel data by calling native nsharp parcel() API. value is
+//        // returned in pcl
+//        _parcel pcl = new _parcel();
+//        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
+//                pcl);
+//        // draw LCL line
+//        float lcl = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                .ihght(pcl.lclpres));
+//        if (lcl != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
+//            double pressure = nsharpNative.nsharpLib.ipres(lcl
+//                    + (int) (soundingLys.get(0).getGeoHeight()));
+//            // System.out.println("lcl= " + lcl + " lclpres ="+pcl.lclpres
+//            // +" pressure="+ pressure);
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
+//            target.drawLine(dispX1/* world.mapX(NsharpConstants.right)-220 */,
+//                    y, 0.0, dispX2/* world.mapX(NsharpConstants.right) -180 */,
+//                    y, 0.0, NsharpConstants.color_green, 2);
+//            target.drawString(font10, "LCL", dispX1 /*
+//                                                     * world.mapX(NsharpConstants
+//                                                     * .right)-220
+//                                                     */, y + 5 * yRatio, 0.0,
+//                    TextStyle.NORMAL, NsharpConstants.color_green,
+//                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//        }
+//        // draw LFC line
+//        if (pcl.lclpres != pcl.lfcpres) {
+//            float lfc = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                    .ihght(pcl.lfcpres));
+//            if (lfc != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
+//                double pressure = nsharpNative.nsharpLib.ipres(lfc
+//                        + (int) (soundingLys.get(0).getGeoHeight()));
+//                // System.out.println("lfcpres ="+pcl.lfcpres +" pressure="+
+//                // pressure);
+//                double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
+//                target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
+//                        NsharpConstants.color_yellow, 2);
+//                target.drawString(font10, "LFC", dispX1, y, 0.0,
+//                        TextStyle.NORMAL, NsharpConstants.color_yellow,
+//                        HorizontalAlignment.RIGHT, VerticalAlignment.MIDDLE,
+//                        null);
+//            }
+//        }
+//        // draw EL line
+//        if (pcl.lclpres != pcl.elpres && pcl.elpres != pcl.lfcpres) {
+//            float el = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                    .ihght(pcl.elpres));
+//            if (el != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
+//                double pressure = nsharpNative.nsharpLib.ipres(el
+//                        + (int) (soundingLys.get(0).getGeoHeight()));
+//                // System.out.println("elpres ="+pcl.elpres +" pressure="+
+//                // pressure);
+//                double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
+//                target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
+//                        NsharpConstants.color_red, 2);
+//                target.drawString(font10, "EL", dispX1, y - 10 * yRatio, 0.0,
+//                        TextStyle.NORMAL, NsharpConstants.color_red,
+//                        HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE,
+//                        null);
+//            }
+//        }
+//        // draw FGZ line
+//        FloatByReference fValue = new FloatByReference(0);
+//        float fgzm = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                .ihght(nsharpNative.nsharpLib.temp_lvl(0, fValue)));
+//        float fgzft = nsharpNative.nsharpLib.mtof(fgzm);
+//        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
+//            double pressure = nsharpNative.nsharpLib.ipres(fgzm
+//                    + (int) (soundingLys.get(0).getGeoHeight()));
+//            // System.out.println("elpres ="+pcl.elpres +" pressure="+
+//            // pressure);
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
+//            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
+//                    NsharpConstants.color_cyan, 2);
+//            String textStr = "FZL= %.0f'";
+//            textStr = String.format(textStr, fgzft);
+//            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
+//                    TextStyle.NORMAL, NsharpConstants.color_cyan,
+//                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//        }
+//        // draw -20Cline
+//        float h20m = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                .ihght(nsharpNative.nsharpLib.temp_lvl(-20, fValue)));
+//        float h20ft = nsharpNative.nsharpLib.mtof(h20m);
+//        if (nsharpNative.nsharpLib.qc(h20ft) == 1) {
+//            double pressure = nsharpNative.nsharpLib.ipres(h20m
+//                    + (int) (soundingLys.get(0).getGeoHeight()));
+//            // System.out.println("elpres ="+pcl.elpres +" pressure="+
+//            // pressure);
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, -20).y);
+//            // double x = world.mapX(NsharpWxMath.getSkewTXY(pressure, -20).x);
+//            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
+//                    NsharpConstants.color_cyan, 2);
+//            String textStr = "-20C= %.0f'";
+//            textStr = String.format(textStr, h20ft);
+//            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
+//                    TextStyle.NORMAL, NsharpConstants.color_cyan,
+//                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//        }
+//        // draw -30Cline
+//        float h30m = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
+//                .ihght(nsharpNative.nsharpLib.temp_lvl(-30, fValue)));
+//        float h30ft = nsharpNative.nsharpLib.mtof(h30m);
+//        if (nsharpNative.nsharpLib.qc(h30ft) == 1) {
+//            double pressure = nsharpNative.nsharpLib.ipres(h30m
+//                    + (int) (soundingLys.get(0).getGeoHeight()));
+//            // System.out.println("elpres ="+pcl.elpres +" pressure="+
+//            // pressure);
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 10).y);
+//            target.drawLine(dispX1, y, 0.0, dispX2, y, 0.0,
+//                    NsharpConstants.color_cyan, 2);
+//            String textStr = "-30C= %.0f'";
+//            textStr = String.format(textStr, h30ft);
+//            target.drawString(font10, textStr, dispX1, y - 10 * yRatio, 0.0,
+//                    TextStyle.NORMAL, NsharpConstants.color_cyan,
+//                    HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, null);
+//        }
+//    }
 
     public float getTempDewPtSmallestGap() {
         float gap = soundingLys.get(0).getTemperature()
@@ -780,9 +777,8 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         return gap;
     }
 
-    @SuppressWarnings("deprecation")
     private void plotNsharpMovingTempLine(IGraphicsTarget target,
-            WGraphics world, RGB color) throws VizException {
+            NsharpWGraphics world, RGB color) throws VizException {
         float currentLayerTemp, currentLayerDewP;
         Coordinate inC = NsharpWxMath.reverseSkewTXY(this.getWorld().unMap(
                 interactiveTempPointCoordinate));
@@ -845,9 +841,8 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     }
 
-    @SuppressWarnings("deprecation")
     private void plotNsharpInteractiveEditingTemp(IGraphicsTarget target,
-            double zoomLevel, WGraphics world, RGB color) throws VizException {
+            double zoomLevel, NsharpWGraphics world, RGB color) throws VizException {
         if (soundingLys.size() < 4)
             return;
         // double inPressure =
@@ -940,7 +935,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
      * 
      */
     private void drawNsharpWindBarb(IGraphicsTarget target, double zoomLevel,
-            WGraphics world, RGB iicolor, List<NcSoundingLayer> sndLys,
+            NsharpWGraphics world, RGB iicolor, List<NcSoundingLayer> sndLys,
             double xPosition, double botPress) throws VizException {
         if (sndLys.size() < 4)
             return;
@@ -1070,6 +1065,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
              */
             // use PGEN tool
             Vector vect = new Vector();
+            vect.setPgenType("Barb");
             vect.setVectorType(VectorType.WIND_BARB);
             vect.setArrowHeadSize(1.0);
             vect.setDirection(dir);
@@ -1103,147 +1099,147 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
      * drawing around every 400m
      * 
      */
-    private void createWindBarbWFShape(IGraphicsTarget target, WGraphics world,
-            List<NcSoundingLayer> sndLys, double xPosition, double botPress)
-            throws VizException {
-        if (sndLys.size() < 4)
-            return;
-        List<windPickedElement> layerStateList = new ArrayList<windPickedElement>();
-        float lastHeight = -9999;
-        RGB icolor = graphConfigProperty.getWindBarbColor();
-        float barbLineWidth = graphConfigProperty.getWindBarbLineWidth();
-        float barbSize = graphConfigProperty.getWindBarbSize();
-        // #1: find relative max wind layers. I.e. a layer's wind is stronger
-        // than immediate above and below layers
-        NcSoundingLayer curLayer, aboveLayer, belowLayer;
-        for (int i = 0; i < sndLys.size(); i++) {
-            curLayer = sndLys.get(i);
-            float spd = curLayer.getWindSpeed();
-            if (spd < 0)
-                continue;
-            windPickedElement newEle = new windPickedElement(curLayer,
-                    eleState.UNPICKED);
-            layerStateList.add(newEle);
-            if (i == 0 || i == sndLys.size() - 1) {
-                continue;
-            }
-            aboveLayer = sndLys.get(i + 1);
-            belowLayer = sndLys.get(i - 1);
-            if (spd > aboveLayer.getWindSpeed()
-                    && spd > belowLayer.getWindSpeed()) {
-                newEle.myState = eleState.RE_MAX_WIND;
-                // System.out.println( "layer#"+ i+ " RE_MAX_WIND =" + spd );
-            }
-        }
-        // #2: apply minimum distance rule, i.e no two wind layer closer than
-        // the minimum distance, also make sure
-        // relative max wind layer is picked.
-        lastHeight = -9999;
-        windPickedElement lastEle = layerStateList.get(0);
-        for (windPickedElement ele : layerStateList) {
-            float pressure = ele.layer.getPressure();
-            float spd = ele.layer.getWindSpeed();
-            if (pressure < botPress || spd < 0) {
-                continue;
-            }
-            if ((ele.layer.getGeoHeight() - lastHeight) < graphConfigProperty
-                    .getWindBarbDistance()) {// *zoomLevel ){
-                if (ele.myState.equals(eleState.RE_MAX_WIND)
-                        && spd > lastEle.layer.getWindSpeed()) {
-                    // swapped last picked layer with this relative max wind
-                    // layer
-                    lastEle.myState = eleState.UNPICKED;
-                    lastHeight = ele.layer.getGeoHeight();
-                    lastEle = ele;
-                    continue;
-                } else {
-                    ele.myState = eleState.UNPICKED;
-                    continue;
-                }
-            } else {
-                if (ele.myState.equals(eleState.UNPICKED))
-                    ele.myState = eleState.PICKED;
-                lastHeight = ele.layer.getGeoHeight();
-                lastEle = ele;
-            }
-        }
-        double windX = xPosition;
-        double windY = 0;
-        List<double[]> locations = new ArrayList<double[]>();
-        // System.out.println("zoom="+zoomLevel
-        // +"world viewYmin="+world.getViewYmin()+" viewYmax="+world.getViewYmax()+" wolrdYmin="+
-        // world.getWorldYmin()+" wolrdYmax="+ world.getWorldYmax()
-        // +"world viewXmin="+world.getViewXmin()+" viewXmax="+world.getViewXmax()+" wolrdXmin="+
-        // world.getWorldXmin()+" wolrdXmax="+ world.getWorldXmax());
-        // plot wind barbs
-        List<IVector> windVectList = new ArrayList<IVector>();
-        Color[] colors = new Color[1];
-        Color color = new Color(icolor.red, icolor.green, icolor.blue);
-        colors[0] = color;
-        DisplayElementFactory df = new DisplayElementFactory(target,
-                this.descriptor);
-        for (windPickedElement ele : layerStateList) {
+//    private void createWindBarbWFShape(IGraphicsTarget target, NsharpWGraphics world,
+//            List<NcSoundingLayer> sndLys, double xPosition, double botPress)
+//            throws VizException {
+//        if (sndLys.size() < 4)
+//            return;
+//        List<windPickedElement> layerStateList = new ArrayList<windPickedElement>();
+//        float lastHeight = -9999;
+//        RGB icolor = graphConfigProperty.getWindBarbColor();
+//        float barbLineWidth = graphConfigProperty.getWindBarbLineWidth();
+//        float barbSize = graphConfigProperty.getWindBarbSize();
+//        // #1: find relative max wind layers. I.e. a layer's wind is stronger
+//        // than immediate above and below layers
+//        NcSoundingLayer curLayer, aboveLayer, belowLayer;
+//        for (int i = 0; i < sndLys.size(); i++) {
+//            curLayer = sndLys.get(i);
+//            float spd = curLayer.getWindSpeed();
+//            if (spd < 0)
+//                continue;
+//            windPickedElement newEle = new windPickedElement(curLayer,
+//                    eleState.UNPICKED);
+//            layerStateList.add(newEle);
+//            if (i == 0 || i == sndLys.size() - 1) {
+//                continue;
+//            }
+//            aboveLayer = sndLys.get(i + 1);
+//            belowLayer = sndLys.get(i - 1);
+//            if (spd > aboveLayer.getWindSpeed()
+//                    && spd > belowLayer.getWindSpeed()) {
+//                newEle.myState = eleState.RE_MAX_WIND;
+//                // System.out.println( "layer#"+ i+ " RE_MAX_WIND =" + spd );
+//            }
+//        }
+//        // #2: apply minimum distance rule, i.e no two wind layer closer than
+//        // the minimum distance, also make sure
+//        // relative max wind layer is picked.
+//        lastHeight = -9999;
+//        windPickedElement lastEle = layerStateList.get(0);
+//        for (windPickedElement ele : layerStateList) {
+//            float pressure = ele.layer.getPressure();
+//            float spd = ele.layer.getWindSpeed();
+//            if (pressure < botPress || spd < 0) {
+//                continue;
+//            }
+//            if ((ele.layer.getGeoHeight() - lastHeight) < graphConfigProperty
+//                    .getWindBarbDistance()) {// *zoomLevel ){
+//                if (ele.myState.equals(eleState.RE_MAX_WIND)
+//                        && spd > lastEle.layer.getWindSpeed()) {
+//                    // swapped last picked layer with this relative max wind
+//                    // layer
+//                    lastEle.myState = eleState.UNPICKED;
+//                    lastHeight = ele.layer.getGeoHeight();
+//                    lastEle = ele;
+//                    continue;
+//                } else {
+//                    ele.myState = eleState.UNPICKED;
+//                    continue;
+//                }
+//            } else {
+//                if (ele.myState.equals(eleState.UNPICKED))
+//                    ele.myState = eleState.PICKED;
+//                lastHeight = ele.layer.getGeoHeight();
+//                lastEle = ele;
+//            }
+//        }
+//        double windX = xPosition;
+//        double windY = 0;
+//        List<double[]> locations = new ArrayList<double[]>();
+//        // System.out.println("zoom="+zoomLevel
+//        // +"world viewYmin="+world.getViewYmin()+" viewYmax="+world.getViewYmax()+" wolrdYmin="+
+//        // world.getWorldYmin()+" wolrdYmax="+ world.getWorldYmax()
+//        // +"world viewXmin="+world.getViewXmin()+" viewXmax="+world.getViewXmax()+" wolrdXmin="+
+//        // world.getWorldXmin()+" wolrdXmax="+ world.getWorldXmax());
+//        // plot wind barbs
+//        List<IVector> windVectList = new ArrayList<IVector>();
+//        Color[] colors = new Color[1];
+//        Color color = new Color(icolor.red, icolor.green, icolor.blue);
+//        colors[0] = color;
+//        DisplayElementFactory df = new DisplayElementFactory(target,
+//                this.descriptor);
+//        for (windPickedElement ele : layerStateList) {
+//
+//            NcSoundingLayer layer = ele.layer;
+//            float pressure = layer.getPressure();
+//            float spd = layer.getWindSpeed();
+//            float dir = layer.getWindDirection();
+//
+//            // Get the vertical ordinate.
+//            if (currentGraphMode == NsharpConstants.GRAPH_SKEWT) {
+//                windY = NsharpWxMath.getSkewTXY(pressure, 0).y;
+//            } else if (currentGraphMode == NsharpConstants.GRAPH_ICING) {
+//                // Chin:Y axis (pressure) is scaled using log scale and
+//                // increaing downward
+//                // WorldYmin= at pressure 1000,its value actually is 1000 (max),
+//                // wolrdYmax = at pressure 300, its value is 825 (min)
+//                windY = world.getWorldYmax()
+//                        + (world.getWorldYmin() - icingBackground
+//                                .toLogScale(pressure));
+//            } else if (currentGraphMode == NsharpConstants.GRAPH_TURB) {
+//                // Chin:Y axis (pressure) is scaled using log scale and
+//                // increaing downward
+//                // WorldYmin= at pressure 1000,its value actually is 1000 (max),
+//                // wolrdYmax = at pressure 300, its value is 825 (min)
+//                windY = world.getWorldYmax()
+//                        + (world.getWorldYmin() - turbBackground
+//                                .toLogScale(pressure));
+//            } else
+//                continue;
+//
+//            if (ele.myState.equals(eleState.UNPICKED)) {
+//                double[] loc = { world.mapX(windX), world.mapY(windY) };
+//                locations.add(loc);
+//                // continue; if dont want to draw un-picked wind, then should
+//                // drop it here.
+//                // to plot un-picked wind with a small circle? change wind speed
+//                // to smaller than 0.5, then PGEN tool
+//                // will take care of it.
+//                spd = 0.1f;
+//            }
+//            // use PGEN tool
+//            Vector vect = new Vector();
+//            vect.setPgenType("Barb");
+//            vect.setVectorType(VectorType.WIND_BARB);
+//            vect.setArrowHeadSize(1.0);
+//            dir = (dir + 180.0f) % 360.0f; // change direction 180 degree for
+//                                           // Nsharp drawing style
+//            vect.setDirection(dir);
+//            vect.setSpeed(spd);
+//            vect.setSizeScale(barbSize);
+//            vect.setLineWidth(barbLineWidth);
+//            vect.setClear(true);
+//            vect.setColors(colors);
+//            Coordinate location = new Coordinate(world.mapX(windX - 2),
+//                    world.mapY(windY));
+//            vect.setLocation(location);
+//            ArrayList<IDisplayable> newlst = df.createDisplayElements(vect,
+//                    paintProps);
+//            windBarbShapeList.addAll(newlst);
+//        }
+//
+//    }
 
-            NcSoundingLayer layer = ele.layer;
-            float pressure = layer.getPressure();
-            float spd = layer.getWindSpeed();
-            float dir = layer.getWindDirection();
-
-            // Get the vertical ordinate.
-            if (currentGraphMode == NsharpConstants.GRAPH_SKEWT) {
-                windY = NsharpWxMath.getSkewTXY(pressure, 0).y;
-            } else if (currentGraphMode == NsharpConstants.GRAPH_ICING) {
-                // Chin:Y axis (pressure) is scaled using log scale and
-                // increaing downward
-                // WorldYmin= at pressure 1000,its value actually is 1000 (max),
-                // wolrdYmax = at pressure 300, its value is 825 (min)
-                windY = world.getWorldYmax()
-                        + (world.getWorldYmin() - icingBackground
-                                .toLogScale(pressure));
-            } else if (currentGraphMode == NsharpConstants.GRAPH_TURB) {
-                // Chin:Y axis (pressure) is scaled using log scale and
-                // increaing downward
-                // WorldYmin= at pressure 1000,its value actually is 1000 (max),
-                // wolrdYmax = at pressure 300, its value is 825 (min)
-                windY = world.getWorldYmax()
-                        + (world.getWorldYmin() - turbBackground
-                                .toLogScale(pressure));
-            } else
-                continue;
-
-            if (ele.myState.equals(eleState.UNPICKED)) {
-                double[] loc = { world.mapX(windX), world.mapY(windY) };
-                locations.add(loc);
-                // continue; if dont want to draw un-picked wind, then should
-                // drop it here.
-                // to plot un-picked wind with a small circle? change wind speed
-                // to smaller than 0.5, then PGEN tool
-                // will take care of it.
-                spd = 0.1f;
-            }
-            // use PGEN tool
-            Vector vect = new Vector();
-            vect.setVectorType(VectorType.WIND_BARB);
-            vect.setArrowHeadSize(1.0);
-            dir = (dir + 180.0f) % 360.0f; // change direction 180 degree for
-                                           // Nsharp drawing style
-            vect.setDirection(dir);
-            vect.setSpeed(spd);
-            vect.setSizeScale(barbSize);
-            vect.setLineWidth(barbLineWidth);
-            vect.setClear(true);
-            vect.setColors(colors);
-            Coordinate location = new Coordinate(world.mapX(windX - 2),
-                    world.mapY(windY));
-            vect.setLocation(location);
-            ArrayList<IDisplayable> newlst = df.createDisplayElements(vect,
-                    paintProps);
-            windBarbShapeList.addAll(newlst);
-        }
-
-    }
-
-    @SuppressWarnings("deprecation")
     private void drawNsharpSkewtCursorData(IGraphicsTarget target)
             throws VizException {
         IFont myFont;
@@ -1337,60 +1333,60 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         myFont.dispose();
     }
 
-    @SuppressWarnings({ "deprecation", "unused" })
-    private void drawNsharpSkewtDynamicData(IGraphicsTarget target,
-            double zoomLevel, WGraphics world) throws VizException {
-        double dispX;
-        double dispY;
-        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
-        dispX = ext.getMinX() + 20 * zoomLevel * xRatio;
-        dispY = ext.getMinY() + 60 * zoomLevel * yRatio;
-        // Column 1: pressure, C and F
-        target.drawString(font10, sPressure, dispX, dispY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
-
-        target.drawString(font10, sTemperatureC, dispX, dispY + 15 * zoomLevel
-                * yRatio, 0.0, TextStyle.NORMAL, NsharpConstants.color_red,
-                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
-        target.drawString(font10, sTemperatureF, dispX, dispY + 30 * zoomLevel
-                * yRatio, 0.0, TextStyle.NORMAL, NsharpConstants.color_red,
-                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
-        // column 2: m, ft, mixing ratio
-        float heightM = nsharpNative.nsharpLib.ihght((float) dPressure);
-        String sHeightM = String.format("%.0fm", heightM);
-        target.drawString(font10, sHeightM, dispX + 40 * zoomLevel * xRatio,
-                dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
-                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
-        String sHeightFt = String.format("%.0fft",
-                NsharpConstants.metersToFeet.convert(heightM));
-        target.drawString(font10, sHeightFt, dispX + 40 * zoomLevel * xRatio,
-                dispY + 15 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.BOTTOM, null);
-        target.drawString(font10, sMixingRatio,
-                dispX + 40 * zoomLevel * xRatio, dispY + 30 * zoomLevel
-                        * yRatio, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_green, HorizontalAlignment.LEFT,
-                VerticalAlignment.BOTTOM, null);
-        // column 3: Theta, ThetaW, ThetaE
-        target.drawString(font10, sThetaInK, dispX + 80 * zoomLevel * xRatio,
-                dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_yellow,
-                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
-        target.drawString(font10, sWThetaInK, dispX + 80 * zoomLevel * xRatio,
-                dispY + 15 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.BOTTOM, null);
-        target.drawString(font10, sEThetaInK, dispX + 80 * zoomLevel * xRatio,
-                dispY + 30 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.BOTTOM, null);
-
-    }
+//    @SuppressWarnings({ "deprecation", "unused" })
+//    private void drawNsharpSkewtDynamicData(IGraphicsTarget target,
+//            double zoomLevel, NsharpWGraphics world) throws VizException {
+//        double dispX;
+//        double dispY;
+//        IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
+//        dispX = ext.getMinX() + 20 * zoomLevel * xRatio;
+//        dispY = ext.getMinY() + 60 * zoomLevel * yRatio;
+//        // Column 1: pressure, C and F
+//        target.drawString(font10, sPressure, dispX, dispY, 0.0,
+//                TextStyle.NORMAL, NsharpConstants.color_white,
+//                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+//
+//        target.drawString(font10, sTemperatureC, dispX, dispY + 15 * zoomLevel
+//                * yRatio, 0.0, TextStyle.NORMAL, NsharpConstants.color_red,
+//                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+//        target.drawString(font10, sTemperatureF, dispX, dispY + 30 * zoomLevel
+//                * yRatio, 0.0, TextStyle.NORMAL, NsharpConstants.color_red,
+//                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+//        // column 2: m, ft, mixing ratio
+//        float heightM = nsharpNative.nsharpLib.ihght((float) dPressure);
+//        String sHeightM = String.format("%.0fm", heightM);
+//        target.drawString(font10, sHeightM, dispX + 40 * zoomLevel * xRatio,
+//                dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
+//                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+//        String sHeightFt = String.format("%.0fft",
+//                NsharpConstants.metersToFeet.convert(heightM));
+//        target.drawString(font10, sHeightFt, dispX + 40 * zoomLevel * xRatio,
+//                dispY + 15 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
+//                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
+//                VerticalAlignment.BOTTOM, null);
+//        target.drawString(font10, sMixingRatio,
+//                dispX + 40 * zoomLevel * xRatio, dispY + 30 * zoomLevel
+//                        * yRatio, 0.0, TextStyle.NORMAL,
+//                NsharpConstants.color_green, HorizontalAlignment.LEFT,
+//                VerticalAlignment.BOTTOM, null);
+//        // column 3: Theta, ThetaW, ThetaE
+//        target.drawString(font10, sThetaInK, dispX + 80 * zoomLevel * xRatio,
+//                dispY, 0.0, TextStyle.NORMAL, NsharpConstants.color_yellow,
+//                HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, null);
+//        target.drawString(font10, sWThetaInK, dispX + 80 * zoomLevel * xRatio,
+//                dispY + 15 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
+//                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
+//                VerticalAlignment.BOTTOM, null);
+//        target.drawString(font10, sEThetaInK, dispX + 80 * zoomLevel * xRatio,
+//                dispY + 30 * zoomLevel * yRatio, 0.0, TextStyle.NORMAL,
+//                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
+//                VerticalAlignment.BOTTOM, null);
+//
+//    }
 
     private void paintIcing(double zoomLevel, IGraphicsTarget target)
             throws VizException {
-        WGraphics plotWorld = icingBackground.getWorld();
+        NsharpWGraphics plotWorld = icingBackground.getWorld();
         target.setupClippingPlane(icingBackground.getPe());
         try {
 
@@ -1484,7 +1480,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     private void paintTurbulence(double zoomLevel, IGraphicsTarget target)
             throws VizException {
-        WGraphics plotWorld = turbBackground.getWorld();
+        NsharpWGraphics plotWorld = turbBackground.getWorld();
         target.setupClippingPlane(turbBackground.getPe());
         // Chin NOTE: turbulence wireframeshapes are created dynamically ONLY
         // when turbulence display is to be shown
@@ -2239,7 +2235,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         this.rectangle = new Rectangle(skewtXOrig, skewtYOrig, skewtWidth,
                 skewtHeight);
         pe = new PixelExtent(this.rectangle);
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
 
         world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
                 NsharpConstants.right, NsharpConstants.bottom);
@@ -2569,8 +2565,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         // Downdraft Convective Available Potential Energy - DCAPE
         // see trace_dcape() in xwvid1.c for original source
         /* ----- Find highest observation in layer ----- */
-        @SuppressWarnings("unused")
-        float mine, minep, tp1, tp2, te1, te2, pe1, pe2, h1, h2;
+        float mine, minep, tp1, tp2,  te2, pe1, pe2, h1, h2;
         FloatByReference value1 = new FloatByReference(-999);
         FloatByReference value2 = new FloatByReference(-999);
         FloatByReference Surfpressure = new FloatByReference(-999);
@@ -2627,7 +2622,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 nsharpNative.nsharpLib.itemp(upper),
                 nsharpNative.nsharpLib.idwpt(upper));
         pe1 = upper;
-        te1 = nsharpNative.nsharpLib.itemp(pe1);
+        //te1 = nsharpNative.nsharpLib.itemp(pe1);
         h1 = nsharpNative.nsharpLib.ihght(pe1);
         float ent2;
 
@@ -2691,7 +2686,6 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     // Chin: to handle dynamically moving height mark within viewable zone when
     // zooming, I could not use wireframeShape successfully
     // It will chop off lower part of marks. Therefore use this draw function.
-    @SuppressWarnings("deprecation")
     private void drawHeightMark(IGraphicsTarget target) {
         // plot meter scales...
         if (soundingLys.size() <= 0)
@@ -2751,48 +2745,48 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
     }
 
-    @SuppressWarnings("unused")
-    private void createRscHeightMarkShape() {
-
-        heightMarkRscShape = target.createWireframeShape(false, descriptor);
-        heightMarkRscShape.allocate(20);
-        // plot meter scales...
-        IExtent ext = descriptor.getRenderableDisplay().getExtent();
-        double xmin = ext.getMinX(); // Extent's viewable envelope min x and y
-        double xDefault = world.mapX(NsharpConstants.left);
-        if (xmin < xDefault)
-            xmin = xDefault;
-        double dispX1 = xmin + 15 * currentZoomLevel * xRatio;
-        double dispX2 = xmin + 40 * currentZoomLevel * xRatio;
-        for (int j = 0; j < NsharpConstants.HEIGHT_LEVEL_METERS.length; j++) {
-            int meters = NsharpConstants.HEIGHT_LEVEL_METERS[j];
-            // plot the meters scale
-            double pressure = nsharpNative.nsharpLib.ipres(meters
-                    + (int) (soundingLys.get(0).getGeoHeight()));
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 0).y);
-            // System.out.println("world.mapX(NsharpConstants.left) + 20 =" +
-            // (world.mapX(NsharpConstants.left) + 20));
-            double[][] lines = { { dispX1, y }, { dispX2, y } };
-            heightMarkRscShape.addLineSegment(lines);
-            double[] lblXy = { dispX2, y - 5 };
-            heightMarkRscShape.addLabel(
-                    Integer.toString(meters / 1000) + " km", lblXy);
-        }
-        // plot surface level mark{
-        if (soundingLys.get(0).getGeoHeight() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
-            int sfc = nsharpNative.nsharpLib.sfc();
-            double y = world.mapY(NsharpWxMath.getSkewTXY(soundingLys.get(0)
-                    .getPressure(), 0).y);
-            double[][] lines = { { dispX1, y }, { dispX2, y } };
-            heightMarkRscShape.addLineSegment(lines);
-            double[] lblXy = { dispX2, y - 5 };
-            heightMarkRscShape.addLabel(
-                    "SFC("
-                            + Integer.toString((int) (soundingLys.get(0)
-                                    .getGeoHeight())) + "m)", lblXy);
-        }
-        heightMarkRscShape.compile();
-    }
+//    @SuppressWarnings("unused")
+//    private void createRscHeightMarkShape() {
+//
+//        heightMarkRscShape = target.createWireframeShape(false, descriptor);
+//        heightMarkRscShape.allocate(20);
+//        // plot meter scales...
+//        IExtent ext = descriptor.getRenderableDisplay().getExtent();
+//        double xmin = ext.getMinX(); // Extent's viewable envelope min x and y
+//        double xDefault = world.mapX(NsharpConstants.left);
+//        if (xmin < xDefault)
+//            xmin = xDefault;
+//        double dispX1 = xmin + 15 * currentZoomLevel * xRatio;
+//        double dispX2 = xmin + 40 * currentZoomLevel * xRatio;
+//        for (int j = 0; j < NsharpConstants.HEIGHT_LEVEL_METERS.length; j++) {
+//            int meters = NsharpConstants.HEIGHT_LEVEL_METERS[j];
+//            // plot the meters scale
+//            double pressure = nsharpNative.nsharpLib.ipres(meters
+//                    + (int) (soundingLys.get(0).getGeoHeight()));
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, 0).y);
+//            // System.out.println("world.mapX(NsharpConstants.left) + 20 =" +
+//            // (world.mapX(NsharpConstants.left) + 20));
+//            double[][] lines = { { dispX1, y }, { dispX2, y } };
+//            heightMarkRscShape.addLineSegment(lines);
+//            double[] lblXy = { dispX2, y - 5 };
+//            heightMarkRscShape.addLabel(
+//                    Integer.toString(meters / 1000) + " km", lblXy);
+//        }
+//        // plot surface level mark{
+//        if (soundingLys.get(0).getGeoHeight() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
+//            int sfc = nsharpNative.nsharpLib.sfc();
+//            double y = world.mapY(NsharpWxMath.getSkewTXY(soundingLys.get(0)
+//                    .getPressure(), 0).y);
+//            double[][] lines = { { dispX1, y }, { dispX2, y } };
+//            heightMarkRscShape.addLineSegment(lines);
+//            double[] lblXy = { dispX2, y - 5 };
+//            heightMarkRscShape.addLabel(
+//                    "SFC("
+//                            + Integer.toString((int) (soundingLys.get(0)
+//                                    .getGeoHeight())) + "m)", lblXy);
+//        }
+//        heightMarkRscShape.compile();
+//    }
 
     public void createRscwetBulbTraceShape() {
         if (wetBulbTraceRscShape != null) {
@@ -2827,7 +2821,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         wetBulbTraceRscShape.compile();
     }
 
-    private void createTurbulenceShapes(WGraphics world) {
+    private void createTurbulenceShapes(NsharpWGraphics world) {
         if (turbLnShape != null)
             turbLnShape.dispose();
         turbLnShape = target.createWireframeShape(false, descriptor);
@@ -2927,7 +2921,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
      * draw_ICG() at xwvid1.c of AWC Nsharp source code by LARRY J. HINSON
      * AWC/KCMO
      */
-    private void createIcingRHShape(WGraphics world) {
+    private void createIcingRHShape(NsharpWGraphics world) {
         // System.out.println("world viewYmin="+world.getViewYmin()+" viewYmax="+world.getViewYmax()+" wolrdYmin="+
         // world.getWorldYmin()+" wolrdYmax="+ world.getWorldYmax()
         // +" viewXmin="+world.getViewXmin()+" viewXmax="+world.getViewXmax()+" wolrdXmin="+
@@ -2962,7 +2956,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         icingRHShape.compile();
     }
 
-    private void createIcingEPIShape(WGraphics world) {
+    private void createIcingEPIShape(NsharpWGraphics world) {
         // System.out.println("world viewYmin="+world.getViewYmin()+" viewYmax="+world.getViewYmax()+" wolrdYmin="+
         // world.getWorldYmin()+" wolrdYmax="+ world.getWorldYmax()
         // +" viewXmin="+world.getViewXmin()+" viewXmax="+world.getViewXmax()+" wolrdXmin="+
@@ -3029,7 +3023,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
      * draw_ICG() at xwvid1.c of AWC Nsharp source code by LARRY J. HINSON
      * AWC/KCMO
      */
-    private void createIcingTempShape(WGraphics world) {
+    private void createIcingTempShape(NsharpWGraphics world) {
         // System.out.println("world viewYmin="+world.getViewYmin()+" viewYmax="+world.getViewYmax()+" wolrdYmin="+
         // world.getWorldYmin()+" wolrdYmax="+ world.getWorldYmax()
         // +" viewXmin="+world.getViewXmin()+" viewXmax="+world.getViewXmax()+" wolrdXmin="+
@@ -3065,7 +3059,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         icingTempShape.compile();
     }
 
-    private void createRscPressTempCurveShape(WGraphics WGc,
+    private void createRscPressTempCurveShape(NsharpWGraphics WGc,
             List<NcSoundingLayer> soundingLays, NsharpLineProperty lineP,
             IGraphicsTarget target) {
         IWireframeShape shapeT = target.createWireframeShape(false, descriptor);
@@ -3087,7 +3081,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             drawDew = graphConfigProperty.isDewp();
         }
         Coordinate c0 = null, c01 = null;
-        int count = 0;
+        //int count = 0;
         for (NcSoundingLayer layer : soundingLays) {
             double t, d;
             t = layer.getTemperature();
@@ -3103,7 +3097,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 c1.y = WGc.mapY(c1.y);
                 if (c0 != null) {
                     double[][] lines = { { c0.x, c0.y }, { c1.x, c1.y } };
-                    count++;
+                    //count++;
                     shapeT.addLineSegment(lines);
                 }
                 c0 = c1;
@@ -3398,70 +3392,69 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         }
     }
 
-    @SuppressWarnings("unused")
-    private void createRscOmegaShape() {
-        // draw label and vertical lines
-        omegaBkgShape = target.createWireframeShape(false, descriptor);
-        omegaBkgShape.allocate(6);
-        IExtent ext = descriptor.getRenderableDisplay().getExtent();
-        float xmin = (float) ext.getMinX();
-        // System.out.println("ex xmin="+ xmin+ " ymin= "+ ext.getMinY() +
-        // " ymax="+ ext.getMaxY());
-        float xWoldMin = (float) world.mapX(NsharpConstants.left);
-        if (xmin > xWoldMin)
-            omegaXOrig = xmin + 40 * xRatio * (float) currentZoomLevel;
-        else
-            omegaXOrig = xWoldMin + 40 * xRatio * (float) currentZoomLevel;
-        // we dont really care about temp, as we use pressure for Y axis.
-        // left dash line
-        double[][] lines = {
-                { omegaXOrig + omegaWidth * currentZoomLevel, omegaYOrig },
-                { omegaXOrig + omegaWidth * currentZoomLevel, omegaYEnd } };
-        omegaBkgShape.addLineSegment(lines);
-        // center line
-        double[][] lines1 = {
-                { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f, omegaYOrig },
-                { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f, omegaYEnd } };
-        omegaBkgShape.addLineSegment(lines1);
-        // right dash line,
-        double[][] lines2 = { { omegaXOrig, omegaYOrig },
-                { omegaXOrig, omegaYEnd } };
-        omegaBkgShape.addLineSegment(lines2);
-        double[] lblXy = { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f,
-                omegaYOrig + 10 * yRatio };
-        omegaBkgShape.addLabel("+1 OMEGA -1", lblXy);
-        omegaBkgShape.compile();
-
-        omegaRscShape = target.createWireframeShape(false, descriptor);
-        omegaRscShape.allocate(soundingLys.size() * 2);
-        float p, omega, t;
-        double xAxisOrigin = omegaXOrig + omegaWidth * currentZoomLevel * 0.5f;
-        for (NcSoundingLayer layer : this.soundingLys) {
-            p = layer.getPressure();
-            t = layer.getTemperature();
-            if (layer.getOmega() > -999) {
-                omega = -layer.getOmega() * omegaWidth
-                        * (float) currentZoomLevel * 0.5f;
-                Coordinate c1 = NsharpWxMath.getSkewTXY(p, t);
-                Coordinate c2 = new Coordinate();
-                ;
-                c2.y = world.mapY(c1.y); // what we need here is only pressure
-                                         // for Y-axix,
-                // System.out.println("p="+p+" t=" + t+" c1y="+c1.y+
-                // " c2y="+c2.y);
-                double[][] lines3 = { { xAxisOrigin, c2.y },
-                        { xAxisOrigin + omega, c2.y } };
-                omegaRscShape.addLineSegment(lines3);
-            }
-        }
-        omegaRscShape.compile();
-    }
+//    @SuppressWarnings("unused")
+//    private void createRscOmegaShape() {
+//        // draw label and vertical lines
+//        omegaBkgShape = target.createWireframeShape(false, descriptor);
+//        omegaBkgShape.allocate(6);
+//        IExtent ext = descriptor.getRenderableDisplay().getExtent();
+//        float xmin = (float) ext.getMinX();
+//        // System.out.println("ex xmin="+ xmin+ " ymin= "+ ext.getMinY() +
+//        // " ymax="+ ext.getMaxY());
+//        float xWoldMin = (float) world.mapX(NsharpConstants.left);
+//        if (xmin > xWoldMin)
+//            omegaXOrig = xmin + 40 * xRatio * (float) currentZoomLevel;
+//        else
+//            omegaXOrig = xWoldMin + 40 * xRatio * (float) currentZoomLevel;
+//        // we dont really care about temp, as we use pressure for Y axis.
+//        // left dash line
+//        double[][] lines = {
+//                { omegaXOrig + omegaWidth * currentZoomLevel, omegaYOrig },
+//                { omegaXOrig + omegaWidth * currentZoomLevel, omegaYEnd } };
+//        omegaBkgShape.addLineSegment(lines);
+//        // center line
+//        double[][] lines1 = {
+//                { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f, omegaYOrig },
+//                { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f, omegaYEnd } };
+//        omegaBkgShape.addLineSegment(lines1);
+//        // right dash line,
+//        double[][] lines2 = { { omegaXOrig, omegaYOrig },
+//                { omegaXOrig, omegaYEnd } };
+//        omegaBkgShape.addLineSegment(lines2);
+//        double[] lblXy = { omegaXOrig + omegaWidth * currentZoomLevel * 0.5f,
+//                omegaYOrig + 10 * yRatio };
+//        omegaBkgShape.addLabel("+1 OMEGA -1", lblXy);
+//        omegaBkgShape.compile();
+//
+//        omegaRscShape = target.createWireframeShape(false, descriptor);
+//        omegaRscShape.allocate(soundingLys.size() * 2);
+//        float p, omega, t;
+//        double xAxisOrigin = omegaXOrig + omegaWidth * currentZoomLevel * 0.5f;
+//        for (NcSoundingLayer layer : this.soundingLys) {
+//            p = layer.getPressure();
+//            t = layer.getTemperature();
+//            if (layer.getOmega() > -999) {
+//                omega = -layer.getOmega() * omegaWidth
+//                        * (float) currentZoomLevel * 0.5f;
+//                Coordinate c1 = NsharpWxMath.getSkewTXY(p, t);
+//                Coordinate c2 = new Coordinate();
+//                ;
+//                c2.y = world.mapY(c1.y); // what we need here is only pressure
+//                                         // for Y-axix,
+//                // System.out.println("p="+p+" t=" + t+" c1y="+c1.y+
+//                // " c2y="+c2.y);
+//                double[][] lines3 = { { xAxisOrigin, c2.y },
+//                        { xAxisOrigin + omega, c2.y } };
+//                omegaRscShape.addLineSegment(lines3);
+//            }
+//        }
+//        omegaRscShape.compile();
+//    }
 
     // Chin: to handle dynamically moving omega within viewable zone when
     // zooming, I could not use wireframeShape successfully
     // It will chop off lower part of omega. Therefore use this draw function
     // for omega.
-    @SuppressWarnings("deprecation")
     private void drawOmega() {
         // draw label and vertical lines
         IExtent ext = descriptor.getRenderableDisplay().getExtent();
@@ -3659,97 +3652,97 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
      * currentWindBarbSoundingLayerIndex for wind barb magnification plotting
      * later
      */
-    public Coordinate findClosestWindBarbPoint(
-            Coordinate currentCursorSkewTCoord) {
-        // wind barb X position
-        double windX = skewTBackground.getWindBarbXPosition();
-
-        Coordinate currentCursorPresTempCoord = NsharpWxMath
-                .reverseSkewTXY(world.unMap(currentCursorSkewTCoord));
-        double curCursorPressure = currentCursorPresTempCoord.y;
-        double curCursorTemp = currentCursorPresTempCoord.x;
-        double prevPressure = 1000;
-        double prevT = 0;
-        Coordinate closetWindBarbCoord = new Coordinate(0, 0, 0);
-
-        /*
-         * Note: soundingLys list sorted with highest pressure as first element
-         */
-        for (NcSoundingLayer layer : this.soundingLys) {
-
-            if (layer.getPressure() < 100)
-                continue;
-            double pressure = layer.getPressure();
-            double temperatureAtWBOrigin;
-            // get windBrb Y position at temp 0
-            double windY = NsharpWxMath.getSkewTXY(pressure, 0).y;
-
-            // get wind barb temperature at windX(=
-            // skewTBackground.getWindBarbXPosition()), windY
-            temperatureAtWBOrigin = NsharpWxMath.reverseSkewTXY(new Coordinate(
-                    windX, windY)).x;
-            // System.out.println(" pressure "+ pressure + " temp "+
-            // temperatureAtWBOrigin + " prevPressure="+prevPressure);
-            if (pressure <= curCursorPressure) {
-                // decide which pressure (layer) should be used. current one or
-                // previous one
-                double disCurrentP = Math.abs(pressure - curCursorPressure);
-                double disPreviousP = Math
-                        .abs(prevPressure - curCursorPressure);
-                double pickedPressure, pickedTemp;
-
-                if (disPreviousP <= disCurrentP) {
-                    pickedPressure = prevPressure;
-                    pickedTemp = prevT;
-
-                    if (this.soundingLys.indexOf(layer) == 0)
-                        currentWindBarbSoundingLayerIndex = this.soundingLys
-                                .indexOf(layer);
-                    else
-                        currentWindBarbSoundingLayerIndex = this.soundingLys
-                                .indexOf(layer) - 1;
-                } else {
-                    pickedPressure = pressure;
-                    pickedTemp = temperatureAtWBOrigin;
-
-                    currentWindBarbSoundingLayerIndex = this.soundingLys
-                            .indexOf(layer);
-                }
-                double disTemp = Math.abs(pickedTemp - curCursorTemp);
-                // if distancw is not within 5 * currentZoomLevel degree, then
-                // return with (0,0);
-                if (disTemp > 5 * currentZoomLevel) {
-                    setCursorTopWindBarb(false);
-                    return closetWindBarbCoord;
-                } else {
-                    // System.out.println("pickedP="+pickedPressure+" pickedT="+pickedTemp+
-                    // " inPressure"+inPressure+" inTemp="+
-                    // inTemp+" temp dis="+disTemp+ " rangeT="+ 5 *
-                    // currentZoomLevel);
-                    closetWindBarbCoord = NsharpWxMath.getSkewTXY(
-                            pickedPressure, pickedTemp);
-                    closetWindBarbCoord = world.map(closetWindBarbCoord);
-                    setCursorTopWindBarb(true);
-                    return closetWindBarbCoord;
-                }
-            }
-            prevPressure = pressure;
-            prevT = temperatureAtWBOrigin;
-
-        }
-        // This is the case that inC is above highest layer (lowest pressure),
-        // then we picked highest layer, if within temp range
-        if (Math.abs(prevT - curCursorTemp) > 5 * currentZoomLevel) {
-            setCursorTopWindBarb(false);
-            return closetWindBarbCoord;
-        }
-        closetWindBarbCoord = NsharpWxMath.getSkewTXY(prevPressure, prevT);
-        closetWindBarbCoord = world.map(closetWindBarbCoord);
-        // System.out.println("pickedP="+prevPressure+" pickedT="+prevT+
-        // " inPressure"+inPressure+" inTemp="+ inTemp);
-        setCursorTopWindBarb(true);
-        return closetWindBarbCoord;
-    }
+//    public Coordinate findClosestWindBarbPoint(
+//            Coordinate currentCursorSkewTCoord) {
+//        // wind barb X position
+//        double windX = skewTBackground.getWindBarbXPosition();
+//
+//        Coordinate currentCursorPresTempCoord = NsharpWxMath
+//                .reverseSkewTXY(world.unMap(currentCursorSkewTCoord));
+//        double curCursorPressure = currentCursorPresTempCoord.y;
+//        double curCursorTemp = currentCursorPresTempCoord.x;
+//        double prevPressure = 1000;
+//        double prevT = 0;
+//        Coordinate closetWindBarbCoord = new Coordinate(0, 0, 0);
+//
+//        /*
+//         * Note: soundingLys list sorted with highest pressure as first element
+//         */
+//        for (NcSoundingLayer layer : this.soundingLys) {
+//
+//            if (layer.getPressure() < 100)
+//                continue;
+//            double pressure = layer.getPressure();
+//            double temperatureAtWBOrigin;
+//            // get windBrb Y position at temp 0
+//            double windY = NsharpWxMath.getSkewTXY(pressure, 0).y;
+//
+//            // get wind barb temperature at windX(=
+//            // skewTBackground.getWindBarbXPosition()), windY
+//            temperatureAtWBOrigin = NsharpWxMath.reverseSkewTXY(new Coordinate(
+//                    windX, windY)).x;
+//            // System.out.println(" pressure "+ pressure + " temp "+
+//            // temperatureAtWBOrigin + " prevPressure="+prevPressure);
+//            if (pressure <= curCursorPressure) {
+//                // decide which pressure (layer) should be used. current one or
+//                // previous one
+//                double disCurrentP = Math.abs(pressure - curCursorPressure);
+//                double disPreviousP = Math
+//                        .abs(prevPressure - curCursorPressure);
+//                double pickedPressure, pickedTemp;
+//
+//                if (disPreviousP <= disCurrentP) {
+//                    pickedPressure = prevPressure;
+//                    pickedTemp = prevT;
+//
+//                    if (this.soundingLys.indexOf(layer) == 0)
+//                        currentWindBarbSoundingLayerIndex = this.soundingLys
+//                                .indexOf(layer);
+//                    else
+//                        currentWindBarbSoundingLayerIndex = this.soundingLys
+//                                .indexOf(layer) - 1;
+//                } else {
+//                    pickedPressure = pressure;
+//                    pickedTemp = temperatureAtWBOrigin;
+//
+//                    currentWindBarbSoundingLayerIndex = this.soundingLys
+//                            .indexOf(layer);
+//                }
+//                double disTemp = Math.abs(pickedTemp - curCursorTemp);
+//                // if distancw is not within 5 * currentZoomLevel degree, then
+//                // return with (0,0);
+//                if (disTemp > 5 * currentZoomLevel) {
+//                    setCursorTopWindBarb(false);
+//                    return closetWindBarbCoord;
+//                } else {
+//                    // System.out.println("pickedP="+pickedPressure+" pickedT="+pickedTemp+
+//                    // " inPressure"+inPressure+" inTemp="+
+//                    // inTemp+" temp dis="+disTemp+ " rangeT="+ 5 *
+//                    // currentZoomLevel);
+//                    closetWindBarbCoord = NsharpWxMath.getSkewTXY(
+//                            pickedPressure, pickedTemp);
+//                    closetWindBarbCoord = world.map(closetWindBarbCoord);
+//                    setCursorTopWindBarb(true);
+//                    return closetWindBarbCoord;
+//                }
+//            }
+//            prevPressure = pressure;
+//            prevT = temperatureAtWBOrigin;
+//
+//        }
+//        // This is the case that inC is above highest layer (lowest pressure),
+//        // then we picked highest layer, if within temp range
+//        if (Math.abs(prevT - curCursorTemp) > 5 * currentZoomLevel) {
+//            setCursorTopWindBarb(false);
+//            return closetWindBarbCoord;
+//        }
+//        closetWindBarbCoord = NsharpWxMath.getSkewTXY(prevPressure, prevT);
+//        closetWindBarbCoord = world.map(closetWindBarbCoord);
+//        // System.out.println("pickedP="+prevPressure+" pickedT="+prevT+
+//        // " inPressure"+inPressure+" inTemp="+ inTemp);
+//        setCursorTopWindBarb(true);
+//        return closetWindBarbCoord;
+//    }
 
     /*
      * Return the closest point to the input point on either Temp or Dewpoint
@@ -3939,7 +3932,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         // this.toString()+" RenderableDisplay="+getDescriptor().getRenderableDisplay().toString()+","+
         // (int)ext.getMinX()+","+ (int) ext.getMinY()+","+
         // (int) ext.getWidth()+","+ (int) ext.getHeight());
-        world = new WGraphics(this.rectangle);
+        world = new NsharpWGraphics(this.rectangle);
         world.setWorldCoordinates(NsharpConstants.left, NsharpConstants.top,
                 NsharpConstants.right, NsharpConstants.bottom);
         float prevHeight = skewtHeight;
@@ -4007,5 +4000,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         }
         font10 = target.initializeFont("Monospace", font10Size, null);
     }
+    
+    
 
 }

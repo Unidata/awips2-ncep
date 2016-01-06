@@ -18,8 +18,8 @@ package gov.noaa.nws.ncep.viz.common.ui;
  * Nov 3,2010    324         X. Guo       Initial Creation
  * Dec 6,2010                X. Guo       Change clean up function
  * Apr22,2014    1129        B. Hebbard   Move maxHi/maxLo from here to GridRelativeHiLoDisplay so can handle relative to current extent
- * Jul25,2014    ?           B. Yin       Fixed array out of bound issue in clusterLocator().
- * 
+ * Jul25,2014    ?           B. Yin       Fixed array out of bound issue in clusterLocator()
+ * Oct 9,2015    R12016      J. Lopez     Increased the size of GRID_MXM to allow more points
  * </pre>
  * 
  * @author xguo
@@ -81,6 +81,8 @@ public class HILORelativeMinAndMaxLocator {
     // Total number of relative extrema
     private int numOfExtr;
 
+    private int GRID_MXM;
+
     // Number of clusters
     private int numOfClusters;
 
@@ -90,8 +92,6 @@ public class HILORelativeMinAndMaxLocator {
     private final float GRID_MISSED_DIFF_VALUES = 0.1F;
 
     private final float GRID_POINT_VALUES_DIFF = 0.000001F;
-
-    private final int GRID_MXM = 256;
 
     // Error message
     private String hiloRelativeMinAndMaxLocatorErrorMsg = "NO ERROR";
@@ -123,8 +123,8 @@ public class HILORelativeMinAndMaxLocator {
         grid = gridData;
         gridCol = col;
         gridRow = row;
-
-        if ((isHiLoRelativeMinAndMaxLocated = checkGridValues())) {
+        GRID_MXM = col * row;
+        if ((isHiLoRelativeMinAndMaxLocated = isGridValuesValid())) {
             setGridRadius(radius);
             gridInterp = interp;
             gridLowerMax = maxLowerBd;
@@ -151,27 +151,29 @@ public class HILORelativeMinAndMaxLocator {
      * Find the extrema
      */
     private boolean findExtrema() {
-        int mm;
+        int minMaxFlag;
         float rmin, rmax;
         xExtr = new float[GRID_MXM];
         yExtr = new float[GRID_MXM];
         vExtr = new float[GRID_MXM];
 
-        for (mm = 0; mm < 2; mm++) {
-            if (mm == 0) {
+        for (minMaxFlag = 0; minMaxFlag < 2; minMaxFlag++) {
+            // finds the minimum HiLo values
+            if (minMaxFlag == 0) {
                 rmin = gridLowerMin;
                 rmax = gridUpperMin;
+                // finds the maximum HiLo values
             } else {
                 rmin = gridLowerMax;
                 rmax = gridUpperMax;
             }
 
-            chkGribPoint(mm, rmin, rmax);
+            findGribPoint(minMaxFlag, rmin, rmax);
             // Sort extrema
-            sortExtrema(mm);
+            sortExtrema(minMaxFlag);
             clusterLocator();
 
-            if (mm == 0) {
+            if (minMaxFlag == 0) {
                 loadMinGridValues();
             } else {
                 loadMaxGridValues();
@@ -183,60 +185,60 @@ public class HILORelativeMinAndMaxLocator {
     /**
      * Check each point and see if it is present
      */
-    private void chkGribPoint(int mm, float min, float max) {
-        int i, j, cidx, cidx1, ii, jj;
-        float xq, yq, vq, qxm1, qxp1, qym1, qyp1;
-        boolean ok, alleq;
+    private void findGribPoint(int minMaxFlag, float min, float max) {
+        int i, j, currentIndex, nextIndex, ii, jj;
+        float extrXCoord, extrYCoord, extrValue, qxm1, qxp1, qym1, qyp1;
+        boolean extremeFound, sameValue;
 
         numOfExtr = 0;
 
         for (j = gridRadius + 1; j <= gridRow - gridRadius; j++) {
             for (i = gridRadius + 1; i <= gridCol - gridRadius; i++) {
-                cidx = (j - 1) * gridCol + i - 1;
+                currentIndex = (j - 1) * gridCol + i - 1;
                 // Check the grid point is present. (No visibility check
                 // possible at this stage.)
-                if (!checkGridMissingValues(grid[cidx])) {
-                    ok = true;
-                    alleq = true;
+                if (!isGridValueMissing(grid[currentIndex])) {
+                    extremeFound = true;
+                    sameValue = true;
                     qxm1 = GRID_MISSED_VALUES;
                     qxp1 = GRID_MISSED_VALUES;
                     qym1 = GRID_MISSED_VALUES;
                     qyp1 = GRID_MISSED_VALUES;
 
                     jj = j - gridRadius;
-                    while ((jj <= (j + gridRadius)) && (ok)) {
+                    while ((jj <= (j + gridRadius)) && (extremeFound)) {
 
                         ii = i - gridRadius;
-                        while ((ii <= (i + gridRadius)) && (ok)) {
+                        while ((ii <= (i + gridRadius)) && (extremeFound)) {
 
                             /*
                              * Test point(iq,jq) must not equal reference
                              * point(i,j) or be missing
                              */
-                            cidx1 = (jj - 1) * gridCol + ii - 1;
+                            nextIndex = (jj - 1) * gridCol + ii - 1;
                             if ((ii != i || jj != j)
-                                    && (!checkGridMissingValues(grid[cidx1]))) {
+                                    && (!isGridValueMissing(grid[nextIndex]))) {
                                 // Grid points must satisfy extremum condition
-                                if (mm == 0) {
-                                    if (grid[cidx] > grid[cidx1])
-                                        ok = false;
+                                if (minMaxFlag == 0) {
+                                    if (grid[currentIndex] > grid[nextIndex])
+                                        extremeFound = false;
                                 } else {
-                                    if (grid[cidx] < grid[cidx1])
-                                        ok = false;
+                                    if (grid[currentIndex] < grid[nextIndex])
+                                        extremeFound = false;
                                 }
-                                if (!checkGridPointValuesDiff(grid[cidx],
-                                        grid[cidx1]))
-                                    alleq = false;
-
-                                if (ok && gridInterp) {
+                                if (!isGridPointValuesSame(grid[currentIndex],
+                                        grid[nextIndex]))
+                                    sameValue = false;
+                                // if user selects interpolation
+                                if (extremeFound && gridInterp) {
                                     if ((ii == i - 1) && (jj == j))
-                                        qxm1 = grid[cidx1];
+                                        qxm1 = grid[nextIndex];
                                     if ((ii == i + 1) && (jj == j))
-                                        qxp1 = grid[cidx1];
+                                        qxp1 = grid[nextIndex];
                                     if ((jj == j - 1) && (ii == i))
-                                        qym1 = grid[cidx1];
+                                        qym1 = grid[nextIndex];
                                     if ((jj == j + 1) && (ii == i))
-                                        qyp1 = grid[cidx1];
+                                        qyp1 = grid[nextIndex];
                                 }
                             }
                             ii++;
@@ -244,34 +246,35 @@ public class HILORelativeMinAndMaxLocator {
                         jj++;
                     }
 
-                    if (ok
-                            && (!alleq)
-                            && ((checkGridPointValuesDiff(min, max)) || ((grid[cidx] >= min) && (grid[cidx] <= max)))) {
-                        xq = i;
-                        yq = j;
-                        vq = grid[cidx];
-                        if (gridInterp && (!checkGridMissingValues(qxm1))
-                                && (!checkGridMissingValues(qxp1))
-                                && (!checkGridMissingValues(qym1))
-                                && (!checkGridMissingValues(qyp1))) {
+                    if (extremeFound
+                            && (!sameValue)
+                            && ((isGridPointValuesSame(min, max)) || ((grid[currentIndex] >= min) && (grid[currentIndex] <= max)))) {
+                        extrXCoord = i;
+                        extrYCoord = j;
+                        extrValue = grid[currentIndex];
+                        // if user selects interpolation
+                        if (gridInterp && (!isGridValueMissing(qxm1))
+                                && (!isGridValueMissing(qxp1))
+                                && (!isGridValueMissing(qym1))
+                                && (!isGridValueMissing(qyp1))) {
                             float dqdx = (qxp1 - qxm1) / 2;
                             float dqdy = (qyp1 - qym1) / 2;
-                            float dqdx2 = qxp1 - 2 * vq + qxm1;
-                            float dqdy2 = qyp1 - 2 * vq + qym1;
-                            if ((!checkGridPointValuesDiff(dqdx2, 0.0F))
-                                    && (!checkGridPointValuesDiff(dqdy2, 0.0F))) {
+                            float dqdx2 = qxp1 - 2 * extrValue + qxm1;
+                            float dqdy2 = qyp1 - 2 * extrValue + qym1;
+                            if ((!isGridPointValuesSame(dqdx2, 0.0F))
+                                    && (!isGridPointValuesSame(dqdy2, 0.0F))) {
                                 float dx = -dqdx / dqdx2;
                                 float dy = -dqdy / dqdy2;
-                                xq += dx;
-                                yq += dy;
-                                vq += dx * dqdx + dy * dqdy;
+                                extrXCoord += dx;
+                                extrYCoord += dy;
+                                extrValue += dx * dqdx + dy * dqdy;
                             }
                         }
-                        // Load each point into array for sorting
+                        // Load each point into array for storing
                         if (numOfExtr < GRID_MXM) {
-                            xExtr[numOfExtr] = xq;
-                            yExtr[numOfExtr] = yq;
-                            vExtr[numOfExtr] = vq;
+                            xExtr[numOfExtr] = extrXCoord;
+                            yExtr[numOfExtr] = extrYCoord;
+                            vExtr[numOfExtr] = extrValue;
                             numOfExtr++;
                         } else {
                             setErrorMessage(getloactorErrorDec(HILORelativeMinAndMaxLocatorErrCodes.TOO_MANY_GRIB_POINTS.value));
@@ -338,30 +341,6 @@ public class HILORelativeMinAndMaxLocator {
             }
         }
         cleanRows();
-    }
-
-    /**
-     * discards all rows of X, Y, V Storage where keep is false
-     */
-    private void discardRows(boolean[] keep) {
-        int itotal = numOfExtr, if1 = 1, if2 = 0;
-
-        while ((if1 + if2) <= itotal) {
-            if (!keep[if1 - 1]) {
-                for (int iarrix = if1 - 1; iarrix < itotal - 1; iarrix++) {
-                    xExtr[iarrix] = xExtr[iarrix + 1];
-                    yExtr[iarrix] = yExtr[iarrix + 1];
-                    vExtr[iarrix] = vExtr[iarrix + 1];
-                    keep[iarrix] = keep[iarrix + 1];
-                }
-                keep[itotal - 1] = false;
-                itotal--;
-                if2++;
-            } else {
-                if1++;
-            }
-        }
-        numOfExtr = itotal;
     }
 
     /**
@@ -442,7 +421,7 @@ public class HILORelativeMinAndMaxLocator {
     /**
      * Bubble sort extrema
      */
-    private void sortExtrema(int mm) {
+    private void sortExtrema(int minMaxFlag) {
         int m = numOfExtr;
         boolean sorted = false;
 
@@ -450,8 +429,8 @@ public class HILORelativeMinAndMaxLocator {
             sorted = true;
             float temp1, temp2, temp3;
             for (int n = 2; n <= m; n++) {
-                if (((mm == 0) && (vExtr[n - 2] > vExtr[n - 1]))
-                        || ((mm == 1) && (vExtr[n - 2] < vExtr[n - 1]))) {
+                if (((minMaxFlag == 0) && (vExtr[n - 2] > vExtr[n - 1]))
+                        || ((minMaxFlag == 1) && (vExtr[n - 2] < vExtr[n - 1]))) {
                     temp1 = vExtr[n - 2];
                     temp2 = xExtr[n - 2];
                     temp3 = yExtr[n - 2];
@@ -471,7 +450,7 @@ public class HILORelativeMinAndMaxLocator {
     /**
      * Check missing values
      */
-    private boolean checkGridMissingValues(float gData) {
+    private boolean isGridValueMissing(float gData) {
         boolean missed = false;
 
         if (Math.abs(gData - GRID_MISSED_VALUES) < GRID_MISSED_DIFF_VALUES) {
@@ -483,7 +462,7 @@ public class HILORelativeMinAndMaxLocator {
     /**
      * Check difference between two grid point values
      */
-    private boolean checkGridPointValuesDiff(float data1, float data2) {
+    private boolean isGridPointValuesSame(float data1, float data2) {
         boolean closed = false;
 
         if (Math.abs(data1 - data2) < GRID_POINT_VALUES_DIFF) {
@@ -497,7 +476,7 @@ public class HILORelativeMinAndMaxLocator {
      * 
      * @return boolean
      */
-    private boolean checkGridValues() {
+    private boolean isGridValuesValid() {
         boolean ck = true;
 
         if ((grid != null) && ((gridCol * gridRow) != grid.length)) {

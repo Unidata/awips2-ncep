@@ -61,6 +61,7 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * Mar 21, 2103 1112            S. Russell  *.WCN files, get the watch number
  * Aug 13, 2014 (none?)         D. Sushon   refactor to be sure all bulletins get decoded, removed some dead code, marked possibly dead code as such
  * Nov 7, 2014 5125             J. Huber    Cleaned up unneeded logic and deprecated method calls.
+ * Aug 17, 2015 R8881			J. Huber	Fixed bug which prevented WCN ugc/vtec/fips information from being processed.
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -90,15 +91,12 @@ public class AwwDecoder extends AbstractDecoder {
             traceId = (String) headers.get("traceId");
         }
         // Regular expression for the county table
-        // final String UGC_EXP =
-        // "([A-Z]{3}\\d{3})(\\-|\\>)(\\S)+\\x0d\\x0d\\x0a((\\d{6}|\\d{3})\\-(\\S)*\\x0d\\x0d\\x0a)*";
         final String UGC_EXP = "([A-Z]{3}[0-9]{3}[\\-\\>].*[0-9]{6}\\-)[\\r\\n]+";
 
         // Pattern used for extracting the UGC line
         Pattern ugcPattern = Pattern.compile(UGC_EXP, Pattern.DOTALL);
 
         // String "&" ascii code is x26 in hex
-        // String segmentDelim ="$$";
         String segmentDelim = "\\x24\\x24";
         String etx = IDecoderConstants.ETX;
 
@@ -116,7 +114,6 @@ public class AwwDecoder extends AbstractDecoder {
         if (cc.hasNext()) {
             theBulletin = cc.next();
         } else {
-            // System.out.println("setting....  theBulletin = theMessage;");
             theBulletin = theMessage;
         }
 
@@ -163,8 +160,7 @@ public class AwwDecoder extends AbstractDecoder {
                 	Matcher ugcMatcher = ugcPattern.matcher(segment);
                 	boolean ugcMatch = ugcMatcher.find();
                 	// discard if the segment did not have an UGC line.
-                	if (ugcMatch || isWtchFlag || isWCN) { // ????? not sure if this
-                                                       // logic is correct
+                	if (ugcMatch || isWtchFlag || isWCN) {
                 		segmentList.add(segment);
                 	}
                 }
@@ -177,13 +173,12 @@ public class AwwDecoder extends AbstractDecoder {
                         boolean ugcMatch = ugcMatcher.find();
                         AwwUgc ugc = null;
                                             
-                        // TRAC 1112
                         if (isWCN) {
                             String watchNumber = AwwParser
                                     .retrieveWatchNumberFromWCN(segment);
                             if (watchNumber != null) {
                                 record.setWatchNumber(watchNumber);
-                                if (ugcMatcher.find()) {
+                                if (ugcMatch) {
                                     ugc = AwwParser.processUgc(
                                             ugcMatcher.group(), segment,
                                             mndTime, watchesList);
@@ -283,4 +278,5 @@ public class AwwDecoder extends AbstractDecoder {
         }
         return ("WWUS30".equalsIgnoreCase(ar.getWmoHeader()));
     }
+ 
 }

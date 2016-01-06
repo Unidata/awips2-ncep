@@ -30,6 +30,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * ------------	----------	-----------	--------------------------
  * 03/13		#977		S. Gilbert	modified from PgenFileManageHandler.
  * 11/13        #1077       J. Wu       Pop up dialog for "Save All".
+ * 06/15        R8354       J. Wu       Add CTRL+S hotkey for "Save".
  * 
  * </pre>
  * 
@@ -48,11 +49,29 @@ public class StoreManageHandler extends AbstractTool {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
-        String btnClicked = (String) event.getApplicationContext();
+        if (PgenSession.getInstance().getPgenResource() == null
+                || !PgenSession.getInstance().getPgenResource().isEditable()) {
+            return null;
+        }
+
+        String actionName = null;
+        String btnName = null;
+        String btnClicked = null;
+
+        if (event.getParameter("name") != null) {
+            btnName = (String) event.getParameter("name");
+            btnClicked = btnName;
+        } else if (event.getParameter("action") != null) {
+            actionName = (String) event.getParameter("action");
+            btnClicked = actionName;
+        } else {
+            return null;
+        }
 
         // Set "active" icon for the palette button corresponding to this tool
-        String btnName = event.getParameter("name");
-        PgenSession.getInstance().getPgenPalette().setActiveIcon(btnName);
+        if (btnName != null) {
+            PgenSession.getInstance().getPgenPalette().setActiveIcon(btnName);
+        }
 
         PgenResource rsc = PgenSession.getInstance().getPgenResource();
         String curFile = rsc.getActiveProduct().getOutputFile();
@@ -89,7 +108,8 @@ public class StoreManageHandler extends AbstractTool {
 
         // Reset the original icon for the palette button corresponding to this
         // tool
-        if (PgenSession.getInstance().getPgenPalette() != null) {
+        if (PgenSession.getInstance().getPgenPalette() != null
+                && btnName != null) {
             PgenSession.getInstance().getPgenPalette().resetIcon(btnName);
         }
 

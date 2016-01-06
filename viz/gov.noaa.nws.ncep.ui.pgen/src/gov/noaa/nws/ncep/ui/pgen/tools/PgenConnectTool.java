@@ -47,6 +47,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      made preparations to update Pgen type selection to allow
  *                                      forming/dying front types to be connected
  *                                      (WARM/COLD/OCCLUDED/STATIONARY/etc.) [this is not yet hooked into the "datapath"]
+ * 08/05/2015	RM8879		B. Yin		Skip empty contour component.
  * 
  * </pre>
  * 
@@ -691,7 +692,7 @@ public class PgenConnectTool extends AbstractPgenDrawingTool {
 
                     Line oldLine = ((ContourLine) oldContourComp).getLine();
 
-                    if (oldLine.equals((Line) cline1) || oldLine.equals(cline2)) {
+                    if (oldLine != null && (oldLine.equals((Line) cline1) || oldLine.equals(cline2))) {
 
                         if (!connected) {
 

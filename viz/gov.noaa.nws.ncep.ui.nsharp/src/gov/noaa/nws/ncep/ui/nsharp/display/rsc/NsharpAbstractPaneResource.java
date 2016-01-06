@@ -26,6 +26,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
@@ -52,7 +54,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
 import com.raytheon.viz.core.ColorUtil;
-import com.raytheon.viz.core.graphing.WGraphics;
 import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpAbstractPaneResource extends
@@ -63,7 +64,7 @@ public class NsharpAbstractPaneResource extends
 
     protected Rectangle rectangle;
 
-    protected WGraphics world;
+    protected NsharpWGraphics world;
 
     protected PixelExtent pe;
 
@@ -228,15 +229,14 @@ public class NsharpAbstractPaneResource extends
         // nsharpNative.toString());
     }
 
-    @SuppressWarnings("deprecation")
     public void resetData(List<NcSoundingLayer> soundingLys,
             List<NcSoundingLayer> prevsoundingLys) {
         this.soundingLys = soundingLys;
         this.previousSoundingLys = prevsoundingLys;
-        descriptor.setFrame(0);
+        descriptor.setFramesInfo(new FramesInfo(0));//setFrame(0);
     }
 
-    public WGraphics getWorld() {
+    public NsharpWGraphics getWorld() {
         return world;
     }
 

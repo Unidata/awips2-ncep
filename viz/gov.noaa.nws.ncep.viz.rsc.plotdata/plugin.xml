@@ -232,9 +232,17 @@
             paramName="legendColor"
             defaultValue="RGB {155, 155, 155}"
             paramType="IMPLEMENTATION_PARAM">
-      </nc-resourceParameter>
+      </nc-resourceParameter>      
+   </extension>
 
-      
+   <extension
+         point="org.eclipse.ui.preferencePages">    
+      <page
+            class="gov.noaa.nws.ncep.viz.rsc.plotdata.PointDataDisplayPreferences"
+            id="gov.noaa.nws.ncep.viz.rsc.plotdata.PointDataDisplayPreferences"
+            name="Point Data"
+            category="gov.noaa.nws.ncep.viz.common.nceppreferences">
+      </page> 
    </extension>
    
    <extension

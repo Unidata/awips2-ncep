@@ -18,6 +18,7 @@
  * Jul 23, 2014 3410       bclement    location changed to floats
  * 10/2014                 B. Hebbard   Allow subsetting XXAA/TTAA params only for faster
  *                                      retrieval in cases where other params not needed
+ * 07/06/2015  RM#9171     Chin Chen    Fixed bugs caused by the changes by Raytheon engineer at 14.4.1(Raythoen new method PointDataView.getCalendar)
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system. 
@@ -34,6 +35,7 @@ import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
 import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +45,8 @@ import org.apache.commons.logging.LogFactory;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
+import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.common.time.util.TimeUtil;
 
 public class NcUairToRecord {
 
@@ -211,13 +215,27 @@ public class NcUairToRecord {
                 record.setUTC(pdv.getInt("UTC"));
             }
             if (parameters.contains("OBSTIME")) {
-                record.setObsTime(pdv.getCalendar("OBSTIME"));
+            	long vt = pdv.getNumber("OBSTIME").longValue();
+            	Calendar calendar = TimeUtil.newGmtCalendar();
+                calendar.setTimeInMillis(vt);
+                record.setObsTime(calendar);
+                DataTime dataTime = new DataTime(calendar);
+                record.setDataTime(dataTime);
+//                record.setObsTime(pdv.getCalendar("OBSTIME"));
             }
             if (parameters.contains("ISSUETIME")) {
-                record.setIssueTime(pdv.getCalendar("ISSUETIME"));
+            	long vt = pdv.getNumber("ISSUETIME").longValue();
+            	Calendar calendar = TimeUtil.newGmtCalendar();
+                calendar.setTimeInMillis(vt);
+                record.setIssueTime(calendar);
+                //record.setIssueTime(pdv.getCalendar("ISSUETIME"));
             }
             if (parameters.contains("SYNOPTIME")) {
-                record.setSynopticTime(pdv.getCalendar("SYNOPTIME"));
+            	long vt = pdv.getNumber("SYNOPTIME").longValue();
+            	Calendar calendar = TimeUtil.newGmtCalendar();
+                calendar.setTimeInMillis(vt);
+                record.setSynopticTime(calendar);
+                //record.setSynopticTime(pdv.getCalendar("SYNOPTIME"));
             }
             if (parameters.contains("WMOHEADER"))
                 record.setWmoHeader(pdv.getString("WMOHEADER"));

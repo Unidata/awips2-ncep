@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<satelliteAreaList>
+
+     <satelliteArea>
+        <alias>NWPac_2km</alias>
+        <areaID>191</areaID>
+    </satelliteArea>
+    
+         <satelliteArea>
+        <alias>Trop_WPac_2km</alias>
+        <areaID>193</areaID>
+    </satelliteArea>
+    
+         <satelliteArea>
+        <alias>NCenPac_2km</alias>
+        <areaID>190</areaID>
+    </satelliteArea>
+
+     <satelliteArea>
+        <alias>test</alias>
+        <areaID>5902</areaID>
+    </satelliteArea>
+
+     <satelliteArea>
+        <alias>US</alias>
+        <areaID>8181</areaID>
+    </satelliteArea>
+    
+    <satelliteArea>
+       <alias>WTropical</alias>
+        <areaID>1871</areaID>
+    </satelliteArea>
+    
+    <satelliteArea>
+        <alias>West</alias>
+        <areaID>9201</areaID>
+    </satelliteArea>
+    
+        <satelliteArea>
+        <alias>DPDI</alias>
+        <areaID>6006</areaID>
+    </satelliteArea>
+    
+    <satelliteArea>
+        <alias>GE_IR</alias>
+        <areaID>334</areaID>
+    </satelliteArea>
+    
+        <satelliteArea>
+        <alias>GE_WV</alias>
+        <areaID>335</areaID>
+    </satelliteArea>
+    
+    <satelliteArea>
+        <alias>VIS</alias>
+        <areaID>4033</areaID>
+    </satelliteArea>
+    
+    
+ 
+    
+</satelliteAreaList>

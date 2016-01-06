@@ -12,6 +12,8 @@
  * -------		------- 	-------- 	-----------
  * 01/2011	229			Chin Chen	Initial coding
  * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
+ * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query grid model sounding data
+ *
  * </pre>
  * 
  * @author Chin Chen
@@ -19,6 +21,7 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
@@ -26,7 +29,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
-import gov.noaa.nws.ncep.viz.common.soundingQuery.NcSoundingQuery;
 
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
@@ -110,7 +112,7 @@ public class NsharpPfcSoundingDialogContents {
 			String fl = selectedFlLst.get(i);
 			long reftimeMs= NcSoundingQuery.convertRefTimeStr(fl);
 			//System.out.println("reftime="+fl + " in ms="+reftimeMs);
-			NcSoundingTimeLines timeLines = NcSoundingQuery.soundingRangeTimeLineQuery(sndStr, fl);
+			NcSoundingTimeLines timeLines = NcSoundingQuery.soundingRangeTimeLineQuery(sndStr, fl, null);
 			if(timeLines != null && timeLines.getTimeLines().length >0) {
 				for(Object obj : timeLines.getTimeLines()){
 					Date rangestart = (Date)obj;
@@ -317,7 +319,7 @@ public class NsharpPfcSoundingDialogContents {
 	private void queryAndMarkStn(String refTimeStr,String rangeStartStr, String selectedSndTime) {
 		//use NcSoundingQuery to query stn info
 		String sndTypeStr = currentSndType.toString();
-		NcSoundingStnInfoCollection sndStnInfoCol = NcSoundingQuery.soundingStnInfoQuery(sndTypeStr,rangeStartStr, refTimeStr);
+		NcSoundingStnInfoCollection sndStnInfoCol = NcSoundingQuery.genericSoundingStnInfoQuery(sndTypeStr,rangeStartStr, refTimeStr);
 		if(sndStnInfoCol != null && sndStnInfoCol.getStationInfo() != null){
 
 			NcSoundingStnInfo[] stnInfoAry = sndStnInfoCol.getStationInfo();

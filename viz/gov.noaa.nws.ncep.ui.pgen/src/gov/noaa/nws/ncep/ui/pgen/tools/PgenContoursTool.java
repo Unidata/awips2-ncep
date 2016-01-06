@@ -308,7 +308,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 ContourMinmax ghost = null;
                 ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
                         dlg.getActiveSymbolObjType(),
-                        new String[] { dlg.getLabel() });
+                        new String[] { dlg.getLabel() }, dlg.hideSymbolLabel());
 
                 IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
                         .getMinmaxTemplate();
@@ -571,8 +571,12 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 String cls = ((ContoursAttrDlg) attrDlg).getActiveSymbolClass();
                 String type = ((ContoursAttrDlg) attrDlg)
                         .getActiveSymbolObjType();
-                ContourMinmax cmm = new ContourMinmax(loc, cls, type,
-                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() });
+                ContourMinmax cmm = new ContourMinmax(
+                        loc,
+                        cls,
+                        type,
+                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() },
+                        ((ContoursAttrDlg) attrDlg).hideSymbolLabel());
 
                 IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
                         .getMinmaxTemplate();

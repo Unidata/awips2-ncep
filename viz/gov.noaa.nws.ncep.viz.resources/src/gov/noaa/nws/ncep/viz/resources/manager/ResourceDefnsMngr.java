@@ -2335,7 +2335,7 @@ public class ResourceDefnsMngr {
                         e);
             }
             rscFiltersLFile.save();
-        } catch (LocalizationException| SerializationException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }

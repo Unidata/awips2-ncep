@@ -17,6 +17,7 @@ import gov.noaa.nws.ncep.viz.common.ui.ModelListInfo;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
@@ -82,66 +83,75 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 
  * <pre>
  * 
- * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Feb, 2010                M. Li           Initial creation
- * Jun, 2010                M. Li           Retrieve grid data from Grid Diagnostic instead of HDF5
- * Oct, 2010     #307       G. Hull         use NcGridDataProxy to support correct time matching
- * Oct, 2010     #320       X. Guo          Replace special characters in TITLE parameter
- * Oct, 2010     #307       m.gamazaychikov Add handling of DgdrivException in getDataRecord method
- * Oct, 2010                X. Guo          Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
- * Oct, 2010     #277       M. Li           Parsed first model name from ensemble model list
- * Nov, 2010                M. Li           modified for new vector algorithm
- * 11/29/2010               mgamazaychikov  Updated queryRecords and updateFrameData
- * 12/06/2010    #363       X. Guo          Plot relative minima and maxima gridded data
- * 12/19/2010     365       Greg Hull       Replace dataSource with pluginName
- * 01/03/11                 M. Li           Add hilo and hlsysm to contourAttributes
- * 01/07/11                 M. Li           Use Vector array
- * 03/08/11                 M. Li           refactor ContourRenderable
- * 04/29/11                 M. Li           move gridIndiceDisplay to a separate class
- * 06/2011                  mgamazaychikov  Add spatialObject to the Dgdriv fields.
- * 07/2011                  mgamazaychikov  Add substituteAlias method.
- * 08/2011                  mgamazaychikov  Add dispose method to FrameData class;
- *                                          change disposeInternal method of NcgridResource class;
- *                                          change aDgdriv from the NcgridResource class variable to local variable.
- * 09/2011                  mgamazaychikov  Made changes associated with removal of DatatypeTable class
- * 10/2011                  X. Guo          Updated
- * 11/2011                  X. Guo          Updated contour attributes
- * 11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
- * 11/22/2011               X. Guo          Used the current frame time to set dgdriv and add dumpNcGribInventory()
- * 12/12/2011               X. Guo          Updated Ensemble requests 
- * 12/06/2012   #538        Q. Zhou         Added skip and filter areas and implements.
- * 02/15/2012               X. Guo          Added schedule job to parallel updating data 
- * 02/16/2012   #555        S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()
- * 03/01/2012               X. Guo          Added codes to handle attributes modification
- * 03/13/2012               X. Guo          Created multi-threads to generate contours
- * 03/15/2012               X. Guo          Set synchronized block in ContoutSupport
- * 04/03/2012               X. Guo          Created vector wireframe in contour job
- *                                          and changed constraint to query available times
- * 05/15/2012               X. Guo          Used getAvailableDataTimes() to get available times
- * 05/23/2012               X. Guo          Loaded ncgrib logger   
- * 06/07/2012               X. Guo          Catch datauri&grid data for each frame
- * 09/26/2012               X. Guo          Fixed navigation query problems     
- * 08/19/2013   #743        S. Gurung       Added clrbar related changes  
- * 09/14/2013   #1036       S. Gurung       Added TEXT attribute related changes
- * 11/19/2013   #619        T. Lee          Fixed DOW in Title string
- * 11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
- * 1/28/2014    #934        T. Lee          Enabled "colors" bangs for grid points plot
- * 02/4/2014    #936        T. Lee          Implemented textSize for point values
- * 04/11/2014   #981        D.Sushon        Added fault tolerance for when some data is bad to display the good data rather than fall-through entire frame
- * 04/14/2014               S.Gilbert       Cleaned up old unused methods
- * 04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
- * 06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
- * 08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
- * 12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
- * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
- *                                          overrode processNewRscDataList for 
- *                                          the super class
- * 07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
- *                                          ensure that preloading of grid data
- *                                          for overlays happens.
- * 07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
+ *  SOFTWARE HISTORY
+ *  Date         Ticket#    Engineer    Description
+ *  ------------ ---------- ----------- --------------------------
+ *  Feb, 2010                M. Li           Initial creation
+ *  Jun, 2010                M. Li           Retrieve grid data from Grid Diagnostic instead of HDF5
+ *  Oct, 2010     #307       G. Hull         use NcGridDataProxy to support correct time matching
+ *  Oct, 2010     #320       X. Guo          Replace special characters in TITLE parameter
+ *  Oct, 2010     #307       m.gamazaychikov Add handling of DgdrivException in getDataRecord method
+ *  Oct, 2010                X. Guo          Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
+ *  Oct, 2010     #277       M. Li           Parsed first model name from ensemble model list
+ *  Nov, 2010                M. Li           modified for new vector algorithm
+ *  11/29/2010               mgamazaychikov  Updated queryRecords and updateFrameData
+ *  12/06/2010    #363       X. Guo          Plot relative minima and maxima gridded data
+ *  12/19/2010     365       Greg Hull       Replace dataSource with pluginName
+ *  01/03/11                 M. Li           Add hilo and hlsysm to contourAttributes
+ *  01/07/11                 M. Li           Use Vector array
+ *  03/08/11                 M. Li           refactor ContourRenderable
+ *  04/29/11                 M. Li           move gridIndiceDisplay to a separate class
+ *  06/2011                  mgamazaychikov  Add spatialObject to the Dgdriv fields.
+ *  07/2011                  mgamazaychikov  Add substituteAlias method.
+ *  08/2011                  mgamazaychikov  Add dispose method to FrameData class;
+ *                                           change disposeInternal method of NcgridResource class;
+ *                                           change aDgdriv from the NcgridResource class variable to local variable.
+ *  09/2011                  mgamazaychikov  Made changes associated with removal of DatatypeTable class
+ *  10/2011                  X. Guo          Updated
+ *  11/2011                  X. Guo          Updated contour attributes
+ *  11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
+ *  11/22/2011               X. Guo          Used the current frame time to set dgdriv and add dumpNcGribInventory()
+ *  12/12/2011               X. Guo          Updated Ensemble requests 
+ *  12/06/2012   #538        Q. Zhou         Added skip and filter areas and implements.
+ *  02/15/2012               X. Guo          Added schedule job to parallel updating data 
+ *  02/16/2012   #555        S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()
+ *  03/01/2012               X. Guo          Added codes to handle attributes modification
+ *  03/13/2012               X. Guo          Created multi-threads to generate contours
+ *  03/15/2012               X. Guo          Set synchronized block in ContoutSupport
+ *  04/03/2012               X. Guo          Created vector wireframe in contour job
+ *                                           and changed constraint to query available times
+ *  05/15/2012               X. Guo          Used getAvailableDataTimes() to get available times
+ *  05/23/2012               X. Guo          Loaded ncgrib logger   
+ *  06/07/2012               X. Guo          Catch datauri&grid data for each frame
+ *  09/26/2012               X. Guo          Fixed navigation query problems     
+ *  08/19/2013   #743        S. Gurung       Added clrbar related changes  
+ *  09/14/2013   #1036       S. Gurung       Added TEXT attribute related changes
+ *  11/19/2013   #619        T. Lee          Fixed DOW in Title string
+ *  11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
+ *  1/28/2014    #934        T. Lee          Enabled "colors" bangs for grid points plot
+ *  02/4/2014    #936        T. Lee          Implemented textSize for point values
+ *  04/11/2014   #981        D.Sushon        Added fault tolerance for when some data is bad to display the good data rather than fall-through entire frame
+ *  04/14/2014               S.Gilbert       Cleaned up old unused methods
+ *  04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
+ *  06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
+ *  08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
+ *  12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
+ *  02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
+ *                                           overrode processNewRscDataList for 
+ *                                           the super class
+ *  07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
+ *                                           ensure that preloading of grid data
+ *                                           for overlays happens.
+ *  07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
+ *  12/28/2015   R8832       S. Russell      Altered NcgridLoaderJob.run() and
+ *                                           processNewRscDataList() to switch
+ *                                           between processing code for 
+ *                                           binning and other time matching
+ *                                           methods as appropriate
+ *                                           
+ * 02/08/2016    R8832       S.Russell       Updated processNewRscDataListWithBinning()
+ *                                           to correct an error introduced
+ *                                           into a conditional in the method.
  * </pre>
  * 
  * @author mli
@@ -254,58 +264,24 @@ public class NcgridResource extends
         @Override
         protected IStatus run(IProgressMonitor monitor) {
 
+            TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
+
             boolean isFirst = true;
+
             long t1 = System.currentTimeMillis();
             if (ncgribLogger.enableRscLogs())
                 logger.info("==from init to run loadNcgridData took: "
                         + (t1 - initTime));
 
-            boolean frameMatched = false;
-            IRscDataObject lastDataObj = null;
-            int closestMatch = 0;
-
             // For each frame
             for (AbstractFrameData fd : frameDataMap.values()) {
                 FrameData frameData = (FrameData) fd;
 
-                frameMatched = false;
-
-                // Scroll each available date for a date that matches the frame
-                for (DataTime dt : dataTimesForDgdriv) {
-
-                    // Get the data associated with that date
-                    IRscDataObject[] dataObject = processRecord(dt);
-
-                    // If the date is in the range of the current frame
-                    if (frameData.isRscDataObjInFrame(dataObject[0])) {
-
-                        closestMatch = frameData.closestToFrame(dataObject[0],
-                                lastDataObj);
-
-                        // Add the data for that date to a list of data objects
-                        if (closestMatch == 1) {
-                            newRscDataObjsQueue.add(dataObject[0]);
-                        } else if (closestMatch == 2) {
-                            newRscDataObjsQueue.add(lastDataObj);
-                        } else if (closestMatch == 0) {
-                            newRscDataObjsQueue.add(lastDataObj);
-                        }
-
-                        frameMatched = true;
-                        break;
-                    }
-                    lastDataObj = dataObject[0];
-
-                }
-
-                if (!frameMatched && lastDataObj != null) {
-                    newRscDataObjsQueue.add(lastDataObj);
-                }
-
-                // Add the date based grid data to the frame it was matched to
-                if (!newRscDataObjsQueue.isEmpty()) {
-                    addRscDataToFrame(frameData, newRscDataObjsQueue.poll());
-                    frameData.setPopulated(true);
+                // Search each DataTime obj for one whose date matches the frame
+                if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
+                    this.processDateTimeWithBinning(frameData);
+                } else {
+                    this.processDateTime(frameData);
                 }
 
                 if (cancel) {
@@ -347,7 +323,66 @@ public class NcgridResource extends
         public void setCancelFlag(boolean cl) {
             cancel = cl;
         }
-    }
+
+        private void processDateTime(FrameData frameData) {
+
+            for (DataTime dt : dataTimesForDgdriv) {
+
+                IRscDataObject[] dataObject = processRecord(dt);
+                if (frameData.isRscDataObjInFrame(dataObject[0])) {
+                    newRscDataObjsQueue.add(dataObject[0]);
+                    break;
+                }
+            }
+        }
+
+        private void processDateTimeWithBinning(FrameData frameData) {
+
+            int closestMatch = 0;
+            IRscDataObject lastDataObj = null;
+            boolean frameMatched = false;
+
+            // Scroll each available date for a date that matches the frame
+            for (DataTime dt : dataTimesForDgdriv) {
+
+                // Get the data associated with that date
+                IRscDataObject[] dataObject = processRecord(dt);
+
+                // If the date is in the range of the current frame
+                if (frameData.isRscDataObjInFrame(dataObject[0])) {
+
+                    closestMatch = frameData.closestToFrame(dataObject[0],
+                            lastDataObj);
+
+                    // Add the data for that date to a list of data objects
+                    if (closestMatch == 1) {
+                        newRscDataObjsQueue.add(dataObject[0]);
+                    } else if (closestMatch == 2) {
+                        newRscDataObjsQueue.add(lastDataObj);
+                    } else if (closestMatch == 0) {
+                        newRscDataObjsQueue.add(lastDataObj);
+                    }
+
+                    frameMatched = true;
+                    break;
+                }
+                lastDataObj = dataObject[0];
+
+            }
+
+            if (!frameMatched && lastDataObj != null) {
+                newRscDataObjsQueue.add(lastDataObj);
+            }
+
+            // Add the date based grid data to the frame it was matched to
+            if (!newRscDataObjsQueue.isEmpty()) {
+                addRscDataToFrame(frameData, newRscDataObjsQueue.poll());
+                frameData.setPopulated(true);
+            }
+
+        }// end method
+
+    }// end NcGridLoaderJob
 
     protected class NcgridAttrModifiedJob extends Job {
 
@@ -2865,6 +2900,19 @@ public class NcgridResource extends
      */
 
     protected synchronized boolean processNewRscDataList() {
+        TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
+
+        if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
+            this.processNewRscDataListWithBinning();
+        } else {
+            super.processNewRscDataList();
+        }
+
+        return true;
+
+    }
+
+    protected synchronized boolean processNewRscDataListWithBinning() {
 
         // allow resources to pre process the data before it is added to the
         // frames
@@ -2885,17 +2933,23 @@ public class NcgridResource extends
 
                     if (frameData.isRscDataObjInFrame(rscDataObj)) {
 
+                        // Which is a closer match to the frame, the current
+                        // IRscDataObject or the one before?
                         closestMatch = frameData.closestToFrame(rscDataObj,
                                 lastDataObj);
 
+                        // If current IRscDataObject rscDataObj is closer match
                         if (closestMatch == 1) {
                             addRscDataToFrame(frameData, rscDataObj);
                             lastDataObj = rscDataObj;
-                        } else if (closestMatch == 2) {
-                            addRscDataToFrame(frameData, lastDataObj);
-                        } else if (closestMatch == 0) {
+                        }
+                        // Else last IRscDataObject lastDataObj, closer (2)
+                        // OR last & current IRscDataObject are equal (0)
+                        // AND BOTH are not null (-1)
+                        else if (closestMatch != -1) {
                             addRscDataToFrame(frameData, lastDataObj);
                         }
+
                         frameMatched = true;
                         break;
                     }
@@ -2905,15 +2959,24 @@ public class NcgridResource extends
                 }// end while
 
                 if (!frameMatched) {
+
+                    // Which IRscDataObject is a closer time match ?
+                    // the last one processed or the current one?
                     closestMatch = frameData.closestToFrame(rscDataObj,
                             lastDataObj);
 
+                    // Latest IRscDataObject rscDataObj is the closest match
                     if (closestMatch == 1) {
                         addRscDataToFrame(frameData, rscDataObj);
                         lastDataObj = rscDataObj;
-                    } else if (closestMatch == 2) {
-                        addRscDataToFrame(frameData, lastDataObj);
-                    } else if (closestMatch == 0) {
+                    }
+                    // IF the previous IRscDataObject lastDataObj was the
+                    // closest match (2)
+                    // OR
+                    // IF the latest & previous were equally good matches(0)
+                    // and the two objects were equal without being both null
+                    // (-1)
+                    else if (closestMatch != -1) {
                         addRscDataToFrame(frameData, lastDataObj);
                     }
 

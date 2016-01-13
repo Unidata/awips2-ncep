@@ -12,6 +12,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * ------------ ---------- ----------- --------------------------
  * Jun 26, 2015  R8198     srussell    Initial creation
  * 11/18/2015    R12829    J. Wu       Add more common constants.
+ * 12/17/2015    R12990    J. Wu       Add more constants.
  * 
  * </pre>
  * 
@@ -66,6 +67,8 @@ public final class PgenConstant {
 
     public static final String NONE = "None";
 
-    public static String DEFAULT_SUBTYPE = "None";
+    public static final String DEFAULT_SUBTYPE = "None";
+
+    public static final String CONTOURS = "Contours";
 
 }

@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>World</resourceDefnName>
+    <resourceDefnName>Highways</resourceDefnName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
-! The relative path name from localization (ie 'ncep/') or an absolute file name
-! pgenStaticProductLocation=ncep/ResourceDefns/OVERLAYS/PgenXmlOverlay
 dbName=maps
-tableName=mapdata.world
+tableName=mapdata.highway
 labelField=name
-mapName=World
+mapName=Highways
     </resourceParameters>
     <rscImplementation>DbOverlay</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

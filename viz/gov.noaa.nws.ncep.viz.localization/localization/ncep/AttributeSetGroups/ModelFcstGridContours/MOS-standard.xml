@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>MOS</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>total_cloud_cover</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>total_cloud_cover</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

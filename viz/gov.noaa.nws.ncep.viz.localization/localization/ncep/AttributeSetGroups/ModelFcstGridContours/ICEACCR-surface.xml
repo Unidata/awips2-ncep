@@ -2,5 +2,21 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>ICEACCR</resource>
     <attrSetGroupName>surface</attrSetGroupName>
-    <attrSetNames>iceg,iceg_contours,iceg_contours_fill</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>iceg</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>iceg_contours</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>iceg_contours_fill</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

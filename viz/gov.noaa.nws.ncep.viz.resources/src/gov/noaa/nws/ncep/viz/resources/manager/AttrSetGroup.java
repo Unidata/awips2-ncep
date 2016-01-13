@@ -1,156 +1,238 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
-import gov.noaa.nws.ncep.viz.common.StringListAdapter;
-
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.viz.core.exception.VizException;
+
+/**
+ * This class defines the structure of the <AttrSetGroup> xml tag.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 
+ * 08/31/2015   R8824       A. Su       Changed the <attrSetNames> tag to <attrSetLabels>.
+ * 
+ * </pre>
+ * 
+ * @author ?
+ * @version 1
+ */
 
 @XmlRootElement(name = "AttributeSetGroup")
 @XmlAccessorType(XmlAccessType.NONE)
 public class AttrSetGroup {
-	
-//	@XmlElement
-//    private String resource;
-//
-//	@XmlElement
-//	private String attrSetGroupName;
-	
-	// This class would be called AttrSetGroupName except that this was the name 
-	// of the old member for just the group name and the set method needs to stay the
-	// same so that the existing jaxb files are still compatible.
-	public static class RscAndGroupName implements Comparable<RscAndGroupName> {
-	    private String resource;
-		private String groupName;
-		
-		public RscAndGroupName( ) {
-			this( "","");
-		}
-		public RscAndGroupName( String r, String g ) {
-			resource = r;
-			groupName = g;
-		}
-		public String getResource() {
-			return resource;
-		}
-		public String getGroupName() {
-			return groupName;
-		}
-		public Boolean isPGEN() {
-			return getGroupName().equals("PGEN");
-		}
-		@Override
-		public String toString() {
-			return (isPGEN() ? "PGEN" : resource+"-"+groupName );
-		}
-		@Override
-		public int compareTo(RscAndGroupName o) {		
-			return toString().compareTo( o.toString() );
-		}		
-	}
 
-	private RscAndGroupName rscAndGroupName;
-	
-	@XmlElement
-	@XmlJavaTypeAdapter(StringListAdapter.class)
-	private ArrayList<String> attrSetNames;
-		
-	private LocalizationFile lclFile;
-		
-	private boolean isModified;
+    public static final String PGEN = "PGEN";
 
-	public AttrSetGroup() {
-		attrSetNames = new ArrayList<String>();
-		rscAndGroupName = new RscAndGroupName();
-		
-//		resource = "";
-//		attrSetGroupName = "";
-		isModified = false;
-	}
-		
-	public AttrSetGroup( AttrSetGroup asg ) {
-		attrSetNames = new ArrayList<String>( asg.getAttrSetNames() );
-		rscAndGroupName = new RscAndGroupName( asg.getResource(), asg.getAttrSetGroupName() );
-//		resource = asg.getResource();
-//		attrSetGroupName = asg.getAttrSetGroupName();
-		isModified = false;
-	}
-	
-	public boolean isModified() {
-		return isModified;
-	}
-	
-	public String getResource() {
-		return rscAndGroupName.getResource();
-	}
+    // This class would be called AttrSetGroupName except that this was the name
+    // of the old member for just the group name and the set method needs to
+    // stay the same so that the existing jaxb files are still compatible.
+    public static class RscAndGroupName implements Comparable<RscAndGroupName> {
+        private String resource;
 
-	@XmlElement
-	public void setResource(String resource) {
-		rscAndGroupName = new RscAndGroupName( resource, rscAndGroupName.getGroupName() );
-	}
+        private String groupName;
 
-	public RscAndGroupName getRscAndGroupName() {
-		return rscAndGroupName;
-	}
-	
-	public String getAttrSetGroupName() {
-		return rscAndGroupName.getGroupName();
-//		return attrSetGroupName;
-	}
+        public RscAndGroupName() {
+            this("", "");
+        }
 
-	@XmlElement
-	public void setAttrSetGroupName(String group ) {
-		rscAndGroupName = new RscAndGroupName( rscAndGroupName.getResource(), group );
-//		this.attrSetGroupName = attrSetGroupName;
-	}
+        public RscAndGroupName(String rsc, String grp) {
+            resource = rsc;
+            groupName = grp;
+        }
 
-	public List<String> getAttrSetNames() {
-		return attrSetNames;
-//		return attrSetFilesMap.keySet();
-	}
+        public String getResource() {
+            return resource;
+        }
 
-	public void setAttrSetNames(ArrayList<String> attrSetNames) {
-		this.attrSetNames = attrSetNames;
-	}	
-		
-	// add the name and find the file.
-	public boolean addAttrSetName( String asName ) {
-		if( !attrSetNames.contains( asName ) ) {
-			attrSetNames.add( asName );
-			return true;
-		}
-		return false;
-	}
+        public String getGroupName() {
+            return groupName;
+        }
 
-	public boolean removeAttrSet( String asName ) {
-		
-		return attrSetNames.remove( asName );
-		
-	}
-	
-	public void removeAllAttrSets( ) {
-		attrSetNames.clear();
-		return;
-	}
-	
-	public LocalizationFile getLocalizationFile() {
-		return lclFile;
-	}
+        public Boolean isPGEN() {
+            return getGroupName().equals(PGEN);
+        }
 
-	public void setLocalizationFile( LocalizationFile lclFile) {
-		this.lclFile = lclFile;
-	}
+        @Override
+        public String toString() {
+            return (isPGEN() ? PGEN : resource + "-" + groupName);
+        }
+
+        @Override
+        public int compareTo(RscAndGroupName rscNGrp) {
+            return toString().compareTo(rscNGrp.toString());
+        }
+    }
+
+    private final AttrSetLabelsManager manager = AttrSetLabelsManager
+            .getInstance();
+
+    // All GRID resource attributes are specified in this directory.
+    private final String gridData = "ModelFcstGridContours";
+
+    private RscAndGroupName rscAndGroupName;
+
+    private ArrayList<String> attrSetNames;
+
+    @XmlElement(name = "attrSetLabels")
+    private AttrSetLabels attrSetLabels;
+
+    private LocalizationFile lclFile;
+
+    private boolean isModified;
+
+    public AttrSetGroup() {
+        attrSetNames = new ArrayList<String>();
+        attrSetLabels = new AttrSetLabels();
+        rscAndGroupName = new RscAndGroupName();
+
+        isModified = false;
+    }
+
+    public AttrSetGroup(AttrSetGroup group) {
+        attrSetNames = new ArrayList<String>(group.getAttrSetNames());
+        attrSetLabels = new AttrSetLabels();
+        for (String asName : attrSetNames) {
+            attrSetLabels.addLabel(asName);
+        }
+        rscAndGroupName = new RscAndGroupName(group.getResource(),
+                group.getAttrSetGroupName());
+
+        isModified = false;
+    }
+
+    public boolean isModified() {
+        return isModified;
+    }
+
+    public String getResource() {
+        return rscAndGroupName.getResource();
+    }
+
+    @XmlElement
+    public void setResource(String resource) {
+        rscAndGroupName = new RscAndGroupName(resource,
+                rscAndGroupName.getGroupName());
+    }
+
+    public RscAndGroupName getRscAndGroupName() {
+        return rscAndGroupName;
+    }
+
+    public String getAttrSetGroupName() {
+        return rscAndGroupName.getGroupName();
+    }
+
+    @XmlElement
+    public void setAttrSetGroupName(String group) {
+        rscAndGroupName = new RscAndGroupName(rscAndGroupName.getResource(),
+                group);
+    }
+
+    /**
+     * This method retrieves a list of attribute names. If the resources are
+     * GRID data, retrieve and save their aliases as well.
+     * 
+     * @return a String list of attribute names.
+     */
+    public List<String> getAttrSetNames() {
+
+        AttrSetLabels labels = getAttrSetLabels();
+        attrSetNames = new ArrayList<String>();
+
+        if (labels == null) {
+            attrSetNames.add("default");
+        } else {
+            ArrayList<AttrSetLabel> labelList = labels.getLabelList();
+            if (labelList != null) {
+                for (AttrSetLabel label : labelList) {
+                    String name = label.getName();
+                    attrSetNames.add(label.getName());
+
+                    // Retrieve and store the alias of a GRID resource.
+                    if (getLocalizationFile().getName().contains(gridData)) {
+                        String type = getResource();
+                        String group = getAttrSetGroupName();
+                        String alias = label.getAlias();
+                        manager.setAlias(type, group, name, alias);
+                    }
+                }
+            }
+        }
+
+        return attrSetNames;
+    }
+
+    /**
+     * This method sets a list array of attribute set names and creates their
+     * corresponding labels to be saved into its xml file.
+     * 
+     * @param attrSetNames
+     *            a list array of attribute set names.
+     */
+    public void setAttrSetNames(ArrayList<String> attrSetNames) {
+        if (attrSetNames != null) {
+            attrSetLabels = new AttrSetLabels();
+            for (String asName : attrSetNames) {
+                attrSetLabels.addLabel(asName);
+            }
+        }
+        this.attrSetNames = attrSetNames;
+    }
+
+    /**
+     * This method adds a name to the list of attribute set names.
+     * 
+     * @param asName
+     *            a name to be added
+     * @return true if the name is not in the list of attribute set names; false
+     *         otherwise.
+     */
+    public boolean addAttrSetName(String asName) {
+        if (!attrSetNames.contains(asName)) {
+            attrSetLabels.addLabel(asName);
+            attrSetNames.add(asName);
+
+            return true;
+        }
+        return false;
+    }
+
+    public AttrSetLabels getAttrSetLabels() {
+        return attrSetLabels;
+    }
+
+    public void setAttrSetLabels(AttrSetLabels labels) {
+        this.attrSetLabels = labels;
+    }
+
+    public boolean removeAttrSet(String asName) {
+        if (attrSetLabels != null) {
+            attrSetLabels.removeLabel(asName);
+        }
+        return attrSetNames.remove(asName);
+    }
+
+    public void removeAllAttrSets() {
+        attrSetLabels = null;
+        attrSetNames.clear();
+        return;
+    }
+
+    public LocalizationFile getLocalizationFile() {
+        return lclFile;
+    }
+
+    public void setLocalizationFile(LocalizationFile lclFile) {
+        this.lclFile = lclFile;
+    }
 
 }

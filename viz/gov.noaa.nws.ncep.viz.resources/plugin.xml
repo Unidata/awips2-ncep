@@ -56,5 +56,11 @@
 	         extensionFilter=".xml">
        </path>
     </extension>
-      
+    <extension
+         point="com.raytheon.uf.viz.core.renderingOrder">
+      <renderingOrder
+            id="NCP_GROUP"
+            order="500">
+      </renderingOrder>
+   </extension> 
 </plugin>

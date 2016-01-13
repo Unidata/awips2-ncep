@@ -8,9 +8,11 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourButtons;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourDefault;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLines;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourObject;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContoursInfo;
@@ -34,6 +36,9 @@ import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 import gov.noaa.nws.ncep.ui.pgen.graphtogrid.G2GCommon;
 import gov.noaa.nws.ncep.ui.pgen.graphtogrid.GraphToGridParamDialog;
 import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
+import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursTool.PgenContoursHandler;
@@ -132,6 +137,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                          Chowdhuri    - Refinements to contoursInfo.xml
  * 08/15        R8552       J. Wu       Limit contours' hotkeys within its own context.
  * 09/29/2015   R8163       J. Wu       Prevent exception when contour type changes.
+ * 11/18/2015   R12829      J. Wu       Link "Contours Parameter" to the one defined on layer.
  * 
  * </pre>
  * 
@@ -1434,7 +1440,6 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
             /*
              * Which button?
              */
-            // String btnName = b.getText();
             String btnName = b.getData().toString();
 
             /*
@@ -2641,11 +2646,9 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                 g2gDlg.setCntAttrDlg(this);
 
             } catch (VizException e) {
-
                 handler.error(
                         "Error opening dialog to do graph-to-grid processing",
                         e);
-                ;
             }
 
         }
@@ -4076,10 +4079,35 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
          */
         retrieveContoursSettings();
 
+        /*
+         * Use defaults defined for this layer. Otherwise, use the default from settings table.
+         */
         if (drawingLayer.getSelectedDE() == null) {
+
             Contours adc = (Contours) contoursAttrSettings.get("Contours");
-            if (adc != null) {
+
+            String parmOnLayer = getContourParmOnLayer();
+            ContourDefault contourDef = ContoursInfoDlg
+                    .getContourMetaDefault(parmOnLayer);
+
+            // Use "parm" defined on the layer.
+            if ( parmOnLayer != PgenConstant.NONE) {
+                contourParm = parmOnLayer;
+            }
+            else if (adc != null) {
                 contourParm = adc.getParm();
+            }
+            
+            /*
+             * Use defaults defined for level/fcsthr/cint defined in
+             * contourInfoXXXX.xml, which is linked with this layer, where
+             * "XXXX" is the name of the contours' parameter name.
+             */
+            if (contourDef != null) {
+                contourLevel = contourDef.getLevel();
+                contourFcstHr = contourDef.getFhrs();
+                contourCint = contourDef.getCint();               
+            } else if (adc != null) {
                 contourLevel = adc.getLevel();
                 contourFcstHr = adc.getForecastHour();
 
@@ -4090,7 +4118,9 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                 } else {
                     contourCint = adc.getCint();
                 }
+            }
 
+            if (adc != null) {
                 contourTime1 = adc.getTime1();
                 contourTime2 = adc.getTime2();
             }
@@ -4138,5 +4168,34 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
             ctxSvc.deactivateContext(pgenContoursContextActivation);
             pgenContoursContextActivation = null;
         }
+    }
+
+    /*
+     * Retrieve the contour parameter name defined for the current layer.
+     * 
+     * @return - name of the contour parameter.
+     */
+    private String getContourParmOnLayer() {
+        
+        String currentProductType = PgenSession.getInstance().getPgenResource()
+                .getActiveProduct().getType();
+        ProductType currentType = ProductConfigureDialog.getProductTypes().get(
+                currentProductType);
+        String currentLayer = PgenSession.getInstance().getPgenResource()
+                .getActiveLayer().getName();
+
+        String contourParm = PgenConstant.NONE;
+        if (currentType != null && currentType.getPgenLayer() != null) {
+            for (PgenLayer layer : currentType.getPgenLayer()) {
+                if (layer.getName().equals(currentLayer)) {
+                    String parmOnLayer = layer.getContourParm();
+                    if (parmOnLayer != null) {
+                        contourParm = parmOnLayer;
+                    }
+                }
+            }
+        }
+
+        return contourParm;
     }
 }

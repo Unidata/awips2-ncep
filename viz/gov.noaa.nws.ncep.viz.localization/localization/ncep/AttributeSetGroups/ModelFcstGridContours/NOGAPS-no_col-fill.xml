@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>NOGAPS</resource>
     <attrSetGroupName>no_col-fill</attrSetGroupName>
-    <attrSetNames>500mb_absv_ncf</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_absv_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

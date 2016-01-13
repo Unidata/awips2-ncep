@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>RAP40</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_hght_tmpc_wind</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_hght_tmpc_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

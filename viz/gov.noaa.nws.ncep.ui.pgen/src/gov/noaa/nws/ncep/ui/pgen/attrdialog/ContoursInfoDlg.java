@@ -8,7 +8,9 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourDefault;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourFiles;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLabel;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLevel;
@@ -69,6 +71,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 08/01/2015   8213        P.            CAVE>PGEN 
  *                          Chowdhuri      - Refinements to contoursInfo.xml
  * 09/29/2015   R8163       J. Wu         Prevent exception when contour type changes.
+ * 11/18/2015   R12829      J. Wu         Link "Contours Parameter" to the one defined on layer.
  * 
  * </pre>
  * 
@@ -150,7 +153,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Contours Attributes");
+        shell.setText("Contours Information");
     }
 
     /**
@@ -691,7 +694,6 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
                                     && !cinfo.getParm().isEmpty()) {
 
                                 contoursInfoTables.put(cinfo.getParm(), cinfo);
-
                             }
                         }
 
@@ -710,7 +712,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         } // contoursInfoTables end .
 
         cntrInfoManager = null;
-
+        
         return contoursInfoTables;
 
     }
@@ -748,7 +750,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         // Read the contours info xml files
         contoursInfoTbl = ContoursInfoDlg.readInfoTbl();
 
-        if ("Parm".equals(parm)) {
+        if (parm.equals(PgenConstant.PARM)) {
 
             Set<String> contoursInfoTblKeys = contoursInfoTbl.keySet();
 
@@ -762,7 +764,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         } // "Parm"
 
-        if ("Level".equals(parm)) {
+        if (parm.equals(PgenConstant.LEVEL)) {
 
             String param = "";
 
@@ -784,7 +786,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         } // "Level"
 
-        if ("ForecastHour".equals(parm)) {
+        if (parm.equals(PgenConstant.FORECAST_HOUR)) {
 
             String text = "";
 
@@ -924,4 +926,56 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         }
     }
 
+    /**
+     * Get the list of contour parameters.
+     * 
+     * @return
+     * 
+     */
+    public static List<String> getContourParms() {
+        return getContourParms(PgenConstant.PARM);
+    }
+
+    /**
+     * Get the list of contour levels.
+     * 
+     * @return
+     * 
+     */
+    public static List<String> getContourLevels() {
+        return getContourParms(PgenConstant.LEVEL);
+    }
+
+    /**
+     * Get the list of contour forecast hours.
+     * 
+     * @return
+     * 
+     */
+    public static List<String> getContourFcstHrs() {
+        return getContourParms(PgenConstant.FORECAST_HOUR);
+    }
+
+    /**
+     * Get the default meta info for a contour parameter
+     * 
+     * @param parm
+     *            - name for contour parameter
+     * @return - a ContourDefault
+     * 
+     */
+    public static ContourDefault getContourMetaDefault(String parm) {
+        // Read the contours info xml files if needed.
+        contoursInfoTbl = ContoursInfoDlg.readInfoTbl();
+
+        ContourDefault def = null;
+        for (String parmKey : contoursInfoTbl.keySet()) {
+            if (parmKey.equals(parm)
+                    && contoursInfoTbl.get(parmKey).getDefaults() != null) {
+                def = contoursInfoTbl.get(parmKey).getDefaults();
+            }
+        }
+
+        return def;
+    }
 }

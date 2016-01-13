@@ -1,27 +1,28 @@
 package gov.noaa.nws.ncep.viz.rsc.viirs.rsc;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.util.Sampler;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -30,7 +31,8 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.npp.viirs.VIIRSDataRecord;
 import com.raytheon.uf.common.datastorage.Request;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.geospatial.util.EnvelopeIntersection;
+import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
+import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.LabelingPreferences;
 import com.raytheon.uf.common.style.StyleException;
@@ -41,11 +43,11 @@ import com.raytheon.uf.common.style.image.DataScale;
 import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableImage;
+import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.RasterMode;
 import com.raytheon.uf.viz.core.IMesh;
 import com.raytheon.uf.viz.core.PixelCoverage;
-import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.uf.viz.core.drawables.ColorMapLoader;
 import com.raytheon.uf.viz.core.drawables.IImage;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
@@ -54,19 +56,22 @@ import com.raytheon.uf.viz.core.drawables.ext.IImagingExtension.ImageProvider;
 import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormappedImageExtension;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapMeshExtension;
+import com.raytheon.uf.viz.core.rsc.IInputHandler;
+import com.raytheon.uf.viz.core.rsc.IInputHandler.InputPriority;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
+import com.raytheon.uf.viz.core.sampling.ISamplingResource;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
+import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.uf.viz.npp.viirs.rsc.VIIRSDataCallback;
 import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * 
@@ -78,8 +83,9 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Jun 23, 2014            Yukuan Song Initial creation
- * Aug 20, 2014 R4644      kbugenhagen Modified to work with NCP perspective
+ * 06/23/2014               Yukuan Song  Initial creation
+ * 08/20/2014   R4644       kbugenhagen  Modified to work with NCP perspective
+ * 11/19/2015   R13133      kbugenhagen  Added sampling capability.
  * 
  * </pre>
  * 
@@ -89,7 +95,8 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 
 public class ViirsResource extends
         AbstractNatlCntrsResource<ViirsResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IResourceDataChanged, ImageProvider {
+        INatlCntrsResource, IResourceDataChanged, ImageProvider,
+        ISamplingResource {
 
     private ViirsResourceData viirsResourceData;
 
@@ -104,6 +111,16 @@ public class ViirsResource extends
     private Map<VIIRSDataRecord, RecordData> dataRecordMap;
 
     private String name;
+
+    private boolean sampling = false;
+
+    static final String SAMPLING_METHOD_NAME = "findBestValueForCoordinate";
+
+    private final IInputHandler inputAdapter = getViirsInputHandler();
+
+    protected ReferencedCoordinate sampleCoord;
+
+    protected Coordinate virtualCursor;// virtual cursor location
 
     private class VIIRSTileImageCreator implements TileImageCreator {
 
@@ -133,20 +150,10 @@ public class ViirsResource extends
     /**
      * Every {@link VIIRSDataRecord} will have a corresponding RecordData object
      */
-    private class RecordData {
+    private class RecordData extends
+            AbstractSatelliteRecordData<VIIRSDataRecord> {
 
         private double INTERSECTION_FACTOR = 10.0;
-
-        /** Intersection geometry for the target */
-        private List<PreparedGeometry> targetIntersection;
-
-        /** Flag designated if a project call is required next paint */
-        private boolean project;
-
-        /** Renderable for the data record */
-        private TileSetRenderable tileSet;
-
-        private final double resolution;
 
         public RecordData(VIIRSDataRecord dataRecord) {
             this.tileSet = new TileSetRenderable(
@@ -157,64 +164,23 @@ public class ViirsResource extends
             this.resolution = Math.min(dataRecord.getCoverage().getDx(),
                     dataRecord.getCoverage().getDy()) * INTERSECTION_FACTOR;
             this.project = true;
+            this.setRecord(dataRecord);
         }
 
-        public Collection<DrawableImage> getImagesToRender(
-                IGraphicsTarget target, PaintProperties paintProps)
-                throws VizException {
-            if (project) {
-                projectInternal();
-                project = false;
-            }
-            if (targetIntersection != null) {
-                return tileSet.getImagesToRender(target, paintProps);
-            } else {
-                return Collections.emptyList();
-            }
+        protected double getIntersectionFactor() {
+            return INTERSECTION_FACTOR;
         }
 
-        public void project() {
-            this.project = true;
+        public double interrogate(Coordinate latLon) throws VizException {
+            return tileSet.interrogate(latLon);
         }
 
-        private void projectInternal() {
-            GeneralGridGeometry targetGeometry = descriptor.getGridGeometry();
-            if (tileSet.getTargetGeometry() != targetGeometry) {
-                tileSet.project(targetGeometry);
-
-                try {
-                    Envelope tileSetEnvelope = tileSet.getTileSetGeometry()
-                            .getEnvelope();
-
-                    targetIntersection = null;
-                    Geometry intersection = EnvelopeIntersection
-                            .createEnvelopeIntersection(
-                                    tileSetEnvelope,
-                                    targetGeometry.getEnvelope(),
-                                    resolution,
-                                    (int) (tileSetEnvelope.getSpan(0) / (resolution * INTERSECTION_FACTOR)),
-                                    (int) (tileSetEnvelope.getSpan(1) / (resolution * INTERSECTION_FACTOR)));
-                    if (intersection != null) {
-                        int numGeoms = intersection.getNumGeometries();
-                        targetIntersection = new ArrayList<PreparedGeometry>(
-                                numGeoms);
-                        for (int n = 0; n < numGeoms; ++n) {
-                            targetIntersection.add(PreparedGeometryFactory
-                                    .prepare(intersection.getGeometryN(n)
-                                            .buffer(resolution
-                                                    * INTERSECTION_FACTOR)));
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        public VIIRSDataRecord getRecord() {
+            return record;
         }
 
-        public void dispose() {
-            tileSet.dispose();
-            tileSet = null;
-            targetIntersection = null;
+        public void setRecord(VIIRSDataRecord record) {
+            this.record = record;
         }
 
     }
@@ -230,6 +196,8 @@ public class ViirsResource extends
         // RecordData object. RecordData objects are responsible for creating
         // the images (tilesets) that get grouped together for a frame.
         Map<DataTime, List<RecordData>> recordDataMap;
+
+        private String legendStr = "No Data";
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
@@ -254,6 +222,7 @@ public class ViirsResource extends
                             if (!recordDataList.contains(recordData)) {
                                 recordDataList.add(recordData);
                                 recordDataMap.put(frameTime, recordDataList);
+                                setLegendForFrame(record);
                             }
                         }
                     } else {
@@ -281,6 +250,28 @@ public class ViirsResource extends
 
         public void setRecordData(RecordData recordData) {
             this.recordData = recordData;
+        }
+
+        public String getLegendForFrame() {
+            return legendStr;
+        }
+
+        public void setLegendForFrame(VIIRSDataRecord rec) {
+            name = "NPP VIIRS";
+            DataTime dateTime = rec.getDataTime();
+            String refTime = dateTime.getDisplayString().split("\\[")[0];
+            String[] timeParts = refTime.split(":");
+            StringBuilder builder = new StringBuilder(name);
+            builder.append(" ");
+            builder.append(rec.getParameter());
+            builder.append(" ");
+            builder.append(rec.getWavelength());
+            builder.append(" ");
+            builder.append(timeParts[0]);
+            builder.append(":");
+            builder.append(timeParts[1]);
+            legendStr = builder.toString();
+            name = legendStr;
         }
 
     }
@@ -546,6 +537,12 @@ public class ViirsResource extends
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
         getCapability(ImagingCapability.class).setProvider(this);
 
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null) {
+            container
+                    .registerMouseHandler(inputAdapter, InputPriority.RESOURCE);
+        }
+
         queryRecords();
 
     }
@@ -565,6 +562,13 @@ public class ViirsResource extends
                     issueRefresh();
                 }
             }
+        }
+        if (isSampling()) {
+            ColorMapParameters colorMapParameters = getCapability(
+                    ColorMapCapability.class).getColorMapParameters();
+            Sampler.INSTANCE.createSampler(descriptor, colorMapParameters,
+                    SAMPLING_METHOD_NAME);
+            Sampler.INSTANCE.paintResult(target, paintProps, sampleCoord);
         }
     }
 
@@ -602,6 +606,11 @@ public class ViirsResource extends
             dataRecordMap.clear();
         }
 
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null) {
+            container.unregisterMouseHandler(inputAdapter);
+        }
+
         if (cbarRscPair != null) {
             getDescriptor().getResourceList().remove(cbarRscPair);
         }
@@ -616,10 +625,11 @@ public class ViirsResource extends
         List<Collection<DrawableImage>> images = new ArrayList<Collection<DrawableImage>>();
 
         if (recordDataList != null) {
-            for (RecordData recordData : recordDataList) {
+            for (AbstractSatelliteRecordData<VIIRSDataRecord> recordData : recordDataList) {
                 if (recordData != null) {
                     Collection<DrawableImage> recordImages = recordData
-                            .getImagesToRender(target, paintProps);
+                            .getImagesToRender(target, paintProps,
+                                    descriptor.getGridGeometry());
                     images.add(recordImages);
                 }
             }
@@ -648,6 +658,75 @@ public class ViirsResource extends
             PaintProperties paintProps) throws VizException {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public String getLegendStr() {
+        FrameData curFrame = (FrameData) getCurrentFrame();
+        return (curFrame != null ? curFrame.getLegendForFrame()
+                : "No Matching Data");
+    }
+
+    public IInputHandler getViirsInputHandler() {
+        return new ViirsInputAdapter(this);
+    }
+
+    public boolean isSampling() {
+        return sampling;
+    }
+
+    public void setSampling(boolean sampling) {
+        this.sampling = sampling;
+    }
+
+    /*
+     * Uses TilesetRenderable interrogation to find the closest data value
+     * corresponding to the coordinate.
+     * 
+     * @param p image point used to determine which data record contains it
+     * 
+     * @param latLon lat/lon coordinate used in TilesetRenderable interrogation
+     * 
+     * @returns map collection mapping interrogation ID to the closest data
+     * value
+     */
+    public Map<String, Object> findBestValueForCoordinate(Point p,
+            Coordinate latLon) throws VizException {
+
+        Map<String, Object> interMap = new HashMap<String, Object>();
+        ColorMapParameters colorMapParameters = getCapability(
+                ColorMapCapability.class).getColorMapParameters();
+        double noDataValue = colorMapParameters.getNoDataValue();
+        double bestValue = Double.NaN;
+        VIIRSDataRecord bestRecord = null;
+        List<RecordData> recordDataList = getRecordDataList((FrameData) getCurrentFrame());
+
+        if (recordDataList != null) {
+            for (RecordData data : recordDataList) {
+                if (data != null && data.contains(p)) {
+                    double value;
+                    value = data.interrogate(latLon);
+                    if (Double.isNaN(value) == false && value != noDataValue) {
+                        bestValue = value;
+                        bestRecord = data.getRecord();
+                    }
+                }
+            }
+        }
+        double dataValue = Double.NaN;
+        if (Double.isNaN(bestValue) == false) {
+            dataValue = colorMapParameters.getDataToDisplayConverter().convert(
+                    bestValue);
+        }
+        if (bestRecord != null) {
+            interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
+        }
+        interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
+                Measure.valueOf(dataValue, colorMapParameters.getDisplayUnit()));
+        return interMap;
+    }
+
+    protected List<RecordData> getRecordDataList(FrameData frameData) {
+        return frameData.getRecordDataMap().get(frameData.getFrameTime());
     }
 
 }

@@ -24,6 +24,9 @@ import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 
@@ -38,11 +41,15 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * ------------  ---------- ----------- --------------------------
  * 12/14          R5413     B. Yin      Remove Script Creator and use Thrift Client
  * Nov 04, 2015   10436     njensen     Corrected request constraint keys, formatted file
+ * 12/05/2015     R12953    R Reynolds  replaced with (merged) njensen version
  * 
  * </pre>
  */
 
 public class McIdasAreaProviderFactory implements INcAreaProviderFactory {
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(McIdasAreaProviderFactory.class);
 
     public static class McIdasAreaProvider implements IGridGeometryProvider {
 
@@ -127,10 +134,9 @@ public class McIdasAreaProviderFactory implements INcAreaProviderFactory {
                                     coverage.getNy() }, false), env);
                 }
             } catch (VizException e) {
-                // TODO log better?
-//				throw new VizException("Could not query a McIdasRecord to get the image geometry:"+e.getMessage());
-                System.out
-                        .println("Could not query a McIdasRecord to get the image geometry:"
+
+                statusHandler.handle(Priority.ERROR,
+                        "Could not query a McIdasRecord to get the image geometry:"
                                 + e.getMessage());
             }
 

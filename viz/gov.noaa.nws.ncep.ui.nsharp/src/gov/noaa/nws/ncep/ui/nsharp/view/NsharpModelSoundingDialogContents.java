@@ -14,6 +14,7 @@
  * 03/09/2015   RM#6674     Chin Chen   Support model sounding query data interpolation and nearest point option                       
  * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query grid model sounding data
  * 08/24/2015   RM#10188    Chin Chen   Model selection upgrades - use grid resource definition name for model type display
+ * 09/28/2015   RM#10295    Chin Chen   Let sounding data query run in its own thread to avoid gui locked out during load
  *
  * </pre>
  * 
@@ -22,9 +23,7 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp.view;
 
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile.MdlSndType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
@@ -32,12 +31,10 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGridInventory;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.SurfaceStationPointData;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
+import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpModelSoundingQuery;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
@@ -45,7 +42,6 @@ import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
 import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -120,6 +116,8 @@ public class NsharpModelSoundingDialogContents {
 
     private final String GOOD_STN_STR = " A good input looked like this:\n GAI or gai";
 
+    private final int MAX_LOCATION_TEXT = 15;
+
     String gribDecoderName = "grid";
 
     private String selectedModelType = ""; // used for query to database
@@ -171,16 +169,10 @@ public class NsharpModelSoundingDialogContents {
         ArrayList<String> queryRsltsList1 = NsharpGridInventory.getInstance()
                 .searchInventory(rcMap, "dataTime");
         /*
-         * Chin Note: with this query, the returned string has this format,
-         * "grid/ruc13/2012-01-17_16:00:00.0(6)xxxxx" We will have to strip off
-         * "ncgrib/ruc13/" and ":00:00.0(6)xxxxx", also replace "_" with space,
-         * to get grid file name like this "2012-01-17 16".
-         */
-        /*
-         * fixMarkA Chin 12/11/2013: at this moment, the returned string format
-         * is like this, 2012-01-17_16:00:00.0_(6) We will have to strip off
-         * ":00:00.0_(6)", also replace first "_" with space, to get grid file
-         * name like this "2012-01-17 16". fixMarkA
+         * Chin As of 12/11/2013, the returned string format is like this,
+         * 2012-01-17_16:00:00.0_(6) We will have to strip off ":00:00.0_(6)",
+         * also replace first "_" with space, to get grid file name like this
+         * "2012-01-17 16".
          */
         if (queryRsltsList1 != null && !queryRsltsList1.isEmpty()) {
             Collections.sort(queryRsltsList1, String.CASE_INSENSITIVE_ORDER);
@@ -260,133 +252,6 @@ public class NsharpModelSoundingDialogContents {
         ldDia.stopWaitCursor();
     }
 
-    private void queryAndLoadData(boolean stnQuery)
-            throws java.text.ParseException {
-        soundingLysLstMap.clear();
-        ldDia.startWaitCursor();
-        Timestamp refTime = null;
-        // Chin Note: Since NcGrib/Grib HDF5 data file is created based on a
-        // forecast time line, we can not query
-        // more than one time line at one time as Edex server just could not
-        // support such query at one shot.
-        // This is not the case of PFC sounding (modelsounding db). It has all
-        // time lines of one forecast report
-        // saved in one file. Therefore, PFC query is much faster.
-        for (String timeLine : selectedTimeList) {
-            // avail file, ie. its refTime
-            String selectedFileStr = timeLineToFileMap.get(timeLine);
-
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH");
-            df.parse(selectedFileStr);
-            Calendar cal = df.getCalendar();
-            int offset = cal.get(Calendar.ZONE_OFFSET)
-                    + cal.get(Calendar.DST_OFFSET) / (60 * 1000);
-            refTime = new Timestamp(cal.getTimeInMillis() + offset);
-
-            String rangeStartStr = NcSoundingQuery
-                    .convertSoundTimeDispStringToRangeStartTimeFormat(timeLine);
-
-            NsharpConfigManager mgr = NsharpConfigManager.getInstance();
-            NsharpConfigStore configStore = mgr
-                    .retrieveNsharpConfigStoreFromFs();
-            boolean gridInterpolation;
-            if (configStore != null) {
-                gridInterpolation = configStore.getGraphProperty()
-                        .isGridInterpolation();
-            } else
-                gridInterpolation = true; // default
-            String[] refLTimeStrAry = { selectedFileStr + ":00:00" };
-            String[] soundingRangeTimeStrArray = { rangeStartStr };
-            Coordinate[] coordArray = { new Coordinate(lon, lat) };
-            NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery(
-                    null, null, refLTimeStrAry, soundingRangeTimeStrArray,
-                    coordArray, null, MdlSndType.ANY.toString(),
-                    NcSoundingLayer.DataType.ALLDATA, false, "-1",
-                    selectedModelType, gridInterpolation, false, false);
-
-            if (cube != null
-                    && cube.getRtnStatus() == NcSoundingCube.QueryStatus.OK) {
-
-                NcSoundingProfile sndPf = cube.getSoundingProfileList().get(0);
-
-                List<NcSoundingLayer> rtnSndLst = sndPf.getSoundingLyLst();
-                if (rtnSndLst != null && rtnSndLst.size() > 1) {
-                    // Remove sounding layers that not used by NSHARP
-                    rtnSndLst = NsharpDataHandling.organizeSoundingDataForShow(
-                            rtnSndLst, sndPf.getStationElevation());
-                    // minimum rtnSndList size will be 2 (50 & 75 mb layers),
-                    // but that is not enough
-                    // We need at least 2 regular layers for plotting
-                    if (rtnSndLst != null && rtnSndLst.size() > 4) {
-                        if (!stnQuery) {
-                            soundingLysLstMap.put(lat + "/" + lon + " "
-                                    + timeLine, rtnSndLst);
-                        } else {
-                            // replaced space to _ in stnStr.
-                            String stnStrPacked = stnStr.replace(" ", "_");
-                            soundingLysLstMap.put(
-                                    stnStrPacked + " " + timeLine, rtnSndLst);
-                        }
-                        continue;
-                    }
-
-                }
-                // code to this point means query result is not good
-                NsharpLoadDialog ldDia = NsharpLoadDialog.getAccess();
-                if (!stnQuery) {
-                    ldDia.setAndOpenMb("Sounding query with lat/lon (" + lat
-                            + "/" + lon + ") at " + timeLine
-                            + ": Returned\n But without vlaid data");
-                } else {
-                    ldDia.setAndOpenMb("Sounding query with stn " + stnStr
-                            + "at lat/lon (" + lat + "/" + lon + ") at "
-                            + timeLine + ": Returned\n But without vlaid data");
-                }
-            } else {
-                if (!stnQuery) {
-                    System.out.println("mdlsoundingQueryByLatLon failed");
-                    NsharpLoadDialog ldDia = NsharpLoadDialog.getAccess();
-                    if (cube != null)
-                        ldDia.setAndOpenMb("Sounding query with lat/lon ("
-                                + lat + "/" + lon + ") at " + timeLine
-                                + ": failed\nError status:"
-                                + cube.getRtnStatus().toString());
-                    else
-                        ldDia.setAndOpenMb("Sounding query with lat/lon ("
-                                + lat + "/" + lon + ") at " + timeLine
-                                + ": failed\nError status: NULL returned");
-                } else {
-                    System.out.println("mdlsoundingQueryByStn failed");
-                    NsharpLoadDialog ldDia = NsharpLoadDialog.getAccess();
-                    if (cube != null)
-                        ldDia.setAndOpenMb("Sounding query with stn " + stnStr
-                                + "at lat/lon (" + lat + "/" + lon + ") at "
-                                + timeLine + ": failed\nError status:"
-                                + cube.getRtnStatus().toString());
-                    else
-                        ldDia.setAndOpenMb("Sounding query with stn " + stnStr
-                                + "at lat/lon (" + lat + "/" + lon + ") at "
-                                + timeLine
-                                + ": failed\nError status: NULL returned");
-                }
-            }
-        }
-        ldDia.stopWaitCursor();
-        NsharpEditor skewtEdt = NsharpEditor.createOrOpenEditor();
-        NsharpResourceHandler skewRsc = skewtEdt.getRscHandler();
-        // create station info structure
-        NsharpStationInfo stnInfo = new NsharpStationInfo();
-        // convert model type to resource definition name for display
-        stnInfo.setSndType(selectedRscDefName);
-        stnInfo.setLatitude(lat);
-        stnInfo.setLongitude(lon);
-        stnInfo.setStnId(stnStr);
-        stnInfo.setReftime(refTime);
-        skewRsc.addRsc(soundingLysLstMap, stnInfo);
-        skewRsc.setSoundingType(selectedRscDefName);
-        NsharpEditor.bringEditorToTop();
-    }
-
     private static void createModelTypeToRscDefNameMapping()
             throws VizException {
         ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
@@ -431,14 +296,8 @@ public class NsharpModelSoundingDialogContents {
                 .searchInventory(rcMap, "info.datasetId");
 
         /*
-         * Chin Note: with this query, the returned string has this format,
-         * "ncgrib/gfsP5" We will have to strip off "ncgrib/" to get model name
-         * like this "gfsP5".
-         */
-        /*
-         * fixMarkB Chin: 12/11/2013 at this moment, the returned string has
-         * this format, "gfsP5", just he model name. Therefore, we do not have
-         * to process on it.
+         * the returned string has format like this, "gfsP5". Therefore, we do
+         * not have to process on it.
          */
         if (queryRsltsList != null && !queryRsltsList.isEmpty()) {
             Collections.sort(queryRsltsList, String.CASE_INSENSITIVE_ORDER);
@@ -600,7 +459,7 @@ public class NsharpModelSoundingDialogContents {
         locationText = new Text(locationMainGp, SWT.BORDER | SWT.SINGLE);
         GridData data1 = new GridData(SWT.FILL, SWT.FILL, true, true);
         locationText.setLayoutData(data1);
-        locationText.setTextLimit(15);
+        locationText.setTextLimit(MAX_LOCATION_TEXT);
         locationText.setFont(newFont);
         locationText.addListener(SWT.Verify, new Listener() {
             public void handleEvent(Event e) {
@@ -670,7 +529,14 @@ public class NsharpModelSoundingDialogContents {
                                     locationText.setText("");
                                     return;
                                 }
-                                queryAndLoadData(false);
+                                NsharpModelSoundingQuery qryAndLd = new NsharpModelSoundingQuery(
+                                        "Querying Sounding Data...");
+                                NsharpEditor skewtEdt = NsharpEditor
+                                        .createOrOpenEditor();
+                                qryAndLd.queryAndLoadData(false, skewtEdt,
+                                        soundingLysLstMap, selectedTimeList,
+                                        timeLineToFileMap, lat, lon, stnStr,
+                                        selectedModelType, selectedRscDefName);
 
                             } catch (Exception e) {
                                 statusHandler
@@ -703,7 +569,14 @@ public class NsharpModelSoundingDialogContents {
                                 locationText.setText("");
                                 return;
                             }
-                            queryAndLoadData(true);
+                            NsharpModelSoundingQuery qryAndLd = new NsharpModelSoundingQuery(
+                                    "Querying Sounding Data...");
+                            NsharpEditor skewtEdt = NsharpEditor
+                                    .createOrOpenEditor();
+                            qryAndLd.queryAndLoadData(true, skewtEdt,
+                                    soundingLysLstMap, selectedTimeList,
+                                    timeLineToFileMap, lat, lon, stnStr,
+                                    selectedModelType, selectedRscDefName);
                         } catch (Exception e) {
                             statusHandler
                                     .handle(Priority.ERROR,

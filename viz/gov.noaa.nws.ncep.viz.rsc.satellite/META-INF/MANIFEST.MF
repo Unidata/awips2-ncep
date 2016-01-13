@@ -30,4 +30,5 @@ Import-Package:
  com.raytheon.uf.viz.datacube,
  com.raytheon.viz.core.gl,
  gov.noaa.nws.ncep.viz.localization,
+ gov.noaa.nws.ncep.viz.resourceManager.ui,
  gov.noaa.nws.ncep.viz.ui.display

@@ -2,5 +2,21 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>GEOMAG</resource>
     <attrSetGroupName>DIRECT</attrSetGroupName>
-    <attrSetNames>H_Direct,D_Direct,HQdc_Direct,DQdc_Direct</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>H_Direct</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>D_Direct</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>HQdc_Direct</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>DQdc_Direct</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

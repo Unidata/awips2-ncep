@@ -2,5 +2,21 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>GDAS</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_hght_absv_wnd,1000-500_thkn,250mb_ageo_div_isotachs</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_hght_absv_wnd</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>1000-500_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>250mb_ageo_div_isotachs</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

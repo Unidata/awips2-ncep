@@ -128,5 +128,9 @@ MAPPED
     <PlotParameterDefn  plotParamName="SELV" metParamName="StationElevation" plotMode="text" dbParamName="elevation" plotUnit="m" plotFormat="%5.0f" /> 
     <PlotParameterDefn  plotParamName="SLAT" metParamName="StationLatitude"  plotMode="text" dbParamName="latitude" plotUnit="°"   plotFormat="%.3f"  />
     <PlotParameterDefn  plotParamName="SLON" metParamName="StationLongitude" plotMode="text" dbParamName="longitude" plotUnit="°"   plotFormat="%.3f"  />
+
+<!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
+
  	
 </PlotParameterDefns>

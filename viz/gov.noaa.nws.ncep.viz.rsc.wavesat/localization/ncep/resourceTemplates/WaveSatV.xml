@@ -3,7 +3,7 @@
   <resource>
     <loadProperties>
     </loadProperties>
-    <properties isSystemResource="false" isBlinking="false"
+    <properties renderingOrderId="PLOT" isSystemResource="false" isBlinking="false"
       isMapLayer="false" isHoverOn="false" isVisible="true" />
     <resourceData xsi:type="NC-WaveSatResourceData"
       retrieveData="false" isUpdatingOnMetadataOnly="false"
@@ -17,10 +17,18 @@
       <dfltTimeRange>${dfltTimeRange}</dfltTimeRange>
       <fontName>${fontName}</fontName>
       <fontSize>${fontSize}</fontSize>
-	  <timeDisplayInterval>${timeDisplayInterval}</timeDisplayInterval>
-	  <timeDisplayColor>${timeDisplayColor}</timeDisplayColor>
+      <timeDisplayInterval>${timeDisplayInterval}</timeDisplayInterval>
+      <timeDisplayColor>${timeDisplayColor}</timeDisplayColor>
       <useFeetInsteadOfMeters>${useFeetInsteadOfMeters}</useFeetInsteadOfMeters>
-	  
+      <latParam>LAT</latParam>
+      <latParamInPdo>lat</latParamInPdo> 
+      <lonParam>LON</lonParam>
+      <lonParamInPdo>lon</lonParamInPdo>
+      <satIdParam>SATELLITEID</satIdParam>
+      <satIdParamInPdo>satelliteId</satIdParamInPdo>
+      <waveHeightParam>HTWAVES</waveHeightParam>
+      <windSpeedParam>WSPD10</windSpeedParam> 	  
+      
       ${colorBarForMeters}
       
       ${colorBarForFeet}

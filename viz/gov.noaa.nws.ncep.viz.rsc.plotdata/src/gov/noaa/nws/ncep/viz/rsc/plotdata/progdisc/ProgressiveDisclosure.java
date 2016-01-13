@@ -3,7 +3,7 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.progdisc;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.TimeLogger;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
@@ -213,10 +213,10 @@ public final class ProgressiveDisclosure {
                     if (extent == null || !extent.contains(tempPixLoc))
                         continue;
 
-                    if (station.distValue == null)
+                    if (station.distanceValue == null)
                         continue;
 
-                    if (station.distValue.doubleValue() >= threshold || plotAll) {
+                    if (station.distanceValue.doubleValue() >= threshold || plotAll) {
                         setOfDisclosedStationsWithinScreenExtents.add(station);
                     }
 
@@ -395,7 +395,7 @@ public final class ProgressiveDisclosure {
             latLonArray[index] = new Coordinate(station.info.longitude,
                     station.info.latitude);
             goodnessArray[index] = station.goodnessValue;
-            distArray[index] = station.origDistValue;
+            distArray[index] = station.originalDistanceValue;
             ++index;
         }
 
@@ -408,7 +408,7 @@ public final class ProgressiveDisclosure {
             index = 0;
 
             for (Station station : collectionOfStations) {
-                station.distValue = distArray[index];
+                station.distanceValue = distArray[index];
                 ++index;
             }
         }

@@ -29,6 +29,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * ------------ ----------  -----------    --------------------------
  * 
  *  08/14/2015    R7656     R. Reynolds    Started
+ *  12/01/2015    R12953     R Reynolds     Changes to better define name/alias in hashmap
  * 
  * 
  * </pre>
@@ -51,6 +52,10 @@ public class SatelliteImageTypeManager {
 
     public String satelliteName;
 
+    private String attrName;
+
+    protected HashMap<String, String> attributeNamesAndAliases = new HashMap<String, String>();
+
     /**
      * The name of Resource Definition to be processed in this class.
      */
@@ -59,7 +64,7 @@ public class SatelliteImageTypeManager {
     /**
      * The file name of local RD for satellitearea.
      */
-    public final static String XMLfilename = "satelliteImageTypes.xml";
+    public final static String XML_FILE_NAME = "satelliteImageTypes.xml";
 
     /**
      * Internal use within a resource name.
@@ -108,6 +113,15 @@ public class SatelliteImageTypeManager {
             instance = new SatelliteImageTypeManager();
         }
         return instance;
+    }
+
+    public void setSelectedAttrName(
+            HashMap<String, String> attributeNamesAndAliases) {
+        this.attributeNamesAndAliases = attributeNamesAndAliases;
+    }
+
+    public String getSelectedAttrName(String attributeName) {
+        return attributeNamesAndAliases.get(attributeName);
     }
 
     public String getImageId_using_satId_and_ASname(String satId,
@@ -166,7 +180,7 @@ public class SatelliteImageTypeManager {
             list = null;
 
             statusHandler.handle(UFStatus.Priority.ERROR,
-                    "Zero entry of satelliteImageType in " + XMLfilename);
+                    "Zero entry of satelliteImageType in " + XML_FILE_NAME);
 
             return null;
         }
@@ -200,7 +214,7 @@ public class SatelliteImageTypeManager {
         try {
             Map<String, LocalizationFile> lFiles = pathMngr.listFiles(
                     NcPathConstants.SATELLITE_IMAGETYPES_DIR,
-                    new String[] { XMLfilename }, false, true);
+                    new String[] { XML_FILE_NAME }, false, true);
 
             // Retrieve the first xml file only.
             String filename = lFiles.values().iterator().next().getFile()
@@ -208,7 +222,7 @@ public class SatelliteImageTypeManager {
             xmlFile = new File(filename);
         } catch (Exception e) {
             statusHandler.handle(UFStatus.Priority.ERROR, "Unable to locate "
-                    + XMLfilename);
+                    + XML_FILE_NAME);
 
             list = null;
             return null;
@@ -223,13 +237,13 @@ public class SatelliteImageTypeManager {
 
         } catch (JAXBException e) {
             statusHandler.handle(UFStatus.Priority.ERROR, "Unable to parse "
-                    + XMLfilename);
+                    + XML_FILE_NAME);
 
             list = null;
 
         } catch (Exception e) {
             statusHandler.handle(UFStatus.Priority.ERROR, "Unable to parse "
-                    + XMLfilename);
+                    + XML_FILE_NAME);
 
             list = null;
         }

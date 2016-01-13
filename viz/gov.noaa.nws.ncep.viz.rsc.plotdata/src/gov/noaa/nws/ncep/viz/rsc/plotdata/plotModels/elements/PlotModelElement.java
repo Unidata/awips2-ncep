@@ -5,9 +5,9 @@
 // Generated on: 2009.12.08 at 10:45:26 AM EST 
 //
 
-
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements;
 
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.ConditionalColorBar;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -30,53 +30,53 @@ import org.eclipse.swt.graphics.RGB;
  * 06/11/12     654         S. Gurung   Changed default textSize to 14     
  * 08/23/12     844         S. Gurung   Changed default textFont to Standard       
  * 10/18/2012   431         S. Gurung   Added support for ConditionalParameter and ConditionalColorBar     
- * 02/26/2013   936       A.Subramanian Changed the font defaults to match legacy 
+ * 02/26/2013   936       A.Subramanian Changed the font defaults to match legacy
+ * 11/17/2015 R9579         B. Hebbard  Add marker type and symbol width fields
  * </pre>
  * 
  */
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "position",
-    "color",
-    "conditionalParameter",
-    "conditionalColorBar"
-})
+@XmlType(name = "", propOrder = { "position", "color", "conditionalParameter",
+        "conditionalColorBar" })
 @XmlRootElement(name = "PlotModelElement")
 public class PlotModelElement {
 
-	// the Position will be either TC, UL, UC...MC...LR, BC
-	// or it may be WD (wind barbs) or SC (sky coverage) which 
-	// are drawn in the MC position. MC and WD or SC are mutually exclusive
+    // the Position will be either TC, UL, UC...MC...LR, BC
+    // or it may be WD (wind barbs) or SC (sky coverage) which
+    // are drawn in the MC position. MC and WD or SC are mutually exclusive
     @XmlElement(name = "Position")
     protected String position;
-    
+
     @XmlElement(name = "Color")
     protected Color color = new Color();
-    
+
     @XmlAttribute
-    protected String paramName=null;
-    
+    protected String paramName = null;
+
     @XmlAttribute
     protected String textSize = "14"; // defaults
-    
+
     @XmlAttribute
     protected String textFont = "Courier";
-	
+
     @XmlAttribute
     protected String textStyle = "Bold";
-    
+
     @XmlAttribute
     protected double symbolSize = 1.0;
-    
+
+    @XmlAttribute
+    protected double symbolWidth = 1.0;
+
+    @XmlAttribute
+    protected MarkerType markerType = MarkerType.OCTAGON;
+
     @XmlElement(name = "conditionalColorBar")
-    protected ConditionalColorBar conditionalColorBar; 
-    
+    protected ConditionalColorBar conditionalColorBar;
+
     @XmlElement(name = "conditionalParameter")
     protected String conditionalParameter;
-    
-//    @XmlAttribute
-//    protected Boolean enable=true;
 
     public String getPosition() {
         return position;
@@ -90,16 +90,21 @@ public class PlotModelElement {
         return color;
     }
 
+    public RGB getColorRGB() {
+        return new RGB(color.red, color.green, color.blue);
+    }
+
     public void setColor(Color value) {
         this.color = value;
     }
 
-    public void setColorRGB( RGB rgb ) {
-    	color = new Color();
-    	color.red = rgb.red;
-    	color.green = rgb.green;
-    	color.blue = rgb.blue;
+    public void setColorRGB(RGB rgb) {
+        color = new Color();
+        color.red = rgb.red;
+        color.green = rgb.green;
+        color.blue = rgb.blue;
     }
+
     public String getParamName() {
         return paramName;
     }
@@ -139,57 +144,72 @@ public class PlotModelElement {
     public void setSymbolSize(Double value) {
         this.symbolSize = value;
     }
-    
-//    public Boolean getEnable() {
-//		return enable;
-//	}
 
-//	public void setEnable(Boolean enable) {
-//		this.enable = enable;
-//	}
-    
+    public Double getSymbolWidth() {
+        return symbolWidth;
+    }
+
+    public void setSymbolWidth(Double symbolWidth) {
+        this.symbolWidth = symbolWidth;
+    }
+
+    public MarkerType getMarkerType() {
+        return markerType;
+    }
+
+    public void setMarkerType(MarkerType value) {
+        this.markerType = value;
+    }
+
     public ConditionalColorBar getConditionalColorBar() {
         return conditionalColorBar;
     }
 
     public void setConditionalColorBar(ConditionalColorBar value) {
-    	
-    	if (value.getNumIntervals() == 0 ) {
-    		value.addColorBarInterval(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, new RGB(getColor().red, getColor().green, getColor().blue));
+
+        if (value.getNumIntervals() == 0) {
+            value.addColorBarInterval(Float.NEGATIVE_INFINITY,
+                    Float.POSITIVE_INFINITY, new RGB(getColor().red,
+                            getColor().green, getColor().blue));
         }
-    	this.conditionalColorBar = value;
+        this.conditionalColorBar = value;
     }
-   
+
     public String getConditionalParameter() {
         return conditionalParameter;
     }
 
     public void setConditionalParameter(String value) {
         this.conditionalParameter = value;
-    } 
-    
-    public boolean hasAdvancedSettings() {    	
-    	
-    	if (this.conditionalParameter ==null || "".equals(this.conditionalParameter) || this.conditionalColorBar == null) {
-    		return false;
-    	}
-    	
-    	if (this.conditionalParameter.equals(this.paramName) && this.conditionalColorBar.getNumIntervals() == 1
-    			&& this.conditionalColorBar.getIntervalMin(0) == Float.NEGATIVE_INFINITY
-					&& this.conditionalColorBar.getIntervalMax(0) == Float.POSITIVE_INFINITY) {
-    		
-    		if (this.conditionalColorBar.getColor(0) == null) {
-    			return false;
-    		}
-    	
-    		if (this.color.getRed() == this.conditionalColorBar.getColor(0).getRed()
-				&& this.color.getGreen() == this.conditionalColorBar.getColor(0).getGreen()
-					&& this.color.getBlue() == this.conditionalColorBar.getColor(0).getBlue()
-						) {
-				return false;  
-			}
-    	}
-    	
-		return true;    	
+    }
+
+    public boolean hasAdvancedSettings() {
+
+        if (this.conditionalParameter == null
+                || "".equals(this.conditionalParameter)
+                || this.conditionalColorBar == null) {
+            return false;
+        }
+
+        if (this.conditionalParameter.equals(this.paramName)
+                && this.conditionalColorBar.getNumIntervals() == 1
+                && this.conditionalColorBar.getIntervalMin(0) == Float.NEGATIVE_INFINITY
+                && this.conditionalColorBar.getIntervalMax(0) == Float.POSITIVE_INFINITY) {
+
+            if (this.conditionalColorBar.getColor(0) == null) {
+                return false;
+            }
+
+            if (this.color.getRed() == this.conditionalColorBar.getColor(0)
+                    .getRed()
+                    && this.color.getGreen() == this.conditionalColorBar
+                            .getColor(0).getGreen()
+                    && this.color.getBlue() == this.conditionalColorBar
+                            .getColor(0).getBlue()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

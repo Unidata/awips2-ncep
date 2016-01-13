@@ -85,4 +85,14 @@
       </nc-resourceParameter> 
    </extension>      
 
+   <extension
+      point="com.raytheon.viz.ui.contextualMenu">
+      <contextualMenu
+            actionClass="gov.noaa.nws.ncep.viz.resources.misc.EnableDisableSamplingAction"
+            capabilityInterface="gov.noaa.nws.ncep.viz.rsc.modis.rsc.ModisResource"
+            name="Sample"
+            sortID="14">
+      </contextualMenu>
+   </extension> 
+
 </plugin>

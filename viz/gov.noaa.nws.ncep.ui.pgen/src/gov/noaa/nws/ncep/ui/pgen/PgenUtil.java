@@ -73,6 +73,8 @@ import org.geotools.geometry.jts.JTS;
 import org.opengis.referencing.operation.MathTransform;
 
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
@@ -148,12 +150,16 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 12/14     R5197/TTR1056  J. Wu         Make setCommandMode public.
  * 12/14		R5413		B. Yin		  Add a listener for D2D swapping pane 
  * 12/14		R5413		B. Yin		  Check null in findResource
+ * 12/17/2015   R12990      J. Wu         Added getContourSymbolLabelSpacing()
  * </pre>
  * 
  * @author
  * @version 1
  */
 public class PgenUtil {
+
+    private static final IUFStatusHandler handler = UFStatus
+            .getHandler(PgenUtil.class);
 
     /**
      * SINGLE mode is used to display and interact with the same PGEN data on
@@ -222,8 +228,6 @@ public class PgenUtil {
      * @return reference to a PgenResource
      */
     public static final PgenResource findPgenResource(AbstractEditor editor) {
-        // return (PgenResource)NmapUiUtils.findResource( PgenResource.class,
-        // editor );
         return (PgenResource) findResource(PgenResource.class, editor);
     }
 
@@ -709,13 +713,12 @@ public class PgenUtil {
                     if (rscData == null) {
                         rscData = new PgenResourceData();
                     }
-                    int iii = 0;
+
                     for (IDisplayPane pane : editor.getDisplayPanes()) {
                         IDescriptor idesc = pane.getDescriptor();
                         if (idesc.getResourceList().size() > 0) {
                             drawingLayer = rscData.construct(
                                     new LoadProperties(), idesc);
-                            // System.out.println("NEW pgen resource: "+drawingLayer);
                             idesc.getResourceList().add(drawingLayer);
                             idesc.getResourceList().addPreRemoveListener(
                                     drawingLayer);
@@ -779,7 +782,6 @@ public class PgenUtil {
                                     new LoadProperties(), idesc);
                             }
                             
-                            // System.out.println("NEW pgen resource: "+drawingLayer);
                             idesc.getResourceList().add(drawingLayer);
                             idesc.getResourceList().addPreRemoveListener(
                                     drawingLayer);
@@ -815,8 +817,6 @@ public class PgenUtil {
      * Refresh the PGEN drawing editor.
      */
     public static final void refresh() {
-        // if( NmapUiUtils.getActiveNatlCntrsEditor() != null )
-        // NmapUiUtils.getActiveNatlCntrsEditor().refresh();
         if (getActiveEditor() != null)
             getActiveEditor().refresh();
     }
@@ -1199,8 +1199,6 @@ public class PgenUtil {
      * 
      * Set to a user-defined directory in PGEN preference.
      */
-    // public static String CURRENT_WORKING_DIRECTORY = System.getenv(
-    // "CURRENT_WORKING_DIRECTORY" );
     public static String CURRENT_WORKING_DIRECTORY = System
             .getProperty("user.home");
 
@@ -1221,13 +1219,8 @@ public class PgenUtil {
      * @param me
      *            - map editor
      */
-    // static public void mergeLabels(LabeledLine ll, Coordinate loc,
-    // NCMapEditor mapEditor ){
     static public LabeledLine mergeLabels(LabeledLine ll, Label testLbl,
             Coordinate loc, AbstractEditor mapEditor, PgenResource rsc) {
-
-        // label at location loc.
-        // Label testLbl = null;
 
         // label close to testLbl
         Label mergeLbl = null;
@@ -1250,8 +1243,6 @@ public class PgenUtil {
                     if (Math.abs(lbl.getSpe().getLocation().x - loc.x) < 0.0001
                             && Math.abs(lbl.getSpe().getLocation().y - loc.y) < 0.0001) {
 
-                        // get the label at loc
-                        // testLbl = lbl;
                     } else {
 
                         // calculate distance from lbl to scnLoc
@@ -1284,7 +1275,6 @@ public class PgenUtil {
                 ln.removePoint(0);
                 ln.addPoint(0, mergeLbl.getSpe().getLocation());
             }
-            // ll.add(mergeLbl);
             ll.remove(testLbl);
         }
 
@@ -1306,18 +1296,6 @@ public class PgenUtil {
         rscData = null;
     }
 
-    /**
-     * Retrieve the last used tool public static AbstractModalTool
-     * getLastUsedTool() {
-     * 
-     * AbstractModalTool lastTool = null;
-     * 
-     * AbstractVizPerspectiveManager mgr = VizPerspectiveListener
-     * .getCurrentPerspectiveManager(); if ( mgr != null) { lastTool =
-     * mgr.getToolManager().getLastModalTool(); }
-     * 
-     * return lastTool; }
-     */
 
     /**
      * This function computes the area of a spherical polygon on the earth
@@ -1342,8 +1320,6 @@ public class PgenUtil {
         int jj, kk;
         double Lam1, Lam2, Beta1, Beta2, CosB1, CosB2, HavA;
         double T, A, B, C, S, sum, excess;
-
-        /*---------------------------------------------------------------------*/
 
         int npts = ptsin.length;
         double[] tmplat = new double[npts];
@@ -1432,7 +1408,6 @@ public class PgenUtil {
         for (int nn = 0; nn < poly.getNumInteriorRing(); nn++) {
             intnl_area += getSphPolyArea(poly.getInteriorRingN(nn)
                     .getCoordinates());
-            System.out.println("internal??");
         }
 
         return (extnl_area - intnl_area);
@@ -1660,8 +1635,6 @@ public class PgenUtil {
         if (pt != null)
             pdName = pt.getType();
 
-        // String pd1 = pdName.replaceAll(" ", "_");
-
         return PgenUtil.getPgenOprDirectory() + File.separator + pdName;
     }
 
@@ -1799,10 +1772,6 @@ public class PgenUtil {
                             parsedFile.length() - 1);
                 }
             }
-            // else {
-            // parsedFile = new String( PgenUtil.getPgenOprDirectory() +
-            // File.separator + fileName );
-            // }
         }
 
         return parsedFile;
@@ -1923,7 +1892,7 @@ public class PgenUtil {
 
                     ret = new String(baos.toByteArray());
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    handler.error("Error applying style sheet: ", e);
                 }
             }
         }
@@ -2028,8 +1997,6 @@ public class PgenUtil {
      */
     public static final AbstractEditor getActiveEditor() {
         // bsteffen change to EditorUtils
-        // if (VizApp.getCurrentEditor() instanceof NCMapEditor) {
-        // return (NCMapEditor) VizApp.getCurrentEditor();
         if (EditorUtil.getActiveEditor() instanceof AbstractEditor) {
             return (AbstractEditor) EditorUtil.getActiveEditor();
         } else {
@@ -2487,7 +2454,7 @@ public class PgenUtil {
     }
 
     /**
-     * ReturnsCCFP text box auto placement flag
+     * Returns CCFP text box auto placement flag
      * 
      * @return
      */
@@ -2514,6 +2481,20 @@ public class PgenUtil {
     public static int getLayerMergeOption() {
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
         return prefs.getInt(PgenPreferences.P_LAYER_MERGE);
+    }
+
+    /**
+     * Returns default spacing between Contour symbol and label .
+     * 
+     * @return
+     */
+    public static Coordinate getContourSymbolLabelSpacing() {
+        IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+        int xSpacing = prefs
+                .getInt(PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_X);
+        int ySpacing = prefs
+                .getInt(PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_Y);
+        return (new Coordinate(xSpacing, ySpacing));
     }
 
 }

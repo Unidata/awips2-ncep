@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<plotModel svgTemplate="standardPlotModelTemplate.svg" plugin="sfcobs" name="bouys">
+<plotModel svgTemplate="standardPlotModelTemplate.svg" plugin="sfcobs" name="buoys">
     <PlotModelElement symbolSize="1" textStyle="Bold" textFont="Courier" textSize="14" paramName="BRBK">
         <Position>WD</Position>
         <Color red="255" green="255" blue="0"/>
@@ -16,5 +16,4 @@
         <Position>ML</Position>
         <Color red="255" green="0" blue="255"/>
     </PlotModelElement>
-    
 </plotModel>

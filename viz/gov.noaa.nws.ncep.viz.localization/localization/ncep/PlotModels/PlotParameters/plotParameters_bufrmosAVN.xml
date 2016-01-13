@@ -69,7 +69,6 @@
                      	plotUnit="m/s" />
 
 	<!-- PRECIPITATION --> 
- 	
 	<PlotParameterDefn  plotParamName="PP12" plotMode="text" metParamName="POPFcst12Hrs" 
 						dbParamName="PQPF_12hr" plotUnit="%"/>
 
@@ -96,10 +95,11 @@
 						
  	<PlotParameterDefn  plotParamName="TS12" metParamName="UncondProbOfTstorms12hr" plotMode="text"   
                      	dbParamName="tstorm12hr" plotUnit="%"/>                     
-
-
  	<PlotParameterDefn  plotParamName="TS24" metParamName="UncondProbOfTstorms24hr" plotMode="text"   
                      	dbParamName="tstorm24hr" plotUnit="%"/> 
+
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
 
 
 </PlotParameterDefns>

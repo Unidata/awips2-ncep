@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: viirs
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.viirs;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.viirs.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources, org.apache.velocity, com.raytheon.edex.common, com.raytheon.uf.common.serialization, com.raytheon.uf.common.status, com.raytheon.viz.ui, com.raytheon.viz.core, com.raytheon.uf.viz.core, com.raytheon.uf.common.serialization
 Eclipse-BuddyPolicy: ext, global
 Require-Bundle: org.eclipse.ui,
@@ -27,12 +26,16 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.datastorage,
  com.raytheon.uf.common.datastorage.records,
+ com.raytheon.uf.common.inventory,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.units,
  com.raytheon.uf.viz.d2d.core.map,
  com.raytheon.uf.viz.datacube,
- com.raytheon.uf.common.inventory;
  com.raytheon.viz.core.rsc.hdf5,
+ com.raytheon.viz.ui.cmenu,
+ com.raytheon.viz.ui.editor,
+ com.raytheon.viz.ui.input,
+ com.raytheon.viz.ui.panes,
  com.vividsolutions.jts.geom,
  gov.noaa.nws.ncep.common.dataplugin.ncscat,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,

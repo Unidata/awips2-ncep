@@ -587,7 +587,7 @@
    
     <extension
        point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?after=lapsTools">
+       <menuContribution locationURI="menu:tools?after=tools.Pg">
             <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.palette"
                 label="PGEN">

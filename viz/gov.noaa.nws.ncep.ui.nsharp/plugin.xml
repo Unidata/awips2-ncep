@@ -94,14 +94,14 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.nsharp.key"
                 contextId="gov.noaa.nws.ncep.ui.nsharp.nsharpContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="SHIFT+ARROW_DOWN"> 
                 <parameter  id="action" value="arrowdown" />           
          </key> 
          <key
                 commandId="gov.noaa.nws.ncep.ui.nsharp.key"
                 contextId="gov.noaa.nws.ncep.ui.nsharp.nsharpContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="SHIFT+ARROW_UP"> 
                 <parameter  id="action" value="arrowup" />           
          </key>    

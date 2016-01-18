@@ -608,7 +608,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="estofsUS">
 <filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="ECMF-NorthernHemisphere">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ECMW-NorthernHemisphere">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="UKMET-NorthernHemisphere">

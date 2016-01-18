@@ -136,16 +136,9 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
     @Override
     protected String getTitle(String title) {
-
-        String desk = LocalizationManager.getContextName(LocalizationLevel
-                .valueOf("DESK"));
-
-        if (desk == null || desk.isEmpty() || desk.equalsIgnoreCase("none")) {
-            desk = "NONE";
-        }
         return title + ": "
                 + LocalizationManager.getContextName(LocalizationLevel.SITE)
-                + "/" + desk + " - " + getLabel();
+                + "/" + getLabel();
     }
 
     // Issue the newDisplay command the same as if called from the main menu

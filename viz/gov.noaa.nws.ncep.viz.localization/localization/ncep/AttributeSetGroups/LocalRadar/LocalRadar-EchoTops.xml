@@ -2,5 +2,15 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>EchoTops</attrSetGroupName>
-    <attrSetNames>TOPS_1.00,EETOPS_1.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>TOPS_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>EETOPS_1.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

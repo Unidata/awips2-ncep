@@ -98,7 +98,7 @@ public class PgenDeleteLabelHandler extends InputHandlerDefaultImpl {
                 AbstractDrawableComponent adc = pgenrsc.getSelectedComp()
                         .getParent();
 
-                if ((adc instanceof Layer) || adc.isLabeledSymbol()) {
+                if ((adc instanceof Layer) || adc.isLabeledSymbolType()) {
                     attrDlg.close();
                 }
 
@@ -115,7 +115,8 @@ public class PgenDeleteLabelHandler extends InputHandlerDefaultImpl {
     private void doDelete() {
         AbstractDrawableComponent adc = pgenrsc.getSelectedComp();
 
-        if (adc.getParent() instanceof ContourMinmax || adc.isLabeledSymbol()) {
+        if (adc.getParent() instanceof ContourMinmax
+                || adc.isLabeledSymbolType()) {
             deleteFirstLabelFound((DECollection) adc.getParent());
         } else {
             pgenrsc.removeElement(adc);

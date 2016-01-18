@@ -17,7 +17,6 @@ import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
@@ -36,9 +35,14 @@ import java.util.Vector;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
+import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
@@ -79,7 +83,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 11/25/2013   #1078      Greg Hull       check for FitToScreen and SizeOfImage in setPaneData()
  * 11/25/2013   #1079      Greg Hull       checkAndUpdateAreaFromResource
  * 05/15/2014   #1131      Quan Zhou       added rbdType GRAPH_DISPLAY
- * 08/14/2014 	?			B. Yin		   Handle GroupResource for power legend.
+ * 08/14/2014 	?          B. Yin		   Handle GroupResource for power legend.
+ * 11/12/2015   #8829      B. Yin          Make sure the list is in rendering order.
  * </pre>
  * 
  * @author ghull
@@ -87,28 +92,20 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  */
 public class RscBundleDisplayMngr {
 
+    private static final String PGENRESOURCEDATA = "PgenResourceData";
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(RscBundleDisplayMngr.class);
+
     public static class PaneSelectionData {
         private RscBundleDisplayMngr rscBndlMngr = null;
 
-        // private class RenderingOrderComparator implements
-        // Comparator<ResourceSelection> {
-        //
-        // @Override
-        // public int compare(ResourceSelection o1, ResourceSelection o2) {
-        // Integer i1 = o1.getRenderingOrder();
-        // Integer i2 = o2.getRenderingOrder();
-        // return i1.compareTo(i2);
-        // }
-        // }
-
         private Vector<ResourceSelection> seldResources = new Vector<ResourceSelection>();
 
-        // if set with a 'custom' area defined by an RBD then this will
-        // be set to the custom area. Since it can't be accessed by an
-        // areaFactory
+        // if set with a 'custom' area defined by an RBD then this will be set
+        // to the custom area. Since it can't be accessed by an areaFactory
         // until it is loaded, this is use to reset the area should the user
-        // reselect
-        // the custom area from the gui.
+        // reselect the custom area from the gui.
         private PredefinedArea initialArea = null;
 
         private PredefinedArea area = null;
@@ -126,8 +123,10 @@ public class RscBundleDisplayMngr {
                 area = PredefinedAreaFactory
                         .getDefaultPredefinedAreaForDisplayType(rbdType);
             } catch (VizException e1) {
-                System.out.println("Error getting default PredefinedArea: "
-                        + e1.getMessage());
+                statusHandler.handle(
+                        Priority.PROBLEM,
+                        "Error getting default PredefinedArea: "
+                                + e1.getMessage());
             }
 
             // Reference the same base overlay for multi-pane displays.
@@ -145,10 +144,8 @@ public class RscBundleDisplayMngr {
         }
 
         // bit of a hack here. null indicates to reset to a custom area from an
-        // rbd
-        // that was initially set from an earlier call to setArea() where the
-        // source
-        // was the INITIAL_DISPLAY_AREA from an RBD.
+        // rbd that was initially set from an earlier call to setArea() where
+        // the source was the INITIAL_DISPLAY_AREA from an RBD.
         public void setArea(PredefinedArea pa) {
             if (pa == null) {
                 area = initialArea;
@@ -172,32 +169,97 @@ public class RscBundleDisplayMngr {
         // Don't add the same resource twice. If this is the base overlay,
         // replace the existing base overlay.
         public boolean addSelectedResource(ResourceSelection rbt) {
-            // for( ResourceSelection r : seldResources ) {
-            if (!(rbt.getResourceData() instanceof GroupResourceData)) { //add group on top
+            if ((rbt.getResourceData() instanceof GroupResourceData)) {
+                // add new group under ungrouped
+                seldResources.add(1, rbt);
+            } else {
                 for (int r = 0; r < seldResources.size(); r++) {
                     ResourceSelection rscSel = seldResources.elementAt(r);
-                    if (rscSel.getResourceData() instanceof GroupResourceData) { //skip groups
+                    if (rscSel.getResourceData() instanceof GroupResourceData) { // skip
+                                                                                 // groups
                         continue;
                     }
                     if (rbt.getResourceName().equals(rscSel.getResourceName())) {
                         if (rscSel.isBaseLevelResource()) {
-                            // baseOverlayResources
                             rbt.setIsBaseLevelResource(true);
-                            seldResources.add(r, rbt);
+                            seldResources.add(0, rbt);
                             seldResources.remove(r + 1);
                             return true;
                         }
                         return false;
                     }
                 }
+                seldResources.add(0, rbt);
+            }
+            return true;
+        }
+
+        /*
+         * Adds a resource into the list by its rendering order
+         * 
+         * @param sel resource selection to be added
+         * 
+         * @return true if success
+         */
+        private boolean addResourceInRenderingOrder(ResourceSelection sel) {
+
+            // Create rendering order integer if it doesn't exist
+            if (sel.getResourcePair().getProperties().getRenderingOrder() == Integer.MAX_VALUE
+                    && sel.getResourcePair().getProperties()
+                            .getRenderingOrderId() != null) {
+                sel.getResourcePair()
+                        .getProperties()
+                        .setRenderingOrder(
+                                RenderingOrderFactory.getRenderingOrder(sel
+                                        .getResourcePair().getProperties()
+                                        .getRenderingOrderId()));
             }
 
-            seldResources.add(0, rbt);
+            for (int idx = 0; idx < seldResources.size(); idx++) {
+                ResourcePair rscPair = seldResources.elementAt(idx)
+                        .getResourcePair();
+
+                // Create rendering order integer
+                if (rscPair.getProperties().getRenderingOrder() == Integer.MAX_VALUE
+                        && rscPair.getProperties().getRenderingOrderId() != null) {
+                    rscPair.getProperties().setRenderingOrder(
+                            RenderingOrderFactory.getRenderingOrder(rscPair
+                                    .getProperties().getRenderingOrderId()));
+                }
+
+            }
+
+            // add into the list
+            if (!(sel.getResourceData() instanceof GroupResourceData)) {
+                for (int idx = 0; idx < seldResources.size(); idx++) {
+                    ResourceSelection rscSel = seldResources.elementAt(idx);
+
+                    if (rscSel.getResourceData() instanceof GroupResourceData) {
+                        // skip groups
+                        continue;
+                    } else if (sel.getResourceName().equals(
+                            rscSel.getResourceName())) {
+                        if (rscSel.isBaseLevelResource()) {
+                            sel.setIsBaseLevelResource(true);
+                            seldResources.add(idx, sel);
+                            seldResources.remove(idx + 1);
+                            return true;
+                        }
+                        return false;
+                    } else if (sel.getResourcePair().getProperties()
+                            .getRenderingOrder() >= rscSel.getResourcePair()
+                            .getProperties().getRenderingOrder()) {
+                        seldResources.add(idx, sel);
+                        return true;
+                    }
+                }
+            }
+
+            seldResources.add(seldResources.size(), sel);
 
             return true;
         }
 
-        //
         public boolean replaceSelectedResource(ResourceSelection existingRsc,
                 ResourceSelection newRsc) {
             // find the existing resource and replace it.
@@ -209,12 +271,26 @@ public class RscBundleDisplayMngr {
                 return false;
             } else {
                 if (existingRsc.isBaseLevelResource()) {
-                    System.out.println("Can't replace the base Overlay :"
-                            + existingRsc.getResourceName());
+                    statusHandler.handle(
+                            Priority.INFO,
+                            "Can't replace the base Overlay :"
+                                    + existingRsc.getResourceName());
                     seldResources.add(newRsc);
                     return false;
                 } else {
                     seldResources.set(rscIndx, newRsc);
+                    newRsc.getResourcePair()
+                            .getProperties()
+                            .setRenderingOrder(
+                                    existingRsc.getResourcePair()
+                                            .getProperties()
+                                            .getRenderingOrder());
+                    newRsc.getResourcePair()
+                            .getProperties()
+                            .setRenderingOrderId(
+                                    existingRsc.getResourcePair()
+                                            .getProperties()
+                                            .getRenderingOrderId());
                     return true;
                 }
             }
@@ -236,8 +312,9 @@ public class RscBundleDisplayMngr {
                                     .getResourceName());
 
                         } catch (VizException e) {
-                            System.out
-                                    .println("Error creating base overlay for "
+                            statusHandler.handle(
+                                    Priority.PROBLEM,
+                                    "Error creating base overlay for "
                                             + rscBndlMngr.getRbdType()
                                                     .getName() + " RBDs: "
                                             + e.getMessage());
@@ -255,11 +332,13 @@ public class RscBundleDisplayMngr {
             if (selRsc == null) {
                 resetPane();
             } else {
-                if (seldResources.contains(selRsc)) { // sanity check; this has
-                                                      // to be in the list
+                // sanity check; this has to be in the list
+                if (seldResources.contains(selRsc)) {
                     if (selRsc.isBaseLevelResource()) {
-                        System.out.println("Can't remove the base Overlay :"
-                                + NmapCommon.getBaseOverlay());
+                        statusHandler.handle(
+                                Priority.INFO,
+                                "Can't remove the base Overlay :"
+                                        + NmapCommon.getBaseOverlay());
                     } else {
                         seldResources.remove(selRsc);
                     }
@@ -307,8 +386,7 @@ public class RscBundleDisplayMngr {
     private NcPaneLayout maxLayout = new NcPaneLayout(6, 6);
 
     // an RBD must be one of these display types and all resources in the RBD
-    // must be compatible
-    // with the display type.
+    // must be compatible with the display type.
     private NcDisplayType rbdType;
 
     // the currently selected layout (numRows,numColumns)
@@ -329,6 +407,8 @@ public class RscBundleDisplayMngr {
     // ie. the geopolitical overlay.
     private static Map<NcDisplayType, ResourceSelection> baseOverlayResources = new HashMap<NcDisplayType, ResourceSelection>();
 
+    private static String GROUP_ORDER_ID = "NCP_GROUP";
+
     private boolean geoSyncPanes = false;
 
     private boolean autoUpdate = false;
@@ -338,9 +418,8 @@ public class RscBundleDisplayMngr {
     private String rbdName = "";
 
     // set to true here if any of the resources, currRbdPaneLayout,... is
-    // changed. Reset to false here
-    // if initialized. Set to true from the dialog if a resource is edited or if
-    // the rbd is cleared.
+    // changed. Reset to false here if initialized. Set to true from the dialog
+    // if a resource is edited or if the rbd is cleared.
     private boolean rbdModified = false;
 
     // the initial timeMatcher from an AbstractRBD<?>. This may be superceded by
@@ -387,30 +466,13 @@ public class RscBundleDisplayMngr {
 
         rbdModified = true;
 
-        // if( paneLayout.getRows() <= selectedPaneId.getRow() ) {
-        // selectedPaneId = new NcPaneID( selectedPaneId.getRow()-1,
-        // selectedPaneId.getColumn() );
-        // }
-        // if( paneLayout.getColumns() <= selectedPaneId.getColumn() ) {
-        // selectedPaneId = new NcPaneID( selectedPaneId.getRow(),
-        // selectedPaneId.getColumn()-1 );
-        // }
         if (!paneLayout.containsPaneId(selectedPaneId)) {
             selectedPaneId = new NcPaneID();
         }
 
         currRbdPaneLayout = paneLayout;
-
         setMultiPane(paneLayout.getNumberOfPanes() > 1);
 
-        // // make sure there is an entry in the map for each pane
-        // for( int p=0 ; p<paneLayout.getNumberOfPanes() ; p++ ) {
-        // NcPaneID pid = (NcPaneID) paneLayout.createPaneId(p);
-        // if( !paneSelectionDataMap.containsKey( pid.toString() ) ) {
-        // paneSelectionDataMap.put(
-        // pid.toString(), new PaneSelectionData() );
-        // }
-        // }
         return selectedPaneId;
     }
 
@@ -432,13 +494,11 @@ public class RscBundleDisplayMngr {
     }
 
     public void setSelectedPaneId(INcPaneID seldPaneId) {
-        // TODO : Should this set rbdModified? No.
-        // rbdModified = true;
         if (!currRbdPaneLayout.containsPaneId(seldPaneId)) {
-            System.out.println("Attempting to select a paneID ("
-                    + seldPaneId.toString()
-                    + ") that is not in the current layout: "
-                    + currRbdPaneLayout.toString());
+            statusHandler.handle(Priority.INFO,
+                    "Attempting to select a paneID (" + seldPaneId.toString()
+                            + ") that is not in the current layout: "
+                            + currRbdPaneLayout.toString());
             return;
         }
         selectedPaneId = (NcPaneID) seldPaneId;
@@ -446,12 +506,13 @@ public class RscBundleDisplayMngr {
 
         // This will probably be a fatal error. This should never happen.
         if (selectedPaneData == null) {
-            System.out.println("ERROR: could not find the selected pane id ("
-                    + selectedPaneId.toString() + ") in the paneLayout Map.");
+            statusHandler.handle(Priority.PROBLEM,
+                    "ERROR: could not find the selected pane id ("
+                            + selectedPaneId.toString()
+                            + ") in the paneLayout Map.");
         }
     }
 
-    //
     public void init(NcDisplayType dispType) {
 
         rbdType = dispType;
@@ -471,7 +532,7 @@ public class RscBundleDisplayMngr {
         }
 
         currRbdPaneLayout = new NcPaneLayout(1, 1);
-        selectedPaneId = new NcPaneID(); // 0,0
+        selectedPaneId = new NcPaneID();
         selectedPaneData = paneSelectionDataMap.get(selectedPaneId.toString());
 
         multiPane = false;
@@ -522,13 +583,12 @@ public class RscBundleDisplayMngr {
 
     // used when importing a single pane. In this case the display-defined
     // area has not been added as an available selection.
-    //
+
     public void setPaneData(INatlCntrsRenderableDisplay dispPane)
             throws VizException {
 
         // NOTE: the currently selected paneId doesn't have to match the
         // dispPane's paneId.
-        //
 
         // loop through the resources and add them
         for (ResourcePair rp : dispPane.getDescriptor().getResourceList()) {
@@ -537,57 +597,43 @@ public class RscBundleDisplayMngr {
                     ResourceSelection rscSel = ResourceFactory
                             .createResource(rp);
 
-                    addSelectedResource(rscSel);
+                    addSelectedResource(rscSel, false);
 
-                    if (rscSel.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        // timelineControl.addAvailDomResource(
-                        // (AbstractNatlCntrsRequestableResourceData)
-                        // rbt.getResourceData() );
-                    }
                 } catch (VizException ve) {
-                    System.out.println("Unable to add selected Resource:"
-                            + ((INatlCntrsResourceData) rp.getResourceData())
-                                    .getResourceName().toString());
+                    statusHandler.handle(
+                            Priority.PROBLEM,
+                            "Unable to add selected Resource:"
+                                    + ((INatlCntrsResourceData) rp
+                                            .getResourceData())
+                                            .getResourceName().toString());
                     continue;
                 }
 
-            } else if (!rp.getProperties().isSystemResource()) {
-                System.out.println("Unable to load non-NC non-System Resource:"
-                        + rp.getResourceData().toString());
+            } else if (!rp.getProperties().isSystemResource()
+                    && !(rp.getResourceData().getClass().getName()
+                            .endsWith(PGENRESOURCEDATA))) {
+                statusHandler.handle(Priority.PROBLEM,
+                        "Unable to load non-NC non-System Resource:"
+                                + rp.getResourceData().toString());
             }
         }
 
-        // how to set size-of-image if the imported zoom level is not -1? we
-        // can't even tell if
-        // it has been changed from the original size-of-image???
-        //
-
         // set the selected areaname from the display using the following rules.
         // if this is from a current editor display and the current area has
-        // been changed from the initial area
-        // that the display was loaded with then the selected area will be the
-        // current area of the display
+        // been changed from the initial area // that the display was loaded
+        // with then the selected area will be the current area of the display
         // (the source is DISPLAY_AREA and the areaname is the name of the
-        // display pane)
-        // if from a current editor and the current and initial areas are the
-        // same then use the
-        // name of the area initially used to load the display.
-        // if this display pane is imported from and RBD then the initial area
-        // and the current area
-        // should be the same.
-        // AreaName seldAreaName = new AreaName( AreaSource.PREDEFINED_AREA,
-        // rbdType.getDefaultMap() );
+        // display pane) if from a current editor and the current and initial
+        // areas are the same then use the name of the area initially used to
+        // load the display. if this display pane is imported from and RBD then
+        // the initial area and the current area should be the same. AreaName
 
         PredefinedArea initialArea = dispPane.getInitialArea();
-
-        // AreaName seldAreaName = new AreaName( initialArea.getSource(),
-        // initialArea.getAreaName() );
         PredefinedArea seldPredefinedArea = initialArea;
 
         // if the display's current area is different than its initial area then
         // set the display as the selected area otherwise use the name of the
-        // area
-        // originally used to set the display's area.
+        // area originally used to set the display's area.
         NcDisplayName dispName = dispPane.getPaneName().getDispName();
 
         if (dispName.getId() > 0 && // dispPane.getPaneManager() instanceof
@@ -602,43 +648,39 @@ public class RscBundleDisplayMngr {
                         .createGeomProvider(currDispAreaName);
 
                 // the name of the selected area will be the current area of the
-                // imported display
-                // unless the area has not been changed and the initial area is
-                // a predefined area
+                // imported display unless the area has not been changed and the
+                // initial area is a predefined area
                 if (currGeom != null && initialArea != null) { // sanity check
 
                     PredefinedArea currArea = PredefinedAreaFactory
                             .createPredefinedArea(currGeom);
 
                     // The areAreasEqual method doesn't work on SizeOfImage.
-                    // This will lock the zoom
-                    // so we will assume that if the initial area is SizeOfImage
-                    // that the initial area
-                    // is the
+                    // This will lock the zoom so we will assume that if the
+                    // initial area is SizeOfImage that the initial area is the
                     if (!initialArea.getZoomLevel().equals(
                             ZoomLevelStrings.SizeOfImage.toString())
                             && !initialArea.getZoomLevel().equals(
                                     ZoomLevelStrings.FitToScreen.toString())) {
 
                         // use the area of the current display if the areas are
-                        // different
-                        // or if the same but the initial area is not a
-                        // named/saved area name.
-                        //
+                        // different or if the same but the initial area is not
+                        // a named/saved area name.
+
                         if (PredefinedArea.areAreasEqual(initialArea, currArea)) {
                             if (initialArea.getSource() == AreaSource.INITIAL_DISPLAY_AREA) {
-                                // seldAreaName = currDispAreaName;
                                 seldPredefinedArea = currArea;
                             }
                         } else {
-                            // seldAreaName = currDispAreaName;
                             seldPredefinedArea = currArea;
                         }
                     }
                 }
             } catch (VizException ve) {
-                System.out.println("error getting curr area for "
-                        + dispPane.getPaneName());
+                statusHandler
+                        .handle(Priority.PROBLEM,
+                                "error getting curr area for "
+                                        + dispPane.getPaneName());
             }
         }
 
@@ -648,8 +690,6 @@ public class RscBundleDisplayMngr {
             setSelectedAreaName(new AreaName(AreaSource.PREDEFINED_AREA,
                     rbdType.getDefaultMap()));
         }
-
-        // setSelectedPaneId( paneId );
     }
 
     public ResourceSelection[] getSelectedRscs() {
@@ -665,19 +705,17 @@ public class RscBundleDisplayMngr {
     }
 
     // if any of the selected areas (any pane) is resource-defined then check to
-    // make sure
-    // it is still available and if not reset to the given rsc or the default if
-    // null.
-    // return true if an area was changed.
-    //
+    // make sure it is still available and if not reset to the given rsc or the
+    // default if null. return true if an area was changed.
+
     public Boolean checkAndUpdateAreaFromResource(ResourceSelection rscSel) {
 
         // get a map of all of the currently selected areas
-        //
+
         Map<String, AreaName> seldAreaNames = new HashMap<String, AreaName>();
 
-        // if geoSynced then there will be only one selected area and if
-        // it is reset then it will be reset for all panes.
+        // if geoSynced then there will be only one selected area and if it is
+        // reset then it will be reset for all panes.
         if (isGeoSyncPanes()) {
 
             PredefinedArea seldArea = getSelectedArea();
@@ -706,7 +744,7 @@ public class RscBundleDisplayMngr {
 
             // if replaceing a rsc-defined area with another in a single pane or
             // in a geo-synced multipane then go ahead and replace the area
-            //
+
             if (!isMultiPane() || isGeoSyncPanes()) {
                 if (seldAreaNames.get(getSelectedPaneId().toString())
                         .getSource().isImagedBased()) {
@@ -714,8 +752,8 @@ public class RscBundleDisplayMngr {
                         setSelectedAreaName(resetAreaName);
                         return true;
                     } catch (VizException e) {
-                        System.out.println("Error reseting area??? : "
-                                + e.getMessage());
+                        statusHandler.handle(Priority.PROBLEM,
+                                "Error reseting area??? : " + e.getMessage());
                         return false;
                     }
                 }
@@ -736,8 +774,8 @@ public class RscBundleDisplayMngr {
             Boolean areaRscIsAvailable = false;
 
             for (AreaMenuItem ami : availRscAreas) {
-                // if we have found the resource for the given area
-                // then continue to the next pane
+                // if we have found the resource for the given area then
+                // continue to the next pane
                 if (AreaSource.getAreaSource(ami.getSource()) == areaName
                         .getSource()
                         && ami.getAreaName().equals(areaName.getName())) {
@@ -751,9 +789,9 @@ public class RscBundleDisplayMngr {
             }
 
             // reset this pane's area to either the default or to the given rsc
-            // (ie a replace.
-            // note : if geosync is set then this will reset all of the areas
-            //
+            // (ie a replace. note : if geosync is set then this will reset all
+            // of the areas
+
             try {
                 INcPaneID curPid = getSelectedPaneId();
                 setSelectedPaneId(NcPaneID.parsePaneId(paneIdStr));
@@ -765,15 +803,15 @@ public class RscBundleDisplayMngr {
                 areaChanged = true;
 
             } catch (VizException e) {
-                System.out.println("Error resetting area to "
-                        + resetAreaName.toString() + ": " + e.getMessage());
+                statusHandler.handle(Priority.PROBLEM,
+                        "Error resetting area to " + resetAreaName.toString()
+                                + ": " + e.getMessage());
             }
         }
 
         return areaChanged;
     }
 
-    // return
     public List<List<AreaMenuItem>> getAvailAreaMenuItems() {
         List<List<AreaMenuItem>> areaMenuItems = new ArrayList<List<AreaMenuItem>>();
         AreaMenuItem ami, seldami, dfltami;
@@ -811,7 +849,7 @@ public class RscBundleDisplayMngr {
 
         // if the initial area is custom and not seleced then add it since it
         // won't be saved
-        //
+
         PredefinedArea initArea = selectedPaneData.getInitialArea();
         if (initArea != null && initArea != getSelectedArea()
                 && initArea.getSource() == AreaSource.INITIAL_DISPLAY_AREA) {
@@ -863,10 +901,7 @@ public class RscBundleDisplayMngr {
         }
 
         // next are any area provided by a selected resource.
-        // TODO : put these in submenus based on the resource type
-        // for( String rscType : new String[]{ "MCIDAS", "GINI" } ) {
-        // then any possible area-capable resources
-        amiList = getResourceProvidedAreas(); // new ArrayList<AreaMenuItem>();
+        amiList = getResourceProvidedAreas();
 
         if (!amiList.isEmpty()) {
             areaMenuItems.add(amiList);
@@ -901,10 +936,10 @@ public class RscBundleDisplayMngr {
         return areaMenuItems;
     }
 
-    // get a list of all available areas resource-defined areas
-    // Called by getAvailAreaMenuItems and used to determine if
-    // an area is still avail afer a resource has been removed or replaced.
-    //
+    // get a list of all available areas resource-defined areas Called by
+    // getAvailAreaMenuItems and used to determine if an area is still avail
+    // after a resource has been removed or replaced.
+
     public List<AreaMenuItem> getResourceProvidedAreas() {
         List<AreaMenuItem> amiList = new ArrayList<AreaMenuItem>();
 
@@ -917,20 +952,9 @@ public class RscBundleDisplayMngr {
 
                     IAreaProviderCapable areaRsc = (IAreaProviderCapable) rscSel
                             .getResourceData();
-
-                    AreaName areaName = new AreaName(
-                            areaRsc.getSourceProvider(), areaRsc.getAreaName());
-                    // ami = new AreaMenuItem( areaName );
                     AreaMenuItem ami = new AreaMenuItem(areaRsc.getAreaName(),
                             "Resource", areaRsc.getAreaName(), areaRsc
                                     .getSourceProvider().toString());
-
-                    // use the source name as the sub menu name
-                    // if( rscItems == null ) {
-                    // rscItems = new ArrayList<AreaMenuItem>();
-                    // areaMenuItems.put(
-                    // areaRsc.getSourceProvider().toString(), rscItems );
-                    // }
 
                     if (!amiList.contains(ami)) {
                         amiList.add(ami);
@@ -941,18 +965,26 @@ public class RscBundleDisplayMngr {
         return amiList;
     }
 
-    public boolean addSelectedResource(ResourceSelection rsel) {
-        NcDisplayType[] type = rsel.getSupportedDisplayTypes();
+    public boolean addSelectedResource(ResourceSelection rsel, boolean ordering) {
         if (!Arrays.asList(rsel.getSupportedDisplayTypes()).contains(rbdType)) {
-            System.out.println("??Can't add resource " + rsel.getRscLabel()
-                    + " because it is not" + " supported for display type "
-                    + rbdType.getName());
+            statusHandler.handle(
+                    Priority.PROBLEM,
+                    "Can't add resource " + rsel.getRscLabel()
+                            + " because it is not"
+                            + " supported for display type "
+                            + rbdType.getName());
             return false;
         }
 
         rbdModified = true;
 
-        boolean retval = selectedPaneData.addSelectedResource(rsel);
+        boolean retval = false;
+
+        if (ordering) {
+            retval = selectedPaneData.addResourceInRenderingOrder(rsel);
+        } else {
+            retval = selectedPaneData.addSelectedResource(rsel);
+        }
 
         return retval;
 
@@ -961,11 +993,27 @@ public class RscBundleDisplayMngr {
     public boolean addSelectedResource(ResourceSelection rsel,
             ResourceSelection grp) {
         if (grp == null) {
-            return addSelectedResource(rsel);
+            return addSelectedResource(rsel, true);
         } else {
             if (grp.getResourceData() instanceof GroupResourceData) {
-                ((GroupResourceData) grp.getResourceData()).getResourceList()
-                        .add(rsel.getResourcePair());
+
+                ResourceList rlist = ((GroupResourceData) grp.getResourceData())
+                        .getResourceList();
+                for (ResourcePair rscPair : rlist) {
+                    // Create rendering order integer if necessary
+                    if (rscPair.getProperties().getRenderingOrder() == Integer.MAX_VALUE
+                            && rscPair.getProperties().getRenderingOrderId() != null) {
+                        rscPair.getProperties()
+                                .setRenderingOrder(
+                                        RenderingOrderFactory
+                                                .getRenderingOrder(rscPair
+                                                        .getProperties()
+                                                        .getRenderingOrderId()));
+                    }
+
+                }
+
+                rlist.add(rsel.getResourcePair());
                 return true;
             }
         }
@@ -984,9 +1032,9 @@ public class RscBundleDisplayMngr {
     public boolean replaceSelectedResource(ResourceSelection existingRsc,
             ResourceSelection newRsc) {
         if (!Arrays.asList(newRsc.getSupportedDisplayTypes()).contains(rbdType)) {
-            System.out.println("??Can't add resource " + newRsc.getRscLabel()
-                    + " because it is not" + " supported for display type "
-                    + rbdType.getName());
+            statusHandler.handle(Priority.PROBLEM, "Can't add resource "
+                    + newRsc.getRscLabel() + " because it is not"
+                    + " supported for display type " + rbdType.getName());
             return false;
         }
 
@@ -1012,18 +1060,6 @@ public class RscBundleDisplayMngr {
         checkAndUpdateAreaFromResource(null);
     }
 
-    // public void removeAllSelectedResourcesForPane( INcPaneID paneId ) {
-    // if( !paneSelectionDataMap.containsKey( paneId.toString() ) ) {
-    // return;
-    // }
-    // rbdModified = true;
-    // PaneSelectionData psd = paneSelectionDataMap.get( paneId.toString() );
-    // for( ResourceSelection rs : psd.getSelectedResources() ) {
-    // removeAvailAreaProvider( rs );
-    // psd.removeSelectedResource( rs );
-    // }
-    // }
-
     public NcDisplayType getRbdType() {
         return rbdType;
     }
@@ -1032,12 +1068,8 @@ public class RscBundleDisplayMngr {
         this.rbdType = rbdType;
     }
 
-    // public ResourceSelection getBaseOverlay( ) {
-    // return baseOverlayRBT;
-    // }
-
     public PredefinedArea getSelectedArea() {
-        return selectedPaneData.getArea();// .getAreaName();//GeoAreaName();
+        return selectedPaneData.getArea();
     }
 
     // return a map of all the currently selected areanames (with pane id as the
@@ -1055,9 +1087,8 @@ public class RscBundleDisplayMngr {
         return areasMap;
     }
 
-    // called when initializing the pane data
-    // If multi-pane and if geoSync is set then we will need to update all of
-    // the panes
+    // called when initializing the pane data if multi-pane and if geoSync is
+    // set then we will need to update all of the panes
     public void setSelectedArea(PredefinedArea seldArea) throws VizException {
         rbdModified = true;
 
@@ -1102,10 +1133,10 @@ public class RscBundleDisplayMngr {
 
     }
 
-    // update all of the geoAreaNames to the area in the current pane
-    // Include hidden panes too in case the user expands the number of panes,
+    // update all of the geoAreaNames to the area in the current pane include
+    // hidden panes too in case the user expands the number of panes,
     // the area will be set correctly
-    //
+
     public void syncPanesToArea() {
         setGeoSyncPanes(true);
         PredefinedArea seldArea = getSelectedArea();
@@ -1143,11 +1174,9 @@ public class RscBundleDisplayMngr {
         return initialTimeMatcher;
     }
 
-    // Create the RBD
-    // get the resources, overlays and map background bundle files. Load each
-    // bundle and re-bundle
-    // them into an RBD bundle file.
-    //
+    // Create the RBD get the resources, overlays and map background bundle
+    // files. Load each bundle and re-bundle them into an RBD bundle file.
+
     public AbstractRBD<?> createRbdBundle(String rbdName,
             NCTimeMatcher timeMatcher) throws VizException {
 
@@ -1166,7 +1195,6 @@ public class RscBundleDisplayMngr {
         }
 
         rbdBndl.setRbdName(rbdName);
-        // rbdBndl.setPaneLayout( (NcPaneLayout)getPaneLayout() );
 
         if (timeMatcher != null) {
             rbdBndl.setTimeMatcher(timeMatcher);
@@ -1186,7 +1214,6 @@ public class RscBundleDisplayMngr {
 
             PredefinedArea pArea = paneData.getArea();
 
-            //
             if (pArea.getSource() == AreaSource.DISPLAY_AREA) {
                 pArea.setAreaSource(AreaSource.INITIAL_DISPLAY_AREA.toString());
                 pArea.setAreaName(rbdName);
@@ -1212,30 +1239,25 @@ public class RscBundleDisplayMngr {
             }
 
             // loop thru the bundles for the selected rscs
-            //
+
             for (int ii = paneData.getSelectedResources().length - 1; ii >= 0; ii--) {
                 ResourceSelection rbt = paneData.getSelectedResources()[ii];
 
                 ResourcePair rscPair = rbt.getResourcePair();
-                // if( dfltDomRscName == null &&
-                // rscPair.getResourceData() instanceof
-                // AbstractNatlCntrsRequestableResourceData ) {
-                // dfltDomRscName = ((INatlCntrsResourceData)
-                // rscPair.getResourceData()).getFullResourceName();
-                // }
-                // if( rbt.isDominant() ) {
-                // selDomRsc = (AbstractNatlCntrsRequestableResourceData)
-                // rscPair.getResourceData();
-                // }
+
+                // group at bottom
+                if (rscPair.getResourceData() instanceof GroupResourceData) {
+                    rscPair.getProperties().setRenderingOrderId(GROUP_ORDER_ID);
+                    rscPair.getProperties().setRenderingOrder(
+                            RenderingOrderFactory.getRenderingOrder(rscPair
+                                    .getProperties().getRenderingOrderId()));
+                }
                 descr.getResourceList().add(rscPair);
             }
 
             // set the timeMatcher for the Descriptor (This will be the same
-            // timeMatcher
-            // for all panes.
+            // timeMatcher for all panes.
             descr.setTimeMatcher(timeMatcher);
-
-            // rbdBndl.addDisplayPane( dispPane, paneId );
         }
 
         rbdBndl.setIsDefaultRbd(false);
@@ -1281,7 +1303,7 @@ public class RscBundleDisplayMngr {
                             try {
                                 resInGrp[jj] = ResourceFactory
                                         .createResource(grd.getResourceList()
-                                                .get(jj));
+                                                .get(resInGrp.length - jj - 1));
                             } catch (VizException e) {
 
                             }
@@ -1339,6 +1361,122 @@ public class RscBundleDisplayMngr {
                     selectedPaneData.seldResources.get(target));
             selectedPaneData.seldResources.set(target, sel);
 
+        }
+
+    }
+
+    /*
+     * Moves a resource up in the list
+     * 
+     * @param sel ResourceSelection - resource selected
+     * 
+     * @param grp GroupResourceData - group of the selected resource
+     */
+    public void moveUpResource(ResourceSelection sel, GroupResourceData grp) {
+        if (grp == null) {
+            // ungrouped resoruces
+            int curIdx = -1;
+            for (int ii = selectedPaneData.seldResources.size() - 1; ii >= 0; ii--) {
+                if (selectedPaneData.seldResources.get(ii) == sel) {
+                    curIdx = ii;
+                    break;
+                }
+            }
+
+            if (curIdx > 0
+                    && !(selectedPaneData.seldResources.get(curIdx - 1)
+                            .getResourceData() instanceof GroupResourceData)) {
+                selectedPaneData.seldResources.set(curIdx,
+                        selectedPaneData.seldResources.get(curIdx - 1));
+                selectedPaneData.seldResources.set(curIdx - 1, sel);
+
+                sel.getResourcePair()
+                        .getProperties()
+                        .setRenderingOrder(
+                                selectedPaneData.seldResources.get(curIdx)
+                                        .getResourcePair().getProperties()
+                                        .getRenderingOrder());
+                sel.getResourcePair()
+                        .getProperties()
+                        .setRenderingOrderId(
+                                selectedPaneData.seldResources.get(curIdx)
+                                        .getResourcePair().getProperties()
+                                        .getRenderingOrderId());
+            }
+        } else {
+            // group
+            int curIdx = -1;
+            for (int ii = grp.getResourceList().size() - 1; ii >= 0; ii--) {
+                if (grp.getResourceList().get(ii) == sel.getResourcePair()) {
+                    curIdx = ii;
+                    break;
+                }
+            }
+
+            // In ResourceList the order is reversed
+            if (curIdx < grp.getResourceList().size() - 1) {
+                grp.getResourceList().set(curIdx,
+                        grp.getResourceList().get(curIdx + 1));
+                grp.getResourceList().set(curIdx + 1, sel.getResourcePair());
+            }
+        }
+
+    }
+
+    /*
+     * Moves a resource down in the list
+     * 
+     * @sel ResourceSelection - resource selected
+     * 
+     * @grp GroupResourceData - group of the selected resource
+     */
+    public void moveDownResource(ResourceSelection sel, GroupResourceData grp) {
+        if (grp == null) {
+            // ungrouped resoruces
+            int curIdx = -1;
+            for (int ii = selectedPaneData.seldResources.size() - 1; ii >= 0; ii--) {
+                if (selectedPaneData.seldResources.get(ii) == sel) {
+                    curIdx = ii;
+                    break;
+                }
+            }
+
+            if (curIdx < selectedPaneData.seldResources.size() - 1
+                    && !(selectedPaneData.seldResources.get(curIdx + 1)
+                            .getResourceData() instanceof GroupResourceData)) {
+                selectedPaneData.seldResources.set(curIdx,
+                        selectedPaneData.seldResources.get(curIdx + 1));
+                selectedPaneData.seldResources.set(curIdx + 1, sel);
+
+                sel.getResourcePair()
+                        .getProperties()
+                        .setRenderingOrder(
+                                selectedPaneData.seldResources.get(curIdx)
+                                        .getResourcePair().getProperties()
+                                        .getRenderingOrder());
+                sel.getResourcePair()
+                        .getProperties()
+                        .setRenderingOrderId(
+                                selectedPaneData.seldResources.get(curIdx)
+                                        .getResourcePair().getProperties()
+                                        .getRenderingOrderId());
+            }
+        } else {
+            // group
+            int curIdx = -1;
+            for (int ii = grp.getResourceList().size() - 1; ii >= 0; ii--) {
+                if (grp.getResourceList().get(ii) == sel.getResourcePair()) {
+                    curIdx = ii;
+                    break;
+                }
+            }
+
+            // In ResourceList the order is reversed
+            if (curIdx > 0) {
+                grp.getResourceList().set(curIdx,
+                        grp.getResourceList().get(curIdx - 1));
+                grp.getResourceList().set(curIdx - 1, sel.getResourcePair());
+            }
         }
 
     }

@@ -29,6 +29,7 @@ import com.raytheon.uf.common.localization.LocalizationFile;
  * 05/02/12     778         Q. Zhou     Changed symbol size form int to double       
  * 10/18/2012   431         S. Gurung   Added support for ConditionalParameter and ConditionalColorBar
  * 08/14/2015 R7757         B. Hebbard  Cleanup only
+ * 11/17/2015 R9579         B. Hebbard  Add marker type and symbol width fields to PlotModelElement
  * 
  * </pre>
  * 
@@ -41,7 +42,7 @@ import com.raytheon.uf.common.localization.LocalizationFile;
 public class PlotModel {
 
     @XmlElement(name = "PlotModelElement", required = true)
-    protected List<PlotModelElement> plotModelElement;
+    protected List<PlotModelElement> plotModelElements;
 
     @XmlAttribute
     protected String name;
@@ -80,10 +81,10 @@ public class PlotModel {
      * 
      */
     public List<PlotModelElement> getAllPlotModelElements() {
-        if (plotModelElement == null) {
-            plotModelElement = new ArrayList<PlotModelElement>();
+        if (plotModelElements == null) {
+            plotModelElements = new ArrayList<PlotModelElement>();
         }
-        return this.plotModelElement;
+        return this.plotModelElements;
     }
 
     public ArrayList<String> getPlotParamNames(boolean includeWindParam) {
@@ -136,7 +137,7 @@ public class PlotModel {
     }
 
     public PlotModelElement getPlotModelElement(String position) {
-        for (PlotModelElement e : plotModelElement) {
+        for (PlotModelElement e : plotModelElements) {
             if (e.getPosition().equalsIgnoreCase(position)) {
                 return e;
             }
@@ -145,7 +146,7 @@ public class PlotModel {
     }
 
     public PlotModelElement getSkyCoverageElement() {
-        for (PlotModelElement e : plotModelElement) {
+        for (PlotModelElement e : plotModelElements) {
             if (e.getPosition().equalsIgnoreCase("SC")) {
                 return e;
             }
@@ -154,7 +155,7 @@ public class PlotModel {
     }
 
     public PlotModelElement getWindBarbElement() {
-        for (PlotModelElement e : plotModelElement) {
+        for (PlotModelElement e : plotModelElements) {
             if (e.getPosition().equalsIgnoreCase("WD")) {
                 return e;
             }
@@ -163,9 +164,9 @@ public class PlotModel {
     }
 
     public boolean removePlotModelElement(PlotModelElement pme) {
-        for (PlotModelElement e : plotModelElement) {
+        for (PlotModelElement e : plotModelElements) {
             if (e.getPosition().equalsIgnoreCase(pme.getPosition())) {
-                plotModelElement.remove(e);
+                plotModelElements.remove(e);
                 return true;
             }
         }
@@ -174,21 +175,21 @@ public class PlotModel {
 
     public void putPlotModelElement(PlotModelElement pme) {
         int i = 0;
-        for (PlotModelElement e : plotModelElement) {
+        for (PlotModelElement e : plotModelElements) {
             if (e.getPosition().equalsIgnoreCase(pme.getPosition())) {
-                plotModelElement.set(i, pme);
+                plotModelElements.set(i, pme);
                 return;
             }
             i++;
         }
-        plotModelElement.add(pme);
+        plotModelElements.add(pme);
     }
 
     public PlotModel() {
     }
 
     public PlotModel(PlotModel pm) {
-        plotModelElement = new ArrayList<PlotModelElement>();
+        plotModelElements = new ArrayList<PlotModelElement>();
         name = new String(pm.name);
         plugin = new String(pm.plugin);
         svgTemplate = new String(pm.svgTemplate);
@@ -197,9 +198,11 @@ public class PlotModel {
             PlotModelElement newPlotModelElement = new PlotModelElement();
             newPlotModelElement.setParamName(pme.getParamName());
             newPlotModelElement.setPosition(pme.getPosition());
-            // newPlotModelElement.setEnable( pme.getEnable() );
             if (pme.getSymbolSize() != null) {
                 newPlotModelElement.setSymbolSize(pme.getSymbolSize());
+            }
+            if (pme.getSymbolWidth() != null) {
+                newPlotModelElement.setSymbolWidth(pme.getSymbolWidth());
             }
             if (pme.getTextFont() != null) {
                 newPlotModelElement.setTextFont(pme.getTextFont());
@@ -225,8 +228,11 @@ public class PlotModel {
                 newPlotModelElement.setConditionalColorBar(pme
                         .getConditionalColorBar());
             }
+            if (pme.getMarkerType() != null) {
+                newPlotModelElement.setMarkerType(pme.getMarkerType());
+            }
 
-            plotModelElement.add(newPlotModelElement);
+            plotModelElements.add(newPlotModelElement);
         }
 
         lFile = pm.lFile;
@@ -234,7 +240,7 @@ public class PlotModel {
 
     public boolean hasAdvancedSettings() {
 
-        for (PlotModelElement pme : plotModelElement) {
+        for (PlotModelElement pme : plotModelElements) {
             if (pme.hasAdvancedSettings())
                 return true;
         }

@@ -2,5 +2,37 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>GFS40</resource>
     <attrSetGroupName>hurricane</attrSetGroupName>
-    <attrSetNames>250mb_hght_wind,250mb_wind_and_rel_vort,500mb_hght_absv,500mb_wind_and_rel_vort,700mb_wind_and_rel_vort,850-300mb_wind_shear,850mb_wind_and_rel_vort</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>250mb_hght_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>250mb_wind_and_rel_vort</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_wind_and_rel_vort</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_wind_and_rel_vort</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850-300mb_wind_shear</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_wind_and_rel_vort</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

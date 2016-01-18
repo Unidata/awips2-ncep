@@ -3,7 +3,7 @@
   <resource>
     <loadProperties>
     </loadProperties>
-    <properties isSystemResource="false" isBlinking="false"
+    <properties renderingOrderId="PLOT" isSystemResource="false" isBlinking="false"
       isMapLayer="false" isHoverOn="false" isVisible="true" />
     <resourceData xsi:type="NC-WaveSatResourceData"
       retrieveData="false" isUpdatingOnMetadataOnly="false"

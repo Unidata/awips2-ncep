@@ -2,5 +2,21 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>NatlMosaic</resource>
     <attrSetGroupName>CREF</attrSetGroupName>
-    <attrSetNames>CREF_4.00,CREF_1.00,CREF_30.00,CREF_nids_cmref</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>CREF_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_30.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_nids_cmref</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

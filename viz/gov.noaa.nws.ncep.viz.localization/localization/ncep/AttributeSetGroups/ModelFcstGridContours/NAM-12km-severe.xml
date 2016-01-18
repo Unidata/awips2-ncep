@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>NAM12</resource>
-    <attrSetGroupName>severe</attrSetGroupName>
-    <attrSetNames>svrwx_nam</attrSetNames>
+    <resource>ECMWF</resource>
+    <attrSetGroupName>medr</attrSetGroupName>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>ethkn</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

@@ -125,6 +125,8 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 
  * 11/09/2015   R9399       J. Lopez    Added the ability to specify the number
  *                                      of buttons per row
+ *                                      
+ * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
  * </pre>
  * 
  * @author sgilbert
@@ -757,98 +759,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
              * the object buttons registered as part of the class selected.
              */
             else if (point.equals(CLASS_SECTION)) {
-
-                // remove currently loaded buttons from the Object section
-                org.eclipse.swt.widgets.Control[] kids = objectBox
-                        .getChildren();
-                for (int j = 0; j < kids.length; j++) {
-                    kids[j].dispose();
-                }
-
-                // reset the previous category's button icon
-                if (currentCategory != null) {
-                    resetIcon(currentCategory);
-                }
-
-                currentCategory = elem.getAttribute("name");
-
-                // display "active" icon on the current Class's button
-                setActiveIcon(currentCategory);
-
-                // Loop threough each object registered
-                // with the currentClass/Category
-                for (String bname : getObjectNames(currentCategory)) {
-
-                    IConfigurationElement element = itemMap.get(bname);
-
-                    // determine if button should be added to palette
-
-                    if (buttonList != null) {
-                        if (!buttonList.contains(bname))
-                            continue;
-                    }
-
-                    Button item = new Button(objectBox, SWT.PUSH);
-
-                    // Add button label
-                    if (element.getAttribute("label") != null)
-                        item.setToolTipText(element.getAttribute("label"));
-
-                    // create an icon image for the button, if an icon was
-                    // specified in the registered item.
-
-                    if (element.getAttribute("icon") != null) {
-
-                        Image icon = getIcon(element.getAttribute("icon"));
-                        item.setImage(icon);
-                        item.addDisposeListener(this);
-
-                    } else {
-
-                        // No icon available. Set text to display on button
-                        item.setText(element.getAttribute("name"));
-
-                    }
-
-                    // set the ConfigurationElement name in the button, add to
-                    // map of currently displayed buttons
-
-                    item.setData(element.getAttribute("name"));
-                    item.addSelectionListener(this);
-                    buttonMap.put(element.getAttribute("name"), item);
-
-                    objectBox.setSize(objectBox.computeSize(paletteSize,
-                            SWT.DEFAULT, true));
-                    objectBox.pack();
-                    objectBox.layout(true);
-                    objectBox.redraw();
-
-                }
-
-                // if multiSelect is current tool,
-                // reload it now after category selection
-                if (currentAction != null) {
-                    if (currentAction.isEmpty()) {
-                        currentAction = "Select";
-                    }
-                    if (currentAction.equalsIgnoreCase("Select")
-                            || currentAction.equalsIgnoreCase("MultiSelect")
-                            || currentAction.equalsIgnoreCase("Copy")
-                            || currentAction.equalsIgnoreCase("Move")
-                            || currentAction.equalsIgnoreCase("Modify")
-                            || currentAction.equalsIgnoreCase("Connect")
-                            || currentAction.equalsIgnoreCase("Rotate")
-                            || currentAction.equalsIgnoreCase("Flip")
-                            || currentAction.equalsIgnoreCase("Extrap")
-                            || currentAction.equalsIgnoreCase("Interp")) {
-                        elem = itemMap.get(currentAction);
-                        if (elem != null) {
-                            exeCommand(elem);
-                        }
-                    }
-                }
-
-                paletteResize();
+                populateObjectSection(elem.getAttribute("name"));
             }
         } else {
             Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
@@ -1436,8 +1347,118 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      * Sets the category and its icon.
      */
     public void setCurrentCategory(String currentCategory) {
+        setCurrentCategory(currentCategory, false);
+
+    }
+
+    /**
+     * Sets the category and its icon.
+     */
+    public void setCurrentCategory(String currentCategory,
+            boolean createObjectSection) {
         this.resetIcon(this.currentCategory);
         this.currentCategory = currentCategory;
         this.setActiveIcon(currentCategory);
+        if (createObjectSection) {
+            populateObjectSection(null);
+        }
+
+    }
+
+    private void populateObjectSection(String elem) {
+        // remove currently loaded buttons from the Object section
+        org.eclipse.swt.widgets.Control[] kids = objectBox.getChildren();
+        for (int j = 0; j < kids.length; j++) {
+            kids[j].dispose();
+        }
+
+        // reset the previous category's button icon
+        if (currentCategory != null) {
+            resetIcon(currentCategory);
+        }
+
+        // if elem is passed, used element's category
+        if (elem != null) {
+            currentCategory = elem;
+        }
+
+        // display "active" icon on the current Class's button
+        setActiveIcon(currentCategory);
+
+        // Loop threough each object registered
+        // with the currentClass/Category
+        for (String bname : getObjectNames(currentCategory)) {
+
+            IConfigurationElement element = itemMap.get(bname);
+
+            // determine if button should be added to palette
+
+            if (buttonList != null) {
+                if (!buttonList.contains(bname))
+                    continue;
+            }
+
+            Button item = new Button(objectBox, SWT.PUSH);
+
+            // Add button label
+            if (element.getAttribute("label") != null)
+                item.setToolTipText(element.getAttribute("label"));
+
+            // create an icon image for the button, if an icon was
+            // specified in the registered item.
+
+            if (element.getAttribute("icon") != null) {
+
+                Image icon = getIcon(element.getAttribute("icon"));
+                item.setImage(icon);
+                item.addDisposeListener(this);
+
+            } else {
+
+                // No icon available. Set text to display on button
+                item.setText(element.getAttribute("name"));
+
+            }
+
+            // set the ConfigurationElement name in the button, add to
+            // map of currently displayed buttons
+
+            item.setData(element.getAttribute("name"));
+            item.addSelectionListener(this);
+            buttonMap.put(element.getAttribute("name"), item);
+
+            objectBox.setSize(objectBox.computeSize(paletteSize, SWT.DEFAULT,
+                    true));
+            objectBox.pack();
+            objectBox.layout(true);
+            objectBox.redraw();
+
+        }
+
+        // if multiSelect is current tool,
+        // reload it now after category selection
+        if (currentAction != null) {
+            if (currentAction.isEmpty()) {
+                currentAction = "Select";
+            }
+            if (currentAction.equalsIgnoreCase("Select")
+                    || currentAction.equalsIgnoreCase("MultiSelect")
+                    || currentAction.equalsIgnoreCase("Copy")
+                    || currentAction.equalsIgnoreCase("Move")
+                    || currentAction.equalsIgnoreCase("Modify")
+                    || currentAction.equalsIgnoreCase("Connect")
+                    || currentAction.equalsIgnoreCase("Rotate")
+                    || currentAction.equalsIgnoreCase("Flip")
+                    || currentAction.equalsIgnoreCase("Extrap")
+                    || currentAction.equalsIgnoreCase("Interp")) {
+                IConfigurationElement elememt = itemMap.get(currentAction);
+                if (elem != null) {
+                    exeCommand(itemMap.get(currentAction));
+                }
+            }
+        }
+
+        paletteResize();
+
     }
 }

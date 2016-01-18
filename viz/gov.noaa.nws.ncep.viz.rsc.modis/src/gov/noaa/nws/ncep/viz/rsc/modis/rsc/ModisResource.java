@@ -6,9 +6,11 @@ import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.util.Sampler;
 import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
@@ -17,21 +19,18 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
-import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 import javax.xml.bind.JAXBException;
 
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -42,7 +41,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
-import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -56,7 +54,8 @@ import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.Request;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.geospatial.util.EnvelopeIntersection;
+import com.raytheon.uf.common.geospatial.IGridGeometryProvider;
+import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
@@ -76,6 +75,7 @@ import com.raytheon.uf.common.style.level.Level;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.util.ArraysUtil;
 import com.raytheon.uf.viz.core.DrawableImage;
+import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.RasterMode;
 import com.raytheon.uf.viz.core.IMesh;
@@ -88,20 +88,21 @@ import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormappedImageExtensio
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapMeshExtension;
 import com.raytheon.uf.viz.core.reflect.SubClassLocator;
+import com.raytheon.uf.viz.core.rsc.IInputHandler;
+import com.raytheon.uf.viz.core.rsc.IInputHandler.InputPriority;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
+import com.raytheon.uf.viz.core.sampling.ISamplingResource;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.vividsolutions.jts.algorithm.CGAlgorithms;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * 
@@ -114,13 +115,12 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
  * 
  * Date         Ticket#    Engineer     Description
  * ------------ ---------- -----------  --------------------------
- * 10/01/2014   R5116      kbugenhagen  Initial creation.
- * 08/19/2015   R7270      kbugenhagen  Geotiff now displays correctly.
- * 08/31/2015   R7270      kbugenhagen  Updated to use Ben Steffensmeier's 
- *                                      createGeoTiff method.
- * 09/22/2015   R7270      kbugenhagen  Allow for separate geotiffs per 
- *                                      ModisRecord
- * 
+ * 10/01/2014   R5116   kbugenhagen  Initial creation.
+ * 08/19/2015   R7270   kbugenhagen  Geotiff now displays correctly.
+ * 08/31/2015   R7270   kbugenhagen  Updated to use Ben Steffensmeier's 
+ *                                   createGeoTiff method.
+ * 09/22/2015   R7270   kbugenhagen  Allow for separate geotiffs per ModisRecord
+ * 11/19/2015   R13133  kbugenhagen  Added sampling capability.
  * </pre>
  * 
  * @author kbugenhagen
@@ -129,11 +129,14 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 
 public class ModisResource extends
         AbstractNatlCntrsResource<ModisResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IResourceDataChanged, ImageProvider {
+        INatlCntrsResource, IResourceDataChanged, ImageProvider,
+        ISamplingResource {
 
     static final char SLASH = File.separatorChar;
 
     static final String DEFAULT_COLORMAP_NAME = "colorMapName";
+
+    static final String SAMPLING_METHOD_NAME = "findBestValueForCoordinate";
 
     private ModisResourceData modisResourceData;
 
@@ -142,6 +145,14 @@ public class ModisResource extends
     protected ColorBarResource cbarResource;
 
     private static JAXBManager jaxb;
+
+    private final IInputHandler inputAdapter = getModisInputHandler();
+
+    protected ReferencedCoordinate sampleCoord;
+
+    protected Coordinate virtualCursor;// virtual cursor location
+
+    protected boolean sampling = false;
 
     /**
      * Map for data records to renderable data, synchronized on for painting,
@@ -184,26 +195,13 @@ public class ModisResource extends
     /**
      * Every {@link ModisRecord} will have a corresponding RecordData object
      */
-    private class RecordData {
+    private class RecordData extends AbstractSatelliteRecordData<ModisRecord> {
 
         private final static double INTERSECTION_FACTOR = 10.0;
 
         private final static int TILE_SIZE = 2048;
 
-        private ModisRecord record;
-
         private ModisTileImageCreator imageCreator;
-
-        /** Intersection geometry for the target */
-        private List<PreparedGeometry> targetIntersection;
-
-        /** Flag designated if a project call is required next paint */
-        private boolean project;
-
-        /** Renderable for the data record */
-        private TileSetRenderable tileSet;
-
-        private double resolution;
 
         private boolean createdGeoTiff = false;
 
@@ -222,68 +220,16 @@ public class ModisResource extends
             this.record = dataRecord;
         }
 
-        public Collection<DrawableImage> getImagesToRender(
-                IGraphicsTarget target, PaintProperties paintProps)
-                throws VizException {
-
-            if (project) {
-                projectInternal();
-                project = false;
-            }
-            if (targetIntersection != null) {
-                return tileSet.getImagesToRender(target, paintProps);
-            } else {
-                return Collections.emptyList();
-            }
-        }
-
-        public void project() {
-            this.project = true;
-        }
-
-        private void projectInternal() {
-            GeneralGridGeometry targetGeometry = descriptor.getGridGeometry();
-            if (tileSet.getTargetGeometry() != targetGeometry) {
-                tileSet.project(targetGeometry);
-                try {
-                    Envelope tileSetEnvelope = tileSet.getTileSetGeometry()
-                            .getEnvelope();
-                    targetIntersection = null;
-                    Geometry intersection = EnvelopeIntersection
-                            .createEnvelopeIntersection(
-                                    tileSetEnvelope,
-                                    targetGeometry.getEnvelope(),
-                                    resolution,
-                                    (int) (tileSetEnvelope.getSpan(0) / (resolution * INTERSECTION_FACTOR)),
-                                    (int) (tileSetEnvelope.getSpan(1) / (resolution * INTERSECTION_FACTOR)));
-                    if (intersection != null) {
-                        int numGeoms = intersection.getNumGeometries();
-                        targetIntersection = new ArrayList<PreparedGeometry>(
-                                numGeoms);
-                        for (int n = 0; n < numGeoms; ++n) {
-                            targetIntersection.add(PreparedGeometryFactory
-                                    .prepare(intersection.getGeometryN(n)
-                                            .buffer(resolution
-                                                    * INTERSECTION_FACTOR)));
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void dispose() {
-            if (tileSet != null) {
-                tileSet.dispose();
-                tileSet = null;
-            }
-            targetIntersection = null;
-            System.out.println("disposed recorddata");
+        protected double interrogate(Coordinate latLon) throws VizException {
+            return super.interrogate(latLon);
         }
 
         public ModisRecord getRecord() {
             return record;
+        }
+
+        protected double getIntersectionFactor() {
+            return INTERSECTION_FACTOR;
         }
 
     }
@@ -298,7 +244,7 @@ public class ModisResource extends
         // Each ModisRecord that matches a frame's time is used to create a
         // RecordData object. RecordData objects are responsible for creating
         // the images (tilesets) that get grouped together for a frame.
-        Map<DataTime, List<RecordData>> recordDataMap;
+        protected Map<DataTime, List<RecordData>> recordDataMap;
 
         public FrameData(DataTime frameTime, int timeInt) {
             super(frameTime, timeInt);
@@ -381,7 +327,6 @@ public class ModisResource extends
         }
 
         public void dispose() {
-            System.out.println("disposed frame");
             recordData.dispose();
             recordDataMap.clear();
         }
@@ -556,7 +501,7 @@ public class ModisResource extends
     }
 
     /**
-     * Set display and data units, min and max for color map.
+     * Set color map unit, min, and max.
      * 
      * @param dataRecord
      *            MODIS data record
@@ -568,7 +513,9 @@ public class ModisResource extends
     private void setColorMapUnits(ModisRecord dataRecord,
             ImagePreferences preferences, ColorMapParameters colorMapParameters)
             throws VizException {
-        setDataUnit(dataRecord, colorMapParameters);
+
+        colorMapParameters.setColorMapUnit(Unit.ONE);
+
         Unit<?> displayUnit = Unit.ONE;
         if (preferences != null) {
             if (preferences.getDisplayUnits() != null) {
@@ -593,57 +540,6 @@ public class ModisResource extends
                 }
             }
         }
-
-    }
-
-    /**
-     * Set data unit for color map.
-     * 
-     * @param dataRecord
-     *            MODIS data record
-     * @param colorMapParameters
-     * @throws VizException
-     */
-    private void setDataUnit(ModisRecord dataRecord,
-            ColorMapParameters colorMapParameters) throws VizException {
-        Unit<?> dataUnit = Unit.ONE;
-
-        try {
-            IDataRecord record = DataCubeContainer.getDataRecord(dataRecord,
-                    Request.buildPointRequest(new java.awt.Point(0, 0)),
-                    ModisRecord.getDataSet(0))[0];
-            Map<String, Object> attrs = record.getDataAttributes();
-            if (attrs != null) {
-                Float offset = (Float) attrs.get(ModisRecord.OFFSET_ID);
-                Float scale = (Float) attrs.get(ModisRecord.SCALE_ID);
-                String unitStr = (String) attrs.get(ModisRecord.UNIT_ID);
-                if (attrs.containsKey(ModisRecord.MISSING_VALUE_ID)) {
-                    colorMapParameters.setNoDataValue(((Number) attrs
-                            .get(ModisRecord.MISSING_VALUE_ID)).doubleValue());
-                }
-                if (unitStr != null) {
-                    try {
-                        dataUnit = UnitFormat.getUCUMInstance().parseObject(
-                                unitStr, new ParsePosition(0));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (dataUnit == null) {
-                    dataUnit = SI.MILLI(SI.GRAM).divide(SI.CUBIC_METRE);
-                }
-                if (offset != null && offset != 0.0) {
-                    dataUnit = dataUnit.plus(offset);
-                }
-                if (scale != null && scale != 0.0 && scale != 1.0) {
-                    dataUnit = dataUnit.times(scale);
-                }
-            }
-        } catch (DataCubeException e) {
-            throw new VizException(e);
-        }
-
-        colorMapParameters.setColorMapUnit(dataUnit);
 
     }
 
@@ -764,6 +660,12 @@ public class ModisResource extends
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
         getCapability(ImagingCapability.class).setProvider(this);
 
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null) {
+            container
+                    .registerMouseHandler(inputAdapter, InputPriority.RESOURCE);
+        }
+
         loadRecords();
     }
 
@@ -809,6 +711,15 @@ public class ModisResource extends
                 }
             }
         }
+
+        if (isSampling()) {
+            ColorMapParameters colorMapParameters = getCapability(
+                    ColorMapCapability.class).getColorMapParameters();
+            Sampler.INSTANCE.createSampler(descriptor, colorMapParameters,
+                    SAMPLING_METHOD_NAME);
+            Sampler.INSTANCE.paintResult(target, paintProps, sampleCoord);
+        }
+
     }
 
     protected void createGeoTiff(ModisRecord record) {
@@ -1030,25 +941,11 @@ public class ModisResource extends
         if (cbarRscPair != null) {
             getDescriptor().getResourceList().remove(cbarRscPair);
         }
-    }
-
-    public List<Collection<DrawableImage>> getAllImages(FrameData frameData,
-            IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
-        List<RecordData> recordDataList = frameData.getRecordDataMap().get(
-                frameData.getFrameTime());
-        List<Collection<DrawableImage>> images = new ArrayList<Collection<DrawableImage>>();
-
-        if (recordDataList != null) {
-            for (RecordData recordData : recordDataList) {
-                if (recordData != null) {
-                    Collection<DrawableImage> recordImages = recordData
-                            .getImagesToRender(target, paintProps);
-                    images.add(recordImages);
-                }
-            }
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null) {
+            container.unregisterMouseHandler(inputAdapter);
         }
-        return images;
+
     }
 
     public String getLocFilePathForImageryStyleRule() {
@@ -1104,7 +1001,26 @@ public class ModisResource extends
         name = str;
     }
 
-    // Required by IImagingExtension.ImageProvider class
+    public List<Collection<DrawableImage>> getAllImages(FrameData frameData,
+            IGraphicsTarget target, PaintProperties paintProps)
+            throws VizException {
+        List<RecordData> recordDataList = frameData.getRecordDataMap().get(
+                frameData.getFrameTime());
+        List<Collection<DrawableImage>> images = new ArrayList<Collection<DrawableImage>>();
+
+        if (recordDataList != null) {
+            for (AbstractSatelliteRecordData<ModisRecord> recordData : recordDataList) {
+                if (recordData != null) {
+                    Collection<DrawableImage> recordImages = recordData
+                            .getImagesToRender(target, paintProps,
+                                    descriptor.getGridGeometry());
+                    images.add(recordImages);
+                }
+            }
+        }
+        return images;
+    }
+
     @Override
     public Collection<DrawableImage> getImages(IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
@@ -1116,6 +1032,78 @@ public class ModisResource extends
         FrameData curFrame = (FrameData) getCurrentFrame();
         return (curFrame != null ? curFrame.getLegendForFrame()
                 : "No Matching Data");
+    }
+
+    public IInputHandler getModisInputHandler() {
+        return new ModisInputAdapter(this);
+    }
+
+    /*
+     * Uses TilesetRenderable interrogation to find the closest data value
+     * corresponding to the coordinate.
+     * 
+     * @param p image point used to determine which data record contains it
+     * 
+     * @param latLon lat/lon coordinate used in TilesetRenderable interrogation
+     * 
+     * @returns map collection mapping interrogation ID to the closest data
+     * value
+     */
+    public Map<String, Object> findBestValueForCoordinate(Point p,
+            Coordinate latLon) throws VizException {
+
+        Map<String, Object> interMap = new HashMap<String, Object>();
+        ColorMapParameters colorMapParameters = getCapability(
+                ColorMapCapability.class).getColorMapParameters();
+        double noDataValue = colorMapParameters.getNoDataValue();
+        double bestValue = Double.NaN;
+        ModisRecord bestRecord = null;
+        List<RecordData> recordDataList = getRecordDataList((FrameData) getCurrentFrame());
+
+        if (recordDataList != null) {
+            for (RecordData data : recordDataList) {
+                if (data != null && data.contains(p)) {
+                    double value;
+                    value = data.interrogate(latLon);
+                    if (Double.isNaN(value) == false && value != noDataValue) {
+                        bestValue = value;
+                        bestRecord = data.getRecord();
+                    }
+                }
+            }
+        }
+        double dataValue = Double.NaN;
+        double ciValue = Double.NaN;
+        if (Double.isNaN(bestValue) == false) {
+            dataValue = colorMapParameters.getDataToDisplayConverter().convert(
+                    bestValue);
+            // convert CI scaled value (dataValue), which is 0..254 to actual CI
+            // value, which is 0.0001..0.034
+            ciValue = dataValue;
+            if (dataValue != 0.0f && dataValue != 1.0f) {
+                ciValue = (float) Math.pow(10,
+                        ((dataValue - 0.5) / 100.0 - 4.0));
+            }
+        }
+        if (bestRecord != null) {
+            interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
+        }
+        interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
+                Measure.valueOf(ciValue, colorMapParameters.getDisplayUnit()));
+
+        return interMap;
+    }
+
+    protected List<RecordData> getRecordDataList(FrameData frameData) {
+        return frameData.getRecordDataMap().get(frameData.getFrameTime());
+    }
+
+    public boolean isSampling() {
+        return sampling;
+    }
+
+    public void setSampling(boolean sampling) {
+        this.sampling = sampling;
     }
 
 }

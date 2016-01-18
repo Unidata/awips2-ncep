@@ -1,6 +1,5 @@
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resourceDefnName>IcaoAreas</resourceDefnName>
-	<resourceMapName>IcaoAreas</resourceMapName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
 pgenStaticProductLocation=ncep/StaticPgenOverlays

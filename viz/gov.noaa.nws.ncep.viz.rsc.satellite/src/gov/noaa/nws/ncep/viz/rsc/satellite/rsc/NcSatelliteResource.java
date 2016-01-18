@@ -113,6 +113,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  ------------ ---------- ----------- --------------------------
  *  09/28/2015   R11385     njensen     Initial creation
  *  10/28/2015   R11385     kbugenhagen Updated to use stylerules to generate colormap
+ *  01/18/2016   ------     mjames@ucar Check common_static if ncpath is null
  *  04/12/2016   R16367     kbugenhagen Added support for SIMGOESR
  *  04/15/2016   R15954     SRussell    Updated FrameData.updateFrameData()
  *                                      Integrated class with IDataLoader design
@@ -673,6 +674,7 @@ public class NcSatelliteResource extends
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
                     MatchCriteria styleMatchCriteria = sr.getMatchCriteria();
+                    Integer matchValue = styleMatchCriteria.matches(matchCriteria);
                     if (styleMatchCriteria.matches(matchCriteria) > 0) {
                         styleRule = sr;
                         break;
@@ -1060,6 +1062,19 @@ public class NcSatelliteResource extends
             imgCap.setContrast(resourceData.getContrast());
             imgCap.setAlpha(resourceData.getAlpha());
             paintProps.setAlpha(resourceData.getAlpha());
+
+            ColorMapParameters params = getCapability(ColorMapCapability.class)
+                    .getColorMapParameters();
+                String colorMapName = resourceData.getColorMapName();
+                if (colorMapName == null) {
+                    colorMapName = "Sat/VIS/ZA (Vis Default)";
+                }
+                
+                // the D2D name is sent here, which was unaccounted for in ColorMapUtil
+                params.setColorMap(ColorMapUtil.loadColorMap(
+                        ResourceCategory.SatelliteRscCategory.getCategoryName(),
+                        colorMapName));
+
             satr.paint(target, paintProps);
         }
     }

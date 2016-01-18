@@ -60,10 +60,6 @@
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name></name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
               <name>simulated_radar</name>
               <alias></alias>
          </attrSetLabel>

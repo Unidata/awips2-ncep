@@ -94,7 +94,6 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
  *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
  *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
- *  01/17/2015    -----      mjames@ucar  Add resourceMapName
  * 
  * 
  * </pre>
@@ -113,9 +112,6 @@ public class ResourceDefinition implements IAlertObserver,
     @XmlElement
     private String resourceDefnName;
 
-    @XmlElement
-    private String resourceMapName; // resource map name defined in each resource file 
-    
     @XmlElement
     @XmlJavaTypeAdapter(ResourceCategory.ResourceCategoryAdapter.class)
     private ResourceCategory resourceCategory;
@@ -264,7 +260,6 @@ public class ResourceDefinition implements IAlertObserver,
 
     public ResourceDefinition() {
         resourceDefnName = "";
-        resourceMapName = "";
         resourceCategory = ResourceCategory.NullCategory;
         subTypeGenerator = "";
         rscTypeGenerator = "";
@@ -292,7 +287,6 @@ public class ResourceDefinition implements IAlertObserver,
     public ResourceDefinition(ResourceDefinition rscDefn) {
 
         resourceDefnName = rscDefn.getResourceDefnName();
-        resourceMapName = rscDefn.getResourceMapName();
         resourceCategory = rscDefn.resourceCategory;
         subTypeGenerator = rscDefn.getSubTypeGenerator();
 
@@ -385,10 +379,6 @@ public class ResourceDefinition implements IAlertObserver,
         return resourceDefnName;
     }
 
-    public String getResourceMapName() {
-        return resourceMapName;
-    }
-    
     public Boolean getAddToURICatalog() {
         return addToURICatalog;
     }
@@ -1866,9 +1856,9 @@ public class ResourceDefinition implements IAlertObserver,
                 RequestConstraint rc = baseConstraints.get(prmName);
 
                 if (!uriAttrValues.containsKey(prmName)) {
-                    //out.println("??? dataUriNotification, " + alrtMsg.dataURI
-                    //        + ", doesn't contain value for baseConstraint,"
-                    //        + prmName);
+                    out.println("??? dataUriNotification, " + alrtMsg.dataURI
+                            + ", doesn't contain value for baseConstraint,"
+                            + prmName);
                     useUri = false;
                     break;
                 } else if (!rc.evaluate(uriAttrValues.get(prmName))) {

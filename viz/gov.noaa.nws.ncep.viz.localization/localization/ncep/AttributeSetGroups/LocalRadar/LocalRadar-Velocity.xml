@@ -2,5 +2,42 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>Velocity</attrSetGroupName>
-    <attrSetNames>N0U,N1U,N2U,N3U,N0V,N0S,N1S,N2S,N3S</attrSetNames>
+<attrSetLabels>
+         <attrSetLabel>
+              <name>VEL3_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL5_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL2_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL6_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL6_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL3_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL2_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL4_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL1_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL5_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL4_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>SRVEL1_1.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
 </AttributeSetGroup>

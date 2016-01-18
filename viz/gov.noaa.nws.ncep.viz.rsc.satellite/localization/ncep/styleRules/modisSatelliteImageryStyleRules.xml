@@ -42,19 +42,17 @@
   </paramLevelMatches>
   <imageStyle>
      <range scale="LINEAR">
-         <minValue>0</minValue>
-         <maxValue>300</maxValue>
+         <minValue>0.001</minValue>
+         <maxValue>0.05</maxValue>
      </range>     
      <defaultColormap>chlorophyll</defaultColormap> 
-<!--      pixel values are scaled CI, but we want to display actual CI (display values) -->
      <dataMapping>
-<!--         <entry displayValue='0.0001' pixelValue='0' label='0.0001'/> -->
-        <entry displayValue='0.0' pixelValue='0' label='0.0'/>
-        <entry displayValue='0.0003' pixelValue='50' label='0.0003'/>
-        <entry displayValue='0.001' pixelValue='100' label='0.001'/>
-        <entry displayValue='0.003' pixelValue='150' label='0.003'/>
-        <entry displayValue='0.01' pixelValue='200' label='0.01'/>
-        <entry displayValue='0.03' pixelValue='254' label='0.03'/>        
+        <entry displayValue='0' pixelValue='0' label='0'/>
+        <entry displayValue='50' pixelValue='50' label='50'/>
+        <entry displayValue='100' pixelValue='100' label='100'/>
+        <entry displayValue='150' pixelValue='150' label='150'/>
+        <entry displayValue='200' pixelValue='200' label='200'/>
+        <entry displayValue='250' pixelValue='250' label='250'/>
      </dataMapping>          
   </imageStyle>
 </styleRule>

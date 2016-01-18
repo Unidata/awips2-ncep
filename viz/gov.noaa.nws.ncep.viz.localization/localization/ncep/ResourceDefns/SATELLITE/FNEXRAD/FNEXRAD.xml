@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="http://www.example.org/productType">
+    <inventoryEnabled>true</inventoryEnabled>
     <resourceDefnName>FNEXRAD</resourceDefnName>
     <resourceCategory>SATELLITE</resourceCategory>
+    <resourceParameters>
+legendColor=RGB {200, 200, 200}
+pluginName=satellite
+satelliteName=NEXRCOMP
+! satellite DB table valid values are
+! This must match the &quot;creatingEntity&quot; in the
+	</resourceParameters>
     <rscImplementation>GiniSatellite</rscImplementation>
     <subTypeGenerator>sectorID</subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
@@ -10,16 +18,5 @@
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>20</dfltFrameCount>
     <dfltTimeRange>48</dfltTimeRange>
-    <attrSetOrg>DETERMINE_BY_RSC_CATEGORY</attrSetOrg>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
-    <resourceParameters>
-legendColor=RGB {200, 200, 200}
-pluginName=satellite
-satelliteName=NEXRCOMP
-! satellite DB table valid values are
-! This must match the &quot;creatingEntity&quot; in the
-
-</resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
-    <addToURICatalog>false</addToURICatalog>
 </ResourceDefinition>

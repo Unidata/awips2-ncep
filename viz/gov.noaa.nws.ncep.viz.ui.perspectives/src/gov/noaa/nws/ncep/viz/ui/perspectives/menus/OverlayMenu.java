@@ -147,12 +147,12 @@ public class OverlayMenu extends CompoundContributionItem {
 		Map<String, String> params = new HashMap<String, String>();
 		ovrlyRsc.getResourceParameters(isEnabled());
 		params.put("overlayName", ovrlyRsc.getResourceDefnName() );
-		params.put("resourceMapName", ovrlyRsc.getResourceMapName() );
+		//params.put("resourceMapName", ovrlyRsc.getResourceMapName() );
 		
 		CommandContributionItemParameter param = new CommandContributionItemParameter(
 				PlatformUI.getWorkbench(), null,
 				"gov.noaa.nws.ncep.viz.ui.actions.loadOverlay", params,
-				null, null, null, ovrlyRsc.getResourceMapName(), null, null,
+				null, null, null, ovrlyRsc.getResourceDefnName(), null, null,
 				CommandContributionItem.STYLE_CHECK, null, true);
 		
 		return new CommandContributionItem( param );

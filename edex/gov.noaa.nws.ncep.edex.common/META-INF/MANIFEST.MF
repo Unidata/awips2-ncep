@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Common Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.common
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization 
 Export-Package: gov.noaa.nws.ncep.edex.common.dao,
  gov.noaa.nws.ncep.edex.common.dataRecords,

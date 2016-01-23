@@ -18,5 +18,5 @@ Export-Package: gov.noaa.nws.ncep.edex.plugin.mosaic.common,
  gov.noaa.nws.ncep.edex.plugin.mosaic.common.dao,
  gov.noaa.nws.ncep.edex.plugin.mosaic.uengine,
  gov.noaa.nws.ncep.edex.plugin.mosaic.util
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.apache.commons.logging

@@ -31,7 +31,7 @@ Require-Bundle: gov.nasa.gsfc.fits,
  gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
  com.raytheon.uf.common.style;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: gov.noaa.nws.ncep.viz.ui.display
 Export-Package: gov.noaa.nws.ncep.viz.rsc.solarimage.rsc
 

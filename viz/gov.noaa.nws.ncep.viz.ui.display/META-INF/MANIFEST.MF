@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.core.maps;bundle-version="1.12.1174",
  com.raytheon.uf.viz.xy;bundle-version="1.12.1174"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.ui.display
 Import-Package: com.raytheon.uf.viz.core.rsc.legend,
  gov.noaa.nws.ncep.gempak.parameters.colorbar,

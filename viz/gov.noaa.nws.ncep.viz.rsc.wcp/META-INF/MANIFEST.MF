@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  com.raytheon.uf.common.message;bundle-version="1.11.7",
  gov.noaa.nws.ncep.common.dataplugin.wcp;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wcp,
  gov.noaa.nws.ncep.viz.rsc.wcp.rsc

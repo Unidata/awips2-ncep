@@ -26,7 +26,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.numeric;bundle-version="1.14.0",
  org.apache.commons.lang;bundle-version="2.3.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.contours,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc

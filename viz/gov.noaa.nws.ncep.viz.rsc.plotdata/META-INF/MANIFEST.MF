@@ -25,7 +25,7 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.ui.pgen,
  com.raytheon.uf.viz.datacube
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.pointdata,

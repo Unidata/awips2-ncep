@@ -67,7 +67,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/02/12					S. Jacobs & 1.Fixed AODT Lat/Lon text input issue		
  * 							J. Bartlett 2.Monospace font for the AODT output 				
  * 02/11/13      972        G. Hull     AbstractEditor instead of NCMapEditor
- *
+ * 01/19/2016    5054       randerso    Remove dummy shell
+ * 
  * </pre>
  * 
  * @author 
@@ -433,7 +434,7 @@ public class AODTDialog extends Dialog {
         	public void widgetSelected( SelectionEvent ev ) {
         		String result = AODTResult.getText();
     			if (result == null || result.length() <= 0) {
-    				MessageBox messageBox = new MessageBox(new Shell(),
+    				MessageBox messageBox = new MessageBox(shell,
     	                    SWT.ICON_WARNING | SWT.OK);
     	            messageBox.setText("Warning");
     	            messageBox.setMessage("No results to print!   ");
@@ -618,7 +619,7 @@ public class AODTDialog extends Dialog {
 			}
 		}
 		else {
-			MessageBox messageBox = new MessageBox(new Shell(),
+			MessageBox messageBox = new MessageBox(shell,
                     SWT.ICON_WARNING | SWT.OK);
             messageBox.setText("Message");
             messageBox.setMessage("Please specify a file name!");

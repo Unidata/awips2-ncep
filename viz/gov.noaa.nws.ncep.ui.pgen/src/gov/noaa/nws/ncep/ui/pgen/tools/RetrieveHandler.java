@@ -14,6 +14,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.tools.AbstractTool;
@@ -26,6 +27,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 03/13		#977		S. Gilbert	Modified from PgenFileManageHandler
+ * 01/16/2016   5054        randerso    Use proper parent shell
  * 
  * </pre>
  * 
@@ -44,7 +46,7 @@ public class RetrieveHandler extends AbstractTool {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
-        Shell shell = new Shell(SWT.SHELL_TRIM); /* RESIZE | SWT.PRIMARY_MODAL); */
+        Shell shell = HandlerUtil.getActiveShell(event);
         String btnClicked = (String) event.getApplicationContext();
 
         // Set "active" icon for the palette button corresponding to this tool

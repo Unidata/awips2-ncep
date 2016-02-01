@@ -151,6 +151,7 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 12/14		R5413		B. Yin		  Add a listener for D2D swapping pane 
  * 12/14		R5413		B. Yin		  Check null in findResource
  * 12/17/2015   R12990      J. Wu         Added getContourSymbolLabelSpacing()
+ * 01/12/2016   R13168      J. Wu         Added getOneContourperLayer()
  * </pre>
  * 
  * @author
@@ -695,15 +696,15 @@ public class PgenUtil {
         AbstractEditor editor = getActiveEditor();
         if (editor != null) {
             try {
-                if (PgenUtil.isNatlCntrsEditor(editor)){
+                if (PgenUtil.isNatlCntrsEditor(editor)) {
                     PgenSession.getInstance().addEditor(editor);
-                }
-                else if (editor instanceof VizMapEditor  ){ 
-                	//Add a listener for D2d to make the swap work.
+                } else if (editor instanceof VizMapEditor) {
+                    // Add a listener for D2d to make the swap work.
                     PgenSession.getInstance().addEditor(editor);
-                    editor.addRenderableDisplayChangedListener(PgenSession.getInstance());
+                    editor.addRenderableDisplayChangedListener(PgenSession
+                            .getInstance());
                 }
-                
+
                 switch (getPgenMode()) {
                 case SINGLE:
                     /*
@@ -749,7 +750,7 @@ public class PgenUtil {
         }
         return drawingLayer;
     }
-    
+
     /**
      * Create a new PgenResource and add it to the current editor.
      * 
@@ -773,15 +774,15 @@ public class PgenUtil {
                     for (IDisplayPane pane : editor.getDisplayPanes()) {
                         IDescriptor idesc = pane.getDescriptor();
                         if (idesc.getResourceList().size() > 0) {
-                            
-                            if ( PgenSession.getInstance().getPgenResource() != null ){
-                                drawingLayer = PgenSession.getInstance().getPgenResource();
-                            }
-                            else {
+
+                            if (PgenSession.getInstance().getPgenResource() != null) {
+                                drawingLayer = PgenSession.getInstance()
+                                        .getPgenResource();
+                            } else {
                                 drawingLayer = rscData.construct(
-                                    new LoadProperties(), idesc);
+                                        new LoadProperties(), idesc);
                             }
-                            
+
                             idesc.getResourceList().add(drawingLayer);
                             idesc.getResourceList().addPreRemoveListener(
                                     drawingLayer);
@@ -1295,7 +1296,6 @@ public class PgenUtil {
     public static void resetResourceData() {
         rscData = null;
     }
-
 
     /**
      * This function computes the area of a spherical polygon on the earth
@@ -2052,7 +2052,7 @@ public class PgenUtil {
         for (ResourcePair rp : rscList) {
             AbstractVizResource<?, ?> rsc = rp.getResource();
 
-            if ( rsc != null && rsc.getClass() == rscClass) {
+            if (rsc != null && rsc.getClass() == rscClass) {
                 return rsc;
             }
         }
@@ -2495,6 +2495,16 @@ public class PgenUtil {
         int ySpacing = prefs
                 .getInt(PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_Y);
         return (new Coordinate(xSpacing, ySpacing));
+    }
+
+    /**
+     * Returns one-contour-per-layer flag
+     * 
+     * @return
+     */
+    public static boolean getOneContourPerLayer() {
+        IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+        return prefs.getBoolean(PgenPreferences.P_ONE_CONTOUR_PER_LAYER);
     }
 
 }

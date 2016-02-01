@@ -90,8 +90,8 @@ public class Activator extends AbstractUIPlugin {
             myprefs.setDefault(
                     PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_X, 0);
             myprefs.setDefault(
-                    PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_Y,
-                    5);
+                    PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_Y, 5);
+            myprefs.setDefault(PgenPreferences.P_ONE_CONTOUR_PER_LAYER, true);
             myprefs.setDefault(PgenPreferences.P_LAYER_MERGE, 4);
         }
 

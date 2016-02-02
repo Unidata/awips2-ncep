@@ -76,6 +76,7 @@ Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.uf.viz.xy.graph,
  com.raytheon.viz.alerts.observers,
  com.raytheon.viz.core.graphing,
+ gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.edex.common.ncinventory,
  gov.noaa.nws.ncep.gempak.parameters.colorbar

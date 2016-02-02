@@ -1,16 +1,13 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteAreaManager;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteImageTypeManager;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteNameManager;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 
 import java.util.ArrayList;
@@ -38,14 +35,15 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  Date         Ticket#     Engineer    Description
  *  ------------ ----------  ----------- --------------------------
  *  05/24/2010    #281        ghull       Initial creation 
- *  06/07/2012    #717       archana    Added the methods getImageTypeNumber(),
- *                                      getParameterList(), getLocFilePathForImageryStyleRule()
- *                                      Updated getDataUnitsFromRecord() to get the units from the database
- *  11/29/2012    #630       ghull      IGridGeometryProvider
- *  02/13/2015    #R6345     mkean      add areaName, resolution and getRscAttrSetName 
- *                                      to legendStr
+ *  06/07/2012    #717       archana      Added the methods getImageTypeNumber(),
+ *                                        getParameterList(), getLocFilePathForImageryStyleRule()
+ *                                        Updated getDataUnitsFromRecord() to get the units from the database
+ *  11/29/2012    #630       ghull        IGridGeometryProvider
+ *  02/13/2015    #R6345     mkean        add areaName, resolution and getRscAttrSetName 
+ *                                        to legendStr
  *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
- *  12/03/2015    R12953     R. Reynolds Modified to enhance Legend title
+ *  12/03/2015    R12953     R. Reynolds  Modified to enhance Legend title
+ *  02/04/2016    R14142     RCReynolds   Moved mcidas related string construction out to ResourceDefinition
  * </pre>
  * 
  * @author ghull
@@ -65,59 +63,32 @@ public class McidasSatResource extends AbstractSatelliteResource implements
         ResourceName rscName = satRscData.getResourceName();
 
         try {
+
             legendStr = "";
-            String subtypeParamAlias = "";
-            String subtypeParamValue = "";
-            String satId = "";
 
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
             ResourceDefinition rscDefn = rscDefnsMngr
                     .getResourceDefinition(rscName.getRscType());
-            SatelliteAreaManager satAreaMgr = SatelliteAreaManager
-                    .getInstance();
-            SatelliteImageTypeManager satImageMngr = SatelliteImageTypeManager
-                    .getInstance();
 
             String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
 
             for (int k = 0; k < subtypeParam.length; k++) {
-
-                subtypeParamValue = subtypeParam[k].toString();
-
-                // subtypeParamAlias could be resolution, sateliteId, areaId or
-                // projection
-                subtypeParamAlias = satRscData.getMetadataMap()
-                        .get(subtypeParamValue).getConstraintValue().toString();
-                // projection is already a String, but...
-                if (subtypeParamValue
-                        .equalsIgnoreCase(McidasConstants.RESOLUTION)) {
-                    subtypeParamAlias += "km";
-
-                } else if (subtypeParamValue.toString().equalsIgnoreCase(
-                        McidasConstants.AREA_ID)) {
-                    // get custom name for areaId as defined in
-                    // satelliteAreas.xml
-                    subtypeParamAlias = satAreaMgr
-                            .getDisplayedName(SatelliteAreaManager.ResourceDefnName
-                                    + SatelliteAreaManager.delimiter
-                                    + subtypeParamAlias);
-
-                } else if (subtypeParamValue.toString().equalsIgnoreCase(
-                        McidasConstants.SATELLITE_ID)) {
-                    // get custom name for satelliteId as defined in
-                    // satelliteNames.xml
-                    satId = subtypeParamAlias;
-                    subtypeParamAlias = SatelliteNameManager.getInstance()
-                            .getDisplayedNameByID(subtypeParamAlias);
-
-                }
-
-                legendStr += subtypeParamAlias + " ";
-
+                legendStr += satRscData.getMetadataMap()
+                        .get(subtypeParam[k].toString()).getConstraintValue()
+                        .toString()
+                        + "_";
             }
 
-            legendStr += satImageMngr.getSelectedAttrName(satId + ":"
-                    + satRscData.getRscAttrSet().getRscAttrSetName());
+            legendStr = legendStr.substring(0, legendStr.length() - 1);
+
+            legendStr = rscDefn.getRscGroupDisplayName(legendStr) + " ";
+
+            AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
+
+            rscDefn.setAttributeSet(attSet);
+
+            legendStr += rscDefn.getRscAttributeDisplayName("");
 
             legendStr.trim();
 
@@ -126,7 +97,6 @@ public class McidasSatResource extends AbstractSatelliteResource implements
             statusHandler.handle(Priority.ERROR,
                     "Error building legend string ", ex.getStackTrace()
                             .toString());
-
         }
 
     }

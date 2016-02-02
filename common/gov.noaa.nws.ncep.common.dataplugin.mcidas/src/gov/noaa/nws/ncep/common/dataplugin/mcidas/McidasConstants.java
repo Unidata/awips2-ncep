@@ -30,6 +30,7 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
  * ------------ ---------- ----------- --------------------------
  * Nov 10, 2015  10436     njensen     Initial creation
  * 12/04/2015    R12953    R Reynolds  Added projection and resolution
+ * 01/25/2016    R14142    R Reynolds  added CUSTOM_NAME
  * </pre>
  * 
  * @author njensen
@@ -51,5 +52,7 @@ public class McidasConstants {
     public static final String MCIDAS_SATELLITE = "McidasSatellite";
 
     public static final String IMAGE_TYPE_ID = "imageTypeId";
+
+    public static final String CUSTOM_NAME = "CustomName";
 
 }

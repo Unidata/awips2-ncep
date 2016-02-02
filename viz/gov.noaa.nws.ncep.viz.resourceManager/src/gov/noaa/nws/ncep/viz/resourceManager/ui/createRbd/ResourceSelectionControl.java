@@ -14,9 +14,7 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteAreaManager;
 import gov.noaa.nws.ncep.viz.resources.manager.SatelliteImageTypeManager;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteNameManager;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
@@ -67,22 +65,22 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/26/10 	 #226	     Greg Hull	 Broke out from RscBndlDefnDialog
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 01/26/10      #226        Greg Hull   Broke out from RscBndlDefnDialog
  * 04/05/10      #226        Greg Hull   Add back PGEN selection
  * 06/18/10      #273        Greg Hull   Rework for new ResourceCnfgMngr
  * 09/13/10      #307        Greg Hull   implement cycle times.
  * 09/28/10      #307        Greg Hull   save the fcst/observed mode when re-initing
  * 10/01/10      #298        B. Hebbard  handle MOS resources in updateCycleTimes()
  * 10/20/10                  X. Guo      Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
- * 10/20/10		 #277		 M. Li		 get model name for ensemble
- * 11/18/10	      277		 M. Li		 get correct cycle for ensemble
- * 11/29/10				  	mgamazaychikov	Changed updateCycleTime method for GEMPAK data source
+ * 10/20/10      #277        M. Li       get model name for ensemble
+ * 11/18/10       277        M. Li       get correct cycle for ensemble
+ * 11/29/10                 mgamazaychikov  Changed updateCycleTime method for GEMPAK data source
  * 02/28/11      #408        Greg Hull   Replace Forecast/Observed with Filter combo
  * 04/18/11                  Greg Hull   caller sets name of the 'select' button
  * 06/07/11       #445       Xilin Guo   Data Manager Performance Improvements
- * 09/20/2011				mgamazaychikov	Made changes associated with removal of DatatypeTable class
+ * 09/20/2011               mgamazaychikov  Made changes associated with removal of DatatypeTable class
  * 12/22/2011     #578       Greg Hull   Ensemble selection
  * 01/06/2012                S. Gurung   Add/display cycle times at 00Z only for nctaf
  * 01/10/2012                S. Gurung   Changed resource parameter name plugin to pluginName in updateCycleTimes()
@@ -97,7 +95,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 04/11/2013     #864       G. Hull     rm special case for taf and use USE_FCST_FRAME_INTERVAL_FROM_REF_TIME
  * 04/15/2013     #864       G. Hull     attach LViewers to positions and save previous width
  * 10/24/2013     #1043      G. Hull     init Select Resource GUI to highlighted rsc
- * 07/23/2014		?		 B. Yin		 Handle grid analysis 
+ * 07/23/2014       ?        B. Yin      Handle grid analysis 
  * 07/23/2014       ?        B. Hebbard  Make extensible for NTRANS-specific subclass
  * 05/18/2015     R8048     P. Chowdhuri "Select New Resource" dialog should remember last selection
  * 05/18/2015     R7656      A. Su       Displayed the aliases of local radar stations in the menu.
@@ -107,7 +105,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 11/03/2015     R8554     P. Chowdhuri Filter was set to last filter used per data category
  * 12/03/2015     R12953    R. Reynolds  Added Mcidas constants
  * 12/17/2015     R8554     A. Su        Modified to remember last selected Resource and filter per RBD type.
- * 
+ * 01/25/2016     R14142    RCReynolds   Moved mcidas related string construction out to ResourceDefinition
  * </pre>
  * 
  * @author ghull
@@ -681,82 +679,17 @@ public class ResourceSelectionControl extends Composite {
                 String displayName = (String) element;
 
                 ResourceName rscName = new ResourceName(selectedRscName);
+
                 ResourceDefinition rscDefn = rscDefnsMngr
                         .getResourceDefinition(rscName.getRscType());
 
-                if (rscDefn.getRscImplementation().equals("McidasSatellite")) {
+                // replace with alias
+                displayName = rscDefn.getRscGroupDisplayName(displayName);
 
-                    String[] subParams = rscDefn.getSubTypeGenerator().split(
-                            ",");
-
-                    String[] strings = displayName.split("_");
-                    displayName = "";
-
-                    try {
-                        for (int k = 0; k < subParams.length; k++) {
-
-                            if (subParams[k].toString().equalsIgnoreCase(
-                                    McidasConstants.RESOLUTION)) {
-
-                                if (!subParams[k].contains("km"))
-                                    strings[k] += "km";
-                                displayName = displayName + " " + strings[k];
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(
-                                            McidasConstants.PROJECTION)) {
-
-                                displayName = displayName + " " + strings[k];
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
-
-                                SatelliteAreaManager satAreaMgr = SatelliteAreaManager
-                                        .getInstance();
-
-                                String areaIdName = satAreaMgr
-                                        .getDisplayedName(SatelliteAreaManager.ResourceDefnName
-                                                + SatelliteAreaManager.delimiter
-                                                + strings[k].toString());
-
-                                if (areaIdName == null)
-                                    areaIdName = strings[k].toString();
-
-                                displayName = displayName + " " + areaIdName;
-
-                            } else if (subParams[k].toString()
-                                    .equalsIgnoreCase(
-                                            McidasConstants.SATELLITE_ID)) {
-
-                                displayName = displayName
-                                        + " "
-                                        + SatelliteNameManager.getInstance()
-                                                .getDisplayedNameByID(
-                                                        strings[k]);
-
-                            }
-                        }
-                    } catch (Exception ex) {
-                        // TODO: DEBUG... Remove System.out.println's if this
-                        // error goes away
-                        // replace with statusHandler/ex.getStackTrace()
-                        ex.printStackTrace();
-                        System.out.println("*subParms[] length ="
-                                + subParams.length);
-                        for (int k = 0; k < subParams.length; k++) {
-                            System.out.println("subParams[" + k + "] = "
-                                    + subParams[k].toString());
-                        }
-                        System.out.println("*displayName.length ="
-                                + strings.length);
-                        for (int k = 0; k < strings.length; k++) {
-                            System.out.println("displayName[" + k + "] = "
-                                    + strings[k].toString());
-                        }
-                    }
-                }
                 return displayName;
+
             }
+
         });
 
         rscAttrSetLViewer.setContentProvider(new IStructuredContentProvider() {
@@ -839,7 +772,9 @@ public class ResourceSelectionControl extends Composite {
             public String getText(Object element) {
 
                 String attrSetName;
+
                 ResourceName rscName = new ResourceName(selectedRscName);
+
                 ResourceDefinition rscDefn = rscDefnsMngr
                         .getResourceDefinition(rscName.getRscType());
 
@@ -847,72 +782,21 @@ public class ResourceSelectionControl extends Composite {
                     return "";
                 }
 
-                if (rscDefn.getRscImplementation().equals(
-                        McidasConstants.SATELLITE_ID)) {
+                rscDefn.setAttributeSet((AttributeSet) element);
 
-                    String satName = "";
-                    String satId = "";
+                // replace with alias
+                String originalAttrSetName = ((AttributeSet) element).getName();
 
-                    // get satelliteName e.g. GOES13
-                    satName = ((AttributeSet) element).getApplicableResource();
-
-                    // get satellite ID e.g. 180
-                    HashMap<String, String> resParm = rscDefn
-                            .getResourceParameters(true);
-                    satId = resParm.get(McidasConstants.SATELLITE_ID);
-
-                    HashMap<String, String> atrSet = ((AttributeSet) element)
-                            .getAttributes();
-
-                    // typical infra-red attribute file= IR.attr
-                    // contained inside the file is imageTypeId=custom_name.
-                    // "custom_name" is associated with the "digital value" for
-                    // IR in an XML file.
-                    // "digit value" is returned and assigned as attribute value
-                    // "custom_name" appears in GUI.
-                    if (satName == null || satId == null)
-                        return "";
-
-                    SatelliteImageTypeManager satImMan = SatelliteImageTypeManager
-                            .getInstance();
-
-                    if (!atrSet.containsKey(McidasConstants.IMAGE_TYPE_ID
-                            + "CustomName")) {
-
-                        attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID);
-                        if (attrSetName == null) {
-                            return null;
-                        }
-                        atrSet.put(
-                                McidasConstants.IMAGE_TYPE_ID + "CustomName",
-                                attrSetName);
-
-                        atrSet.put(McidasConstants.IMAGE_TYPE_ID, satImMan
-                                .getImageId_using_satId_and_ASname(satId,
-                                        attrSetName));
-                        ((AttributeSet) element).setAttributes(atrSet);
-                    }
-                    attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
-                            + "CustomName");
-
-                    mcidasAttrNamesNAliases.put(satId + ":"
-                            + ((AttributeSet) element).getName().toString(),
-                            attrSetName);
-
-                    SatelliteImageTypeManager.getInstance()
-                            .setSelectedAttrName(mcidasAttrNamesNAliases);
-
-                    return attrSetName;
-                }
-
-                attrSetName = ((AttributeSet) element).getName();
+                attrSetName = rscDefn
+                        .getRscAttributeDisplayName(((AttributeSet) element)
+                                .getName());
 
                 if (attrSetName.endsWith(".attr")) {
                     attrSetName = attrSetName.substring(0,
                             attrSetName.length() - 5);
                 }
 
-                rscName.setRscAttrSetName(attrSetName);
+                rscName.setRscAttrSetName(originalAttrSetName/* attrSetName */);
 
                 // Display aliases for Grid resource attributes.
                 if (rscDefn.getResourceCategory().equals(
@@ -961,6 +845,11 @@ public class ResourceSelectionControl extends Composite {
                         statusHandler.handle(Priority.INFO, e.getMessage());
                     }
                 }
+                System.out
+                        .println(" >>>>>>>>>> attrSetName >>>>>>>>>>>>>>>>>>    "
+                                + attrSetName
+                                + "    original name = "
+                                + originalAttrSetName);
                 return attrSetName;
             }
         });

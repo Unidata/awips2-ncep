@@ -25,12 +25,10 @@ import com.raytheon.uf.common.status.UFStatus;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer       Description
- * ------------ ----------  -----------    --------------------------
- * 
- *  08/14/2015    R7656     R. Reynolds    Started
- *  12/01/2015    R12953     R Reynolds     Changes to better define name/alias in hashmap
- * 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ *  12/01/2015    R12953    R Reynolds    Changes to better define name/alias in hashmap
+ *  01/25/2016    R14142    R Reynolds    Added method to handle storage of attribute name and alias
  * 
  * </pre>
  * 
@@ -115,9 +113,18 @@ public class SatelliteImageTypeManager {
         return instance;
     }
 
+    /**
+     * hashmap to store the attribute name (key) and alias (value)
+     * 
+     */
+    public void setAttributeNamesAndAliases(String a, String b) {
+        attributeNamesAndAliases.put(a, b);
+    }
+
     public void setSelectedAttrName(
             HashMap<String, String> attributeNamesAndAliases) {
         this.attributeNamesAndAliases = attributeNamesAndAliases;
+
     }
 
     public String getSelectedAttrName(String attributeName) {
@@ -144,7 +151,6 @@ public class SatelliteImageTypeManager {
                 + ":" + ImageId.trim());
 
         return asName;
-
     }
 
     public void setAppendedPart(String st) {
@@ -191,7 +197,6 @@ public class SatelliteImageTypeManager {
             // then accept this entry.
             SATandAS2ImageTypeIdMapping.put(image.getSatelliteId() + ":"
                     + image.getASImageTypeId(), image.getImageTypeId());
-
             SATandImage2AS2ImageTypeIdMapping.put(image.getSatelliteId() + ":"
                     + image.getImageTypeId(), image.getASImageTypeId());
 
@@ -240,7 +245,6 @@ public class SatelliteImageTypeManager {
                     + XML_FILE_NAME);
 
             list = null;
-
         } catch (Exception e) {
             statusHandler.handle(UFStatus.Priority.ERROR, "Unable to parse "
                     + XML_FILE_NAME);

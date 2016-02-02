@@ -8,7 +8,7 @@
 ! (GOES12, GOES13, .....)
 satelliteId=180
 pluginName=mcidas
-legendColor=RGB {200,0,0}
+legendColor=RGB {255,255,102}
     </resourceParameters>
     <rscImplementation>McidasSatellite</rscImplementation>
     

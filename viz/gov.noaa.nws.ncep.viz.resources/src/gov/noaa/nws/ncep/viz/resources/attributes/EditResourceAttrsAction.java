@@ -33,7 +33,8 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * 20 May 2010    to11dr11     ghull        selectedRsc was changed to ResourcePair
  * 21 Sep 2011                 ghull        move getting ResourceExtPointMngr instance out of constructor since
  *                                          D2D instantiates this class in populating the contextMenu
- * 12/01/201520   R12953       RReynolds    Refactored title string of attribute dialog box
+ * 12/01/2015     R12953       RReynolds    Refactored title string of attribute dialog box
+ * 01/01/2016     R14142       RCReynolds   Refactored so title string can be passed from both Legend and Edit Button.
  * 
  * </pre>
  * 
@@ -41,6 +42,8 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * @version 1
  */
 public class EditResourceAttrsAction extends AbstractRightClickAction {
+
+    private String title = null;
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(EditResourceAttrsAction.class);
@@ -86,7 +89,6 @@ public class EditResourceAttrsAction extends AbstractRightClickAction {
         if (rscData == null) {
             statusHandler.handle(Priority.INFO,
                     "Resource is null in PopupEditAttrsDialog");
-            System.out.println("Resource is null in PopupEditAttrsDialog");
             return false;
         }
         AbstractEditResourceAttrsDialog editAttrsDlg = null;
@@ -115,9 +117,10 @@ public class EditResourceAttrsAction extends AbstractRightClickAction {
             editAttrsDlg = (AbstractEditResourceAttrsDialog) constr
                     .newInstance(sh, rscData, applyBtn);
 
-            editAttrsDlg.dlgTitle = "Edit "
-                    + selectedRsc.getResource().getName().toString()
-                    + " Attributes";
+            String titleCheck = getText();
+            if (titleCheck != null) {
+                editAttrsDlg.dlgTitle = titleCheck;
+            }
 
             if (!editAttrsDlg.isOpen()) {
                 editAttrsDlg.open();
@@ -141,8 +144,22 @@ public class EditResourceAttrsAction extends AbstractRightClickAction {
      */
     @SuppressWarnings("unchecked")
     public String getText() {
-        return "Edit " + selectedRsc.getResource().getName().toString()
-                + " Attributes";
+        if (selectedRsc != null) {
+            return "Edit " + selectedRsc.getResource().getName().toString()
+                    + " Attributes";
+        } else if (title != null) {
+            return "Edit " + title + " Attributes";
+
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set title for dialog resource
+     */
+    public void setText(String title) {
+        this.title = title;
     }
 
     @Override

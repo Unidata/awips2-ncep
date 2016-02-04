@@ -54,7 +54,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/12					B. Hebbard	Merge changes by RTS OB12.9.1 (format only, this file)
  * 10/13		TTR768		J. Wu		Load/set default attributes for outlook labels (Text).
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
- * 12/17/2015   R12990      J. Wu       Added default spacing for contour symbols and their labels.
+ * 12/15        R12990      J. Wu       Added default spacing for contour symbols and their labels.
+ * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
  * </pre>
  * 
  * @author J. Wu
@@ -94,6 +95,11 @@ public class AttrSettings {
     private HashMap<String, HashMap<String, Coordinate>> contourSymbolSpacingMap = null;
 
     /**
+     * Settings for PGEN type text label tracking
+     */
+    private static HashMap<String, String[]> pgenTypeLabels = null;
+
+    /**
      * Private constructor
      * 
      * @throws VizException
@@ -102,6 +108,7 @@ public class AttrSettings {
         super();
         settingsMap = new HashMap<String, HashMap<String, AbstractDrawableComponent>>();
         settings = new HashMap<String, AbstractDrawableComponent>();
+        pgenTypeLabels = new HashMap<String, String[]>();
         loadSettingsTable();
 
         loadOutlookSettings();
@@ -168,11 +175,44 @@ public class AttrSettings {
         return outlookLabelSettings;
     }
 
+    /**
+     * Associates the component's PgenType with the component in question.
+     * 
+     * @param de
+     *            the AbstractDrawableComponent to set
+     */
     public void setSettings(AbstractDrawableComponent de) {
 
         String pgenID = de.getPgenType();
 
         settings.put(pgenID, de);
+    }
+
+    /**
+     * Checks the pgenTypeLabel HashMap for the presence of a PgenType. If it
+     * exists, returns the string associated with it. Otherwise returns null.
+     * 
+     * @param typeString
+     *            the pgenType to search for
+     * @return
+     */
+    public String[] getPgenTypeLabel(String type) {
+        String[] ret = null;
+        ret = pgenTypeLabels.get(type);
+        return ret;
+    }
+
+    /**
+     * Inserts a new PgenType/Text pair into the pgenTypeLabel HashMap. If it
+     * already exists, replaces the existing text value with the new one.
+     * 
+     * @param type
+     *            the pgenType to insert
+     * @param text
+     *            the text string to insert
+     */
+    public void setPgenTypeLabel(String type, String[] text) {
+        pgenTypeLabels.put(type, text);
     }
 
     /**
@@ -394,9 +434,9 @@ public class AttrSettings {
                         for (ContourMinmax cmx : csymbols) {
                             if (cmx.getLabel() != null) {
                                 contourSymbolSpacing.put(cmx.getSymbol()
-                                    .getPgenType(), new Coordinate(cmx
-                                    .getLabel().getXOffset(), cmx.getLabel()
-                                    .getYOffset()));
+                                        .getPgenType(), new Coordinate(cmx
+                                        .getLabel().getXOffset(), cmx
+                                        .getLabel().getYOffset()));
                             }
                         }
                     }
@@ -406,7 +446,7 @@ public class AttrSettings {
             contourSymbolSpacingMap.put(settingsName, contourSymbolSpacing);
         }
     }
-    
+
     /**
      * Retrieve default spacing between a contour symbol and its label in
      * current activity.

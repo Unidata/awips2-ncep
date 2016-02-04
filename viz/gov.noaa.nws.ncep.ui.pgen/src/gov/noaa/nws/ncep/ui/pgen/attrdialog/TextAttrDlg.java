@@ -986,7 +986,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
     @Override
     public void okPressed() {
-
         /*
          * An error will pop up if the user leaves the text field blank. This
          * prevents errors in DisplayElementsFactory.java when bounds is null
@@ -997,6 +996,9 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         } else {
 
+            // Invokes the superclass AttrDlg.okPressed(), which copies the
+            // information from the dialog into a duplicate Text object,
+            // stores it, and draws it.
             super.okPressed();
         }
     }

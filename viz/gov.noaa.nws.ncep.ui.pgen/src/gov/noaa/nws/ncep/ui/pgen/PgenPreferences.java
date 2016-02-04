@@ -43,6 +43,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  *     05/14        TTR 995     J. Wu       Added P_AUTOPLACE_CONTOUR_LABEL.
  *     11/09/15     R9399       J. Lopez    Added P_ICONS_PER_ROW
  *     12/17/2015   R12990      J. Wu       Added default spacing between contour symbol and label
+ *     01/12/2016   R13168      J. Wu       Added P_ONE_CONTOUR_PER_LAYER
  * </pre>
  * 
  * @author sgilbert
@@ -99,6 +100,11 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
     public final static String P_LAYER_MERGE = "P_LAYER_MERGE";
 
     private BooleanFieldEditor layerLink;
+
+    // Preference to limit one contour object per layer.
+    private BooleanFieldEditor limitOneContourPerLayer;
+
+    public final static String P_ONE_CONTOUR_PER_LAYER = "PGEN_ONE_CONTOUR_PER_LAYER";
 
     // Maximum number of icons per row
     private final static int MAXICONSPERROW = 99;
@@ -192,6 +198,11 @@ public class PgenPreferences extends FieldEditorPreferencePage implements
         cSymbolSpacingY
                 .setValidateStrategy(IntegerFieldEditor.VALIDATE_ON_FOCUS_LOST);
         this.addField(cSymbolSpacingY);
+
+        limitOneContourPerLayer = new BooleanFieldEditor(
+                P_ONE_CONTOUR_PER_LAYER, "&Limit One Contour Object Per Layer",
+                BooleanFieldEditor.DEFAULT, getFieldEditorParent());
+        this.addField(limitOneContourPerLayer);
 
         ComboFieldEditor layerMerge = new ComboFieldEditor(P_LAYER_MERGE,
                 "&Default Action for PGEN Layer Merge:", new String[][] {

@@ -57,6 +57,7 @@ import com.raytheon.viz.ui.cmenu.MoveUpAction;
  *                                      SYSTEM_RESOURCE_LOW, rather than
  *                                      SYSTEM_RESOURCE.
  * 09/25/2015    R8833     N. Jensen    Added LegendMode, replaced deprecated getStringBounds()
+ * 12/29/2015    R12840    B. Yin       Changed color of inactive resource to 7F7F7F.
  * 
  * </pre>
  * 
@@ -75,6 +76,10 @@ public class NCLegendResource extends
     protected static final int BOTTOM_OFFSET_IN_PIXELS = 7;
 
     protected static final int RIGHT_OFFSET_IN_PIXELS = 18;
+    
+    private static final RGB INACTIVE_RESOURCE_COLOR = new RGB (0x7F, 0x7F, 0x7F);
+    
+    private static final RGB ACTIVE_RESOURCE_COLOR = new RGB (0xFA, 0xFA, 0xFA);
 
     private static IFont groupResourceFont;
 
@@ -269,13 +274,13 @@ public class NCLegendResource extends
                     }
 
                     if (!vis) {
-                        legend.color = new RGB(50, 50, 50);
+                        legend.color = INACTIVE_RESOURCE_COLOR;
                     } else {
                         /*
                          * default to white but then try to get the color from
                          * the NatlCntrs Resource.
                          */
-                        legend.color = new RGB(250, 250, 250);
+                        legend.color = ACTIVE_RESOURCE_COLOR;
 
                         try {
                             /*

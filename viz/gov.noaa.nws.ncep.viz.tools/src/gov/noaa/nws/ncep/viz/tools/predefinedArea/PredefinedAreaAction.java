@@ -62,6 +62,8 @@ import com.raytheon.viz.ui.editor.IMultiPaneEditor;
  *                                       new NcAreaProviderMngr.createGeomProvider() with areaSource & name
  * 07/15/2015      R8899    J. Lopez     Disables the zoom if it is specified in the XML file
  * 09/23/2015      R9397    N. Jensen    Added updateElement(UIElement, Map)
+ * 02/08/2015      R15438   J. Huber     Use original value of mapcenter instead of Raytheon calculated center to
+ *                                       define where map is centered.
  * 
  * </pre>
  * 
@@ -144,7 +146,7 @@ public class PredefinedAreaAction extends AbstractHandler implements
 
         pane.setZoomLevel(existingDisplay.getZoomLevel());
         pane.scaleToClientArea();
-        existingDisplay.recenter(existingDisplay.getMapCenter());
+        existingDisplay.recenter(pArea.getMapCenter());
         existingDisplay.getView().zoom(existingDisplay.getZoomLevel());
         ((INatlCntrsDescriptor) existingDisplay.getDescriptor())
                 .setSuspendZoom(zoomDisable);

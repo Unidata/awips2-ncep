@@ -27,6 +27,7 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  * 08/14/2013   T989       qzhou              Initial creation.
  * 03/13/2014              sgurung            Added method purgeDataByRefTime()
  * 10/16/2014   3454       bphillip           Upgrading to Hibernate 4
+ * 01/05/2016   R14697     sgurung,jtravis    Refactored method getSingleAvg()
  * </pre>
  * 
  * @author qzhou
@@ -76,18 +77,23 @@ public class GeoMagAvgDao extends CoreDao {
     }
 
     @SuppressWarnings("unchecked")
-    public List<GeoMagAvg> getSingleAvg(final String stationCode,
-            final Date date) {
-        return (List<GeoMagAvg>) txTemplate.execute(new TransactionCallback() {
+    public GeoMagAvg getSingleAvg(final String stationCode, final Date date) {
+        return (GeoMagAvg) txTemplate.execute(new TransactionCallback() {
             @Override
             public Object doInTransaction(TransactionStatus status) {
+                GeoMagAvg value = null;
                 Session sess = getCurrentSession();
                 Criteria crit = sess.createCriteria(GeoMagAvg.class);
                 Criterion where1 = Restrictions.eq("stationCode", stationCode);
                 crit.add(where1);
                 Criterion where2 = Restrictions.eq("avgTime", date);
                 crit.add(where2);
-                return crit.list();
+
+                if (crit.list() != null && !crit.list().isEmpty()) {
+                    value = (GeoMagAvg) crit.list().get(0);
+                }
+
+                return value;
             }
         });
     }

@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -33,6 +34,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 04/05/2014   R4078      sgurung            Added method match().
  * 12/23/2014   R5412      sgurung            Change float to double
  * 01/26/2015   R7615      sgurung            change sequence name
+ * 01/05/2016   R14697     sgurung,jtravis    Add unique constraint on refTime
  * 
  * </pre>
  * 
@@ -42,7 +44,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagk1minseq")
-@Table(name = "geomag_k1min")
+@Table(name = "geomag_k1min", uniqueConstraints = { @UniqueConstraint(columnNames = { "refTime" }) })
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize

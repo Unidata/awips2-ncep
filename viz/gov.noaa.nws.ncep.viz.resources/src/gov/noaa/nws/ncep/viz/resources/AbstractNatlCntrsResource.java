@@ -61,7 +61,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 11/20/2015	   RM11819	 srussell     Added deprecation annotations as part
  *                                        of a redesign.  Removed clearFrames()
  *                                        as it did exactly the same thing as
- *                                        disposeInternal()
+ *                                        disposeInternal().
  * </pre>
  * 
  * @author ghull
@@ -229,6 +229,17 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
             return (dataTime == null ? false : timeMatch(dataTime) >= 0);
         }
 
+        /**
+         * Which of the two IRscDataObjects passed in is closest to the current
+         * frame in time?
+         * 
+         * Return 1 if it is rscDataObj1. Return 2 if it is rscDataObj2. Return
+         * -1 if both objects are null.
+         * 
+         * @param rscDataObj1
+         * @param rscDataObj2
+         * @return int
+         */
         public int closestToFrame(IRscDataObject rscDataObj1,
                 IRscDataObject rscDataObj2) {
 

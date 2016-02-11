@@ -63,9 +63,6 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
-//import com.raytheon.uf.common.dataplugin.level.Level;
-//import com.raytheon.uf.common.derivparam.tree.DataTree;
-//import com.raytheon.uf.common.derivparam.tree.LevelNode;
 
 /**
  * The Dgdriv class provides setters GEMPAK for grid diagnostic parameters and
@@ -117,11 +114,13 @@ import com.sun.jna.ptr.IntByReference;
  *                                          dataURI instead of ScriptCreator
  * 09/06/2012               X. Guo          Query glevel2
  * 09/26/2012               X. Guo          Fixed missing value problems
- * 04/26/2013				B. Yin			Fixed the world wrap problems
+ * 04/26/2013               B. Yin          Fixed the world wrap problems.
  * 11/2013       845        T. Lee          Implemented parameter scaling
  * 04/11/2014    981        D.Sushon        Code cleanup, enforce explicit use of curly-brackets {}
  * 04/14/2014               S. Gilbert      Remove dataUri from query - cleanup old unused methods.
  * 07/2014                  T. Lee          Fixed specific humidity scaling for NAM
+ * 01/26/2016    9817       dgilling        Ensure primary models' coverage is used for ensemble
+ *                                          calculations.
  * </pre>
  * 
  * @author tlee
@@ -1153,7 +1152,7 @@ public class Dgdriv {
         cv.setDy(llgc.getDy());
         cv.setSpacingUnit(llgc.getSpacingUnit());
         if (cv.build()) {
-            setSubgSpatialObj((ISpatialObject) cv);
+            setSubgSpatialObj(cv);
         }
     }
 
@@ -1190,7 +1189,7 @@ public class Dgdriv {
         cv.setDy(llgc.getDy());
         cv.setSpacingUnit(llgc.getSpacingUnit());
         if (cv.build()) {
-            setSubgSpatialObj((ISpatialObject) cv);
+            setSubgSpatialObj(cv);
         }
     }
 
@@ -1231,7 +1230,7 @@ public class Dgdriv {
         cv.setDy(llgc.getDy());
         cv.setSpacingUnit(llgc.getSpacingUnit());
         if (cv.build()) {
-            setSubgSpatialObj((ISpatialObject) cv);
+            setSubgSpatialObj(cv);
         }
     }
 
@@ -1267,7 +1266,7 @@ public class Dgdriv {
         cv.setDy(llgc.getDy());
         cv.setSpacingUnit(llgc.getSpacingUnit());
         if (cv.build()) {
-            setSubgSpatialObj((ISpatialObject) cv);
+            setSubgSpatialObj(cv);
         }
     }
 
@@ -1409,13 +1408,21 @@ public class Dgdriv {
             FloatDataRecord dataRecord = dataRetriever.getDataRecord();
             float[] data = dataRecord.getFloatData();
 
-            if (isWorldWrap) {
+            /*
+             * For ensemble calculations, we need to be sure we apply the
+             * primary model's grid coverage as the coverage used for the entire
+             * ensemble calculation. Fortunately, the native lib always passes
+             * the primary model through this interface first when performing an
+             * enemble calculation, So, the first time we pass through this code
+             * will be when subgSpatialObj has its initial value: null.
+             */
+            if (subgSpatialObj == null) {
                 if (ncgribLogger.enableDiagnosticLogs()) {
                     logger.info("===new coverage nx:"
                             + dataRetriever.getCoverage().getNx() + " ny:"
                             + dataRetriever.getCoverage().getNy());
                 }
-                setSubgSpatialObj((ISpatialObject) dataRetriever.getCoverage());
+                setSubgSpatialObj(dataRetriever.getCoverage());
             }
             t002 = System.currentTimeMillis();
             if (ncgribLogger.enableDiagnosticLogs()) {
@@ -1770,8 +1777,9 @@ public class Dgdriv {
                     logger.debug("executeScript: match " + refString);
                     logger.debug("executeScript:  with " + tmStr);
                     Matcher m = p.matcher(refString);
-                    if (!m.matches())
+                    if (!m.matches()) {
                         continue;
+                    }
 
                     int fcstTimeInSec = ((Integer) fSecValue).intValue();
                     DataTime refTime = new DataTime((Date) refValue);
@@ -1794,7 +1802,7 @@ public class Dgdriv {
                 }
             }
         } catch (VizException e) {
-            //
+            logger.error("DBQueryRequest failed: " + e.getLocalizedMessage(), e);
         }
         return retFileNames;
     }

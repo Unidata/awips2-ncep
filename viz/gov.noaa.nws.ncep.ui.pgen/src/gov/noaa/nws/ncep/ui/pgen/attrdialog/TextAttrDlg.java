@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -25,6 +27,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -48,16 +51,17 @@ import com.vividsolutions.jts.geom.Coordinate;
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
- * 04/09					J. Wu   	Initial Creation.
- * 09/09		#149		B. Yin		Added check boxes for multi-selection
- * 03/10        #231        Archana     Altered the dialog for text 
- *                                      to display only a button showing the 
- *                                      selected color instead of displaying 
- *                                      the complete color matrix.
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 03/13		#928		B. Yin 		Added a separator above the button bar.
- * 07/15        R8903       J. Lopez    Creates a pop up if the text field is left blank
- * 08/15        R8553       B. Yin      Remember last text per box type
+ * 04/09                    J. Wu           Initial Creation.
+ * 09/09        #149        B. Yin          Added check boxes for multi-selection
+ * 03/10        #231        Archana         Altered the dialog for text 
+ *                                          to display only a button showing the 
+ *                                          selected color instead of displaying 
+ *                                          the complete color matrix.
+ * 04/11        #?          B. Yin          Re-factor IAttribute
+ * 03/13        #928        B. Yin          Added a separator above the button bar.
+ * 07/15        R8903       J. Lopez        Creates a pop up if the text field is left blank
+ * 08/15        R8553       B. Yin          Remember last text per box type
+ * 12/22/2015   R13545      K. Bugenhagen   Remember all attributes per box type
  * </pre>
  * 
  * @author J. Wu
@@ -93,6 +97,22 @@ public class TextAttrDlg extends AttrDlg implements IText {
     private final int TEXT_WIDTH = 160;
 
     private final int TEXT_HEIGHT = 40;
+
+    private final Color DEFAULT_COLOR = new Color(0, 255, 0);
+
+    private final float INITIAL_FONT_SIZE = 0.0f;
+
+    private final String DEFAULT_FONT_NAME = FontName[0];
+
+    private final FontStyle DEFAULT_FONT_STYLE = FontStyle.REGULAR;
+
+    private final float DEFAULT_FONT_SIZE = 14.0f;
+
+    private final TextJustification DEFAULT_JUSTIFICATION = TextJustification.LEFT_JUSTIFY;
+
+    private final float DEFAULT_ROTATION = 0.0f;
+
+    private final TextRotation DEFAULT_RELATIVE_ROTATION = TextRotation.SCREEN_RELATIVE;
 
     private Composite top = null;
 
@@ -141,7 +161,44 @@ public class TextAttrDlg extends AttrDlg implements IText {
     // Check boxes for multi-selection
     private Button chkBox[];
 
-    private Map<String, String> lastTextPerBoxType = new HashMap<String, String>();
+    // Hash maps for remembering the last attributes specified for a box type
+
+    private Map<String, String> lastTextPerBoxType = new HashMap<>();
+
+    private Map<String, String> lastFontPerBoxType = new HashMap<>();
+
+    private Map<String, String> lastStylePerBoxType = new HashMap<>();
+
+    private Map<String, String> lastJustificationPerBoxType = new HashMap<>();
+
+    private Map<String, Color> lastColorPerBoxType = new HashMap<>();
+
+    private Map<String, Float> lastFontSizePerBoxType = new HashMap<>();
+
+    private Map<String, String> lastRotationPerBoxType = new HashMap<>();
+
+    private Map<String, String> lastRotationRelativityPerBoxType = new HashMap<>();
+
+    /*
+     * Attribute values for the last box type that was created. These values are
+     * used to populate a newly-created box type rather than use defaults.
+     */
+
+    private String lastFontName;
+
+    private String lastStyle;
+
+    private float lastFontSize;
+
+    private String lastJustification;
+
+    private float lastRotation;
+
+    private String lastRotationRelativity;
+
+    private Color lastColor;
+
+    private String lastText;
 
     /**
      * Private constructor
@@ -398,7 +455,6 @@ public class TextAttrDlg extends AttrDlg implements IText {
      * Set font size
      */
     public void setFontSize(float size) {
-
         int index = 0;
         for (int ii = 0; ii < FontSizeValue.length; ii++) {
             if ((int) size == FontSizeValue[ii]) {
@@ -406,18 +462,17 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 break;
             }
         }
-
         sizeCombo.select(index);
-
     }
 
     /**
      * Set font name
      */
     public void setFontName(String name) {
-        for (String st : FontName) {
-            if (st.equalsIgnoreCase(name)) {
-                fontCombo.setText(st);
+        for (int i = 0; i < FontName.length; i++) {
+            if (FontName[i].equalsIgnoreCase(name)) {
+                fontCombo.setText(FontName[i]);
+                fontCombo.select(i);
                 break;
             }
         }
@@ -427,24 +482,30 @@ public class TextAttrDlg extends AttrDlg implements IText {
      * set font style
      */
     public void setStyle(FontStyle style) {
+        int index = 0;
         for (FontStyle fs : FontStyle.values()) {
             if (fs == style) {
                 styleCombo.setText(fs.name());
                 break;
             }
+            index++;
         }
+        styleCombo.select(index);
     }
 
     /**
      * Return TextJustification from the justification combo
      */
     public void setJustification(TextJustification just) {
+        int index = 0;
         for (TextJustification js : TextJustification.values()) {
             if (js == just) {
                 justCombo.setText(js.name());
                 break;
             }
+            index++;
         }
+        justCombo.select(index);
     }
 
     /**
@@ -461,8 +522,10 @@ public class TextAttrDlg extends AttrDlg implements IText {
     public void setRotationRelativity(TextRotation trt) {
         if (trt == TextRotation.SCREEN_RELATIVE) {
             screenBtn.setSelection(true);
+            northBtn.setSelection(false);
         } else {
             northBtn.setSelection(true);
+            screenBtn.setSelection(false);
         }
     }
 
@@ -519,16 +582,9 @@ public class TextAttrDlg extends AttrDlg implements IText {
             this.setXOffset(attr.getXOffset());
             this.setYOffset(attr.getYOffset());
             this.setBoxText(attr.maskText(), attr.getDisplayType());
-
             Color clr = attr.getColors()[0];
             if (clr != null)
                 this.setColor(clr);
-
-            // Set the default text for the box type
-            String defText = lastTextPerBoxType.get(boxCombo.getText());
-            if (defText != null) {
-                this.setText(new String[] { defText });
-            }
         }
     }
 
@@ -594,6 +650,17 @@ public class TextAttrDlg extends AttrDlg implements IText {
         }
     }
 
+    /**
+     * Get Color value corresponding to RGB value
+     * 
+     * @param rgbValue
+     * 
+     * @return color value
+     */
+    private Color getColorFromColorValue(RGB rgbValue) {
+        return new Color(rgbValue.red, rgbValue.green, rgbValue.blue);
+    }
+
     @Override
     public int open() {
 
@@ -625,11 +692,9 @@ public class TextAttrDlg extends AttrDlg implements IText {
                     public void widgetSelected(SelectionEvent e) {
                         Button btn = (Button) e.widget;
                         if (btn.getSelection()) {
-                            System.out.println("Text checked?");
                             textLabel.setEnabled(true);
                             text.setEnabled(true);
                         } else {
-                            System.out.println("Text un-checked!!!!!!!!!!!!");
                             textLabel.setEnabled(false);
                             text.setEnabled(false);
 
@@ -649,7 +714,9 @@ public class TextAttrDlg extends AttrDlg implements IText {
         // Update the text/box-type map
         text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
-                lastTextPerBoxType.put(boxCombo.getText(), text.getText());
+                String theText = text.getText();
+                lastTextPerBoxType.put(boxCombo.getText(), theText);
+                lastText = theText;
             }
         });
 
@@ -697,18 +764,138 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         boxCombo.select(0);
 
-        // Set the text filed with the text string in the text/box-type map
+        /*
+         * Set all attributes associated with this box type to the last values
+         * specified for the box type, or to the values specified for the
+         * previous box type (can be a different type) created.
+         */
         boxCombo.addModifyListener(new ModifyListener() {
 
             @Override
             public void modifyText(ModifyEvent e) {
 
-                String defText = lastTextPerBoxType.get(boxCombo.getText());
-                if (defText != null) {
-                    setText(new String[] { defText });
-                } else {
-                    setText(new String[] { "" });
+                String text = "";
+                String lastTextForBox = lastTextPerBoxType.get(boxCombo
+                        .getText());
+                if (lastTextForBox != null && !lastTextForBox.equals("")
+                        && !lastTextForBox.equals("\n")) {
+                    text = lastTextForBox;
+                } else if (lastText != null && !lastText.equals("")) {
+                    text = lastText;
                 }
+                setText(new String[] { text });
+
+                // If this box type has been used before, use the font for
+                // that box type.
+                if (lastFontPerBoxType.containsKey(boxCombo.getText())) {
+                    String fontName = lastFontPerBoxType.get(boxCombo.getText());
+                    if (fontName != null && !fontName.equals("")) {
+                        setFontName(fontName);
+                    } else {
+                        if (lastFontName != null && !lastFontName.equals("")) {
+                            setFontName(lastFontName);
+                        } else {
+                            setFontName(DEFAULT_FONT_NAME);
+                        }
+                    }
+                }
+
+                // If this box type has been used before, use the style for
+                // that box type.
+                if (lastStylePerBoxType.containsKey(boxCombo.getText())) {
+                    String style = lastStylePerBoxType.get(boxCombo.getText());
+                    if (style != null && !style.equals("")) {
+                        setStyle(FontStyle.valueOf(style));
+                    } else {
+                        if (lastStyle != null && !lastStyle.equals("")) {
+                            setStyle(FontStyle.valueOf(lastStyle));
+                        } else {
+                            setStyle(DEFAULT_FONT_STYLE);
+                        }
+                    }
+                }
+
+                // If this box type has been used before, use the font size for
+                // that box type.
+                if (lastFontSizePerBoxType.containsKey(boxCombo.getText())) {
+                    float fontSize = lastFontSizePerBoxType.get(boxCombo
+                            .getText());
+                    if (!(Float.isNaN(fontSize))
+                            && fontSize != INITIAL_FONT_SIZE) {
+                        setFontSize(fontSize);
+                    } else {
+                        if (!(Float.isNaN(lastFontSize))) {
+                            setFontSize(lastFontSize);
+                        } else {
+                            setFontSize(DEFAULT_FONT_SIZE);
+                        }
+                    }
+                }
+
+                // If this box type has been used before, use the justification
+                // for that box type.
+                if (lastJustificationPerBoxType.containsKey(boxCombo.getText())) {
+                    String justification = lastJustificationPerBoxType
+                            .get(boxCombo.getText());
+                    if (justification != null && !justification.equals("")) {
+                        setJustification(TextJustification
+                                .valueOf(justification));
+                    } else {
+                        if (lastJustification != null
+                                && !lastJustification.equals("")) {
+                            setJustification(TextJustification
+                                    .valueOf(lastJustification));
+                        } else {
+                            setJustification(DEFAULT_JUSTIFICATION);
+                        }
+                    }
+                }
+
+                // If this box type has been used before, use the rotation for
+                // that box type.
+                if (lastRotationPerBoxType.containsKey(boxCombo.getText())) {
+                    String rotation = lastRotationPerBoxType.get(boxCombo
+                            .getText());
+                    if (rotation != null && !rotation.equals("")) {
+                        setRotation(Double.valueOf(rotation));
+                    } else {
+                        if (!(Float.isNaN(lastRotation))) {
+                            setRotation(Double.valueOf(lastRotation));
+                        } else {
+                            setRotation(DEFAULT_ROTATION);
+                        }
+                    }
+                }
+
+                // If this box type has been used before, use the rotation
+                // relativity for that box type.
+                setRotationRelativity(DEFAULT_RELATIVE_ROTATION);
+                if (lastRotationRelativityPerBoxType.containsKey(boxCombo
+                        .getText())) {
+                    String rotationRelativity = lastRotationRelativityPerBoxType
+                            .get(boxCombo.getText());
+                    if (rotationRelativity != null
+                            && !rotationRelativity.equals("")) {
+                        setRotationRelativity(TextRotation
+                                .valueOf(rotationRelativity));
+                    }
+                } else if (lastRotationRelativity != null) {
+                    setRotationRelativity(TextRotation
+                            .valueOf(lastRotationRelativity));
+                }
+
+                // If this box type has been used before, use the color
+                // relativity for that box type.
+                setColor(DEFAULT_COLOR);
+                if (lastColorPerBoxType.containsKey(boxCombo.getText())) {
+                    Color color = lastColorPerBoxType.get(boxCombo.getText());
+                    if (color != null) {
+                        setColor(color);
+                    }
+                } else if (lastColor != null) {
+                    setColor(lastColor);
+                }
+
             }
         });
     }
@@ -748,14 +935,34 @@ public class TextAttrDlg extends AttrDlg implements IText {
             sizeCombo.add(fs.name());
         }
 
-        sizeCombo.select(2);
+        float fontSize = DEFAULT_FONT_SIZE;
+        if (lastFontSizePerBoxType.get(boxCombo.getText()) != null) {
+            fontSize = lastFontSizePerBoxType.get(boxCombo.getText());
+            if (!Float.isNaN(fontSize) && fontSize != INITIAL_FONT_SIZE) {
+                setFontSize(fontSize);
+            } else if (!Float.isNaN(lastFontSize)) {
+                setFontSize(lastFontSize);
+            }
+        } else {
+            setFontSize(fontSize);
+        }
 
+        // Update the font/box-type map
+        sizeCombo.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                float fontSize = (float) FontSizeValue[sizeCombo
+                        .getSelectionIndex()];
+                lastFontSizePerBoxType.put(boxCombo.getText(), fontSize);
+                lastFontSize = fontSize;
+            }
+        });
     }
 
     /**
      * create widgets for the font attribute
      */
     private void createFontAttr() {
+
         chkBox[ChkBox.FONT.ordinal()] = new Button(top, SWT.CHECK);
         chkBox[ChkBox.FONT.ordinal()].setLayoutData(new GridData(CHK_WIDTH,
                 CHK_HEIGHT));
@@ -785,7 +992,22 @@ public class TextAttrDlg extends AttrDlg implements IText {
             fontCombo.add(st);
         }
 
-        fontCombo.select(0);
+        setFontName("");
+        String fontName = lastFontPerBoxType.get(boxCombo.getText());
+        if (fontName != null && !fontName.equals("")) {
+            setFontName(fontName);
+        } else if (lastFontName != null && !lastFontName.equals("")) {
+            setFontName(lastFontName);
+        }
+
+        // Update the font/box-type map
+        fontCombo.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                lastFontPerBoxType.put(boxCombo.getText(), fontCombo.getText());
+                lastFontName = fontCombo.getText();
+            }
+        });
+
     }
 
     /**
@@ -821,7 +1043,22 @@ public class TextAttrDlg extends AttrDlg implements IText {
             styleCombo.add(fs.name());
         }
 
-        styleCombo.select(0);
+        setStyle(DEFAULT_FONT_STYLE);
+        String style = lastStylePerBoxType.get(boxCombo.getText());
+        if (style != null && !style.equals("")) {
+            setStyle(FontStyle.valueOf(style));
+        } else if (lastStyle != null && !lastStyle.equals("")) {
+            setStyle(FontStyle.valueOf(lastStyle));
+        }
+
+        // Update the font style/box-type map
+        styleCombo.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                lastStylePerBoxType.put(boxCombo.getText(),
+                        styleCombo.getText());
+                lastStyle = styleCombo.getText();
+            }
+        });
     }
 
     /**
@@ -859,7 +1096,23 @@ public class TextAttrDlg extends AttrDlg implements IText {
             justCombo.add(js.name());
         }
 
-        justCombo.select(1);
+        setJustification(DEFAULT_JUSTIFICATION);
+        String justification = lastJustificationPerBoxType.get(boxCombo
+                .getText());
+        if (justification != null && !justification.equals("")) {
+            setJustification(TextJustification.valueOf(justification));
+        } else if (lastJustification != null && !lastJustification.equals("")) {
+            setJustification(TextJustification.valueOf(lastJustification));
+        }
+
+        // Update the font style/box-type map
+        justCombo.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                lastJustificationPerBoxType.put(boxCombo.getText(),
+                        justCombo.getText());
+                lastJustification = justCombo.getText();
+            }
+        });
     }
 
     /**
@@ -889,6 +1142,25 @@ public class TextAttrDlg extends AttrDlg implements IText {
         colorLbl.setText("Color:");
         cs = new ColorButtonSelector(top);
         cs.setColorValue(new RGB(0, 255, 0));
+
+        setColor(DEFAULT_COLOR);
+        Color color = lastColorPerBoxType.get(boxCombo.getText());
+        if (color != null) {
+            setColor(color);
+        } else if (lastColor != null) {
+            setColor(lastColor);
+        }
+
+        // Update the color/box-type map
+        cs.addListener(new IPropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent event) {
+                Color currentColor = getColorFromColorValue(cs.getColorValue());
+                lastColorPerBoxType.put(boxCombo.getText(), currentColor);
+                lastColor = currentColor;
+            }
+        });
+
     }
 
     /**
@@ -942,6 +1214,8 @@ public class TextAttrDlg extends AttrDlg implements IText {
         rotSlider.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 rotText.setText("" + rotSlider.getSelection());
+                lastRotationPerBoxType.put(boxCombo.getText(),
+                        rotText.getText());
             }
         });
 
@@ -963,6 +1237,12 @@ public class TextAttrDlg extends AttrDlg implements IText {
                 } catch (NumberFormatException e1) {
                     rotText.setToolTipText("Only integer values between 0 and 360 are accepted.");
                 }
+                lastRotation = 0.0f;
+                String rotation = rotText.getText();
+                lastRotationPerBoxType.put(boxCombo.getText(), rotation);
+                if (rotation != null && !rotation.equals("")) {
+                    lastRotation = Float.valueOf(rotation);
+                }
             }
         });
 
@@ -978,10 +1258,39 @@ public class TextAttrDlg extends AttrDlg implements IText {
 
         screenBtn = new Button(relGroup, SWT.RADIO);
         screenBtn.setText("Screen");
-        screenBtn.setSelection(true);
 
         northBtn = new Button(relGroup, SWT.RADIO);
         northBtn.setText("North");
+
+        screenBtn.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                lastRotationRelativity = TextRotation.SCREEN_RELATIVE
+                        .toString();
+                lastRotationRelativityPerBoxType.put(boxCombo.getText(),
+                        lastRotationRelativity);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                // TODO Auto-generated method stub
+            }
+        });
+
+        northBtn.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                lastRotationRelativity = TextRotation.NORTH_RELATIVE.toString();
+                lastRotationRelativityPerBoxType.put(boxCombo.getText(),
+                        lastRotationRelativity);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                // TODO Auto-generated method stub
+            }
+        });
+
     }
 
     @Override

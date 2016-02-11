@@ -12,10 +12,13 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +68,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                        for NTRANS
  * 11/03/2015     R8554     P. Chowdhuri  Filter was set to last filter used per data category
  * 12/16/2015     R8554     A. Su         Modified to remember last selected filter and resource.
- * 
+ * 01/27/2016     R12859    A. Su         Sorted the list of cycle times in the cycleTimeCombo widget.
+ *                                        Fixed bugs in Metafile Name and Product Group selections.
  * </pre>
  * 
  * @author bhebbard
@@ -111,10 +115,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     protected Map<String, ArrayList<String>> metafileToProductsMap = null;
 
     protected String selectedMetafile = "";
-
-    protected String prevSelectedMetafile = "";
-
-    protected String selectedProductName = "";
 
     public NtransSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
@@ -327,7 +327,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
-        cycleTimeLbl.setText("");
+        cycleTimeLbl.setText("Cycle Time");
         fd = new FormData();
         fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
         fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
@@ -752,6 +752,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                         selectedMetafile = (String) selectedElement
                                 .getFirstElement();
 
+                        selectedRscName.setRscGroup("");
                         selectedRscName.setRscAttrSetName("");
 
                         updateProducts();
@@ -763,8 +764,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
-                        selectedRscName.setRscGroup((String) selectedElement
-                                .getFirstElement());
+                        selectedRscName.setRscGroup(selectedMetafile + "_"
+                                + (String) selectedElement.getFirstElement());
                         selectedRscName.setRscAttrSetName("");
 
                         updateResourceAttrSets();
@@ -929,6 +930,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         metafileLViewer.refresh();
 
         if (metafileLViewer.getList().getItemCount() == 0) {
+            selectedMetafile = "";
+            selectedRscName.setRscGroup("");
             selectedRscName.setRscAttrSetName("");
             selectedRscName.setCycleTime(null);
         } else {
@@ -949,6 +952,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 }
 
                 if (metafileLViewer.getList().getSelectionCount() == 0) {
+                    selectedRscName.setRscGroup("");
                     selectedRscName.setRscAttrSetName("");
                 }
             }
@@ -959,15 +963,12 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                     && metafileLViewer.getList().getItemCount() > 0) {
 
                 metafileLViewer.getList().select(0);
-                StructuredSelection seld_elem = (StructuredSelection) metafileLViewer
+                StructuredSelection selectedElement = (StructuredSelection) metafileLViewer
                         .getSelection();
 
-                selectedMetafile = ((String) seld_elem.getFirstElement());
-                if (!selectedMetafile.isEmpty()
-                        && !selectedProductName.isEmpty()) {
-                    selectedRscName.setRscGroup(selectedMetafile + "_"
-                            + selectedProductName);
-                }
+                selectedMetafile = ((String) selectedElement.getFirstElement());
+                selectedRscName.setRscGroup("");
+                selectedRscName.setRscAttrSetName("");
             }
         }
 
@@ -977,69 +978,58 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     protected void updateProducts() {
         productLViewer.setInput(rscDefnsMngr);
         productLViewer.refresh();
-        productLViewer.getList().deselectAll();
 
-        String seldRscGroup = selectedRscName.getRscGroup();
+        // if there are no groups
+        if (productLViewer.getList().getItemCount() == 0) {
+            if (!selectedRscName.getRscGroup().isEmpty()) {
+                // Unclear about what to set for RscGroup if selectedMetafile is
+                // not empty. This may never happen.
+                selectedRscName.setRscGroup("");
+                selectedRscName.setRscAttrSetName("");
+                selectedRscName.setCycleTime(null);
+            }
+        } else { // there are items in the groups list
+                 // if a group has been selected then select it in the list,
+                 // otherwise
+                 // select the first in the list and update the selectedRscName
+            productLViewer.getList().deselectAll();
 
-        if (!seldRscGroup.isEmpty()) {
+            if (!selectedRscName.getRscGroup().isEmpty()) {
+                String selectedProductName = selectedRscName.getRscGroup()
+                        .split("_")[1];
 
-            String tmpMeta = seldRscGroup.split("_")[0];
-            String tmpRscGrp = seldRscGroup.split("_")[1];
-            if (!tmpMeta.equals(selectedMetafile)) {
-                selectedRscName.setRscGroup(selectedMetafile + "_" + tmpRscGrp);
+                for (int i = 0; i < productLViewer.getList().getItemCount(); i++) {
+                    if (productLViewer.getList().getItem(i)
+                            .equals(selectedProductName)) {
+                        productLViewer.getList().select(i);
+                        break;
+                    }
+                }
+
+                if (productLViewer.getList().getSelectionCount() == 0) {
+                    selectedRscName.setRscGroup("");
+                    selectedRscName.setRscAttrSetName("");
+                }
             }
 
-            String selectedProduct = selectedRscName.getRscGroup().split("_")[1];
+            if (selectedRscName.getRscGroup().isEmpty()
+                    && productLViewer.getList().getItemCount() > 0) {
 
-            for (int i = 0; i < productLViewer.getList().getItemCount(); i++) {
+                productLViewer.getList().select(0);
+                StructuredSelection selectedElement = (StructuredSelection) productLViewer
+                        .getSelection();
 
-                if (productLViewer.getList().getItem(i).equals(selectedProduct)) {
-                    productLViewer.getList().select(i);
-                    break;
-                }
-            }
-
-            if (productLViewer.getList().getSelectionCount() == 0) {
-                ArrayList<String> products = (ArrayList<String>) metafileToProductsMap
-                        .get(selectedMetafile);
-
-                Collections.sort(products);
-                selectedProductName = (String) products.get(0);
-
-                if (!selectedMetafile.equals(prevSelectedMetafile)) {
-                    productLViewer.getList().select(0);
-                }
-
-                if (!selectedMetafile.isEmpty()
-                        && !selectedProductName.isEmpty()) {
-                    selectedRscName.setRscGroup(selectedMetafile + "_"
-                            + selectedProductName);
-                }
+                selectedRscName.setRscGroup(selectedMetafile + "_"
+                        + (String) selectedElement.getFirstElement());
 
                 selectedRscName.setRscAttrSetName("");
             }
         }
-
-        if (selectedRscName.getRscGroup().isEmpty()
-                && productLViewer.getList().getItemCount() > 0) {
-
-            productLViewer.getList().select(0);
-            StructuredSelection seld_elem = (StructuredSelection) productLViewer
-                    .getSelection();
-
-            selectedProductName = ((String) seld_elem.getFirstElement());
-            if (!selectedMetafile.isEmpty() && !selectedProductName.isEmpty()) {
-                selectedRscName.setRscGroup(selectedMetafile + "_"
-                        + selectedProductName);
-            }
-
-            selectedRscName.setRscAttrSetName("");
-        }
-
         updateResourceAttrSets();
     }
 
     protected void updateResourceAttrSets() {
+
         rscAttrSetLViewer.setInput(rscDefnsMngr);
 
         rscAttrSetLViewer.getList().deselectAll();
@@ -1075,7 +1065,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         }
 
         updateCycleTimes();
-
         updateSelectedResource();
     }
 
@@ -1090,7 +1079,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     @Override
     public void updateSelectedResource() {
         String availMsg = "Data Not Available";
-        String temp = "";
 
         // enable/disable the Add Resource Button and set the name of the
         // Resource
@@ -1105,12 +1093,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         if (enableSelections) {
             try {
-                // this call will query just for the inventory params needed to
-                // instantiate the resource (ie imageType, productCode...) and
-                // not the actual dataTimes. rscDefnsMngr.verifyParametersExist(
-                // seldResourceName );
                 if (rscDefn.isForecast()) {
-                    if (cycleTimes.isEmpty()) {
+                    if (cycleTimeCombo.getItems().length == 0) {
                         enableSelections = false;
                     }
                 } else if (rscDefn.isPgenResource()) {
@@ -1139,15 +1123,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 availMsg = "Error getting latest time.";
                 enableSelections = false;
             }
-
-            // create the product group for user-selected metafile
-            String rscGroup = selectedRscName.getRscGroup();
-            int indexSep = rscGroup.lastIndexOf("_");
-
-            if (-1 == indexSep) {
-                temp = selectedMetafile + "_" + selectedRscName.getRscGroup();
-                selectedRscName.setRscGroup(temp);
-            }
         }
 
         if (enableSelections) {
@@ -1162,20 +1137,9 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
-                // Cycle for Ensemble
-                int seldCycleTimeIndx = cycleTimeCombo.getSelectionIndex();
-
-                // TODO: Allow the user to select 'LATEST' specifically
-                selectedRscName.setCycleTimeLatest();
-
-                if (seldCycleTimeIndx == -1) {
-                    selectedRscName.setCycleTimeLatest();
-                } else if (seldCycleTimeIndx < cycleTimes.size()) {
-                    selectedRscName.setCycleTime(cycleTimes
-                            .get(seldCycleTimeIndx));
-                } else { // shouldn't happen
-                    selectedRscName.setCycleTimeLatest();
-                }
+                String cycleTime = cycleTimeCombo.getText();
+                DataTime refTime = (DataTime) cycleTimeCombo.getData(cycleTime);
+                selectedRscName.setCycleTime(refTime);
 
                 availDataTimeLbl.setVisible(false);
             } else {
@@ -1228,19 +1192,19 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             cycleTimeLbl.setEnabled(false);
             cycleTimeCombo.setEnabled(false);
             return;
-        } else {
-            cycleTimeLbl.setEnabled(true);
-            cycleTimeCombo.setEnabled(true);
-            cycleTimeLbl.setVisible(rscDefn.isForecast());
-            cycleTimeCombo.setVisible(rscDefn.isForecast());
-            cycleTimeLbl.setVisible(false);
-            cycleTimeCombo.setVisible(false);
-            availDataTimeLbl.setVisible(!rscDefn.isForecast());
-
-            if (!rscDefn.isForecast()) {
-                return;
-            }
         }
+
+        cycleTimeLbl.setEnabled(true);
+        cycleTimeCombo.setEnabled(true);
+        cycleTimeLbl.setVisible(false);
+        cycleTimeCombo.setVisible(false);
+
+        if (!rscDefn.isForecast()) {
+            availDataTimeLbl.setVisible(true);
+            return;
+        }
+
+        availDataTimeLbl.setVisible(false);
 
         try {
             List<DataTime> availableTimes = null;
@@ -1258,37 +1222,33 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
             }
 
-            // save the currently selected cycle time.
-            String curSelTime = cycleTimeCombo.getText();
-
+            clearCycleTimeComboData();
             cycleTimeCombo.removeAll();
-            cycleTimes.clear();
 
-            for (int t = availableTimes.size() - 1; t >= 0; t--) {
-                DataTime dt = availableTimes.get(t);
-                DataTime refTime = new DataTime(dt.getRefTime());
-
-                if (!cycleTimes.contains(refTime)) {
-                    cycleTimes.add(refTime);
-                    String timeStr = NmapCommon.getTimeStringFromDataTime(dt,
-                            "_");
-                    cycleTimeCombo.add(timeStr);
-                }
+            for (DataTime aTime : availableTimes) {
+                DataTime refTime = new DataTime(aTime.getRefTime());
+                String cycleTime = NmapCommon.getTimeStringFromDataTime(
+                        refTime, "_");
+                cycleTimeCombo.add(cycleTime);
+                cycleTimeCombo.setData(cycleTime, refTime);
             }
 
-            for (int t = 0; t < cycleTimeCombo.getItemCount(); t++) {
-                if (cycleTimeCombo.getItem(t).equals(curSelTime)) {
-                    cycleTimeCombo.select(t);
-                    break;
-                }
-            }
+            String[] cycleTimeArray = cycleTimeCombo.getItems();
 
-            if (cycleTimes.isEmpty()) {
+            if (cycleTimeArray.length == 0) {
                 cycleTimeCombo.setVisible(false);
                 cycleTimeLbl.setVisible(false);
                 availDataTimeLbl.setVisible(true);
                 availDataTimeLbl.setText("No Data Available");
-            } else if (cycleTimeCombo.getSelectionIndex() == -1) {
+            } else {
+                // Remove duplicate cycle times and sort the cycle times.
+                List<String> cycleTimeList = Arrays.asList(cycleTimeArray);
+                Set<String> cycleTimeSet = new HashSet<String>(cycleTimeList);
+                cycleTimeArray = cycleTimeSet.toArray(new String[cycleTimeSet
+                        .size()]);
+                Arrays.sort(cycleTimeArray, Collections.reverseOrder());
+
+                cycleTimeCombo.setItems(cycleTimeArray);
                 cycleTimeCombo.select(0);
             }
 

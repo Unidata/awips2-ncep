@@ -8,7 +8,7 @@ import gov.noaa.nws.ncep.viz.common.staticPointDataSource.LabeledPoint;
 import gov.noaa.nws.ncep.viz.common.staticPointDataSource.StaticPointDataSourceMngr;
 import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
 import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -44,6 +44,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/03/2013       #1010        ghull           Initial creation
  * 12/03/2015       R9407        pchowdhuri      Maps/overlays need to be able to reference the 
  *                                               Localization Cave>Bundles>Maps XML files
+ * 02/17/2016       #13554       dgilling        Implement IStaticDataNatlCntrsResource.
  * 
  * @author randerso
  * </pre>
@@ -51,7 +52,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 public class PointOverlayResource extends
         AbstractVizResource<PointOverlayResourceData, MapDescriptor> implements
-        INatlCntrsResource {
+        IStaticDataNatlCntrsResource {
 
     private PointOverlayResourceData ptOvrlyRscData;
 
@@ -122,6 +123,7 @@ public class PointOverlayResource extends
      * com.raytheon.uf.viz.core.rsc.AbstractVizResource#init(com.raytheon.uf
      * .viz.core.IGraphicsTarget)
      */
+    @Override
     public void initInternal(IGraphicsTarget target) throws VizException {
 
         IStaticPointDataSource ptSrc = StaticPointDataSourceMngr
@@ -142,6 +144,7 @@ public class PointOverlayResource extends
      * @see com.raytheon.viz.core.rsc.IVizResource#paint(com.raytheon.viz.core.
      * IGraphicsTarget, com.raytheon.viz.core.PixelExtent, double, float)
      */
+    @Override
     public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
 
@@ -184,9 +187,8 @@ public class PointOverlayResource extends
                 / paintProps.getView().getExtent().getWidth();
 
         if (font == null) {
-            font = target.initializeFont("Monospace",
-                    (float) (12 * ptOvrlyRscData.getMarkerTextSize()
-                            .getSoftwareSize()), null);
+            font = target.initializeFont("Monospace", 12 * ptOvrlyRscData
+                    .getMarkerTextSize().getSoftwareSize(), null);
             font.setSmoothing(false);
             font.setScaleFont(false);
             DrawableString line = new DrawableString("N");
@@ -338,6 +340,7 @@ public class PointOverlayResource extends
         ptOvrlyRscData.setMarkerTextSize(markerTextSize);
     }
 
+    @Override
     public void resourceAttrsModified() {
 
         ResourceProperties rprop = getProperties();

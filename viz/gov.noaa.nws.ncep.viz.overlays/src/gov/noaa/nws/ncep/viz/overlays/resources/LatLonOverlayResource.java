@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +40,7 @@ import com.vividsolutions.jts.geom.LineString;
  *   Jul 28, 2014 3397       bclement    switched to non deprecated version of createWireframeShape()
  *                                          removed unneeded clearCoordinatePointArrayList() method
  *   Nov 05, 2015 10436      njensen     Major cleanup and optimization
+ *   02/17/16    #13554      dgilling    Implement IStaticDataNatlCntrsResource.
  * 
  * </pre>
  * 
@@ -48,7 +49,7 @@ import com.vividsolutions.jts.geom.LineString;
  */
 public class LatLonOverlayResource extends
         AbstractVizResource<LatLonOverlayResourceData, IMapDescriptor>
-        implements INatlCntrsResource {
+        implements IStaticDataNatlCntrsResource {
 
     private static final GeometryFactory GEOM_FACTORY = new GeometryFactory();
 

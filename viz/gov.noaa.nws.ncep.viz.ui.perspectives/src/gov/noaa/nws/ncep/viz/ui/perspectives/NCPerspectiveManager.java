@@ -40,6 +40,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.commands.ICommandService;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.SatelliteUnits;
@@ -116,6 +117,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/28/2015   R7785       A. Su       Added the runAsyncTasks() method to run asynchronous tasks,
  *                                      such as getting an instance of DerivedParameterGenerator.
  * 09/25/2015   R8833       N. Jensen   Added right click option to reverse legend mode
+ * 02/04/2016   R13171      E. Brown    Added: short right click launches resource manager, added: item to launch resource
+ *                                      manager in context menu that opens on long right mouse button
  * </pre>
  * 
  * @author
@@ -612,11 +615,71 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 return false;
             }
 
+            @Override
+            public boolean handleMouseUp(int x, int y, int mouseButton) {
+
+                // Launch Resource Manager dialog on a right mouseUp
+                if (mouseButton == 3) {
+                    launchResourceManager();
+                }
+                return false;
+            }
+
         };
 
         ArrayList<IInputHandler> handlers = new ArrayList<IInputHandler>();
         handlers.add(handler);
         return handlers.toArray(new IInputHandler[handlers.size()]);
+    }
+
+    /**
+     * Opens the resource manager dialog window
+     */
+    private void launchResourceManager() {
+        // Set the commandId for this item
+        String commandId = "gov.noaa.nws.ncep.viz.actions.resourceManager";
+        /*
+         * This code taken directly from
+         * com.raytheon.viz.ui.glmap.actions.ClearAction
+         * 
+         * Finds the AbstractHandler currently registered with this commandId
+         */
+        IEditorPart part = VizWorkbenchManager.getInstance().getActiveEditor();
+        ICommandService service = (ICommandService) part.getSite().getService(
+                ICommandService.class);
+        Command cmd = service.getCommand(commandId);
+
+        if (cmd == null) {
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error getting command \"cmd\": ", commandId);
+            return;
+        }
+        try {
+
+            /*
+             * Set up information to pass to the AbstractHandler
+             */
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("editor", part);
+            params.put("name", "mode");
+            params.put("value", "CREATE_RBD");
+            ExecutionEvent exec = new ExecutionEvent(cmd, params, null, "mode");
+
+            // Execute the handler
+            cmd.executeWithChecks(exec);
+
+            // Update the GUI elements on the menus and toolbars
+            for (String toolbarID : NmapCommon.getGUIUpdateElementCommands()) {
+                service.refreshElements(toolbarID, null);
+            }
+
+        } catch (Exception e) {
+            // Error executing Handler
+
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error executing command \"cmd\": " + commandId, e);
+        }
+
     }
 
     @Override
@@ -630,6 +693,14 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         if (container instanceof AbstractNcEditor
                 && pane.getRenderableDisplay() instanceof INatlCntrsRenderableDisplay) {
+
+            // Put "Launch Resource Manager" item above hide/show legends
+            menuManager.add(new Action("Resource Manager") {
+                @Override
+                public void run() {
+                    launchResourceManager();
+                }
+            });
 
             // Right click option to reverse legend mode
             final NCLegendResource lg;

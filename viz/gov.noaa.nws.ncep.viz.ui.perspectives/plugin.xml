@@ -977,18 +977,7 @@
                        value="CREATE_RBD">
                  </parameter>
          </key>  
-         
-         <key
-            commandId="gov.noaa.nws.ncep.viz.actions.resourceManager"
-            contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
-            sequence="SPACE">
-                 <parameter
-                       id="mode"
-                       value="CREATE_RBD">
-                 </parameter>
-         </key> 
-         
+                  
          <key
             commandId="gov.noaa.nws.ncep.viz.ui.actions.hideFrames"
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"

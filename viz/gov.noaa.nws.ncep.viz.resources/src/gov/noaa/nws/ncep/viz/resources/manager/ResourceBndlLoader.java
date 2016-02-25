@@ -31,6 +31,7 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.VizApp;
+import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
@@ -75,6 +76,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 04/24/14     #1122       S. Gurung     Modified method addDefaultRBD()to support any NcDisplayType(s).
  *                                        Zoom slightly for graph displays.
  * 11/30/2015   R13319      J. Lopez      PGEN re-projects after loading
+ * 01/18/2016   R13247      dgilling      Fix projection of mcidas data when loading from RBD.
  * 
  * </pre>
  * 
@@ -152,6 +154,7 @@ public class ResourceBndlLoader implements Runnable {
             errMsg = em;
         }
 
+        @Override
         public void run() {
             Status status = new Status(Status.ERROR, UiPlugin.PLUGIN_ID, 0,
                     errMsg, null);
@@ -160,13 +163,13 @@ public class ResourceBndlLoader implements Runnable {
         }
     }
 
-    // check that the
     public boolean areSeldRBDsGeoSyncCompatible() {
         return true;
     }
 
+    @Override
     public void run() {
-        RbdBundleEditorWrapper[] wrapperClassArray = (RbdBundleEditorWrapper[]) seldRBDs
+        RbdBundleEditorWrapper[] wrapperClassArray = seldRBDs
                 .toArray(new RbdBundleEditorWrapper[0]);
 
         if (loadSelectedPaneOnly) {
@@ -182,8 +185,10 @@ public class ResourceBndlLoader implements Runnable {
             try {
                 AbstractRBD<?> rbdBndl = thisWrapper.getRbdBundle();
 
-                // the editor should have already be created with the right
-                // number of displays and matching paneLayouts
+                /*
+                 * the editor should have already been created with the right
+                 * number of displays and matching paneLayouts
+                 */
                 AbstractEditor editor = thisWrapper.getNcEditor();
 
                 if (editor == null) {
@@ -329,7 +334,8 @@ public class ResourceBndlLoader implements Runnable {
     }
 
     public boolean loadResourceBundleDefn(IDisplayPane pane,
-            INatlCntrsRenderableDisplay mapDisplay, NCTimeMatcher timeMatcher) {
+            INatlCntrsRenderableDisplay mapDisplay, NCTimeMatcher timeMatcher)
+            throws VizException {
 
         if (timeMatcher == null) {
             statusHandler.handle(Priority.PROBLEM,
@@ -342,18 +348,20 @@ public class ResourceBndlLoader implements Runnable {
 
         descr.setTimeMatcher(timeMatcher);
         descr.setNumberOfFrames(timeMatcher.getNumFrames());
+        descr.setGridGeometry(mapDisplay.getInitialArea().getGridGeometry());
+
         DataTime[] dataTimes = timeMatcher.getFrameTimes().toArray(
                 new DataTime[0]);
 
         if (dataTimes == null || dataTimes.length == 0) {
 
         } else {
-            descr.setDataTimes(dataTimes);
+            descr.setFramesInfo(new FramesInfo(dataTimes));
 
             if (timeMatcher.isForecast()) {
-                descr.setFrame(0);
+                descr.setFramesInfo(new FramesInfo(0));
             } else {
-                descr.setFrame(dataTimes.length - 1);
+                descr.setFramesInfo(new FramesInfo(dataTimes.length - 1));
             }
         }
 

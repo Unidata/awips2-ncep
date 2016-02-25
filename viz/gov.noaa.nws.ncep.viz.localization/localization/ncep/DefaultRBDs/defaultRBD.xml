@@ -10,7 +10,7 @@
   <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.25" mapCenter="-96.5 38.5 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <descriptor xsi:type="NCMapDescriptor">
 	            <resource>
-                   <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
+                   <properties renderingOrderId="NCP_LOCATOR" isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
                       <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
                     </properties>
                     <resourceData xsi:type="LocatorResourceData" resourceName="OVERLAY/Locator/default" isEdited="false">
@@ -43,7 +43,7 @@
                     <loadProperties loadWithoutData="false">
                         <resourceType>PLAN_VIEW</resourceType>
                     </loadProperties>
-                    <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
+                    <properties renderingOrderId="MAP_OUTLINE" isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
                         <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
                     </properties>
                     

@@ -8,11 +8,11 @@
 ! (GOES12, GOES13, .....)
 satelliteId=180
 pluginName=mcidas
-legendColor=RGB {200, 200, 200}
+legendColor=RGB {255,255,102}
     </resourceParameters>
     <rscImplementation>McidasSatellite</rscImplementation>
-   
-       <subTypeGenerator>satelliteId,resolution,areaId</subTypeGenerator>
+    
+       <subTypeGenerator>resolution,areaId,projection,satelliteId</subTypeGenerator>
        
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>

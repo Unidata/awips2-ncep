@@ -22,7 +22,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.PixelExtent;
@@ -45,18 +49,18 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
  * 04/22/09       99        Greg Hull     created 
- * 08/29/09	     148	    Greg Hull     getFrameTimes()
+ * 08/29/09      148        Greg Hull     getFrameTimes()
  * 09/17/09      169        Greg Hull     add multi-panel
  * 10/19/09      169        Greg Hull     add seldTimeline and animMode but not implemented
  * 10/20/09      145        Greg Hull     load with the selected frame times.
- * 10/21/10		#314		Q. Zhou   	  set Hide/Show status for editor
+ * 10/21/10     #314        Q. Zhou       set Hide/Show status for editor
  * 10/22/10      307        Greg Hull     set to first frame for fcst data.
  * 10/29/10      307        Greg Hull     wait for DataCube to init
  * 06/07/11     #445        Xilin Guo     Data Manager Performance Improvements
- * 10/15/11		?			B. Yin		  Keep PGEN resource when loading RBDs.
+ * 10/15/11     ?           B. Yin        Keep PGEN resource when loading RBDs.
  * 01/09/12     #561        Greg Hull     rm code to add Locator Resource
  * 02/15/12     #627        Archana       Created the private class RbdBundleEditorWrapper,
  *                                        changed the seldRBDs queue to accept a RbdBundleEditorWrapper
@@ -70,12 +74,13 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 11/26/13     #1078       Greg Hull     Size Of Image fix (PixelExtent constructor)
  * 04/24/14     #1122       S. Gurung     Modified method addDefaultRBD()to support any NcDisplayType(s).
  *                                        Zoom slightly for graph displays.
+ * 11/30/2015   R13319      J. Lopez      PGEN re-projects after loading
+ * 
  * </pre>
  * 
  * @version 1
  */
-public class ResourceBndlLoader implements Runnable { // extends Job {
-
+public class ResourceBndlLoader implements Runnable {
     private final class RbdBundleEditorWrapper {
         private AbstractRBD<?> rbdBundle;
 
@@ -106,6 +111,11 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
 
     private final ConcurrentLinkedQueue<RbdBundleEditorWrapper> seldRBDs;
 
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ResourceBndlLoader.class);
+
+    private static final String PGENRESOURCE = "PgenResource";
+
     // when set we will only load the selected Pane
     private boolean loadSelectedPaneOnly = false;
 
@@ -119,7 +129,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
 
     public void addDefaultRBD(NcDisplayType dt, AbstractEditor theEditor)
             throws VizException {
-        AbstractRBD<?> rbd = NcMapRBD.getDefaultRBD(dt); // NcMapRBD.getDefaultRBD(NcDisplayType.NMAP_DISPLAY);
+        AbstractRBD<?> rbd = NcMapRBD.getDefaultRBD(dt);
 
         rbd.resolveLatestCycleTimes(); // shouldn't be needed but just in case
         seldRBDs.add(new RbdBundleEditorWrapper(rbd, theEditor, false));
@@ -131,7 +141,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
     }
 
     public ResourceBndlLoader(String name) { // name of the Job
-        // super(name);
+
         seldRBDs = new ConcurrentLinkedQueue<RbdBundleEditorWrapper>();
     }
 
@@ -155,18 +165,15 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
         return true;
     }
 
-    // @Override
-    // protected IStatus run(IProgressMonitor monitor) {
-    // public void loadRBDs() {
     public void run() {
         RbdBundleEditorWrapper[] wrapperClassArray = (RbdBundleEditorWrapper[]) seldRBDs
                 .toArray(new RbdBundleEditorWrapper[0]);
 
         if (loadSelectedPaneOnly) {
             if (wrapperClassArray.length > 1) {
-                System.out
-                        .println("Warning: rbdLoader should only load one RBD when"
-                                + "loadSelectedPaneOnly is true??");
+                statusHandler.handle(Priority.WARN,
+                        ("rbdLoader should only load one RBD when"
+                                + "loadSelectedPaneOnly is true"));
             }
         }
 
@@ -180,7 +187,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                 AbstractEditor editor = thisWrapper.getNcEditor();
 
                 if (editor == null) {
-                    throw new VizException("??editor is null in rbdLoader?");
+                    throw new VizException("editor is null in rbdLoader");
                 }
 
                 // If this editor currently has resources loaded, clear them out
@@ -199,8 +206,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                     }
 
                     // don't clear this pane if we are only loading the selected
-                    // pane and
-                    // this isn't it
+                    // pane and this isn't it
                     if (loadSelectedPaneOnly
                             && rbdBndl.getSelectedPaneId().compareTo(paneid) != 0) {
                         continue;
@@ -209,7 +215,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                     List<ResourcePair> rlist = pane.getRenderableDisplay()
                             .getDescriptor().getResourceList();
                     if (rlist == null) {
-                        throw new VizException("The ResourceList is empty?");
+                        throw new VizException("The ResourceList is empty");
                     }
                     Iterator<ResourcePair> it = rlist.iterator();
 
@@ -217,7 +223,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                         ResourcePair rp = it.next();
                         if (rp.getResource() != null) {
                             if (!rp.getResource().getClass().getName()
-                                    .endsWith("PgenResource")) {
+                                    .endsWith(PGENRESOURCE)) {
                                 rlist.remove(rp);
                             }
                         }
@@ -230,25 +236,19 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                 NcEditorUtil.setHideShow(editor, false); // init to false, means
                                                          // rsc on
 
-                IDisplayPane displayPanes[] = editor.getDisplayPanes();
                 IDisplayPane seldPane = null;
                 INcPaneLayout playout = NcEditorUtil.getPaneLayout(editor);
 
                 if (loadSelectedPaneOnly) {
 
                     if (!playout.containsPaneId(rbdBndl.getSelectedPaneId())) {
-                        // playout.getRows() <=
-                        // rbdBndl.getSelectedPaneId().getRow() ||
-                        // playout.getColumns() <=
-                        // rbdBndl.getSelectedPaneId().getColumn() ) {
-                        //
                         throw new VizException(
                                 "Error: The Active Display doesn't have enough Panes"
                                         + " for the selected Pane: ");
                     }
                 } else if (!playout.equals(rbdBndl.getPaneLayout())) {
                     throw new VizException(
-                            "PaneLayouts of the RBD and Editor don't match?");
+                            "PaneLayouts of the RBD and Editor don't match");
                 }
 
                 // loop thru the panes in the RBD
@@ -308,7 +308,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                             rbdBndl.getRbdName());
                     NcEditorUtil.setDisplayName(editor, dispName);
 
-                    editor.setTabTitle(dispName.toString());
+                    editor.setPartName(dispName.toString());
                 }
 
                 editor.refresh();
@@ -326,17 +326,14 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
 
         removeAllSeldRBDs();
 
-        // this.cancel(); if a Job
-        // return null;
     }
 
-    //
-    //
     public boolean loadResourceBundleDefn(IDisplayPane pane,
             INatlCntrsRenderableDisplay mapDisplay, NCTimeMatcher timeMatcher) {
 
         if (timeMatcher == null) {
-            System.out.println("Error Loading  Timeline???");
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error Loading  Timeline, timeMatcher is null");
             return false;
         }
 
@@ -349,7 +346,7 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
                 new DataTime[0]);
 
         if (dataTimes == null || dataTimes.length == 0) {
-            // descr.setDataTimes( null );
+
         } else {
             descr.setDataTimes(dataTimes);
 
@@ -361,18 +358,30 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
         }
 
         ResourceList rscList = descr.getResourceList();
-
+        ResourceList savedRscList = pane.getRenderableDisplay().getDescriptor()
+                .getResourceList();
+        CoordinateReferenceSystem coordReferSyst = mapDisplay.getInitialArea()
+                .getGridGeometry().getCoordinateReferenceSystem();
         // Add PGEN resource back
-        if (!pane.getRenderableDisplay().getDescriptor().getResourceList()
-                .isEmpty()) {
-            rscList.addAll(pane.getRenderableDisplay().getDescriptor()
-                    .getResourceList());
-            //When adding PGEN back, add tne remove-listener
-            if (pane.getRenderableDisplay().getDescriptor().getResourceList().get(0).getResource().getClass().getName()
-                    .endsWith("PgenResource")) {
-                rscList.addPreRemoveListener((RemoveListener) pane.getRenderableDisplay().getDescriptor().getResourceList().get(0).getResource());
+        if (!savedRscList.isEmpty()) {
+            rscList.addAll(savedRscList);
+
+            // Re-Project PGEN
+            try {
+                savedRscList.get(0).getResource().project(coordReferSyst);
+            } catch (VizException e) {
+                statusHandler.handle(Priority.PROBLEM,
+                        "PGEN unable to project", e);
             }
-            
+
+            // When adding PGEN back, add the remove-listener
+
+            if (savedRscList.get(0).getResource().getClass().getName()
+                    .endsWith(PGENRESOURCE)) {
+                rscList.addPreRemoveListener((RemoveListener) savedRscList.get(
+                        0).getResource());
+            }
+
         }
 
         rscList.instantiateResources(descr, true);
@@ -397,11 +406,11 @@ public class ResourceBndlLoader implements Runnable { // extends Job {
             if (initArea.getZoomLevel().equals(
                     ZoomLevelStrings.SizeOfImage.toString())) {
                 Rectangle rect = pane.getBounds();
-                // mapDisplay.setExtent( new PixelExtent( rect ) );
+
                 mapDisplay.setExtent(new PixelExtent(rect.x, rect.x
                         + rect.width, rect.y, rect.y + rect.height));
                 ((NCMapDescriptor) descr).setSuspendZoom(true);
-                // ZoomUtil.suspendZoom( mapDisplay.getContainer() ) ;
+
             } else if (initArea.getZoomLevel().equals(
                     ZoomLevelStrings.FitToScreen.toString())) {
 

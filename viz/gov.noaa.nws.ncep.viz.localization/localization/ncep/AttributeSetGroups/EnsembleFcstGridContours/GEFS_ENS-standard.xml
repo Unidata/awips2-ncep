@@ -2,6 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>GEFS_ENS</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_gefs_avg_hght</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_gefs_avg_hght</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+
 

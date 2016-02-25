@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
@@ -235,7 +236,7 @@ public class ObsSoundingQuery {
             // report it.
             for (Object element : rtnobjArray1) {
                 Object[] objArray1 = (Object[]) element;
-                Timestamp synoptictime = null;
+                Date synoptictime = null;
                 stnInfo = "";
                 elv = -999;
                 /*
@@ -264,7 +265,7 @@ public class ObsSoundingQuery {
                                 elv = (Integer) objArray[4];
                             }
                         }
-                        synoptictime = (Timestamp) objArray[5];
+                        synoptictime = (Date) objArray[5];
                     }
 
                 }

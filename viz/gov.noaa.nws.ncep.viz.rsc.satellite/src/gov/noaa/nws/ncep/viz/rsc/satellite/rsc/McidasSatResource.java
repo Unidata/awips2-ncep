@@ -4,6 +4,10 @@ import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 
 import java.util.ArrayList;
@@ -31,13 +35,15 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  Date         Ticket#     Engineer    Description
  *  ------------ ----------  ----------- --------------------------
  *  05/24/2010    #281        ghull       Initial creation 
- *  06/07/2012    #717       archana    Added the methods getImageTypeNumber(),
- *                                      getParameterList(), getLocFilePathForImageryStyleRule()
- *                                      Updated getDataUnitsFromRecord() to get the units from the database
- *  11/29/2012    #630       ghull      IGridGeometryProvider
- *  02/13/2015    #R6345     mkean      add areaName, resolution and getRscAttrSetName 
- *                                      to legendStr
+ *  06/07/2012    #717       archana      Added the methods getImageTypeNumber(),
+ *                                        getParameterList(), getLocFilePathForImageryStyleRule()
+ *                                        Updated getDataUnitsFromRecord() to get the units from the database
+ *  11/29/2012    #630       ghull        IGridGeometryProvider
+ *  02/13/2015    #R6345     mkean        add areaName, resolution and getRscAttrSetName 
+ *                                        to legendStr
  *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
+ *  12/03/2015    R12953     R. Reynolds  Modified to enhance Legend title
+ *  02/04/2016    R14142     RCReynolds   Moved mcidas related string construction out to ResourceDefinition
  * </pre>
  * 
  * @author ghull
@@ -51,46 +57,48 @@ public class McidasSatResource extends AbstractSatelliteResource implements
 
     protected NcIRPixelToTempConverter pixelToTemperatureConverter = null;
 
-    // McidasMapCoverage coverage = null;
-
     public McidasSatResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
         satRscData = data;
+        ResourceName rscName = satRscData.getResourceName();
 
-        // set the legend from:
-        // satellite name, areaName, resolution and resource
-        // NOTE: this assumes that the request type of EQUALS
-        // (ie only one kind of imageType and satellite name)
+        try {
 
-        if (satRscData.getMetadataMap().containsKey("satelliteId")
-                && satRscData.getMetadataMap().containsKey("areaId")) {
+            legendStr = "";
 
-            legendStr = satRscData.getMetadataMap().get("satelliteId")
-                    .getConstraintValue()
-                    + " "
-                    + satRscData.getMetadataMap().get("areaId")
-                            .getConstraintValue();
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
 
-            try {
-                // Note: if the value of "resolution" is <= zero,
-                // do not include it in the legend string.
-                // if the value of "resolution" > 0,
-                // add the string 'km' to the resolution to indicate kilometers.
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
 
-                String tmpRes = satRscData.getMetadataMap().get("resolution")
-                        .getConstraintValue();
+            String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
 
-                //
-                // if (Double.parseDouble(tmpRes) > 0.0) {
-                // legendStr += "_" + tmpRes + "km";
-                // }
-            } catch (NumberFormatException e) {
-                statusHandler.handle(Priority.INFO,
-                        "NumberFormatException parsing resolution - omitted");
+            for (int k = 0; k < subtypeParam.length; k++) {
+                legendStr += satRscData.getMetadataMap()
+                        .get(subtypeParam[k].toString()).getConstraintValue()
+                        .toString()
+                        + "_";
             }
 
-            legendStr += " " + satRscData.getRscAttrSet().getRscAttrSetName();
+            legendStr = legendStr.substring(0, legendStr.length() - 1);
+
+            legendStr = rscDefn.getRscGroupDisplayName(legendStr) + " ";
+
+            AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
+
+            rscDefn.setAttributeSet(attSet);
+
+            legendStr += rscDefn.getRscAttributeDisplayName("");
+
+            legendStr.trim();
+
+        } catch (Exception ex) {
+
+            statusHandler.handle(Priority.ERROR,
+                    "Error building legend string ", ex.getStackTrace()
+                            .toString());
         }
+
     }
 
     public boolean isCloudHeightCompatible() {
@@ -108,14 +116,7 @@ public class McidasSatResource extends AbstractSatelliteResource implements
             }
         }
         return false;
-        // can't do this since imageTypes is not set til a record is processed
-        // and
-        // we need the dataUnits before that.
-        // for( String physElmt : getImageTypes() ) {
-        // if( !physElmt.equals("IR") ) {
-        // return false;
-        // }
-        // }
+
     }
 
     String getImageTypeFromRecord(PluginDataObject pdo) {

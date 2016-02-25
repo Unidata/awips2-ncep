@@ -2,5 +2,18 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>.25km</attrSetGroupName>
-    <attrSetNames>VEL3_.25.00,VEL4_.25.00,VEL2_.25.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>VEL3_.25.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL4_.25.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL2_.25.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

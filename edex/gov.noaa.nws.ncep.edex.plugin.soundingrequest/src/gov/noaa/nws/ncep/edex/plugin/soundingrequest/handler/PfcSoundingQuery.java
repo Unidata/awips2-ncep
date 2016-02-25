@@ -32,6 +32,7 @@ package  gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  */
 
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest;
+
 import gov.noaa.nws.ncep.common.dataplugin.soundingrequest.SoundingServiceRequest.SoundingType;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
@@ -47,6 +48,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
@@ -106,8 +108,8 @@ public class PfcSoundingQuery {
 				stn.setStationLongitude(lon);
 				stn.setStationLatitude(lat);
 				stn.setStationElevation(elv);
-				stn.setSynopTime((Timestamp)objArray[4]);
-				stn.setRangeStartTime((Timestamp)objArray[5]);
+				stn.setSynopTime((Date)objArray[4]);
+				stn.setRangeStartTime((Date)objArray[5]);
 				stationInfoList.add(stn);
 				//System.out.println("stn id "+ stn.getStnId() + " lon "+ lon + " lat "+ lat);
 			}

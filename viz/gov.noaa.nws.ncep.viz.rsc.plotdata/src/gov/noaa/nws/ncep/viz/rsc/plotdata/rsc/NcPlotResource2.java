@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
 import static java.lang.System.out;
-import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector;
@@ -22,7 +21,6 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.IMetParamRetrievalListener;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.IPointInfoRenderingListener;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotDataRequestor;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.NcPlotImageCreator.Position;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.StaticPlotInfoPV.SPIEntry;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
@@ -33,6 +31,8 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
+import java.awt.Color;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,7 +58,6 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.DrawableBasics;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -139,6 +138,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  Aug 05, 2015  4486     rjpeter     Changed Timestamp to Date.
  *  08/14/2015   R7757     B. Hebbard  Refactor to connect imageCreator directly to this class, instead of indirectly via dataRequestor;
  *                                     add FrameStatus state tracking (instead of just processing-in-progress boolean)
+ *  11/17/2015   R9579     B. Hebbard  Tell DisplayElementFactory to allow filled symbols; move Station class to separate file; cleanups
+ *  12/14/2015   R9579     B. Hebbard  In populateStationsForTheFcstPointRscFrames(), prevent array-out-of-bounds condition if getFrameTimes() returns empty
  * 
  * </pre>
  * 
@@ -288,10 +289,11 @@ public class NcPlotResource2 extends
                                         station.info.latitude,
                                         station.info.longitude,
                                         stationTimeToSet, null);
-                                newStation.distValue = new Double(
-                                        station.distValue.doubleValue());
-                                newStation.origDistValue = new Double(
-                                        station.origDistValue.doubleValue());
+                                newStation.distanceValue = new Double(
+                                        station.distanceValue.doubleValue());
+                                newStation.originalDistanceValue = new Double(
+                                        station.originalDistanceValue
+                                                .doubleValue());
                                 newStation.goodnessValue = new Integer(
                                         station.goodnessValue.intValue());
 
@@ -395,7 +397,7 @@ public class NcPlotResource2 extends
                                                 stn.info.longitude);
                                         Station frameStn = frameData.stationMap
                                                 .get(stnMapKey);
-                                        frameStn.distValue = stn.distValue;
+                                        frameStn.distanceValue = stn.distanceValue;
                                         synchronized (frameData.stationMap) {
                                             frameData.stationMap.put(stnMapKey,
                                                     frameStn);
@@ -437,34 +439,6 @@ public class NcPlotResource2 extends
             Tracer.print("< Exit   END TASK   " + frameData.getShortFrameTime());
 
         }
-    }
-
-    public class Station {
-
-        public PlotInfo info;
-
-        public Double distValue;
-
-        public Double origDistValue;
-
-        public Coordinate pixelLocation;
-
-        public Integer goodnessValue;
-
-        public double[] projCoords;
-
-        public Set<AbstractMetParameter> listOfParamsToPlot;
-
-        public Set<AbstractMetParameter> setOfConditionalColorParams;
-
-        public Map<Position, DrawableBasics> stnPlotMap = null;
-
-        public Station() {
-            listOfParamsToPlot = new HashSet<AbstractMetParameter>(0);
-            setOfConditionalColorParams = new HashSet<AbstractMetParameter>(0);
-            stnPlotMap = new HashMap<Position, DrawableBasics>(6);
-        }
-
     }
 
     private class SpecialQueueEntry extends QueueEntry {
@@ -557,11 +531,11 @@ public class NcPlotResource2 extends
 
         private List<DrawableString> drawableStrings = null;
 
-        private List<IVector> listOfVectors = null;
+        private List<IVector> drawableVectors = null;
 
-        private List<SymbolLocationSet> listOfSymbolLocSet = null;
+        private List<SymbolLocationSet> drawableSymbolSets = null;
 
-        private Set<Station> setOfStationsLastRendered = null;
+        private Set<Station> stationsLastRendered = null;
 
         public int disclosedStationsCount;
 
@@ -572,9 +546,9 @@ public class NcPlotResource2 extends
             Tracer.print("> Entry  " + getShortFrameTime());
             dynStations = 0;
             drawableStrings = new ArrayList<DrawableString>(0);
-            listOfVectors = new ArrayList<IVector>(0);
-            listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(0);
-            setOfStationsLastRendered = new HashSet<Station>(0);
+            drawableVectors = new ArrayList<IVector>(0);
+            drawableSymbolSets = new ArrayList<SymbolLocationSet>(0);
+            stationsLastRendered = new HashSet<Station>(0);
             Tracer.print("< Exit   " + getShortFrameTime());
         }
 
@@ -726,9 +700,9 @@ public class NcPlotResource2 extends
                  * SpiProgDisclosure logic;
                  */
                 if (obsStation.distance < progressiveDisclosure.minDist) {
-                    station.origDistValue = progressiveDisclosure.minDist;
+                    station.originalDistanceValue = progressiveDisclosure.minDist;
                 } else {
-                    station.origDistValue = obsStation.distance;
+                    station.originalDistanceValue = obsStation.distance;
                 }
             } else {
                 thisLocation = new Coordinate(station.info.longitude,
@@ -743,7 +717,7 @@ public class NcPlotResource2 extends
                 }
                 thisPixelLocation = new Coordinate(thisLocationPixel[0],
                         thisLocationPixel[1]);
-                station.origDistValue = -1.0;
+                station.originalDistanceValue = -1.0;
                 dynStations++;
             }
 
@@ -764,7 +738,7 @@ public class NcPlotResource2 extends
             // TODO synchronize needed?
             Tracer.print("> Entry  " + getShortFrameTime());
             for (Station station : stationMap.values()) {
-                station.listOfParamsToPlot.clear();
+                station.parametersToPlot.clear();
             }
             Tracer.print("< Exit   " + getShortFrameTime());
         }
@@ -776,18 +750,17 @@ public class NcPlotResource2 extends
                 stationMap.clear();
                 stationMap = null;
             }
-            if (setOfStationsLastRendered != null
-                    && !setOfStationsLastRendered.isEmpty()) {
-                setOfStationsLastRendered.clear();
-                setOfStationsLastRendered = null;
+            if (stationsLastRendered != null && !stationsLastRendered.isEmpty()) {
+                stationsLastRendered.clear();
+                stationsLastRendered = null;
             }
-            if (listOfVectors != null && !listOfVectors.isEmpty()) {
-                listOfVectors.clear();
-                listOfVectors = null;
+            if (drawableVectors != null && !drawableVectors.isEmpty()) {
+                drawableVectors.clear();
+                drawableVectors = null;
             }
-            if (listOfSymbolLocSet != null && !listOfSymbolLocSet.isEmpty()) {
-                listOfSymbolLocSet.clear();
-                listOfSymbolLocSet = null;
+            if (drawableSymbolSets != null && !drawableSymbolSets.isEmpty()) {
+                drawableSymbolSets.clear();
+                drawableSymbolSets = null;
             }
             if (drawableStrings != null && !drawableStrings.isEmpty()) {
                 drawableStrings.clear();
@@ -844,14 +817,15 @@ public class NcPlotResource2 extends
         }
 
         public List<IVector> getVectorsToDraw() {
-            return listOfVectors;
+            return drawableVectors;
         }
 
         public List<SymbolLocationSet> getSymbolsToDraw() {
-            return listOfSymbolLocSet;
+            return drawableSymbolSets;
         }
 
         public String getShortFrameTime() {
+            // TODO -- Consider making common utility
             String returnString = NmapCommon.getTimeStringFromDataTime(
                     frameTime, "/").substring(4);
             if (frameTime.getFcstTime() != 0) {
@@ -905,7 +879,7 @@ public class NcPlotResource2 extends
         mapDescriptor = (NCMapDescriptor) NcDisplayMngr
                 .getActiveNatlCntrsEditor().getActiveDisplayPane()
                 .getRenderableDisplay().getDescriptor();
-        // what if no SPI file exists?
+        // TODO: what if no SPI file exists?
 
         if ((progressiveDisclosure == null) && (spi != null)) {
             progressiveDisclosure = new ProgressiveDisclosure(this, spi);
@@ -995,7 +969,7 @@ public class NcPlotResource2 extends
         }
 
         if (frameData.isFrameProcessingInProgress()) {
-            Tracer.print("Frame processing in progress...aborting paintFrame for "
+            Tracer.printX("Frame processing in progress...aborting paintFrame for "
                     + frameData.getShortFrameTime());
             return;
         }
@@ -1015,7 +989,7 @@ public class NcPlotResource2 extends
                         String stnMapKey = getStationMapKey(stn.info.latitude,
                                 stn.info.longitude);
                         Station frameStn = frameData.stationMap.get(stnMapKey);
-                        frameStn.distValue = stn.distValue;
+                        frameStn.distanceValue = stn.distanceValue;
                         frameData.stationMap.put(stnMapKey, frameStn);
                     }
                 }
@@ -1054,7 +1028,7 @@ public class NcPlotResource2 extends
 
                     boolean mapPopulated = false;
                     for (Station station : frameData.stationMap.values()) {
-                        if (station.distValue != null) {
+                        if (station.distanceValue != null) {
                             mapPopulated = true;
                             break;
                         }
@@ -1077,7 +1051,9 @@ public class NcPlotResource2 extends
                     Tracer.print("Calling from paintFrame() - no stations in stationMap for frame: "
                             + frameData.getShortFrameTime()
                             + ".  Loading frame data again.");
-                    loadFrameData();
+                    frameLoaderTask = new FrameLoaderTask(
+                            frameData.getFrameTime());
+                    frameRetrievalPool.schedule(frameLoaderTask);
                     issueRefresh();
                 }
             }
@@ -1141,7 +1117,7 @@ public class NcPlotResource2 extends
             }
             t2 = System.nanoTime();
             Tracer.printX("Took " + (t2 - t1) / 1000000
-                    + " ms to draw the wind-barbs in the frame "
+                    + " ms to draw the vectors in the frame "
                     + frameData.getShortFrameTime());
         }
         Tracer.printX("< Exit");
@@ -1225,6 +1201,12 @@ public class NcPlotResource2 extends
             df = new DisplayElementFactory(NcDisplayMngr
                     .getActiveNatlCntrsEditor().getActiveDisplayPane()
                     .getTarget(), getDescriptor());
+            // Must explicitly tell the DisplayElementFactory that filled
+            // elements are allowed, so filled symbols will draw.
+            Boolean mono = false;
+            Color color = null;
+            Boolean fill = true;
+            df.setLayerDisplayAttr(mono, color, fill);
         }
         Tracer.print("< Exit   " + Tracer.shortTimeString(frameTime));
         return newFrame;
@@ -1238,9 +1220,9 @@ public class NcPlotResource2 extends
             Collection<Station> collStns = ((FrameData) frameData).stationMap
                     .values();
             for (Station station : collStns) {
-                if (station.stnPlotMap != null) {
-                    station.stnPlotMap.clear();
-                    station.stnPlotMap = null;
+                if (station.positionToLocationMap != null) {
+                    station.positionToLocationMap.clear();
+                    station.positionToLocationMap = null;
                 }
                 if (station.info != null) {
                     station.info.plotQueued = false;
@@ -1428,8 +1410,6 @@ public class NcPlotResource2 extends
                         .determineConditionalColoringParameters(editedPlotModel);
 
                 imageCreator.setPlotModel(editedPlotModel);
-                imageCreator
-                        .setUpPlotPositionToPlotModelElementMapping(editedPlotModel);
 
                 // Remove all met param data from all stations in all frames.
                 // (Since we need to requery all of it anyway, this will force
@@ -1446,14 +1426,12 @@ public class NcPlotResource2 extends
                         synchronized (oldPMEList) {
                             imageCreator
                                     .removeObsoletePlotEntriesAtThisPositionForAllFrames(imageCreator
-                                            .getPositionFromPlotModelElementPosition(newPME
-                                                    .getPosition()));
+                                            .getPositionFromPlotModelElement(newPME));
                         }
                     }
                 }
 
                 imageCreator.removeObsoletePMEEntries(editedPlotModel);
-                imageCreator.setUpSymbolMappingTables();
                 List<DataTime> dtList = getFrameTimes();
                 synchronized (dtList) {
                     for (DataTime dt : dtList) {
@@ -1469,7 +1447,7 @@ public class NcPlotResource2 extends
                             Tracer.print("About to queue stations for data requery");
                             fd.setFrameStatus(FrameStatus.METPARAMS);
                             dataRequestor.queueStationsForHdf5Query(dt,
-                                    fd.setOfStationsLastRendered);
+                                    fd.stationsLastRendered);
                         }
                         issueRefresh();
                     }
@@ -1487,10 +1465,7 @@ public class NcPlotResource2 extends
             }
 
             imageCreator.setPlotModel(editedPlotModel);
-            imageCreator
-                    .setUpPlotPositionToPlotModelElementMapping(editedPlotModel);
             imageCreator.removeObsoletePMEEntries(editedPlotModel);
-            imageCreator.setUpSymbolMappingTables();
             List<DataTime> dtList = getFrameTimes();
             synchronized (dtList) {
                 for (DataTime dt : dtList) {
@@ -1507,15 +1482,15 @@ public class NcPlotResource2 extends
                             Tracer.print("About to apply conditional filter to stns last rendered");
                             dataRequestor
                                     .updateListOfStationsPerConditionalFilter(
-                                            dt, fd.setOfStationsLastRendered);
+                                            dt, fd.stationsLastRendered);
                             if (!setOfCondParamsAlreadyInPlotModel.isEmpty()) {
-                                synchronized (fd.setOfStationsLastRendered) {
-                                    for (Station currentStation : fd.setOfStationsLastRendered) {
+                                synchronized (fd.stationsLastRendered) {
+                                    for (Station currentStation : fd.stationsLastRendered) {
                                         synchronized (setOfCondParamsAlreadyInPlotModel) {
                                             for (String condParamName : setOfCondParamsAlreadyInPlotModel) {
                                                 dataRequestor
-                                                        .processConditionalParameterForEachStation(
-                                                                currentStation.listOfParamsToPlot,
+                                                        .processConditionalParameterForOneStation(
+                                                                currentStation.parametersToPlot,
                                                                 currentStation,
                                                                 ppdefs.getPlotParamDefn(
                                                                         condParamName)
@@ -1529,13 +1504,13 @@ public class NcPlotResource2 extends
                             if (!dataRequeryNeeded) {
                                 if (!setOfCondParamsAlreadyInPlotModel
                                         .isEmpty()) {
-                                    synchronized (fd.setOfStationsLastRendered) {
-                                        for (Station currentStation : fd.setOfStationsLastRendered) {
+                                    synchronized (fd.stationsLastRendered) {
+                                        for (Station currentStation : fd.stationsLastRendered) {
                                             synchronized (setOfCondParamsAlreadyInPlotModel) {
                                                 for (String condParamName : setOfCondParamsAlreadyInPlotModel) {
                                                     dataRequestor
-                                                            .processConditionalParameterForEachStation(
-                                                                    currentStation.listOfParamsToPlot,
+                                                            .processConditionalParameterForOneStation(
+                                                                    currentStation.parametersToPlot,
                                                                     currentStation,
                                                                     ppdefs.getPlotParamDefn(
                                                                             condParamName)
@@ -1548,12 +1523,12 @@ public class NcPlotResource2 extends
                                 Tracer.print("Queueing stations only for image creation");
                                 fd.setFrameStatus(FrameStatus.IMAGING);
                                 imageCreator.queueStationsToCreateImages(dt,
-                                        fd.setOfStationsLastRendered);
+                                        fd.stationsLastRendered);
                             } else {
-                                Tracer.print("Queueing stns for data retrieval");
+                                Tracer.print("Queueing stations for data retrieval");
                                 fd.setFrameStatus(FrameStatus.METPARAMS);
                                 dataRequestor.queueStationsForHdf5Query(dt,
-                                        fd.setOfStationsLastRendered);
+                                        fd.stationsLastRendered);
                             }
                         }
                     }
@@ -1566,7 +1541,7 @@ public class NcPlotResource2 extends
     }
 
     @Override
-    public/* synchronized?? */void disclosureComplete(DataTime time,
+    public void disclosureComplete(DataTime time,
             Collection<Station> disclosedStations) {
         Tracer.print("> Entry");
         FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
@@ -1589,7 +1564,7 @@ public class NcPlotResource2 extends
     }
 
     @Override
-    public/* synchronized */void retrievalComplete(DataTime time,
+    public void retrievalComplete(DataTime time,
             Collection<Station> retrievedStations,
             int stationsRetrievedThisCallCount,
             boolean isThereAConditionalFilter) {
@@ -1619,11 +1594,12 @@ public class NcPlotResource2 extends
 
     }
 
-    public/* synchronized */void retrievalAborted(DataTime time) {
+    public void retrievalAborted(DataTime time) {
         Tracer.print("> Entry");
         FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
         Tracer.print("Met Param retriever ABORTED" + " for frame: "
                 + Tracer.shortTimeString(time));
+        fd.stationsRetrievedThisCallCount = 0;
         fd.setFrameStatus(FrameStatus.READY);
         Tracer.print("< Exit");
     }
@@ -1647,21 +1623,20 @@ public class NcPlotResource2 extends
             }
 
             if (listOfVectors != null && !listOfVectors.isEmpty()) {
-                fd.listOfVectors = new ArrayList<IVector>(listOfVectors);
+                fd.drawableVectors = new ArrayList<IVector>(listOfVectors);
             } else {
-                fd.listOfVectors = new ArrayList<IVector>(0);
+                fd.drawableVectors = new ArrayList<IVector>(0);
             }
 
             if (listOfSymbolLocSet != null && !listOfSymbolLocSet.isEmpty()) {
-                fd.listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(
+                fd.drawableSymbolSets = new ArrayList<SymbolLocationSet>(
                         listOfSymbolLocSet);
             } else {
-                fd.listOfSymbolLocSet = new ArrayList<SymbolLocationSet>(0);
+                fd.drawableSymbolSets = new ArrayList<SymbolLocationSet>(0);
             }
 
-            fd.setOfStationsLastRendered = new HashSet<Station>();
-            fd.setOfStationsLastRendered
-                    .addAll(collectionOfStationsToBeRendered);
+            fd.stationsLastRendered = new HashSet<Station>();
+            fd.stationsLastRendered.addAll(collectionOfStationsToBeRendered);
 
             for (Station stn : collectionOfStationsToBeRendered) {
                 String stnKey = getStationMapKey(stn.info.latitude,
@@ -1682,7 +1657,7 @@ public class NcPlotResource2 extends
 
     }
 
-    public/* synchronized */void renderingAborted(DataTime time) {
+    public void renderingAborted(DataTime time) {
         Tracer.print("> Entry");
         FrameData fd = ((FrameData) getFrame(time)); // TODO deal with null
         Tracer.print("Image Rendering ABORTED" + " for frame: "
@@ -1716,7 +1691,7 @@ public class NcPlotResource2 extends
                 .getRscAttr("plotDensity").getAttrValue()).doubleValue() / 10;
         if (plotDensity == Double.MIN_NORMAL
                 || Math.abs(plotDensity - newPlotDensity) > 1E-08) { // TODO
-                                                                     // constify
+                                                                     // const
             plotDensity = newPlotDensity;
         }
         Tracer.print("< Exit");
@@ -1759,155 +1734,162 @@ public class NcPlotResource2 extends
     private void populateStationsForTheFcstPointRscFrames() {
         Tracer.print("> Entry");
         List<DataTime> datatimeList = getFrameTimes();
-        synchronized (datatimeList) {
-            FrameData firstFrame = (FrameData) getFrame(datatimeList.get(0));
-            firstFrame.setFrameStatus(FrameStatus.LOADING);
-            String tableName = this.metadataMap.get("pluginName")
-                    .getConstraintValue();
-            String matrixType = null;
-            RequestConstraint matrixTypeRC = this.metadataMap.get("matrixType");
-            if (matrixTypeRC != null) {
-                matrixType = matrixTypeRC.getConstraintValue();
-            }
-            String query = "";
-            if (matrixType == null || matrixType.isEmpty()) {
-                query = "select distinct(" + tableName + ".forecastTime), "
-                        + tableName + ".rangeEnd" + " from " + tableName
-                        + " where reftime = '" + cycleTimeStr + "';";
-            } else {
-                query = "select distinct(" + tableName + ".forecastTime), "
-                        + tableName + ".rangeEnd" + " from " + tableName
-                        + " where matrixtype = '" + matrixType + "'"
-                        + " AND reftime = '" + cycleTimeStr + "';";
-            }
-            try {
-                List<Object[]> results = null;
-                results = DirectDbQuery.executeQuery(query, "metadata",
-                        QueryLanguage.SQL);
-                List<Integer> intList = new ArrayList<Integer>();
-                List<Date> timeStampList = new ArrayList<Date>();
-                if (results != null) {
-                    for (Object[] objArr : results) {
-                        for (Object o : objArr) {
-                            if (o instanceof Integer) {
-                                Integer i = (Integer) o;
-                                intList.add((Integer) i);
-                            }
-                            if (o instanceof Date) {
-                                timeStampList.add((Date) o);
+        if (!datatimeList.isEmpty()) {
+            synchronized (datatimeList) {
+                FrameData firstFrame = (FrameData) getFrame(datatimeList.get(0));
+                firstFrame.setFrameStatus(FrameStatus.LOADING);
+                String tableName = this.metadataMap.get("pluginName")
+                        .getConstraintValue();
+                String matrixType = null;
+                RequestConstraint matrixTypeRC = this.metadataMap
+                        .get("matrixType");
+                if (matrixTypeRC != null) {
+                    matrixType = matrixTypeRC.getConstraintValue();
+                }
+                String query = "";
+                if (matrixType == null || matrixType.isEmpty()) {
+                    query = "select distinct(" + tableName + ".forecastTime), "
+                            + tableName + ".rangeEnd" + " from " + tableName
+                            + " where reftime = '" + cycleTimeStr + "';";
+                } else {
+                    query = "select distinct(" + tableName + ".forecastTime), "
+                            + tableName + ".rangeEnd" + " from " + tableName
+                            + " where matrixtype = '" + matrixType + "'"
+                            + " AND reftime = '" + cycleTimeStr + "';";
+                }
+                try {
+                    List<Object[]> results = null;
+                    results = DirectDbQuery.executeQuery(query, "metadata",
+                            QueryLanguage.SQL);
+                    List<Integer> intList = new ArrayList<Integer>();
+                    List<Timestamp> timeStampList = new ArrayList<Timestamp>();
+                    if (results != null) {
+                        for (Object[] objArr : results) {
+                            for (Object o : objArr) {
+                                if (o instanceof Integer) {
+                                    Integer i = (Integer) o;
+                                    intList.add((Integer) i);
+                                }
+                                if (o instanceof Timestamp) {
+                                    timeStampList.add((Timestamp) o);
+                                }
                             }
                         }
-                    }
-                    Integer[] iArr = new Integer[0];
-                    Date[] tArr = new Date[0];
-                    if (!intList.isEmpty()) {
-                        iArr = intList.toArray(new Integer[0]);
-                        Arrays.sort(iArr);
+                        Integer[] iArr = new Integer[0];
+                        Timestamp[] tArr = new Timestamp[0];
+                        if (!intList.isEmpty()) {
+                            iArr = intList.toArray(new Integer[0]);
+                            Arrays.sort(iArr);
 
-                        if (!timeStampList.isEmpty()) {
-                            tArr = timeStampList.toArray(new Date[0]);
-                            Arrays.sort(tArr);
+                            if (!timeStampList.isEmpty()) {
+                                tArr = timeStampList.toArray(new Timestamp[0]);
+                                Arrays.sort(tArr);
 
-                            Date cycleTimeDate = rscName.getCycleTime()
-                                    .getRefTime();
+                                Date cycleTimeDate = rscName.getCycleTime()
+                                        .getRefTime();
 
-                            int index = 1;
-                            boolean retrievedStationsForFirstFrame = false;
-                            for (index = 0; index < datatimeList.size(); index++) {
-                                DataTime nextFrameTime = datatimeList
-                                        .get(index);
-                                int indexOfTimeStamp = 0;
-                                int sizeOfTimestampList = tArr.length;
-                                for (indexOfTimeStamp = 0; indexOfTimeStamp < sizeOfTimestampList; indexOfTimeStamp++) {
-                                    Date timeStamp = tArr[indexOfTimeStamp];
-                                    if (timeStamp.getTime() == nextFrameTime
-                                            .getRefTime().getTime()) {
-                                        int fcstHr = iArr[indexOfTimeStamp]
-                                                .intValue();
-                                        DataTime newTime = new DataTime(
-                                                cycleTimeDate);
-                                        newTime.setFcstTime(fcstHr);
-                                        newTime.setUtilityFlags(firstFrame
-                                                .getFrameTime()
-                                                .getUtilityFlags());
-                                        Tracer.print("nextFrameTime = "
-                                                + Tracer.shortTimeString(nextFrameTime)
-                                                + "\n" + "newTime = "
-                                                + newTime.toString());
-
-                                        /*
-                                         * For a forecast point resource, the
-                                         * number of stations remains the same
-                                         * for all forecast hours. So a Postgres
-                                         * query is carried out only once (for
-                                         * the first frame) and the same set of
-                                         * stations is subsequently copied to
-                                         * the remaining frames, after updating
-                                         * the stations' data-times to match
-                                         * that of the frame it will now belong
-                                         * to....
-                                         */
-
-                                        if (!retrievedStationsForFirstFrame) {
+                                int index = 1;
+                                boolean retrievedStationsForFirstFrame = false;
+                                for (index = 0; index < datatimeList.size(); index++) {
+                                    DataTime nextFrameTime = datatimeList
+                                            .get(index);
+                                    int indexOfTimeStamp = 0;
+                                    int sizeOfTimestampList = tArr.length;
+                                    for (indexOfTimeStamp = 0; indexOfTimeStamp < sizeOfTimestampList; indexOfTimeStamp++) {
+                                        Timestamp timeStamp = tArr[indexOfTimeStamp];
+                                        if (timeStamp.getTime() == nextFrameTime
+                                                .getRefTime().getTime()) {
+                                            int fcstHr = iArr[indexOfTimeStamp]
+                                                    .intValue();
+                                            DataTime newTime = new DataTime(
+                                                    cycleTimeDate);
+                                            newTime.setFcstTime(fcstHr);
+                                            newTime.setUtilityFlags(firstFrame
+                                                    .getFrameTime()
+                                                    .getUtilityFlags());
+                                            Tracer.print("nextFrameTime = "
+                                                    + Tracer.shortTimeString(nextFrameTime)
+                                                    + "\n" + "newTime = "
+                                                    + newTime.toString());
 
                                             /*
-                                             * If this is the first frame
-                                             * retrieve the stations from
-                                             * Postgres
+                                             * For a forecast point resource,
+                                             * the number of stations remains
+                                             * the same for all forecast hours.
+                                             * So a Postgres query is carried
+                                             * out only once (for the first
+                                             * frame) and the same set of
+                                             * stations is subsequently copied
+                                             * to the remaining frames, after
+                                             * updating the stations' data-times
+                                             * to match that of the frame it
+                                             * will now belong to....
                                              */
-                                            FrameData frameData = (FrameData) getFrame(nextFrameTime);
-                                            HashMap<String, RequestConstraint> frameRCMap = new HashMap<String, RequestConstraint>();
-                                            frameRCMap.put("pluginName",
-                                                    metadataMap
-                                                            .get("pluginName"));
-                                            matrixTypeRC = this.metadataMap
-                                                    .get("matrixType"); // redundant?
-                                            if (matrixTypeRC != null) {
-                                                frameRCMap.put("matrixType",
-                                                        matrixTypeRC);
-                                            }
 
-                                            frameRCMap
-                                                    .put("dataTime.fcstTime",
-                                                            new RequestConstraint(
-                                                                    String.valueOf(iArr[indexOfTimeStamp]
-                                                                            .intValue())));
-                                            frameRCMap.put("dataTime.refTime",
-                                                    new RequestConstraint(
-                                                            cycleTimeStr));
-                                            frameData.plotInfoObjs = plotRscData
-                                                    .getPlotInfoRetriever()
-                                                    .getStations(frameRCMap);
+                                            if (!retrievedStationsForFirstFrame) {
 
-                                            if (frameData.plotInfoObjs != null
-                                                    && !frameData.plotInfoObjs
-                                                            .isEmpty()) {
-                                                synchronized (frameData.plotInfoObjs) {
+                                                /*
+                                                 * If this is the first frame
+                                                 * retrieve the stations from
+                                                 * Postgres
+                                                 */
+                                                FrameData frameData = (FrameData) getFrame(nextFrameTime);
+                                                HashMap<String, RequestConstraint> frameRCMap = new HashMap<String, RequestConstraint>();
+                                                frameRCMap
+                                                        .put("pluginName",
+                                                                metadataMap
+                                                                        .get("pluginName"));
+                                                matrixTypeRC = this.metadataMap
+                                                        .get("matrixType"); // redundant?
+                                                if (matrixTypeRC != null) {
+                                                    frameRCMap.put(
+                                                            "matrixType",
+                                                            matrixTypeRC);
+                                                }
 
-                                                    boolean isFramePopulated = frameData
-                                                            .populateFrame();
-                                                    if (isFramePopulated) {
-                                                        retrievedStationsForFirstFrame = true;
-                                                        Collection<Station> stationsToBeQueuedForProgDisc = progressiveDisclosure
-                                                                .calculateStaticProgDiscDistancesForStations(
-                                                                        frameData.stationMap
-                                                                                .values(),
-                                                                        frameData.dynStations);
-                                                        if (stationsToBeQueuedForProgDisc != null
-                                                                && !stationsToBeQueuedForProgDisc
-                                                                        .isEmpty()) {
-                                                            synchronized (stationsToBeQueuedForProgDisc) {
-                                                                for (Station stn : stationsToBeQueuedForProgDisc) {
-                                                                    String stnMapKey = getStationMapKey(
-                                                                            stn.info.latitude,
-                                                                            stn.info.longitude);
-                                                                    Station frameStn = frameData.stationMap
-                                                                            .get(stnMapKey);
-                                                                    frameStn.distValue = stn.distValue;
-                                                                    synchronized (frameData.stationMap) {
-                                                                        frameData.stationMap
-                                                                                .put(stnMapKey,
-                                                                                        frameStn);
+                                                frameRCMap
+                                                        .put("dataTime.fcstTime",
+                                                                new RequestConstraint(
+                                                                        String.valueOf(iArr[indexOfTimeStamp]
+                                                                                .intValue())));
+                                                frameRCMap.put(
+                                                        "dataTime.refTime",
+                                                        new RequestConstraint(
+                                                                cycleTimeStr));
+                                                frameData.plotInfoObjs = plotRscData
+                                                        .getPlotInfoRetriever()
+                                                        .getStations(frameRCMap);
+
+                                                if (frameData.plotInfoObjs != null
+                                                        && !frameData.plotInfoObjs
+                                                                .isEmpty()) {
+                                                    synchronized (frameData.plotInfoObjs) {
+
+                                                        boolean isFramePopulated = frameData
+                                                                .populateFrame();
+                                                        if (isFramePopulated) {
+                                                            retrievedStationsForFirstFrame = true;
+                                                            Collection<Station> stationsToBeQueuedForProgDisc = progressiveDisclosure
+                                                                    .calculateStaticProgDiscDistancesForStations(
+                                                                            frameData.stationMap
+                                                                                    .values(),
+                                                                            frameData.dynStations);
+                                                            if (stationsToBeQueuedForProgDisc != null
+                                                                    && !stationsToBeQueuedForProgDisc
+                                                                            .isEmpty()) {
+                                                                synchronized (stationsToBeQueuedForProgDisc) {
+                                                                    for (Station stn : stationsToBeQueuedForProgDisc) {
+                                                                        String stnMapKey = getStationMapKey(
+                                                                                stn.info.latitude,
+                                                                                stn.info.longitude);
+                                                                        Station frameStn = frameData.stationMap
+                                                                                .get(stnMapKey);
+                                                                        frameStn.distanceValue = stn.distanceValue;
+                                                                        synchronized (frameData.stationMap) {
+                                                                            frameData.stationMap
+                                                                                    .put(stnMapKey,
+                                                                                            frameStn);
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -1915,26 +1897,26 @@ public class NcPlotResource2 extends
                                                     }
                                                 }
                                             }
+                                            queueStationsForRemainingFcstFrames(
+                                                    nextFrameTime, newTime,
+                                                    firstFrame.stationMap
+                                                            .values());
                                         }
-                                        queueStationsForRemainingFcstFrames(
-                                                nextFrameTime, newTime,
-                                                firstFrame.stationMap.values());
                                     }
                                 }
                             }
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
         Tracer.print("< Exit");
     }
 
-    private/* synchronized?? */void queueStationsForRemainingFcstFrames(
-            DataTime frameTime, DataTime stnTimeToSet,
-            Collection<Station> stationCollection) {
+    private void queueStationsForRemainingFcstFrames(DataTime frameTime,
+            DataTime stnTimeToSet, Collection<Station> stationCollection) {
         Tracer.print("> Entry  " + Tracer.shortTimeString(frameTime));
         SpecialQueueEntry queueEntry = new SpecialQueueEntry(frameTime,
                 stnTimeToSet, stationCollection);
@@ -1995,11 +1977,6 @@ public class NcPlotResource2 extends
         float zoom = paintProps.getZoomLevel();
         double yOffset = 250 * zoom;
 
-        TextStyle style = TextStyle.NORMAL;
-        RGB color = new RGB(255, 255, 255);
-
-        final boolean statistics = false; // enhancement in test
-
         List<DataTime> dtList = getFrameTimes();
         synchronized (dtList) {
             for (DataTime dt : dtList) {
@@ -2015,19 +1992,14 @@ public class NcPlotResource2 extends
                         + fs.getSpacing()
                         + (frameStatusDisplayVerbose ? fs.getDescription() : fs
                                 .toString());
-                if (statistics) {
-                    string += "  " + fd.plotInfoObjs.size() + " "
-                            + fd.disclosedStationsCount; // + " "
-                    // + fd.stationsRetrievedThisCallCount;
-                }
-                style = (fd == currentFrameData) ? TextStyle.BOXED
-                        : TextStyle.NORMAL;
-                color = fs.getColorCode();
                 y0 += yOffset;
-                DrawableString ds = new DrawableString(string, color);
-                ds.setCoordinates(x0, y0 /* - yOff */);
+                DrawableString ds = new DrawableString(string,
+                        fs.getColorCode());
+                ds.setCoordinates(x0, y0);
                 ds.font = frameStatusDisplayFont;
-                ds.textStyle = style;
+                if (fd == currentFrameData) {
+                    ds.addTextStyle(TextStyle.BOXED);
+                }
                 ds.horizontalAlignment = HorizontalAlignment.LEFT;
                 ds.verticallAlignment = VerticalAlignment.BOTTOM;
                 try {

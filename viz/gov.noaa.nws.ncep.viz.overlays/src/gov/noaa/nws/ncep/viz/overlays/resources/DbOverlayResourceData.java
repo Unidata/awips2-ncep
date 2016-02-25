@@ -1,11 +1,9 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
-
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -16,16 +14,19 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
 /**
- * TODO Add Description
- * 
  * <pre>
+ * (non-Javadoc)
+ * 
+ * This class is copied over from com.raytheon.viz.core.rsc.DbMapResourceData
+ * It is the resource data value object for DbMapOverlay
+ * 
  * 
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -35,24 +36,23 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
  * Aug 06, 2009            ghull       construct() -> constructResource()
  * Nov 19, 2009            ghull       Incorporate to11d6 changes (equals(), toString)
  * Apr 14  2010    #259    ghull       set legendColor from color
- * 
- * </pre>
- * 
- * This class is copied over from com.raytheon.viz.core.rsc.DbMapResourceData
- * 
+ * 12/03/15        R9407   pchowdhuri  Maps/overlays need to be able to reference the 
+ *                                     Localization Cave>Bundles>Maps XML files
+ *                                     
  * @author mgao
  * @version 1.0
+ * </pre>
  */
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name="NC-dbOverlayResourceData")
-public class DbOverlayResourceData extends AbstractNatlCntrsResourceData 
-                implements INatlCntrsResourceData { 
+@XmlType(name = "NC-dbOverlayResourceData")
+public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
+        implements INatlCntrsResourceData {
 
     /** The human readable name */
     @XmlElement(required = true)
-    private String mapName = null;//uma
-    
+    private String mapName = null;
+
     @XmlElement(required = true)
     private String dbName = "maps";
 
@@ -73,26 +73,25 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
 
     @XmlElement
     private String displayLabelField;
-    
+
     @XmlElement
     private String shadingField;
 
     @XmlElement
     private String ncShadingField;
-    
+
     @XmlElement
-	@XmlJavaTypeAdapter(RGBColorAdapter.class)
+    @XmlJavaTypeAdapter(RGBColorAdapter.class)
     private RGB color = new RGB(155, 155, 155);
 
     @XmlElement
-	private int lineWidth = 1;
+    private int lineWidth = 1;
 
-    private boolean isOutlineOn = true;  
+    private boolean isOutlineOn = true;
 
     @XmlElement
     private LineStyle lineStyle = LineStyle.SOLID;
 
-    
     public DbOverlayResourceData() {
         super();
         this.nameGenerator = new AbstractNameGenerator() {
@@ -105,13 +104,13 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
         };
     }
 
-	@Override
-	public NcDisplayType[] getSupportedDisplayTypes() {
-		return new NcDisplayType[] { NcDisplayType.NMAP_DISPLAY };
-	}
+    @Override
+    public NcDisplayType[] getSupportedDisplayTypes() {
+        return new NcDisplayType[] { NcDisplayType.NMAP_DISPLAY };
+    }
 
     @SuppressWarnings("unchecked")
-	@Override
+    @Override
     public DbOverlayResource constructResource(LoadProperties loadProperties,
             IDescriptor descriptor) throws VizException {
         return new DbOverlayResource(this, loadProperties);
@@ -135,7 +134,7 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
     /**
      * @return the constraints
      */
-    public String[] getConstraints() {
+    public String[] getConstraint() {
         return constraints;
     }
 
@@ -143,7 +142,7 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
      * @param constraints
      *            the constraints to set
      */
-    public void setConstraints(String[] constraints) {
+    public void setConstraint(String[] constraints) {
         this.constraints = constraints;
     }
 
@@ -163,19 +162,19 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
     }
 
     /**
-     * @return true only if the instance field displayLabelField
-     * is "yes" or "true" 
+     * @return true only if the instance field displayLabelField is "yes" or
+     *         "true"
      */
     public boolean isLabeled() {
-    	boolean isLabeled = false; 
-    	if(displayLabelField == null)
-    		return isLabeled; 
-    	if("yes".equalsIgnoreCase(displayLabelField) || 
-    			"true".equalsIgnoreCase(displayLabelField))
-    		isLabeled = true; 
-    	return isLabeled; 
+        boolean isLabeled = false;
+        if (displayLabelField == null)
+            return isLabeled;
+        if ("yes".equalsIgnoreCase(displayLabelField)
+                || "true".equalsIgnoreCase(displayLabelField))
+            isLabeled = true;
+        return isLabeled;
     }
-    
+
     /**
      * @return the shadingField
      */
@@ -187,19 +186,18 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
     }
 
     /**
-     * @return true only if the instance field shadingField
-     * is "yes" or "true" 
+     * @return true only if the instance field shadingField is "yes" or "true"
      */
     public boolean isShaded() {
-    	boolean isShaded = false; 
-    	if(ncShadingField == null)
-    		return isShaded; 
-    	if("yes".equalsIgnoreCase(ncShadingField) || 
-    			"true".equalsIgnoreCase(ncShadingField))
-    		isShaded = true; 
-    	return isShaded; 
+        boolean isShaded = false;
+        if (ncShadingField == null)
+            return isShaded;
+        if ("yes".equalsIgnoreCase(ncShadingField)
+                || "true".equalsIgnoreCase(ncShadingField))
+            isShaded = true;
+        return isShaded;
     }
-    
+
     /**
      * @param shadingField
      *            the shadingField to set
@@ -254,45 +252,45 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
     }
 
     public RGB getColor() {
-		return color;
-	}
+        return color;
+    }
 
-	public void setColor(RGB _color) {
-		this.color = _color;
-		this.legendColor = color;
-	}
+    public void setColor(RGB _color) {
+        this.color = _color;
+        this.legendColor = color;
+    }
 
-	public int getLineWidth() {
-		return lineWidth;
-	}
+    public int getLineWidth() {
+        return lineWidth;
+    }
 
-	public void setLineWidth(int lineWidth) {
-		this.lineWidth = lineWidth;
-	}
+    public void setLineWidth(int lineWidth) {
+        this.lineWidth = lineWidth;
+    }
 
-	public boolean isOutlineOn() {
-		return isOutlineOn;
-	}
+    public boolean isOutlineOn() {
+        return isOutlineOn;
+    }
 
-	public void setOutlineOn(boolean isOutlineOn) {
-		this.isOutlineOn = isOutlineOn;
-	}
+    public void setOutlineOn(boolean isOutlineOn) {
+        this.isOutlineOn = isOutlineOn;
+    }
 
-	public LineStyle getLineStyle() {
-		return lineStyle;
-	}
+    public LineStyle getLineStyle() {
+        return lineStyle;
+    }
 
-	public void setLineStyle(LineStyle lineStyle) {
-		this.lineStyle = lineStyle;
-	}
+    public void setLineStyle(LineStyle lineStyle) {
+        this.lineStyle = lineStyle;
+    }
 
     @Override
     public boolean equals(Object obj) {
-		if (!super.equals(obj)) {
-			return false;
-		}
+        if (!super.equals(obj)) {
+            return false;
+        }
 
-		DbOverlayResourceData other = (DbOverlayResourceData) obj;
+        DbOverlayResourceData other = (DbOverlayResourceData) obj;
 
         if (this.columns != null && other.columns == null) {
             return false;
@@ -349,19 +347,17 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
         }
 
         if (this.tables != null || other.tables != null) {
-            if (this.tables == null || other.tables == null) {            	
-            	return false;
+            if (this.tables == null || other.tables == null) {
+                return false;
+            } else if (this.tables.length != other.tables.length) {
+                return false;
+            } else {
+                for (int i = 0; i < this.tables.length; i++) {
+                    if (!this.tables[i].equals(other.tables[i])) {
+                        return false;
+                    }
+                }
             }
-            else if( this.tables.length != other.tables.length ) {
-            	return false;
-            }
-        	else {
-        		for( int i=0 ; i<this.tables.length ; i++ ) {
-        			if( !this.tables[i].equals( other.tables[i] )) {
-        	            return false;		
-        			}
-        		}
-        	}            
         }
 
         return true;
@@ -377,12 +373,12 @@ public class DbOverlayResourceData extends AbstractNatlCntrsResourceData
         return this.mapName;
     }
 
-	public String getDbName() {              //uma
-		return dbName;
-	}
+    public String getDbName() {
+        return dbName;
+    }
 
-	public void setDbName(String dbName) {
-		this.dbName = dbName;
-	}
-    
+    public void setDbName(String dbName) {
+        this.dbName = dbName;
+    }
+
 }

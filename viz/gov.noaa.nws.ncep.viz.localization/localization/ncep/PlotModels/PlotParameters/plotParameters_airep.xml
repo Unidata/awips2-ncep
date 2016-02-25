@@ -123,6 +123,9 @@ here we are using turbInten from ncairep instead of flightHazard. Is this correc
                      dbParamName="presWeather"
                      plotMode="table" symbolFont="WxSymbolFont" 
                      plotLookupTable="wx_symbol_trans.txt"/-->
+
+ <!-- MARKERs -->
+ <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
     
  	
 </PlotParameterDefns>

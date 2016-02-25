@@ -26,7 +26,6 @@ import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.drawables.ext.ICanvasRenderingExtension;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.legend.ILegendDecorator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.GenericResourceData;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
@@ -40,7 +39,7 @@ import com.raytheon.viz.ui.cmenu.MoveDownAction;
 import com.raytheon.viz.ui.cmenu.MoveUpAction;
 
 /**
- * Legend decorator for Natl Cntrs
+ * Legend decorator for National Centers
  * 
  * <pre>
  * SOFTWARE HISTORY
@@ -48,15 +47,18 @@ import com.raytheon.viz.ui.cmenu.MoveUpAction;
  * ------------ ---------- ----------- --------------------------
  * 04/01/2010     #259     Greg Hull    Initial Creation
  * 07/13/2001     #446     Q. Zhou      Added implements IInputHandler
- * 										Added mouse handlers, initInternal, toggleVisibility. See D2DLegendResource
+ *                                      Added mouse handlers, initInternal, toggleVisibility. See D2DLegendResource
  * 02/06/2011              S. Gurung    Separated/moved input handler code to class NCLegendHandler
- * 02/29/2011     651      Archana      Added the overridden method fillContextMenu()										
- * 07/27/2012	  695	   B. Yin		Added editable capability for resource legends
+ * 02/29/2011     651      Archana      Added the overridden method fillContextMenu()
+ * 07/27/2012	  695	   B. Yin       Added editable capability for resource legends
  * 08/18/2014       ?      B. Yin       Handle GroupResource.
  * 08/14/2015    R8902     S. Russell   Updated initInternal() to set the 
  *                                      priority of the NCLegendHandler to
  *                                      SYSTEM_RESOURCE_LOW, rather than
  *                                      SYSTEM_RESOURCE.
+ * 09/25/2015    R8833     N. Jensen    Added LegendMode, replaced deprecated getStringBounds()
+ * 12/29/2015    R12840    B. Yin       Changed color of inactive resource to 7F7F7F.
+ * 
  * </pre>
  * 
  * @author ghull
@@ -64,22 +66,45 @@ import com.raytheon.viz.ui.cmenu.MoveUpAction;
  */
 
 public class NCLegendResource extends
-        AbstractLegendResource<GenericResourceData> implements ILegendDecorator {
+        AbstractLegendResource<GenericResourceData> {
 
     private static final IUFStatusHandler logger = UFStatus
             .getHandler(NCLegendResource.class);
 
-    private IInputHandler legendHandler = new NCLegendHandler(this);
+    private final IInputHandler legendHandler = new NCLegendHandler(this);
 
     protected static final int BOTTOM_OFFSET_IN_PIXELS = 7;
 
     protected static final int RIGHT_OFFSET_IN_PIXELS = 18;
+    
+    private static final RGB INACTIVE_RESOURCE_COLOR = new RGB (0x7F, 0x7F, 0x7F);
+    
+    private static final RGB ACTIVE_RESOURCE_COLOR = new RGB (0xFA, 0xFA, 0xFA);
 
     private static IFont groupResourceFont;
 
     private double yStart;
 
+    private LegendMode mode = LegendMode.SHOW;
+
+    public static enum LegendMode {
+        SHOW("Show Legends"), HIDE("Hide Legends");
+
+        private String str;
+
+        LegendMode(String str) {
+            this.str = str;
+        }
+
+        @Override
+        public String toString() {
+            return str;
+        }
+    }
+
     /**
+     * Constructor
+     * 
      * @param resourceData
      * @param loadProperties
      */
@@ -88,34 +113,28 @@ public class NCLegendResource extends
         super(resourceData, loadProperties);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#paintInternal(com.raytheon
-     * .uf.viz.core.IGraphicsTarget,
-     * com.raytheon.uf.viz.core.drawables.PaintProperties)
-     */
     @Override
     protected void paintInternal(IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
-        // Get the legend data to draw
-        LegendEntry[] legendData = getLegendData(descriptor);
 
-        groupResourceFont = target.initializeFont(target.getDefaultFont()
-                .getFontName(), target.getDefaultFont().getFontSize(),
-                new Style[] { Style.ITALIC, Style.BOLD });
-        yStart = paintProps.getCanvasBounds().height
-                - (BOTTOM_OFFSET_IN_PIXELS);
+        // Get the legend data to draw if the legend is shown
+        if (mode == LegendMode.SHOW) {
+            LegendEntry[] legendData = getLegendData(descriptor);
 
-        List<DrawableString> legendStrings = generateLegendStrings(target,
-                paintProps, legendData, RIGHT_OFFSET_IN_PIXELS);
+            groupResourceFont = target.initializeFont(target.getDefaultFont()
+                    .getFontName(), target.getDefaultFont().getFontSize(),
+                    new Style[] { Style.ITALIC, Style.BOLD });
+            yStart = paintProps.getCanvasBounds().height
+                    - (BOTTOM_OFFSET_IN_PIXELS);
 
-        target.getExtension(ICanvasRenderingExtension.class).drawStrings(
-                paintProps, legendStrings.toArray(new DrawableString[0]));
+            List<DrawableString> legendStrings = generateLegendStrings(target,
+                    paintProps, legendData, RIGHT_OFFSET_IN_PIXELS);
+
+            target.getExtension(ICanvasRenderingExtension.class).drawStrings(
+                    paintProps, legendStrings.toArray(new DrawableString[0]));
+        }
     }
 
-    @SuppressWarnings("deprecation")
     private List<DrawableString> generateLegendStrings(IGraphicsTarget target,
             PaintProperties paintProps, LegendEntry[] legendData,
             int rightOffset) {
@@ -142,8 +161,10 @@ public class NCLegendResource extends
                             for (String str : dstring.getText()) {
                                 legendText += str;
                             }
-                            Rectangle2D stringBounds = target.getStringBounds(
-                                    dstring.font, legendText);
+                            DrawableString s = new DrawableString(legendText);
+                            s.font = dstring.font;
+                            Rectangle2D stringBounds = target
+                                    .getStringsBounds(s);
 
                             double xStart = paintProps.getCanvasBounds().width
                                     - ((rightOffset + stringBounds.getWidth()));
@@ -161,8 +182,9 @@ public class NCLegendResource extends
                 allText += ld.label;
             }
 
-            Rectangle2D allTextBounds = target
-                    .getStringBounds(le.font, allText);
+            DrawableString ds = new DrawableString(allText);
+            ds.font = le.font;
+            Rectangle2D allTextBounds = target.getStringsBounds(ds);
 
             double xStart = paintProps.getCanvasBounds().width
                     - ((rightOffset + allTextBounds.getWidth()));
@@ -184,18 +206,10 @@ public class NCLegendResource extends
             }
 
             yStart -= maxHeight;
-
         }
 
         return legendStrings;
     }
-
-    /**
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.uf.viz.core.legend.ILegendDecorator#getLegendData(com.raytheon
-     *      .uf.viz.core.drawables.IDescriptor)
-     */
 
     @Override
     public LegendEntry[] getLegendData(IDescriptor descriptor) {
@@ -205,12 +219,6 @@ public class NCLegendResource extends
         return entries;
     }
 
-    /**
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.uf.viz.core.legend.ILegendDecorator#getLegendData(com.raytheon
-     *      .uf.viz.core.drawables.IDescriptor)
-     */
     private LegendEntry[] getLegendData(IResourceGroup groupResource) {
         LegendEntry[] entries = null;
         ResourceList resourceList = groupResource.getResourceList();
@@ -229,7 +237,6 @@ public class NCLegendResource extends
      * @param ResourceList
      * @return LegendEntry[]
      */
-
     private LegendEntry[] getLegendDataUtil(ResourceList resourceList) {
 
         List<LegendData> labels = new ArrayList<LegendData>();
@@ -267,21 +274,22 @@ public class NCLegendResource extends
                     }
 
                     if (!vis) {
-                        legend.color = new RGB(50, 50, 50);
+                        legend.color = INACTIVE_RESOURCE_COLOR;
                     } else {
-                        // get the color from the NatlCntrs Resource.
-                        legend.color = new RGB(250, 250, 250); // default to
-                                                               // white
+                        /*
+                         * default to white but then try to get the color from
+                         * the NatlCntrs Resource.
+                         */
+                        legend.color = ACTIVE_RESOURCE_COLOR;
 
                         try {
-                            // HACK ALERT : currently there is a cyclical
-                            // dependency bug
-                            // that prevents the display project from
-                            // referencing the
-                            // resources project.
-                            // get the method from INatlCntrsResource to get the
-                            // legend
-                            // color
+                            /*
+                             * HACK ALERT : currently there is a cyclical
+                             * dependency bug that prevents the display project
+                             * from referencing the resources project. get the
+                             * method from INatlCntrsResource to get the legend
+                             * color
+                             */
                             Method[] mthds = legend.resource.getResourceData()
                                     .getClass().getMethods();
 
@@ -313,14 +321,9 @@ public class NCLegendResource extends
         return entries;
     }
 
-    protected void initInternal(IGraphicsTarget target) {
-        try {
-            super.initInternal(target);
-        } catch (VizException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+    @Override
+    protected void initInternal(IGraphicsTarget target) throws VizException {
+        super.initInternal(target);
         target.initializeFont(NCLegendResource.class.getName());
         IDisplayPaneContainer rc = getResourceContainer();
         if (rc == null)
@@ -342,10 +345,6 @@ public class NCLegendResource extends
     }
 
     @Override
-    /**
-     * (non-Javadoc)
-     * @see com.raytheon.uf.viz.core.rsc.legend.AbstractLegendResource#provideContextMenuItems(org.eclipse.jface.action.IMenuManager, int, int)
-     */
     public void provideContextMenuItems(IMenuManager menuManager, int x, int y) {
         IGraphicsTarget target = null;
         for (IDisplayPane pane : getResourceContainer().getDisplayPanes()) {
@@ -386,7 +385,6 @@ public class NCLegendResource extends
             } else {
                 fillContextMenu(menuManager, rsc);
             }
-
         }
 
         for (IContributionItem item : menuManager.getItems()) {
@@ -438,7 +436,6 @@ public class NCLegendResource extends
         return resourcesClicked;
     }
 
-    @SuppressWarnings("deprecation")
     private List<ResourcePair> getResourceClickedInLegendGroup(
             IDescriptor descriptor, IGraphicsTarget target, double x, double y,
             IExtent extent, double ratio, double yStart,
@@ -465,8 +462,9 @@ public class NCLegendResource extends
                 allText += ld.label;
             }
 
-            Rectangle2D allTextBounds = target
-                    .getStringBounds(le.font, allText);
+            DrawableString ds = new DrawableString(allText);
+            ds.font = le.font;
+            Rectangle2D allTextBounds = target.getStringsBounds(ds);
 
             double legendHeight = (allTextBounds.getHeight() * ratio);
             double yEnd = yStart - legendHeight;
@@ -474,15 +472,13 @@ public class NCLegendResource extends
             // Calculate group resource legend height
             double groupHeight = 0;
             if (isExpandedGroup) {
-                Rectangle2D resourceGroupBounds = target.getStringBounds(
-                        groupResourceFont, allText);
+                ds.font = groupResourceFont;
+                Rectangle2D resourceGroupBounds = target.getStringsBounds(ds);
                 groupHeight = resourceGroupBounds.getHeight() * ratio
                         * gr.getResourceList().size();
             }
-
-            if (isExpandedGroup && (y <= yStart && y > yStart - groupHeight)) { // in
-                                                                                // group
-                                                                                // resources
+            // if it is in group resources
+            if (isExpandedGroup && (y <= yStart && y > yStart - groupHeight)) {
                 resourcesClicked.add(grpPair);
                 getResourceClickedInLegendGroup(descriptor, target, x, y,
                         extent, ratio, yStart, getLegendData(gr),
@@ -493,7 +489,8 @@ public class NCLegendResource extends
                     resourcesClicked.remove(resourcesClicked.size() - 1);
                 }
                 break;
-            } else { // either not in group resource or click on the group name
+            } else {
+                // either not in group resource or click on the group name
 
                 if (isExpandedGroup) { // click on the group name
                     yStart -= groupHeight;
@@ -518,13 +515,12 @@ public class NCLegendResource extends
 
                     for (LegendData ld : le.legendParts) {
                         String text = ld.label;
-                        Rectangle2D textBounds = target.getStringBounds(
-                                le.font, text);
+                        DrawableString s = new DrawableString(text);
+                        s.font = le.font;
+                        Rectangle2D textBounds = target.getStringsBounds(s);
                         xEnd = xStart + (textBounds.getWidth() * ratio);
                         if (x <= xEnd) {
-
                             resourcesClicked.add(ld.resource);
-
                             return resourcesClicked;
                         }
                         xStart = xEnd;
@@ -534,6 +530,15 @@ public class NCLegendResource extends
             }
         }
         return resourcesClicked;
+    }
+
+    public void setLegendMode(LegendMode mode) {
+        this.mode = mode;
+
+    }
+
+    public LegendMode getLegendMode() {
+        return this.mode;
     }
 
 }

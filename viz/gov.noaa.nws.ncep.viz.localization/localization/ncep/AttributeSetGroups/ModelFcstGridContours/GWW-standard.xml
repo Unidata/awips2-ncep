@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>GWW</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>sig_wave_gridded_meters_only</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>sig_wave_gridded_meters_only</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

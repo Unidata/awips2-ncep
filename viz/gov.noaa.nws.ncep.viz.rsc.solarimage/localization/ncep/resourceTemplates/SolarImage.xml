@@ -12,7 +12,7 @@
                           contrast="1.0" alpha="1.0"/>
               </capabilities>
           </loadProperties>
-          <properties isSystemResource="false"
+          <properties renderingOrderId="PLOT" isSystemResource="false"
               isBlinking="false" isMapLayer="false" isHoverOn="false"
               isVisible="true" />
           <resourceData xsi:type="SolarImageResourceData"

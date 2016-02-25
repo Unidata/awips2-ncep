@@ -12,9 +12,10 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Dec 16, 2013            bhebbard     Initial creation
- * Jul 07, 2014            bhebbard     Assorted updates
- * Sep 01, 2015  R7757     bhebbard     Assorted updates and cleanup
+ * 12/16/2013              B. Hebbard   Initial creation
+ * 07/07/2014              B. Hebbard   Assorted updates
+ * 09/01/2015    R7757     B. Hebbard   Assorted updates and cleanup
+ * 11/17/2015    R9579     B. Hebbard   Show source line number in trace
  *
  * </pre>
  *
@@ -23,7 +24,6 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
  */
 
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -68,7 +68,7 @@ public class Tracer {
         }
     }
 
-    public static String getMethodName(final int depth) {
+    public static String getCallerLocation(final int depth) {
         try {
             StackTraceElement element = (StackTraceElement) m.invoke(
                     new Throwable(), depth + 1);
@@ -79,6 +79,7 @@ public class Tracer {
             returnString = returnString.replace(
                     "gov.noaa.nws.ncep.viz.rsc.plotdata.", "...");
             returnString += "." + element.getMethodName();
+            returnString += ":" + element.getLineNumber();
             return returnString;
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,9 +110,9 @@ public class Tracer {
             } else {
                 elapsedTime = (System.nanoTime() - startTime) / 1000000;
             }
-            System.out.println("[" + elapsedTime + getMethodName(1) + "] "
+            System.out.println("[" + elapsedTime + getCallerLocation(1) + "] "
                     + message);
-            writer.println("[" + elapsedTime + getMethodName(1) + "] "
+            writer.println("[" + elapsedTime + getCallerLocation(1) + "] "
                     + message);
         }
     }
@@ -123,7 +124,6 @@ public class Tracer {
     }
 
     public static String shortTimeString(DataTime dt) {
-        // TODO -- Consider making common utility
         String returnString = NmapCommon.getTimeStringFromDataTime(dt, "/")
                 .substring(4);
         if (dt.getFcstTime() != 0) {

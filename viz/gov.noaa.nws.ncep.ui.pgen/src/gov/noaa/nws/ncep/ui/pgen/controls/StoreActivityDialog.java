@@ -22,6 +22,8 @@ import java.util.TimeZone;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,6 +37,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
 import com.raytheon.viz.core.mode.CAVEMode;
@@ -45,11 +50,13 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	-----------------------------------
- * 03/13		#977		S. Gilbert	Initial creation
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- -----------------------------------
+ * 03/13        #977        S. Gilbert  Initial creation
  * 01/14        #1105       J. Wu       Pre-fill for each activity info.
  * 05/14        TTR 963     J. Wu       Change activity Info to Activity Label.
+ * 01/7/2016    R13162      J. Lopez    Added a combo box to save the file using the Default name
+ * 
  * 
  * </pre>
  * 
@@ -57,10 +64,8 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * @version 1
  */
 public class StoreActivityDialog extends CaveJFACEDialog {
-
-    private String title = null;
-
-    private Shell shell;
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(StoreActivityDialog.class);
 
     private static final int SAVE_ID = IDialogConstants.CLIENT_ID + 3841;
 
@@ -70,11 +75,17 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private static final String CANCEL_LABEL = "Cancel";
 
-    private Button cancelBtn = null;
+    private static final int SHELLMINIMUMWIDTH = 375;
 
-    private Button saveBtn = null;
+    private static final int SHELLMINIMUMLENGTH = 400;
 
-    private Text infoText = null;
+    private static final int PREFERREDWIDTH = 400;
+
+    private String title = null;
+
+    private String defualtFileName;
+
+    private Combo labelCombo = null;
 
     private Text nameText = null;
 
@@ -104,8 +115,6 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private Product activity;
 
-    // private Text messageText;
-
     /*
      * Constructor
      */
@@ -117,6 +126,11 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         rsc = PgenSession.getInstance().getPgenResource();
         activity = rsc.getActiveProduct();
 
+    }
+
+    @Override
+    protected boolean isResizable() {
+        return true;
     }
 
     /*
@@ -145,8 +159,8 @@ public class StoreActivityDialog extends CaveJFACEDialog {
     protected void configureShell(Shell shell) {
         this.setShellStyle(SWT.RESIZE | SWT.PRIMARY_MODAL);
         super.configureShell(shell);
+        shell.setMinimumSize(SHELLMINIMUMWIDTH, SHELLMINIMUMLENGTH);
 
-        this.shell = shell;
         if (title != null) {
             shell.setText(title);
         }
@@ -187,14 +201,6 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         g3.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         createAutoSaveArea(g3);
 
-        /*
-         * Initialize the Message Area
-         */
-        /*
-         * Group g4 = new Group(dlgAreaForm, SWT.NONE); g4.setLayoutData(new
-         * GridData(GridData.FILL_HORIZONTAL)); createMessageArea(g4);
-         */
-
         setDialogFields();
         return dlgAreaForm;
     }
@@ -207,10 +213,12 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         Label infoLabel = new Label(g1, SWT.NONE);
         infoLabel.setText("Activity Label*:");
 
-        infoText = new Text(g1, SWT.NONE);
-        infoText.setLayoutData(gdata);
-        infoText.setToolTipText("Input a file name - required.");
+        labelCombo = new Combo(g1, SWT.DROP_DOWN);
+        GridData layout = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layout.widthHint = PREFERREDWIDTH;
+        labelCombo.setLayoutData(layout);
 
+        labelCombo.setToolTipText("Input or select a file name - required.");
         Label nameLabel = new Label(g1, SWT.NONE);
         nameLabel.setText("Activity Name*:");
         nameLabel.setEnabled(false);
@@ -293,7 +301,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         g2.setLayout(new GridLayout(4, false));
 
         Label refTimeLabel = new Label(g2, SWT.NONE);
-        refTimeLabel.setText("Ref Time*:");
+        refTimeLabel.setText("Ref Time*:            ");
 
         validDate = new DateTime(g2, SWT.BORDER | SWT.DATE);
 
@@ -316,7 +324,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         g3.setLayout(new GridLayout(3, false));
 
         Label autoSaveLbl = new Label(g3, SWT.NONE);
-        autoSaveLbl.setText("Auto Save:");
+        autoSaveLbl.setText("Auto Save:           ");
 
         autoSaveOffBtn = new Button(g3, SWT.RADIO);
         autoSaveOffBtn.setText("Off");
@@ -328,23 +336,15 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     }
 
-    /*
-     * private void createMessageArea(Composite g4) { g4.setLayout(new
-     * GridLayout(1, true)); GridData gdata = new GridData(SWT.FILL, SWT.CENTER,
-     * true, false);
-     * 
-     * messageText = new Text(g4, SWT.MULTI | SWT.READ_ONLY | SWT.H_SCROLL |
-     * SWT.V_SCROLL); messageText.setLayoutData(gdata); }
-     */
     /**
      * Save/Cancel button for "Save" a product file.
      */
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
 
-        saveBtn = createButton(parent, SAVE_ID, SAVE_LABEL, true);
+        createButton(parent, SAVE_ID, SAVE_LABEL, true);
 
-        cancelBtn = createButton(parent, CANCEL_ID, CANCEL_LABEL, true);
+        createButton(parent, CANCEL_ID, CANCEL_LABEL, true);
 
     }
 
@@ -360,20 +360,44 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private void setDialogFields() {
 
-        if (activity.getOutputFile() != null) {
-            infoText.setText(activity.getOutputFile());
-        } else {
-            String filename = PgenSession.getInstance().getPgenResource()
-                    .buildFileName(activity);
-            filename = filename
-                    .substring(filename.lastIndexOf(File.separator) + 1);
-            // filename = filename.replace(".xml", ""); // remove ending ".xml"
+        // Creates the default file name
+        defualtFileName = PgenSession.getInstance().getPgenResource()
+                .buildFileName(activity);
+        defualtFileName = defualtFileName.substring(defualtFileName
+                .lastIndexOf(File.separator) + 1);
+        labelCombo.add("(Default) " + defualtFileName);
 
-            infoText.setText(filename);
+        labelCombo.setText(defualtFileName);
+
+        // Add the original file name if exist and select it
+        if (activity.getOutputFile() != null
+                && !activity.getOutputFile().equals(defualtFileName)) {
+            labelCombo.add(activity.getOutputFile());
+            labelCombo.select(1);
         }
 
-        if (activity.getName() != null)
+        // If the default name is selected, remove the "(Default)" label
+        labelCombo.addSelectionListener(new SelectionListener() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+
+                if (((Combo) e.widget).getSelectionIndex() == 0) {
+                    labelCombo.setText(defualtFileName);
+                }
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+
+            }
+
+        });
+
+        // Sets Activity Name
+        if (activity.getName() != null) {
             nameText.setText(activity.getName());
+        }
 
         /*
          * Activity type/subtype is stored in Product as "type(subtype)", so we
@@ -435,7 +459,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
      */
     private void storeProducts() {
 
-        String activityLabel = infoText.getText();
+        String activityLabel = labelCombo.getText();
 
         if (activityLabel == null || activityLabel.isEmpty()) {
             MessageDialog confirmDlg = new MessageDialog(
@@ -447,7 +471,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
                     MessageDialog.WARNING, new String[] { "OK" }, 0);
 
             confirmDlg.open();
-            infoText.forceFocus();
+            labelCombo.forceFocus();
             return;
 
         }
@@ -455,36 +479,19 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         rsc.setAutosave(autoSaveOnBtn.getSelection());
         rsc.setAutoSaveFilename(activityLabel);
 
-        // PgenSession.getInstance().getPgenPalette().setActiveIcon("Select");
-
-        // activity.setInputFile(activityLabel);
-        // activity.setOutputFile(activityLabel);
-
         ActivityInfo info = getActivityInfo();
         activity.setInputFile(info.getActivityLabel());
         activity.setOutputFile(info.getActivityLabel());
         activity.setCenter(info.getSite());
         activity.setForecaster(info.getForecaster());
 
-        /*
-         * messageText.setText("Sending Activity...");
-         * messageText.setBackground(shell.getDisplay().getSystemColor(
-         * SWT.COLOR_WIDGET_BACKGROUND)); messageText.redraw();
-         */
         try {
-            // StorageUtils.storeProduct(info, activity, true);
-            String uri = StorageUtils.storeProduct(info, activity, true);
-            // System.out.println("Activity saved at dataURI: " + uri);
+
+            StorageUtils.storeProduct(info, activity, true);
+
         } catch (PgenStorageException e) {
-            e.printStackTrace();
-            /*
-             * messageText.setText(e.getMessage());
-             * messageText.setBackground(shell.getDisplay().getSystemColor(
-             * SWT.COLOR_RED)); if (e.getMessage().contains("\n")) {
-             * messageText.setSize(SWT.DEFAULT, 5 *
-             * messageText.getLineHeight()); messageText.getShell().pack();
-             * messageText.getShell().layout(); }
-             */
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error storing the products to EDEX", e);
             return;
         }
 
@@ -497,7 +504,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
     private ActivityInfo getActivityInfo() {
 
         ActivityInfo info = new ActivityInfo();
-        String lbl = infoText.getText();
+        String lbl = labelCombo.getText();
         if (!lbl.endsWith(".xml")) {
             lbl += ".xml";
         }

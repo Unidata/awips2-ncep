@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -32,6 +33,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 03/03/2014              qzhou              modified get/set
  * 12/23/2014   R5412      sgurung            Change float to double
  * 01/26/2015   R7615      sgurung            Change sequence name
+ * 01/05/2016   R14697     sgurung,jtravis    Add unique constraint on avgTime, add column lastMinuteUsed
+ * 
  * </pre>
  * 
  * @author qzhou
@@ -40,7 +43,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagavgseq")
-@Table(name = "geomag_houravg")
+@Table(name = "geomag_houravg", uniqueConstraints = { @UniqueConstraint(columnNames = { "avgTime" }) })
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
@@ -97,6 +100,14 @@ public class GeoMagAvg extends PersistableDataObject<Object> {
     @XmlAttribute
     @DynamicSerializeElement
     private double dHrAvg;
+
+    /**
+     * Latest minute used in the hourly average calculation
+     */
+    @Column
+    @XmlAttribute
+    @DynamicSerializeElement
+    private int lastMinuteUsed;
 
     public GeoMagAvg() {
 
@@ -170,5 +181,21 @@ public class GeoMagAvg extends PersistableDataObject<Object> {
 
     public void setStationCode(String stationCode) {
         this.stationCode = stationCode;
+    }
+
+    /**
+     * @return the lastMinuteUsed
+     */
+    public int getLastMinuteUsed() {
+        return lastMinuteUsed;
+    }
+
+    /**
+     * Set the last minute used
+     * 
+     * @param lastMinuteUsed
+     */
+    public void setLastMinuteUsed(int lastMinuteUsed) {
+        this.lastMinuteUsed = lastMinuteUsed;
     }
 }

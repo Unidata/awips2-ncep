@@ -1,10 +1,8 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.manager.AttrSetLabelsManager;
@@ -14,10 +12,10 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.manager.SatelliteImageTypeManager;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -106,6 +104,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 12/03/2015     R12953    R. Reynolds  Added Mcidas constants
  * 12/17/2015     R8554     A. Su        Modified to remember last selected Resource and filter per RBD type.
  * 01/25/2016     R14142    RCReynolds   Moved mcidas related string construction out to ResourceDefinition
+ * 01/27/2016     R12859    A. Su        Sorted the list of cycle times in the cycleTimeCombo widget.
+ *                                       Removed unneeded code for remembering last selected resource.
+ *                                       Removed dead code for mcidas.
+ * 
  * </pre>
  * 
  * @author ghull
@@ -156,11 +158,6 @@ public class ResourceSelectionControl extends Composite {
      */
     protected static HashMap<ResourceCategory, ResourceName> prevCat2SelectedRscName = new HashMap<ResourceCategory, ResourceName>();
 
-    /**
-     * A Mcidas-specific mapping
-     */
-    protected static HashMap<String, String> mcidasAttrNamesNAliases = new HashMap<String, String>();
-
     private static ResourceCategory prevSelectedCat = ResourceCategory.NullCategory;
 
     protected ResourceDefnsMngr rscDefnsMngr;
@@ -168,9 +165,6 @@ public class ResourceSelectionControl extends Composite {
     protected ResourceName selectedRscName = null;
 
     protected String selectedFilterString = "";
-
-    // this list must stay in sync with the cycleTimeCombo.
-    protected ArrayList<DataTime> cycleTimes = new ArrayList<DataTime>();
 
     protected Combo filterCombo = null;
 
@@ -771,10 +765,7 @@ public class ResourceSelectionControl extends Composite {
         rscAttrSetLViewer.setLabelProvider(new LabelProvider() {
             public String getText(Object element) {
 
-                String attrSetName;
-
                 ResourceName rscName = new ResourceName(selectedRscName);
-
                 ResourceDefinition rscDefn = rscDefnsMngr
                         .getResourceDefinition(rscName.getRscType());
 
@@ -782,21 +773,20 @@ public class ResourceSelectionControl extends Composite {
                     return "";
                 }
 
-                rscDefn.setAttributeSet((AttributeSet) element);
+                AttributeSet attrSet = (AttributeSet) element;
+                rscDefn.setAttributeSet(attrSet);
+
+                String originalAttrSetName = attrSet.getName();
+                rscName.setRscAttrSetName(originalAttrSetName);
 
                 // replace with alias
-                String originalAttrSetName = ((AttributeSet) element).getName();
-
-                attrSetName = rscDefn
-                        .getRscAttributeDisplayName(((AttributeSet) element)
-                                .getName());
+                String attrSetName = rscDefn
+                        .getRscAttributeDisplayName(originalAttrSetName);
 
                 if (attrSetName.endsWith(".attr")) {
                     attrSetName = attrSetName.substring(0,
                             attrSetName.length() - 5);
                 }
-
-                rscName.setRscAttrSetName(originalAttrSetName/* attrSetName */);
 
                 // Display aliases for Grid resource attributes.
                 if (rscDefn.getResourceCategory().equals(
@@ -845,11 +835,7 @@ public class ResourceSelectionControl extends Composite {
                         statusHandler.handle(Priority.INFO, e.getMessage());
                     }
                 }
-                System.out
-                        .println(" >>>>>>>>>> attrSetName >>>>>>>>>>>>>>>>>>    "
-                                + attrSetName
-                                + "    original name = "
-                                + originalAttrSetName);
+
                 return attrSetName;
             }
         });
@@ -970,18 +956,6 @@ public class ResourceSelectionControl extends Composite {
                         }
 
                         selectedRscName.setRscAttrSetName(selectedAttrSetName);
-
-                        // Mcidas only
-                        ResourceName rscName = new ResourceName(selectedRscName);
-                        ResourceDefinition rscDefn = rscDefnsMngr
-                                .getResourceDefinition(rscName.getRscType());
-
-                        if (rscDefn.getRscImplementation().equals(
-                                McidasConstants.SATELLITE_ID)) {
-                            SatelliteImageTypeManager.getInstance()
-                                    .setSelectedAttrName(
-                                            mcidasAttrNamesNAliases);
-                        }
 
                         updateCycleTimes();
                         updateSelectedResource();
@@ -1278,11 +1252,8 @@ public class ResourceSelectionControl extends Composite {
 
         if (enableSelections) {
             try {
-                // this call will query just for the inventory params needed to
-                // instantiate the resource
-                // (ie imageType, productCode...) and not the actual dataTimes.
                 if (this.isForecast()) {
-                    if (cycleTimes.isEmpty()) {
+                    if (cycleTimeCombo.getItems().length == 0) {
                         enableSelections = false;
                     }
                 } else if (rscDefn.isPgenResource()) {
@@ -1325,18 +1296,9 @@ public class ResourceSelectionControl extends Composite {
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
-                // Cycle for Ensemble
-                int seldCycleTimeIndx = cycleTimeCombo.getSelectionIndex();
-
-                // TODO : Allow the user to select 'LATEST' specifically
-                if (seldCycleTimeIndx == -1) {
-                    selectedRscName.setCycleTimeLatest();
-                } else if (seldCycleTimeIndx < cycleTimes.size()) {
-                    selectedRscName.setCycleTime(cycleTimes
-                            .get(seldCycleTimeIndx));
-                } else { // shoulndn't happen
-                    selectedRscName.setCycleTimeLatest();
-                }
+                String cycleTime = cycleTimeCombo.getText();
+                DataTime refTime = (DataTime) cycleTimeCombo.getData(cycleTime);
+                selectedRscName.setCycleTime(refTime);
 
                 availDataTimeLbl.setVisible(false);
             } else {
@@ -1389,13 +1351,6 @@ public class ResourceSelectionControl extends Composite {
                 lstnr.resourceSelected(selectedRscName, replaceRsc,
                         addToAllPanes, done);
             }
-            // "Select New Resource" dialog should remember last selection
-            prevSelectedRscName = selectedRscName;
-        } else {
-            prevSelectedRscName = null;
-
-            statusHandler
-                    .handle(Priority.WARN, "An invalid resource selected!");
         }
     }
 
@@ -1420,64 +1375,22 @@ public class ResourceSelectionControl extends Composite {
             cycleTimeLbl.setEnabled(false);
             cycleTimeCombo.setEnabled(false);
             return;
-        } else {
-            cycleTimeLbl.setEnabled(true);
-            cycleTimeCombo.setEnabled(true);
-            cycleTimeLbl.setVisible(rscDefn.isForecast());
-            cycleTimeCombo.setVisible(rscDefn.isForecast());
-            availDataTimeLbl.setVisible(!rscDefn.isForecast());
+        }
 
-            if (!isForecast()) {
-                selectedRscName.setCycleTime(null);
-                return;
-            }
+        cycleTimeLbl.setEnabled(true);
+        cycleTimeCombo.setEnabled(true);
+
+        boolean isRDForecast = rscDefn.isForecast();
+        cycleTimeLbl.setVisible(isRDForecast);
+        cycleTimeCombo.setVisible(isRDForecast);
+        availDataTimeLbl.setVisible(!isRDForecast);
+
+        if (!isForecast()) {
+            selectedRscName.setCycleTime(null);
+            return;
         }
 
         try {
-            // if this is reading from gempak
-            //
-            // would like to use the constant in NcGridData but E dependency
-            // again.
-            if (rscDefn.getPluginName().equals(GempakGrid.gempakPluginName)) {
-
-                // For a GEMPAK dataSource get gridCycleTimes from the
-                // dataLocation.
-                HashMap<String, String> rscParams = rscDefnsMngr
-                        .getAllResourceParameters(selectedRscName);
-
-                cycleTimeCombo.removeAll();
-                cycleTimes.clear();
-                try {
-                    String dataLocation = null;
-                    try {
-                        dataLocation = GempakGrid.getGempakGridPath(rscParams
-                                .get(GDFILE));
-                    } catch (VizException e) {
-                        throw new VizException(e);
-                    }
-                    String[] gridCycleTimes = GempakGrid.getGridCycleTimes(
-                            dataLocation, rscParams.get(GDFILE).toLowerCase());
-                    for (String gct : gridCycleTimes) {
-                        String gct2DataTimeFormat = "20" + gct.substring(0, 2)
-                                + "-" + gct.substring(2, 4) + "-"
-                                + gct.substring(4, 6) + " "
-                                + gct.substring(7, 9) + ":"
-                                + gct.substring(9, 11) + ":00.0 ";
-                        cycleTimes.add(0, new DataTime(gct2DataTimeFormat));
-                        cycleTimeCombo.add(gct, 0);
-                    }
-                    if (gridCycleTimes.length > 0) {
-                        cycleTimeCombo.select(0);
-                    }
-                } catch (VizException e) {
-                    statusHandler.handle(Priority.ERROR,
-                            "Error querying cycle times: "
-                                    + e.getMessage().split(":")[1]);
-                }
-
-                return;
-            }
-
             List<DataTime> availableTimes = null;
 
             // If the timeline is generated using frame intervals from a given
@@ -1519,37 +1432,33 @@ public class ResourceSelectionControl extends Composite {
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
             }
 
-            // save the currently selected cycle time.
-            String curSelTime = cycleTimeCombo.getText();
-
+            clearCycleTimeComboData();
             cycleTimeCombo.removeAll();
-            cycleTimes.clear();
 
-            for (int t = availableTimes.size() - 1; t >= 0; t--) {
-                DataTime dt = availableTimes.get(t);
-                DataTime refTime = new DataTime(dt.getRefTime());
-
-                if (!cycleTimes.contains(refTime)) {
-                    cycleTimes.add(refTime);
-                    String timeStr = NmapCommon.getTimeStringFromDataTime(dt,
-                            "_");
-                    cycleTimeCombo.add(timeStr);
-                }
+            for (DataTime aTime : availableTimes) {
+                DataTime refTime = new DataTime(aTime.getRefTime());
+                String cycleTime = NmapCommon.getTimeStringFromDataTime(
+                        refTime, "_");
+                cycleTimeCombo.add(cycleTime);
+                cycleTimeCombo.setData(cycleTime, refTime);
             }
 
-            for (int t = 0; t < cycleTimeCombo.getItemCount(); t++) {
-                if (cycleTimeCombo.getItem(t).equals(curSelTime)) {
-                    cycleTimeCombo.select(t);
-                    break;
-                }
-            }
+            String[] cycleTimeArray = cycleTimeCombo.getItems();
 
-            if (cycleTimes.isEmpty()) {
+            if (cycleTimeArray.length == 0) {
                 cycleTimeCombo.setVisible(false);
                 cycleTimeLbl.setVisible(false);
                 availDataTimeLbl.setVisible(true);
                 availDataTimeLbl.setText("No Data Available");
-            } else if (cycleTimeCombo.getSelectionIndex() == -1) {
+            } else {
+                // Remove duplicate cycle times and sort the cycle times.
+                List<String> cycleTimeList = Arrays.asList(cycleTimeArray);
+                Set<String> cycleTimeSet = new HashSet<String>(cycleTimeList);
+                cycleTimeArray = cycleTimeSet.toArray(new String[cycleTimeSet
+                        .size()]);
+                Arrays.sort(cycleTimeArray, Collections.reverseOrder());
+
+                cycleTimeCombo.setItems(cycleTimeArray);
                 cycleTimeCombo.select(0);
             }
 
@@ -1599,5 +1508,19 @@ public class ResourceSelectionControl extends Composite {
                 .getResourceDefinition(selectedRscName.getRscType());
 
         return rscDefn.isForecast() && !gridAnalysis;
+    }
+
+    protected void clearCycleTimeComboData() {
+        String[] cycleTimeArray = cycleTimeCombo.getItems();
+        for (String cycleTime : cycleTimeArray) {
+            cycleTimeCombo.setData(cycleTime, null);
+        }
+    }
+
+    /**
+     * Clean up data that are not cleaned up by the Garbage Collector.
+     */
+    public void cleanup() {
+        clearCycleTimeComboData();
     }
 }

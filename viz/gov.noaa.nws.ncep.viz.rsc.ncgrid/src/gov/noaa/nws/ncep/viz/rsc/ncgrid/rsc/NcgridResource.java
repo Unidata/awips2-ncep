@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.ncgrib.request.StoreGridRequest;
 import gov.noaa.nws.ncep.common.log.logger.NcepLogger;
 import gov.noaa.nws.ncep.common.log.logger.NcepLoggerManager;
 import gov.noaa.nws.ncep.edex.common.dataRecords.NcFloatDataRecord;
@@ -23,6 +24,7 @@ import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLoggerPreferences;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.actions.SaveGridInput;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourAttributes;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourRenderable;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridIndicesDisplay;
@@ -42,8 +44,11 @@ import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -60,6 +65,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.dataplugin.grid.GridRecord;
+import com.raytheon.uf.common.dataplugin.level.Level;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
@@ -69,6 +75,10 @@ import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
+import com.raytheon.uf.common.gridcoverage.GridCoverage;
+import com.raytheon.uf.common.parameter.Parameter;
+import com.raytheon.uf.common.parameter.lookup.ParameterLookupException;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.style.level.SingleLevel;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -83,75 +93,79 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 
  * <pre>
  * 
- *  SOFTWARE HISTORY
- *  Date         Ticket#    Engineer    Description
- *  ------------ ---------- ----------- --------------------------
- *  Feb, 2010                M. Li           Initial creation
- *  Jun, 2010                M. Li           Retrieve grid data from Grid Diagnostic instead of HDF5
- *  Oct, 2010     #307       G. Hull         use NcGridDataProxy to support correct time matching
- *  Oct, 2010     #320       X. Guo          Replace special characters in TITLE parameter
- *  Oct, 2010     #307       m.gamazaychikov Add handling of DgdrivException in getDataRecord method
- *  Oct, 2010                X. Guo          Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
- *  Oct, 2010     #277       M. Li           Parsed first model name from ensemble model list
- *  Nov, 2010                M. Li           modified for new vector algorithm
- *  11/29/2010               mgamazaychikov  Updated queryRecords and updateFrameData
- *  12/06/2010    #363       X. Guo          Plot relative minima and maxima gridded data
- *  12/19/2010     365       Greg Hull       Replace dataSource with pluginName
- *  01/03/11                 M. Li           Add hilo and hlsysm to contourAttributes
- *  01/07/11                 M. Li           Use Vector array
- *  03/08/11                 M. Li           refactor ContourRenderable
- *  04/29/11                 M. Li           move gridIndiceDisplay to a separate class
- *  06/2011                  mgamazaychikov  Add spatialObject to the Dgdriv fields.
- *  07/2011                  mgamazaychikov  Add substituteAlias method.
- *  08/2011                  mgamazaychikov  Add dispose method to FrameData class;
- *                                           change disposeInternal method of NcgridResource class;
- *                                           change aDgdriv from the NcgridResource class variable to local variable.
- *  09/2011                  mgamazaychikov  Made changes associated with removal of DatatypeTable class
- *  10/2011                  X. Guo          Updated
- *  11/2011                  X. Guo          Updated contour attributes
- *  11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
- *  11/22/2011               X. Guo          Used the current frame time to set dgdriv and add dumpNcGribInventory()
- *  12/12/2011               X. Guo          Updated Ensemble requests 
- *  12/06/2012   #538        Q. Zhou         Added skip and filter areas and implements.
- *  02/15/2012               X. Guo          Added schedule job to parallel updating data 
- *  02/16/2012   #555        S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()
- *  03/01/2012               X. Guo          Added codes to handle attributes modification
- *  03/13/2012               X. Guo          Created multi-threads to generate contours
- *  03/15/2012               X. Guo          Set synchronized block in ContoutSupport
- *  04/03/2012               X. Guo          Created vector wireframe in contour job
- *                                           and changed constraint to query available times
- *  05/15/2012               X. Guo          Used getAvailableDataTimes() to get available times
- *  05/23/2012               X. Guo          Loaded ncgrib logger   
- *  06/07/2012               X. Guo          Catch datauri&grid data for each frame
- *  09/26/2012               X. Guo          Fixed navigation query problems     
- *  08/19/2013   #743        S. Gurung       Added clrbar related changes  
- *  09/14/2013   #1036       S. Gurung       Added TEXT attribute related changes
- *  11/19/2013   #619        T. Lee          Fixed DOW in Title string
- *  11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
- *  1/28/2014    #934        T. Lee          Enabled "colors" bangs for grid points plot
- *  02/4/2014    #936        T. Lee          Implemented textSize for point values
- *  04/11/2014   #981        D.Sushon        Added fault tolerance for when some data is bad to display the good data rather than fall-through entire frame
- *  04/14/2014               S.Gilbert       Cleaned up old unused methods
- *  04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
- *  06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
- *  08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
- *  12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
- *  02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
- *                                           overrode processNewRscDataList for 
- *                                           the super class
- *  07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
- *                                           ensure that preloading of grid data
- *                                           for overlays happens.
- *  07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
- *  12/28/2015   R8832       S. Russell      Altered NcgridLoaderJob.run() and
- *                                           processNewRscDataList() to switch
- *                                           between processing code for 
- *                                           binning and other time matching
- *                                           methods as appropriate
- *                                           
- * 02/08/2016    R8832       S.Russell       Updated processNewRscDataListWithBinning()
- *                                           to correct an error introduced
- *                                           into a conditional in the method.
+ * SOFTWARE HISTORY
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Feb, 2010                M. Li           Initial creation
+ * Jun, 2010                M. Li           Retrieve grid data from Grid Diagnostic instead of HDF5
+ * Oct, 2010     #307       G. Hull         use NcGridDataProxy to support correct time matching
+ * Oct, 2010     #320       X. Guo          Replace special characters in TITLE parameter
+ * Oct, 2010     #307       m.gamazaychikov Add handling of DgdrivException in getDataRecord method
+ * Oct, 2010                X. Guo          Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
+ * Oct, 2010     #277       M. Li           Parsed first model name from ensemble model list
+ * Nov, 2010                M. Li           modified for new vector algorithm
+ * 11/29/2010               mgamazaychikov  Updated queryRecords and updateFrameData
+ * 12/06/2010    #363       X. Guo          Plot relative minima and maxima gridded data
+ * 12/19/2010     365       Greg Hull       Replace dataSource with pluginName
+ * 01/03/11                 M. Li           Add hilo and hlsysm to contourAttributes
+ * 01/07/11                 M. Li           Use Vector array
+ * 03/08/11                 M. Li           refactor ContourRenderable
+ * 04/29/11                 M. Li           move gridIndiceDisplay to a separate class
+ * 06/2011                  mgamazaychikov  Add spatialObject to the Dgdriv fields.
+ * 07/2011                  mgamazaychikov  Add substituteAlias method.
+ * 08/2011                  mgamazaychikov  Add dispose method to FrameData class;
+ *                                          change disposeInternal method of NcgridResource class;
+ *                                          change aDgdriv from the NcgridResource class variable to local variable.
+ * 09/2011                  mgamazaychikov  Made changes associated with removal of DatatypeTable class
+ * 10/2011                  X. Guo          Updated
+ * 11/2011                  X. Guo          Updated contour attributes
+ * 11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
+ * 11/22/2011               X. Guo          Used the current frame time to set dgdriv and add dumpNcGribInventory()
+ * 12/12/2011               X. Guo          Updated Ensemble requests 
+ * 12/06/2012   #538        Q. Zhou         Added skip and filter areas and implements.
+ * 02/15/2012               X. Guo          Added schedule job to parallel updating data 
+ * 02/16/2012   #555        S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()
+ * 03/01/2012               X. Guo          Added codes to handle attributes modification
+ * 03/13/2012               X. Guo          Created multi-threads to generate contours
+ * 03/15/2012               X. Guo          Set synchronized block in ContoutSupport
+ * 04/03/2012               X. Guo          Created vector wireframe in contour job
+ *                                          and changed constraint to query available times
+ * 05/15/2012               X. Guo          Used getAvailableDataTimes() to get available times
+ * 05/23/2012               X. Guo          Loaded ncgrib logger   
+ * 06/07/2012               X. Guo          Catch datauri&grid data for each frame
+ * 09/26/2012               X. Guo          Fixed navigation query problems     
+ * 08/19/2013   #743        S. Gurung       Added clrbar related changes  
+ * 09/14/2013   #1036       S. Gurung       Added TEXT attribute related changes
+ * 11/19/2013   #619        T. Lee          Fixed DOW in Title string
+ * 11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
+ * 1/28/2014    #934        T. Lee          Enabled "colors" bangs for grid points plot
+ * 02/4/2014    #936        T. Lee          Implemented textSize for point values
+ * 04/11/2014   #981        D.Sushon        Added fault tolerance for when some data is bad to display the good data rather than fall-through entire frame
+ * 04/14/2014               S.Gilbert       Cleaned up old unused methods
+ * 04/22/2014   #1129       B. Hebbard      Feed HILO point count limits to GridRelativeHiLoDisplay constructor instead of HILORelativeMinAndMaxLocator, so can apply dynamically based on current extent
+ * 06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
+ * 08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
+ * 12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
+ * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
+ *                                          overrode processNewRscDataList for 
+ *                                          the super class
+ * 07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
+ *                                          ensure that preloading of grid data
+ *                                          for overlays happens.
+ * 07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
+ * 12/28/2015   R8832       S. Russell      Altered NcgridLoaderJob.run() and
+ *                                          processNewRscDataList() to switch
+ *                                          between processing code for 
+ *                                          binning and other time matching
+ *                                          methods as appropriate
+ * 02/08/2016   R8832       S.Russell       Updated processNewRscDataListWithBinning()
+ *                                          to correct an error introduced
+ *                                          into a conditional in the method.
+ * 02/24/2016   R6821       K.Bugenhagen    Added capability to save grid and 
+ *                                          consolidated multiple log messages 
+ *                                          into one method. Replaced catching
+ *                                          of nullpointerexceptions with
+ *                                          null checks.
  * </pre>
  * 
  * @author mli
@@ -169,6 +183,10 @@ public class NcgridResource extends
 
     private static final DecimalFormat forecastHourFormat = new DecimalFormat(
             "000");
+
+    private final String PLUGIN_NAME = "pluginName";
+
+    private final String GRID_KEY = "grid";
 
     // For Ensembles this will be the NcEnsembleResourceData
     protected NcgridResourceData gridRscData;
@@ -209,6 +227,9 @@ public class NcgridResource extends
 
     // expression
     private String expr = "((-|\\+)?[0-9]+(\\.[0-9]+)?)+";
+
+    // For blend title string
+    private String gdfileWithTimeCycles;
 
     // These objects are used as proxys to time match the frames.
     // These are created by querying the db for available times and then
@@ -511,9 +532,6 @@ public class NcgridResource extends
 
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof NcGridDataProxy)) {
-                System.out
-                        .println("Unexpected rscDataObject type in NcGridResource:updateFrameData:"
-                                + rscDataObj.getClass().getName());
                 logger.error("Unexpected rscDataObject type in NcGridResource:updateFrameData:"
                         + rscDataObj.getClass().getName());
                 return false;
@@ -552,13 +570,9 @@ public class NcgridResource extends
                     gdPrxy.setSpatialObject(cov);
                     gdPrxy.setNewSpatialObject(cov);
                 } catch (Exception e) {
-                    System.out
-                            .println("Error retrieving GEMPAK grid navigation block: "
-                                    + e.getMessage());
                     logger.error(
                             "Error retrieving GEMPAK grid navigation block: "
                                     + e.getMessage(), e);
-                    // before TTR981, was: return false;
                 }
             } else {
 
@@ -587,7 +601,6 @@ public class NcgridResource extends
                         if (gdfileArrs[0].contains("%")) {
                             modelName = gdfileArrs[0].split("%")[1];
                         }
-                        // eventName = gdfileArrs[1].toLowerCase();
                         perturbationNum = gdfileArrs[1];
                     } else {
                         if (modelName.contains("%")) {
@@ -675,16 +688,11 @@ public class NcgridResource extends
                                     + gdPrxy.getDataTime().toString()
                                     + " took:" + (t4 - t1));
                         }
-                        // before TTR981, was: return false;
                     }
                 } catch (VizException e) {
-                    System.out
-                            .println("Error retrieving ncgrid record for the spatial object: "
-                                    + e.getMessage());
                     logger.error(
                             "Error retrieving ncgrid record for the spatial object: "
                                     + e.getMessage(), e);
-                    // before TTR981, was: return false;
                 }
             }
 
@@ -711,61 +719,24 @@ public class NcgridResource extends
                 String attrType = contourAttributes[i].getType().toUpperCase();
 
                 if (attrType.contains("M") && gridPointMarkerDisplay == null) {
-                    try { // gdPrxy may not have valid spatial objects
+                    if (gdPrxy != null && gdPrxy.getNewSpatialObject() != null) {
                         gridPointMarkerDisplay = new GridPointMarkerDisplay(
                                 contourAttributes[i].getMarker(),
                                 getNcMapDescriptor(),
                                 gdPrxy.getNewSpatialObject());
-                    } catch (NullPointerException npe) {
-                        if (ncgribLogger.enableDiagnosticLogs()) {
-                            logger.info(this.getClass().getCanonicalName()
-                                    + ":Missing data was expected for:"
-                                    + "GDPFUN:"
-                                    + contourAttributes[i].getGdpfun()
-                                    + ";GLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";GVCORD:"
-                                    + contourAttributes[i].getGvcord() + ";"
-                                    + "displayType:" + displayType + ";WIND:"
-                                    + contourAttributes[i].getWind() + ";");
-                        }
-                        logger.debug(
-                                this.getClass().getCanonicalName()
-                                        + ":\n"
-                                        + "Probable offending statement: gridPointMarkerDisplay = new"
-                                        + " GridPointMarkerDisplay(contourAttributes[i].getMarker(),getNcMapDescriptor(), gdPrxy.getNewSpatialObject());\n"
-                                        + "***HINT: parts of gdPrxy may have been null\n"
-                                        + npe.getMessage(), npe);
+                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                        logMissingDataCondition(i);
                     }
                 }
 
                 if (attrType.contains("G") && gridIndicesDisplay == null) {
-                    try { // gdPrxy may not have valid spatial objects
+                    if (gdPrxy != null && gdPrxy.getNewSpatialObject() != null) {
                         gridIndicesDisplay = new GridIndicesDisplay(
                                 GempakColor.convertToRGB(gridRscData
                                         .getGrdlbl()), getNcMapDescriptor(),
                                 gdPrxy.getNewSpatialObject());
-                    } catch (NullPointerException npe) {
-                        if (ncgribLogger.enableDiagnosticLogs()) {
-                            logger.info(this.getClass().getCanonicalName()
-                                    + ":Missing data was expected for:"
-                                    + "GDPFUN:"
-                                    + contourAttributes[i].getGdpfun()
-                                    + ";GLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";GVCORD:"
-                                    + contourAttributes[i].getGvcord() + ";"
-                                    + "displayType:" + displayType + ";WIND:"
-                                    + contourAttributes[i].getWind() + ";");
-                        }
-                        logger.debug(
-                                this.getClass().getCanonicalName()
-                                        + ":\n"
-                                        + "Probable offending statement: gridIndicesDisplay = new"
-                                        + " GridIndicesDisplay(GempakColor.convertToRGB(gridRscData.getGrdlbl()),"
-                                        + " getNcMapDescriptor(),gdPrxy.getNewSpatialObject());\n"
-                                        + "***HINT: parts of gdPrxy may have been null\n"
-                                        + npe.getMessage(), npe);
+                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                        logMissingDataCondition(i);
                     }
                 }
                 /*
@@ -785,144 +756,59 @@ public class NcgridResource extends
                             rec = getGriddedData(i);
                         }
                         if (rec != null) {
-                            try { // gdPrxy may not have valid spatial objects
+                            hasData = false;
+                            if (gdPrxy != null
+                                    && gdPrxy.getNewSpatialObject() != null) {
                                 vectorDisplay[i] = new GriddedVectorDisplay(
                                         rec, displayType, isDirectionalArrow,
                                         getNcMapDescriptor(),
                                         gdPrxy.getNewSpatialObject(),
                                         contourAttributes[i]);
                                 hasData = true;
-                            } catch (NullPointerException npe) {
-                                hasData = false;
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.info(this.getClass()
-                                            .getCanonicalName()
-                                            + ":Missing data was expected for:"
-                                            + "GDPFUN:"
-                                            + contourAttributes[i].getGdpfun()
-                                            + ";GLEVEL:"
-                                            + contourAttributes[i].getGlevel()
-                                            + ";GVCORD:"
-                                            + contourAttributes[i].getGvcord()
-                                            + ";"
-                                            + "displayType:"
-                                            + displayType
-                                            + ";WIND:"
-                                            + contourAttributes[i].getWind()
-                                            + ";");
-                                }
-                                logger.debug(
-                                        this.getClass().getCanonicalName()
-                                                + ":\n"
-                                                + "Probable offending statement: vectorDisplay[i] = new GriddedVectorDisplay(rec,displayType,"
-                                                + " isDirectionalArrow,getNcMapDescriptor(),gdPrxy.getNewSpatialObject(),contourAttributes[i]);\n"
-                                                + "***HINT: parts of gdPrxy may have been null\n"
-                                                + npe.getMessage(), npe);
+                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                logMissingDataCondition(i);
                             }
                         } else {
                             if (ncgribLogger.enableDiagnosticLogs()) {
-                                logger.info(this.getClass().getCanonicalName()
-                                        + ":Missing data was expected for:"
-                                        + "GDPFUN:"
-                                        + contourAttributes[i].getGdpfun()
-                                        + ";GLEVEL:"
-                                        + contourAttributes[i].getGlevel()
-                                        + ";GVCORD:"
-                                        + contourAttributes[i].getGvcord()
-                                        + ";" + "displayType:" + displayType
-                                        + ";WIND:"
-                                        + contourAttributes[i].getWind() + ";");
+                                logMissingDataCondition(i);
                             }
                             logger.debug(this.getClass().getCanonicalName()
                                     + ":\n"
                                     + "***Something may be wrong: griddedData was null, was populated, but was found to still be null? (1)\n"
-                                    + " For debug, possibly useful parameters used in the load attempt follow:\n"
-                                    + "displayType:" + displayType
-                                    + ";\nGLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";\nGVCORD:"
-                                    + contourAttributes[i].getGvcord()
-                                    + ";\nGDPFUN:"
-                                    + contourAttributes[i].getGdpfun()
-                                    + ";\nWIND:"
-                                    + contourAttributes[i].getWind() + ";");
-                            // before TTR981, was: return false;
+                                    + " For debug, possibly useful parameters used in the load attempt follow:\n");
+                            logMissingDataCondition(i);
                         }
                     } else {
                         gridData = vectorDisplay[i].getData();
                         if (gridData != null) {
-                            hasData = true;
+                            hasData = false;
                             if (vectorDisplay[i].checkAttrsChanged(displayType,
                                     isDirectionalArrow,
                                     contourAttributes[i].getWind())) {
                                 vectorDisplay[i].dispose();
-                                try { // gdPrxy may not have valid spatial
-                                      // objects
+                                if (gdPrxy != null
+                                        && gdPrxy.getNewSpatialObject() != null) {
+
                                     vectorDisplay[i] = new GriddedVectorDisplay(
                                             gridData, displayType,
                                             isDirectionalArrow,
                                             getNcMapDescriptor(),
                                             gdPrxy.getNewSpatialObject(),
                                             contourAttributes[i]);
-                                } catch (NullPointerException npe) {
-                                    hasData = false;
-                                    if (ncgribLogger.enableDiagnosticLogs()) {
-                                        logger.info(this.getClass()
-                                                .getCanonicalName()
-                                                + ":Missing data was expected for:"
-                                                + "GDPFUN:"
-                                                + contourAttributes[i]
-                                                        .getGdpfun()
-                                                + ";GLEVEL:"
-                                                + contourAttributes[i]
-                                                        .getGlevel()
-                                                + ";GVCORD:"
-                                                + contourAttributes[i]
-                                                        .getGvcord()
-                                                + ";"
-                                                + "displayType:"
-                                                + displayType
-                                                + ";WIND:"
-                                                + contourAttributes[i]
-                                                        .getWind() + ";");
-                                    }
-                                    logger.debug(
-                                            this.getClass().getCanonicalName()
-                                                    + ":\n"
-                                                    + "Probable offending statement: vectorDisplay[i] = new GriddedVectorDisplay(gridData,"
-                                                    + " displayType,isDirectionalArrow,getNcMapDescriptor(),gdPrxy.getNewSpatialObject(),contourAttributes[i]);\n"
-                                                    + "***HINT: parts of gdPrxy may have been null\n"
-                                                    + npe.getMessage(), npe);
+                                    hasData = true;
+                                } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                    logMissingDataCondition(i);
                                 }
                             }
                         } else {
                             if (ncgribLogger.enableDiagnosticLogs()) {
-                                logger.info(this.getClass().getCanonicalName()
-                                        + ":Missing data was expected for:"
-                                        + "GDPFUN:"
-                                        + contourAttributes[i].getGdpfun()
-                                        + ";GLEVEL:"
-                                        + contourAttributes[i].getGlevel()
-                                        + ";GVCORD:"
-                                        + contourAttributes[i].getGvcord()
-                                        + ";" + "displayType:" + displayType
-                                        + ";WIND:"
-                                        + contourAttributes[i].getWind() + ";");
+                                logMissingDataCondition(i);
                             }
                             logger.debug(this.getClass().getCanonicalName()
                                     + ":\n"
                                     + "***Something may be wrong: gridData was null, was populated, but was found to still be null? (2)\n"
-                                    + " For debug, possibly useful parameters used in the load attempt follow:\n"
-                                    + "displayType:" + displayType
-                                    + ";\nGLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";\nGVCORD:"
-                                    + contourAttributes[i].getGvcord()
-                                    + ";\nGDPFUN:"
-                                    + contourAttributes[i].getGdpfun()
-                                    + ";\nWIND:"
-                                    + contourAttributes[i].getWind() + ";");
-                            // before TTR981, was: return false;
+                                    + " For debug, possibly useful parameters used in the load attempt follow:\n");
+                            logMissingDataCondition(i);
                         }
                     }
                     t12 = System.currentTimeMillis();
@@ -935,28 +821,11 @@ public class NcgridResource extends
                      */
                     t11 = System.currentTimeMillis();
                     String contourName = "";
-                    try { // gdPrxy may not have been fully assembled upstream
+                    if (gdPrxy != null && gdPrxy.getNewSpatialObject() != null) {
                         contourName = createContourName(gdPrxy,
                                 contourAttributes[i]);
-                    } catch (NullPointerException npe) {
-                        if (ncgribLogger.enableDiagnosticLogs()) {
-                            logger.info(this.getClass().getCanonicalName()
-                                    + ":Missing data was expected for:"
-                                    + "GDPFUN:"
-                                    + contourAttributes[i].getGdpfun()
-                                    + ";GLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";GVCORD:"
-                                    + contourAttributes[i].getGvcord() + ";"
-                                    + "displayType:" + displayType + ";WIND:"
-                                    + contourAttributes[i].getWind() + ";");
-                        }
-                        logger.debug(
-                                this.getClass().getCanonicalName()
-                                        + ":\n"
-                                        + "Probable offending statement: contourName = createContourName(gdPrxy,contourAttributes[i]);\n"
-                                        + "***HINT: parts of gdPrxy may have been null\n"
-                                        + npe.getMessage(), npe);
+                    } else if (ncgribLogger.enableDiagnosticLogs()) {
+                        logMissingDataCondition(i);
                     }
 
                     // New creation
@@ -971,7 +840,10 @@ public class NcgridResource extends
                         }
 
                         if (gridData != null) {
-                            try { // gdPrxy may not have valid spatial objects
+                            hasData = false;
+                            if (gdPrxy != null
+                                    && gdPrxy.getNewSpatialObject() != null) {
+
                                 contourRenderable[i] = new ContourRenderable(
                                         (IDataRecord) gridData,
                                         getNcMapDescriptor(),
@@ -981,58 +853,18 @@ public class NcgridResource extends
                                 contourRenderable[i]
                                         .setResource(NcgridResource.this);
                                 hasData = true;
-                            } catch (Exception npe) {
-                                hasData = false;
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.info(this.getClass()
-                                            .getCanonicalName()
-                                            + ":Missing data was expected for:"
-                                            + "GDPFUN:"
-                                            + contourAttributes[i].getGdpfun()
-                                            + ";GLEVEL:"
-                                            + contourAttributes[i].getGlevel()
-                                            + ";GVCORD:"
-                                            + contourAttributes[i].getGvcord()
-                                            + ";"
-                                            + "displayType:"
-                                            + displayType
-                                            + ";WIND:"
-                                            + contourAttributes[i].getWind()
-                                            + ";");
-                                }
-                                logger.debug(
-                                        this.getClass().getCanonicalName()
-                                                + ":\n"
-                                                + "Probable offending statement: contourRenderable[i] = new ContourRenderable((IDataRecord)"
-                                                + " gridData,getNcMapDescriptor(),MapUtil.getGridGeometry(gdPrxy.getNewSpatialObject()),contourAttributes[i],"
-                                                + " contourName);\n"
-                                                + "***HINT: parts of gdPrxy may have been null\n"
-                                                + npe.getMessage(), npe);
+                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                logMissingDataCondition(i);
                             }
                         } else {
                             if (ncgribLogger.enableDiagnosticLogs()) {
-                                logger.info(this.getClass().getCanonicalName()
-                                        + ":Missing data was expected for:"
-                                        + "contourName:" + contourName
-                                        + ";GDPFUN:"
-                                        + contourAttributes[i].getGdpfun()
-                                        + ";GLEVEL:"
-                                        + contourAttributes[i].getGlevel()
-                                        + ";GVCORD:"
-                                        + contourAttributes[i].getGvcord()
-                                        + ";");
+                                logMissingDataCondition(i, false);
                             }
                             logger.debug(this.getClass().getCanonicalName()
                                     + ":\n"
                                     + "***Something may be wrong: gridData was null, was populated, but was found to still be null? (3)\n"
-                                    + " For debug, possibly useful parameters used in the load attempt follow:\n"
-                                    + "contourName:" + contourName
-                                    + ";\nGLEVEL:"
-                                    + contourAttributes[i].getGlevel()
-                                    + ";\nGVCORD:"
-                                    + contourAttributes[i].getGvcord()
-                                    + ";\nGDPFUN:"
-                                    + contourAttributes[i].getGdpfun() + ";");
+                                    + " For debug, possibly useful parameters used in the load attempt follow:\n");
+                            logMissingDataCondition(i, false);
                         }
                     }
                     // Attributes or navigation change
@@ -1063,8 +895,9 @@ public class NcgridResource extends
                                 || !contourAttributes[i].getText()
                                         .equalsIgnoreCase(text)) {
 
-                            try { // gdPrxy may not have been fully assembled
-                                  // upstream
+                            if (gdPrxy != null
+                                    && gdPrxy.getNewSpatialObject() != null) {
+
                                 gridPointValueDisplay[i] = createGridPointValueDisplay(
                                         (NcFloatDataRecord) contourRenderable[i]
                                                 .getData(), gdPrxy,
@@ -1078,32 +911,10 @@ public class NcgridResource extends
                                 scale = contourAttributes[i].getScale();
                                 colors = contourAttributes[i].getColors();
                                 text = contourAttributes[i].getText();
-                            } catch (NullPointerException npe) {
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.info(this.getClass()
-                                            .getCanonicalName()
-                                            + ":Missing data was expected for:"
-                                            + "GDPFUN:"
-                                            + contourAttributes[i].getGdpfun()
-                                            + ";GLEVEL:"
-                                            + contourAttributes[i].getGlevel()
-                                            + ";GVCORD:"
-                                            + contourAttributes[i].getGvcord()
-                                            + ";"
-                                            + "displayType:"
-                                            + displayType
-                                            + ";WIND:"
-                                            + contourAttributes[i].getWind()
-                                            + ";");
-                                }
-                                logger.debug(
-                                        this.getClass().getCanonicalName()
-                                                + ":\n"
-                                                + "Probable offending statement: gridPointValueDisplay[i] = createGridPointValueDisplay((NcFloatDataRecord)"
-                                                + " contourRenderable[i].getData(),gdPrxy, contourAttributes[i]);\n"
-                                                + "***HINT: parts of gdPrxy may have been null\n"
-                                                + npe.getMessage(), npe);
+                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                logMissingDataCondition(i, false);
                             }
+
                         }
                     }
 
@@ -1113,39 +924,18 @@ public class NcgridResource extends
                             && (contourRenderable[i] != null)
                             && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
                         if (contourRenderable[i].getGridRelativeHiLo() == null) {
-                            try { // gdPrxy may not have been fully assembled
-                                  // upstream
+                            if (gdPrxy != null
+                                    && gdPrxy.getNewSpatialObject() != null) {
+
                                 contourRenderable[i]
                                         .setGridRelativeHiLo(createGridRelativeHiLoDisplay(
                                                 (NcFloatDataRecord) contourRenderable[i]
                                                         .getData(), gdPrxy,
                                                 contourAttributes[i]));
-                            } catch (NullPointerException npe) {
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.info(this.getClass()
-                                            .getCanonicalName()
-                                            + ":Missing data was expected for:"
-                                            + "GDPFUN:"
-                                            + contourAttributes[i].getGdpfun()
-                                            + ";GLEVEL:"
-                                            + contourAttributes[i].getGlevel()
-                                            + ";GVCORD:"
-                                            + contourAttributes[i].getGvcord()
-                                            + ";"
-                                            + "displayType:"
-                                            + displayType
-                                            + ";WIND:"
-                                            + contourAttributes[i].getWind()
-                                            + ";");
-                                }
-                                logger.debug(
-                                        this.getClass().getCanonicalName()
-                                                + ":\n"
-                                                + "Offending statement: contourRenderable[i].setGridRelativeHiLo(createGridRelativeHiLoDisplay((NcFloatDataRecord)"
-                                                + " contourRenderable[i].getData(), gdPrxy,contourAttributes[i]));\n"
-                                                + "***HINT: parts of gdPrxy may have been null\n"
-                                                + npe.getMessage(), npe);
+                            } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                logMissingDataCondition(i, false);
                             }
+
                         }
                     }
                     t12 = System.currentTimeMillis();
@@ -1190,32 +980,15 @@ public class NcgridResource extends
 
                     if (attrType.contains("M")
                             && gridPointMarkerDisplay == null) {
-                        try { // gdPrxy may not have valid spatial objects
+
+                        if (gdPrxy != null
+                                && gdPrxy.getNewSpatialObject() != null) {
                             gridPointMarkerDisplay = new GridPointMarkerDisplay(
                                     contourAttributes[i].getMarker(),
                                     getNcMapDescriptor(),
                                     gdPrxy.getNewSpatialObject());
-                        } catch (NullPointerException npe) {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
-                                logger.info(this.getClass().getCanonicalName()
-                                        + ":Missing data was expected for:"
-                                        + "GDPFUN:"
-                                        + contourAttributes[i].getGdpfun()
-                                        + ";GLEVEL:"
-                                        + contourAttributes[i].getGlevel()
-                                        + ";GVCORD:"
-                                        + contourAttributes[i].getGvcord()
-                                        + ";" + "displayType:" + displayType
-                                        + ";WIND:"
-                                        + contourAttributes[i].getWind() + ";");
-                            }
-                            logger.debug(
-                                    this.getClass().getCanonicalName()
-                                            + ":\n"
-                                            + "Offending statement: gridPointMarkerDisplay = new"
-                                            + " GridPointMarkerDisplay(contourAttributes[i].getMarker(),getNcMapDescriptor(),gdPrxy.getNewSpatialObject());\n"
-                                            + "***HINT: parts of gdPrxy may have been null\n"
-                                            + npe.getMessage(), npe);
+                        } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            logMissingDataCondition(i);
                         }
                     } else if (!attrType.contains("M")
                             && gridPointMarkerDisplay != null) {
@@ -1223,33 +996,15 @@ public class NcgridResource extends
                     }
 
                     if (attrType.contains("G") && gridIndicesDisplay == null) {
-                        try { // gdPrxy may not have valid spatial objects
+                        if (gdPrxy != null
+                                && gdPrxy.getNewSpatialObject() != null) {
                             gridIndicesDisplay = new GridIndicesDisplay(
                                     GempakColor.convertToRGB(gridRscData
                                             .getGrdlbl()),
                                     getNcMapDescriptor(),
                                     gdPrxy.getNewSpatialObject());
-                        } catch (NullPointerException npe) {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
-                                logger.info(this.getClass().getCanonicalName()
-                                        + ":Missing data was expected for:"
-                                        + "GDPFUN:"
-                                        + contourAttributes[i].getGdpfun()
-                                        + ";GLEVEL:"
-                                        + contourAttributes[i].getGlevel()
-                                        + ";GVCORD:"
-                                        + contourAttributes[i].getGvcord()
-                                        + ";" + "displayType:" + displayType
-                                        + ";WIND:"
-                                        + contourAttributes[i].getWind() + ";");
-                            }
-                            logger.debug(
-                                    this.getClass().getCanonicalName()
-                                            + ":\n"
-                                            + "Offending statement: gridIndicesDisplay = new GridIndicesDisplay(GempakColor.convertToRGB(gridRscData.getGrdlbl()),"
-                                            + " getNcMapDescriptor(),gdPrxy.getNewSpatialObject());\n"
-                                            + "***HINT: parts of gdPrxy may have been null\n"
-                                            + npe.getMessage(), npe);
+                        } else if (ncgribLogger.enableDiagnosticLogs()) {
+                            logMissingDataCondition(i);
                         }
                     } else if (!attrType.contains("G")
                             && gridIndicesDisplay != null) {
@@ -1270,44 +1025,17 @@ public class NcgridResource extends
                                         displayType, isDirectionalArrow,
                                         contourAttributes[i].getWind())) {
                                     vectorDisplay[i].dispose();
-                                    try { // gdPrxy may not have valid spatial
-                                          // objects
+                                    if (gdPrxy != null
+                                            && gdPrxy.getNewSpatialObject() != null) {
                                         vectorDisplay[i] = new GriddedVectorDisplay(
                                                 gridData, displayType,
                                                 isDirectionalArrow,
                                                 getNcMapDescriptor(),
                                                 gdPrxy.getNewSpatialObject(),
                                                 contourAttributes[i]);
-                                    } catch (NullPointerException npe) {
-                                        if (ncgribLogger.enableDiagnosticLogs()) {
-                                            logger.info(this.getClass()
-                                                    .getCanonicalName()
-                                                    + ":Missing data was expected for:"
-                                                    + "GDPFUN:"
-                                                    + contourAttributes[i]
-                                                            .getGdpfun()
-                                                    + ";GLEVEL:"
-                                                    + contourAttributes[i]
-                                                            .getGlevel()
-                                                    + ";GVCORD:"
-                                                    + contourAttributes[i]
-                                                            .getGvcord()
-                                                    + ";"
-                                                    + "displayType:"
-                                                    + displayType
-                                                    + ";WIND:"
-                                                    + contourAttributes[i]
-                                                            .getWind() + ";");
-                                        }
-                                        logger.debug(
-                                                this.getClass()
-                                                        .getCanonicalName()
-                                                        + ":\n"
-                                                        + "Offending statement: vectorDisplay[i] = new GriddedVectorDisplay(gridData,"
-                                                        + " displayType, isDirectionalArrow, getNcMapDescriptor(), gdPrxy.getNewSpatialObject(),"
-                                                        + " contourAttributes[i]);\n"
-                                                        + "***HINT: parts of gdPrxy may have been null\n"
-                                                        + npe.getMessage(), npe);
+                                    } else if (ncgribLogger
+                                            .enableDiagnosticLogs()) {
+                                        logMissingDataCondition(i);
                                     }
                                 }
                             }
@@ -1352,8 +1080,8 @@ public class NcgridResource extends
                                     || !contourAttributes[i].getText()
                                             .equalsIgnoreCase(text)) {
 
-                                try { // gdPrxy may not have been fully
-                                      // assembled upstream
+                                if (gdPrxy != null
+                                        && gdPrxy.getNewSpatialObject() != null) {
                                     gridPointValueDisplay[i] = createGridPointValueDisplay(
                                             (NcFloatDataRecord) contourRenderable[i]
                                                     .getData(), gdPrxy,
@@ -1367,34 +1095,8 @@ public class NcgridResource extends
                                     scale = contourAttributes[i].getScale();
                                     colors = contourAttributes[i].getColors();
                                     text = contourAttributes[i].getText();
-                                } catch (NullPointerException npe) {
-                                    if (ncgribLogger.enableDiagnosticLogs()) {
-                                        logger.info(this.getClass()
-                                                .getCanonicalName()
-                                                + ":Missing data was expected for:"
-                                                + "GDPFUN:"
-                                                + contourAttributes[i]
-                                                        .getGdpfun()
-                                                + ";GLEVEL:"
-                                                + contourAttributes[i]
-                                                        .getGlevel()
-                                                + ";GVCORD:"
-                                                + contourAttributes[i]
-                                                        .getGvcord()
-                                                + ";"
-                                                + "displayType:"
-                                                + displayType
-                                                + ";WIND:"
-                                                + contourAttributes[i]
-                                                        .getWind() + ";");
-                                    }
-                                    logger.debug(
-                                            this.getClass().getCanonicalName()
-                                                    + ":\n"
-                                                    + "Offending statement: gridPointValueDisplay[i] = createGridPointValueDisplay((NcFloatDataRecord)"
-                                                    + " contourRenderable[i].getData(), gdPrxy, contourAttributes[i]);\n"
-                                                    + "***HINT: parts of gdPrxy may have been null\n"
-                                                    + npe.getMessage(), npe);
+                                } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                    logMissingDataCondition(i);
                                 }
                             }
                         }
@@ -1406,41 +1108,15 @@ public class NcgridResource extends
                                 && (contourRenderable[i].getData() instanceof NcFloatDataRecord)) {
 
                             if (contourRenderable[i].getGridRelativeHiLo() == null) {
-                                try { // gdPrxy may not have been fully
-                                      // assembled upstream
+                                if (gdPrxy != null
+                                        && gdPrxy.getNewSpatialObject() != null) {
                                     contourRenderable[i]
                                             .setGridRelativeHiLo(createGridRelativeHiLoDisplay(
                                                     (NcFloatDataRecord) contourRenderable[i]
                                                             .getData(), gdPrxy,
                                                     contourAttributes[i]));
-                                } catch (NullPointerException npe) {
-                                    if (ncgribLogger.enableDiagnosticLogs()) {
-                                        logger.info(this.getClass()
-                                                .getCanonicalName()
-                                                + ":Missing data was expected for:"
-                                                + "GDPFUN:"
-                                                + contourAttributes[i]
-                                                        .getGdpfun()
-                                                + ";GLEVEL:"
-                                                + contourAttributes[i]
-                                                        .getGlevel()
-                                                + ";GVCORD:"
-                                                + contourAttributes[i]
-                                                        .getGvcord()
-                                                + ";"
-                                                + "displayType:"
-                                                + displayType
-                                                + ";WIND:"
-                                                + contourAttributes[i]
-                                                        .getWind() + ";");
-                                    }
-                                    logger.debug(
-                                            this.getClass().getCanonicalName()
-                                                    + ":\n"
-                                                    + "Offending statement: contourRenderable[i].setGridRelativeHiLo(createGridRelativeHiLoDisplay((NcFloatDataRecord)"
-                                                    + " contourRenderable[i].getData(), gdPrxy, contourAttributes[i]));\n"
-                                                    + "***HINT: parts of gdPrxy may have been null\n"
-                                                    + npe.getMessage(), npe);
+                                } else if (ncgribLogger.enableDiagnosticLogs()) {
+                                    logMissingDataCondition(i);
                                 }
                             } else {
                                 if (contourAttributes[i].getHilo() == null
@@ -1449,43 +1125,17 @@ public class NcgridResource extends
                                     contourRenderable[i]
                                             .setGridRelativeHiLo(null);
                                 } else {
-                                    try { // gdPrxy may not have been fully
-                                          // assembled upstream
+                                    if (gdPrxy != null
+                                            && gdPrxy.getNewSpatialObject() != null) {
                                         contourRenderable[i]
                                                 .setGridRelativeHiLo(createGridRelativeHiLoDisplay(
                                                         (NcFloatDataRecord) contourRenderable[i]
                                                                 .getData(),
                                                         gdPrxy,
                                                         contourAttributes[i]));
-                                    } catch (NullPointerException npe) {
-                                        if (ncgribLogger.enableDiagnosticLogs()) {
-                                            logger.info(this.getClass()
-                                                    .getCanonicalName()
-                                                    + ":Missing data was expected for:"
-                                                    + "GDPFUN:"
-                                                    + contourAttributes[i]
-                                                            .getGdpfun()
-                                                    + ";GLEVEL:"
-                                                    + contourAttributes[i]
-                                                            .getGlevel()
-                                                    + ";GVCORD:"
-                                                    + contourAttributes[i]
-                                                            .getGvcord()
-                                                    + ";"
-                                                    + "displayType:"
-                                                    + displayType
-                                                    + ";WIND:"
-                                                    + contourAttributes[i]
-                                                            .getWind() + ";");
-                                        }
-                                        logger.debug(
-                                                this.getClass()
-                                                        .getCanonicalName()
-                                                        + ":\n"
-                                                        + "Offending statement: contourRenderable[i].setGridRelativeHiLo(createGridRelativeHiLoDisplay((NcFloatDataRecord)"
-                                                        + " contourRenderable[i].getData(), gdPrxy, contourAttributes[i]));\n"
-                                                        + "***HINT: parts of gdPrxy may have been null\n"
-                                                        + npe.getMessage(), npe);
+                                    } else if (ncgribLogger
+                                            .enableDiagnosticLogs()) {
+                                        logMissingDataCondition(i);
                                     }
                                 }
                             }
@@ -1669,23 +1319,12 @@ public class NcgridResource extends
             NcFloatDataRecord gridData = null;
             try {
                 long t1 = System.currentTimeMillis();
-                try {
+
+                if (gdPrxy != null && gdPrxy.getNewSpatialObject() != null) {
                     gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,
                             contourAttributes[i], this.cacheData);
-                } catch (NullPointerException npe) {
-                    if (ncgribLogger.enableDiagnosticLogs()) {
-                        logger.info(this.getClass().getCanonicalName()
-                                + ":Missing data was expected for:" + "GDPFUN:"
-                                + contourAttributes[i].getGdpfun() + ";GLEVEL:"
-                                + contourAttributes[i].getGlevel() + ";GVCORD:"
-                                + contourAttributes[i].getGvcord() + ";WIND:"
-                                + contourAttributes[i].getWind() + ";");
-                    }
-                    logger.debug(this.getClass().getCanonicalName()
-                            + ":\n"
-                            + "Offending statement: gridData = (NcFloatDataRecord) getDataRecord(gdPrxy,ontourAttributes[i], this.cacheData);\n"
-                            + "***HINT: parts of gdPrxy may have been null\n"
-                            + npe.getMessage() + npe);
+                } else if (ncgribLogger.enableDiagnosticLogs()) {
+                    logMissingDataCondition(i);
                 }
                 long t2 = System.currentTimeMillis();
                 if (gridData != null) {
@@ -1703,8 +1342,7 @@ public class NcgridResource extends
                             + (t2 - t1));
                 }
             } catch (DgdrivException e) {
-                // TODO Auto-generated catch block
-                // e.printStackTrace();
+                logger.info(e.getStackTrace());
                 return null;
             }
             return gridData;
@@ -1727,14 +1365,13 @@ public class NcgridResource extends
 
     @Override
     public void queryRecords() throws VizException {
+
         ResourceName rscName = getResourceData().getResourceName();
 
         DataTime cycleTime = rscName.getCycleTime();
 
-        if (rscName.isLatestCycleTime()) { // latest should
-                                           // already be
-                                           // resolved
-                                           // here.
+        // latest should already be resolved here.
+        if (rscName.isLatestCycleTime()) {
             return;
         }
 
@@ -1806,15 +1443,13 @@ public class NcgridResource extends
     protected IRscDataObject[] processRecord(Object obj) {
         if (obj instanceof DataTime) {
             NcGridDataProxy rscDataObj = new NcGridDataProxy((DataTime) obj);
-            // gribRec.getDataTime(), gribRec.getSpatialObject() );
             return new NcGridDataProxy[] { rscDataObj };
         } else if (obj instanceof GridRecord) {
             NcGridDataProxy rscDataObj = new NcGridDataProxy(
                     ((GridRecord) obj).getDataTime());
             return new NcGridDataProxy[] { rscDataObj };
         } else {
-            System.out
-                    .println("Unexpected object in NcGridResource.processRecord ");
+            logger.info("Unexpected object in NcGridResource.processRecord ");
             return null;
         }
     }
@@ -2653,7 +2288,8 @@ public class NcgridResource extends
             }
         }
 
-        System.out.println("returnedFunc=" + returnedFunc);
+        logger.info("returnedFunc=" + returnedFunc);
+
         return returnedFunc;
     }
 
@@ -2707,7 +2343,7 @@ public class NcgridResource extends
         int pos, posV, posF;
 
         /*
-         * check '!' and remove it for now ???
+         * check '!' and remove it for now
          */
         if ((pos = titleBuilder.indexOf("!")) > 0) {
             titleBuilder = titleBuilder.delete(pos, titleBuilder.length());
@@ -2875,10 +2511,8 @@ public class NcgridResource extends
         sb.append(dataTimeStr);
         sb.append(".h5");
 
-        file = new File(
-        // TODO--OK?? VizApp.getServerDataDir() + File.separator +
-                dataURI.split("/")[1] + File.separator + path + File.separator
-                        + sb.toString());
+        file = new File(dataURI.split("/")[1] + File.separator + path
+                + File.separator + sb.toString());
 
         if (file != null) {
             filename = file.getAbsolutePath();
@@ -2990,6 +2624,160 @@ public class NcgridResource extends
         postProcessFrameUpdate();
         autoUpdateReady = false;
         return true;
+    }
+
+    /**
+     * 
+     * @param userSaveInput
+     * @return true if grid saved successfully
+     */
+    public boolean saveGridAs(SaveGridInput userSaveInput) {
+
+        boolean successfulSave = true;
+        if (!userSaveInput.validInput()) {
+            statusHandler.handle(UFStatus.Priority.CRITICAL,
+                    "Save input not valid: " + userSaveInput);
+            return false;
+        }
+
+        // Get all datasetIds (model names) in database
+        List<String> datasetIds = null;
+        try {
+            datasetIds = queryDatasetIds();
+        } catch (VizException e1) {
+            statusHandler.handle(UFStatus.Priority.CRITICAL,
+                    "Error getting dataset ids" + e1.getLocalizedMessage(), e1);
+        }
+
+        String gdfile = userSaveInput.getGdfile();
+        String modelName = userSaveInput.getModelName();
+
+        // Don't allow saving grid that would overwrite an existing grid
+        for (String id : datasetIds) {
+            if (id.equals(modelName)) {
+                statusHandler.handle(UFStatus.Priority.CRITICAL,
+                        "Can not overwrite existing operational grid model "
+                                + modelName);
+                return false;
+            }
+        }
+
+        Level level = userSaveInput.getLevel();
+        Parameter parameter = userSaveInput.getParameter();
+        Collection<FrameData> framesToSave = new ArrayList<FrameData>();
+
+        if (userSaveInput.isSaveAll()) {
+
+            for (AbstractFrameData frame : frameDataMap.values()) {
+                framesToSave.add((FrameData) frame);
+            }
+        } else {
+            framesToSave.add((FrameData) getCurrentFrame());
+        }
+        for (FrameData frameToSave : framesToSave) {
+            DataTime refTime = frameToSave.gdPrxy.getDataTime();
+
+            float[] gridData = frameToSave.getGriddedData(0).getXdata();
+            GridCoverage navigation = (GridCoverage) frameToSave.gdPrxy
+                    .getNewSpatialObject();
+
+            try {
+                GridRecord grid = new GridRecord();
+                int scale = Integer.parseInt(frameToSave.contourRenderable[0]
+                        .getContourAttributes().getScale());
+
+                grid.setDatasetId(modelName);
+                grid.setMessageData((scale == 0 ? gridData : getUnScaledGrid(
+                        gridData, scale)));
+                grid.setParameter(parameter);
+                grid.setPersistenceTime(new Date());
+                grid.setDataTime(refTime);
+                grid.setLevel(level);
+                grid.setLocation(navigation);
+                if (gdfile.startsWith("{") && gdfile.endsWith("}")) {
+                    grid.setSecondaryId(gdfile);
+                }
+                grid.addExtraAttribute("gridid", navigation.getName());
+
+                StoreGridRequest sgr = new StoreGridRequest(grid);
+                ThriftClient.sendRequest(sgr);
+            } catch (VizException e) {
+                statusHandler.handle(UFStatus.Priority.CRITICAL,
+                        e.getLocalizedMessage(), e);
+
+                successfulSave = false;
+            } catch (ParameterLookupException e) {
+                statusHandler.handle(UFStatus.Priority.CRITICAL,
+                        e.getLocalizedMessage(), e);
+                successfulSave = false;
+            }
+        }
+        return successfulSave;
+    }
+
+    /**
+     * Queries database for all grid dataset ids
+     * 
+     * @return list of dataset ids
+     * @throws VizException
+     */
+    public List<String> queryDatasetIds() throws VizException {
+
+        HashMap<String, RequestConstraint> constraints = new HashMap<String, RequestConstraint>();
+        constraints.put(PLUGIN_NAME, new RequestConstraint(GRID_KEY));
+        DbQueryRequest request = new DbQueryRequest();
+        request.setConstraints(constraints);
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
+        List<String> datasetIds = new ArrayList<>();
+
+        for (Map<String, Object> result : response.getResults()) {
+            for (Object pdo : result.values()) {
+                for (IRscDataObject dataObject : processRecord(pdo)) {
+                    GridRecord rec = (GridRecord) pdo;
+                    String id = rec.getInfo().getDatasetId();
+                    if (!datasetIds.contains(id)) {
+                        datasetIds.add(id);
+                    }
+                }
+            }
+        }
+
+        return datasetIds;
+    }
+
+    private float[] getUnScaledGrid(float[] gridData, int scale) {
+        float[] unscaledGridData = Arrays.copyOf(gridData, gridData.length);
+        for (int i = 0; i < gridData.length; i++) {
+            unscaledGridData[i] = new Double(gridData[i] / Math.pow(10, scale))
+                    .floatValue();
+        }
+        return unscaledGridData;
+    }
+
+    private void logMissingDataCondition(int i) {
+        logMissingDataCondition(i, true);
+    }
+
+    private void logMissingDataCondition(int i, boolean addWindInfo) {
+        DisplayType displayType = getVectorType(contourAttributes[i].getType());
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getClass().getCanonicalName());
+        sb.append(":Missing data was expected for:");
+        sb.append("GDPFUN:");
+        sb.append(contourAttributes[i].getGdpfun());
+        sb.append(";GLEVEL:");
+        sb.append(contourAttributes[i].getGlevel());
+        sb.append(";GVCORD:");
+        sb.append(contourAttributes[i].getGvcord());
+        sb.append(";displayType:");
+        sb.append(displayType);
+        if (addWindInfo) {
+            sb.append(";WIND:");
+            sb.append(contourAttributes[i].getWind());
+            sb.append(";");
+        }
+        logger.info(sb.toString());
     }
 
 }

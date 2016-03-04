@@ -18,9 +18,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -28,11 +31,14 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.serialization.ISerializableObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -40,8 +46,6 @@ import com.raytheon.uf.viz.core.rsc.AbstractRequestableResourceData;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-
-//import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition.InventoryLoadStrategy;
 
 /**
  * This is the abstract class for all Natl Cntrs requestable resources. It is
@@ -87,6 +91,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
  * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
  * 06/16/2015      RM6580  kvepuri     Updated PGEN latest file logic
+ * 03/01/2016      R6821   kbugenhagen Date/time changes for Blender and cleanup.
  * </pre>
  * 
  * *
@@ -100,13 +105,15 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         AbstractRequestableResourceData implements INatlCntrsResourceData,
         ISerializableObject {
 
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(AbstractNatlCntrsRequestableResourceData.class);
+
     @XmlElement
     @XmlJavaTypeAdapter(RGBColorAdapter.class)
     protected RGB legendColor;
 
     // if true then the attribute values are stored in the member variables, if
-    // false then
-    // the attribute values are stored in the rscAttrSet.
+    // false then the attribute values are stored in the rscAttrSet.
     @XmlAttribute
     protected boolean isEdited = false;
 
@@ -120,18 +127,15 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     @XmlElement
     protected String resourceVersion = null;
 
-    // This is used to set the start/end times for each frame in the
-    // frameDataMap. All
-    // this resources data will be within this interval. The value is
-    // initialized with
-    // the value in the ResourceDefinition. A value of 0 is not valid except in
-    // the case
-    // of 'Event' type resources where the data have valid ranges. (ex. Airmets,
-    // Warn...)
-    // This value may be used to generate a timeline if the timelineGenMethod is
-    // set to
-    // USE_FRAME_INTERVAL.
-    //
+    /*
+     * This is used to set the start/end times for each frame in the
+     * frameDataMap. All this resources data will be within this interval. The
+     * value is initialized with the value in the ResourceDefinition. A value of
+     * 0 is not valid except in the case of 'Event' type resources where the
+     * data have valid ranges. (ex. Airmets, Warn...) This value may be used to
+     * generate a timeline if the timelineGenMethod is set to
+     * USE_FRAME_INTERVAL.
+     */
     @XmlElement
     protected int frameSpan; // in minutes
 
@@ -210,7 +214,26 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     public static enum DayReference {
-        TOMORROW, TODAY, YESTERDAY
+        TOMORROW, TODAY, YESTERDAY;
+
+        public Calendar getReferencedDate() {
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            cal.setTime(new Date());
+            switch (this) {
+            case TOMORROW:
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+                break;
+            case TODAY:
+                break;
+            case YESTERDAY:
+                cal.add(Calendar.DAY_OF_MONTH, -1);
+            }
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            return cal;
+        }
     }
 
     public AbstractNatlCntrsRequestableResourceData() {
@@ -228,8 +251,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     // Version can be used to test whether an RBD was created with an older
-    // version of the resource
-    // Currently this is not enforced or implemented by any of the resources.
+    // version of the resource. Currently this is not enforced or implemented by
+    // any of the resources.
     public String getResourceVersion() {
         return resourceVersion;
     }
@@ -254,8 +277,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     // Event-type resources like sigmets, WARN, ffa.... should override this
-    // method
-    // and return true.
+    // method and return true.
     public boolean isEventResource() {
         return false;
     }
@@ -265,7 +287,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         return (frameSpan != 0);
     }
 
-    // get/set for isEdited
     public void setIsEdited(boolean e) {
         isEdited = e;
     }
@@ -358,7 +379,24 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         this.dayReference = dayReference;
     }
 
-    // some rsc param values may change from EQUALS to a wildcard (ie %) so
+    public DataTime getRefCycleTime() {
+        Date refCycleTime = parseCycleDayRef(dayReference, cycleReference);
+        if (refCycleTime != null) {
+            return new DataTime(refCycleTime);
+        }
+        return null;
+    }
+
+    public static Date parseCycleDayRef(DayReference dayRef, String cycleRef) {
+        if (dayRef == null || StringUtils.isBlank(cycleRef)) {
+            return null;
+        }
+        Calendar cal = dayRef.getReferencedDate();
+        cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(cycleRef));
+        return cal.getTime();
+    }
+
+    // Some rsc param values may change from EQUALS to a wildcard (ie %) so
     // make sure that the correct constraint type is set.
     @Override
     public HashMap<String, RequestConstraint> getMetadataMap() {
@@ -388,7 +426,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         }
     }
 
-    // if there is a cycle time then this is a forecast resource.
+    // If there is a cycle time then this is a forecast resource.
     //
     // TODO : should we allow for a resource to be a forecast resource w/o
     // having a cycle time?
@@ -405,92 +443,56 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         getMetadataMap().get(PLUGIN_NAME).setConstraintValue(pluginName);
     }
 
-    // implement here as a convienience since almost all of our
-    // resources are on map based displays. Other resources
-    // that are written to draw to differendt display types will
+    // Implemented here as a convenience since almost all of our
+    // resources are on map-based displays. Other resources
+    // that are written to draw to different display types will
     // need to override this.
     public NcDisplayType[] getSupportedDisplayTypes() {
         return new NcDisplayType[] { NcDisplayType.NMAP_DISPLAY };
     }
 
-    // in D2D the construct method will call setTimeList which will set the
-    // TimeMatchingMap in the descriptor.
-    // but for us the non-dominant resources will not know there frameTimes
-    // until the dominant source is constructed since this
-    // is where the frameTimes are defined for all resources. So... we either
-    // need to ensure that the dominant resource is constructed
-    // first and then update the TimeMatchingMap here or (preferrably) we will
-    // need to postpone setting the TimeMatchingMap until all
-    // the resources are constructed and then set the TimeMatchingMap. We will
-    // do this in the init method.
-    //
+    /*
+     * In D2D the construct method will call setTimeList which will set the
+     * TimeMatchingMap in the descriptor. but for us the non-dominant resources
+     * will not know there frameTimes until the dominant source is constructed
+     * since this is where the frameTimes are defined for all resources. So...
+     * we either need to ensure that the dominant resource is constructed first
+     * and then update the TimeMatchingMap here or (preferably) we will need to
+     * postpone setting the TimeMatchingMap until all the resources are
+     * constructed and then set the TimeMatchingMap. We will do this in the init
+     * method.
+     */
     @Override
     public AbstractVizResource<?, ?> construct(LoadProperties loadProperties,
             IDescriptor descriptor) throws VizException {
         // Bypass the AbstractRequestableResourceData construct() since it does
         // stuff we don't need/want. Like setting the frameTimes from the
         // resource data times.
-        // AbstractVizResource<?, ?> rsc = super.construct( loadProperties,
-        // descriptor );
         AbstractVizResource<?, ?> rsc = constructResource(loadProperties, null);
-        // store off the resource. Currently this is done only to be able to
-        // update the color
-        // capability when the color attribute is changed.
+        // Store off the resource. Currently this is done only to be able to
+        // update the color capability when the color attribute is changed.
         if (rsc instanceof INatlCntrsResource) {
-            // The current design assumes that each ResourceData will only
-            // create one Resource. If this
-            // needs to change then we will either need to store a list of
-            // ncRscs or create a new
-            // AbstractNatlCntrsResource class and put the color update code in
-            // it.
+            /*
+             * The current design assumes that each ResourceData will only
+             * create one Resource. If this needs to change then we will either
+             * need to store a list of ncRscs or create a new
+             * AbstractNatlCntrsResource class and put the color update code in
+             * it.
+             */
             if (ncRsc != null) {
-                System.out
-                        .println("Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
-                System.out.println(" a resource that already exists. ");
+                logger.debug("Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
+                logger.debug(" a resource that already exists. ");
             }
             ncRsc = rsc;
         } else {
-            System.out
-                    .println("A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
+            logger.debug("A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
         }
-
-        // if this resource was not edited (ie attribute values changed from the
-        // original values in
-        // the rscAttrSet) then get the values from the rscAttrSet and set the
-        // member variables with them.
-        // In other words, if the attribute values in the rscAttrSet were
-        // changed from the time when the
-        // RBD was created to now we will use the current values.) (This
-        // behaviour could be change to
-        // only apply to the default attrSet if we wanted to.)
-        //
-        // if( rscAttrSet == null && rscAttrSetName != null ) {
-        // rscAttrSet = new ResourceAttrSet( rscAttrSetName );
-        // }
-        //
-        // if( rscAttrSet != null ) {
-        // if( isEdited ) {
-        // // if the attributes were edited then the values in rscAttrSet are
-        // different so update them
-        // // here. (Note: currently this is not required. We could instead just
-        // not create an attrSet.)
-        // // Or we might want to change the name to prevent inadvertant writing
-        // out of edited attributes to
-        // // the file.)
-        // getResourceAttrValues( rscAttrSet );
-        // }
-        //
-        // // call setRscAttrSet instead of setResourceAttrValues since
-        // // setRscAttrSet may be overridden
-        // setRscAttrSet( rscAttrSet );
-        // }
 
         return rsc;
     }
 
     // There are better/faster ways of doing this I'm sure, but for now
     // just call getAvailableDataTimes to do this.
-    //
     public void resolveLatestCycleTime() {
         if (getResourceName().getCycleTime() == null
                 && getResourceName().isLatestCycleTime()) {
@@ -498,7 +500,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         }
     }
 
-    // return a list of all of the data times from the database. If
+    // Return a list of all of the data times from the database. If
     // this is a forecast resource with a cycle time, this will only
     // return a list of unique cycle times.
     public List<DataTime> getAvailableDataTimes() {
@@ -509,15 +511,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         try {
             ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
                     .getResourceDefinition(getResourceName());
-
-            // first attempt to get the times from the inventory and
-            // if there is no
-            // if( !rscDefn.hasInventory() &&
-            // rscDefn.getInventoryLoadStrategy() !=
-            // InventoryLoadStrategy.NO_INVENTORY ) {
-            //
-            // rscDefn.loadInventory( false );
-            // }
 
             if (rscDefn.getInventoryEnabled()
                     && rscDefn.isInventoryInitialized()) {
@@ -531,37 +524,34 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                     availTimesList = Arrays.asList(availTimes);
 
                 } catch (VizException e) {
-                    System.out.println("Error getting Available Times: "
+                    logger.debug("Error getting Available Times: "
                             + e.getMessage());
                     return null;
                 }
             }
 
-            // RM6580 : PGEN needs to display Latest file, don't display
-            // multiple available files.
-            // availTimesList is already sorted, pick the latest
+            // PGEN needs to display latest file, so don't display
+            // multiple available files. availTimesList is already sorted, pick
+            // the latest
             if (rscDefn.getResourceCategory().isPgenCategory()
                     && availTimesList.size() > 1) {
                 availTimesList = Arrays
                         .asList(availTimes[availTimes.length - 1]);
             }
-            // RM6580 : Fix end
 
         } catch (VizException e1) {
             return availTimesList;
         }
 
-        // if there is a cycle time, filter out other times and sort by the
-        // forecast hours
+        // If there is a cycle time, filter out other times and sort by the
+        // forecast hours.
         // TODO: don't get the cycle time from the resourceName....
         //
         if (getResourceName().getCycleTime() != null) {
-            // DataTime cycleTime = getResourceName().getCycleTime();
             long cycleTimeMs = 0;
 
-            // if latest then get the latest time
-            // and set the resolved time in the ResourceName
-            //
+            // If latest then get the latest time and set the resolved time in
+            // the ResourceName.
             if (getResourceName().isLatestCycleTime()) {
                 for (DataTime dt : availTimesList) {
                     if (dt.getRefTime().getTime() > cycleTimeMs) {
@@ -577,12 +567,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             }
             ArrayList<DataTime> tmpTimesList = new ArrayList<DataTime>();
 
-            // add all the forecast times for the given cycleTime.
+            // Add all the forecast times for the given cycleTime.
             // (TODO: confirm that duplicate valid times (with different periods
             // are not getting added here.)
             for (DataTime dt : availTimesList) {
                 if (dt.getRefTime().getTime() == cycleTimeMs) {
-                    // create a DataTime without a period which may lead to
+                    // Create a DataTime without a period which may lead to
                     // duplicate times.
                     DataTime dataTime = new DataTime(dt.getRefTime(),
                             dt.getFcstTime());
@@ -595,10 +585,9 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         }
 
         /*
-         * TTR 1026: Local radar data times are not sorted so we need to sort
-         * them in ascending
+         * Local radar data times are not sorted so we need to sort them in
+         * ascending order
          */
-        // order.
         String rscName = getResourceName().toString();
         if (rscName != null && rscName.contains("RADAR/LocalRadar")) {
             Collections.sort(availTimesList);
@@ -607,11 +596,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         return availTimesList;
     }
 
-    // get a list of the defined attributes for this resource and
-    //
+    // Get a list of the defined attributes for this resource and
     public ResourceAttrSet getRscAttrSet() {
-
-        // if( rscAttrSet == null && rscAttrSetName != null ) {
 
         HashMap<String, ResourceParamInfo> rscImplParamInfo = rscExtPointMngr
                 .getParameterInfoForRscImplementation(getResourceName());
@@ -621,7 +607,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         }
 
         ResourceAttrSet rscAttrSet = new ResourceAttrSet(
-                resourceName.getRscAttrSetName()); // rscAttrSetName );
+                resourceName.getRscAttrSetName());
 
         for (ResourceParamInfo prmInfo : rscImplParamInfo.values()) {
             if (prmInfo.getParamType() != ResourceParamType.EDITABLE_ATTRIBUTE) {
@@ -640,17 +626,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                     Class<?>[] params = m.getParameterTypes();
                     Class<?> rtype = m.getReturnType();
 
-                    // This would be a nice sanity check but I would have to go
-                    // back and change all ints and booleans
-                    // in the getters and setters for old resources even though
-                    // they are compatible with the defined classes
-                    // if( rtype != attrInfo.getAttrClass() ) {
-                    // System.out.println("Warning: Attribute "+attrName
-                    // +" is not defined\n"+
-                    // "as correct type:" +rtype.getName() + " != " +
-                    // attrInfo.getAttrClass().getName() );
-                    // }
-
                     if (params.length == 0) {
                         Object attrVal = null;
                         try {
@@ -664,22 +639,22 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                             rscAttrSet.setAttrValue(paramName, attrVal);
 
                         } catch (NoSuchMethodException e) {
-                            // if there is no copy constructor go ahead and set
+                            // If there is no copy constructor go ahead and set
                             // the attribute value
                             rscAttrSet.setAttrValue(paramName, attrVal);
 
                         } catch (IllegalAccessException iae) {
-                            System.out.println(iae.getMessage());
+                            logger.debug(iae.getMessage());
                         } catch (IllegalArgumentException iae) {
-                            System.out.println(iae.getMessage());
+                            logger.debug(iae.getMessage());
                         } catch (InvocationTargetException ite) {
-                            System.out.println(ite.getMessage());
+                            logger.debug(ite.getMessage());
                         } catch (ClassCastException cce) {
-                            System.out.println(cce.getMessage());
+                            logger.debug(cce.getMessage());
                         } catch (SecurityException e) {
-                            System.out.println(e.getMessage());
+                            logger.debug(e.getMessage());
                         } catch (InstantiationException e) {
-                            System.out.println(e.getMessage());
+                            logger.debug(e.getMessage());
                         }
                     }
                 }
@@ -690,32 +665,22 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         return rscAttrSet;
     }
 
-    // the rscAttrSet should only contain attributes defined for this resource.
-    //
+    // The rscAttrSet should only contain attributes defined for this resource.
     public boolean setRscAttrSet(ResourceAttrSet newRscAttrSet) {
         if (newRscAttrSet == null) {
             return false;
         }
-        // else if( rscAttrSet == null ) {
-        // rscAttrSet = new ResourceAttrSet( rscAttrSet.getRscAttrSetName() );
-        // }
 
-        // if( rscAttrSetName == null ||
-        // !rscAttrSetName.equals( rscAttrSet.getRscAttrSetName() ) ) {
-        // rscAttrSetName = new String( rscAttrSet.getRscAttrSetName() );
-        // }
-
-        // Set<String> attrNames = rscAttrSet.getAttrNames();
         HashMap<String, ResourceParamInfo> rscImplParamInfo = rscExtPointMngr
                 .getParameterInfoForRscImplementation(getResourceName());
 
         if (rscImplParamInfo == null) {
-            System.out.println("Couldn't find rsc impl parameter info for "
+            logger.debug("Couldn't find rsc impl parameter info for "
                     + getResourceName());
             return false;
         }
 
-        // loop thru the attributes and use Java Bean utils to set the
+        // Loop thru the attributes and use Java Bean utils to set the
         // attributes on the resource
         for (ResourceParamInfo prmInfo : rscImplParamInfo.values()) {
 
@@ -725,7 +690,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
             String attrName = prmInfo.getAttributeName();
 
-            // make sure that this attrSet has this attributeName
+            // Make sure that this attrSet has this attributeName
             if (!newRscAttrSet.hasAttrName(attrName)) {
                 continue;
             }
@@ -735,7 +700,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             Class<?> attrClass = rscAttr.getAttrClass();
 
             if (attrClass != prmInfo.getParamClass()) {
-                System.out.println("Unable to set Attribute " + attrName
+                logger.debug("Unable to set Attribute " + attrName
                         + " because it is defined as " + " the wrong type: "
                         + attrClass.getName() + " != "
                         + prmInfo.getParamClass().getName());
@@ -751,35 +716,16 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
             for (Method m : mthds) {
                 if (m.getName().equals(setMthdName)) {
-                    Class<?>[] params = m.getParameterTypes();
-                    Class<?> rtype = m.getReturnType();
-
-                    // This would be a nice sanity check but I would have to go
-                    // back and change all ints and booleans
-                    // in the getters and setters for old resources even though
-                    // they are compatible with the defined classes
-                    // if( params[0] != attrInfo.getAttrClass() ||
-                    // params.length != 1) {
-                    // System.out.println("Error setting rsc attr "+attrName+" : setter class "
-                    // +
-                    // "has incompatible argument.");
-                    // System.out.println("Warning: Attribute "+attrName
-                    // +" is not defined\n"+
-                    // "as correct type:" +params[0].getName() + " != " +
-                    // attrInfo.getAttrClass().getName() );
-                    // continue;
-                    // }
-
                     try {
                         m.invoke(this, attrValue);
                     } catch (IllegalAccessException iae) {
-                        System.out.println(iae.getMessage());
+                        logger.debug(iae.getMessage());
                     } catch (IllegalArgumentException iae) {
-                        System.out.println(iae.getMessage());
+                        logger.debug(iae.getMessage());
                     } catch (InvocationTargetException ite) {
-                        System.out.println(ite.getMessage());
+                        logger.debug(ite.getMessage());
                     } catch (ClassCastException cce) {
-                        System.out.println(cce.getMessage());
+                        logger.debug(cce.getMessage());
                     }
 
                 }
@@ -799,14 +745,10 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
     // This is called by the autoUpdater when new data arrives and is also
     // called by the NCMapDescriptor to indicate that the timeline has changed.
-    //
     @Override
     public void update(Object updateData) {
         // Do not process auto update alerts from raytheon's AutoUpdater since
-        // we will
-        // get alerts from NcAutoUpdater.
-        // System.out.println("raytheon's update called");
-        // super.update( updateData );
+        // we will get alerts from NcAutoUpdater.
     }
 
     public IDataLoader getDataLoader() {
@@ -868,9 +810,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         }
 
         // Compare the attributes here to avoid having to write code in all of
-        // the resource classes.
-        // (NOTE: This currently isn't comparing PlotModel and ColorBar
-        // attributes.
+        // the resource classes. NOTE: This currently isn't comparing PlotModel
+        // and ColorBar attributes.
         ResourceAttrSet thisAttrSet = this.getRscAttrSet();
         ResourceAttrSet otherAttrSet = other.getRscAttrSet();
 

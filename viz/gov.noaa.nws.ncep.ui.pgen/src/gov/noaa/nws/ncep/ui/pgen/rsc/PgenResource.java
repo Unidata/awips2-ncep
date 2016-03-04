@@ -16,6 +16,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.action.PgenAction;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
+import gov.noaa.nws.ncep.ui.pgen.contours.ContourMinmax;
 import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenCommandManager;
 import gov.noaa.nws.ncep.ui.pgen.controls.PgenFileNameDisplay;
@@ -169,7 +170,8 @@ import com.vividsolutions.jts.geom.Point;
  *                                      argument to getActionList(). Moved
  *                                      several methods for 8199 into a the
  *                                      new class PgenActionXtra
- * 12/16/2105  R12597       B. Yin      Added context menu item to add line to contours
+ * 12/16/2105   R12597      B. Yin      Added context menu item to add line to contours
+ * 01/27/2016   R13166      J. Wu       Add context menu item to add Text to contours as label-only min/max.
  * </pre>
  * 
  * @author B. Yin
@@ -2208,10 +2210,9 @@ public class PgenResource extends
     protected void fillContextMenu(IMenuManager menuManager,
             ResourcePair selectedResource) {
 
-        if (getSelectedDE() != null
-                && !(getSelectedDE() instanceof Jet.JetLine)) { // ignore jet
+        AbstractDrawableComponent adc = getSelectedDE();
+        if (adc != null && !(adc instanceof Jet.JetLine)) { // ignore jet
 
-            AbstractDrawableComponent adc = getSelectedDE();
             String actionsxtra = PgenActionXtra.getActionsXtra(adc);
 
             List<String> actList = getActionList(this.getSelectedDE()
@@ -2223,10 +2224,15 @@ public class PgenResource extends
                 }
             }
             
-            // Add an menu item "Add to Contours" for regular line
-            if ( getSelectedDE() instanceof Line 
-            		&& getSelectedDE().getParent() instanceof Layer){
-            	generateSubMenu(menuManager, (Line)getSelectedDE());
+            // Add an menu item "Add to Contours" for regular line (not Arc)
+            if (adc instanceof Line && !(adc instanceof Arc)
+                    && adc.getParent() instanceof Layer) {
+                generateSubMenu(menuManager, (Line) adc);
+            }
+
+            // Add an menu item "Add to Contours" for Text object
+            if (adc instanceof Text && adc.getParent() instanceof Layer) {
+                generateLabelSubMenu(menuManager, (Text) adc);
             }
         }
     }
@@ -2308,9 +2314,92 @@ public class PgenResource extends
 
     	//add the line in contours
  	    ContourLine cline = new ContourLine(line, lbl, 1);
- 	    contours.add( cline );
+
+        // Add the new ContourLine to the contour
+        Contours newContour = contours.copy();
+        newContour.add(cline);
+
+        List<AbstractDrawableComponent> oldObjects = new ArrayList<AbstractDrawableComponent>();
+        oldObjects.add(line);
+        oldObjects.add(contours);
+
+        List<AbstractDrawableComponent> newObjects = new ArrayList<AbstractDrawableComponent>();
+        newObjects.add(newContour);
+
+        // Replace and allow undo/redo.
+        PgenResource.this.replaceElements(oldObjects, newObjects);
     }
     
+    /**
+     * Creates a submenu "Add To Contour" and its menu items for a Text.
+     * 
+     * @param menuManager
+     *            - context menu manager
+     * @param Text
+     *            - text selected
+     */
+    private void generateLabelSubMenu(IMenuManager menuManager,
+            final Text labelText) {
+        IMenuManager subMenu = new MenuManager("Add To Contour", null);
+        final Layer layer = getResourceData().getActiveLayer();
+        Iterator<AbstractDrawableComponent> it = layer.getComponentIterator();
+
+        // Find all contour sets in current layer and put them in the menu
+        while (it.hasNext()) {
+            final AbstractDrawableComponent adc = it.next();
+            if (adc instanceof Contours) {
+                final Contours contours = (Contours) adc;
+
+                // Add action to menu items
+                subMenu.add(new Action(contours.getParm() + contours.getLevel()
+                        + contours.getForecastHour()) {
+                    @Override
+                    public void run() {
+                        addLabelToContour(labelText, contours);
+
+                        // clean up
+                        PgenUtil.setSelectingMode();
+                        PgenResource.this
+                                .setSelected((AbstractDrawableComponent) null);
+                    }
+                });
+            }
+        }
+
+        menuManager.add(subMenu);
+    }
+
+    /**
+     * Adds a Text into a contour set as a "Label Only" MinMax.
+     * 
+     * @param labelText
+     *            - text to be added in contour
+     * @param contours
+     *            - a contour set
+     */
+    private void addLabelToContour(Text labelText, Contours contours) {
+
+        // Create a "Label Only" ContourMinMax
+        ContourMinmax cmm = new ContourMinmax(labelText.getPosition(), null,
+                null, labelText.getString(), false);
+        cmm.getLabel().update(labelText);
+
+        // Add the new ContourMinmax to the contour
+        Contours newContour = contours.copy();
+        newContour.add(cmm);
+
+        List<AbstractDrawableComponent> oldObjects = new ArrayList<AbstractDrawableComponent>();
+        oldObjects.add(labelText);
+        oldObjects.add(contours);
+
+        List<AbstractDrawableComponent> newObjects = new ArrayList<AbstractDrawableComponent>();
+        newObjects.add(newContour);
+
+        // Replace and allow undo/redo.
+        PgenResource.this.replaceElements(oldObjects, newObjects);
+
+    }
+
     /**
      * Gets the action list for the specified object. If there is no action for
      * the object, then gets the actions for its class (pgen category). The

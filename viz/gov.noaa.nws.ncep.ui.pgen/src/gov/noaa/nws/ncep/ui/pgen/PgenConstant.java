@@ -14,6 +14,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 11/18/2015    R12829    J. Wu       Add more common constants.
  * 12/17/2015    R12990    J. Wu       Add more constants.
  * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
+ * 01/27/2016    R13166    J. Wu       Add CIRCLE.
  * 
  * </pre>
  * 
@@ -59,6 +60,8 @@ public final class PgenConstant {
     public static final String PGENCATEGORY_TEXT = "Text";
 
     public static final String PGENTYPE_GENERAL_TEXT = "General Text";
+
+    public static final String CIRCLE = "Circle";
 
     public static final String PARM = "Parm";
 

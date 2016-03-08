@@ -193,7 +193,7 @@ public class WaveSatResource extends
             queryData(reqConstraints);
         }
 
-        // Called by populateFrame with the start/end time contraints and
+        // Called by populateFrame with the start/end time constraints and
         // by the updateFrameDataFromAutoUpdateList with the ID constraints.
         public void queryData(HashMap<String, RequestConstraint> reqConstraints)
                 throws VizException {

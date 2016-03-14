@@ -237,6 +237,8 @@
 	<alias base="MxT18hr">TMXK18</alias>
 	<alias base="MxT24hr">TMXK24</alias>
 	<alias base="MxT48hr">TMXK48</alias>
+	<alias base="MAXUW1hr">MX10U01</alias>
+	<alias base="MAXVW1hr">MX10V01</alias>
 	<alias base="O3MR">OZMR</alias>
 	<alias base="P">PRES</alias>
 	<alias base="P1hr">PRES01</alias>

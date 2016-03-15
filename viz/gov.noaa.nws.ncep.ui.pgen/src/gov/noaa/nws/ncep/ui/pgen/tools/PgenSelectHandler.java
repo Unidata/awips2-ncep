@@ -70,12 +70,12 @@ import com.vividsolutions.jts.geom.Point;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/13		#927		B. Yin   	Moved from the PgenSelectingTool class
- * 05/13		#994		J. Wu 		Removed "DEL" - make it same as "Ctrl+X"
- * 07/13		?			J. Wu 		Set the "otherTextLastUsed for GFA.
- * 09/13		?			J. Wu 		Call buildVortext for GFA when mouse is 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 04/13        #927        B. Yin      Moved from the PgenSelectingTool class
+ * 05/13        #994        J. Wu       Removed "DEL" - make it same as "Ctrl+X"
+ * 07/13        ?           J. Wu       Set the "otherTextLastUsed for GFA.
+ * 09/13        ?           J. Wu       Call buildVortext for GFA when mouse is 
  *                                      down since GFA converted from VGF does not 
  *                                      have vorText set.
  * 04/14        #1117       J. Wu       Set focus to label/update line type for Contours.
@@ -91,6 +91,9 @@ import com.vividsolutions.jts.geom.Point;
  * 05/15     Redmine 7804   S. Russell  Updated handleMouseDownMove()
  * 07/15        R8352       J. Wu       update hide flag for contour symbol.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 03/15/2016   R15959      E. Brown    Fixed issue where right click was launching the resource manager
+ *                                      while a PGEN attribute dialog was open and/or selecting/editing a 
+ *                                      PGEN object
  * 
  * </pre>
  * 
@@ -356,6 +359,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                 if (attrDlg != null
                         && !(attrDlg instanceof ContoursAttrDlg && tool instanceof PgenContoursTool)) {
+
                     closeAttrDlg(attrDlg, elSelected.getPgenType());
                     attrDlg = null;
                 }
@@ -489,9 +493,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
             return preempt;
 
-        }
-
-        else {
+        } else {
+            // Mousedown that's not button 1
 
             return false;
 
@@ -666,14 +669,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((SinglePointElement) tmpEl).setLocationOnly(loc);
                 }
 
-                // don't update location (AWC requirement)
-                // if ( attrDlg instanceof SymbolAttrDlg ){
-
-                // ((SymbolAttrDlg)attrDlg).setLatitude(loc.y);
-                // ((SymbolAttrDlg)attrDlg).setLongitude(loc.x);
-
-                // }
-
                 pgenrsc.resetElement(tmpEl); // reset display of this element
 
                 mapEditor.refresh();
@@ -778,6 +773,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseUp(int x, int y, int button) {
         firstDown = null;
+
+        // This variable, returnValue, is used to make sure that the right mouse
+        // button event stops in this handler instead of continuing on to
+        // NCPerspective's handleMouseUp and opening the resource manager. Near
+        // the bottom of the this method, if the attribute dialog is being
+        // closed by the right mouse button click returnValue is set to true so
+        // that the mouse button click never reaches the NCPer handler
+        boolean preempt = false;
+
         if (!tool.isResourceEditable()) {
             return false;
         }
@@ -1039,6 +1043,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
                     attrDlg = null;
                 }
+
+                // Mouseup event on button 3, the attribute dialog just got
+                // closed, and the PGEN object was just deselected, so
+                // preempt the event so the resource manager doesn't open
+                preempt = true;
             }
 
             if (trackExtrapPointInfoDlg != null) {
@@ -1053,8 +1062,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         }
 
-        return false;
-
+        // Use returnValue to either preempt the event or not. If this button 3
+        // up event just closed the attribute dialog and/or deselected the PGEN
+        // object, the returnValue will be true, preempting the event
+        return preempt;
     }
 
     private void setGhostLineColorForTrack(MultiPointElement multiPointElement,

@@ -90,6 +90,7 @@ import com.vividsolutions.jts.geom.Point;
  * 01/15     R5201/TTR1060  J. Wu       Update settings when an element is selected.
  * 05/15     Redmine 7804   S. Russell  Updated handleMouseDownMove()
  * 07/15        R8352       J. Wu       update hide flag for contour symbol.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 
  * </pre>
  * 
@@ -1320,11 +1321,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 cdlg.setActiveLine(elSelected);
             } else if (elSelected instanceof Symbol) {
                 Text lbl = ((ContourMinmax) pele).getLabel();
+                cdlg.setMinmaxLabelOnly(false);
                 if (lbl != null) {
                     cdlg.setLabel(lbl.getText()[0]);
                     cdlg.setNumOfLabels(1);
                     cdlg.setActiveSymbol(elSelected);
                     cdlg.setHideSymbolLabel(lbl.getHide());
+                    cdlg.setMinmaxSymbolOnly(false);
+                } else {
+                    cdlg.setMinmaxSymbolOnly(true);
                 }
             } else if (elSelected instanceof Text) {
                 cdlg.setLabel(((Text) elSelected).getText()[0]);
@@ -1337,7 +1342,13 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 } else if (pele instanceof ContourMinmax) {
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideSymbolLabel(((Text) elSelected).getHide());
-                    cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
+                    cdlg.setMinmaxSymbolOnly(false);
+                    if (((ContourMinmax) pele).getSymbol() != null) {
+                        cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
+                        cdlg.setMinmaxLabelOnly(false);
+                    } else {
+                        cdlg.setMinmaxLabelOnly(true);
+                    }
                 } else if (pele instanceof ContourCircle) {
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideCircleLabel(((Text) elSelected).getHide());

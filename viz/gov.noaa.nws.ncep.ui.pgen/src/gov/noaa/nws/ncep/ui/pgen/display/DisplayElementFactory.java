@@ -157,6 +157,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
  * </pre>
  * 
  * @author sgilbert
@@ -1435,7 +1436,7 @@ public class DisplayElementFactory {
             } else if (tparent instanceof ContourMinmax) {
                 boolean forceAuto = PgenUtil.getContourLabelAutoPlacement();
                 if (((Text) txt).getAuto() != null && ((Text) txt).getAuto()
-                        || forceAuto) {
+                        || (forceAuto && ((ContourMinmax) tparent).getSymbol() != null)) {
                     Coordinate loc = ((ISinglePoint) ((ContourMinmax) tparent)
                             .getSymbol()).getLocation();
                     double[] pixel = iDescriptor.worldToPixel(new double[] {

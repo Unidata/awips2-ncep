@@ -221,7 +221,6 @@ public class ContourRenderable implements IRenderable {
                             contourGroup[i].zoomLevel = cg.zoomLevel;
                             contourGroup[i].posValueShape = cg.posValueShape;
                             contourGroup[i].negValueShape = cg.negValueShape;
-                            contourGroup[i].fillShapes = cg.fillShapes;
                             contourGroup[i].colorFillImage = cg.colorFillImage;
                             contourGroup[i].parent = cg.parent;
                             contourGroup[i].lastUsedPixelExtent = cg.lastUsedPixelExtent;
@@ -242,8 +241,6 @@ public class ContourRenderable implements IRenderable {
                                 contourGroup[i].posValueShape.compile();
                             if (contourGroup[i].negValueShape != null)
                                 contourGroup[i].negValueShape.compile();
-                            if (contourGroup[i].fillShapes != null)
-                                contourGroup[i].fillShapes.compile();
 
                             contourGroup[i].colorBarForGriddedFill = cg.colorBarForGriddedFill;
                             if (contourGroup[i].colorBarForGriddedFill != null) {
@@ -300,9 +297,6 @@ public class ContourRenderable implements IRenderable {
                             contourGroup[i].colorFillImage.paint(target,
                                     paintProps);
                         }
-                        if (contourGroup[i].fillShapes != null)
-                            target.drawShadedShape(contourGroup[i].fillShapes,
-                                    0.5f);
                         if (contourGroup[i].posValueShape != null)
                             target.drawWireframeShape(
                                     contourGroup[i].posValueShape, this.color,
@@ -329,10 +323,6 @@ public class ContourRenderable implements IRenderable {
                                     if (contourGroup[j].lastUsedPixelExtent
                                             .intersects(paintProps.getView()
                                                     .getExtent())) {
-                                        if (contourGroup[j].fillShapes != null)
-                                            target.drawShadedShape(
-                                                    contourGroup[j].fillShapes,
-                                                    0.5f);
                                         if (contourGroup[j].posValueShape != null)
                                             target.drawWireframeShape(
                                                     contourGroup[j].posValueShape,
@@ -411,9 +401,6 @@ public class ContourRenderable implements IRenderable {
                             contourGroup[i].colorFillImage.paint(target,
                                     paintProps);
                         }
-                        if (contourGroup[i].fillShapes != null)
-                            target.drawShadedShape(contourGroup[i].fillShapes,
-                                    0.5f);
                         if (contourGroup[i].posValueShape != null)
                             target.drawWireframeShape(
                                     contourGroup[i].posValueShape, this.color,
@@ -514,7 +501,6 @@ public class ContourRenderable implements IRenderable {
                             contourGroup[i].zoomLevel = cg.zoomLevel;
                             contourGroup[i].posValueShape = cg.posValueShape;
                             contourGroup[i].negValueShape = cg.negValueShape;
-                            contourGroup[i].fillShapes = cg.fillShapes;
                             contourGroup[i].colorFillImage = cg.colorFillImage;
                             contourGroup[i].parent = cg.parent;
                             contourGroup[i].lastUsedPixelExtent = cg.lastUsedPixelExtent;
@@ -535,8 +521,6 @@ public class ContourRenderable implements IRenderable {
                                 contourGroup[i].posValueShape.compile();
                             if (contourGroup[i].negValueShape != null)
                                 contourGroup[i].negValueShape.compile();
-                            if (contourGroup[i].fillShapes != null)
-                                contourGroup[i].fillShapes.compile();
 
                             contourGroup[i].colorBarForGriddedFill = cg.colorBarForGriddedFill;
                             if (contourGroup[i].colorBarForGriddedFill != null) {
@@ -631,9 +615,6 @@ public class ContourRenderable implements IRenderable {
                 if (c.negValueShape != null) {
                     c.negValueShape.dispose();
                 }
-                if (c.fillShapes != null) {
-                    c.fillShapes.dispose();
-                }
                 if (c.labelParms != null && c.labelParms.font != null) {
                     c.labelParms.font.dispose();
                 }
@@ -657,9 +638,6 @@ public class ContourRenderable implements IRenderable {
                 if (c.negValueShape != null) {
                     c.negValueShape.dispose();
                 }
-                if (c.fillShapes != null) {
-                    c.fillShapes.dispose();
-                }
                 if (c.labelParms != null && c.labelParms.font != null) {
                     c.labelParms.font.dispose();
                 }
@@ -680,9 +658,6 @@ public class ContourRenderable implements IRenderable {
                 contourGp.posValueShape.dispose();
             if (contourGp.negValueShape != null) {
                 contourGp.negValueShape.dispose();
-            }
-            if (contourGp.fillShapes != null) {
-                contourGp.fillShapes.dispose();
             }
             if (contourGp.cvalues != null)
                 contourGp.cvalues.clear();

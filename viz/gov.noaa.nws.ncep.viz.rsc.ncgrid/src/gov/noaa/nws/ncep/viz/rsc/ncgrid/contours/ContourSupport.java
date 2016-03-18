@@ -89,9 +89,9 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.VerticalAlignment;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.IFont.Style;
-import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.grid.rsc.data.GeneralGridData;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
@@ -103,7 +103,6 @@ import com.raytheon.viz.core.contours.util.StreamLineContainer.StreamLinePoint;
 import com.raytheon.viz.core.contours.util.StrmPak;
 import com.raytheon.viz.core.contours.util.StrmPakConfig;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
-import com.raytheon.uf.viz.core.grid.rsc.data.GeneralGridData;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateArrays;
 import com.vividsolutions.jts.geom.CoordinateList;
@@ -125,36 +124,38 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 
  *    SOFTWARE HISTORY
  * 
- *    Date         Ticket#     Engineer    Description
- *    ------------ ----------  ----------- --------------------------
- *    Oct 22, 2007             chammack    Initial Creation.
- *    May 26, 2009 #2172       chammack    Use zoomLevel to calculate label spacing
- *    Mar 10, 2010 #164		   M. Li	   Control increments on zoom   
- *    May 18, 2011			   M. Li	   Add contour label frequency capability
- *    May 26, 2011			   M. Li	   Add a new method createContourLabel
- *    Aug 18, 2011             M. li       fixed reproject problems for streamline
- *    Nov 08, 2011             X. Guo      Checked centeral_meridian and 
- *                                         added vertices twice after subtract 360  
- *    Feb 15, 2012             X. Guo      Used cached contour information to re-create
- *                                         wired frame
- *    Mar 01, 2012             X. Guo      Handle five zoom levels
- *    Mar 13, 2012             X. Guo      Handle multi-threads
- *    Mar 15, 2012             X. Guo      Refactor
- *    Mar 27, 2012             X. Guo      Used contour lock instead of "synchronized" 
- *    May 23, 2012             X. Guo      Loaded ncgrib logger
- *    Apr 26, 2013			   B. Yin	   Fixed the world wrap problem for centeral line 0/180.
- *    Jun 06, 2013			   B. Yin	   fixed the half-degree grid porblem.
- *    Jul 19, 2013             B. Hebbard  Merge in RTS change of Util-->ArraysUtil 
- *    Aug 19, 2013   #743      S. Gurung   Added clrbar and corresponding getter/setter method (from Archana's branch) and
- *                                         fix for editing clrbar related attribute changess not being applied from right click legend.
- *    Sep 17, 2013   #1036     S. Gurung   Added TEXT attribute related changes to create labels with various parameters
- *    Oct 30, 2013   #1045     S. Gurung   Fix for FINT/FLINE parsing issues
- *    Aug 27, 2013   2262      bsteffen    Convert to use new StrmPak.
- *    Apr 23, 2014  #856       pswamy      Missing color fill in grid diagnostics.
- *    Apr 30, 2014   862       pswamy      Grid Precipitable Water Contour Labels needs two decimal points
- *    Jun 26, 2014             sgilbert    Change world wrap processing.
- *    Apr 08, 2015   R7296     J. Wu       use JTSComplier for clipping against view area.
- *    Jul 17, 2015   R6916     B. Yin/rkean Changes for Contour fill images
+ *    Date       Ticket# Engineer      Description
+ *    ---------- ------- -----------   --------------------------
+ *    10/22/2007         chammack      Initial Creation.
+ *    05/26/2009 #2172   chammack      Use zoomLevel to calculate label spacing
+ *    03/10/2010 #164    M. Li         Control increments on zoom   
+ *    05/18/2011         M. Li         Add contour label frequency capability
+ *    05/26/2011         M. Li         Add a new method createContourLabel
+ *    08/18/2011         M. li         fixed reproject problems for streamline
+ *    11/08/2011         X. Guo        Checked centeral_meridian and 
+ *                                        added vertices twice after subtract 360  
+ *    02/15/2012         X. Guo        Used cached contour information to re-create
+ *                                        wired frame
+ *    03/01/2012         X. Guo        Handle five zoom levels
+ *    03/13/2012         X. Guo        Handle multi-threads
+ *    03/15/2012         X. Guo        Refactor
+ *    03/27/2012         X. Guo        Used contour lock instead of "synchronized" 
+ *    05/23/2012         X. Guo        Loaded ncgrib logger
+ *    04/26/2013         B. Yin        Fixed the world wrap problem for centeral line 0/180.
+ *    06/06/2013         B. Yin        fixed the half-degree grid porblem.
+ *    07/19/2013         B. Hebbard    Merge in RTS change of Util-->ArraysUtil 
+ *    08/19/2013 #743    S. Gurung     Added clrbar and corresponding getter/setter method (from Archana's branch) and
+ *                                        fix for editing clrbar related attribute changess not being applied from right click legend.
+ *    09/17/2013 #1036   S. Gurung     Added TEXT attribute related changes to create labels with various parameters
+ *    10/30/2013 #1045   S. Gurung     Fix for FINT/FLINE parsing issues
+ *    08/27/2013 2262    bsteffen      Convert to use new StrmPak.
+ *    04/23/2014 #856    pswamy        Missing color fill in grid diagnostics.
+ *    04/30/2014 862     pswamy        Grid Precipitable Water Contour Labels needs two decimal points
+ *    06/26/2014         sgilbert      Change world wrap processing.
+ *    05/08/2015 R7296   J. Wu         use JTSComplier for clipping against view area.
+ *    07/17/2015 R6916   B. Yin/rkean  Changes for Contour fill images
+ *    11/05/2015 R13016  bsteffen/rkean - handle non-linear FINTs
+ *    03/08/2016 R16221  jhuber        make Fill color "0" transparent
  * 
  * </pre>
  * 
@@ -219,7 +220,7 @@ public class ContourSupport {
 
     private boolean globalData = false;
 
-    // return value from raytheon's worlWrapChecker
+    // return value from raytheon's worldWrapChecker
     private boolean worldWrapChecker;
 
     private WorldWrapCorrector corrector;
@@ -295,8 +296,6 @@ public class ContourSupport {
         public IWireframeShape posValueShape;
 
         public IWireframeShape negValueShape;
-
-        public IShadedShape fillShapes;
 
         public ContourGroup parent;
 
@@ -855,8 +854,6 @@ public class ContourSupport {
                 descriptor);
         contourGroup.negValueShape = target.createWireframeShape(false,
                 descriptor);
-        contourGroup.fillShapes = target.createShadedShape(false,
-                descriptor.getGridGeometry());
 
         contourGroup.zoomLevel = 1.0 / Math.pow(2.0, level);
 
@@ -1134,8 +1131,7 @@ public class ContourSupport {
         if (type.toUpperCase().contains("F")
                 || type.toUpperCase().contains("I")) {
 
-            // Equidistant_Cylindrical is a global image,
-            // requiring some special handling
+            // Equidistant_Cylindrical image requires special handling
             if (getProjectionName(
                     imageGridGeometry.getCoordinateReferenceSystem()).equals(
                     "Equidistant_Cylindrical")
@@ -1155,7 +1151,11 @@ public class ContourSupport {
                     SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
                             descriptor.getGridGeometry().getEnvelope(),
                             imageGridGeometry);
-                    imageGridGeometry = subGridGeometry.getSubGridGeometry2D();
+
+                    if (!subGridGeometry.isEmpty()) {
+                        imageGridGeometry = subGridGeometry
+                                .getSubGridGeometry2D();
+                    }
                 } catch (Exception ex) {
                     statusHandler.error("error creating subGrid: "
                             + ExceptionUtils.getStackTrace(ex));
@@ -1185,9 +1185,9 @@ public class ContourSupport {
                 .getCapability(ImagingCapability.class);
         imagingCap.setInterpolationState(true);
 
-        ColorMapParameters params = null;
-
         List<Integer> fillColorsIndex = new ArrayList<Integer>();
+
+        ColorMapParameters params = null;
 
         params = createColorMapParameters();
 
@@ -1221,12 +1221,15 @@ public class ContourSupport {
 
             for (int ii = 0; ii < fillColorsIndex.size(); ii++) {
 
-                RGB color = GempakColor.convertToRGB(fillColorsIndex.get(ii));
-
+                float alpha = .5f;
+                Integer colorInt = fillColorsIndex.get(ii);
+                RGB color = GempakColor.convertToRGB(colorInt);
+                if (colorInt == 0) {
+                    alpha = 0;
+                }
                 Color clr = new Color((float) (color.red / 255.),
                         (float) (color.green / 255.),
-                        (float) (color.blue / 255.), .5f);
-
+                        (float) (color.blue / 255.), alpha);
                 cm.setColor(ii, clr);
             }
             params.setColorMap(cm);
@@ -1262,30 +1265,41 @@ public class ContourSupport {
         }
     }
 
+    /*-
+     *  Create colormap for any resource. Modified to include 
+     *     non-linear FINTs (unequal fill intervals ie. precip)
+     */
     private ColorMapParameters createColorMapParameters() {
 
         ColorMapParameters params = new ColorMapParameters();
 
-        double first = 0;
-        double last = 0;
+        double[] pixels = new double[contourGroup.fvalues.size() + 2];
+        double[] displays = new double[pixels.length];
+        double first = cntrData.getMinValue();
+        double last = cntrData.getMaxValue();
+        double interval = last - first;
 
-        if (contourGroup.fvalues != null && contourGroup.fvalues.size() > 0) {
-            double interval = (contourGroup.fvalues.get(contourGroup.fvalues
-                    .size() - 1) - contourGroup.fvalues.get(0))
-                    / (contourGroup.fvalues.size() - 1);
-            first = contourGroup.fvalues.get(0) - interval;
-            last = contourGroup.fvalues.get(contourGroup.fvalues.size() - 1)
-                    + interval;
+        // check fill intervals for bounds
+        if (contourGroup.fvalues.size() > 0) {
+            first = Math.min(first, contourGroup.fvalues.get(0));
+            last = Math.max(last,
+                    contourGroup.fvalues.get(contourGroup.fvalues.size() - 1));
+            interval = (last - first) / contourGroup.fvalues.size();
         }
 
-        params.setColorMapUnit(null);
-        params.setDisplayUnit(null);
-        params.setDataMapping(null);
+        // set arbitrary large values beyond bounds (x10) of colormap.
+        displays[0] = first - (interval * 10.0);
+        displays[displays.length - 1] = last + (interval * 10.0);
+        pixels[pixels.length - 1] = pixels.length - 1;
 
-        params.setColorMapMax((float) last);
-        params.setColorMapMin((float) first);
+        for (int i = 1; i < pixels.length - 1; i += 1) {
+            pixels[i] = i;
+            displays[i] = contourGroup.fvalues.get(i - 1);
+        }
 
-        params.setMirror(false);
+        params.setColorMapUnit(new ContourUnit<>(SI.METER, pixels, displays));
+        params.setColorMapMin((float) displays[0]);
+        params.setColorMapMax((float) displays[displays.length - 1]);
 
         return params;
     }
@@ -1414,8 +1428,8 @@ public class ContourSupport {
                             rastPosToWorldGrid.transform(new double[] { f,
                                     point.getY() + minY }, 0, out, 0, 1);
                         } catch (Exception e) {
-                            // TODO Auto-generated catch block
-                            // e.printStackTrace();
+                            statusHandler
+                                    .error(ExceptionUtils.getStackTrace(e));
                         }
                         pts.add(new Coordinate(f, point.getY() + minY));
 
@@ -1496,7 +1510,6 @@ public class ContourSupport {
                     .getcBarAttributesBuilder();
             ColorBar colorBar = new ColorBar();
             if (cBarAttrBuilder.isDrawColorBar()) {
-                colorBar.setAttributesFromColorBarAttributesBuilder(cBarAttrBuilder);
                 colorBar.setAttributesFromColorBarAttributesBuilder(cBarAttrBuilder);
                 colorBar.setColorDevice(NcDisplayMngr
                         .getActiveNatlCntrsEditor().getActiveDisplayPane()
@@ -1732,7 +1745,6 @@ public class ContourSupport {
                 ret = !(right > minLon) && (right < maxLon);
             }
         }
-        // ret = false;
 
         MapProjection worldProjection = CRS.getMapProjection(descriptor
                 .getCRS());

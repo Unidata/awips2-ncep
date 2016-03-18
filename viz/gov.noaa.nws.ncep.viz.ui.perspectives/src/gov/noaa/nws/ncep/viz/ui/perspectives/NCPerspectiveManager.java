@@ -119,6 +119,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/25/2015   R8833       N. Jensen   Added right click option to reverse legend mode
  * 02/04/2016   R13171      E. Brown    Added: short right click launches resource manager, added: item to launch resource
  *                                      manager in context menu that opens on long right mouse button
+ * 03/15/2016   R16112      E. Brown    Opening resource manager by right clicking goes to correct "Create RBD" tab
  * </pre>
  * 
  * @author
@@ -661,8 +662,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
              */
             HashMap<String, Object> params = new HashMap<String, Object>();
             params.put("editor", part);
-            params.put("name", "mode");
-            params.put("value", "CREATE_RBD");
+            // Open resource manager in with "Create RBD" tab open
+            params.put("mode", "CREATE_RBD");
             ExecutionEvent exec = new ExecutionEvent(cmd, params, null, "mode");
 
             // Execute the handler

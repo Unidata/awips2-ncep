@@ -1611,6 +1611,18 @@
           <wfo></wfo>
      </station>
      <station>
+          <stid>LSU</stid>
+          <stnnum>000042</stnnum>
+          <stnname>BATON_ROUGE</stnname>
+          <state>LA</state>
+          <country>US</country>
+          <latitude>30.48</latitude>
+          <longitude>-91.30</longitude>
+          <elevation>0</elevation>
+          <priority>0</priority>
+          <wfo></wfo>
+     </station>
+     <station>
           <stid>ODI</stid>
           <stnnum>000361</stnnum>
           <stnname>NODINE</stnname>

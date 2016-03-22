@@ -4,8 +4,6 @@ import static gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData.CycleP
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +27,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 
@@ -38,12 +38,14 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 05/2010  	277        	M. Li    	Initial creation 
+ * 05/2010      277         M. Li       Initial creation 
  * 12/2011      578         G. Hull     Change to Composite on the Edit Attrs Dlg
  * 12/2011      578         G. Hull     create from seld cycle time.
  * 01/10/12                 X. Guo      Updated Attrs Dlg editor
- * 09/05/13    #1031        G. Hull     replace EnsembleComponentInventoryMngr with 
+ * 09/05/13     #1031       G. Hull     replace EnsembleComponentInventoryMngr with 
  *                                      query using NcGridInventory.
+ * 03/22/2016   R10366      bkowal      Cleanup. No longer refresh the GD File name
+ *                                      after every GUI action.
  * 
  * </pre>
  * 
@@ -52,6 +54,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  */
 public class EnsembleSelectComposite extends Composite {
+
+    private final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
     private NcEnsembleResourceData rscData;
 
@@ -67,20 +72,9 @@ public class EnsembleSelectComposite extends Composite {
 
     private DataTime seldEnsCycleTime;
 
-    // private String availModels;
-
     private Text selectedModelText;
 
     private ScrolledComposite scrolledComposite;
-
-    // like GDFILE but with relative cycletimes
-    // private String ensembleComponentWeightsStr;
-
-    // update this whenever a change is made for any selection.
-    //
-    // private RscAttrValue ensembleComponentWeightsAttr;
-
-    private String inventoryName = "NcGridModelTimes";
 
     private Map<Button, String> modelExpandButtons;
 
@@ -102,6 +96,8 @@ public class EnsembleSelectComposite extends Composite {
 
     private int totalModelCount = 0;
 
+    private boolean gdFileUpdated = false;
+
     public EnsembleSelectComposite(Composite parent) {
         super(parent, SWT.SHADOW_NONE);
     }
@@ -118,24 +114,13 @@ public class EnsembleSelectComposite extends Composite {
         cyclePercentTexts = new HashMap<Text, String>();
         cycleSelectedButtons = new HashMap<Button, String>();
         modelCycleDates = new HashMap<String, Date[]>();
-
-        ResourceDefinition rd = ResourceDefnsMngr.getInstance()
-                .getResourceDefinition(rscData.getResourceName());
-
-        // TODO : change this to set from a directory request.
-        // but for now require that the NcGridModelTimes ID is installed and
-        // running on edex
-        if (rd != null) {
-            inventoryName = rd.getInventoryAlias();
-        }
         seldEnsCycleTime = rscData.getResourceName().getCycleTime();
 
         String ensCompsModels[] = rscData.getAvailableModels().split(";");
 
-        System.out.println("getAvailableModels: "
+        statusHandler.debug("getAvailableModels: "
                 + rscData.getAvailableModels());
 
-        // ------- initializeComponents()
         Composite comp = new Composite(this, SWT.NONE);
         GridLayout gl = new GridLayout(1, false);
         comp.setLayout(gl);
@@ -170,12 +155,11 @@ public class EnsembleSelectComposite extends Composite {
 
         for (String ensCompModel : ensCompsModels) {
             ensCompModel = ensCompModel.trim();
-            System.out.println("trim availModels: " + ensCompModel); // GOS
+            statusHandler.debug("trim availModels: " + ensCompModel); // GOS
 
             Composite modelComp = new Composite(modelListComp, SWT.NONE);
             modelComp.setLayout(new GridLayout(19, false));
-            modelComp.setLayoutData(new GridData());// WINDOW_WIDTH,
-                                                    // SWT.DEFAULT));
+            modelComp.setLayoutData(new GridData());
 
             addEnsModelWidgets(modelComp, ensCompModel,
                     ensCompModel.contains(":"));
@@ -185,7 +169,6 @@ public class EnsembleSelectComposite extends Composite {
         scrolledComposite.setContent(modelListComp);
 
         createModelSelectionControls();
-        // ------- initializeComponents()
         String gdfile = rscData.getGdfile();
         if (gdfile == null || gdfile.length() < 3) {
             updateModelString();
@@ -222,8 +205,7 @@ public class EnsembleSelectComposite extends Composite {
             for (String member : members) {
                 Composite memberComp = new Composite(memberListComp, SWT.NONE);
                 memberComp.setLayout(new GridLayout(19, false));
-                memberComp.setLayoutData(new GridData());// WINDOW_WIDTH,
-                                                         // SWT.DEFAULT));
+                memberComp.setLayoutData(new GridData());
 
                 addEnsModelWidgets(memberComp, model + ":" + member, false);
                 memberComp.pack();
@@ -460,10 +442,21 @@ public class EnsembleSelectComposite extends Composite {
         }
         selectedModels.insert(0, "{").append("}");
         selectedModelText.setText(selectedModels.toString());
-        String gdfile = NcEnsembleResourceData.convertGdfileToWildcardString(
-                selectedModels.toString(), rscData.getResourceName()
-                        .getCycleTime());
-        rscData.setGdfile(gdfile);
+        this.gdFileUpdated = true;
+    }
+
+    public void updateGDFile() {
+        if (this.gdFileUpdated) {
+            /*
+             * TODO: It is true that it may still take some amount of time (<=
+             * 2s) before the dialog will close. However, that is what DR 10435
+             * has been created to address.
+             */
+            final String gdFile = NcEnsembleResourceData
+                    .convertGdfileToWildcardString(selectedModelText.getText(),
+                            rscData.getResourceName().getCycleTime());
+            this.rscData.setGdfile(gdFile);
+        }
     }
 
     private void populateGdfile(String gdfile) {
@@ -526,8 +519,6 @@ public class EnsembleSelectComposite extends Composite {
         try {
             newValue = Integer.parseInt(text.getText().trim());
         } catch (NumberFormatException nfe) {
-            System.out
-                    .println(text.getSelectionText() + " is not an interger!");
             newValue = 0;
         }
         updateModelCyclePercentage(cycleSlider, text, newValue);

@@ -1,8 +1,0 @@
-colorMapName=lingray
-colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-! The DB values have spaces but imageType must use " "s. 
-imageType=CH-02-0.51um
-displayUnitStr=GenericPixel
-alpha=1.0
-brightness=1.0
-contrast=1.0

@@ -51,10 +51,10 @@ public class HideLoopAction extends AbstractHandler implements IElementUpdater {
 
     public HideLoopAction() {
         loopShow = AbstractUIPlugin.imageDescriptorFromPlugin(
-                Activator.PLUGIN_ID, "icons/show_loop.gif"); // Show btn
+        		Activator.PLUGIN_ID, "icons/eye-slash.png"); //Show btn displayed
                                                              // displayed
         loopHide = AbstractUIPlugin.imageDescriptorFromPlugin(
-                Activator.PLUGIN_ID, "icons/hide_loop.gif"); // Hide btn
+        		Activator.PLUGIN_ID, "icons/eye.png"); //Hide btn displayed
                                                              // displayed
     }
 

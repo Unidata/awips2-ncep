@@ -392,8 +392,9 @@ public class McidasMapCoverage extends PersistableDataObject implements
             int maxY = -1 * getUpperLeftLine();
 
             gridRange = new GridEnvelope2D(0, 0, nx, ny);
-            crsRange = new Envelope2D(getCrs(), new Rectangle2D.Double(minX,
-                    minY, maxX, maxY));
+            Rectangle2D rect = new Rectangle2D.Double(minX,
+                    minY, maxX, maxY);
+            crsRange = new Envelope2D(getCrs(), rect );
         }
 
         else {

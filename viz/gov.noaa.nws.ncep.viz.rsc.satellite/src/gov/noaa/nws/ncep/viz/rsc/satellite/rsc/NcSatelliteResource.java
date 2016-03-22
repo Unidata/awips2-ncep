@@ -106,6 +106,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  ------------ ---------- ----------- --------------------------
  *  09/28/2015   R11385     njensen     Initial creation
  *  10/28/2015   R11385     kbugenhagen Updated to use stylerules to generate colormap
+ *  01/18/2016   ------     mjames@ucar Check common_static if ncpath is null
  * 
  * </pre>
  * 
@@ -343,6 +344,7 @@ public class NcSatelliteResource extends
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
                     MatchCriteria styleMatchCriteria = sr.getMatchCriteria();
+                    Integer matchValue = styleMatchCriteria.matches(matchCriteria);
                     if (styleMatchCriteria.matches(matchCriteria) > 0) {
                         styleRule = sr;
                         break;
@@ -674,15 +676,15 @@ public class NcSatelliteResource extends
 
             ColorMapParameters params = getCapability(ColorMapCapability.class)
                     .getColorMapParameters();
-            if (params.getColorMap() == null) {
-                String colorMapName = params.getColorMapName();
+                String colorMapName = resourceData.getColorMapName();
                 if (colorMapName == null) {
                     colorMapName = "Sat/VIS/ZA (Vis Default)";
                 }
+                
+                // the D2D name is sent here, which was unaccounted for in ColorMapUtil
                 params.setColorMap(ColorMapUtil.loadColorMap(
                         ResourceCategory.SatelliteRscCategory.getCategoryName(),
                         colorMapName));
-            }
 
             satr.paint(target, paintProps);
         }

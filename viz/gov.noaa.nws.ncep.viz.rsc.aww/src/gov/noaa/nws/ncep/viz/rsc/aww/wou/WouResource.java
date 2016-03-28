@@ -16,6 +16,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 import java.awt.Color;
@@ -73,20 +74,21 @@ import com.vividsolutions.jts.io.WKBReader;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 4 May 2010           Uma Josyula  Initial creation.
- * 01/10/11				Uma Josyula	 Made changes to preprocess update and event date
- * 07/28/11      #450   Greg Hull    NcPathManager   
- * 09/28/11             Xilin Guo    Made changes to create IWireframeShape for watch number 
- * 12/27/11             Xilin Guo    Checked available watch data                          
- * 05/23/2012    785    Q. Zhou      Added getName for legend.
- * 08/17/12      655    B. Hebbard   Added paintProps as parameter to IDisplayable draw
- * 09/05/12      857    Q. Zhou      Displayed watch number. Modified time string and alignment in drawTimeLabelWatchNumber().
- *                                    Added label/time for union.  Fixed a bug for querying county. Modified fill alpha to 0.5.
- * 09/13/12      857    Q. Zhou      Remove constraint & metamap in initResource().   
- * 08/14/13     1028    G. Hull      Move to aww project. Use AwwReportType enum.
- * 9/15/14      4637    J. Huber     Added fipsRangeReparse to handle "character" in UGC line. Also added logic on when to use it.
- *                                   Also fixed a clean up error for the county list array which prevented some counties from being
- *                                   displayed.
+ * 4 May 2010           Uma Josyula    Initial creation.
+ * 01/10/11				Uma Josyula	   Made changes to preprocess update and event date
+ * 07/28/11      #450   Greg Hull      NcPathManager   
+ * 09/28/11             Xilin Guo      Made changes to create IWireframeShape for watch number 
+ * 12/27/11             Xilin Guo      Checked available watch data                          
+ * 05/23/2012    785    Q. Zhou        Added getName for legend.
+ * 08/17/12      655    B. Hebbard     Added paintProps as parameter to IDisplayable draw
+ * 09/05/12      857    Q. Zhou        Displayed watch number. Modified time string and alignment in drawTimeLabelWatchNumber().
+ *                                     Added label/time for union.  Fixed a bug for querying county. Modified fill alpha to 0.5.
+ * 09/13/12      857    Q. Zhou        Remove constraint & metamap in initResource().   
+ * 08/14/13     1028    G. Hull        Move to aww project. Use AwwReportType enum.
+ * 9/15/14      4637    J. Huber       Added fipsRangeReparse to handle "character" in UGC line. Also added logic on when to use it.
+ *                                     Also fixed a clean up error for the county list array which prevented some counties from being
+ *                                     displayed.
+ * 03/15/2016   R15560  K. Bugenhagen  Cleanup and local refactoring.
  * 
  * </pre>
  * 
@@ -109,10 +111,20 @@ public class WouResource extends
     // Area change flag
     private boolean areaChangeFlag = false;
 
+    private final static String QUERY_PREFIX = "select countyname, state, AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1 from mapdata.countylowres where (";
+
+    private final static String QUERY_PREFIX_MZ_LATLONS = "select wfo,name,id, lat, lon from mapdata.mzlowres";
+
+    private final static String ENDTIME_REGEX = "([0-9]{6})";
+
+    private final static Pattern ENDTIME_PATTERN = Pattern
+            .compile(ENDTIME_REGEX);
+
     private static java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(WouResource.class.getCanonicalName());
 
     private class WouRscDataObj implements IRscDataObject {
+
         String datauri; // used as a key string
 
         DataTime issueTime; // issue time from bulletin
@@ -147,9 +159,9 @@ public class WouResource extends
 
         String evSignificance;
 
-        boolean isCounty; // TODO
+        boolean isCounty;
 
-        List<String> countyFips = new ArrayList<String>(); // probably TODO
+        List<String> countyFips = new ArrayList<String>();
 
         @Override
         public DataTime getDataTime() {
@@ -337,6 +349,11 @@ public class WouResource extends
             cntyWouData.countyGeo = new ArrayList<byte[]>();
             return cntyWouData;
         }
+
+        public void dispose() {
+            clearFrameShapes(this);
+        }
+
     }
 
     public WouResource(WouResourceData rscData, LoadProperties loadProperties)
@@ -369,9 +386,6 @@ public class WouResource extends
         WouRscDataObj wouStatusData = null;
         List<WouRscDataObj> wouDataList = new ArrayList<WouRscDataObj>();
 
-        final String ENDTIME_REGEX = "([0-9]{6})";
-        final Pattern endTimePattern = Pattern.compile(ENDTIME_REGEX);
-
         try {
             Set<AwwUgc> awwUgc = awwRecord.getAwwUGC();
             for (AwwUgc awwugcs : awwUgc) {
@@ -400,7 +414,7 @@ public class WouResource extends
 
                         boolean dontSkip = true;
 
-                        Matcher endTimeMatcher = endTimePattern.matcher(temp);
+                        Matcher endTimeMatcher = ENDTIME_PATTERN.matcher(temp);
                         if (endTimeMatcher.find()) {
                             dontSkip = false;
                         }
@@ -445,8 +459,6 @@ public class WouResource extends
                                     (wouStatusData.countyUgc).add(temp2);
                                 }
 
-                                // (wouStatusData.countyUgc).add(countyname.concat(temp));
-
                                 String temp2 = countyname.substring(0, 3)
                                         + temp;
                                 if (temp2.length() > 6) {
@@ -454,8 +466,6 @@ public class WouResource extends
                                         (wouStatusData.countyUgc).add(temp2
                                                 .substring(3, 9));
                                     } else {
-                                        // (wcnStatusData.countyUgc).add(temp2
-                                        // .substring(0, 6));
                                         fipsRangeReparse(temp2.substring(0, 6),
                                                 countyname,
                                                 (wouStatusData.countyUgc));
@@ -473,7 +483,6 @@ public class WouResource extends
                                                             .toCharArray()[5]))) {
                                         // not in mapdata.marinezones yet, keep
                                         // parsing
-                                        // System.err.println(temp2);
                                     } else {
                                         (wouStatusData.countyUgc).add(temp2);
                                     }
@@ -553,8 +562,6 @@ public class WouResource extends
         return (ArrayList<WouRscDataObj>) wouDataList;
     }
 
-    private static String queryPrefixMZ_LatLons = "select wfo,name,id, lat, lon from mapdata.marinezones";
-
     private WouRscDataObj getCountyNameLatLon(WouRscDataObj wdata) {
         wdata.countyPoints = new ArrayList<LatLonPoint>();
         wdata.countyNames = new ArrayList<String>();
@@ -584,25 +591,11 @@ public class WouResource extends
                         String s = station.getStnnum();
                         wdata.countyFips.add(s.length() == 4 ? "0" + s : s);
                     }
-
                 } else {
-                    // ELSE:
-                    // <station>
-                    // <stid>GUC110</stid> == maps.id
-                    // <stnnum>69110</stnnum> ???
-                    // <stnname>Saipan</stnname> == maps.name
-                    // <state>GU</state> ...
-                    // <country>US</country> ...
-                    // <latitude>15.19</latitude> == maps.lat
-                    // <longitude>145.76</longitude> == maps.lon
-                    // <elevation>0</elevation> 0..
-                    // <priority>0</priority>
-                    // <wfo>GUM</wfo> == maps.wfo
-                    // </station>
-
                     List<Object[]> results = DirectDbQuery.executeQuery(
-                            queryPrefixMZ_LatLons.toString() + " where id = '"
-                                    + theKey + "'", "maps", QueryLanguage.SQL);
+                            QUERY_PREFIX_MZ_LATLONS.toString()
+                                    + " where id = '" + theKey + "'", "maps",
+                            QueryLanguage.SQL);
 
                     LatLonPoint point = new LatLonPoint(
                             Float.parseFloat(results.get(0)[3].toString()),
@@ -621,9 +614,8 @@ public class WouResource extends
             }
         } catch (IndexOutOfBoundsException idxOobEx) {
             logger.log(Level.FINEST,
-                    "In getCountyNameLatLon(WouRscDataObj wdata)\n" // mute?
-                            + idxOobEx.getClass().getCanonicalName()
-                            + ":"
+                    "In getCountyNameLatLon(WouRscDataObj wdata)\n"
+                            + idxOobEx.getClass().getCanonicalName() + ":"
                             + idxOobEx.getLocalizedMessage());
         } catch (Exception e) {
             logger.warning("In getCountyNameLatLon(WouRscDataObj wdata)\n"
@@ -660,54 +652,23 @@ public class WouResource extends
                         if (candidate.eventType.equalsIgnoreCase("CAN")
                                 || candidate.eventType.equalsIgnoreCase("EXP")) {
                             candidate.evEndTime = modify.issueTime;
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
-                        } else if (candidate.eventType.equalsIgnoreCase("COR")) {
+                        } else if (candidate.eventType.equalsIgnoreCase("COR")
+                                || candidate.eventType.equalsIgnoreCase("EXT")
+                                || candidate.eventType.equalsIgnoreCase("CON")) {
                             candidate.evEndTime = modify.evEndTime;
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
-                        } else if (candidate.eventType.equalsIgnoreCase("EXT")) {
-                            candidate.evEndTime = modify.evEndTime;
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
                         } else if (candidate.eventType.equalsIgnoreCase("NEW")) {
                             candidate.eventTime = modify.eventTime;
                             candidate.evEndTime = modify.evEndTime;
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
-                        } else if (candidate.eventType.equalsIgnoreCase("CON")) {
-                            candidate.evEndTime = modify.evEndTime;
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
                         } else {
                             candidate.evEndTime = modify.evEndTime; // issueTime
-                            candidate.eventTime = new DataTime(
-                                    candidate.eventTime.getRefTimeAsCalendar(),
-                                    new TimeRange(candidate.eventTime
-                                            .getRefTimeAsCalendar(),
-                                            candidate.evEndTime
-                                                    .getRefTimeAsCalendar()));
                         }
+                        candidate.eventTime = new DataTime(
+                                candidate.eventTime.getRefTimeAsCalendar(),
+                                new TimeRange(candidate.eventTime
+                                        .getRefTimeAsCalendar(),
+                                        candidate.evEndTime
+                                                .getRefTimeAsCalendar()));
+
                     }
 
                 }
@@ -762,7 +723,7 @@ public class WouResource extends
             return;
         }
 
-        if (areaChangeFlag) { // T456: dispose old outlineShape?/
+        if (areaChangeFlag) {
             areaChangeFlag = false;
             postProcessFrameUpdate();
         }
@@ -870,14 +831,12 @@ public class WouResource extends
 
             } else {
                 if (wouData.reportType == AwwReportType.SEVERE_THUNDERSTORM_WATCH) {
-                    // .equalsIgnoreCase("SEVERE_THUNDERSTORM_WATCH")){
                     color = wouRscData.thunderstormColor;
                     symbolWidth = wouRscData.thunderstormSymbolWidth;
                     symbolSize = wouRscData.thunderstormSymbolSize;
                     symbolColor = wouRscData.thunderstormSymbolColor;
 
                 } else if (wouData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE) {
-                    // .equalsIgnoreCase("TORNADO_WATCH_OUTLINE_UPDATE")){
                     color = wouRscData.tornadoColor;
                     symbolWidth = wouRscData.tornadoSymbolWidth;
                     symbolSize = wouRscData.tornadoSymbolSize;
@@ -1019,29 +978,24 @@ public class WouResource extends
             throw new VizException("Error transforming extent", e);
         }
 
-        String geoConstraint = String
-                .format("the_geom_0_001 && ST_SetSrid('BOX3D(%f %f, %f %f)'::box3d,4326)",
-                        env.getMinX(), env.getMinY(), env.getMaxX(),
-                        env.getMaxY());
+        String geoConstraint = String.format(
+                AwwQueryResult.GEO_CONSTRAINT_PREFIX, env.getMinX(),
+                env.getMinY(), env.getMaxX(), env.getMaxY());
 
-        StringBuilder query = new StringBuilder(
-                "select countyname, state, AsBinary(the_geom), AsBinary(the_geom_0_001) from mapdata.county where (");
+        StringBuilder query = new StringBuilder(QUERY_PREFIX);
         int i = 0;
         for (WouCntyRscData wData : wouCntyDataValues) {
             if (!isDisplay(wData) || wData.g.size() > 0)
                 continue;
-
             if (i != 0) {
                 query.append(" OR ");
             }
-
             query.append("(countyname LIKE '%");
-            query.append(wData.countyName.replace("_", " ").replace("'", "\\'")); // Queen_Anne's
+            query.append(wData.countyName.replace("_", " ").replace("'", "\\'"));
             query.append("%' AND  state ='");
             query.append(wData.stateName);
             query.append("')");
             i++;
-
         }
 
         if (i == 0) {
@@ -1050,7 +1004,6 @@ public class WouResource extends
         query.append(") AND ");
         query.append(geoConstraint);
         query.append(";");
-        // System.out.println("query "+query);
         List<Object[]> results = DirectDbQuery.executeQuery(query.toString(),
                 "maps", QueryLanguage.SQL);
         WKBReader wkbReader = new WKBReader();
@@ -1075,22 +1028,18 @@ public class WouResource extends
             try {
                 g = (Geometry) wkbReader.read(wkb);
                 if (!(g instanceof Point)) {
-                    // if ( wouCntyData.g == null ) {
-                    // wouCntyData.g = new byte[wkb.length];
-                    // wouCntyData.g = wkb;
-                    // }
                     wouCntyData.g.add(wkb);
                 }
                 countyGeo = (Geometry) wkbReader.read(wkb1);
                 if (countyGeo != null) {
-                    // if ( wouCntyData.countyGeo == null ) {
-                    // wouCntyData.countyGeo = new byte[wkb1.length];
-                    // wouCntyData.countyGeo = wkb1;
-                    // }
                     wouCntyData.countyGeo.add(wkb1);
                 }
             } catch (ParseException e) {
-                e.printStackTrace();
+                logger.log(
+                        Level.SEVERE,
+                        "Error parsing county geometry: "
+                                + e.getClass().getCanonicalName() + ":"
+                                + e.getLocalizedMessage());
             }
         }
     }
@@ -1140,7 +1089,11 @@ public class WouResource extends
                 }
 
             } catch (ParseException e) {
-                e.printStackTrace();
+                logger.log(
+                        Level.SEVERE,
+                        "Error parsing county geometry: "
+                                + e.getClass().getCanonicalName() + ":"
+                                + e.getLocalizedMessage());
             }
         }
         wouData.outlineShape.compile();
@@ -1156,7 +1109,11 @@ public class WouResource extends
             jts.handle(geometryCollection.union(), wouData.color);
             wouData.unionShape.compile();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(
+                    Level.SEVERE,
+                    "Error building wireframe: "
+                            + e.getClass().getCanonicalName() + ":"
+                            + e.getLocalizedMessage());
         }
 
     }
@@ -1222,9 +1179,11 @@ public class WouResource extends
                     }
                 }
             } catch (Exception e) {
-                logger.warning("In getCountyNameLatLon(WouRscDataObj wdata)\n"
-                        + e.getClass().getCanonicalName() + ":"
-                        + e.getLocalizedMessage());
+                logger.log(
+                        Level.SEVERE,
+                        "In drawTimeLabelWatchNumber \n"
+                                + e.getClass().getCanonicalName() + ":"
+                                + e.getLocalizedMessage());
             }
         }
     }
@@ -1319,9 +1278,6 @@ public class WouResource extends
                         xyCloseList.add(xyCloseList.size(), xyCloseList.get(0));
                     }
 
-                    // double[] coorArray = new double[xyCloseList.size()];
-                    // wouData.unionShape.addLabel(wouData.key, coorArray);
-
                     GeometryFactory gf = new GeometryFactory();
                     Coordinate[] coorArray = new Coordinate[xyCloseList.size()];
                     for (int i = 0; i < xyCloseList.size(); i++) {
@@ -1355,12 +1311,8 @@ public class WouResource extends
                     }
                     double[] labelLatLon = { allX / xyCloseList.size(),
                             allY / xyCloseList.size() };
-                    // double[] labelLatLon = { (xyCloseList.get(0).x +
-                    // xyCloseList.get(xyCloseList.size()/2).x)/2,
-                    // (xyCloseList.get(0).y +
-                    // xyCloseList.get(xyCloseList.size()/2).y)/2 };
-
                     double[] labelPix = descriptor.worldToPixel(labelLatLon);
+
                     target.drawStrings(font, label, labelPix[0], labelPix[1],
                             0.0, TextStyle.NORMAL, new RGB[] { wouData.color,
                                     wouData.color, wouData.color },
@@ -1419,11 +1371,6 @@ public class WouResource extends
         }
         for (WouData wouData : wouCntyDataValues) {
             if (wouData.reportType == AwwReportType.TORNADO_WATCH_OUTLINE_UPDATE) {
-                // if ( wouData.unionShape != null &&
-                // wouData.unionShape.isDrawable()) {
-                // target.drawWireframeShape(wouData.unionShape,
-                // wouData.color,wouData.symbolWidth,lineStyle );
-                // }
                 Collection<WouCntyRscData> wouDataValues = wouData.data
                         .values();
                 if (wouDataValues.size() <= 0) {
@@ -1468,9 +1415,6 @@ public class WouResource extends
                         xyCloseList.add(xyCloseList.size(), xyCloseList.get(0));
                     }
 
-                    // double[] coorArray = new double[xyCloseList.size()];
-                    // wouData.unionShape.addLabel(wouData.key, coorArray);
-
                     GeometryFactory gf = new GeometryFactory();
                     Coordinate[] coorArray = new Coordinate[xyCloseList.size()];
                     for (int i = 0; i < xyCloseList.size(); i++) {
@@ -1504,10 +1448,6 @@ public class WouResource extends
                     }
                     double[] labelLatLon = { allX / xyCloseList.size(),
                             allY / xyCloseList.size() };
-                    // double[] labelLatLon = { (xyCloseList.get(0).x +
-                    // xyCloseList.get(xyCloseList.size()/2).x)/2,
-                    // (xyCloseList.get(0).y +
-                    // xyCloseList.get(xyCloseList.size()/2).y)/2 };
 
                     double[] labelPix = descriptor.worldToPixel(labelLatLon);
                     target.drawStrings(font, label, labelPix[0], labelPix[1],
@@ -1567,72 +1507,48 @@ public class WouResource extends
 
     private void fipsRangeReparse(String inUgcPart, String countyname,
             List<String> outList) {
-        final String inclusiveDelim = ">";
+
         String county = countyname;
-        String countyFips;
 
         if (inUgcPart.length() == 10) { // "([A-Z]{3}[0-9]{3}[>][0-9]{3})"
+            // Format: NAMDDD1>DDD2
             String intervalToken = inUgcPart.substring(3, 10);
             county = inUgcPart.substring(0, 3);
-
-            // Format in NAMDDD1>DDD2
-            StringTokenizer twoTokens = new StringTokenizer(intervalToken,
-                    inclusiveDelim);
-            String firstToken = twoTokens.nextToken();
-            String secondToken = twoTokens.nextToken();
-
-            Integer countyBegin = Integer.parseInt(firstToken);
-            Integer countyEnd = Integer.parseInt(secondToken);
-
-            for (int counter = countyBegin; counter <= countyEnd; counter++) {
-
-                String inclusiveToken = Integer.toString(counter);
-
-                // set "1" to "001" ...etc
-                if (counter < 10) {
-                    inclusiveToken = "00".concat(inclusiveToken);
-                }
-
-                // set "10" to "010" ...etc
-                else if (counter < 100) {
-                    inclusiveToken = "0".concat(inclusiveToken);
-                }
-                countyFips = county.concat(inclusiveToken);
-
-                outList.add(countyFips);
-                // UGC.addAwwFIPS(currentFips);
-            }
+            fipsRangeTokenizer(intervalToken, county, outList);
         } else if (inUgcPart.length() == 7) { // "([0-9]{3}[>][0-9]{3})"
-            // A continuation of previous county FIPS
-            // with format DDD1>DDD2
-            StringTokenizer twoTokens = new StringTokenizer(inUgcPart,
-                    inclusiveDelim);
-            String firstToken = twoTokens.nextToken();
-            String secondToken = twoTokens.nextToken();
-
-            Integer countyBegin = Integer.parseInt(firstToken);
-            Integer countyEnd = Integer.parseInt(secondToken);
-
-            for (int counter = countyBegin; counter <= countyEnd; counter++) {
-
-                String inclusiveToken = Integer.toString(counter);
-
-                // set "1" to "001" ...etc
-                if (counter < 10) {
-                    inclusiveToken = "00".concat(inclusiveToken);
-                }
-
-                // set "10" to "010" ...etc
-                else if (counter < 100) {
-                    inclusiveToken = "0".concat(inclusiveToken);
-                }
-                countyFips = county.concat(inclusiveToken);
-
-                outList.add(countyFips);
-                // UGC.addAwwFIPS(currentFips);
-            }
+            // Format: DDD1>DDD2
+            fipsRangeTokenizer(inUgcPart, county, outList);
         } else {
-            outList.add(inUgcPart);// risky?
+            outList.add(inUgcPart);
+        }
+    }
+
+    private void fipsRangeTokenizer(String intervalToken, String county,
+            List<String> outList) {
+        final String inclusiveDelim = ">";
+
+        StringTokenizer twoTokens = new StringTokenizer(intervalToken,
+                inclusiveDelim);
+        String firstToken = twoTokens.nextToken();
+        String secondToken = twoTokens.nextToken();
+
+        Integer countyBegin = Integer.parseInt(firstToken);
+        Integer countyEnd = Integer.parseInt(secondToken);
+
+        for (int counter = countyBegin; counter <= countyEnd; counter++) {
+            String inclusiveToken = Integer.toString(counter);
+
+            // set "1" to "001" ...etc
+            if (counter < 10) {
+                inclusiveToken = "00".concat(inclusiveToken);
+            }
+            // set "10" to "010" ...etc
+            else if (counter < 100) {
+                inclusiveToken = "0".concat(inclusiveToken);
+            }
+            String countyFips = county.concat(inclusiveToken);
+
+            outList.add(countyFips);
         }
     }
 

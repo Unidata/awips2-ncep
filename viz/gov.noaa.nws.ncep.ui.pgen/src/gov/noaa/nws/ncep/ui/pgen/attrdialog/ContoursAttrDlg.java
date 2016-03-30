@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.dialogs.Dialog;
@@ -91,23 +92,23 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/09		#167		J. Wu   	Initial Creation.
- * 12/09		#167		J. Wu   	Allow editing line and label attributes.
- * 03/10		#215		J. Wu   	Make grid from contours.
- * 06/10		#215		J. Wu   	Added capability to draw mix/max symbols.
- * 11/10		#345		J. Wu   	Added capability to draw circle.
- * 12/10		#321		J. Wu   	Added capability to move labels.
- * 12/10		#167		J. Wu   	Added a second symbol.
- * 12/10		#312		J. Wu   	track the last-status of "Closed" button.
- * 01/11		#203		J. Wu   	Allow user to define more quick access symbols.
- * 02/11					J. Wu   	Implemented default "settings".
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 07/11		#?			J. Wu		Updated symbol selection panel and allowed closed
- * 08/11		#?			J. Wu   	TTR78: keep line/symbol/label attr window open.
- * 01/12		#?			J. Wu   	Fixed exceptions when closing the dialog.
- * 05/12		756			B. Yin		Fixed the place symbol exception
+ * Date         Ticket#     Engineer    Description
+ * --------------------------------------------------------------------------------------
+ * 10/09        #167        J. Wu       Initial Creation.
+ * 12/09        #167        J. Wu       Allow editing line and label attributes.
+ * 03/10        #215        J. Wu       Make grid from contours.
+ * 06/10        #215        J. Wu       Added capability to draw mix/max symbols.
+ * 11/10        #345        J. Wu       Added capability to draw circle.
+ * 12/10        #321        J. Wu       Added capability to move labels.
+ * 12/10        #167        J. Wu       Added a second symbol.
+ * 12/10        #312        J. Wu       track the last-status of "Closed" button.
+ * 01/11        #203        J. Wu       Allow user to define more quick access symbols.
+ * 02/11        #?          J. Wu       Implemented default "settings".
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 07/11        #?          J. Wu       Updated symbol selection panel and allowed closed
+ * 08/11        #?          J. Wu       TTR78: keep line/symbol/label attr window open.
+ * 01/12        #?          J. Wu       Fixed exceptions when closing the dialog.
+ * 05/12        756         B. Yin      Fixed the place symbol exception
  * 12/13        1084        J. Wu       Add table-control for Cint in contoursInfo.xml
  * 04/14        #1117       J. Wu       Add quick-access line types, set label focus,
  *                                      up/down arrow hotkeys to change label.
@@ -142,6 +143,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/18/2015   R12829      J. Wu       Link "Contours Parameter" to the one defined on layer.
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 03/30/2016   R16622      J. Wu       Use current date/time as default.
  * 
  * </pre>
  * 
@@ -4346,10 +4348,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     }
                 }
 
-                if (adc != null) {
-                    contourTime1 = adc.getTime1();
-                    contourTime2 = adc.getTime2();
-                }
+                // Use current date/time as default.
+                setDefaultTimeToCurrent();
             }
         }
 
@@ -4669,4 +4669,30 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
             btn.setSelection(btnLastStatus.get(btnKey));
         }
     }
+
+    /*
+     * Initialize the default time to the current GMT time.
+     * 
+     * If minutes >= 15, round to the next hour.
+     * 
+     * @param
+     */
+    private void setDefaultTimeToCurrent() {
+        contourTime1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        int minute = contourTime1.get(Calendar.MINUTE);
+        if (minute >= 15) {
+            contourTime1.add(Calendar.HOUR_OF_DAY, 1);
+        }
+        contourTime1.set(Calendar.MINUTE, 0);
+        contourTime1.set(Calendar.SECOND, 0);
+        contourTime1.set(Calendar.MILLISECOND, 0);
+
+        contourTime2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        contourTime2.set(Calendar.HOUR_OF_DAY,
+                contourTime1.get(Calendar.HOUR_OF_DAY));
+        contourTime2.set(Calendar.MINUTE, 0);
+        contourTime2.set(Calendar.SECOND, 0);
+        contourTime2.set(Calendar.MILLISECOND, 0);
+    }
+
 }

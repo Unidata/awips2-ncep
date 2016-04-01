@@ -1,7 +1,7 @@
-colorMapName=lingray
+colorMapName=wv_tpc
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageTypeId=0p6_VIS-Red
-displayUnitStr=BRIT
+imageTypeId=WV_6p5um-UL
+displayUnitStr=C
 alpha=1.0
 brightness=1.0
 contrast=1.0

@@ -5,87 +5,19 @@
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>1000-500_thkn</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>1000-850_thkn</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>1000mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>100mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>150mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>200mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>250mb_ageo_div_isotachs</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>250mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>300mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>300mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>500mb_hght_absv</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>500mb_hght_absv_wnd</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>500mb_hght_color</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
               <name>500mb_hght_geoabsv</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_hght_wind</name>
+              <name>850mb_tmp</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>700mb_hght_rh_omega</name>
+              <name>ethkn</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>700mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>850-700_thkn</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>850mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>pmsl</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>pmsl_thkn</name>
+              <name>pmsl_ethkn</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

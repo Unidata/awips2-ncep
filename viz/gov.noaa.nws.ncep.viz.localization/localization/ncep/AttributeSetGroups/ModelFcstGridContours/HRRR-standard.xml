@@ -2,7 +2,6 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>HRRR</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    
     <attrSetLabels>
          <attrSetLabel>
               <name>1000-500_thkn</name>
@@ -61,14 +60,9 @@
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name></name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
               <name>simulated_radar</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>
-
 </AttributeSetGroup>
 

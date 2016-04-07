@@ -222,5 +222,9 @@
 			<key>sref_sref.*_sref.*212.spread.*</key>
 			<value>sref40Derv</value>
 		</entry>
+        <entry>
+            <key>etss.*tide.con625m.grib2</key>
+            <value>etssUS0p635km</value>
+        </entry>
 	</mapping>
 </ncgribModelNameMap>      			      

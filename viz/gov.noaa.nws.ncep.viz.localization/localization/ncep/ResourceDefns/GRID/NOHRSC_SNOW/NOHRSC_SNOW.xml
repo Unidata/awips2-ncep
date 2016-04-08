@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=NOHRSC-SNOW
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

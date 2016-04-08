@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-RHA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

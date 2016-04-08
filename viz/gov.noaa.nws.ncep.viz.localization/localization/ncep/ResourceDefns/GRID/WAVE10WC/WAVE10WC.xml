@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=WCwave10
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

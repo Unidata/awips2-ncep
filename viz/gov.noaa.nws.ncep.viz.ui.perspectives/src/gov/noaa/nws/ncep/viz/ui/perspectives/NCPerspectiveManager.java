@@ -7,7 +7,6 @@ import gov.noaa.nws.ncep.viz.common.area.NcAreaProviderMngr;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.gempak.grid.inv.NcGridInventory;
 import gov.noaa.nws.ncep.viz.gempak.grid.mapper.GridMapper;
 import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
 import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
@@ -121,7 +120,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      manager in context menu that opens on long right mouse button
  * 03/15/2016   R16112      E. Brown    Opening resource manager by right clicking goes to correct "Create RBD" tab
  * 04/04/2016   R17317      A. Su       Added to close resource manager by right mouse click if dialog is open.
- * 
+ * 04/05/2016   RM#10435    rjpeter     Removed Inventory usage.
  * </pre>
  * 
  * @author
@@ -146,7 +145,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         String desk = LocalizationManager.getContextName(LocalizationLevel
                 .valueOf("DESK"));
 
-        if (desk == null || desk.isEmpty() || desk.equalsIgnoreCase("none")) {
+        if ((desk == null) || desk.isEmpty() || desk.equalsIgnoreCase("none")) {
             desk = "NONE";
         }
         return title + ": "
@@ -183,7 +182,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             ExecutionEvent exec = new ExecutionEvent(cmd, params, null, null);
             Object obj = cmd.executeWithChecks(exec);
 
-            if (obj != null && obj instanceof AbstractEditor) {
+            if ((obj != null) && (obj instanceof AbstractEditor)) {
 
                 return (AbstractEditor) obj;
             }
@@ -226,47 +225,16 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         // force DESK level to be created.
         NcPathManager.getInstance();
 
-        if (!NcGridInventory.getInstance().isInitialized()) {
-            long t0 = System.currentTimeMillis();
-
-            try {
-                // try 5 times
-                NcGridInventory.getInstance().initialize(5);
-            } catch (final VizException e) {
-
-                MessageDialog errDlg = new MessageDialog(
-                        perspectiveWindow.getShell(),
-                        "Error",
-                        null,
-                        "Error initializing NcGridInventory\n"
-                                + "Please click OK and wait while a new inventory is created",
-                        MessageDialog.ERROR, new String[] { "OK" }, 0);
-                errDlg.open();
-
-                try {
-                    NcGridInventory.getInstance().createInventory();
-                } catch (VizException e1) {
-                    errDlg = new MessageDialog(perspectiveWindow.getShell(),
-                            "Error", null, "Error creating NcGridInventory\n",
-                            MessageDialog.ERROR, new String[] { "OK" }, 0);
-                    errDlg.open();
-                }
-            }
-
-            GridMapper.GridMapperInit();
-            GempakGridParmInfoLookup.getInstance();
-            GempakGridVcrdInfoLookup.getInstance();
-            long t1 = System.currentTimeMillis();
-            statusHandler.handle(Priority.INFO, "NcGridInventory Init took: "
-                    + (t1 - t0));
-        }
+        GridMapper.GridMapperInit();
+        GempakGridParmInfoLookup.getInstance();
+        GempakGridVcrdInfoLookup.getInstance();
 
         displayChangeListener = new IVizEditorChangedListener() {
             @Override
             public void editorChanged(IDisplayPaneContainer container) {
-                if (container == null)
+                if (container == null) {
                     return;
-                else if (container instanceof AbstractNcEditor) {
+                } else if (container instanceof AbstractNcEditor) {
 
                     NcEditorUtil
                             .refreshGUIElements((AbstractNcEditor) container);
@@ -292,7 +260,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         try {
             List<VizException> warnings = NcAreaProviderMngr.initialize();
 
-            if (warnings != null && !warnings.isEmpty()) {
+            if ((warnings != null) && !warnings.isEmpty()) {
                 final StringBuffer msgBuf = new StringBuffer(
                         "The following Warnings occurs while loading the Predefined Areas::\n\n");
                 int numWarns = 0;
@@ -406,7 +374,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         String spfName = ProgramArguments.getInstance().getString("-spf");
 
-        if (spfName != null && !spfName.isEmpty()) {
+        if ((spfName != null) && !spfName.isEmpty()) {
             String[] grpAndSpf = spfName.split(File.separator);
 
             // the name of the spf should include a group name
@@ -508,7 +476,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         List<VizException> warnings = NcAreaProviderMngr.reinitialize();
 
-        if (warnings != null && !warnings.isEmpty()) {
+        if ((warnings != null) && !warnings.isEmpty()) {
             final StringBuffer msgBuf = new StringBuffer(
                     "The following Warnings occurs while re-initializing the Predefined Areas::\n\n");
             int numWarns = 0;
@@ -699,8 +667,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         // TODO : add menu actions to minimize/maximize the selected pane.
 
-        if (container instanceof AbstractNcEditor
-                && pane.getRenderableDisplay() instanceof INatlCntrsRenderableDisplay) {
+        if ((container instanceof AbstractNcEditor)
+                && (pane.getRenderableDisplay() instanceof INatlCntrsRenderableDisplay)) {
 
             // Put "Launch Resource Manager" item above hide/show legends
             menuManager.add(new Action("Resource Manager") {

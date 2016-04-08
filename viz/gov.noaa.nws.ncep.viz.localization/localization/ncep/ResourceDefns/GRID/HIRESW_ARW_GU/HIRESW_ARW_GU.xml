@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=HiResW-ARW-GU
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

@@ -17,5 +17,4 @@ GDFILE=NCOM
 
 </resourceParameters>
 <attrSetOrg>BY_ATTR_SET_GROUP</attrSetOrg>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

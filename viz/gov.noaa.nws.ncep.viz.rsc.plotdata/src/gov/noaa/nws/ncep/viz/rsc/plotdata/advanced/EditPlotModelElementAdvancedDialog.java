@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.advanced;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.EditPlotModelComposite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07/2012      #431       S. Gurung   Initial Creation.
+ * 03/29/2016   R7567      A. Su       Added a new open() method to allow its parent to access this shell.
  * 
  * </pre>
  * 
@@ -58,6 +60,8 @@ public class EditPlotModelElementAdvancedDialog extends Dialog {
     protected String[] allParamNamesArray = null;
 
     private Combo paramNameCombo = null;
+
+    private EditPlotModelComposite parent = null;
 
     public EditPlotModelElementAdvancedDialog(Shell parentShell,
             PlotModelElement pme, PlotParameterDefns plotParamDefns) {
@@ -227,6 +231,10 @@ public class EditPlotModelElementAdvancedDialog extends Dialog {
 
         createShell(x, y);
 
+        if (parent != null) {
+            parent.addChild(shell);
+        }
+
         initWidgets();
 
         shell.pack();
@@ -239,6 +247,15 @@ public class EditPlotModelElementAdvancedDialog extends Dialog {
         }
 
         return (ok ? editedPlotModelElement : null);
+    }
+
+    /**
+     * This new open() method allows its parent to access this child shell.
+     */
+    public Object open(EditPlotModelComposite parent, int x, int y) {
+        this.parent = parent;
+
+        return open(x, y);
     }
 
     public void initWidgets() {

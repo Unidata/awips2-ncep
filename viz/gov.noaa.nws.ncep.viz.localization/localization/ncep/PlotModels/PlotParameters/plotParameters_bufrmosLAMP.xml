@@ -111,10 +111,12 @@
     <!-- CLOUD -->
  	<PlotParameterDefn  plotParamName="CLCT" metParamName="MaxCloudCover" plotMode="text"   
                      	dbParamName="clouds_bestCat" /> 
+    <PlotParameterDefn  plotParamName="SKYC" metParamName="SkyCoverage" 
+                        plotMode="table" symbolFont="WxSymbolFont" 
+                        dbParamName="clouds_bestCat" 
+                        plotLookupTable="pgen_clouds_best_cat.txt" />   
 
- <PlotParameterDefn  plotParamName="SKYC" metParamName="SkyCoverage" 
-                     plotMode="table" symbolFont="WxSymbolFont" 
-                     dbParamName="clouds_bestCat" 
-                     plotLookupTable="pgen_clouds_best_cat.txt" />   
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
 
 </PlotParameterDefns>

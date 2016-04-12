@@ -2,5 +2,15 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>GFS_ENS</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_avg_hght,500mb_avg_tmpc</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_avg_hght</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_avg_tmpc</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

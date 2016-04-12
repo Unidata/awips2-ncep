@@ -5,7 +5,6 @@ import gov.noaa.nws.ncep.ui.pgen.controls.PgenFileNameDisplay;
 import gov.noaa.nws.ncep.viz.common.area.AreaMenusMngr;
 import gov.noaa.nws.ncep.viz.common.area.NcAreaProviderMngr;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.gempak.grid.inv.NcGridInventory;
@@ -23,6 +22,8 @@ import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
 import gov.noaa.nws.ncep.viz.tools.frame.FrameDataDisplay;
 import gov.noaa.nws.ncep.viz.tools.imageProperties.FadeDisplay;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
+import gov.noaa.nws.ncep.viz.ui.display.NCLegendResource;
+import gov.noaa.nws.ncep.viz.ui.display.NCLegendResource.LegendMode;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -35,9 +36,11 @@ import javax.xml.bind.JAXBException;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.commands.ICommandService;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.SatelliteUnits;
@@ -52,10 +55,8 @@ import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IVizEditorChangedListener;
 import com.raytheon.uf.viz.core.ProgramArguments;
 import com.raytheon.uf.viz.core.VizApp;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
-import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.alerts.observers.ProductAlertObserver;
 import com.raytheon.viz.ui.VizWorkbenchManager;
@@ -72,9 +73,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date			Ticket#		Engineer	Description
+ * Date        Ticket#     Engineer     Description
  * ------------	----------	-----------	--------------------------
- * 12/2008		22			M. Li		Created
+ * 12/2008      22          M. Li       Created
  * 03/2009      75          B. Hebbard  Rename class and all references NMAP->NC
  * 08/05/09                 G. Hull     Load a default RBD
  * 09/27/09     #169        G. Hull     create an NCMapEditor and remove non NC editors
@@ -100,7 +101,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      a NCMapEditor object as one of the arguments
  *                                      Removed the call to setNcEditor() and updated initFromEditor()
  *                                      to take an editor as one of the arguments    
- * 04/16/2012	740			B. Yin		Start the static data service before opening map editor.  
+ * 04/16/2012   740         B. Yin      Start the static data service before opening map editor.  
  * 03/01/2012   #606        G. Hull     initialize NcInventory
  * 05/15/2012               X. Guo      initialize NcGridInventory
  * 05/17/2012               X. Guo      Changed "true" to "false" to initialize NcGridInventory
@@ -115,6 +116,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 11/13/2013   #1051       G. Hull     override getTitle() to include the desk.
  * 07/28/2015   R7785       A. Su       Added the runAsyncTasks() method to run asynchronous tasks,
  *                                      such as getting an instance of DerivedParameterGenerator.
+ * 09/25/2015   R8833       N. Jensen   Added right click option to reverse legend mode
+ * 02/04/2016   R13171      E. Brown    Added: short right click launches resource manager, added: item to launch resource
+ *                                      manager in context menu that opens on long right mouse button
+ * 03/15/2016   R16112      E. Brown    Opening resource manager by right clicking goes to correct "Create RBD" tab
+ * 04/04/2016   R17317      A. Su       Added to close resource manager by right mouse click if dialog is open.
+ * 
  * </pre>
  * 
  * @author
@@ -144,9 +151,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         }
         return title + ": "
                 + LocalizationManager.getContextName(LocalizationLevel.SITE)
-                + "/" + desk + " - " + getLabel(); // is
-                                                   // page.getPerspective().getLabel()
-                                                   // which is "NCP"
+                + "/" + desk + " - " + getLabel();
     }
 
     // Issue the newDisplay command the same as if called from the main menu
@@ -159,11 +164,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         NcDisplayType dt = NcEditorUtil.getNcDisplayType(curEd);
 
         if (dt == NcDisplayType.NSHARP_DISPLAY) {
-            // MessageDialog errDlg = new MessageDialog(
-            // perspectiveWindow.getShell(), "Error", null,
-            // "Can't create more than one NSharp Editor.",
-            // MessageDialog.ERROR, new String[] { "OK" }, 0);
-            // errDlg.open();
             return null;
         }
 
@@ -172,7 +172,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         Command cmd = service.getCommand(newDisplayCmd);
         if (cmd == null) {
-            System.out.println("Error getting cmd: " + newDisplayCmd);
+            statusHandler.handle(Priority.PROBLEM, "Error getting cmd: ",
+                    newDisplayCmd);
             return null;
         }
         try {
@@ -187,11 +188,12 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 return (AbstractEditor) obj;
             }
 
-            System.out.println("sanity check: cmd, " + newDisplayCmd
-                    + ", not returning an editor object");
+            statusHandler.handle(Priority.PROBLEM, "sanity check: cmd, "
+                    + newDisplayCmd + ", not returning an editor object");
 
         } catch (Exception e) {
-            System.out.println("Error executing cmd: " + newDisplayCmd);
+            statusHandler.handle(Priority.PROBLEM, "Error executing cmd: "
+                    + newDisplayCmd);
         }
 
         return null;
@@ -205,6 +207,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
     protected void runAsyncTasks() {
 
         Thread newThread = new Thread() {
+            @Override
             public void run() {
                 // Initialize derived parameters in order to speed up
                 // the first-time data selection of SURFACE or UPPER_AIR.
@@ -227,9 +230,10 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             long t0 = System.currentTimeMillis();
 
             try {
-                NcGridInventory.getInstance().initialize(5); // try 5 times
+                // try 5 times
+                NcGridInventory.getInstance().initialize(5);
             } catch (final VizException e) {
-                // NcGridInventory.getInstance().dumpNcGribInventory();
+
                 MessageDialog errDlg = new MessageDialog(
                         perspectiveWindow.getShell(),
                         "Error",
@@ -253,7 +257,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             GempakGridParmInfoLookup.getInstance();
             GempakGridVcrdInfoLookup.getInstance();
             long t1 = System.currentTimeMillis();
-            System.out.println("NcGridInventory Init took: " + (t1 - t0));
+            statusHandler.handle(Priority.INFO, "NcGridInventory Init took: "
+                    + (t1 - t0));
         }
 
         displayChangeListener = new IVizEditorChangedListener() {
@@ -262,31 +267,30 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 if (container == null)
                     return;
                 else if (container instanceof AbstractNcEditor) {
-                    // ((AbstractNcEditor) container).refreshGUIElements();
+
                     NcEditorUtil
                             .refreshGUIElements((AbstractNcEditor) container);
                 } else {
-                    // display a warning/error msg
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Container is not instance of AbstractNcEditor");
                 }
             }
         };
 
         // Add an observer to process the dataURI Notification msgs from edex.
-        //
         ProductAlertObserver.addObserver(null, new NcAutoUpdater());
 
-        // NatlCntrs uses a different equation to compute the Temperature values
-        // from
-        // a Satellite IR image so this will override the 'IRPixel' label used
-        // by satellite
-        // images and will create our Units and UnitConverter class to do the
-        // conversion.
-        //
+        /*
+         * NatlCntrs uses a different equation to compute the Temperature values
+         * from a Satellite IR image so this will override the 'IRPixel' label
+         * used by satellite images and will create our Units and UnitConverter
+         * class to do the conversion.
+         */
         NcSatelliteUnits.register();
 
         // read in and validate all of the Predefined Area files.
         try {
-            List<VizException> warnings = NcAreaProviderMngr.initialize();// .getWarnings();//PredefinedAreasMngr.readPredefinedAreas();
+            List<VizException> warnings = NcAreaProviderMngr.initialize();
 
             if (warnings != null && !warnings.isEmpty()) {
                 final StringBuffer msgBuf = new StringBuffer(
@@ -325,15 +329,13 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         // Force the RBDs to read from localization to save time
         // bringing up the RBD manager
-        //
         SpfsManager.getInstance();
 
         // Initialize the NcInventory. This cache is stored on the server side
-        // and will only
-        // need initialization for the first instance of cave.
+        // and will only need initialization for the first instance of cave.
         try {
-            ResourceDefnsMngr.getInstance(); // force reading in of the resource
-                                             // definitions
+            // force reading in of the resource definitions
+            ResourceDefnsMngr.getInstance();
 
             if (!ResourceDefnsMngr.getInstance().getBadResourceDefnsErrors()
                     .isEmpty()) {
@@ -391,8 +393,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 });
             }
 
-            // ResourceDefnsMngr.getInstance().createInventory();
-
         } catch (VizException el) {
             MessageDialog errDlg = new MessageDialog(
                     perspectiveWindow.getShell(), "Error", null,
@@ -402,7 +402,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         }
 
         // Load either the default RBD or RBDs in the command line spf
-        //
         List<AbstractRBD<?>> rbdsToLoad = new ArrayList<AbstractRBD<?>>();
 
         String spfName = ProgramArguments.getInstance().getString("-spf");
@@ -426,9 +425,9 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             } else {
 
                 try {
+                    // resolve Latest Cycle times
                     rbdsToLoad = SpfsManager.getInstance().getRbdsFromSpf(
-                            grpAndSpf[0], grpAndSpf[1], true); // resolve Latest
-                                                               // Cycle times
+                            grpAndSpf[0], grpAndSpf[1], true);
                 } catch (VizException e) {
                     MessageDialog errDlg = new MessageDialog(
                             perspectiveWindow.getShell(), "Error", null,
@@ -446,8 +445,9 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 rbdsToLoad.add(dfltRbd);
 
             } catch (Exception ve) {
-                System.out.println("Could not load rbd: " + ve.getMessage());
-                ve.printStackTrace();
+                statusHandler.handle(Priority.PROBLEM, "Could not load rbd: "
+                        + ve.getMessage(), ve);
+
             }
         }
 
@@ -504,10 +504,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         // add an EditorChangedListener
         VizWorkbenchManager.getInstance().addListener(displayChangeListener);
 
-        // Experiment.
-        // statusLine.setErrorMessage("Status Line ERROR MSG B");
-        // statusLine.setMessage("Status Line MESSAGE B");
-
         // read in and validate all of the Predefined Area files.
 
         List<VizException> warnings = NcAreaProviderMngr.reinitialize();
@@ -536,7 +532,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             });
         }
 
-        // relayout the shell since we added widgets
+        // re-layout the shell since we added widgets
         perspectiveWindow.getShell().layout(true, true);
 
         NcSatelliteUnits.register();
@@ -592,10 +588,11 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         IInputHandler[] superHandlers = super
                 .getPerspectiveInputHandlers(editor);
 
-        // If this is a GLMapEditor from D2D then just return the
-        // abstractEditors handlers
-        // (this won't last long since the perspective will remove/save off the
-        // editors.
+        /*
+         * If this is a GLMapEditor from D2D then just return the
+         * abstractEditors handlers (this won't last long since the perspective
+         * will remove/save off the editors.
+         */
 
         if (!NcDisplayMngr.isNatlCntrsEditor(editor)) {
             // if (!(editor instanceof AbstractNcEditor)) {
@@ -604,8 +601,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         // No-Ops for doubleClick, keyUp/Down, mouseDown, mouseHover and mouseUp
         IInputHandler handler = new InputAdapter() {
-
-            private boolean isShiftDown = false;
 
             @Override
             public boolean handleMouseDownMove(int x, int y, int mouseButton) {
@@ -623,20 +618,76 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                 return false;
             }
 
-            private void toggleVisibility(ResourcePair rp) {
-                AbstractVizResource<?, ?> rsc = rp.getResource();
-                if (rsc != null) {
-                    rp.getProperties().setVisible(
-                            !rp.getProperties().isVisible());
+            @Override
+            public boolean handleMouseUp(int x, int y, int mouseButton) {
+
+                // Launch Resource Manager dialog on a right mouseUp
+                // and close it on a right mouseUp if the dialog is open.
+                if (mouseButton == 3) {
+                    if (ResourceManagerDialog.isOpen()) {
+
+                        ResourceManagerDialog.close();
+                    } else {
+                        launchResourceManager();
+                    }
                 }
+                return false;
             }
 
         };
 
         ArrayList<IInputHandler> handlers = new ArrayList<IInputHandler>();
-        // handlers.addAll(Arrays.asList(superHandlers));
         handlers.add(handler);
         return handlers.toArray(new IInputHandler[handlers.size()]);
+    }
+
+    /**
+     * Opens the resource manager dialog window
+     */
+    private void launchResourceManager() {
+        // Set the commandId for this item
+        String commandId = "gov.noaa.nws.ncep.viz.actions.resourceManager";
+        /*
+         * This code taken directly from
+         * com.raytheon.viz.ui.glmap.actions.ClearAction
+         * 
+         * Finds the AbstractHandler currently registered with this commandId
+         */
+        IEditorPart part = VizWorkbenchManager.getInstance().getActiveEditor();
+        ICommandService service = (ICommandService) part.getSite().getService(
+                ICommandService.class);
+        Command cmd = service.getCommand(commandId);
+
+        if (cmd == null) {
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error getting command \"cmd\": ", commandId);
+            return;
+        }
+        try {
+
+            /*
+             * Set up information to pass to the AbstractHandler
+             */
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("editor", part);
+            // Open resource manager in with "Create RBD" tab open
+            params.put("mode", "CREATE_RBD");
+            ExecutionEvent exec = new ExecutionEvent(cmd, params, null, "mode");
+
+            // Execute the handler
+            cmd.executeWithChecks(exec);
+
+            // Update the GUI elements on the menus and toolbars
+            for (String toolbarID : NmapCommon.getGUIUpdateElementCommands()) {
+                service.refreshElements(toolbarID, null);
+            }
+        } catch (Exception e) {
+            // Error executing Handler
+
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error executing command \"cmd\": " + commandId, e);
+        }
+
     }
 
     @Override
@@ -647,20 +698,45 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
         }
 
         // TODO : add menu actions to minimize/maximize the selected pane.
-        //
+
         if (container instanceof AbstractNcEditor
                 && pane.getRenderableDisplay() instanceof INatlCntrsRenderableDisplay) {
 
-            int numPanes = NcEditorUtil
-                    .getNumberOfPanes((AbstractEditor) container);
+            // Put "Launch Resource Manager" item above hide/show legends
+            menuManager.add(new Action("Resource Manager") {
+                @Override
+                public void run() {
+                    launchResourceManager();
+                }
+            });
 
-            if (numPanes > 1) {
-                INcPaneID pid = ((INatlCntrsRenderableDisplay) pane
-                        .getRenderableDisplay()).getPaneId();
-
-                // menuManager.add( new xxx(pid) );
+            // Right click option to reverse legend mode
+            final NCLegendResource lg;
+            List<NCLegendResource> legends = pane.getDescriptor()
+                    .getResourceList()
+                    .getResourcesByTypeAsType(NCLegendResource.class);
+            if (!legends.isEmpty()) {
+                lg = legends.get(0);
+                LegendMode mode = lg.getLegendMode();
+                switch (mode) {
+                case HIDE:
+                    menuManager.add(new Action(LegendMode.SHOW.toString()) {
+                        @Override
+                        public void run() {
+                            lg.setLegendMode(LegendMode.SHOW);
+                        }
+                    });
+                    break;
+                case SHOW:
+                    menuManager.add(new Action(LegendMode.HIDE.toString()) {
+                        @Override
+                        public void run() {
+                            lg.setLegendMode(LegendMode.HIDE);
+                        }
+                    });
+                    break;
+                }
             }
-            // options to delete this pane?? add a new pane.?
         }
     }
 }

@@ -17,7 +17,7 @@ import com.raytheon.uf.common.style.StyleException;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- -------------------------- 
- * Oct 01, 2014            kbugenhagen Initial creation.
+ * 10/01/2014   R5116      kbugenhagen  Initial creation.
  * </pre>
  * 
  * @author kbugenhagen

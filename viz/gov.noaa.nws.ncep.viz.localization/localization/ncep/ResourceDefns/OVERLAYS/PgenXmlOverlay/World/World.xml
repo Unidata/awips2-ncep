@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <!--  DISABLED BECAUSE the locowobnds.xml file doesn't exist -->
     <resourceDefnName>World</resourceDefnName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
-pgenStaticProductLocation=ncep/StaticPgenOverlays
-pgenStaticProductName=locowobnds.xml
+! The relative path name from localization (ie 'ncep/') or an absolute file name
+! pgenStaticProductLocation=ncep/ResourceDefns/OVERLAYS/PgenXmlOverlay
+dbName=maps
+tableName=mapdata.world
+labelField=name
+mapName=World
     </resourceParameters>
-    <rscImplementation>PgenStaticOverlay</rscImplementation>
+    <rscImplementation>DbOverlay</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
@@ -15,6 +18,5 @@ pgenStaticProductName=locowobnds.xml
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>10</dfltFrameCount>
     <dfltTimeRange>24</dfltTimeRange>
-        <isEnabled>false</isEnabled> 
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
 </ResourceDefinition>

@@ -2,5 +2,15 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>MDD_nite</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_avg,700mb_avg</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_avg</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_avg</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

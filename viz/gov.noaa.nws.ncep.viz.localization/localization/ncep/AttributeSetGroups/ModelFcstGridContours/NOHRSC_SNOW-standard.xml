@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>NOHRSC_SNOW</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>remotely_sensed_snow_cover</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>remotely_sensed_snow_cover</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

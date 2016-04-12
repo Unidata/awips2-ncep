@@ -2,5 +2,33 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>NSO-GONG</resource>
     <attrSetGroupName>NSO-GONG-ALL</attrSetGroupName>
-    <attrSetNames>BB,CT,LE,ML,TC,TD,UD,LE-func</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>BB</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CT</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>LE</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>ML</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TC</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TD</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>UD</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>LE-func</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Modis
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.modis;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.modis.Activator
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources, org.apache.velocity, com.raytheon.edex.common, com.raytheon.uf.common.serialization, com.raytheon.uf.common.status, com.raytheon.viz.ui, com.raytheon.viz.core, com.raytheon.uf.viz.core, com.raytheon.uf.common.serialization
 Eclipse-BuddyPolicy: ext, global
 Require-Bundle: org.eclipse.ui,
@@ -25,6 +24,7 @@ Require-Bundle: org.eclipse.ui,
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.dataplugin.persist,
  com.raytheon.uf.common.dataplugin.satellite.units,
  com.raytheon.uf.common.dataplugin.satellite.units.generic,
  com.raytheon.uf.common.datastorage,
@@ -32,8 +32,10 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.time,
  com.raytheon.uf.common.units,
+ com.raytheon.uf.common.util,
  com.raytheon.uf.edex.database.plugin,
  com.raytheon.uf.viz.d2d.core.map,
+ com.raytheon.uf.viz.d2d.core.sampling,
  com.raytheon.uf.viz.datacube,
  com.raytheon.uf.viz.xy,
  com.raytheon.uf.viz.xy.graph,

@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.queue;
 
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 
 import java.util.Collection;
 

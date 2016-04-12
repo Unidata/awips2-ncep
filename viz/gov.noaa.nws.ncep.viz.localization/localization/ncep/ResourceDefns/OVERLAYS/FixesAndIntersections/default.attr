@@ -1,0 +1,11 @@
+color=RGB {255,228,220}
+lineStyle=SOLID
+lineWidth=1
+markerSize=1
+markerWidth=1
+markerTextSize=SMALL
+markerType=PLUS_SIGN
+markerState=MARKER_PLUS_TEXT
+! the distance in km of the screen width when the symbols/labels will be displayed.
+maxSymbolDisplayWidth=3000
+maxLabelDisplayWidth=2000

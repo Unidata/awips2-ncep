@@ -4,24 +4,6 @@
   http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd   
   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 	
-    <camelContext id="geomag-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler"
-		autoStartup="false">
-		
-		<endpoint id="geomagFileEndpoint" uri="file:${edex.home}/data/sbn/geomag?noop=true&amp;idempotent=false" />
-
-		<route id="geomagFileConsumerRoute">
-			<from ref="geomagFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>geomag</constant>
-			</setHeader>
-			<to uri="jms-generic:queue:Ingest.GeoMag" />
-		</route>
-	   
-	</camelContext>
-	
 	<bean id="RetrieveHrAvgHandler"
         class="gov.noaa.nws.ncep.edex.plugin.geomag.handler.RetrieveHrAvgRequestHandler" />
     <bean factory-bean="handlerRegistry" factory-method="register">

@@ -19,10 +19,12 @@ import com.raytheon.uf.common.serialization.ISerializableObject;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 10/09  		172    	   	M. Li       Initial Creation
- *                           
- * 07/31/11     450         G. Hull     Add plugin and moved methods from NcPathManager       
- * 06/01/12     654         S. Gurung   Added method getSkyCoverageParams()
+ * 10/??/2009      172     M. Li       Initial Creation
+ * 07/31/2011      450     G. Hull     Add plugin and moved methods from NcPathManager       
+ * 06/01/2012      654     S. Gurung   Added method getSkyCoverageParams()
+ * 11/17/2015    R9579     B. Hebbard  In getPlotParamDefnsForMetParam(~), don't assume each 
+ *                                     PlotParameterDefn will have an associated met parameter 
+ *                                     (new MARK parameter doesn't)
  * 
  * </pre>
  * 
@@ -170,7 +172,8 @@ public class PlotParameterDefns implements ISerializableObject {
             String metParam) {
         ArrayList<PlotParameterDefn> retList = new ArrayList<PlotParameterDefn>();
         for (PlotParameterDefn pd : plotParameterDefn) {
-            if (pd.getMetParamName().equals(metParam)) {
+            String pdMetParamName = pd.getMetParamName();
+            if (pdMetParamName != null && pdMetParamName.equals(metParam)) {
                 retList.add(pd);
             }
         }

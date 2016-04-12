@@ -150,11 +150,13 @@ wtop              top of wx in ft
                      plotMode="barb" symbolFont="WindSymbolFont" plotUnit="kts" />
 
  <!-- WEATHER -->
- <!-- Redmine 4230 -->
  <PlotParameterDefn  plotParamName="WSYM" metParamName="PresentWeather" 
                      dbParamName="weatherGroup"
                      plotMode="table" symbolFont="WxSymbolFont" 
                      plotLookupTable="pgen_wsym.txt"/>
+
+<!-- MARKERs -->
+ <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
    
  	
 </PlotParameterDefns>

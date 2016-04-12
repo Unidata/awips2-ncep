@@ -8,7 +8,10 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
+import gov.noaa.nws.ncep.ui.pgen.contours.ContourMinmax;
+import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
 import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
@@ -32,6 +35,7 @@ import java.util.TimeZone;
 
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.vividsolutions.jts.geom.Coordinate;
 
 /**
  * Singleton for the default attribute settings of PGEN DrawableElements.
@@ -50,6 +54,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 09/12					B. Hebbard	Merge changes by RTS OB12.9.1 (format only, this file)
  * 10/13		TTR768		J. Wu		Load/set default attributes for outlook labels (Text).
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
+ * 12/15        R12990      J. Wu       Added default spacing for contour symbols and their labels.
+ * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for Contours Min/Max.
  * </pre>
  * 
  * @author J. Wu
@@ -84,6 +91,16 @@ public class AttrSettings {
     private static HashMap<String, AbstractDrawableComponent> outlookLabelSettings = null;
 
     /**
+     * Settings for default spacing between contour symbols with their labels.
+     */
+    private HashMap<String, HashMap<String, Coordinate>> contourSymbolSpacingMap = null;
+
+    /**
+     * Settings for PGEN type text label tracking
+     */
+    private static HashMap<String, String[]> pgenTypeLabels = null;
+
+    /**
      * Private constructor
      * 
      * @throws VizException
@@ -92,9 +109,12 @@ public class AttrSettings {
         super();
         settingsMap = new HashMap<String, HashMap<String, AbstractDrawableComponent>>();
         settings = new HashMap<String, AbstractDrawableComponent>();
+        pgenTypeLabels = new HashMap<String, String[]>();
         loadSettingsTable();
 
         loadOutlookSettings();
+
+        generateDefaultSpacingMap();
     }
 
     /**
@@ -157,30 +177,43 @@ public class AttrSettings {
     }
 
     /**
-     * @param value
-     *            the DrawableElement to set gilbert: noticed this wasn't being
-     *            used AND I wasn't sure how to modify it for the new pgenType
-     *            and pgenCategory DE attributes, so I juct commented it out for
-     *            now.
+     * Associates the component's PgenType with the component in question.
      * 
-     *            public void setSettings( IAttribute de ) {
-     * 
-     *            String pgenID = null; DrawableElement elem = null;
-     * 
-     *            if ( de instanceof IMultiPoint ) { pgenID =
-     *            de.getLinePattern(); } else { pgenID = de.getType(); }
-     * 
-     *            elem = (DrawableElement)settings.get( pgenID ); elem.update(
-     *            de );
-     * 
-     *            settings.put( pgenID, elem ); }
+     * @param de
+     *            the AbstractDrawableComponent to set
      */
-
     public void setSettings(AbstractDrawableComponent de) {
 
         String pgenID = de.getPgenType();
 
         settings.put(pgenID, de);
+    }
+
+    /**
+     * Checks the pgenTypeLabel HashMap for the presence of a PgenType. If it
+     * exists, returns the string associated with it. Otherwise returns null.
+     * 
+     * @param typeString
+     *            the pgenType to search for
+     * @return
+     */
+    public String[] getPgenTypeLabel(String type) {
+        String[] ret = null;
+        ret = pgenTypeLabels.get(type);
+        return ret;
+    }
+
+    /**
+     * Inserts a new PgenType/Text pair into the pgenTypeLabel HashMap. If it
+     * already exists, replaces the existing text value with the new one.
+     * 
+     * @param type
+     *            the pgenType to insert
+     * @param text
+     *            the text string to insert
+     */
+    public void setPgenTypeLabel(String type, String[] text) {
+        pgenTypeLabels.put(type, text);
     }
 
     /**
@@ -229,6 +262,8 @@ public class AttrSettings {
                 loadSettingsTable();
             }
         }
+
+        generateDefaultSpacingMap();
     }
 
     /**
@@ -294,8 +329,6 @@ public class AttrSettings {
                     settingsMap.put(fileName, newSettings);
                     settings = newSettings;
                     settingsName = new String(fileName);
-                    // settings.clear();
-                    // settings.putAll(newSettings);
                     ret = true;
                 }
 
@@ -379,6 +412,55 @@ public class AttrSettings {
                 }
             }
         }
+    }
+
+    /*
+     * Create default spacing map between contour symbols and their labels.
+     */
+    private void generateDefaultSpacingMap() {
+
+        if (contourSymbolSpacingMap == null) {
+            contourSymbolSpacingMap = new HashMap<String, HashMap<String, Coordinate>>();
+        }
+
+        if (contourSymbolSpacingMap.get(settingsName) == null) {
+            HashMap<String, Coordinate> contourSymbolSpacing = new HashMap<String, Coordinate>();
+            if (settings != null) {
+                AbstractDrawableComponent adc = settings
+                        .get(PgenConstant.CONTOURS);
+                if (adc != null) {
+                    List<ContourMinmax> csymbols = ((Contours) adc)
+                            .getContourMinmaxs();
+                    if (csymbols != null && csymbols.size() > 0) {
+                        for (ContourMinmax cmx : csymbols) {
+                            if (cmx.getLabel() != null
+                                    && cmx.getSymbol() != null) {
+                                contourSymbolSpacing.put(cmx.getSymbol()
+                                        .getPgenType(), new Coordinate(cmx
+                                        .getLabel().getXOffset(), cmx
+                                        .getLabel().getYOffset()));
+                            }
+                        }
+                    }
+                }
+            }
+
+            contourSymbolSpacingMap.put(settingsName, contourSymbolSpacing);
+        }
+    }
+
+    /**
+     * Retrieve default spacing between a contour symbol and its label in
+     * current activity.
+     * 
+     * @param symbolType
+     *            pgenType for the contour symbol
+     * 
+     * @return Coordinate A Coordinate with default spacing value in x and y
+     *         direction.
+     */
+    public Coordinate getContourSymbolDefaultSpacing(String symbolType) {
+        return contourSymbolSpacingMap.get(settingsName).get(symbolType);
     }
 
 }

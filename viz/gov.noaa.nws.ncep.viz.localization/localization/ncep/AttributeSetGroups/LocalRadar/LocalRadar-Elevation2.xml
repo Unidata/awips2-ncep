@@ -2,5 +2,24 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>Elevation2</attrSetGroupName>
-    <attrSetNames>SRVEL2_1.00,VEL2_1.00,VEL2_.25.00,BREF2_1.00,BREF2_2.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>SRVEL2_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL2_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VEL2_.25.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF2_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF2_2.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

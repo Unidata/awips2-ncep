@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
 import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
@@ -9,6 +10,7 @@ import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.Activator;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.ConditionalColorBar;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.EditPlotModelElementAdvancedDialog;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
@@ -23,7 +25,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
@@ -32,7 +37,9 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -44,8 +51,14 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -80,7 +93,17 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  * 06/17/2014    923        S. Russell  TTR 923: altered method initWidgets()
  * 11/03/2014  R5156        B. Hebbard  Add more textFontOptions
  * 08/14/2015  R7757        B. Hebbard  Enable (symbol) size selection for vector parameters
- * 
+ * 11/17/2015  R9579        B. Hebbard  Add marker type and symbol line width selection
+ * 12/17/2015  R9579        B. Hebbard  Make sure PTND (combined text & symbol) enables symbol controls
+ * 03/29/2016  R7567        A. Su       Disabled Advanced button when empty plot model element is selected.
+ *                                      Fixed the title of Edit Advanced Options dialog for center plot model element.
+ *                                      Disabled and enabled Advanced button at right moments to
+ *                                        prevent multiple Edit Advanced Options dialog to open for the same plot model element.
+ *                                      Allowed Edit Advanced Options dialogs to open for different plot model elements
+ *                                        with each new dialog positioned slightly lower-left to the previous one.
+ *                                      Restored the function of Reset button after searching localization info.
+ *                                      Enabled Clear and Reset buttons to close its associated Advanced Options Dialogs.
+ *                                      Fixed to show initial rainbow color for center element of non-SKYC and non-BRBK.
  * </pre>
  * 
  * @author ghull
@@ -91,13 +114,28 @@ public class EditPlotModelComposite extends Composite {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(EditPlotModelComposite.class);
 
+    /**
+     * The label for an empty model element.
+     */
+    private static final String EMPTY_MODEL_ELEMENT_LABEL = "Parm";
+
     private PlotModel editedPlotModel = null;
 
     private ColorMatrixSelector cms = null;
 
     private List availParamsList = null;
 
+    private Group selectMarkerTypeGroup = null;
+
+    private ToolBar markerSelectToolBar = null;
+
+    private ToolItem markerSelectToolItem = null;
+
+    private Menu markerSelectMenu = null;
+
     private Scale symbolSizeScale = null;
+
+    private Scale symbolWidthScale = null;
 
     private Combo textSizeCombo = null;
 
@@ -109,19 +147,22 @@ public class EditPlotModelComposite extends Composite {
 
     private Button advancedBtn = null;
 
-    private final String[] textSizeOptions = { "10", "12", "14", "16", "18",
-            "20", "22", "24", "32" };
+    private static final String[] textSizeOptions = { "10", "12", "14", "16",
+            "18", "20", "22", "24", "32" };
 
-    private final String[] textFontOptions = { "Courier", "Helvetica", "Times",
-            // "Dialog", "DialogInput", // same as SansSerif, Monospaced, resp.
-            "Monospaced", "SansSerif", "Serif", "Nimbus Sans L",
+    private static final String[] textFontOptions = { "Courier", "Helvetica",
+            "Times", "Monospaced", // same as "DialogInput"
+            "SansSerif", // same as "Dialog"
             "Liberation Serif" };
 
-    private final String[] textStyleOptions = { "Normal", "Italic", "Bold",
-            "Bold-Italic" };
+    private static final String[] textStyleOptions = { "Normal", "Italic",
+            "Bold", "Bold-Italic" };
 
-    private final String[] plotModelElementPositions = { "TC", "UL", "UC",
-            "UR", "ML", "MC", "MR", "LL", "LC", "LR", "BC" };
+    private static final String ELEMENT_POSITION_MIDDLE_CENTER = "MC";
+
+    private static final String[] plotModelElementPositions = { "TC", "UL",
+            "UC", "UR", "ML", ELEMENT_POSITION_MIDDLE_CENTER, "MR", "LL", "LC",
+            "LR", "BC" };
 
     private HashMap<String, PlotModelElemButton> plotModelElementsUIMap = new HashMap<String, PlotModelElemButton>();
 
@@ -133,7 +174,7 @@ public class EditPlotModelComposite extends Composite {
 
     private Composite topComposite = null;
 
-    // for getting rsc related parameters
+    // for getting resource related parameters
     INatlCntrsResourceData rscData = null;
 
     // group for center buttons
@@ -150,17 +191,78 @@ public class EditPlotModelComposite extends Composite {
     // declare here for setting the text to reflect the actual size
     private Label symbolSizeLabel = null;
 
+    // declare here for setting the text to reflect the actual width
+    private Label symbolWidthLabel = null;
+
     // center parameter only Buttons
     private Label skycLbl = null;
 
     private Label wndBrbLbl = null;
 
-    private File advancedIconFile = NcPathManager.getInstance().getStaticFile(
-            NcPathConstants.ADVANCED_ICON_IMG);;
+    // Make it static so it can be created once for all instances to share.
+    private static final File advancedIconFile = NcPathManager.getInstance()
+            .getStaticFile(NcPathConstants.ADVANCED_ICON_IMG);
+
+    // Make it static so it can be created once for all instances to share.
+    private static final Image advancedIconImage = (advancedIconFile != null && advancedIconFile
+            .exists()) ? new Image(Display.getCurrent(),
+            advancedIconFile.getAbsolutePath()) : null;
+
+    private MarkerType selectedMarkerType = MarkerType.BOX;
+
+    private static final String MARK_PARAMETER = "MARK";
+
+    /**
+     * This set records the positions of plot model elements that are being
+     * edited.
+     */
+    private Set<String> plotModelElementsBeingEdited;
+
+    /**
+     * This set records the shells (windows) of associated Edit Advanced Options
+     * dialogs that are being edited.
+     */
+    private Set<Shell> childrenList = new HashSet<Shell>();
+
+    /**
+     * The marginal offset of x coordinate for Edit Advanced Options dialog.
+     */
+    public static final int X_OFFSET_FOR_EDIT_ADVANCED_OPTIONS_DIALOG = 30;
+
+    /**
+     * The marginal offset of y coordinate for Edit Advanced Options dialog.
+     */
+    public static final int Y_OFFSET_FOR_EDIT_ADVANCED_OPTIONS_DIALOG = 25;
+
+    /**
+     * This number is used to determine where to position a new Edit Advanced
+     * Options dialog. The keyword static is required to account for all the
+     * dialogs opened by different instances of this class.
+     */
+    private static int offsetCount = 0;
+
+    /**
+     * The initial x coordinate of an Edit Advanced Options Dialog.
+     */
+    private static int initXCoord = 0;
+
+    /**
+     * The initial y coordinate of an Edit Advanced Options Dialog.
+     */
+    private static int initYCoord = 0;
+
+    /**
+     * The window where this instance of EditPlotModelCpomposite is located.
+     */
+    private Shell shell;
 
     public EditPlotModelComposite(Composite parent, int style, PlotModel pm,
             INatlCntrsResourceData rscData) {
         super(parent, style);
+
+        shell = parent.getShell();
+        clearEditedList();
+
         editedPlotModel = pm;
         this.rscData = rscData;
         topComposite = this;
@@ -174,13 +276,12 @@ public class EditPlotModelComposite extends Composite {
 
         createPlotModelGuiElements();
 
-        // TTR 921
         origPltMdlElmntsUIMap = new HashMap<String, PlotModelElemButton>(
                 plotModelElementsUIMap);
 
         createTextAttrControls();
 
-        createCtrParamControls();
+        createCenterParamAndMarkerControls();
 
         createParmListControls();
 
@@ -201,7 +302,8 @@ public class EditPlotModelComposite extends Composite {
         // Text size attribute
         new Label(textAttrGrp, SWT.NONE).setText("size");
         textSizeCombo = new Combo(textAttrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        textSizeCombo.setEnabled(false); // wait til a plot element is selected.
+        textSizeCombo.setEnabled(false); // wait until a plot element is
+                                         // selected.
         textSizeCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
@@ -247,6 +349,7 @@ public class EditPlotModelComposite extends Composite {
             }
         });
 
+        // Text attributes "Apply to All" (positions with text) button
         applyToAllBtn = new Button(textAttrGrp, SWT.CHECK);
         applyToAllBtn.setText("Apply to All");
         applyToAllBtn.setToolTipText("Apply changes to all text parameters");
@@ -260,10 +363,159 @@ public class EditPlotModelComposite extends Composite {
 
     }
 
-    /* Create Parameter List, symbol size and color picker */
+    /* create widgets for center-position-only and marker-type parameters */
+    private void createCenterParamAndMarkerControls() {
+
+        Composite comp = new Composite(topComposite, SWT.NONE);
+        GridLayout gl8 = new GridLayout(2, false);
+        comp.setLayout(gl8);
+
+        availWindBarpParams = plotParamDefns.getWindBarbParams();
+        availSkyCoverParams = plotParamDefns.getSkyCoverageParams();
+
+        ctrGrp = new Group(comp, SWT.SHADOW_NONE);
+        GridLayout gl = new GridLayout(6, false);
+        gl.marginLeft = 6;
+        gl.marginTop = 2;
+        gl.marginBottom = 3;
+        gl.marginRight = 6;
+        ctrGrp.setLayout(gl);
+        ctrGrp.setText("Center Only Parameters");
+        GridData gd8 = new GridData(420, 44);
+        ctrGrp.setLayoutData(gd8);
+
+        skycLbl = new Label(ctrGrp, SWT.None);
+        skycLbl.setText("Sky Coverage");
+
+        comboSky = new Combo(ctrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+        comboSky.setItems(availSkyCoverParams.toArray(new String[] {}));
+        comboSky.add("None", 0);
+
+        comboSky.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                String name = comboSky.getItem(comboSky.getSelectionIndex());
+
+                if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) {
+                    ((PlotModelElemCenterButton) seldPlotModelElemButton).setSkyCoverageParamName((name
+                            .equals("None") ? null : name));
+                }
+            }
+        });
+
+        Label sepe = new Label(ctrGrp, 0);
+        sepe.setText("     ");
+
+        wndBrbLbl = new Label(ctrGrp, SWT.None);
+        wndBrbLbl.setText("Wind Barb ");
+
+        comboBrbk = new Combo(ctrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+        comboBrbk.setItems(availWindBarpParams.toArray(new String[] {}));
+        comboBrbk.add("None", 0);
+
+        sepe = new Label(ctrGrp, 0);
+        sepe.setText("          ");
+
+        comboBrbk.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                String name = comboBrbk.getItem(comboBrbk.getSelectionIndex());
+
+                if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) { // sanity
+                    ((PlotModelElemCenterButton) seldPlotModelElemButton)
+                            .setWindBarbParamName((name.equals("None") ? null
+                                    : name));
+                }
+            }
+        });
+
+        setSelectedSkyAndWindParams();
+
+        enableCenterParamWidgets(false);
+
+        // Marker Type group
+
+        selectMarkerTypeGroup = new Group(comp, SWT.SHADOW_NONE);
+        selectMarkerTypeGroup.setText("Marker Type");
+        GridLayout markerTypeGridLayout = new GridLayout();
+        markerTypeGridLayout.numColumns = 1;
+        markerTypeGridLayout.marginLeft = 10;
+        markerTypeGridLayout.marginRight = 30;
+        markerTypeGridLayout.marginHeight = 2;
+        selectMarkerTypeGroup.setLayout(markerTypeGridLayout);
+
+        GridData gd4 = new GridData(105, 44);
+        selectMarkerTypeGroup.setLayoutData(gd4);
+        /*
+         * Use a toolbar with a single drop-down button item that pops up a
+         * menu, to simulate a combo that works for images.
+         */
+        markerSelectToolBar = new ToolBar(selectMarkerTypeGroup, SWT.HORIZONTAL);
+        markerSelectToolItem = new ToolItem(markerSelectToolBar, SWT.DROP_DOWN);
+        markerSelectMenu = new Menu(topComposite.getShell(), SWT.POP_UP);
+
+        for (MarkerType markerType : MarkerType.values()) {
+            MenuItem markerSelectMenuItem = new MenuItem(markerSelectMenu,
+                    SWT.PUSH);
+            markerSelectMenuItem.setData(markerType);
+            markerSelectMenuItem.setText(markerType.getDesignator());
+            // TODO: Use PGEN icons via extension points; avoid ordinal
+            Integer ord1 = markerType.ordinal() + 1;
+            String iconString = "icons/marker" + ord1.toString() + ".gif";
+            ImageDescriptor id = Activator.imageDescriptorFromPlugin(
+                    Activator.PLUGIN_ID, iconString);
+            if (id != null) {
+                Image icon = id.createImage();
+                markerSelectMenuItem.setImage(icon);
+            }
+            markerSelectMenuItem.addListener(SWT.Selection, new Listener() {
+                /*
+                 * A new marker type has been chosen off the pop-up menu:
+                 * Remember it AND set its icon back on the main button.
+                 */
+                public void handleEvent(Event event) {
+                    selectedMarkerType = (MarkerType) event.widget.getData();
+                    if (seldPlotModelElemButton != null) {
+                        seldPlotModelElemButton
+                                .setMarkerType(selectedMarkerType);
+                    }
+                    Image icon = markerSelectMenu.getItem(
+                            selectedMarkerType.ordinal()).getImage();
+                    markerSelectToolItem.setImage(icon);
+                    markerSelectToolItem.setToolTipText(selectedMarkerType
+                            .getDesignator());
+                }
+            });
+        }
+        markerSelectToolItem.addListener(SWT.Selection, new Listener() {
+            /* Main button clicked: Pop up the menu showing all the symbols. */
+            public void handleEvent(Event event) {
+                Rectangle bounds = markerSelectToolItem.getBounds();
+                Point point = markerSelectToolBar.toDisplay(bounds.x, bounds.y
+                        + bounds.height);
+                markerSelectMenu.setLocation(point);
+                markerSelectMenu.setVisible(true);
+            }
+        });
+
+        // Set initial state
+
+        Image icon = markerSelectMenu.getItem(selectedMarkerType.ordinal())
+                .getImage();
+        markerSelectToolItem.setImage(icon);
+        markerSelectToolItem.setToolTipText(selectedMarkerType.getDesignator());
+
+        // Disable until MARK parameter selected
+
+        enableMarkerTypeSelection(false);
+    }
+
+    /*
+     * Create Parameter List, symbol size, line width, and color picker
+     */
     private void createParmListControls() {
         Composite comp = new Composite(topComposite, SWT.NONE);
-        GridLayout gl = new GridLayout(3, false);
+        GridLayout gl = new GridLayout(4, false);
         comp.setLayout(gl);
 
         // Parameter List
@@ -278,17 +530,9 @@ public class EditPlotModelComposite extends Composite {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 String selectedParm = availParamsList.getSelection()[0];
-
-                if (seldPlotModelElemButton != null) { // sanity check
-                    if (!seldPlotModelElemButton.isParamNameSelected()) {
-                        // seldPlotModelElemButton.setColor( )
-                    }
-                    // if (selectedParm.equalsIgnoreCase("PTND")) {
-                    // swapInAComboBtn("PTND");
-                    // }// else a regular button
-                    // else {
+                if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.setParmName(selectedParm);
-                    // }
+                    updateTextAndSymbolWidgets();
                 }
             }
         });
@@ -309,7 +553,7 @@ public class EditPlotModelComposite extends Composite {
         symbolSizeScale.setIncrement(1);
         symbolSizeScale.setPageIncrement(1);
         symbolSizeScale.setSelection(5);
-        symbolSizeScale.setEnabled(false); // wait til a plot element is
+        symbolSizeScale.setEnabled(false); // wait until a plot element is
                                            // selected
         symbolSizeScale.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
@@ -319,6 +563,36 @@ public class EditPlotModelComposite extends Composite {
 
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.setSymbolSize(selection / 10);
+                }
+            }
+        });
+
+        // Symbol (line) width
+        GridData gd3 = new GridData(45, 114);
+        Group symbolWidthGrp = new Group(comp, SWT.SHADOW_NONE);
+        symbolWidthGrp.setLayout(new GridLayout(1, false));
+        symbolWidthGrp.setText("Width");
+
+        symbolWidthLabel = new Label(symbolWidthGrp, SWT.BOLD);
+        symbolWidthLabel.setText("    0.5");
+
+        symbolWidthScale = new Scale(symbolWidthGrp, SWT.VERTICAL);
+        symbolWidthScale.setLayoutData(gd3);
+        symbolWidthScale.setMinimum(5);
+        symbolWidthScale.setMaximum(50);
+        symbolWidthScale.setIncrement(1);
+        symbolWidthScale.setPageIncrement(1);
+        symbolWidthScale.setSelection(5);
+        symbolWidthScale.setEnabled(false); // wait until a plot element is
+                                            // selected
+        symbolWidthScale.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                double selection = symbolWidthScale.getSelection();
+
+                symbolWidthLabel.setText(String.valueOf(selection / 10));
+
+                if (seldPlotModelElemButton != null) {
+                    seldPlotModelElemButton.setSymbolWidth(selection / 10);
                 }
             }
         });
@@ -365,7 +639,6 @@ public class EditPlotModelComposite extends Composite {
         gd.grabExcessHorizontalSpace = true;
         gd.verticalAlignment = GridData.CENTER;
         clearPlotModelBtn.setLayoutData(gd);
-        // TTR 921: Change button setting to be enabled.
         clearPlotModelBtn.setEnabled(true);
         clearPlotModelBtn.addSelectionListener(new SelectionListener() {
             public void widgetSelected(SelectionEvent event) {
@@ -400,7 +673,6 @@ public class EditPlotModelComposite extends Composite {
         gd.grabExcessHorizontalSpace = true;
         gd.verticalAlignment = GridData.CENTER;
         resetPlotModelBtn.setLayoutData(gd);
-        // TTR 921 Change the button setting to enabled
         resetPlotModelBtn.setEnabled(true);
         resetPlotModelBtn.addSelectionListener(new SelectionListener() {
             public void widgetSelected(SelectionEvent event) {
@@ -437,7 +709,8 @@ public class EditPlotModelComposite extends Composite {
 
             try {
                 // center button stores the sky coverage and wind barb params
-                if (plotModelElementPositions[i].equals("MC")) {
+                if (plotModelElementPositions[i]
+                        .equals(ELEMENT_POSITION_MIDDLE_CENTER)) {
                     PlotModelElemCenterButton cntrBtn = new PlotModelElemCenterButton(
                             comp, pme, editedPlotModel.getSkyCoverageElement(),
                             editedPlotModel.getWindBarbElement());
@@ -482,6 +755,7 @@ public class EditPlotModelComposite extends Composite {
         advancedBtn.addSelectionListener(new SelectionListener() {
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
+                    advancedBtn.setEnabled(false);
                     editAdvancedSettings();
                 }
             }
@@ -537,11 +811,8 @@ public class EditPlotModelComposite extends Composite {
 
             grp.setLayoutData(gd);
 
-            if (advancedIconFile != null && advancedIconFile.exists()
-                    && pltMdlElmt.hasAdvancedSettings()) {
-                Image image = new Image(Display.getCurrent(),
-                        advancedIconFile.getAbsolutePath());
-                grp.setBackgroundImage(image);
+            if (advancedIconImage != null && pltMdlElmt.hasAdvancedSettings()) {
+                grp.setBackgroundImage(advancedIconImage);
                 grp.setToolTipText("Advanced Settings Applied.");
             } else {
                 grp.setBackgroundImage(null);
@@ -614,6 +885,7 @@ public class EditPlotModelComposite extends Composite {
                 } else { // Parm not selected yet
                          // Set color in the ColorMatrixSelector widget
                     cms.setColorValue(getColor());
+                    enableMarkerTypeSelection(true);
                 }
 
                 // unselect other buttons, change color back to original grey
@@ -650,8 +922,31 @@ public class EditPlotModelComposite extends Composite {
                 return 1.0;
         }
 
+        public void setSymbolWidth(Double width) {
+            pltMdlElmt.setSymbolWidth(width);
+        }
+
+        public Double getSymbolWidth() {
+            if (pltMdlElmt.getParamName() != null)
+                return pltMdlElmt.getSymbolWidth();
+            else
+                return 1.0;
+        }
+
+        public void setMarkerType(MarkerType markerType) {
+            pltMdlElmt.setMarkerType(markerType);
+        }
+
+        public MarkerType getMarkerType() {
+            if (pltMdlElmt.getParamName().equals(MARK_PARAMETER))
+                return pltMdlElmt.getMarkerType();
+            else
+                return MarkerType.BOX;
+        }
+
         public String getButtonLabel() {
-            return (isParamNameSelected() ? pltMdlElmt.getParamName() : "Parm");
+            return (isParamNameSelected() ? pltMdlElmt.getParamName()
+                    : EMPTY_MODEL_ELEMENT_LABEL);
         }
 
         public void setButtonAsSelected() {
@@ -736,15 +1031,15 @@ public class EditPlotModelComposite extends Composite {
             return pltMdlElmt.getPosition();
         }
 
-        protected void setParmName(String parmName) {
+        protected void setParmName(String parameterName) {
 
             if (pltMdlElmt.getParamName() == null) {
                 editedPlotModel.putPlotModelElement(pltMdlElmt);
-                pltMdlElmt.setParamName(parmName);
+                pltMdlElmt.setParamName(parameterName);
                 updateTextAndSymbolWidgets();
                 parmBtn.setToolTipText("");
             } else {
-                pltMdlElmt.setParamName(parmName);
+                pltMdlElmt.setParamName(parameterName);
             }
 
             parmBtn.setText(getButtonLabel());
@@ -757,7 +1052,7 @@ public class EditPlotModelComposite extends Composite {
 
             //
             PlotParameterDefn paramDefn = plotParamDefns
-                    .getPlotParamDefn(parmName);
+                    .getPlotParamDefn(parameterName);
             if (paramDefn == null) {
                 parmBtn.setToolTipText("");
             } else {
@@ -779,8 +1074,8 @@ public class EditPlotModelComposite extends Composite {
                     .getColor().getGreen(), pltMdlElmt.getColor().getBlue());
         }
 
-        protected void setColor(RGB rgb) {
-            pltMdlElmt.setColorRGB(rgb);
+        protected void setColor(RGB color) {
+            pltMdlElmt.setColorRGB(color);
         }
     }
 
@@ -808,13 +1103,13 @@ public class EditPlotModelComposite extends Composite {
                 wndBrbElmt.setPosition("WD");
             }
 
-            if (advancedIconFile != null
-                    && advancedIconFile.exists()
-                    && (skyCovElmt.hasAdvancedSettings() || wndBrbElmt
-                            .hasAdvancedSettings())) {
-                Image image = new Image(Display.getCurrent(),
-                        advancedIconFile.getAbsolutePath());
-                grp.setBackgroundImage(image);
+            // If any of wind barb, sky coverage, and regular plot model element
+            // has advanced settings, set the rainbow color.
+            if (advancedIconImage != null
+                    && (pme.hasAdvancedSettings()
+                            || skyCovElmt.hasAdvancedSettings() || wndBrbElmt
+                                .hasAdvancedSettings())) {
+                grp.setBackgroundImage(advancedIconImage);
                 grp.setToolTipText("Advanced Settings Applied.");
             } else {
                 grp.setBackgroundImage(null);
@@ -845,12 +1140,12 @@ public class EditPlotModelComposite extends Composite {
 
         }
 
-        // If a 'normal' param is selected in the center then the SkyC and
+        // If a 'normal' parameter is selected in the center then the SkyC and
         // WindBarb are disabled and if a skyC or WindBarb is selected then the
         // normal param is not allowed.
         @Override
-        public void setParmName(String prm) {
-            super.setParmName(prm);
+        public void setParmName(String parameter) {
+            super.setParmName(parameter);
 
             setSkyCoverageParamName(null);
             setWindBarbParamName(null);
@@ -864,14 +1159,14 @@ public class EditPlotModelComposite extends Composite {
             return wndBrbElmt.getParamName();
         }
 
-        public void setWindBarbParamName(String prm) {
+        public void setWindBarbParamName(String parameter) {
             // in case the parameter is set for the first time we need to add
             // the plotModelElement to the plotModel
-            if (prm != null) {
+
+            if (parameter != null) {
                 if (wndBrbElmt.getParamName() == null) {
-                    wndBrbElmt.setParamName(prm);
+                    wndBrbElmt.setParamName(parameter);
                     editedPlotModel.putPlotModelElement(wndBrbElmt);
-                    updateTextAndSymbolWidgets();
 
                     // we can't have a skyc and a normal parameter
                     editedPlotModel.removePlotModelElement(pltMdlElmt);
@@ -881,23 +1176,24 @@ public class EditPlotModelComposite extends Composite {
                 editedPlotModel.removePlotModelElement(wndBrbElmt);
             }
 
-            wndBrbElmt.setParamName(prm);
-
+            wndBrbElmt.setParamName(parameter);
             parmBtn.setText(getButtonLabel());
+            // This update for both wind barb and not wind barb.
+            updateTextAndSymbolWidgets();
         }
 
         public String getSkyCovParamName() {
             return skyCovElmt.getParamName();
         }
 
-        public void setSkyCoverageParamName(String prm) {
+        public void setSkyCoverageParamName(String parameter) {
             // in case the parameter is set for the first time we need to add
             // the plotModelElement to the plotModel
-            if (prm != null) {
+
+            if (parameter != null) {
                 if (skyCovElmt.getParamName() == null) {
-                    skyCovElmt.setParamName(prm);
+                    skyCovElmt.setParamName(parameter);
                     editedPlotModel.putPlotModelElement(skyCovElmt);
-                    updateTextAndSymbolWidgets();
                 }
 
                 // we can't have a skyc and a normal parameter
@@ -907,9 +1203,10 @@ public class EditPlotModelComposite extends Composite {
                 editedPlotModel.removePlotModelElement(skyCovElmt);
             }
 
-            skyCovElmt.setParamName(prm);
-
+            skyCovElmt.setParamName(parameter);
             parmBtn.setText(getButtonLabel());
+            // This update for both sky coverage and not sky coverage.
+            updateTextAndSymbolWidgets();
         }
 
         @Override
@@ -948,6 +1245,19 @@ public class EditPlotModelComposite extends Composite {
             }
         }
 
+        @Override
+        public Double getSymbolWidth() {
+            if (pltMdlElmt.getParamName() != null) {
+                return pltMdlElmt.getSymbolWidth();
+            } else if (skyCovElmt.getParamName() != null) {
+                return skyCovElmt.getSymbolWidth();
+            } else if (wndBrbElmt.getParamName() != null) {
+                return wndBrbElmt.getSymbolWidth();
+            } else {
+                return 1.0;
+            }
+        }
+
         // the color should be the same in any/all elements
         @Override
         protected RGB getColor() {
@@ -967,10 +1277,10 @@ public class EditPlotModelComposite extends Composite {
         }
 
         @Override
-        public void setColor(RGB col) {
-            super.setColor(col);
-            wndBrbElmt.setColorRGB(col);
-            skyCovElmt.setColorRGB(col);
+        public void setColor(RGB color) {
+            super.setColor(color);
+            wndBrbElmt.setColorRGB(color);
+            skyCovElmt.setColorRGB(color);
         }
 
         @Override
@@ -1016,11 +1326,20 @@ public class EditPlotModelComposite extends Composite {
             this.skyCovElmt.setSymbolSize(size);
         }
 
+        @Override
+        public void setSymbolWidth(Double width) {
+            super.setSymbolWidth(width);
+            this.wndBrbElmt.setSymbolWidth(width);
+            this.skyCovElmt.setSymbolWidth(width);
+        }
+
     }
 
     public void initWidgets() {
         if (editedPlotModel == null) {
-            System.out.println("Plot Model to Edit is not set???");
+            statusHandler
+                    .handle(Priority.PROBLEM,
+                            "Null editedPlotModel in initWidgets() of the class EditPlotModelComposite");
             return;
         }
 
@@ -1035,7 +1354,7 @@ public class EditPlotModelComposite extends Composite {
 
         String[] strArray = plotParamDefns.getAllParameterNames(false, true);
 
-        // TTR 923 remove "P03X" from the menu ( the dummy XML it comes from in
+        // Remove "P03X" from the menu ( the dummy XML it comes from in
         // plotParameters_obs.xml is needed to make the code run without a
         // a significant amount of reworking
         ArrayList<String> parameterNames = new ArrayList<String>();
@@ -1050,75 +1369,9 @@ public class EditPlotModelComposite extends Composite {
         availParamsList.setEnabled(false);
     }
 
-    /* create widgets for center position only parameters */
-    private void createCtrParamControls() {
-
-        availWindBarpParams = plotParamDefns.getWindBarbParams();
-        availSkyCoverParams = plotParamDefns.getSkyCoverageParams();
-
-        ctrGrp = new Group(topComposite, SWT.SHADOW_NONE);
-        GridLayout gl = new GridLayout(6, false);
-        gl.marginLeft = 25;
-        gl.marginTop = 2;
-        gl.marginBottom = 3;
-        gl.marginRight = 52;
-        ctrGrp.setLayout(gl);
-        ctrGrp.setText("Center Only Parameters");
-
-        skycLbl = new Label(ctrGrp, SWT.None);
-        skycLbl.setText("Sky Coverage");
-
-        comboSky = new Combo(ctrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
-
-        comboSky.setItems(availSkyCoverParams.toArray(new String[] {}));
-        comboSky.add("None", 0);
-
-        comboSky.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                String name = comboSky.getItem(comboSky.getSelectionIndex());
-
-                if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) {
-                    ((PlotModelElemCenterButton) seldPlotModelElemButton).setSkyCoverageParamName((name
-                            .equals("None") ? null : name));
-                }
-            }
-        });
-
-        Label sepe = new Label(ctrGrp, 0);
-        sepe.setText("     ");
-
-        wndBrbLbl = new Label(ctrGrp, SWT.None);
-        wndBrbLbl.setText("Wind Barb ");
-
-        comboBrbk = new Combo(ctrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
-
-        comboBrbk.setItems(availWindBarpParams.toArray(new String[] {}));
-        comboBrbk.add("None", 0);
-
-        sepe = new Label(ctrGrp, 0);
-        sepe.setText("          ");
-
-        comboBrbk.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                String name = comboBrbk.getItem(comboBrbk.getSelectionIndex());
-
-                if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) { // sanity
-                                                                                    // check
-                    ((PlotModelElemCenterButton) seldPlotModelElemButton)
-                            .setWindBarbParamName((name.equals("None") ? null
-                                    : name));
-                }
-            }
-        });
-
-        setSelectedSkyAndWindParams();
-
-        enableCenterParamWidgets(false);
-    }
-
     private void setSelectedSkyAndWindParams() {
         PlotModelElemCenterButton cntrBtn = (PlotModelElemCenterButton) plotModelElementsUIMap
-                .get("MC");
+                .get(ELEMENT_POSITION_MIDDLE_CENTER);
 
         String seldSkyCovParam = cntrBtn.getSkyCovParamName();
 
@@ -1143,10 +1396,15 @@ public class EditPlotModelComposite extends Composite {
         PlotParameterDefn prmDefn = null;
         boolean isTextApplicable = false;
         boolean isSymbApplicable = false;
+        boolean isMarkApplicable = false;
 
-        if (seldPlotModelElemButton != null
-                && seldPlotModelElemButton.isParamNameSelected()) {
+        if (!isValidSelectedPlotModelElement()
+                || plotModelElementsBeingEdited
+                        .contains(seldPlotModelElemButton.getPosition())) {
 
+            // Disable the Advanced button if the above condition holds.
+            advancedBtn.setEnabled(false);
+        } else {
             advancedBtn.setEnabled(true);
 
             prmDefn = plotParamDefns.getPlotParamDefn(seldPlotModelElemButton
@@ -1155,20 +1413,33 @@ public class EditPlotModelComposite extends Composite {
             // Add further constraints here on the plot class if necessary
             if (prmDefn != null) {
                 isTextApplicable = prmDefn.getPlotMode().equalsIgnoreCase(
-                        "text");
+                        PlotParameterDefn.PLOT_MODE_TEXT);
+                isMarkApplicable = prmDefn.getPlotMode().equalsIgnoreCase(
+                        PlotParameterDefn.PLOT_MODE_MARKER);
                 isSymbApplicable = prmDefn.getPlotMode().equalsIgnoreCase(
-                        "table")
+                        PlotParameterDefn.PLOT_MODE_TABLE)
+                        // PTND includes a symbol (table) component...
+                        || prmDefn.getPlotParamName().equalsIgnoreCase(
+                                PlotParameterDefn.PLOT_PARAMETER_NAME_PTND)
+                        // ...markers are a subset of symbols...
+                        || isMarkApplicable
+                        // ...and symbol controls (size and line width) apply to
+                        // vectors too...
                         || prmDefn.isVectorParameter();
             }
             // If this is the center button and a 'regular' parameter isn't set
             // then check if a skyc or wind barb is set and check if the symbol
             // is applicable
-            else if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) {
-                PlotModelElemCenterButton cntrBtn = (PlotModelElemCenterButton) seldPlotModelElemButton;
-                if (cntrBtn.getSkyCovParamName() != null
-                        || cntrBtn.getWindBarbParamName() != null) {
-                    isTextApplicable = false;
-                    isSymbApplicable = true;
+            else {
+                isMarkApplicable = true;
+                if (seldPlotModelElemButton instanceof PlotModelElemCenterButton) {
+                    PlotModelElemCenterButton cntrBtn = (PlotModelElemCenterButton) seldPlotModelElemButton;
+                    if (cntrBtn.getSkyCovParamName() != null
+                            || cntrBtn.getWindBarbParamName() != null) {
+                        isTextApplicable = false;
+                        isSymbApplicable = true;
+                        isMarkApplicable = false;
+                    }
                 }
             }
 
@@ -1238,13 +1509,54 @@ public class EditPlotModelComposite extends Composite {
             symbolSizeScale.setEnabled(false);
             symbolSizeLabel.setText("    ");
         }
+
+        // Set symbol line width if applicable
+        if (isSymbApplicable) {
+
+            symbolWidthScale.setEnabled(true);
+
+            if (seldPlotModelElemButton.getSymbolWidth() > 5) {
+                symbolWidthScale.setSelection(50);
+                symbolWidthLabel.setText("    " + 5.0);
+            } else {
+                double width = seldPlotModelElemButton.getSymbolWidth();
+                symbolWidthScale.setSelection((int) (width * 10));
+                symbolWidthLabel.setText("    " + width);
+            }
+        } else {
+            symbolWidthScale.setSelection(0);
+            symbolWidthScale.setEnabled(false);
+            symbolWidthLabel.setText("    ");
+        }
+
+        // Set marker type if applicable
+        if (isMarkApplicable) {
+            selectedMarkerType = seldPlotModelElemButton.getMarkerType();
+            enableMarkerTypeSelection(true);
+        } else {
+            enableMarkerTypeSelection(false);
+        }
+
     }
 
-    private void enableCenterParamWidgets(boolean enable) {
-        skycLbl.setEnabled(enable);
-        comboSky.setEnabled(enable);
-        wndBrbLbl.setEnabled(enable);
-        comboBrbk.setEnabled(enable);
+    private void enableMarkerTypeSelection(boolean isEnabled) {
+        if (isEnabled) {
+            Image icon = markerSelectMenu.getItem(selectedMarkerType.ordinal())
+                    .getImage();
+            markerSelectToolItem.setImage(icon);
+            markerSelectToolItem.setToolTipText(selectedMarkerType
+                    .getDesignator());
+        }
+        markerSelectToolBar.setEnabled(isEnabled);
+        markerSelectToolItem.setEnabled(isEnabled);
+        markerSelectMenu.setEnabled(isEnabled);
+    }
+
+    private void enableCenterParamWidgets(boolean isEnabled) {
+        skycLbl.setEnabled(isEnabled);
+        comboSky.setEnabled(isEnabled);
+        wndBrbLbl.setEnabled(isEnabled);
+        comboBrbk.setEnabled(isEnabled);
     }
 
     public PlotModel getEditedPlotModel() {
@@ -1285,17 +1597,23 @@ public class EditPlotModelComposite extends Composite {
             skycPltMdlElmt = cntrBtn.getSkyCoveragePlotModelElement();
             wbPltMdlElmt = cntrBtn.getWindBarbPlotModelElement();
 
-            if (skycPltMdlElmt != null) {
+            // Properly assign selected element so Edit Advanced Options dialog
+            // can be polualted.
+            if (skycPltMdlElmt.getParamName() != null) {
                 pltMdlElmt = skycPltMdlElmt;
-            } else if (wbPltMdlElmt != null) {
+
+            } else if (wbPltMdlElmt.getParamName() != null) {
                 pltMdlElmt = wbPltMdlElmt;
 
             } else {
-                return;
+                pltMdlElmt = seldPlotModelElemButton.pltMdlElmt;
             }
         } else {
             pltMdlElmt = seldPlotModelElemButton.pltMdlElmt;
         }
+
+        String position = seldPlotModelElemButton.getPosition();
+        plotModelElementsBeingEdited.add(position);
 
         if (pltMdlElmt.getConditionalColorBar() == null) {
             ConditionalColorBar newColorBar = new ConditionalColorBar();
@@ -1310,10 +1628,29 @@ public class EditPlotModelComposite extends Composite {
         EditPlotModelElementAdvancedDialog editConditionalFilterDlg = new EditPlotModelElementAdvancedDialog(
                 topComposite.getShell(), pltMdlElmt, plotParamDefns);
 
+        // Open Edit Advanced Options dialog lower-right to the previous one.
+        int xCoordinate, yCoordinate;
+        if (offsetCount == 0) {
+            initXCoord = topComposite.getShell().getLocation().x
+                    + topComposite.getShell().getSize().x + 10;
+            initYCoord = topComposite.getShell().getLocation().y;
+        }
+        xCoordinate = initXCoord + offsetCount
+                * X_OFFSET_FOR_EDIT_ADVANCED_OPTIONS_DIALOG;
+        yCoordinate = initYCoord + offsetCount
+                * Y_OFFSET_FOR_EDIT_ADVANCED_OPTIONS_DIALOG;
+        offsetCount++;
+
         PlotModelElement newPme = (PlotModelElement) editConditionalFilterDlg
-                .open(topComposite.getShell().getLocation().x
-                        + topComposite.getShell().getSize().x + 10,
-                        topComposite.getShell().getLocation().y);
+                .open(this, xCoordinate, yCoordinate);
+
+        // This prevents exception of "widget is disposed".
+        if (shell.isDisposed()) {
+            clearEditedList();
+            return;
+        }
+
+        plotModelElementsBeingEdited.remove(position);
 
         if (newPme != null) {
             pltMdlElmt = newPme;
@@ -1322,17 +1659,19 @@ public class EditPlotModelComposite extends Composite {
             pltMdlElmt.setConditionalColorBar(prevCondColorBar);
         }
 
-        if (pltMdlElmt.hasAdvancedSettings()) {
-            if (advancedIconFile != null && advancedIconFile.exists()) {
-                Image image = new Image(Display.getCurrent(),
-                        advancedIconFile.getAbsolutePath());
-                seldPlotModelElemButton.grp.setBackgroundImage(image);
+        // Avoid null-pointer exceptions thrown.
+        if (seldPlotModelElemButton != null
+                && seldPlotModelElemButton.grp != null) {
+            if (advancedIconImage != null && pltMdlElmt.hasAdvancedSettings()) {
+                seldPlotModelElemButton.grp
+                        .setBackgroundImage(advancedIconImage);
+                seldPlotModelElemButton.grp
+                        .setToolTipText("Advanced Settings Applied.");
+
+            } else {
+                seldPlotModelElemButton.grp.setBackgroundImage(null);
+                seldPlotModelElemButton.grp.setToolTipText("");
             }
-            seldPlotModelElemButton.grp
-                    .setToolTipText("Advanced Settings Applied.");
-        } else {
-            seldPlotModelElemButton.grp.setBackgroundImage(null);
-            seldPlotModelElemButton.grp.setToolTipText("");
         }
 
         if (skycPltMdlElmt != null && wbPltMdlElmt != null) {
@@ -1345,11 +1684,10 @@ public class EditPlotModelComposite extends Composite {
             wbPltMdlElmt.setConditionalColorBar(pltMdlElmt
                     .getConditionalColorBar());
         }
-
     }
 
-    // TTR 921
     private void clearPlotModel() {
+        clearEditedList();
 
         PlotModelElemCenterButton pmecb = null;
         PlotModelElemButton pmeBtn = null;
@@ -1369,14 +1707,15 @@ public class EditPlotModelComposite extends Composite {
         for (String position : plotModelElementPositions) {
 
             // Clear special middle center button
-            if (position.equalsIgnoreCase("MC")) {
+            if (position.equalsIgnoreCase(ELEMENT_POSITION_MIDDLE_CENTER)) {
                 pmecb = (PlotModelElemCenterButton) plotModelElementsUIMap
-                        .get("MC");
-                pmecb.parmBtn.setText("Parm");
+                        .get(ELEMENT_POSITION_MIDDLE_CENTER);
+                pmecb.parmBtn.setText(EMPTY_MODEL_ELEMENT_LABEL);
                 pmecb.parmBtn.setSelection(false);
                 pmecb.checkBtn.setSelection(false);
                 pmecb.checkBtn.setEnabled(false);
                 pmecb.grp.setBackground(widget_background);
+                pmecb.grp.setBackgroundImage(null); // Clear the rainbow image
                 pmecb.parmBtn.setBackground(widget_background);
                 pmecb.parmBtn.setForeground(widget_foreground);
                 editedPlotModel.removePlotModelElement(pmecb
@@ -1392,11 +1731,12 @@ public class EditPlotModelComposite extends Composite {
             }// all other positions
             else {
                 pmeBtn = plotModelElementsUIMap.get(position);
-                pmeBtn.parmBtn.setText("Parm");
+                pmeBtn.parmBtn.setText(EMPTY_MODEL_ELEMENT_LABEL);
                 pmeBtn.parmBtn.setSelection(false);
                 pmeBtn.checkBtn.setSelection(false);
                 pmeBtn.checkBtn.setEnabled(false);
                 pmeBtn.grp.setBackground(widget_background);
+                pmeBtn.grp.setBackgroundImage(null); // Clear the rainbow image
                 pmeBtn.parmBtn.setBackground(widget_background);
                 pmeBtn.parmBtn.setForeground(widget_foreground);
                 editedPlotModel.removePlotModelElement(pmeBtn
@@ -1404,12 +1744,11 @@ public class EditPlotModelComposite extends Composite {
                 pmeBtn.pltMdlElmt = new PlotModelElement();
                 pmeBtn.pltMdlElmt.setPosition(position);
             }
-
         }// end for-loop
-
     }// end method clearPlotModel()
 
     private void resetPlotModel() {
+        clearEditedList();
 
         PlotModel origPlotModel = new PlotModel(this.getOriginalPlotModel());
         PlotModelElement opme = null;
@@ -1430,12 +1769,13 @@ public class EditPlotModelComposite extends Composite {
             }
 
             // Reset the special center button
-            if (position.equalsIgnoreCase("MC")) {
+            if (position.equalsIgnoreCase(ELEMENT_POSITION_MIDDLE_CENTER)) {
 
                 oskypme = origPlotModel.getSkyCoverageElement();
                 owindpme = origPlotModel.getWindBarbElement();
 
-                // Not all plot models have a "MC" button with sky & wind PMEs
+                // Not all plot models have a MIDDLE_CENTER button with sky &
+                // wind PMEs
                 if (oskypme != null)
                     tpme = oskypme;
                 else if (owindpme != null)
@@ -1474,6 +1814,10 @@ public class EditPlotModelComposite extends Composite {
                     cntrBtn.pltMdlElmt.setParamName(null);
                 }
 
+                if (advancedIconImage != null && tpme.hasAdvancedSettings()) {
+                    cntrBtn.grp.setBackgroundImage(advancedIconImage);
+                }
+
                 cntrBtn.init();
 
             }// reset all other positions
@@ -1490,6 +1834,10 @@ public class EditPlotModelComposite extends Composite {
                 pmeBtn.setParmName(opme.getParamName());
                 pmeBtn.pltMdlElmt = opme;
 
+                if (advancedIconImage != null && opme.hasAdvancedSettings()) {
+                    pmeBtn.grp.setBackgroundImage(advancedIconImage);
+                }
+
                 pmeBtn.init();
 
             }// end all other positions
@@ -1499,17 +1847,13 @@ public class EditPlotModelComposite extends Composite {
             } else { // opme null paramname
                 editedPlotModel.removePlotModelElement(opme);
             }
-
         }// end for-loop
     }
 
-    // TTR 921
     private PlotModel getOriginalPlotModel() {
-
         PlotModel origPlotModel = null;
 
         try {
-
             if (rscData != null) {
                 INatlCntrsResourceData origResourceData = null;
                 ResourceName resource_name = null;
@@ -1525,20 +1869,70 @@ public class EditPlotModelComposite extends Composite {
                         origResourceData.getRscAttrSet());
                 origPlotModelRscAttr = origAttrSet.getRscAttr("plotModel");
                 origPlotModel = (PlotModel) origPlotModelRscAttr.getAttrValue();
+
             } else {
-                String plugin, plotmodelname = null;
-                plugin = editedPlotModel.getPlugin();
-                plotmodelname = editedPlotModel.getName();
-                origPlotModel = PlotModelMngr.getInstance().getPlotModel(
-                        plugin, plotmodelname);
+                // Find original plot model based on localization info.
+                String editedPlugin = editedPlotModel.getPlugin();
+                String editedName = editedPlotModel.getName();
+                LocalizationLevel editedLevel = editedPlotModel
+                        .getLocalizationFile().getContext()
+                        .getLocalizationLevel();
+
+                HashMap<String, PlotModel> originalPlotModels = PlotModelMngr
+                        .getInstance().getPlotModelsByPlugin(editedPlugin);
+
+                for (PlotModel model : originalPlotModels.values()) {
+                    LocalizationLevel level = model.getLocalizationFile()
+                            .getContext().getLocalizationLevel();
+
+                    if (model.getName().equals(editedName)
+                            && level.equals(editedLevel)) {
+                        origPlotModel = model;
+                        break;
+                    }
+                }
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            statusHandler.handle(Priority.PROBLEM,
+                    "not able to get original plot model." + e);
         }
-
         return origPlotModel;
-
     }
 
+    /**
+     * This method allows Edit Advanced Options dialog to register its shell
+     * (window).
+     */
+    public void addChild(Shell child) {
+        childrenList.add(child);
+    }
+
+    /**
+     * 
+     */
+    private boolean isValidSelectedPlotModelElement() {
+        return !(seldPlotModelElemButton == null
+                || !seldPlotModelElemButton.isParamNameSelected() || seldPlotModelElemButton
+                .getButtonLabel().equals(EMPTY_MODEL_ELEMENT_LABEL));
+    }
+
+    /**
+     * Clear the list of Plot Model elements that are being edited, and dispose
+     * their Edit Advanced Options dialogs.
+     */
+    public void clearEditedList() {
+        plotModelElementsBeingEdited = new HashSet<String>();
+
+        for (Shell child : childrenList) {
+            child.dispose();
+        }
+        childrenList = new HashSet<Shell>();
+    }
+
+    /**
+     * Restart the position offsetCount for Advanced Options Dialog.
+     */
+    public static void clearAdvancedOptionsDialogPositionOffsetCount() {
+        offsetCount = 0;
+    }
 }

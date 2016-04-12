@@ -10,7 +10,11 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Jun 26, 2015  R8198     srussell     Initial creation
+ * Jun 26, 2015  R8198     srussell    Initial creation
+ * 11/18/2015    R12829    J. Wu       Add more common constants.
+ * 12/17/2015    R12990    J. Wu       Add more constants.
+ * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
+ * 01/27/2016    R13166    J. Wu       Add CIRCLE.
  * 
  * </pre>
  * 
@@ -57,4 +61,25 @@ public final class PgenConstant {
 
     public static final String PGENTYPE_GENERAL_TEXT = "General Text";
 
+    public static final String CIRCLE = "Circle";
+
+    public static final String PARM = "Parm";
+
+    public static final String LEVEL = "Level";
+
+    public static final String FORECAST_HOUR = "ForecastHour";
+
+    public static final String NONE = "None";
+
+    public static final String DEFAULT_SUBTYPE = "None";
+
+    public static final String CONTOURS = "Contours";
+
+    public static final String EVENT_DEFAULT_TEXT = "defaultTxt";
+
+    public static final String EVENT_LABEL = "addLabel";
+
+    public static final String EVENT_PREV_COLOR = "usePrevColor";
+
+    public static final String EVENT_OTHER = "Other";
 }

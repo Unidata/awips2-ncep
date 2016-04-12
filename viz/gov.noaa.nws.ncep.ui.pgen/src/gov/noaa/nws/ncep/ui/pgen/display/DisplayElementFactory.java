@@ -11,6 +11,7 @@ import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
 import gov.noaa.nws.ncep.ui.pgen.PgenRangeRecord;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.CcfpAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourCircle;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
@@ -74,6 +75,9 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -117,47 +121,60 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 03/10		#223		M.Laryukhin	Gfa added. 
- * 11/10		?			B. Yin		Added an option to draw one column mid-level cloud text
- * 11/10		#345		J. Wu		Added an option to not drawing a Text element
- * 12/10		#321		J. Wu		Auto-adjust label positions for Contours.
- * 01/11		#235D		B. Hebbard	Added grouping Vectors in few display elements for faster performance
- * 02/11		?			B. Yin		Combine WatchBox counties to fill the area
- * 04/11		?			B. Yin		Use Geometry instead of MultiPolygon for county shapes
- * 04/11		#?			B. Yin		Re-factor IAttribute, changed ISinglePoint to ISymbol
- * 07/11		#?			J. Wu		Allow more than 1 labels for closed contour lines.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 03/10        #223        M.Laryukhin Gfa added. 
+ * 11/10        ?           B. Yin      Added an option to draw one column mid-level cloud text
+ * 11/10        #345        J. Wu       Added an option to not drawing a Text element
+ * 12/10        #321        J. Wu       Auto-adjust label positions for Contours.
+ * 01/11        #235D       B. Hebbard  Added grouping Vectors in few display elements for faster performance
+ * 02/11        ?           B. Yin      Combine WatchBox counties to fill the area
+ * 04/11        ?           B. Yin      Use Geometry instead of MultiPolygon for county shapes
+ * 04/11        #?          B. Yin      Re-factor IAttribute, changed ISinglePoint to ISymbol
+ * 07/11        #?          J. Wu       Allow more than 1 labels for closed contour lines.
  * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
  * 03/12        #697        Q. Zhou     Fixed line arrow head size for line & gfa  
  * 07/12        #834        J. Wu       Fixed fuzzy text display. 
- * 08/12		#760		B. Yin		Modify line factory to apply world wrap.
- * 09/12					B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
- * 11/12		#901/917  	J. Wu		Set the symbol in GFA text box in proper location/size
+ * 08/12        #760        B. Yin      Modify line factory to apply world wrap.
+ * 09/12                    B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
+ * 11/12        #901/917    J. Wu       Set the symbol in GFA text box in proper location/size
  * 05/13                    Chin Chen   use IDescriptor instead of IMapDescriptor for used by Nsharp wind barb drawing
- * 07/13        #988        Archana 	added createDisplayElements() to add all symbols in the same color to a single wire-frame.
+ * 07/13        #988        Archana     added createDisplayElements() to add all symbols in the same color to a single wire-frame.
  * 09/23/13                 Chin Chen   changed several private variables/methods to protected, for NsharpDisplayElementFactory now extend from
- * 										this class
+ *                                      this class
  * 11/13        TTR 752     J. Wu       added methods to compute an element's range record.
- * 12/13		#1089		B. Yin		Modify watch to display county list
+ * 12/13        #1089       B. Yin      Modify watch to display county list
  * 02/14        #2819       R. Anderson Removed unnecessary .clone() call
  * 05/14        TTR 995     J. Wu       Make contour label auto-placement an option.
  * 07/14        ?           B. Yin      Added support for dashed-line circle for TCM 12 feet sea.
- * 08/14		?			B. Yin		Fixed world wrap for TCM track and zero circle issues.
+ * 08/14        ?           B. Yin      Fixed world wrap for TCM track and zero circle issues.
  * 08/14        TTR972      J. Wu       Draw filled object as filled only if either its layer's "filled" flag
  *                                      "true" or they are on the active layer,  .
  * 09/14        TTR750      J. Wu       Draw track label with specified font styles.
- * 12/14		R5413		B. Yin		Dispose image and font in find*Ranges methods
+ * 12/14        R5413       B. Yin      Dispose image and font in find*Ranges methods
  * 03/15        R4862       M. Kean     changes related to new point reduced data
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * 08/15        R7757       B. Hebbard  Upgrade createDisplayElements(List<IVector>,--) to handle heterogeneous
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
+ * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.  
+ *                                      Moved world wrap code and smoothing code to its own function.
  * </pre>
  * 
  * @author sgilbert
  * 
  */
+
+/*
+ * TODO This class is too large consider moving some of the business logic out
+ * or create new classes/methods when changing this code
+ */
 public class DisplayElementFactory {
+
+    private static final IUFStatusHandler handler = UFStatus
+            .getHandler(DisplayElementFactory.class);
 
     /*
      * LinePattern segment scale types (used to rescale LinePattern so that line
@@ -207,6 +224,11 @@ public class DisplayElementFactory {
     ArrayList<IDisplayable> dlisti = null;
 
     private float zoomLevel = 0;
+
+    // Default spacing between a Contour symbol and its label.
+    private static int contourSymbolXOffset = 0;
+
+    private static int contourSymbolYOffset = 5;
 
     /*
      * R6520 - a factor to adjust the front pip size (scaleFactor) to visually
@@ -281,9 +303,10 @@ public class DisplayElementFactory {
     }
 
     /**
-     * Creates a list of IDisplayable Objects from an IMultiPoint object
+     * Creates a list of IDisplayable Objects from an IMultiPoint object and
+     * applies world wrap if applicable
      * 
-     * @param de
+     * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
      *            The paint properties associated with the target
@@ -291,83 +314,121 @@ public class DisplayElementFactory {
      *            The flag to apply world wrap for lines
      * @return A list of IDisplayable elements
      */
-    public ArrayList<IDisplayable> createDisplayElements(ILine de,
+    public ArrayList<IDisplayable> createDisplayElements(ILine drawableElement,
             PaintProperties paintProps, boolean worldWrap) {
 
         if (worldWrap) {
-            elem = de;
-            ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+            return createWorldWrappedDisplayElements(drawableElement,
+                    paintProps);
+        }
 
-            WorldWrapCorrector corrector = new WorldWrapCorrector(
-                    iDescriptor.getGridGeometry());
+        return createDisplayElements(drawableElement, paintProps);
 
-            // put line points in a coordinate array
-            Coordinate[] coord;
-            if (de.isClosedLine()) {
-                coord = new Coordinate[de.getLinePoints().length + 1];
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
-                }
-                coord[de.getLinePoints().length] = new Coordinate(
-                        de.getLinePoints()[0].x, de.getLinePoints()[0].y);
-            } else {
-                coord = new Coordinate[de.getLinePoints().length];
+    }
 
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
-                }
+    /**
+     * Applies the World Wrap function to LatLon coordinates
+     * 
+     * @param drawableElement
+     *            A PGEN Drawable Element of a multipoint object
+     * @param paintProps
+     *            The paint properties associated with the target
+     */
+    private ArrayList<IDisplayable> createWorldWrappedDisplayElements(
+            ILine drawableElement, PaintProperties paintProps) {
 
+        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        WorldWrapCorrector corrector = new WorldWrapCorrector(
+                iDescriptor.getGridGeometry());
+        elem = drawableElement;
+
+        // put line points in a coordinate array
+        Coordinate[] coord;
+
+        if (drawableElement.isClosedLine()) {
+            coord = new Coordinate[drawableElement.getLinePoints().length + 1];
+            for (int ii = 0; ii < drawableElement.getLinePoints().length; ii++) {
+                coord[ii] = new Coordinate(
+                        drawableElement.getLinePoints()[ii].x,
+                        drawableElement.getLinePoints()[ii].y);
             }
+            coord[drawableElement.getLinePoints().length] = new Coordinate(
+                    drawableElement.getLinePoints()[0].x,
+                    drawableElement.getLinePoints()[0].y);
+        } else {
+            coord = new Coordinate[drawableElement.getLinePoints().length];
 
-            // apply world wrap.
-            // pointsToLineString is in GfaClip. It should be put in a common
-            // place
-            Geometry geo = null;
-            try {
-                geo = corrector.correct(GfaClip.getInstance()
-                        .pointsToLineString(coord));
-            } catch (Exception e) {
-                System.out.println("World wrap error: " + e.getMessage());
-                return list;
-            }
-
-            if (geo != null && geo.getNumGeometries() > 1) {
-                for (int ii = 0; ii < geo.getNumGeometries(); ii++) {
-                    Geometry geo1 = geo.getGeometryN(ii);
-                    double[][] pixels = PgenUtil
-                            .latlonToPixel(geo1.getCoordinates(),
-                                    (IMapDescriptor) iDescriptor);
-                    double[][] smoothpts;
-                    float density;
-
-                    // Apply parametric smoothing on pixel coordinates, if
-                    // required
-                    if (de.getSmoothFactor() > 0) {
-                        float devScale = 50.0f;
-                        if (de.getSmoothFactor() == 1)
-                            density = devScale / 1.0f;
-                        else
-                            density = devScale / 5.0f;
-                        smoothpts = CurveFitter.fitParametricCurve(pixels,
-                                density);
-                    } else {
-                        smoothpts = pixels;
-                    }
-
-                    list.addAll(createDisplayElementsForLines(de, smoothpts,
-                            paintProps));
-
-                }
-
-                return list;
+            for (int ii = 0; ii < drawableElement.getLinePoints().length; ii++) {
+                coord[ii] = new Coordinate(
+                        drawableElement.getLinePoints()[ii].x,
+                        drawableElement.getLinePoints()[ii].y);
             }
 
         }
 
-        return createDisplayElements(de, paintProps);
+        // apply world wrap
+        // pointsToLineString is in GfaClip. It should be put in a common
+        // place ex PgenUtil
+        Geometry geo = null;
+        try {
+            geo = corrector.correct(GfaClip.getInstance().pointsToLineString(
+                    coord));
+        } catch (Exception e) {
+            handler.error("World wrap error: ", e.getMessage());
+            return list;
+        }
+        if (geo == null) {
+            handler.handle(Priority.PROBLEM,
+                    "Error: World wrap Geometry is null");
+            return list;
+        }
 
+        for (int ii = 0; ii < geo.getNumGeometries(); ii++) {
+            Geometry geo1 = geo.getGeometryN(ii);
+            double[][] pixelsCordinates = PgenUtil.latlonToPixel(
+                    geo1.getCoordinates(), (IMapDescriptor) iDescriptor);
+            double[][] smoothedCoordinates;
+
+            // Apply parametric smoothing
+            smoothedCoordinates = applyParametricSmoothing(drawableElement,
+                    pixelsCordinates);
+
+            list.addAll(createDisplayElementsForLines(drawableElement,
+                    smoothedCoordinates, paintProps));
+
+        }
+
+        return list;
+
+    }
+
+    /**
+     * Applies parametric smoothing on pixel coordinates, if required
+     * 
+     * @param drawableElement
+     *            A PGEN Drawable Element of a multipoint object
+     * 
+     * @param pixelsCordinates
+     *            The screen coordinates associated with the target
+     * 
+     * @return The smoothed screen coordinates associated with the target
+     * 
+     */
+    private double[][] applyParametricSmoothing(ILine drawableElement,
+            double[][] pixelsCordinates) {
+
+        float density;
+        if (drawableElement.getSmoothFactor() > 0) {
+            float devScale = 50.0f;
+            if (drawableElement.getSmoothFactor() == 1) {
+                density = devScale / 1.0f;
+            } else {
+                density = devScale / 5.0f;
+            }
+            return CurveFitter.fitParametricCurve(pixelsCordinates, density);
+        } else {
+            return pixelsCordinates;
+        }
     }
 
     /**
@@ -376,7 +437,7 @@ public class DisplayElementFactory {
      * attributes on the smoothed(if needed) points to create a list of
      * displayable.
      * 
-     * @param de
+     * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param smoothpts
      *            points of the multipoint object
@@ -385,8 +446,11 @@ public class DisplayElementFactory {
      * @return
      */
 
-    private ArrayList<IDisplayable> createDisplayElementsForLines(ILine de,
-            double[][] smoothpts, PaintProperties paintProps) {
+    private ArrayList<IDisplayable> createDisplayElementsForLines(
+            ILine drawableElement, double[][] smoothpts,
+            PaintProperties paintProps) {
+
+        setScales(paintProps);
 
         /*
          * R6520 - Adjust line width/pattern size for fronts.
@@ -398,10 +462,11 @@ public class DisplayElementFactory {
          * 
          * Also, the pip size (sizeScale) needs to be adjusted to match NMAP2.
          */
-        float drawLineWidth = de.getLineWidth();
-        double drawSizeScale = de.getSizeScale();
-        if (de instanceof Line
-                && ((Line) de).getPgenCategory().equalsIgnoreCase("Front")) {
+        float drawLineWidth = drawableElement.getLineWidth();
+        double drawSizeScale = drawableElement.getSizeScale();
+        if (drawableElement instanceof Line
+                && ((Line) drawableElement).getPgenCategory().equalsIgnoreCase(
+                        "Front")) {
             if (drawLineWidth <= 3.0) {
                 drawLineWidth = 1.0f;
             } else if (drawLineWidth > 6.0) {
@@ -416,7 +481,7 @@ public class DisplayElementFactory {
         /*
          * Get color for creating displayables.
          */
-        Color[] dspClr = getDisplayColors(elem.getColors());
+        Color[] displayColor = getDisplayColors(elem.getColors());
 
         /*
          * Find Line Pattern associated with this element, if "Solid Line" was
@@ -425,13 +490,12 @@ public class DisplayElementFactory {
         LinePattern pattern = null;
         LinePatternManager lpl = LinePatternManager.getInstance();
         try {
-            pattern = lpl.getLinePattern(de.getPatternName());
+            pattern = lpl.getLinePattern(drawableElement.getPatternName());
         } catch (LinePatternException lpe) {
             /*
              * could not find desired line pattern. Used solid line as default.
              */
-            System.out.println(lpe.getMessage()
-                    + ":  Using Solid Line by default.");
+            handler.warn(lpe.getMessage() + ":  Using Solid Line by default.");
             pattern = null;
         }
 
@@ -440,8 +504,6 @@ public class DisplayElementFactory {
          * the desired line width, update the pattern now
          */
         if ((pattern != null) && pattern.needsLengthUpdate()) {
-            // pattern = pattern.updateLength(screenToExtent * de.getLineWidth()
-            // / (de.getSizeScale() * deviceScale));
             pattern = pattern.updateLength(screenToExtent * drawLineWidth
                     / (drawSizeScale * deviceScale));
         }
@@ -471,7 +533,7 @@ public class DisplayElementFactory {
         }
 
         boolean isCCFP = false;
-        AbstractDrawableComponent adc = ((Line) de).getParent();
+        AbstractDrawableComponent adc = ((Line) drawableElement).getParent();
         isCCFP = (adc != null && ("CCFP_SIGMET".equals(adc.getPgenType())));
         DECollection ccfp = null;
         if (isCCFP) {
@@ -480,10 +542,10 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
 
-        list.addAll(createDisplayElementsFromPts(smoothpts, dspClr, pattern,
-                scaleType, getDisplayFillMode(de.isFilled()), drawLineWidth,
+        list.addAll(createDisplayElementsFromPts(smoothpts, displayColor,
+                pattern, scaleType,
+                getDisplayFillMode(drawableElement.isFilled()), drawLineWidth,
                 isCCFP, ccfp, paintProps));
-        // ((ILine) de).getLineWidth(), isCCFP, ccfp, paintProps));
 
         /*
          * Draw labels for contour lines.
@@ -661,27 +723,10 @@ public class DisplayElementFactory {
         if (de.isClosedLine()) {
             pixels = ensureClosed(pixels);
         }
-
-        /*
-         * Apply parametric smoothing on pixel coordinates, if required
-         */
-        if (de.getSmoothFactor() > 0) {
-            float devScale = 50.0f;
-            if (de.getSmoothFactor() == 1)
-                density = devScale / 1.0f;
-            else
-                density = devScale / 5.0f;
-            smoothpts = CurveFitter.fitParametricCurve(pixels, density);
-        } else {
-            smoothpts = pixels;
-        }
+        // Apply parametric smoothing
+        smoothpts = applyParametricSmoothing(de, pixels);
 
         list.addAll(createDisplayElementsForLines(de, smoothpts, paintProps));
-
-        /*
-         * Draw labels for contour lines.
-         */
-        // ???list.addAll(adjustContourLineLabels(elem, paintProps, smoothpts));
 
         return list;
     }
@@ -758,10 +803,6 @@ public class DisplayElementFactory {
                         gCollection.add(poly.buffer(.0001));
                     }
 
-                    // R4862 - moved above to fill only exterior polygons
-                    // if (countyGeo != null) {
-                    // gCollection.add(countyGeo.buffer(.02));
-                    // }
                 }
 
                 // Merge counties together and fill the whole area
@@ -775,9 +816,6 @@ public class DisplayElementFactory {
 
                 IShadedShape theShadedShape = target.createShadedShape(false,
                         iDescriptor, true);
-
-                // IWireframeShape theWireframeShape =
-                // target.createWireframeShape(false, mapDescriptor);
 
                 JTSCompiler compiler = new JTSCompiler(theShadedShape, null,
                         iDescriptor, PointStyle.CROSS);
@@ -795,14 +833,10 @@ public class DisplayElementFactory {
                     }
                     theShadedShape.compile();
 
-                    // theWireframeShape.compile();
-                    // dlist.add(new LineDisplayElement(theWireframeShape,
-                    // colors[1], .5f));
                     dlisti.add(new FillDisplayElement(theShadedShape, 1f));
 
                 } catch (VizException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    handler.warn("Error creating watch box: ", e.getMessage());
                 }
             } else {
                 for (SPCCounty cnty : counties) {
@@ -1121,7 +1155,7 @@ public class DisplayElementFactory {
         try {
             pattern = spl.getSymbolPattern(de.getPatternName());
         } catch (SymbolPatternException spe) {
-            System.out.println(spe.getMessage());
+            handler.warn(spe.getMessage());
             return slist;
         }
 
@@ -1228,7 +1262,6 @@ public class DisplayElementFactory {
          * Create a LengthIndexedLine used to reference points along the segment
          * at specific distances
          */
-        // GeometryFactory gf = new GeometryFactory();
         LineString ls = gf.createLineString(new Coordinate[] { startPixel,
                 endPixel });
         LengthIndexedLine lil = new LengthIndexedLine(ls);
@@ -1443,8 +1476,9 @@ public class DisplayElementFactory {
                 return slist;
             } else if (tparent instanceof ContourMinmax) {
                 boolean forceAuto = PgenUtil.getContourLabelAutoPlacement();
-                if (((Text) txt).getAuto() != null && ((Text) txt).getAuto()
-                        || forceAuto) {
+                if (((Text) txt).getAuto() != null
+                        && ((Text) txt).getAuto()
+                        || (forceAuto && ((ContourMinmax) tparent).getSymbol() != null)) {
                     Coordinate loc = ((ISinglePoint) ((ContourMinmax) tparent)
                             .getSymbol()).getLocation();
                     double[] pixel = iDescriptor.worldToPixel(new double[] {
@@ -1453,7 +1487,12 @@ public class DisplayElementFactory {
                             * ((ContourMinmax) tparent).getSymbol()
                                     .getSizeScale();
 
-                    pixel[1] = pixel[1] + sfactor * 5;
+                    Coordinate defaultSpacing = getDefaultContourLabelSpacing(((ContourMinmax) tparent)
+                            .getSymbol().getPgenType());
+
+                    pixel[0] = pixel[0] + sfactor * defaultSpacing.x;
+                    pixel[1] = pixel[1] + sfactor * defaultSpacing.y;
+
                     double[] nloc = iDescriptor.pixelToWorld(new double[] {
                             pixel[0], pixel[1], 0.0 });
                     ((Text) txt).setLocationOnly(new Coordinate(nloc[0],
@@ -1474,28 +1513,6 @@ public class DisplayElementFactory {
                 / paintProps.getCanvasBounds().width;
         double vertRatio = paintProps.getView().getExtent().getHeight()
                 / paintProps.getCanvasBounds().height;
-        /*
-         * Set background mask and outline
-         */
-        // TextStyle mask = TextStyle.NORMAL;
-        // if ( txt.maskText() && !txt.outlineText() ) {
-        // mask = TextStyle.BLANKED;
-        // }
-        // else if ( txt.maskText() && txt.outlineText() ) {
-        // mask = TextStyle.BOXED;
-        // }
-        // else if ( !txt.maskText() && txt.outlineText() ) {
-        // mask = TextStyle.OUTLINE;
-        // }
-
-        /*
-         * Initialize Font Style[] styles = null; if ( txt.getStyle() != null )
-         * { switch ( txt.getStyle() ) { case BOLD: styles = new Style[] {
-         * Style.BOLD }; break; case ITALIC: styles = new Style[] {
-         * Style.ITALIC}; break; case BOLD_ITALIC: styles = new Style[] {
-         * Style.BOLD, Style.ITALIC }; break; } } IFont font =
-         * target.initializeFont(txt.getFontName(), txt.getFontSize(), styles);
-         */
         IFont font = initializeFont(txt.getFontName(), txt.getFontSize(),
                 txt.getStyle());
 
@@ -1747,8 +1764,6 @@ public class DisplayElementFactory {
                 ret = "TROPICAL_STORM_SH";
         } else {
             ret = "TROPICAL_DEPRESSION";
-            // } else {
-            // ret = "LOW_X_FILLED";
         }
 
         return ret;
@@ -1975,8 +1990,6 @@ public class DisplayElementFactory {
         slist.add(new LineDisplayElement(arcpts, getDisplayColor(arc
                 .getColors()[0]), arc.getLineWidth()));
 
-        // slist.addAll(adjustContourCircleLabel(arc, paintProps, path));
-
         return slist;
     }
 
@@ -1991,7 +2004,7 @@ public class DisplayElementFactory {
      */
     public ArrayList<IDisplayable> createDisplayElements(IArc arc,
             PaintProperties paintProps) {
-        // double sfactor = deviceScale * de.getSizeScale();
+
         setScales(paintProps);
 
         /*
@@ -2030,7 +2043,6 @@ public class DisplayElementFactory {
          * Calculate points along the arc
          */
         // TODO - orientation issues
-        // double increment = 5.0; //degrees
         double angle = arc.getStartAngle();
         int numpts = (int) Math.round(arc.getEndAngle() - arc.getStartAngle()
                 + 1.0);
@@ -2038,18 +2050,11 @@ public class DisplayElementFactory {
         for (int j = 0; j < numpts; j++) {
             double thisSine = Math.sin(Math.toRadians(angle));
             double thisCosine = Math.cos(Math.toRadians(angle));
-            // Can maybe use simpler less expensive calculations for circle,
-            // if ever necessary.
-            // if ( arc.getAxisRatio() == 1.0 ) {
-            // path[j][0] = center[0] + (major * thisCosine );
-            // path[j][1] = center[1] + (minor * thisSine );
-            // }
-            // else {
+
             path[j][0] = center[0] + (major * cosineAxis * thisCosine)
                     - (minor * sineAxis * thisSine);
             path[j][1] = center[1] + (major * sineAxis * thisCosine)
                     + (minor * cosineAxis * thisSine);
-            // }
 
             angle += 1.0;
         }
@@ -2079,7 +2084,7 @@ public class DisplayElementFactory {
      */
     public ArrayList<IDisplayable> createDisplayElements(ITrack track,
             PaintProperties paintProps) {
-        // double sfactor = deviceScale * de.getSizeScale();
+
         ArrayList<IDisplayable> temps;
 
         ArrayList<Coordinate> points = new ArrayList<Coordinate>();
@@ -2104,7 +2109,6 @@ public class DisplayElementFactory {
          */
         points.clear();
         for (TrackPoint pt : track.getInitialPoints()) {
-            // displayTrackPoint(pt);
             points.add(pt.getLocation());
         }
         Line iline = new Line(null, new Color[] { iniDspClr },
@@ -2178,7 +2182,6 @@ public class DisplayElementFactory {
         Coordinate[] extrapPoints = new Coordinate[track.getExtrapPoints().length];
         for (TrackPoint pt : track.getExtrapPoints()) {
             // Add Coordinate point to array
-            // extrapPoints[m++] = new Coordinate(pt.getLocation());
             extrapPoints[m] = new Coordinate(pt.getLocation());
             /*
              * If there is a time associated with this point, create a
@@ -2268,10 +2271,6 @@ public class DisplayElementFactory {
          * create an AWT BufferedImage from the symbol pattern
          */
         sfactor *= screenToWorldRatio;
-        // BufferedImage image =
-        // SymbolImageUtil.createBufferedImage(sym.getPatternName(), sfactor,
-        // sym.getLineWidth(),
-        // sym.isClear(), dspClr[0] );
         IRenderedImageCallback imageCb = new SymbolImageCallback(
                 sym.getPatternName(), sfactor, sym.getLineWidth(),
                 sym.isClear(), dspClr[0]);
@@ -2282,11 +2281,8 @@ public class DisplayElementFactory {
         try {
             pic = target.initializeRaster(imageCb);
             pic.stage();
-            // pic = target.initializeRaster( new IODataPreparer(image,
-            // sym.getPatternName(), 0), null );
         } catch (Exception e) {
-            System.out.println("SAG:IMAGE CREATION");
-            e.printStackTrace();
+            handler.error("SAG:IMAGE CREATION ", e.getMessage());
             return slist;
         }
 
@@ -2940,8 +2936,7 @@ public class DisplayElementFactory {
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
-        // per
-        // line; in descending row order.
+        // per line; in descending row order.
         List<String> contents = new ArrayList<String>();
 
         // Add all cloud types and amounts to the list
@@ -2950,7 +2945,6 @@ public class DisplayElementFactory {
 
         // Add turbulence levels, if given
         if (midtxt.hasTurbulence()) {
-            // if ( contents.size()%2 == 1 ) contents.add(BLANK);
             StringTokenizer tok = new StringTokenizer(
                     midtxt.getTurbulenceLevels(), "/");
 
@@ -2973,8 +2967,6 @@ public class DisplayElementFactory {
 
         // Add icing levels, if given
         if (midtxt.hasIcing()) {
-            // if ( contents.size()%2 == 1 ) contents.add(BLANK);
-            // contents.addAll( getLevels( midtxt.getIcingLevels(), null ) );
             StringTokenizer tok = new StringTokenizer(midtxt.getIcingLevels(),
                     "/");
 
@@ -3072,8 +3064,7 @@ public class DisplayElementFactory {
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
-        // per
-        // line; in descending row order.
+        // per line; in descending row order.
         List<String> contents = new ArrayList<String>();
 
         // Add all cloud types and amounts to the list
@@ -3383,8 +3374,6 @@ public class DisplayElementFactory {
          */
         double psize = pattern.getLength() * sfactor;
 
-        // psize = psize * 0.8;
-
         double numPatterns = Math.floor(totalDist / psize);
 
         /*
@@ -3399,7 +3388,6 @@ public class DisplayElementFactory {
         }
         // Calculate a scale factor that will be used to adjust the size of each
         // segment in the pattern
-        // double offset = 1.0 + ( leftover / (numPatterns * psize) );
         if (stype == ScaleType.SCALE_BLANK_LINE_ONLY)
             pattern = pattern.scaleBlankLineToLength(totalDist
                     / (numPatterns * sfactor));
@@ -3447,8 +3435,6 @@ public class DisplayElementFactory {
                 // Calculate end location of this segment
                 double seglen = seg.getLength() * sfactor; // size of pattern
                                                            // segment
-                // seglen *= offset; // resize segment to account for new full
-                // pattern size
                 endLoc = currDist + seglen;
 
                 /*
@@ -3766,9 +3752,10 @@ public class DisplayElementFactory {
                     /*
                      * Do nothing.
                      */
-                    System.out.println("Pattern definition: "
+                    handler.warn("Pattern definition: "
                             + seg.getPatternType().toString()
                             + " is not found.  Ignoring...");
+
                     break;
                 }
 
@@ -4013,13 +4000,15 @@ public class DisplayElementFactory {
         double[] tmp = { vect.getLocation().x, vect.getLocation().y, 0.0 };
         double[] start = iDescriptor.worldToPixel(tmp);
 
-        // TODO - Orientation issues
         /*
          * calculate the angle and distance to the four points defining the hash
          * mark
+         * 
+         * Note: hash direction is clockwise. Rotate to counter clockwise for
+         * display.
          */
         double angle = northOffsetAngle(vect.getLocation())
-                + vect.getDirection();
+                + (360.0 - vect.getDirection());
         double theta = Math.toDegrees(Math.atan(spacing / scaleSize));
         double dist = 0.5 * Math.sqrt((spacing * spacing)
                 + (scaleSize * scaleSize));
@@ -4137,13 +4126,6 @@ public class DisplayElementFactory {
                     { start[0] - dX1, start[1] + dY1, 0.0 },
                     { start[0] + dX2, start[1] - dY2, 0.0 } });
 
-            /*
-             * compile wireframe and add it to the return list
-             */
-            // hashMarks.compile();
-            // slist.add( new LineDisplayElement(hashMarks, getDisplayColor(
-            // vect.getColor() ), vect.getLineWidth()) );
-
         } // end for each vector
 
         /*
@@ -4194,12 +4176,9 @@ public class DisplayElementFactory {
         if (!vect.hasDirectionOnly())
             speed = vect.getSpeed();
         double arrowLength = sfactor * speed;
-        // TODO - orientation issues
 
         // Reverse 180 degrees since wind direction is the direction where the
         // wind comes from.
-        // double angle = -90.0 - northOffsetAngle(vect.getLocation()) -
-        // vect.getDirection();
         double angle = 90.0 - northOffsetAngle(vect.getLocation())
                 + vect.getDirection();
 
@@ -4350,8 +4329,6 @@ public class DisplayElementFactory {
 
             // Reverse 180 degrees since wind direction is the direction where
             // the wind comes from.
-            // double angle = -90.0 - northOffsetAngle(vect.getLocation()) -
-            // vect.getDirection();
             double angle = 90.0 - northOffsetAngle(vect.getLocation())
                     + vect.getDirection();
 
@@ -4960,8 +4937,6 @@ public class DisplayElementFactory {
         }
 
         return createDisplayElements((AbstractSigmet) isig, paintProps);
-
-        // return new ArrayList<IDisplayable>();
     }
 
     /**
@@ -5090,7 +5065,7 @@ public class DisplayElementFactory {
                         locs[locs.length - 1], widthInNautical,
                         (IMapDescriptor) iDescriptor));
             } catch (Throwable e) {
-                System.out.println("Isolated: " + e.getCause());
+                handler.error("Isolated: " + e.getCause());
             }// OutOfMemoryError
 
             arcpts.compile();
@@ -5101,7 +5076,6 @@ public class DisplayElementFactory {
             return slist;
         } else if (lineType.contains("Text")) {
 
-            String theTxt = lineType.split(SigmetInfo.LINE_SEPERATER)[1];
             Coordinate[] locs = sigmet.getLinePoints();
             ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
 
@@ -5195,7 +5169,6 @@ public class DisplayElementFactory {
                 LineString line = new LineString(cas, geometryFactory);
                 cas = new CoordinateArraySequence(new Coordinate[] { loc1 });
                 Point point = new Point(cas, geometryFactory);
-                // Coordinate[] c = DistanceOp.closestPoints(line, point);
                 Coordinate[] c = DistanceOp.nearestPoints(line, point);
                 loc2 = c[0];
             }
@@ -5728,23 +5701,23 @@ public class DisplayElementFactory {
             PaintProperties paintProps,
             gov.noaa.nws.ncep.ui.pgen.elements.DECollection ccfp) {
 
-        if (list == null || paintProps == null)// || ( !
-                                               // ((Ccfp)ccfp).isPrimaryDEClosed()))//
-                                               // || sigmet == null)
+        if (list == null || paintProps == null) {
             return;
+        }
 
         String[] spdDir = ccfp.getCollectionName().split(
                 CcfpInfo.TEXT_SEPERATOR);
 
-        if (!CcfpAttrDlg.AREA.equals(spdDir[spdDir.length - 1]))
-            return;// line type: Line/Line-Med
+        if (!CcfpAttrDlg.AREA.equals(spdDir[spdDir.length - 1])) {
+            return;
+        }
 
-        String spd = spdDir[1];// sigmet.getEditableAttrPhenomSpeed();
+        String spd = spdDir[1];
         if (spd != null && !spd.trim().equals("0")) {
 
-            String dir = spdDir[2];// sigmet.getEditableAttrPhenomDirection();
+            String dir = spdDir[2];
             Coordinate[] coors = ccfp.getPrimaryDE().getPoints()
-                    .toArray(new Coordinate[] {});// .getAreaLine().getLinePoints();//sigmet.getLinePoints();
+                    .toArray(new Coordinate[] {});
 
             ArrayList<Coordinate> spdCoors = CcfpInfo.getDirMostPts(dir, coors,
                     (IMapDescriptor) iDescriptor);
@@ -5758,7 +5731,7 @@ public class DisplayElementFactory {
 
                 gov.noaa.nws.ncep.ui.pgen.elements.Vector v = new gov.noaa.nws.ncep.ui.pgen.elements.Vector(
                         null,
-                        getDisplayColors(ccfp.getPrimaryDE().getColors()),// ccfp.getAreaLine().getColors()),//sigmet.getColors()),
+                        getDisplayColors(ccfp.getPrimaryDE().getColors()),
                         2.0F,
                         1.5,
                         false,
@@ -5766,15 +5739,12 @@ public class DisplayElementFactory {
                         gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType.ARROW,
                         10, vDir, 1.0, false, "Vector", "Arrow");
 
-                Text spdTxt = new Text(null, "Courier",
-                        14.0f,
-                        TextJustification.CENTER,// .LEFT_JUSTIFY,
-                        getCcfpTxtPts(v), 0.0, TextRotation.SCREEN_RELATIVE,
-                        new String[] { spd },// sigmet.getEditableAttrPhenomSpeed()},
-                        FontStyle.REGULAR,
-                        getDisplayColors(ccfp.getPrimaryDE().getColors())[0],// ccfp.getAreaLine().getColors())[0],//sigmet.getColors())[0],
-                        0, 0/* 3 */, false, DisplayType.NORMAL, "Text",
-                        "General Text");
+                Text spdTxt = new Text(null, "Courier", 14.0f,
+                        TextJustification.CENTER, getCcfpTxtPts(v), 0.0,
+                        TextRotation.SCREEN_RELATIVE, new String[] { spd },
+                        FontStyle.REGULAR, getDisplayColors(ccfp.getPrimaryDE()
+                                .getColors())[0], 0, 0, false,
+                        DisplayType.NORMAL, "Text", "General Text");
 
                 list.addAll(createDisplayElements((IVector) v, paintProps));
                 list.addAll(createDisplayElements((IText) spdTxt, paintProps));
@@ -5833,10 +5803,6 @@ public class DisplayElementFactory {
         double thisCosine = Math.cos(Math.toRadians(angle));
 
         double pt[] = new double[2];
-        // pt[0] = center[0] + (radius * cosineAxis * thisCosine ) - (radius *
-        // sineAxis * thisSine );
-        // pt[1] = center[1] + (radius * sineAxis * thisCosine ) + (radius *
-        // cosineAxis * thisSine );
         pt[0] = center[0] + (radius * thisCosine);
         pt[1] = center[1] + (radius * thisSine);
 
@@ -6078,11 +6044,8 @@ public class DisplayElementFactory {
         try {
             pic = target.initializeRaster(imageCb);
             pic.stage();
-            // pic = target.initializeRaster( new IODataPreparer(image,
-            // sym.getPatternName(), 0), null );
         } catch (Exception e) {
-            System.out.println("SAG:IMAGE CREATION");
-            e.printStackTrace();
+            handler.warn("SAG:IMAGE CREATION: ", e.getMessage());
         }
 
         /*
@@ -6527,5 +6490,29 @@ public class DisplayElementFactory {
         zoomLevel = paintProps.getZoomLevel();
 
         return zoomChk;
+    }
+
+    /*
+     * Retrieve the default spacing defined for a contour symbol and its label
+     * 
+     * @param symbolType PgenType for the contour symbol
+     * 
+     * @return A Coordinate representing default spacing in x and y direction.
+     */
+    private Coordinate getDefaultContourLabelSpacing(String symbolType) {
+
+        Coordinate defaultSpacing = AttrSettings.getInstance()
+                .getContourSymbolDefaultSpacing(symbolType);
+        if (defaultSpacing == null
+                || (defaultSpacing.x == 0 && defaultSpacing.y == 0)) {
+
+            defaultSpacing = PgenUtil.getContourSymbolLabelSpacing();
+            if (defaultSpacing.x == 0 && defaultSpacing.y == 0) {
+                defaultSpacing = new Coordinate(contourSymbolXOffset,
+                        contourSymbolYOffset);
+            }
+        }
+
+        return defaultSpacing;
     }
 }

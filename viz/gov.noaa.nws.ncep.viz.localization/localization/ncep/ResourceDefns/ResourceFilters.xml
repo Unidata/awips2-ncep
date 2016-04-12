@@ -77,10 +77,10 @@
 <ResourceDefinitionFilter rscDefnName="FFG">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter  rscDefnName="IDFT">
+<ResourceDefinitionFilter rscDefnName="IDFT">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter  rscDefnName="HPCMOS">
+<ResourceDefinitionFilter rscDefnName="HPCMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GFSXMOS">
@@ -447,6 +447,9 @@
 <ResourceDefinitionFilter rscDefnName="FireWxAOR">
 <filters></filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FireWxZones">
+<filters></filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="88Ds">
 <filters>Stations</filters>
 </ResourceDefinitionFilter>
@@ -483,10 +486,22 @@
 <ResourceDefinitionFilter rscDefnName="LatLon">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FFMPSmallStreamBasins">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FFMPSmallStreams">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RiverDrainageBasins">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="AtlanticFullBasin">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="Counties">
+<filters>AdministrativeBoundaries</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="iscAll">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="Carrfa">
@@ -543,7 +558,22 @@
 <ResourceDefinitionFilter rscDefnName="Interstates">
 <filters>ManMadeFeatures</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FixesAndIntersections">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="Highways">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="Interstates and US Highways">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="Airports">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="all Airports">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="acarsAirports">
 <filters>ManMadeFeatures</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="Railroads">
@@ -561,10 +591,25 @@
 <ResourceDefinitionFilter rscDefnName="Airways">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Rivers">
+<ResourceDefinitionFilter rscDefnName="HighAltitudeRoutes">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="LowAltitudeRoutes">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="SpecialUseAirways">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="allRivers">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="majorRivers">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="MarineCounty">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MarineZones">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="cpcStations">
@@ -586,6 +631,9 @@
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GfaConus">
+<filters></filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="CONUS">
 <filters></filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="HighSeasZones">
@@ -679,6 +727,12 @@
 <filters>AdministrativeBoundaries,PGEN</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="World">
+<filters>PgenXmlOverlay</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="WorldNmap">
+<filters>Misc</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="World">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="BWUSLabel">
@@ -714,10 +768,19 @@
 <ResourceDefinitionFilter rscDefnName="PFZ">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="Spotters">
+<filters>AdministrativeBoundaries</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="CWAs">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GeoPolitical">
+<filters>AdministrativeBoundaries</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="Mexico">
+<filters>AdministrativeBoundaries</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="Canada">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="USAK">
@@ -1132,6 +1195,9 @@
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="WAVEHURR4WNA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="WAVE30MGLOBAL">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="MRF160HI">

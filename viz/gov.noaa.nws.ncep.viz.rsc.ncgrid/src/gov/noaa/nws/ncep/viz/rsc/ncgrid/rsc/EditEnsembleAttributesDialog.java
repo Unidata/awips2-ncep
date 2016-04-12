@@ -29,12 +29,13 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * Oct  2010    277			 M. Li		Copied form EditGridAttributeDialog
- * Nov,22 2010  352			 X. Guo     Add HILO, HLSYM and move all help functions
+ * Oct  2010    277         M. Li       Copied form EditGridAttributeDialog
+ * Nov,22 2010  352         X. Guo      Add HILO, HLSYM and move all help functions
  *                                      into NcgridAttributesHelp.java
- * Dec 13 2011  578          G. Hull    added ensembleComponentWeights, and folded the 
+ * Dec 13 2011  578         G. Hull     added ensembleComponentWeights, and folded the 
  *                                      EnsembleSelectDialog into this one.
- * Feb 15 2013               X. Guo     Added skip and filter                                                                         
+ * Feb 15 2013              X. Guo      Added skip and filter
+ * 03/22/2016   R10366      bkowal      Cleanup. Check for Ensemble GD File updates on close.                                                                         
  * 
  * @author mli
  * @version 1
@@ -42,6 +43,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
 
 public class EditEnsembleAttributesDialog extends
         AbstractEditResourceAttrsDialog {
+
     private RscAttrValue cintString = null;
 
     private RscAttrValue glevel = null;
@@ -114,6 +116,8 @@ public class EditEnsembleAttributesDialog extends
 
     private Text grdlblText;
 
+    private EnsembleSelectComposite ensSelComp;
+
     /**
      * Constructor
      * 
@@ -123,7 +127,6 @@ public class EditEnsembleAttributesDialog extends
     public EditEnsembleAttributesDialog(Shell parentShell,
             INatlCntrsResourceData rd, Boolean apply) {
         super(parentShell, rd, apply);
-        ;
     }
 
     @Override
@@ -149,11 +152,11 @@ public class EditEnsembleAttributesDialog extends
 
         // confirm the classes of the attributes..
         if (lineAttr.getAttrClass() != String.class) {
-            System.out.println("line is not of expected class? "
+            statusHandler.warn("line is not of expected class? "
                     + lineAttr.getAttrClass().toString());
         }
         if (cintString.getAttrClass() != String.class) {
-            System.out.println("cint is not of expected class? "
+            statusHandler.warn("cint is not of expected class? "
                     + cintString.getAttrClass().toString());
         }
 
@@ -413,11 +416,6 @@ public class EditEnsembleAttributesDialog extends
             }
         });
 
-        // GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-        // Label sepLbl = new Label(contourAttributesGroup, SWT.SEPARATOR |
-        // SWT.HORIZONTAL);
-        // sepLbl.setLayoutData(gd);
-
         final Button toolTipDisplay = new Button(gridAttrsComp, SWT.CHECK);
         toolTipDisplay.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT));
         toolTipDisplay.setText("ToolTips OFF");
@@ -425,28 +423,16 @@ public class EditEnsembleAttributesDialog extends
             public void widgetSelected(SelectionEvent event) {
                 if (toolTipDisplay.getSelection()) {
                     toolTipDisplay.setText("ToolTips ON");
-                    EnableToolTip(true);
+                    enableToolTip(true);
                 } else {
                     toolTipDisplay.setText("ToolTips OFF");
-                    EnableToolTip(false);
+                    enableToolTip(false);
                 }
             }
         });
 
-        EnsembleSelectComposite ensSelComp = new EnsembleSelectComposite(
-                tabFolder);
+        ensSelComp = new EnsembleSelectComposite(tabFolder);
         ensSelComp.setLayout(new GridLayout());
-
-        // contour attributes editing
-        // GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        // tabFolder.setLayoutData(gd);
-
-        // contour attributes editing
-        // GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        // tabFolder.setLayoutData(gd);
-
-        // TabFolder tabFolder2 = new TabFolder(ensSelComp, SWT.TOP);
-        // tabFolder2.setLayoutData(new GridData());
 
         // Tab 2
         TabItem weightsTab = new TabItem(tabFolder, SWT.TOP);
@@ -456,13 +442,20 @@ public class EditEnsembleAttributesDialog extends
         try {
             ensSelComp.init((NcEnsembleResourceData) rscData, editedRscAttrSet);
         } catch (VizException e1) {
-            e1.printStackTrace();
+            statusHandler.error(
+                    "Failed to initialize the Ensemble Select Composite.", e1);
         }
 
         return composite;
     }
 
-    private void EnableToolTip(boolean on) {
+    @Override
+    protected void handleOK() {
+        this.ensSelComp.updateGDFile();
+        super.handleOK();
+    }
+
+    private void enableToolTip(boolean on) {
         if (on) {
             glevelText.setToolTipText(NcgridAttributesHelp.GlevelToolTipText());
             gvcordText.setToolTipText(NcgridAttributesHelp.GvcordToolTipText());
@@ -518,7 +511,5 @@ public class EditEnsembleAttributesDialog extends
 
     @Override
     public void initWidgets() {
-        // TODO Auto-generated method stub
     }
-
 }

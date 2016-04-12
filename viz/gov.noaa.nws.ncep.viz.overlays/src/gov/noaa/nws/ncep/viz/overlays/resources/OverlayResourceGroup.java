@@ -4,6 +4,7 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -16,9 +17,6 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
-import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
-import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
-import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
 
 /**
  * 
@@ -33,6 +31,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
  * ------------ ---------- ----------- --------------------------
  * 03/08/09                ghull       Created from MapResourceGroup
  * 11/19/09                ghull       Incorporate to11d6 changes
+ * 02/17/16     #13554     dgilling    Implement IStaticDataNatlCntrsResource.
  * 
  * </pre>
  * 
@@ -40,8 +39,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
  * @version 1.0
  */
 public class OverlayResourceGroup extends
-        AbstractVizResource<OverlayResourceGroupData, MapDescriptor> 
-                     implements INatlCntrsResource {
+        AbstractVizResource<OverlayResourceGroupData, MapDescriptor> implements
+        IStaticDataNatlCntrsResource {
 
     protected IGraphicsTarget lastTarget;
 
@@ -136,17 +135,16 @@ public class OverlayResourceGroup extends
                 PaintProperties newProps = new PaintProperties(paintProps);
 
                 // keep these in sync
-/*
-                resource.getCapabilities().addCapability(
-                        getCapability(ColorableCapability.class));
-                resource.getCapabilities().addCapability(
-                        getCapability(OutlineCapability.class));
-
-                if (resource.hasCapability(ImagingCapability.class)) {
-                    paintProps.setAlpha(resource.getCapability(
-                            ImagingCapability.class).getAlpha());
-                }
-*/
+                /*
+                 * resource.getCapabilities().addCapability(
+                 * getCapability(ColorableCapability.class));
+                 * resource.getCapabilities().addCapability(
+                 * getCapability(OutlineCapability.class));
+                 * 
+                 * if (resource.hasCapability(ImagingCapability.class)) {
+                 * paintProps.setAlpha(resource.getCapability(
+                 * ImagingCapability.class).getAlpha()); }
+                 */
                 resource.paint(target, newProps);
             }
         }
@@ -173,15 +171,15 @@ public class OverlayResourceGroup extends
         }
     }
 
-	@Override
-	public void resourceAttrsModified() {
+    @Override
+    public void resourceAttrsModified() {
         for (ResourcePair rp : this.resourceData.getResourceList()) {
-        	INatlCntrsResource ncRsc = (INatlCntrsResource) rp.getResource();
-        	ncRsc.resourceAttrsModified();
+            INatlCntrsResource ncRsc = (INatlCntrsResource) rp.getResource();
+            ncRsc.resourceAttrsModified();
         }
-	}
-    
-	@Override
+    }
+
+    @Override
     public String toString() {
         return this.resourceData.getResourceList().toString();
     }

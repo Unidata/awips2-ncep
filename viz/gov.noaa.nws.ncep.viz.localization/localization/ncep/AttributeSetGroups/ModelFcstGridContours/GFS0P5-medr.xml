@@ -2,5 +2,25 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>GFS0P5</resource>
     <attrSetGroupName>medr</attrSetGroupName>
-    <attrSetNames>1000-500_thkn,bl_1000mb_temp,bl_2-meter_temp,bl_sgma_9950_temp</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>1000-500_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_1000mb_temp</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_2-meter_temp</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_sgma_9950_temp</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

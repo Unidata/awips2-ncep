@@ -1167,7 +1167,7 @@ public class NsharpConstants {
 
     public static int btnGapY = 5;
 
-    public static int listWidth = 160;
+    public static int listWidth = 280;
 
     public static int listHeight = 80;
 

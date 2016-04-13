@@ -214,12 +214,33 @@ public class NsharpObservedSoundingDialogContents {
         btnGp = new Group(topGp, SWT.SHADOW_ETCHED_IN);
         btnGp.setText("File Type");
         btnGp.setFont(newFont);
+        
+        
+        bufruaBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
+        bufruaBtn.setText(FILE_BUFRUA);
+        bufruaBtn.setEnabled(true);
+        bufruaBtn.setBounds(btnGp.getBounds().x + NsharpConstants.btnGapX,
+                btnGp.getBounds().y + NsharpConstants.labelGap,
+                NsharpConstants.btnWidth, NsharpConstants.btnHeight);
+        bufruaBtn.setFont(newFont);
+        bufruaBtn.addListener(SWT.MouseUp, new Listener() {
+            public void handleEvent(Event event) {
+                sndTimeList.removeAll();
+                currentSndType = NcSoundingProfile.ObsSndType.BUFRUA;
+                ldDia.setActiveObsSndType(currentSndType);
+                createObsvdSndUairList();
+            }
+        });
+
+        
+        
         uairBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
         uairBtn.setText(FILE_UAIR);
         uairBtn.setEnabled(true);
         uairBtn.setBounds(btnGp.getBounds().x + NsharpConstants.btnGapX,
-                btnGp.getBounds().y + NsharpConstants.labelGap,
-                NsharpConstants.btnWidth, NsharpConstants.btnHeight);
+        		bufruaBtn.getBounds().y + bufruaBtn.getBounds().height
+                + NsharpConstants.btnGapY, NsharpConstants.btnWidth,
+                NsharpConstants.btnHeight);
         uairBtn.setFont(newFont);
         uairBtn.addListener(SWT.MouseUp, new Listener() {
             public void handleEvent(Event event) {
@@ -228,23 +249,6 @@ public class NsharpObservedSoundingDialogContents {
                 ldDia.setActiveObsSndType(currentSndType);
                 createObsvdSndUairList();
                 // System.out.println("new obvSnd dialog uair btn");
-            }
-        });
-
-        bufruaBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
-        bufruaBtn.setText(FILE_BUFRUA);
-        bufruaBtn.setEnabled(true);
-        bufruaBtn.setBounds(btnGp.getBounds().x + NsharpConstants.btnGapX,
-                uairBtn.getBounds().y + uairBtn.getBounds().height
-                        + NsharpConstants.btnGapY, NsharpConstants.btnWidth,
-                NsharpConstants.btnHeight);
-        bufruaBtn.setFont(newFont);
-        bufruaBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                sndTimeList.removeAll();
-                currentSndType = NcSoundingProfile.ObsSndType.BUFRUA;
-                ldDia.setActiveObsSndType(currentSndType);
-                createObsvdSndUairList();
             }
         });
 
@@ -307,6 +311,7 @@ public class NsharpObservedSoundingDialogContents {
                 handleSndTimeSelection();
             }
         });
+        
 
         if (currentSndType == NcSoundingProfile.ObsSndType.NCUAIR
                 || currentSndType == NcSoundingProfile.ObsSndType.BUFRUA) {

@@ -383,8 +383,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             try {
                 mb.open();
             } catch (Exception e) {
-
-                // e.printStackTrace();
             }
         }
     }
@@ -392,19 +390,16 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     public NsharpPaletteWindow() {
         super();
         instance = this;
-        //boolean imD2d = false; // fixMark:NcInventory
         if (VizPerspectiveListener.getCurrentPerspectiveManager() != null) {
             if (VizPerspectiveListener.getCurrentPerspectiveManager()
                     .getPerspectiveId().equals(D2D5Pane.ID_PERSPECTIVE)) {
                 d2dInstance = this;
-                imD2d = true;// fixMark:NcInventory
+                imD2d = true;
             } else if (VizPerspectiveListener.getCurrentPerspectiveManager()
                     .getPerspectiveId()
                     .equals(NmapCommon.NatlCntrsPerspectiveID))
                 ncpInstance = this;
         }
-        // System.out.println("view NsharpPaletteWindow constructed!! "+
-        // this.toString());
         printHandle = NsharpPrintHandle.getPrintHandle();
         shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
@@ -416,23 +411,14 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         NsharpGraphProperty graphConfigProperty = configStore
                 .getGraphProperty();
         paneConfigurationName = graphConfigProperty.getPaneConfigurationName();
-        if (!imD2d) {// fixMark:NcInventory
+        if (!imD2d) {
             for (int a = 1; a <= 2; a++) {
                 if (NsharpGridInventory.getInstance().isInitialized()) {
                     break;
                 }
-
                 try {
                     NsharpGridInventory.getInstance().initialize();
                 } catch (VizException e) {
-                    // TODO : could call createInventory() here but for now this
-                    // will be considered
-                    // an error since the grid inventory should/must be on the
-                    // server.
-//                    System.out
-//                            .println("NsharpGridInventory initialize attempt #"
-//                                    + a + " failed");
-
                     try {
                         Thread.sleep(a * 500);
                     } catch (InterruptedException e1) {
@@ -450,7 +436,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                         "Unable to find an Inventory to support Grid Model times. Please wait while one"
                                 + " is created.", MessageDialog.ERROR,
                         new String[] { "OK" }, 0);
-                //errDlg.open();
 
                 try {
                     NsharpGridInventory.createInventory();
@@ -472,15 +457,10 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
      * Invoked by the workbench to initialize this View.
      */
     public void init(IViewSite site) {
-        // System.out.println("NsharpPaletteWindow inited!!"+ this.toString());
         try {
-
             super.init(site);
-
         } catch (PartInitException pie) {
-
             pie.printStackTrace();
-
         }
 
         page = site.getPage();
@@ -502,15 +482,12 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             compareSndIsOn = rsc.isCompareSndIsOn();
             compareTmIsOn = rsc.isCompareTmIsOn();
         }
-
     }
 
     /**
      * Disposes resource. invoked by the workbench
      */
     public void dispose() {
-        // System.out.println("NsharpPaletteWindow "+this.toString()+" dispose() called!! isEditorVisible="+
-        // isEditorVisible);
         if (!isEditorVisible) {
             NsharpMapResource.unregisterMouseHandler();
             instance = null;
@@ -525,14 +502,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             if (editor != null) {
                 for (IRenderableDisplay display : UiUtil
                         .getDisplaysFromContainer(editor)) {
-                    // NsharpMapResource mrsc =
-                    // (NsharpMapResource)NcDisplayMngr.findAllResources(
-                    // NsharpMapResource.class, editor );
-                    // if( mrsc != null ) {
-                    // mrsc.unload();
-                    // display.getDescriptor().getResourceList().removePreRemoveListener(mrsc);
-                    // }
-                    // System.out.println("display " + display.toString());
                     for (ResourcePair rp : display.getDescriptor()
                             .getResourceList()) {
                         if (rp.getResource() instanceof NsharpMapResource) {
@@ -541,7 +510,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                             rsc.unload();
                             display.getDescriptor().getResourceList()
                                     .removePreRemoveListener(rsc);
-
                         }
                     }
                 }
@@ -620,7 +588,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 NsharpLoadDialog loadDia = NsharpLoadDialog.getInstance(shell);
 
                 if (loadDia != null) {
-                    // System.out.println("Load Button is calling dialog open()");
                     loadDia.open();
                 }
             }
@@ -825,45 +792,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-        // Group insetGp = new Group(textModeGp, SWT.SHADOW_ETCHED_IN);
-        // insetGp.setLayout(new RowLayout(SWT.HORIZONTAL));
-        // // Push buttons for NEXT INSET PAGE info
-        // Button nextInsetBtn = new Button(insetGp, SWT.PUSH);
-        // nextInsetBtn.setFont(newFont);
-        // nextInsetBtn.setText("NxIns");
-        // nextInsetBtn.setEnabled(true);
-        // nextInsetBtn.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-        // .getShell();
-        // if (checkLoadedData()) {
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setNextInsetPage();
-        // rsc.refreshPane();
-        // }
-        // }
-        // }
-        // });
-        // // Push buttons for NEXT INSET PAGE info
-        // Button prevInsetBtn = new Button(insetGp, SWT.PUSH);
-        // prevInsetBtn.setFont(newFont);
-        // prevInsetBtn.setText("PvIns");
-        // prevInsetBtn.setEnabled(true);
-        // prevInsetBtn.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-        // .getShell();
-        // if (checkLoadedData()) {
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setPrevInsetPage();
-        // rsc.refreshPane();
-        // }
-        // }
-        // }
-        // });
-        // end d2dlite
 
         // Push buttons for interpolate
         interpBtn = new Button(textModeGp, SWT.PUSH);
@@ -1244,16 +1172,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-        /*
-         * Button bndryMotionBtn = new Button(textModeGp, SWT.PUSH);
-         * bndryMotionBtn.setText("BoundaryMotion"); bndryMotionBtn.setEnabled(
-         * true ); bndryMotionBtn.addListener( SWT.MouseUp, new Listener() {
-         * public void handleEvent(Event event) { shell =
-         * PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-         * if(checkLoadedData()) { NsharpShowTextDialog osDia =
-         * NsharpShowTextDialog.getInstance( shell ); if(osDia != null)
-         * osDia.open(); } } } );
-         */
 
         // Push buttons for show text info
         Button showtextBtn = new Button(textModeGp, SWT.PUSH);
@@ -1272,166 +1190,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-        // Group graphModeGp = new Group(textModeGp, SWT.SHADOW_ETCHED_IN);
-        // graphModeGp.setLayout(new RowLayout(SWT.HORIZONTAL));// new
-        // GridLayout(
-        // // 2, false ) );
-        //
-        // // Push buttons for graphMode
-        // graphModeBtnSkew = new Button(graphModeGp, SWT.PUSH);
-        // graphModeBtnSkew.setFont(newFont);
-        // graphModeBtnSkew.setText("S");
-        // graphModeBtnSkew.setEnabled(true);
-        // // colorButtonOriginalBg= graphModeBtnSkew.getBackground();
-        // rscHandler = getRscHandler();
-        // if (rscHandler != null) {
-        // currentGraphMode = rscHandler.getCurrentGraphMode();
-        // }
-        // graphModeBtnSkew.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // if (currentGraphMode != NsharpConstants.GRAPH_SKEWT) {
-        // currentGraphMode = NsharpConstants.GRAPH_SKEWT;
-        // graphModeBtnSkew.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // if (!interpolateIsOn) {
-        // graphEditBtn.setEnabled(true);
-        // dataEditBtn.setEnabled(true);
-        // compareTmBtn.setEnabled(true);
-        // compareSndBtn.setEnabled(true);
-        // compareStnBtn.setEnabled(true);
-        // overlayBtn.setEnabled(true);
-        // } else {
-        // graphEditBtn.setEnabled(false);
-        // dataEditBtn.setEnabled(false);
-        // compareTmBtn.setEnabled(false);
-        // compareSndBtn.setEnabled(false);
-        // compareStnBtn.setEnabled(false);
-        // overlayBtn.setEnabled(false);
-        // }
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setCurrentGraphMode(currentGraphMode);
-        // // rsc.getSkewtPaneRsc().handleResize();
-        // }
-        //
-        // }
-        // }
-        // });
-        //
-        // if
-        // (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR))
-        // {
-        // graphModeBtnHodo = new Button(graphModeGp, SWT.PUSH);
-        // graphModeBtnHodo.setFont(newFont);
-        // graphModeBtnHodo.setText("H");
-        // graphModeBtnHodo.setEnabled(true);
-        // graphModeBtnHodo.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // if (currentGraphMode != NsharpConstants.GRAPH_HODO) {
-        // currentGraphMode = NsharpConstants.GRAPH_HODO;
-        // graphModeBtnHodo.setBackground(colorBlue);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // if (!interpolateIsOn) {
-        // graphEditBtn.setEnabled(true);
-        // dataEditBtn.setEnabled(true);
-        // compareTmBtn.setEnabled(true);
-        // compareSndBtn.setEnabled(true);
-        // compareStnBtn.setEnabled(true);
-        // overlayBtn.setEnabled(true);
-        // } else {
-        // graphEditBtn.setEnabled(false);
-        // dataEditBtn.setEnabled(false);
-        // compareTmBtn.setEnabled(false);
-        // compareSndBtn.setEnabled(false);
-        // compareStnBtn.setEnabled(false);
-        // overlayBtn.setEnabled(false);
-        // }
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setCurrentGraphMode(currentGraphMode);
-        // // rsc.getSkewtPaneRsc().handleResize();
-        // }
-        // }
-        // }
-        // });
-        // }
-        // graphModeBtnTurb = new Button(graphModeGp, SWT.PUSH);
-        // graphModeBtnTurb.setFont(newFont);
-        // graphModeBtnTurb.setText("T");
-        // graphModeBtnTurb.setEnabled(true);
-        // graphModeBtnTurb.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // if (currentGraphMode != NsharpConstants.GRAPH_TURB) {
-        // currentGraphMode = NsharpConstants.GRAPH_TURB;
-        // graphModeBtnTurb.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // graphEditBtn.setEnabled(false);
-        // dataEditBtn.setEnabled(false);
-        // compareTmBtn.setEnabled(false);
-        // compareSndBtn.setEnabled(false);
-        // compareStnBtn.setEnabled(false);
-        // overlayBtn.setEnabled(false);
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setCurrentGraphMode(currentGraphMode);
-        // // rsc.getSkewtPaneRsc().handleResize();
-        // }
-        // }
-        // }
-        // });
-        // graphModeBtnIcing = new Button(graphModeGp, SWT.PUSH);
-        // graphModeBtnIcing.setFont(newFont);
-        // graphModeBtnIcing.setText("I");
-        // graphModeBtnIcing.setEnabled(true);
-        // graphModeBtnIcing.addListener(SWT.MouseUp, new Listener() {
-        // public void handleEvent(Event event) {
-        // if (currentGraphMode != NsharpConstants.GRAPH_ICING) {
-        // currentGraphMode = NsharpConstants.GRAPH_ICING;
-        // graphModeBtnIcing.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // graphEditBtn.setEnabled(false);
-        // dataEditBtn.setEnabled(false);
-        // compareTmBtn.setEnabled(false);
-        // compareSndBtn.setEnabled(false);
-        // compareStnBtn.setEnabled(false);
-        // overlayBtn.setEnabled(false);
-        // NsharpResourceHandler rsc = getRscHandler();
-        // if (rsc != null) {
-        // rsc.setCurrentGraphMode(currentGraphMode);
-        // // rsc.getSkewtPaneRsc().handleResize();
-        // }
-        // }
-        // }
-        // });
-        // if (currentGraphMode == NsharpConstants.GRAPH_SKEWT) {
-        // graphModeBtnSkew.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // } else if (currentGraphMode == NsharpConstants.GRAPH_HODO) {
-        // graphModeBtnHodo.setBackground(colorBlue);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // } else if (currentGraphMode == NsharpConstants.GRAPH_TURB) {
-        // graphModeBtnTurb.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnIcing.setBackground(colorGrey);
-        // } else if (currentGraphMode == NsharpConstants.GRAPH_ICING) {
-        // graphModeBtnIcing.setBackground(colorBlue);
-        // graphModeBtnHodo.setBackground(colorGrey);
-        // graphModeBtnSkew.setBackground(colorGrey);
-        // graphModeBtnTurb.setBackground(colorGrey);
-        // }
 
         // Push buttons for Print
         Button printBtn = new Button(textModeGp, SWT.PUSH);
@@ -1472,7 +1230,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     }
 
     private void createSPCGp() {
-        // System.out.println("createSPCGp..........................................");
         spcGp = new Group(parent, SWT.SHADOW_OUT);
         spcGp.setLayout(new RowLayout(SWT.HORIZONTAL));
         spcGp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

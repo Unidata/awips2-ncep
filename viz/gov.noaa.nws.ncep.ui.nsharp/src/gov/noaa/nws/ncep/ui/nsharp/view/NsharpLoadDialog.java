@@ -94,7 +94,7 @@ public class NsharpLoadDialog extends Dialog {
 
     private int activeLoadSoundingType;
 
-    private NcSoundingProfile.ObsSndType activeObsSndType = NcSoundingProfile.ObsSndType.NCUAIR;
+    private NcSoundingProfile.ObsSndType activeObsSndType = NcSoundingProfile.ObsSndType.BUFRUA;
 
     private ArrayList<String> obsSelectedTimeList = new ArrayList<String>();
 

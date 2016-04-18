@@ -56,6 +56,7 @@ import com.vividsolutions.jts.geom.Point;
  * 09/10		#304		B. Yin   	Initial Creation.
  * 11/10		#?			B. Yin		Use MidLevelCloudText as cloud labels
  * 03/12        #697        Q. Zhou     Fixed line arrow head size for ccf, cloud & turb
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author	B. Yin
@@ -409,7 +410,7 @@ public class PgenAddLabelHandler extends InputHandlerDefaultImpl {
 			avntxt.setSymbolPatternName(((TurbAttrDlg)dlg).getSymbolPatternName());
 			avntxt.setMask(true);
 			avntxt.setDisplayType( DisplayType.NORMAL );
-			avntxt.setFontSize(14.0f);
+			avntxt.setFontSize(11.8f);
 			avntxt.setFontName("Courier");
 			avntxt.setStyle(FontStyle.REGULAR);
 			avntxt.setJustification(TextJustification.CENTER);
@@ -506,7 +507,7 @@ public class PgenAddLabelHandler extends InputHandlerDefaultImpl {
 
 		t.setMask(true);
 		t.setDisplayType(DisplayType.BOX);//false);
-		t.setFontSize(14.0f);
+		t.setFontSize(11.8f);
 		t.setFontName("Courier");
 		t.setStyle(FontStyle.REGULAR);
 		t.setJustification(TextJustification.CENTER);

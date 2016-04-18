@@ -29,7 +29,7 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.viz.core.PixelExtent;
@@ -511,10 +511,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
             }
 
             return parea;
-        } catch (LocalizationOpFailedException e) {
-            throw new VizException("Error saving Predefined Area, " + areaname
-                    + ": " + e.getMessage());
-        } catch (SerializationException e) {
+        } catch (LocalizationException | SerializationException e) {
             throw new VizException("Error saving Predefined Area, " + areaname
                     + ": " + e.getMessage());
         }

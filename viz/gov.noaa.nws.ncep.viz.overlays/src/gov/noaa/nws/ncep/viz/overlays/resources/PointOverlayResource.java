@@ -45,6 +45,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/03/2015       R9407        pchowdhuri      Maps/overlays need to be able to reference the 
  *                                               Localization Cave>Bundles>Maps XML files
  * 02/17/2016       #13554       dgilling        Implement IStaticDataNatlCntrsResource.
+ * 07/03/13     #1010     ghull       Initial creation
+ * 11/05/2015   #5070     randerso    Adjust font sizes for dpi scaling
+ *    
+ * </pre>
  * 
  * @author randerso
  * </pre>

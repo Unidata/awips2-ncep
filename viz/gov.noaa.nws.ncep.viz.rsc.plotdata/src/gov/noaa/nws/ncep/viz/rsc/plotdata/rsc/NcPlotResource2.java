@@ -135,6 +135,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     to force re-query (now that we're bypassing stations that already have data).
  *  Aug 08, 2014  3477     bclement    changed plot info locations to floats
  *  09/03/2014    1009     kbugenhagen Reload Framedata.stationMap if all stations' dist values are null
+ *  Aug 05, 2015  4486     rjpeter     Changed Timestamp to Date.
  *  08/14/2015   R7757     B. Hebbard  Refactor to connect imageCreator directly to this class, instead of indirectly via dataRequestor;
  *                                     add FrameStatus state tracking (instead of just processing-in-progress boolean)
  *  11/17/2015   R9579     B. Hebbard  Tell DisplayElementFactory to allow filled symbols; move Station class to separate file; cleanups

@@ -1891,7 +1891,7 @@ public class ResourceDefnsMngr {
                                         + rscDefn.getResourceDefnName() + ". Missing entry in the filtersMap."));
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         } catch (InterruptedException e) {
             throw new VizException(e);
@@ -1956,7 +1956,7 @@ public class ResourceDefnsMngr {
             attrSetGroupsMap.put(attrSetGroup.getRscAndGroupName().toString(),
                     attrSetGroup);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }
     }
@@ -2078,7 +2078,7 @@ public class ResourceDefnsMngr {
 
             attrSetGroupsMap.put(asg.getRscAndGroupName().toString(), asg);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e.getMessage());
         }
     }
@@ -2245,7 +2245,7 @@ public class ResourceDefnsMngr {
                 }
             }
 
-        } catch (LocalizationOpFailedException lopex) {
+        } catch (LocalizationException lopex) {
             throw new VizException(lopex.getMessage());
         }
 
@@ -2346,7 +2346,7 @@ public class ResourceDefnsMngr {
                         e);
             }
             rscFiltersLFile.save();
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -2409,7 +2409,7 @@ public class ResourceDefnsMngr {
             // check to see if there is an inventory for this rscDefn or if
             // we need to create one.
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }
 

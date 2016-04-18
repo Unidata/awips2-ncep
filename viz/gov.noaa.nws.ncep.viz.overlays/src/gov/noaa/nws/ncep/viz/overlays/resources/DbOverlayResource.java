@@ -74,6 +74,7 @@ import com.vividsolutions.jts.io.WKBReader;
  *                                     Localization Cave>Bundles>Maps XML files 
  *                                     Corrected deprecated calls.
  * Feb 17, 2016  #13554    dgilling    Implement IStaticDataNatlCntrsResource.
+ * Nov 05, 2015  5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * 
@@ -571,7 +572,7 @@ public class DbOverlayResource extends
 
         if ((labels != null) && isLabeled) {
             IFont font = aTarget.initializeFont(aTarget.getDefaultFont()
-                    .getFontName(), 10, null);
+                    .getFontName(), 8, null);
             font.setSmoothing(false);
             font.setScaleFont(false);
 

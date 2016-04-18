@@ -13,7 +13,7 @@
  * 03/26/2010	229			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * 12/17/2014   Task#5694   Chin Chen   initialize stnDisplayInfo and stnId
- *
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -21,19 +21,19 @@
  */
 package gov.noaa.nws.ncep.ui.nsharp;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NsharpStationInfo {
 	public class timeLineSpecific {
-		Timestamp tiemLine;
+		Date timeLine;
 		String displayInfo;
-		public Timestamp getTiemLine() {
-			return tiemLine;
+		public Date getTimeLine() {
+			return timeLine;
 		}
-		public void setTiemLine(Timestamp tiemLine) {
-			this.tiemLine = tiemLine;
+		public void setTimeLine(Date timeLine) {
+			this.timeLine = timeLine;
 		}
 		public String getDisplayInfo() {
 			return displayInfo;
@@ -46,8 +46,8 @@ public class NsharpStationInfo {
 	protected List<timeLineSpecific> timeLineSpList = new ArrayList<timeLineSpecific>(); 
 	protected double latitude;
 	protected double longitude;
-	protected Timestamp reftime;  //uair (same as Synoptictime in uair)
-	protected Timestamp rangestarttime; //rangestart used by model sounding e.g. PFC sounding, or uair (same as Synoptictime in uair) 
+	protected Date reftime;  //uair (same as Synoptictime in uair)
+	protected Date rangestarttime; //rangestart used by model sounding e.g. PFC sounding, or uair (same as Synoptictime in uair) 
 	protected String stnDisplayInfo="N/A";
 	protected String sndType="N/A";
 	protected String stnId="N/A";
@@ -78,16 +78,16 @@ public class NsharpStationInfo {
 	public void setSndType(String sndType) {
 		this.sndType = sndType;
 	}
-	public Timestamp getRangestarttime() {
+	public Date getRangestarttime() {
 		return rangestarttime;
 	}
-	public void setRangestarttime(Timestamp rangestarttime) {
+	public void setRangestarttime(Date rangestarttime) {
 		this.rangestarttime = rangestarttime;
 	}
-	public Timestamp getReftime() {
+	public Date getReftime() {
 		return reftime;
 	}
-	public void setReftime(Timestamp reftime) {
+	public void setReftime(Date reftime) {
 		this.reftime = reftime;
 	}
 	public String getStnDisplayInfo() {

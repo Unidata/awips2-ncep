@@ -82,7 +82,8 @@ import com.vividsolutions.jts.geom.CoordinateList;
  * 10/20/2012     858      Greg Hull   change query to handle the ENS_CYC_FCST version of this resource
  * 12/19/2012    #960     Greg Hull    override propertiesChanged() to update colorBar.
  * 12/19/2014      ?      B. Yin       Remove ScriptCreator, use Thrift Client.
- *                                             
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
+ *
  * @author sgilbert
  *</pre>
  */
@@ -886,7 +887,7 @@ implements INatlCntrsResource{
 	public void initResource(IGraphicsTarget graphicsTarget) throws VizException {
 		
 		if( font == null ) {
-			font         = graphicsTarget.initializeFont("Monospace", 11, new IFont.Style[] { IFont.Style.BOLD});
+			font         = graphicsTarget.initializeFont("Monospace", 9, new IFont.Style[] { IFont.Style.BOLD});
 			Rectangle2D charSize = graphicsTarget.getStringBounds(font, "N");
 			charHeight         = charSize.getHeight();
 			charWidth          = charSize.getWidth();

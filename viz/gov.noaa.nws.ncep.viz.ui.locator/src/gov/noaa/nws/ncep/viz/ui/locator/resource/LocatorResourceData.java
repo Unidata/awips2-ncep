@@ -26,6 +26,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *
  * ???????????  ???         ???         Created
  * 12/14/1212   #903        Greg Hull   fontSize, fontName, and color
+ * 11/05/2015    5070       randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -375,7 +376,7 @@ public class LocatorResourceData extends AbstractNatlCntrsResourceData {
 	}
 
 	public Integer getFontSize() {
-		return (fontSize == null ? 12 : fontSize);
+		return (fontSize == null ? 10 : fontSize);
 	}
 
 	public void setFontSize(Integer fs) {

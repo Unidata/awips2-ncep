@@ -63,6 +63,7 @@ import org.eclipse.swt.graphics.RGB;
  * 01-Mar-2011             Greg Hull   frameInterval -> frameSpan
  * 16 Feb 2012    555      S. Gurung   Added call to setAllFramesAsPopulated() in queryRecords()
  * 05/23/12       785      Q. Zhou     Added getName for legend.                                               
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * @author archana
  *</pre>
  */
@@ -604,7 +605,7 @@ implements INatlCntrsResource{
 		 *Calculate vertical/horizontal offset parameters 
 		 */
 		if( font == null ) {
-			font         = graphicsTarget.initializeFont("Monospace", 14, new IFont.Style[] { IFont.Style.BOLD});
+			font         = graphicsTarget.initializeFont("Monospace", 12, new IFont.Style[] { IFont.Style.BOLD});
 			charSize           = graphicsTarget.getStringBounds(font, "N");
 			charHeight         = charSize.getHeight();
 			charWidth          = charSize.getWidth();

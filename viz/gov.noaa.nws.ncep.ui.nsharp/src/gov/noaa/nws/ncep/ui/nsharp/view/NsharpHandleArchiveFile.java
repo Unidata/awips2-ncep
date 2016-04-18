@@ -17,6 +17,7 @@ package gov.noaa.nws.ncep.ui.nsharp.view;
  * 12/17/2014   Task#5694   Chin Chen   added nsharpParseAndLoadTextFile() to be used by both NCP and D2D perspectives,
  *                                      also modified openArchiveFile() to use it.
  * 02/05/2015   Task#5694   Chin Chen   add code to support previous version archived file format 
+ * 01/19/2016   5054        randerso    Changed to use MessageDialog to avoid creation of dummy shell 
  *
  * </pre>
  * 
@@ -41,9 +42,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 public class NsharpHandleArchiveFile {
@@ -301,19 +302,20 @@ public class NsharpHandleArchiveFile {
 		}
 	}
 	//Task#5694
-	private static void displayMessage(String msg){
-		Shell shell = new Shell();
-    	MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
-    			| SWT.OK);
-    	mb.setMessage(msg);
-    	mb.open();
-	}
-	public static boolean nsharpParseAndLoadTextFile(String textFilePath) throws FileNotFoundException{
+    private static void displayMessage(Shell shell, String msg) {
+        MessageDialog.openWarning(shell, "WARNING!", msg);
+    }
+
+    public static boolean nsharpParseAndLoadTextFile(String textFilePath) throws FileNotFoundException{
 		List<NcSoundingLayer> sndLyList = new ArrayList<NcSoundingLayer>();
         NsharpStationInfo stninfo = new NsharpStationInfo();
         if(nsharpTextfileParser(textFilePath,sndLyList,stninfo) == false)
         {
-        	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
+            /*
+             * TODO: It would be better if a shell were passed into this
+             * method to be used as the parent of the message dialog
+             */
+            displayMessage(null, "Invalid sounding data retrieved from archive file " + textFilePath + "!!");
         	return false;        
         }
         else {
@@ -334,7 +336,7 @@ public class NsharpHandleArchiveFile {
             	
             } 
             else{
-            	displayMessage("Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
+            	displayMessage(null, "Invalid sounding data retrieved from archive file "+ textFilePath+ "!!");
             	return false;
             }
         }
@@ -367,10 +369,10 @@ public class NsharpHandleArchiveFile {
                     nsharpParseAndLoadTextFile(selectedFilePath);
                  }
             } catch (FileNotFoundException e) {
-            	displayMessage("File not found!!");
+            	displayMessage(shell, "File not found!!");
                 e.printStackTrace();
             } catch (NumberFormatException e) {
-                displayMessage("Parsing file and number format exception happened!!");
+                displayMessage(shell, "Parsing file and number format exception happened!!");
                 e.printStackTrace();
             } 
         }

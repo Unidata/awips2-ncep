@@ -14,6 +14,7 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  * -------		------- 	-------- 	-----------
  * 11/15/2010	TBD			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
  * 07/08/2015   RM#9172     Chin Chen   Fixed problem caused by Raytheon's change lat/lon data type from double to 
  *                                      float in SurfaceObsLocation class at 14.4.1
@@ -23,20 +24,19 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  * @version 1.0
  */
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class NcSoundingStnInfo implements  ISerializableObject{
+public class NcSoundingStnInfo {
 	@DynamicSerializeElement
     private static final long serialVersionUID = 1324632468L;
 
@@ -51,14 +51,14 @@ public class NcSoundingStnInfo implements  ISerializableObject{
     @DynamicSerializeElement
     private String stnId;
     @DynamicSerializeElement
-    private Timestamp synopTime; // same as retTime 
+    private Date synopTime; // same as retTime 
     @DynamicSerializeElement
-    private Timestamp rangeStartTime;
+    private Date rangeStartTime;
     
-	public Timestamp getRangeStartTime() {
+	public Date getRangeStartTime() {
 		return rangeStartTime;
 	}
-	public void setRangeStartTime(Timestamp rangeStartTime) {
+	public void setRangeStartTime(Date rangeStartTime) {
 		this.rangeStartTime = rangeStartTime;
 	}
 	public NcSoundingStnInfo() {
@@ -89,10 +89,10 @@ public class NcSoundingStnInfo implements  ISerializableObject{
 	public void setStnId(String stnId) {
 		this.stnId = stnId;
 	}
-	public Timestamp getSynopTime() {
+	public Date getSynopTime() {
 		return synopTime;
 	}
-	public void setSynopTime(Timestamp synopTime) {
+	public void setSynopTime(Date synopTime) {
 		this.synopTime = synopTime;
 	}
 }

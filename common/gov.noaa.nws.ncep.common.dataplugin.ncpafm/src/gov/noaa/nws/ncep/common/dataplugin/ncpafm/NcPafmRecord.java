@@ -65,6 +65,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Feb 11, 2014 2784       rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061       bsteffen    Remove IDecoderGettable
+ * Aug 03, 2015 4360       rferrel     Name unique constraint.
  * 
  * </pre>
  * 
@@ -73,7 +74,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  */
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "ncpafmseq")
-@Table(name = "ncpafm", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@Table(name = "ncpafm", uniqueConstraints = { @UniqueConstraint(name = "uk_ncpafm_datauri_fields", columnNames = { "dataURI" }) })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.

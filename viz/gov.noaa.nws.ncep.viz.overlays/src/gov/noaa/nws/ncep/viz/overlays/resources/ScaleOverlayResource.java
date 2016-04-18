@@ -50,6 +50,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *    06 Oct 2010   311         B. Hebbard  Initial creation (derived from DistanceTool)
  *    19 Oct 2012   898         sgurung     Fix for fuzzy fonts
  *    17 Feb 2016   #13554      dgilling    Implement IStaticDataNatlCntrsResource.
+ *    05 Nov 2015   5070        randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 

@@ -12,6 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 01/2011	    229			Chin Chen	Initial coding
  * 03/09/2015   RM#6674     Chin Chen   Support model sounding query data interpolation and nearest point option                       
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query grid model sounding data
  * 08/24/2015   RM#10188    Chin Chen   Model selection upgrades - use grid resource definition name for model type display
  * 09/28/2015   RM#10295    Chin Chen   Let sounding data query run in its own thread to avoid gui locked out during load
@@ -40,12 +41,12 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
-import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -217,9 +218,9 @@ public class NsharpModelSoundingDialogContents {
                             selectedModelType);
             if (timeLines != null && timeLines.getTimeLines().length > 0) {
                 for (Object obj : timeLines.getTimeLines()) {
-                    Timestamp rangestart = (Timestamp) obj;
+                    Date rangestart = (Date) obj;
                     // need to format rangestart to GMT time string.
-                    // Timestamp.toString produce a local time Not GMT time
+                    // Date.toString produce a local time Not GMT time
                     cal.setTimeInMillis(rangestart.getTime());
                     long vHour = (cal.getTimeInMillis() - reftimeMs) / 3600000;
                     String dayOfWeek = defaultDays[cal

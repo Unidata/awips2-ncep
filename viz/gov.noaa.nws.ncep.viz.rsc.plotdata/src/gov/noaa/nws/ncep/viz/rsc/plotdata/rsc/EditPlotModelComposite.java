@@ -91,6 +91,7 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  * 08/14/2015  R7757        B. Hebbard  Enable (symbol) size selection for vector parameters
  * 11/17/2015  R9579        B. Hebbard  Add marker type and symbol line width selection
  * 12/17/2015  R9579        B. Hebbard  Make sure PTND (combined text & symbol) enables symbol controls
+ * 11/05/2015   5070        randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -130,8 +131,8 @@ public class EditPlotModelComposite extends Composite {
 
     private Button advancedBtn = null;
 
-    private final String[] textSizeOptions = { "10", "12", "14", "16", "18",
-            "20", "22", "24", "32" };
+    private final String[] textSizeOptions = { "8", "10", "12", "14", "16",
+            "18", "20", "22", "28" };
 
     private final String[] textFontOptions = { "Courier", "Helvetica", "Times",
             "Monospaced", // same as "DialogInput"

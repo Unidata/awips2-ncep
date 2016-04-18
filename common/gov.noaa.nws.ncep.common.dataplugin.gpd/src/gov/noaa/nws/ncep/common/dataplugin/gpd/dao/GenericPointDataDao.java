@@ -12,6 +12,7 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 05/30/2013				Chin J. Chen	Initial coding
+ * Aug 05, 2015 4486        rjpeter       Changed Timestamp to Date . < This is 16.2.1 code
  * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
  *
  * </pre>
@@ -36,7 +37,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
 import java.io.File;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1658,8 +1658,8 @@ public class GenericPointDataDao extends
                         + "' AND slat BETWEEN -89.9 AND 89.9 AND slon BETWEEN -179.9 AND 179.9");
         rtnobjArray = executeSQLQuery(queryStr);
         String stnId = "";
+        Date synoptictime = null, rsTime = null;
         Float slat, slon;
-        Timestamp synoptictime = null, rsTime = null;
         for (int j = 0; j < rtnobjArray.length; j++) {
             Object[] objArray = (Object[]) rtnobjArray[j];
             // ids.add(((Integer)objArray[2]));
@@ -1671,8 +1671,8 @@ public class GenericPointDataDao extends
             slon = new Float(objArray[1].toString());
             stnId = (String) objArray[3];
             stnId = stnId.replace("1000-", "");
-            synoptictime = (Timestamp) objArray[4];
-            rsTime = (Timestamp) objArray[5];
+            synoptictime = (Date) objArray[4];
+            rsTime = (Date) objArray[5];
             NcSoundingStnInfo stn = stnInfoCol.getNewStnInfo();
             stn.setStnId(stnId);
             stn.setStationLongitude(slon);

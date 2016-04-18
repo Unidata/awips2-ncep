@@ -15,6 +15,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * 11/1/2010	362			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * 02/15/2012               Chin Chen   add  PFC sounding query algorithm for better performance getPfcSndDataBySndTmRange()
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * 07202015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() directly to query pc sounding data
  * 09/28/2015   RM#10295    Chin Chen   Let sounding data query run in its own thread to avoid gui locked out during load
  * </pre>
@@ -38,6 +39,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+
+import java.util.Date;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -70,7 +73,7 @@ public class NsharpPfcSoundingQuery extends Job {
             int i = 0;
             for (NsharpStationInfo.timeLineSpecific tmlinSpc : StnPt
                     .getTimeLineSpList()) {
-                Timestamp rangeTime = tmlinSpc.getTiemLine();
+                Date rangeTime = tmlinSpc.getTimeLine();
                 rangeTimeArray[i] = rangeTime.getTime();
                 i++;
             }
@@ -99,7 +102,7 @@ public class NsharpPfcSoundingQuery extends Job {
                                     .size(); j++) {
                                 NsharpStationInfo.timeLineSpecific tmlinSpcj = StnPt
                                         .getTimeLineSpList().get(j);
-                                if (tmlinSpcj.getTiemLine().getTime() == sndPf
+                                if (tmlinSpcj.getTimeLine().getTime() == sndPf
                                         .getFcsTime()) {
                                     stnDispInfo = tmlinSpcj.getDisplayInfo();
                                     break;

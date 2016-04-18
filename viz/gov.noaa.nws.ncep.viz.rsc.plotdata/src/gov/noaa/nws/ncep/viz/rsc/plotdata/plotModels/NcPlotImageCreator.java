@@ -82,6 +82,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/14/2015    R7757       B. Hebbard   Add support for directional arrow (no magnitude) parameters; also refactor so imageCreator belongs directly to resource (instead of NcPlotDataRequestor) for better frame status tracking; other cleanups.
  * 11/17/2015    R9579       B. Hebbard   Add support for MARK (marker) symbol parameter; various cleanups
  * 12/17/2015    R9579       B. Hebbard   Fix PTND regression preventing symbol draw; prevent NPE on null lookupTable return
+ * 11/05/2015    5070         randerso    Adjust font sizes for dpi scaling
  */
 
 public class NcPlotImageCreator {

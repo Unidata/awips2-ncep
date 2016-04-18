@@ -45,6 +45,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/11		?			B. Yin		Added open/close line functions
  * 08/12		?			B. Yin		One Cloud/Turb per layer
  * 11/13        ?           J. Wu       Add auto placement of CCFP text
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -407,7 +408,7 @@ public class PgenLabeledLineDrawingTool extends AbstractPgenDrawingTool
 
         txt.setMask(true);
         txt.setDisplayType(DisplayType.BOX);
-        txt.setFontSize(14.0f);
+        txt.setFontSize(11.8f);
         txt.setFontName("Courier");
         txt.setStyle(FontStyle.REGULAR);
         txt.setJustification(TextJustification.CENTER);

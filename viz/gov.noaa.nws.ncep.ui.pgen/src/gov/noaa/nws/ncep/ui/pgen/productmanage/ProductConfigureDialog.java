@@ -1058,7 +1058,7 @@ public class ProductConfigureDialog extends ProductDialog {
 
             try {
                 prdTypesFile.save();
-            } catch (LocalizationOpFailedException e) {
+            } catch (LocalizationException e) {
                 throw new VizException(e);
             }
         } catch (VizException ve) {

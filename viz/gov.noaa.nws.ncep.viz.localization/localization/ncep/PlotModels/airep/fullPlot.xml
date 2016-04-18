@@ -11,57 +11,57 @@
 		 
 		  -->
 		<PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="TBSY">
+textFont="Courier" textSize="12" paramName="TBSY">
             <Position>TC</Position>
             <Color red="0" green="178" blue="238"/>
         </PlotModelElement>
 		<!--  PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="BRBK">
+textFont="Courier" textSize="12" paramName="BRBK">
             <Position>MC</Position>
             <Color red="0" green="255" blue="255"/>
         </PlotModelElement> -->
  <!-- no vsby        <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="VSBY">
+textFont="Courier" textSize="12" paramName="VSBY">
             <Position>BC</Position>
             <Color red="16" green="78" blue="139"/>
         </PlotModelElement> -->
         
         <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="TMPC">
+textFont="Courier" textSize="12" paramName="TMPC">
             <Position>UL</Position>
             <Color red="255" green="0" blue="0"/>
         </PlotModelElement>
 
 		<PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="FELV">
+textFont="Courier" textSize="12" paramName="FELV">
             <Position>LL</Position>
             <Color red="0" green="255" blue="0"/>
         </PlotModelElement>
         
  <!--       <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="PRES">
+textFont="Courier" textSize="12" paramName="PRES">
             <Position>UR</Position>
             <Color red="0" green="0" blue="255"/>
         </PlotModelElement>   --> 
         <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="ICSY">
+textFont="Courier" textSize="12" paramName="ICSY">
             <Position>MR</Position>
             <Color red="255" green="255" blue="0"/>
         </PlotModelElement>
         <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="STID">
+textFont="Courier" textSize="12" paramName="STID">
             <Position>LR</Position>
             <Color red="205" green="133" blue="0"/>
         </PlotModelElement>
 
  <!--        <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="DRCT">
+textFont="Courier" textSize="12" paramName="DRCT">
             <Position>MR</Position>
             <Color red="255" green="255" blue="0"/>
         </PlotModelElement>
 
         <PlotModelElement symbolSize="1" textStyle="Bold" 
-textFont="Courier" textSize="14" paramName="SPED">
+textFont="Courier" textSize="12" paramName="SPED">
             <Position>LR</Position>
             <Color red="205" green="133" blue="0"/>
         </PlotModelElement>

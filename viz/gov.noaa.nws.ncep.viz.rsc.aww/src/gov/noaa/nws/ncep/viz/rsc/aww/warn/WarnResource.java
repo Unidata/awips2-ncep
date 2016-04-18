@@ -89,6 +89,7 @@ import com.vividsolutions.jts.io.WKBReader;
  *                                      county/fips instead of collection for each unique warning/uri.
  * 08/14/2013     1028    G. Hull      Move to aww project. Use AwwReportType enum.
  * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 11/05/2015     5070     randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -252,7 +253,7 @@ public class WarnResource extends
     }
 
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
-        font = grphTarget.initializeFont("Monospace", 14,
+        font = grphTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         stationTable = new StationTable(NcPathManager.getInstance()
                 .getStaticFile(NcPathConstants.COUNTY_STN_TBL)

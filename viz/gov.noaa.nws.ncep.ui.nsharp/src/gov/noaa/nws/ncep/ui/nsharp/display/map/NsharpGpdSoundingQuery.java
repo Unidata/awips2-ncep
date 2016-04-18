@@ -29,7 +29,7 @@ public class NsharpGpdSoundingQuery {
             List<Date> rangeTimeList = new ArrayList<Date>();
             for (NsharpStationInfo.timeLineSpecific tmlinSpc : StnPt
                     .getTimeLineSpList()) {
-                rangeTimeList.add(tmlinSpc.getTiemLine());
+                rangeTimeList.add(tmlinSpc.getTimeLine());
             }
             List<GenericPointDataStationProduct> stnPList = null;
             // TBDGPD List<GenericPointDataStationProduct> stnPList =
@@ -72,7 +72,7 @@ public class NsharpGpdSoundingQuery {
                     String dispInfo = "";
                     for (NsharpStationInfo.timeLineSpecific tmlinSpc : StnPt
                             .getTimeLineSpList()) {
-                        if (tmlinSpc.getTiemLine().getTime() == (stnProd
+                        if (tmlinSpc.getTimeLine().getTime() == (stnProd
                                 .getForecastTime() * 1000 + stnProd
                                 .getRefTime().getTime())) {
                             dispInfo = tmlinSpc.getDisplayInfo();

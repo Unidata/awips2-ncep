@@ -14,6 +14,7 @@ package gov.noaa.nws.ncep.viz.rsc.aww.svrl;
  * 01/10/11				Uma Josyula	 Made changes to preprocess update and event date  
  * 02/16/2012   555        S. Gurung   Added call to setAllFramesAsPopulated() in queryRecords().
  * 12/14         ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 11/05/2015   5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author ujosyula 
@@ -369,7 +370,7 @@ implements     INatlCntrsResource, IStationField  {
 	
 	
 	public void initResource(IGraphicsTarget grphTarget) throws VizException {
-		font = grphTarget.initializeFont("Monospace", 14, new IFont.Style[] { IFont.Style.BOLD });
+		font = grphTarget.initializeFont("Monospace", 12, new IFont.Style[] { IFont.Style.BOLD });
 		stationTable = new StationTable( 
 				NcPathManager.getInstance().getStaticFile( 
 						NcPathConstants.COUNTY_STN_TBL ).getAbsolutePath() );

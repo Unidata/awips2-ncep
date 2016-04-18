@@ -21,7 +21,7 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
@@ -34,9 +34,9 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/24/10		  #226		Greg Hull    Break out from NmapCommon
+ * Date         Ticket#     Engineer     Description
+ * ------------ ----------  -----------  --------------------------
+ * 02/24/10       #226      Greg Hull    Break out from NmapCommon
  * 03/04/10       #226      Greg Hull    special case for PGEN
  * 06/22/10       #273      Greg Hull    move some methods to ResourceDefnsMngr
  * 07/28/11       #450      Greg Hull    split out Predefined Areas methods and
@@ -54,12 +54,13 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 07/22/12       #568      Greg Hull    return Rbds and rbdNames sorted by seq num.
  * 02/10/13       #972      Greg Hull    changed to work with AbstractRbds
  * 05/19/13       #1001     Greg Hull    getRbdsFromSpf(), trap RBD errors
- * 03/06/14	       ?		B. Yin		 Replaced SerializationUtil with JAXBManager.
+ * 03/06/14       ?         B. Yin       Replaced SerializationUtil with JAXBManager.
  * 03/25/15                 B. Hebbard   Reformat only, to code standards
  * 03/25/15       R4983     B. Hebbard   In saveRbdToSpf(..), if saving cycle times as
  *                                       LATEST, apply to dominant resource name too;
  *                                       also fix save to resourceNameToCycleTimeMap to use
  *                                       as key resourceName after modification.
+ * 12/09/15        4834     njensen      Updated for LocalizationFile.delete() signature
  * 
  * </pre>
  * 
@@ -510,7 +511,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             lFile.addFileUpdatedObserver(this);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         } catch (JAXBException e) {
             throw new VizException(e);
@@ -578,12 +579,9 @@ public class SpfsManager implements ILocalizationFileObserver {
         // Note that this will trigger the fileUpdated which will remove the
         // group from the map
         try {
-            if (!groupLocDir.delete()) {
-                throw new VizException("Error deleting file:"
-                        + groupLocDir.getFile().getAbsolutePath());
-            }
-        } catch (LocalizationOpFailedException e) {
-            throw new VizException(e);
+            groupLocDir.delete();
+        } catch (LocalizationException e) {
+            throw new VizException( e );
         }
     }
 
@@ -684,7 +682,7 @@ public class SpfsManager implements ILocalizationFileObserver {
             } catch (InterruptedException e) {
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -704,7 +702,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         // remove the Rbd from the map
         try {
             lFile.delete();
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
 

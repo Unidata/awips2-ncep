@@ -157,6 +157,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author sgilbert
@@ -5169,7 +5170,7 @@ public class DisplayElementFactory {
                 /*
                  * get pixel size of text string with given font
                  */
-                IFont font = initializeFont("Courier", 14.f, FontStyle.REGULAR);
+                IFont font = initializeFont("Courier", 11.8f, FontStyle.REGULAR);
                 Rectangle2D bounds = target.getStringBounds(font, "Xy");
                 bounds = new Rectangle2D.Double(0.0, 0.0,
                         bounds.getWidth() / 2.0, bounds.getHeight());

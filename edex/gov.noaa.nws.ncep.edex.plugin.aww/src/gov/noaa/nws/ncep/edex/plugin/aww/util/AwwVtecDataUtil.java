@@ -2,9 +2,9 @@ package gov.noaa.nws.ncep.edex.plugin.aww.util;
 
 import gov.noaa.nws.ncep.edex.plugin.aww.dao.AwwVtecDao;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.raytheon.uf.common.dataquery.db.QueryResult;
@@ -23,7 +23,7 @@ import com.raytheon.uf.edex.database.dao.DaoConfig;
  * ------------ ---------- ----------- --------------------------
  * ????         ????       ????        Initial creation.
  * Jul 27, 2015 4500       rjpeter     Removed SQL Injection Concern.
- * 
+ * Aug 05, 2015 4486       rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author rjpeter
@@ -173,20 +173,20 @@ System.out.println("@@@@@@#########, lon=" + lon);
 		AwwVtecDataInfo awwVtecDataInfo = new AwwVtecDataInfo(); 
 		Integer recordId = (Integer)queryResult.getRowColumnValue(rowNumber, 0); 
 		String action = (String)queryResult.getRowColumnValue(rowNumber, 1); 
-		Timestamp eventStartTime = (Timestamp)queryResult.getRowColumnValue(rowNumber, 2); 
-		Timestamp eventEndTime = (Timestamp)queryResult.getRowColumnValue(rowNumber, 3); 
-		Timestamp awwRecordIssueTime = (Timestamp)queryResult.getRowColumnValue(rowNumber, 4); 
+		Date eventStartTime = (Date)queryResult.getRowColumnValue(rowNumber, 2); 
+		Date eventEndTime = (Date)queryResult.getRowColumnValue(rowNumber, 3); 
+		Date awwRecordIssueTime = (Date)queryResult.getRowColumnValue(rowNumber, 4); 
 
 		awwVtecDataInfo.setVtecRecordId(recordId); 
 		awwVtecDataInfo.setAction(action); 
-		awwVtecDataInfo.setEventStartTime(convertTimestampToCalendar(eventStartTime)); 
-		awwVtecDataInfo.setEventEndTime(convertTimestampToCalendar(eventEndTime)); 
-		awwVtecDataInfo.setAwwRecordIssueTime(convertTimestampToCalendar(awwRecordIssueTime)); 
+		awwVtecDataInfo.setEventStartTime(convertDateToCalendar(eventStartTime)); 
+		awwVtecDataInfo.setEventEndTime(convertDateToCalendar(eventEndTime)); 
+		awwVtecDataInfo.setAwwRecordIssueTime(convertDateToCalendar(awwRecordIssueTime)); 
 		
 		return awwVtecDataInfo; 
 	}
 	
-	private static Calendar convertTimestampToCalendar(Timestamp timestamp) {
+	private static Calendar convertDateToCalendar(Date timestamp) {
 		Calendar calendar = null; 
 		if(timestamp != null) {
 			calendar = Calendar.getInstance(); 

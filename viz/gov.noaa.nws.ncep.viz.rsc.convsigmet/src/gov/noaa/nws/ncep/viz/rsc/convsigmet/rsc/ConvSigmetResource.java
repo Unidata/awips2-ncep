@@ -56,6 +56,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
  *                                     if superseded by any in that frame more recently issued for the same
  *                                     region (W/C/E) (TTR 143).
  * 05/23/12       785      Q. Zhou     Added getName for legend.
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author bhebbard 
@@ -304,7 +305,7 @@ public class ConvSigmetResource extends AbstractNatlCntrsResource<ConvSigmetReso
     	FrameData currFrameData = (FrameData) frameData;
 
     	//  Allocate font and calculate vertical offset parameter for lines of text
-    	font = target.initializeFont("Monospace", 14, new IFont.Style[] { IFont.Style.BOLD });
+    	font = target.initializeFont("Monospace", 12, new IFont.Style[] { IFont.Style.BOLD });
 		double screenToWorldRatio = paintProps.getCanvasBounds().width
 		                          / paintProps.getView().getExtent().getWidth();
 		Rectangle2D charSize = target.getStringBounds(font, "N");

@@ -707,4 +707,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NCOM">
 <filters>Analysis,SBN</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="LocalRadar">
+<filters>Radar</filters>
+</ResourceDefinitionFilter>
 </ResourceDefinitionFilters>

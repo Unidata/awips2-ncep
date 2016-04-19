@@ -4,6 +4,9 @@
     <attrSetGroupName>Reflectivity</attrSetGroupName>
 	
     <attrSetLabels>
+    	<attrSetLabel>
+              <name>DHR</name>
+         </attrSetLabel>
          <attrSetLabel>
               <name>BREF6_1.00</name>
          </attrSetLabel>

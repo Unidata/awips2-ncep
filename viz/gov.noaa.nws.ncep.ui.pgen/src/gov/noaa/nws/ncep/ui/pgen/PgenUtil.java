@@ -152,6 +152,7 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 12/14		R5413		B. Yin		  Check null in findResource
  * 12/17/2015   R12990      J. Wu         Added getContourSymbolLabelSpacing()
  * 01/12/2016   R13168      J. Wu         Added getOneContourperLayer()
+ * 04/14/2016   R13245      B. Yin        Added UTC time validation methods.
  * </pre>
  * 
  * @author
@@ -822,6 +823,47 @@ public class PgenUtil {
             getActiveEditor().refresh();
     }
 
+    /**
+     * This method checks if the input character is digit or delete
+     * or backspace. 
+     * 
+     * @param event - Event that activates the listener.
+     * @return      - true if the input character is digit or delete 
+     *                or backspace.
+     */
+    public static final boolean validateDigitInput(VerifyEvent event) {
+        return ( Character.isDigit(event.character) || Character.UNASSIGNED == event.character ||
+                 event.character == SWT.BS || event.character == SWT.DEL );
+    }
+    
+    /**
+     * This method checks if a time string is between 0000 and 2359.
+     * 
+     * @param String - time string.
+     * @return       - true if the time string is between 0000 and 2359 
+     */
+    public static final boolean validateUTCTime(String utcTime) {
+        
+        int time = 0;
+        try {
+            time = Integer.parseInt( utcTime );
+        }
+        catch ( NumberFormatException e ){
+            return false;
+        }
+        
+        int hour = time / 100;
+        int minute = time % 100;
+        
+        if ( hour >= 0 && hour <= 23 &&
+            minute >= 00 && minute <=59 ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
     /**
      * This method checks if the content in a text filed is a valid double. It
      * should be called in a verify-listener of the text field.

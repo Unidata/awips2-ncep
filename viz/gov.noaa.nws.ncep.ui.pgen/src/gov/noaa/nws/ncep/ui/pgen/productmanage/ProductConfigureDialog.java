@@ -106,6 +106,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                      Pgen actions that only appear on in
  *                                      the Pgen context menu for Symbols
  * 11/18/2015   R12829      J. Wu       Add "Contours Parameter" in PgenLayer.
+ * 04/14/2016   R13245      B. Yin      Added reference time list field.
  * 
  * </pre>
  * 
@@ -248,6 +249,11 @@ public class ProductConfigureDialog extends ProductDialog {
     private static int autoSaveInterval;
 
     private Text saveOutputTxt = null;
+
+    /*
+     * Input field for reference time list
+     */
+    private Text refTimeText = null;
 
     private Button saveIndividualLayerBtn = null;
 
@@ -394,7 +400,7 @@ public class ProductConfigureDialog extends ProductDialog {
          */
         Group configGrp = new Group(topComp, SWT.SHADOW_IN);
         configGrp.setLayout(new GridLayout(1, false));
-        configGrp.setText("Activity Configuraton");
+        configGrp.setText("Activity Configuration");
 
         /*
          * create tab folders/items
@@ -2046,6 +2052,20 @@ public class ProductConfigureDialog extends ProductDialog {
         nameBtn.setEnabled(false);
 
         /*
+         * Input field for reference time list
+         */
+        Composite refTimeComp = new Composite(prdComp, SWT.NONE);
+
+        refTimeComp.setLayout(gl0);
+
+        Label refTimeLbl = new Label(refTimeComp, SWT.NONE);
+        refTimeLbl.setText("Ref. Time List: (0000;0100;...)");
+
+        refTimeText = new Text(refTimeComp, SWT.SINGLE | SWT.BORDER);
+        refTimeText.setLayoutData(new GridData(320, 15));
+        refTimeText.setEditable(true);
+
+        /*
          * Check if each layer should be saved to a separate file.
          */
         Group titleComp = new Group(parent, SWT.NONE);
@@ -2927,6 +2947,14 @@ public class ProductConfigureDialog extends ProductDialog {
                     saveOutputTxt.setText(tmpFile);
                 }
 
+                /*
+                 * Sets the reference time list
+                 */
+                String refTimeList = pSave.getRefTimeList();
+                if (refTimeList != null) {
+                    refTimeText.setText(refTimeList);
+                }
+
                 saveIndividualLayerBtn.setSelection(pSave.isSaveLayers());
                 autoSaveBtn.setSelection(true);
                 autoSaveFreqTxt.setText("");
@@ -3039,6 +3067,14 @@ public class ProductConfigureDialog extends ProductDialog {
         String outfile = saveOutputTxt.getText();
         if (outfile != null) {
             pSave.setOutputFile(outfile);
+        }
+
+        /*
+         * Update the reference time list
+         */
+        String refTimeList = refTimeText.getText();
+        if (refTimeList != null) {
+            pSave.setRefTimeList(refTimeList);
         }
 
         pSave.setSaveLayers(saveIndividualLayerBtn.getSelection());

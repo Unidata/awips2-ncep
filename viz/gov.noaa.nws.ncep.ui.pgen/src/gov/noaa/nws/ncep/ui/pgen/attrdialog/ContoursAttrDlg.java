@@ -144,6 +144,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 03/30/2016   R16622      J. Wu       Use current date/time as default.
+ * 03/23/2016   R16613      J. Huber    Change "Hide Labels" to "Collapse Levels".
  * 
  * </pre>
  * 
@@ -252,6 +253,12 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
     private Button hideCircleLabelBtn = null;
 
     private Button hideLabelListBtn = null;
+
+    private final String EXPAND_LEVELS = "Expand Levels";
+
+    private final String COLLAPSE_LEVELS = "Collapse Levels";
+
+    private final String HIDE_BUTTON = "hideLabelListBtn";
 
     private Contours currentContours = null;
 
@@ -1221,14 +1228,30 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         });
 
         // Button to collapse/expand the label buttons
-        hideLabelListBtn = new Button(applyLineColorComp, SWT.CHECK);
-        hideLabelListBtn.setText("Collapse Labels");
-        hideLabelListBtn.setData("hideLabelListBtn");
+        hideLabelListBtn = new Button(applyLineColorComp, SWT.PUSH);
 
-        setBtnStatus(hideLabelListBtn, true);
-        hideLabelListBtn.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-                boolean hideLabelList = ((Button) e.widget).getSelection();
+        // setData calls are being used to control the toggling of
+        // hide/show since the SWT Push button does not have capability
+        // on its own. SWT Toggle provides this capability but causes one of the
+        // buttons to be shaded which is confusing visibly. This also
+        // provides the ability to keep track of button status without relying
+        // on the text of the button.
+
+        boolean hideBtnStatus = getHideLabelBtnStatus();
+
+        // Default for hideBtnstatus is true
+        hideLabelListBtn.setData(hideBtnStatus);
+        if (hideBtnStatus) {
+            hideLabelListBtn.setText(EXPAND_LEVELS);
+        } else {
+            hideLabelListBtn.setText(COLLAPSE_LEVELS);
+        }
+        hideLabelListBtn.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                boolean hideLabelList = true;
+                if ((boolean) hideLabelListBtn.getData()) {
+                    hideLabelList = false;
+                }
                 if (labelBtns != null && labelBtns.size() > 0) {
                     for (Button btn : labelBtns) {
                         GridData data = (GridData) btn.getLayoutData();
@@ -1237,8 +1260,14 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     }
                 }
 
-                saveBtnLastStatus(hideLabelListBtn);
-
+                if (hideLabelList) {
+                    hideLabelListBtn.setText(EXPAND_LEVELS);
+                    hideLabelListBtn.setData(true);
+                } else {
+                    hideLabelListBtn.setText(COLLAPSE_LEVELS);
+                    hideLabelListBtn.setData(false);
+                }
+                saveHideLabelBtnStatus(hideLabelListBtn);
                 textGrp.getShell().pack();
                 textGrp.getShell().layout();
             }
@@ -1531,7 +1560,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
             // use GridData.exclude to hide/show these buttons.
             GridData gdata = new GridData();
-            gdata.exclude = hideLabelListBtn.getSelection();
+            gdata.exclude = (boolean) hideLabelListBtn.getData();
+
             gdata.horizontalAlignment = SWT.FILL;
 
             for (String lblstr : cints) {
@@ -4645,19 +4675,21 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         return typeChanged;
     }
 
-    /*
+    /**
      * Save a button's last status to the map.
      * 
-     * @param btn the button to save
+     * @param btn
+     *            the button to save
      */
     private void saveBtnLastStatus(Button btn) {
         btnLastStatus.put((String) btn.getData(), btn.getSelection());
     }
 
-    /*
+    /**
      * Initialize or Restore a button's status from the map.
      * 
-     * @param btn the button to restore
+     * @param btn
+     *            the button to restore
      */
     private void setBtnStatus(Button btn, boolean defStatus) {
 
@@ -4695,4 +4727,27 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         contourTime2.set(Calendar.MILLISECOND, 0);
     }
 
+    /**
+     * Save the hide button's last status to the map.
+     * 
+     * @param btn
+     *            the hide label button
+     */
+    private void saveHideLabelBtnStatus(Button btn) {
+        btnLastStatus.put(HIDE_BUTTON, (Boolean) btn.getData());
+    }
+
+    /**
+     * Get the status of the hide button from the map.
+     * 
+     * @return the state of the hide button
+     */
+    private boolean getHideLabelBtnStatus() {
+
+        boolean buttonStatus = true;
+        if (btnLastStatus.containsKey(HIDE_BUTTON)) {
+            buttonStatus = btnLastStatus.get(HIDE_BUTTON);
+        }
+        return buttonStatus;
+    }
 }

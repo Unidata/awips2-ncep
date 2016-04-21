@@ -15,6 +15,7 @@ import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.TrackExtrapPointInfoDlg;
 import gov.noaa.nws.ncep.ui.pgen.display.ISinglePoint;
 import gov.noaa.nws.ncep.ui.pgen.display.IText.TextRotation;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.MultiPointElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
@@ -36,6 +37,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/2010                  Mikhail L.  Initial Creation.
  * 06/2010		#280		Moved two methods to PgenToolUtils.
  * 04/2014      TTR900      pswamy      R-click cannot return to SELECT from Rotate and DEL_OBJ
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 
  * </pre>
  * 
@@ -190,10 +192,9 @@ public class PgenRotateElement extends AbstractPgenDrawingTool {
                             .translateInverseClick(origin);
                     Double newDir = PgenToolUtils.calculateAngle(oldDir,
                             swtCoordinates[0], swtCoordinates[1], x, y);
-                    if ("Hash".equals(((Vector) el).getPgenType())) {
-                        newDir = PgenToolUtils
-                                .transformToRange0To360(180 - newDir);
-                        newDir -= southOffsetAngle(origin);
+                    if (((Vector) el).getVectorType().equals(
+                            VectorType.HASH_MARK)) {
+                        newDir = ((Vector) el).vectorDirection(origin, loc);
                     } else {
                         // offset for the location point
                         newDir += southOffsetAngle(origin);

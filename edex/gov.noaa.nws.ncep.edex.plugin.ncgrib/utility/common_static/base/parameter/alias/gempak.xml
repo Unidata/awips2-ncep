@@ -17,6 +17,11 @@
         
         See_the_AWIPS_II_Master_Rights_File_("Master_Rights_File.pdf")_for
         further_licensing_information.
+        
+        Partha Chowdhuri     12/26/2015   U/V of ocean current incorrect.
+                                          gempak.xml alias is mapping them to
+                                          UWND and VWND. Should be URELC/
+                                          VRELC.
     -->
 <aliasList namespace="GEMPAK">
 	<alias base="5WAVA">HGHT5</alias>
@@ -103,7 +108,7 @@
 	<alias base="CP24hr">C24M</alias>
 	<alias base="CP48hr">C48M</alias>
 	<alias base="CPOFP">POPZ</alias>
-	<alias base="CPOZP">POPF</alias>	
+	<alias base="CPOZP">POPF</alias>
 	<alias base="CPRAT1hr">C01M</alias>
 	<alias base="CPRAT3hr">C03M</alias>
 	<alias base="CPRAT6hr">C06M</alias>
@@ -111,7 +116,7 @@
 	<alias base="CPRAT12hr">C12M</alias>
 	<alias base="CPRAT18hr">C18M</alias>
 	<alias base="CPRAT24hr">C24M</alias>
-	<alias base="CPRAT48hr">C48M</alias>	
+	<alias base="CPRAT48hr">C48M</alias>
 	<alias base="CRAIN">WXTR</alias>
 	<alias base="CRAIN1hr">WXTR01</alias>
 	<alias base="CRAIN3hr">WXTR03</alias>
@@ -176,7 +181,7 @@
 	<alias base="GFLUX12hr">GHFX12</alias>
 	<alias base="GFLUX18hr">GHFX18</alias>
 	<alias base="GFLUX24hr">GHFX24</alias>
-	<alias base="GFLUX48hr">GHFX48</alias>	
+	<alias base="GFLUX48hr">GHFX48</alias>
 	<alias base="GH">HGHT</alias>
 	<alias base="GHa">HGHTA</alias>
 	<alias base="HCDC">CLDH</alias>
@@ -212,7 +217,7 @@
 	<alias base="MCDC">CLDM</alias>
 	<alias base="MIXR">MIXR</alias>
 	<alias base="MMSP">MMSL</alias>
-        <alias base="MN2T66hr">TKMN06</alias>
+	<alias base="MN2T66hr">TKMN06</alias>
 	<alias base="MnT">TMNK</alias>
 	<alias base="MnT1hr">TMNK01</alias>
 	<alias base="MnT3hr">TMNK03</alias>
@@ -222,7 +227,7 @@
 	<alias base="MnT18hr">TMNK18</alias>
 	<alias base="MnT24hr">TMNK24</alias>
 	<alias base="MnT48hr">TMNK48</alias>
-        <alias base="MX2T66hr">TKMX06</alias>
+	<alias base="MX2T66hr">TKMX06</alias>
 	<alias base="MxT">TMXK</alias>
 	<alias base="MxT1hr">TMXK01</alias>
 	<alias base="MxT3hr">TMXK03</alias>
@@ -306,7 +311,7 @@
 	<alias base="TCC18hr">TCLD18</alias>
 	<alias base="TCC24hr">TCLD24</alias>
 	<alias base="TCC48hr">TCLD48</alias>
-        <alias base="TCWAT">TCWTR</alias>
+	<alias base="TCWAT">TCWTR</alias>
 	<alias base="ThP">TSTM</alias>
 	<alias base="TOZNE">TOZO</alias>
 	<alias base="TP">APCP</alias>
@@ -404,7 +409,7 @@
 	<alias base="WVDIR">DRCTWW</alias>
 	<alias base="WVHGT">HGHTWW</alias>
 	<alias base="WVPER">PERDWW</alias>
-    <alias base="TEMPWTR">TEMPWTR</alias>
-    <alias base="UOGRD">UWND</alias>
-    <alias base="VOGRD">VWND</alias>
+	<alias base="TEMPWTR">TEMPWTR</alias>
+	<alias base="UOGRD">URELC</alias>
+	<alias base="VOGRD">VRELC</alias>
 </aliasList>

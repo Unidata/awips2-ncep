@@ -84,6 +84,7 @@
                     minOccurs="0">
                 </element>    			
     		</sequence>
+            <attribute name="ContourParm" type="string"></attribute>
     		<attribute name="OutputFile" type="string"></attribute>
             <attribute name="InputFile" type="string"></attribute>
             <attribute name="Filled" type="boolean"></attribute>

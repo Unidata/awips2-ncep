@@ -39,4 +39,7 @@
  	<PlotParameterDefn  plotParamName="SLON" metParamName="StationLongitude" plotMode="text" 
                      	dbParamName="longitude" plotFormat="%3.2f" plotUnit="°"/>												                     	
 
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
+
 </PlotParameterDefns>

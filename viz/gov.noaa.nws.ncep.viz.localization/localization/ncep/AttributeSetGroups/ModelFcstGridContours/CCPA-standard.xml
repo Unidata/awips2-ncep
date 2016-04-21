@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>CCPA</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>precip_3hr</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>precip_3hr</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

@@ -140,4 +140,7 @@
 	<PlotParameterDefn  plotParamName="RELH" metParamName="RelativeHumidity" plotMode="text"
                      	deriveParams="all"   plotUnit="%" plotFormat="%3.0f"/>  
 
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
+
 </PlotParameterDefns>

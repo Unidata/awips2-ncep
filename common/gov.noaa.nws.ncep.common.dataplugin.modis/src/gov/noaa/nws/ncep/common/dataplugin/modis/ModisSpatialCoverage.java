@@ -1,22 +1,3 @@
-/**
- * This software was developed and / or modified by Raytheon Company,
- * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * This software product contains export-restricted data whose
- * export/transfer/disclosure is restricted by U.S. law. Dissemination
- * to non-U.S. persons whether in the United States or abroad requires
- * an export license or other authorization.
- * 
- * Contractor Name:        Raytheon Company
- * Contractor Address:     6825 Pine Street, Suite 340
- *                         Mail Stop B8
- *                         Omaha, NE 68106
- *                         402.291.0100
- * 
- * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
- * further licensing information.
- **/
 package gov.noaa.nws.ncep.common.dataplugin.modis;
 
 import gov.noaa.nws.ncep.common.dataplugin.modis.projection.ModisMapProjectionFactory;
@@ -45,15 +26,15 @@ import com.raytheon.uf.common.time.DataTime;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * Modis geographic data record object
+ * MODIS geographic data record object
  * 
  * <pre>
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Oct 1, 2014             kbugenhagen Initial creation
+ * Date         Ticket#    Engineer     Description
+ * ------------ ---------- -----------  --------------------------
+ * 10/01/2014   R5116      kbugenhagen  Initial creation
  * 
  * </pre>
  * 
@@ -119,14 +100,6 @@ public class ModisSpatialCoverage extends PersistableDataObject implements
     @DynamicSerializeElement
     private Geometry envelope;
 
-    private void logDuration(long startTime, String method) {
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1000000;
-        if (duration > 0) {
-            System.out.println(method + " took: " + duration + " ms");
-        }
-    }
-
     public CoordinateReferenceSystem getCrs() {
         if (crs == null) {
             try {
@@ -140,9 +113,6 @@ public class ModisSpatialCoverage extends PersistableDataObject implements
     }
 
     public GridGeometry2D getGridGeometry(Object latitudes, Object longitudes) {
-
-        // long startTime = System.nanoTime();
-
         if (crs == null) {
             this.latitudes = (float[]) latitudes;
             this.longitudes = (float[]) longitudes;
@@ -153,8 +123,6 @@ public class ModisSpatialCoverage extends PersistableDataObject implements
 
         GeneralEnvelope env = new GeneralEnvelope(lowRange, highRange);
         env.setCoordinateReferenceSystem(getCrs());
-
-        // logDuration(startTime, "ModisSpatialCoverage.getGridGeometry");
 
         return new GridGeometry2D(new GeneralGridEnvelope(new int[] { 0, 0 },
                 new int[] { getNx(), getNy() }, false), env);

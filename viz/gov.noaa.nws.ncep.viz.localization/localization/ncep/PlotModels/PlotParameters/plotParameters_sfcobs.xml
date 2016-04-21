@@ -84,7 +84,7 @@
     <PlotParameterDefn  plotParamName="DPDC" metParamName="DewPointDepression"  plotMode="text" deriveParams="all"    plotUnit="°C" plotFormat="%3.0f"/>
     <PlotParameterDefn  plotParamName="DPDF" metParamName="DewPointDepression"  plotMode="text" deriveParams="all"    plotUnit="°F" plotFormat="%3.0f"/>
     <PlotParameterDefn  plotParamName="DPDK" metParamName="DewPointDepression"  plotMode="text" deriveParams="all"    plotUnit="K" plotFormat="%3.0f"/>
-    <PlotParameterDefn  plotParamName="RELH" metParamName="RelativeHumidity"         plotMode="text" deriveParams="all"    plotUnit="%" plotFormat="%3.0f"/>
+    <PlotParameterDefn  plotParamName="RELH" metParamName="RelativeHumidity"    plotMode="text" deriveParams="all"    plotUnit="%" plotFormat="%3.0f"/>
     <PlotParameterDefn  plotParamName="SMXR" metParamName="SurfaceMixingRatio"  plotMode="text" deriveParams="all" plotUnit="%"   plotFormat="%3.2f"/>
     <!--  
     <PlotParameterDefn  plotParamName="SMXS" metParamName="SurfaceSatMixingRatio" plotMode="text" deriveParams="all"    plotFormat="%3.0f"/>
@@ -158,7 +158,6 @@
     <PlotParameterDefn  plotParamName="HOWW" metParamName="WindWaveHeight" plotMode="text" dbParamName="windWaveHeight" plotUnit="m"/>
     <PlotParameterDefn  plotParamName="POWW" metParamName="WindWavePeriod" plotMode="text" dbParamName="windWavePeriod" plotUnit="s"/>
     
-    <!-- Redmine 4318 -->
     <PlotParameterDefn  plotParamName="SGHT" metParamName="SignificantWaveHeight" plotMode="text" deriveParams="windWaveHeight,primarySwellWaveHeight" plotUnit="m" plotFormat="%.1f"/>
 
 	    
@@ -223,9 +222,10 @@
         <PlotParameterDefn  plotParamName="IGRO" metParamName="ShipIceThickness" plotMode="text" dbParamName="????" plotUnit="m" plotFormat="%3.2f"/>        
         <PlotParameterDefn  plotParamName="SHPD" metParamName="ShipCourse" plotMode="text" dbParamName="????" plotUnit="°" plotFormat="%3.3f"/>
         <PlotParameterDefn  plotParamName="SHPK" metParamName="Avg3HrShipSpeed" plotMode="text" dbParamName="????" plotUnit="kts" plotFormat="%3.3f"/>
-    
-    
     --> 
+
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
 
         
 </PlotParameterDefns>

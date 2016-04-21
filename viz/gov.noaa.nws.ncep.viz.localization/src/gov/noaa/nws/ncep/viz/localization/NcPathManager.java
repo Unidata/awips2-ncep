@@ -231,6 +231,9 @@ public class NcPathManager {
         public static final String GINI_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "giniSatelliteImageryStyleRules.xml";
 
+        public static final String HIMAWARI_IMG_STYLE_RULES = STYLE_RULES_DIR
+                + "himawariSatelliteImageryStyleRules.xml";
+
         public static final String SOLAR_IMG_STYLE_RULES = STYLE_RULES_DIR
                 + "solarImageryStyleRules.xml";
 

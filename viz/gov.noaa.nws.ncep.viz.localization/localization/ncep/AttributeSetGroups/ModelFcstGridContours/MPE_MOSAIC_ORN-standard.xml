@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>MPE_MOSAIC_ORN</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>TP1hr</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>TP1hr</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

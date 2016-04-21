@@ -2,5 +2,33 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>NOGAPS</resource>
     <attrSetGroupName>exp_marine</attrSetGroupName>
-    <attrSetNames>1000-850thk_only,500_vort_only,pmsl_1000-850thk,pmsl_1000-500thk,pmsl_only,bl_winds_only_nogaps</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>1000-850thk_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500_vort_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-850thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-500thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_winds_only_nogaps</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

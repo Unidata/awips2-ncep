@@ -1,25 +1,3 @@
-/**
- * This is a Data Access Object (DAO) driver to interact with McIDAS image 
- * properties (satellite name and image type) and HDF5 data store.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * ------------ ---------- 	----------- --------------------------
- * 10/2009		144			T. Lee		Created
- * 11/2009		144			T. Lee		Implemented area name DAO
- * Nov 14, 2013 2393        bclement    added in-java interpolation
- * Mar 07, 2014 2791        bsteffen    Move Data Source/Destination to numeric
- *                                      plugin.
- * 08/15/2015   R7190      R. Reynolds  Modifications to handle mcidas area header info.
-
- * </pre>
- * 
- * @author tlee
- * @version 1.0
- */
-
 package gov.noaa.nws.ncep.edex.plugin.mcidas.dao;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
@@ -27,7 +5,6 @@ import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.Table;
@@ -45,10 +22,32 @@ import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
 import com.raytheon.uf.common.numeric.buffer.BufferWrapper;
-import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.database.plugin.DownscaleStoreUtil;
 import com.raytheon.uf.edex.database.plugin.DownscaleStoreUtil.IDataRecordCreator;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
+
+/**
+ * This is a Data Access Object (DAO) driver to interact with McIDAS image
+ * properties (satellite name and image type) and HDF5 data store.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 10/2009      144         T. Lee      Created
+ * 11/2009      144         T. Lee      Implemented area name DAO
+ * Nov 14, 2013 2393        bclement    added in-java interpolation
+ * Mar 07, 2014 2791        bsteffen    Move Data Source/Destination to numeric
+ *                                      plugin.
+ * 08/15/2015   R7190      R. Reynolds  Modifications to handle mcidas area header info.
+ * 12/03/2015   R13119     R. Reynolds  Enable purging of mcidas area files metadata.
+ * 
+ * </pre>
+ * 
+ * @author tlee
+ * @version 1.0
+ */
 
 public class McidasDao extends PluginDao {
 
@@ -150,7 +149,7 @@ public class McidasDao extends PluginDao {
     @Override
     public void purgeAllData() throws PluginException {
         super.purgeAllData();
-        purgeSpatialData(true);
+        purgeSpatialData();
     }
 
     /*
@@ -161,24 +160,18 @@ public class McidasDao extends PluginDao {
     @Override
     public void purgeExpiredData() throws PluginException {
         super.purgeExpiredData();
-        purgeSpatialData(false);
+        purgeSpatialData();
     }
 
     /**
      * Deletes all mcidas_spatial metadata which doesn't have spatial data and
-     * older than 4 hours if all == false
+     * older than 2 days
      */
-    private void purgeSpatialData(boolean all) {
+    private void purgeSpatialData() {
         List<Object> args = new ArrayList<Object>(3);
         args.add(McidasMapCoverage.class.getAnnotation(Table.class).name());
         args.add(McidasRecord.class.getAnnotation(Table.class).name());
-        String formatString = "delete from %s where gid not in (select distinct coverage_gid from %s)";
-        if (all == false) {
-            formatString += " and reftime < '%s'";
-            Calendar cal = Calendar.getInstance();
-            cal.add(Calendar.HOUR, -4);
-            args.add(new DataTime(cal.getTime()));
-        }
+        String formatString = "delete from %s where pid not in (select distinct coverage_pid from %s)";
 
         this.executeSQLUpdate(String.format(formatString,
                 args.toArray(new Object[args.size()])));

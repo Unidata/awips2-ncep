@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
@@ -13,6 +14,10 @@ import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData.SatelliteType;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
@@ -29,6 +34,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Temperature;
@@ -111,6 +118,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  04/12/2016   R16367     kbugenhagen Added support for SIMGOESR
  *  04/15/2016   R15954     SRussell    Updated FrameData.updateFrameData()
  *                                      Integrated class with IDataLoader design
+ *  04/12/2016   R15945     RCReynolds  Added code to build custom string for input to getLegendString for GINI and HIMAWARI
+ *  06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
  * 
  * </pre>
  * 
@@ -124,6 +133,8 @@ public class NcSatelliteResource extends
     private static final String CREATING_ENTITY_KEY = "creatingEntity";
 
     private static final String SECTOR_ID_KEY = "sectorID";
+
+    private static final String PHYSICAL_ELEMENT = "physicalElement";
 
     static final String DEFAULT_COLORMAP_NAME = "colorMapName";
 
@@ -318,25 +329,131 @@ public class NcSatelliteResource extends
         this.satelliteResourceData = data;
 
         resourceData.addChangeListener(this);
+        StringBuffer sb = new StringBuffer("");
+        char x;
 
-        if (resourceData.getMetadataMap().containsKey(CREATING_ENTITY_KEY)
-                && resourceData.getMetadataMap().containsKey(SECTOR_ID_KEY)) {
+        ResourceName rscName = data.getResourceName();
+        Map<String, String> variables = new HashMap<String, String>();
 
-            legendStr = resourceData.getMetadataMap().get(CREATING_ENTITY_KEY)
-                    .getConstraintValue()
-                    + " "
-                    + resourceData.getMetadataMap().get(SECTOR_ID_KEY)
-                            .getConstraintValue()
-                    + " "
-                    + resourceData.getRscAttrSet().getRscAttrSetName();
+        try {
 
-            legendStr = legendStr.replace('%', ' ');
+            String area = "";
+            String satellite = "";
+            String resolution = "";
+            String channel = "";
+            String rd = "";
+            String as = "";
+            String customizedLegendString = "";
+
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+
+            HashMap<String, String> attributes = rscDefnsMngr.getAttrSet(
+                    rscName).getAttributes();
+
+            String legendStringAttribute = attributes.get("legendString");
+
+            channel = resourceData.getRscAttrSet().getRscAttrSetName();
+
+            rd = rscDefn.getResourceDefnName();
+
+            boolean gotEntity = resourceData.getMetadataMap().containsKey(
+                    CREATING_ENTITY_KEY);
+            boolean gotSector = resourceData.getMetadataMap().containsKey(
+                    SECTOR_ID_KEY);
+
+            if (gotEntity) {
+                satellite = resourceData.getMetadataMap()
+                        .get(CREATING_ENTITY_KEY).getConstraintValue();
+                if (satellite != null && !satellite.isEmpty()) {
+                    variables.put(McidasConstants.SATELLLITE, satellite);
+                }
+            }
+
+            if (gotSector) {
+                area = resourceData.getMetadataMap().get(SECTOR_ID_KEY)
+                        .getConstraintValue();
+                if (area != null && !area.isEmpty()) {
+                    variables.put(McidasConstants.AREA, area);
+                }
+            }
+
+            if (rd != null && !rd.isEmpty()) {
+                variables.put(McidasConstants.RESOURCE_DEFINITION, rd);
+            }
+
+            if (channel != null && !channel.isEmpty()) {
+                variables.put(McidasConstants.CHANNEL, channel);
+            }
+
+            /*
+             * "variables map" now contains keywords/values available for
+             * building the custom legend string. Examine marked-up legend
+             * string looking for {keyword} that matches in "variables". If it
+             * doesn't then remove it from legendString.
+             */
+            Pattern p = Pattern.compile("\\{(.*?)\\}");
+            Matcher m = p.matcher(legendStringAttribute.toString());
+            String value = "";
+            while (m.find()) {
+                value = variables.get(m.group(1));
+                if (value == null || value.isEmpty()) {
+
+                    legendStringAttribute = legendStringAttribute.replace("{"
+                            + m.group(1) + "}", "");
+                }
+            }
+
+            /*
+             * change all occurrences of '{' to "${" because thats what
+             * VariableSubstituterNCEP expects
+             */
+            for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+                x = legendStringAttribute.charAt(ipos);
+                sb.append(x == '{' ? "${" : x);
+            }
+
+            customizedLegendString = VariableSubstitutorNCEP.processVariables(
+                    sb.toString(), variables);
+
+            /*
+             * If user coded legendString properly there shoulden't be any "${"
+             * present, but if there are then change them back to "{"
+             */
+            sb.setLength(0);
+            for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
+                x = customizedLegendString.charAt(ipos);
+                sb.append(x == '$' ? "{" : x);
+            }
+            customizedLegendString = sb.toString();
+
+            /*
+             * standard, original legend string
+             */
+
+            if (gotEntity && gotSector) {
+
+                legendStr = satellite + " " + area + " " + channel;
+
+                legendStr = legendStr.replace('%', ' ');
+            }
+
+            legendStr = (customizedLegendString.isEmpty()) ? legendStr
+                    : customizedLegendString;
+
+        } catch (Exception ex) {
+
         }
+
     }
 
     @Override
     public String getName() {
+
         FrameData fd = (FrameData) getCurrentFrame();
+
         if (fd == null || fd.getFrameTime() == null
                 || descriptor.getFramesInfo().getFrameCount() == 0) {
             return legendStr + "-No Data";

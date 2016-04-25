@@ -3171,7 +3171,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+Z">
                 <parameter  id="action" value="Undo" />
          </key>         
@@ -3179,7 +3179,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.undo"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+Y">
                 <parameter  id="action" value="Redo" />
          </key>  
@@ -3187,42 +3187,42 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+1">
                 <parameter  id="layerIndex" value="1" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+2">
                 <parameter  id="layerIndex" value="2" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+3">
                 <parameter  id="layerIndex" value="3" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+4">
                 <parameter  id="layerIndex" value="4" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+5">
                 <parameter  id="layerIndex" value="5" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+6">
                 <parameter  id="layerIndex" value="6" />
          </key>  
@@ -3230,28 +3230,28 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+7">
                 <parameter  id="layerIndex" value="7" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+8">
                 <parameter  id="layerIndex" value="8" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+9">
                 <parameter  id="layerIndex" value="9" />
          </key>  
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+0">
                 <parameter  id="layerIndex" value="10" />
          </key>  
@@ -3259,42 +3259,42 @@
                   <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+1">
                 <parameter  id="layerIndex" value="11" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+2">
                 <parameter  id="layerIndex" value="12" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+3">
                 <parameter  id="layerIndex" value="13" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+4">
                 <parameter  id="layerIndex" value="14" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+5">
                 <parameter  id="layerIndex" value="15" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+6">
                 <parameter  id="layerIndex" value="16" />
          </key>  
@@ -3302,28 +3302,28 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+7">
                 <parameter  id="layerIndex" value="17" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+8">
                 <parameter  id="layerIndex" value="18" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+9">
                 <parameter  id="layerIndex" value="19" />
          </key>  
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+M2+0">
                 <parameter  id="layerIndex" value="20" />
          </key> 
@@ -3332,35 +3332,35 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenCopypasteHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="DEL">
                 <parameter  id="action" value="CUT" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenCopypasteHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+X">
                 <parameter  id="action" value="CUT" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenCopypasteHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+C">
                 <parameter  id="action" value="COPY" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenCopypasteHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+V">
                 <parameter  id="action" value="PASTE" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenCopypasteHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+A">
                 <parameter  id="action" value="SELECTALL" />
          </key> 
@@ -3369,7 +3369,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+S">
                 <parameter  id="action" value="Save" />
          </key>         
@@ -3378,14 +3378,14 @@
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="ARROW_UP">
                 <parameter  id="action" value="ARROW_UP" />
          </key>         
          <key
                 commandId="gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursHotkeyCommand"
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContoursContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="ARROW_DOWN">
                 <parameter  id="action" value="ARROW_DOWN" />
          </key>                       

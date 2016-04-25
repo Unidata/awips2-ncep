@@ -26,11 +26,11 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.WorkbenchPage;
 
-import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
+import com.raytheon.viz.ui.views.DetachPart;
 
 /**
  * 
@@ -103,7 +103,7 @@ public class PgenPaletteAction extends AbstractHandler {
 					vpart = wpage.showView( PgenUtil.VIEW_ID );
 					IViewReference pgenViewRef =   wpage.findViewReference(PgenUtil.VIEW_ID);
 					if(pgenViewRef != null&& wpage instanceof WorkbenchPage ){
-						( (WorkbenchPage) wpage ).detachView(pgenViewRef);
+					    DetachPart.detach(pgenViewRef.getPart(true));
 					}
 				}
 				else {
@@ -112,7 +112,7 @@ public class PgenPaletteAction extends AbstractHandler {
 						vpart = wpage.showView( PgenUtil.VIEW_ID );
 						IViewReference pgenViewRef =   wpage.findViewReference(PgenUtil.VIEW_ID);
 						if(pgenViewRef != null&& wpage instanceof WorkbenchPage ){
-							( (WorkbenchPage) wpage ).detachView(pgenViewRef);
+						    DetachPart.detach(pgenViewRef.getPart(true));
 						}
 					}
 

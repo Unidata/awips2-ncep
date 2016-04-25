@@ -41,6 +41,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.editor.IMultiPaneEditor;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
+import com.raytheon.viz.ui.views.DetachPart;
 
 /**
  * This singleton is intended to couple a PGEN Palette with a PGgenResource, so
@@ -340,8 +341,7 @@ public class PgenSession implements IPartListener2,
                                         .findViewReference(PgenUtil.VIEW_ID);
                                 if (pgenViewRef != null
                                         && wpage instanceof WorkbenchPage) {
-                                    ((WorkbenchPage) wpage)
-                                            .detachView(pgenViewRef);
+                                    DetachPart.detach(pgenViewRef.getPart(true));
                                 }
                             } else {
 
@@ -351,8 +351,7 @@ public class PgenSession implements IPartListener2,
                                             .findViewReference(PgenUtil.VIEW_ID);
                                     if (pgenViewRef != null
                                             && wpage instanceof WorkbenchPage) {
-                                        ((WorkbenchPage) wpage)
-                                                .detachView(pgenViewRef);
+                                        DetachPart.detach(pgenViewRef.getPart(true));
                                     }
                                 }
                             }

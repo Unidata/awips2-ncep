@@ -161,6 +161,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
  * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.  
  *                                      Moved world wrap code and smoothing code to its own function.
+ * 04/05/2016   R17006      J. Wu       Correct the drawing of five-knot wind barb.
  * </pre>
  * 
  * @author sgilbert
@@ -4544,7 +4545,14 @@ public class DisplayElementFactory {
 
         /*
          * Process half barbs
+         * 
+         * Note - for a five-knot wind barb, drawn it at the end of the second
+         * segment (counting from the end of the wind barb).
          */
+        if (numflags == 0 && numbarbs == 0 && halfbarbs == 1) {
+            currentLoc -= segmentSpacing;
+        }
+
         for (int j = 0; j < halfbarbs; j++) {
             Coordinate coords[] = new Coordinate[2];
             coords[0] = lil.extractPoint(currentLoc);

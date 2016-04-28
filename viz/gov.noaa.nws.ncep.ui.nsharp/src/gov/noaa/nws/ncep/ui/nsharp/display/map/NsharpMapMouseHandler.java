@@ -12,6 +12,7 @@
  * -------		------- 	-------- 	-----------
  * 03/23/2010	229			Chin Chen	Initial coding
  * 03/11/2013   972         Greg Hull   NatlCntrsEditor
+ * 09/28/2015   RM#10295    Chin Chen   Let sounding data query run in its own thread to avoid gui locked out during load
  *
  * </pre>
  * 
@@ -24,7 +25,6 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.SurfaceStationPointData;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpLoadDialog;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpModelSoundingDialogContents;
 import gov.noaa.nws.ncep.ui.pgen.tools.InputHandlerDefaultImpl;
@@ -39,28 +39,25 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 import org.geotools.referencing.GeodeticCalculator;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.vividsolutions.jts.geom.Coordinate;
 
-//@SuppressWarnings("unchecked")
 public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NsharpMapMouseHandler.class);
 
     public NsharpMapMouseHandler() {
         instance = this;
     }
 
-    // private NsharpSkewTDisplay renderableDisplay=null;
-
     private static final double NctextuiPointMinDistance = 45000;
 
-    // private int prevMouseX, prevMouseY;
     private static NsharpMapMouseHandler instance;
 
     private double lat, lon;
@@ -85,9 +82,6 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
      */
     @Override
     public boolean handleMouseDown(int x, int y, int button) {
-        // System.out.println("nsharp map mouse down");
-        // prevMouseX = x;
-        // prevMouseY = y;
         return false;
     }
 
@@ -106,7 +100,6 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
 
     @Override
     public boolean handleMouseMove(int x, int y) {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -120,18 +113,10 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
     public boolean handleMouseUp(int x, int y, int button) {
         if (!NsharpMapResource.getMapRsc().isEditable())
             return false;
-        // if ( !NsharpMapResource.getOrCreateNsharpMapResource().isEditable())
-        // return false;
-        // System.out.println("NsharpMapMouseHandler handleMouseUp called");
         // button 1 is left mouse button
         if (button == 1) {
             NatlCntrsEditor mapEditor = NsharpMapResource.getMapEditor();
             if (mapEditor != null) {
-                // for(int i=0; i<
-                // mapEditor.getDescriptor().getResourceList().size(); i++)
-                // System.out.println(
-                // "C resourcename="+mapEditor.getDescriptor().getResourceList().get(i).getResource().getName());
-
                 // Check if mouse is in geographic extent
                 Coordinate loc = mapEditor.translateClick(x, y);
                 if (loc == null)
@@ -143,13 +128,8 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                             && loadDia.getMdlDialog().getLocationText() != null) {
 
                         if (loadDia.getMdlDialog().getCurrentLocType() == NsharpModelSoundingDialogContents.LocationType.STATION) {
-                            // System.out.println("mouse up 1 loc.x "+ loc.x+
-                            // " loc.y="+ loc.y);
                             String stnName = SurfaceStationPointData
                                     .calculateNearestPoint(loc);
-                            // System.out.println("mouse up 2 loc.x "+ loc.x+
-                            // " loc.y="+ loc.y);
-                            // System.out.println("stn name = "+ stnName);
                             if (stnName == null)
                                 stnName = "";
                             loadDia.getMdlDialog().getLocationText()
@@ -157,8 +137,6 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                         } else {
                             String latLonStr = String.format("%6.2f;%7.2f",
                                     loc.y, loc.x);
-                            // System.out.println("mouse up 2 loc.x "+ loc.x+
-                            // " loc.y="+ loc.y + " latlonStr=" +latLonStr);
                             loadDia.getMdlDialog().getLocationText()
                                     .setText(latLonStr);
                         }
@@ -168,11 +146,8 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                         int activeLoadType = loadDia
                                 .getActiveLoadSoundingType();
                         List<NsharpStationInfo> points = NsharpMapResource
-                                .getOrCreateNsharpMapResource().getPoints();// loadDia.getNsharpMapResource().getPoints();
+                                .getOrCreateNsharpMapResource().getPoints();
                         if (points.isEmpty() == false) {
-                            // create an editor NsharpEditor
-                            // NsharpEditor skewtEdt =
-                            // NsharpEditor.createOrOpenEditor();
 
                             // get the stn close to loc "enough" and retrieve
                             // report for it
@@ -182,91 +157,35 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                                     points, loc);
                             if (stnPtDataLineLst != null
                                     && stnPtDataLineLst.size() > 0) {
-                                // System.out.println("MapMouseHandler creating NsharpSkewTDisplay");
                                 // hash map, use stn display info as key
                                 Map<String, List<NcSoundingLayer>> soundingLysLstMap = new HashMap<String, List<NcSoundingLayer>>();
-                                long t01 = System.currentTimeMillis();
                                 // String soundingType;
                                 if (activeLoadType == NsharpLoadDialog.OBSER_SND) {
-                                    NsharpMapResource.startWaitCursor();
-                                    NsharpObservedSoundingQuery
-                                            .getObservedSndData(
-                                                    stnPtDataLineLst, loadDia
-                                                            .getObsDialog()
-                                                            .isRawData(),
-                                                    soundingLysLstMap);
-                                    NsharpMapResource.stopWaitCursor();
+                                    NsharpObservedSoundingQuery obsQry = new NsharpObservedSoundingQuery(
+                                            "Querying Sounding Data...");
+                                    obsQry.getObservedSndData(stnPtDataLineLst,
+                                            loadDia.getObsDialog().isRawData(),
+                                            soundingLysLstMap);
                                 } else if (activeLoadType == NsharpLoadDialog.PFC_SND) {
-                                    NsharpMapResource.startWaitCursor();
-
-                                    NsharpPfcSoundingQuery
-                                            .getPfcSndDataBySndTmRange(
-                                                    stnPtDataLineLst,
-                                                    soundingLysLstMap);
-                                    NsharpMapResource.stopWaitCursor();
+                                    NsharpPfcSoundingQuery pfcQry = new NsharpPfcSoundingQuery(
+                                            "Querying Sounding Data...");
+                                    pfcQry.getPfcSndDataBySndTmRange(
+                                            stnPtDataLineLst, soundingLysLstMap);
                                 }
                                 /*
-                                 * TBDGPD else if(activeLoadType ==
-                                 * NsharpLoadDialog.GPD_OBS_SND){
-                                 * NsharpMapResource.startWaitCursor();
-                                 * NsharpGpdSoundingQuery
-                                 * .getGpdObsSndData(stnPtDataLineLst,
-                                 * soundingLysLstMap,
-                                 * loadDia.getActiveGpdProdName());
-                                 * NsharpMapResource.stopWaitCursor(); } else
-                                 * if(activeLoadType ==
-                                 * NsharpLoadDialog.GPD_PFC_SND){
-                                 * NsharpMapResource.startWaitCursor();
-                                 * NsharpGpdSoundingQuery
-                                 * .getGpdPfcSndData(stnPtDataLineLst,
-                                 * soundingLysLstMap,
-                                 * loadDia.getActiveGpdProdName());
-                                 * NsharpMapResource.stopWaitCursor(); }
+                                 * Add GPD code here when we start to support
+                                 * it.
                                  */
                                 else
                                     return false;
-                                long t02 = System.currentTimeMillis();
-                                // System.out.println("Nsharp spent " +
-                                // (t02-t01)+ " ms to query data");
-                                // System.out.println("MAP size/"
-                                // +soundingLysLstMap.size());
-                                if (soundingLysLstMap.size() <= 0) {
-                                    // win.setAndOpenMb("Invalid sounding data returned from DB for this station!");
-                                    Shell shell = PlatformUI.getWorkbench()
-                                            .getActiveWorkbenchWindow()
-                                            .getShell();
-                                    MessageBox mb = new MessageBox(shell,
-                                            SWT.ICON_WARNING | SWT.OK);
-                                    mb.setMessage("Invalid sounding data returned from DB for this station!!");
-                                    mb.open();
-                                    loadDia.closeDiaOnly();
-                                    return false;
-                                }
-                                loadDia.closeDiaOnly();
-
-                                // NsharpResourceHandler skewRsc =
-                                // skewtEdt.getRscHandler();
-                                // skewRsc.addRsc(soundingLysLstMap,
-                                // stnPtDataLineLst.get(0));
-                                loadDataToNsharpResources(soundingLysLstMap,
-                                        stnPtDataLineLst.get(0));
-                                mapEditor = NsharpMapResource.getMapEditor();
-                                if (mapEditor != null) {
-                                    mapEditor.refresh();
-                                }
-                                bringSkewTEdToTop();
-                            } else {
-                                // System.out.println("Mouse point too far from stn");
                             }
-                        } else { // debug
-                                 // System.out.println("points is null");
                         }
                     }
                 }
             }
 
         } else if (button == 3) {
-            // NsharpEditor.bringSkewTEditorToTop();
+            // button 3 is right button.
             bringSkewTEdToTop();
         }
 
@@ -278,31 +197,12 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
      * mouse handler API, e.g. handleMouseUp(), then handleMouseUp() will be
      * called one more time by System. Do not know the root cause of it. To
      * avoid handling such event twice (e.g. query sounding data twice), we will
-     * call NsharpEditor.bringSkewTEditorToTop() from another Job (thread).
+     * call NsharpEditor.bringSkewTEditorToTop() from an UiJob.
      */
     private void bringSkewTEdToTop() {
-        Job uijob = new UIJob("clear source selection") { //$NON-NLS-1$
+        Job uijob = new UIJob("bring skewT to top") {
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 NsharpEditor.bringEditorToTop();
-                return Status.OK_STATUS;
-            }
-
-        };
-        uijob.setSystem(true);
-        uijob.schedule();
-    }
-
-    /*
-     * Same reason to use UIJob as bringSkewTEdToTop()
-     */
-    private void loadDataToNsharpResources(
-            final Map<String, List<NcSoundingLayer>> soundMap,
-            final NsharpStationInfo stnInfo) {
-        Job uijob = new UIJob("clear source selection") { //$NON-NLS-1$
-            public IStatus runInUIThread(IProgressMonitor monitor) {
-                NsharpResourceHandler rscHdr = NsharpEditor
-                        .createOrOpenEditor().getRscHandler();
-                rscHdr.addRsc(soundMap, stnInfo);
                 return Status.OK_STATUS;
             }
 
@@ -327,7 +227,7 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
         double minDistance = NctextuiPointMinDistance;
         GeodeticCalculator gc;
         List<NsharpStationInfo> thePoints = new ArrayList<NsharpStationInfo>();
-        // TODO : can't assume this is a map Editor/MapDescriptor
+        // can't assume this is a map Editor/MapDescriptor
         NatlCntrsEditor mapEditor = NsharpMapResource.getMapEditor();
         if (mapEditor != null) {
             IMapDescriptor desc = (IMapDescriptor) mapEditor
@@ -335,7 +235,6 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                     .getDescriptor();
             gc = new GeodeticCalculator(desc.getCRS());
             gc.setStartingGeographicPoint(pt.x, pt.y);
-            // int textDispIndex = 1;//debug
             for (NsharpStationInfo point : points) {
 
                 gc.setDestinationGeographicPoint(point.getLongitude(),
@@ -343,19 +242,17 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
                 double dist;
                 try {
                     dist = gc.getOrthodromicDistance();
-                    // System.out.println("dist to point " + textDispIndex++ +
-                    // " is " + dist);
                     if (dist < minDistance) {
 
                         minDistance = dist;
                         thePoint = point;
                     }
                 } catch (Exception e) {
-
-                    // e.printStackTrace();
-                    // System.out.println("getOrthodromicDistance exception happened!");
+                    statusHandler
+                            .handle(Priority.ERROR,
+                                    "NsharpMapMouseHandler: getOrthodromicDistance exception happened!",
+                                    e);
                 }
-
             }
             // Chin, there may be more than one point for a selected stn. As
             // user may selected more than one data time,
@@ -379,5 +276,4 @@ public class NsharpMapMouseHandler extends InputHandlerDefaultImpl {
         return thePoints;
 
     }
-
 }

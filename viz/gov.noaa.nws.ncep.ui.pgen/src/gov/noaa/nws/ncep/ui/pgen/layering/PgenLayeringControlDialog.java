@@ -38,7 +38,7 @@ import org.eclipse.ui.PlatformUI;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07/09	  	#131		J. Wu		Initial creation.
- * 
+ * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
  * </pre>
  * 
  * @author jwu
@@ -499,6 +499,9 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
      */
     private void addLayer() {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         // Set the flag to pop up the layer name editing dialog.
         openNameDialog = true;
 
@@ -557,6 +560,9 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
      */
     private void switchLayer(int which) {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         // Switch the color for the active layers
         setButtonColor(layerNameBtns.get(layerInUse), defaultLayerButtonColor);
 
@@ -564,10 +570,7 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
 
         setButtonColor(layerNameBtns.get(layerInUse), activeLayerButtonColor);
 
-        // Turn the display for the layer
-        // displayOnOffBtns.get( layerInUse ).setSelection( true );
         layerList.get(layerInUse).setInUse(true);
-        // layerList.get( layerInUse ).setOnOff( true );
 
         if (layerNameDlg != null)
             layerNameDlg.close();
@@ -576,8 +579,6 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
         openNameDialog = false;
 
         currentLayer = layerList.get(layerInUse);
-
-        // currentLayer.setOnOff( true );
 
         drawingLayer.setActiveLayer(currentLayer);
 
@@ -596,10 +597,31 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
 
         drawingLayer.removeSelected();
 
+        // Selects PGEN class from the current layer
+        selectPGENClass();
+
         // Reset undo/redo and refresh
         PgenSession.getInstance().disableUndoRedo();
 
         PgenUtil.refresh();
+
+    }
+
+    /**
+     * Saves the selected PGEN class in the current layer
+     */
+    private void savePGENClass() {
+        currentLayer.setCategory(PgenSession.getInstance().getPgenPalette()
+                .getCurrentCategory());
+
+    }
+
+    /**
+     * Selects PGEN class from the current layer
+     */
+    private void selectPGENClass() {
+        PgenSession.getInstance().getPgenPalette()
+                .setCurrentCategory(currentLayer.getCategory(), true);
 
     }
 
@@ -635,13 +657,6 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
             displayOnOffBtns.get(ii).setSelection(allOnOff);
             layerList.get(ii).setOnOff(allOnOff);
         }
-
-        /*
-         * Always turn on the display for the active layer.
-         */
-        // displayOnOffBtns.get( layerInUse ).setSelection( true );
-        // layerList.get( layerInUse ).setOnOff( true );
-        // currentLayer.setOnOff( true );
 
         PgenUtil.refresh();
 
@@ -692,7 +707,7 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
          * Refresh display and reset undo/redo as well.
          */
         PgenUtil.refresh();
-        // PgenUtil.resetUndoRedo();
+
         PgenSession.getInstance().disableUndoRedo();
 
         /*
@@ -741,6 +756,9 @@ public class PgenLayeringControlDialog extends PgenLayeringDialog {
         drawingLayer.setActiveLayer(currentLayer);
 
         layerList = (ArrayList<Layer>) currentProduct.getLayers();
+
+        // Set the current PGEN class
+        selectPGENClass();
 
         // Re-open the layering dialog.
         startLayering();

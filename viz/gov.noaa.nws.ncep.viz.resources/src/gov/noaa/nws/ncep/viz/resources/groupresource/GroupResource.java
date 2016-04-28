@@ -24,10 +24,12 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 05/14        ?           B. Yin      Initial creation.
- * 09/14		?			B. Yin		Added updateTimeLine for auto-update.
+ * Date         Ticket#    Engineer      Description
+ * ------------ ---------- ------------- --------------------------
+ * 05/14        ?           B. Yin       Initial creation.
+ * 09/14		?			B. Yin		 Added updateTimeLine for auto-update.
+ * 11/06/2015   R9398       Edwin Brown  Getter isNameExpanded was setting nameExpanded if 
+ *                                       resource was disabled, removed that
  * </pre>
  * 
  * @author byin
@@ -35,11 +37,11 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
  */
 public class GroupResource extends
         AbstractVizResource<GroupResourceData, NCMapDescriptor> implements
-        IPowerLegend, INatlCntrsResource{
+        IPowerLegend, INatlCntrsResource {
 
     private GroupResourceData groupResourceData;
 
-    private boolean nameExpended = false;
+    private boolean nameExpanded = false;
 
     public GroupResource(GroupResourceData resourceData,
             LoadProperties loadProperties) throws VizException {
@@ -62,11 +64,11 @@ public class GroupResource extends
         int displayWidth = (int) (descriptor.getMapWidth() * paintProps
                 .getZoomLevel());
 
-        for (ResourcePair rp : this.resourceData.getResourceList()) {
-            AbstractVizResource<?, ?> resource = rp.getResource();
+        for (ResourcePair resourcePair : this.resourceData.getResourceList()) {
+            AbstractVizResource<?, ?> resource = resourcePair.getResource();
             if (resource == null)
                 continue;
-            ResourceProperties properties = rp.getProperties();
+            ResourceProperties properties = resourcePair.getProperties();
 
             if (properties.isDisplayable(displayWidth)) {
                 PaintProperties newProps = new PaintProperties(paintProps);
@@ -79,21 +81,18 @@ public class GroupResource extends
 
     @Override
     protected void initInternal(IGraphicsTarget target) throws VizException {
-        // this.getCapability(GroupNamingCapability.class);
-        // this.getCapabilities();
-        for (ResourcePair rp : this.resourceData.getResourceList()) {
-            AbstractVizResource<?, ?> rsc = rp.getResource();
-            if (rsc != null) {
-                rsc.init(target);
+        for (ResourcePair resourcePair : this.resourceData.getResourceList()) {
+            AbstractVizResource<?, ?> resource = resourcePair.getResource();
+            if (resource != null) {
+                resource.init(target);
             }
         }
     }
 
     @Override
     protected void disposeInternal() {
-        // lastTarget = null;
-        for (ResourcePair rp : this.resourceData.getResourceList()) {
-            rp.getResource().dispose();
+        for (ResourcePair resourcePair : this.resourceData.getResourceList()) {
+            resourcePair.getResource().dispose();
         }
     }
 
@@ -113,23 +112,21 @@ public class GroupResource extends
 
     @Override
     public boolean isNameExpanded() {
-        if (!this.getProperties().isVisible())
-            setNameExpanded(false);
-        return nameExpended;
+        return nameExpanded;
     }
 
     @Override
     public void setNameExpanded(boolean flag) {
-        nameExpended = flag;
+        nameExpanded = flag;
     }
 
     @Override
     public void project(CoordinateReferenceSystem mapData) throws VizException {
         super.project(mapData);
-        for (ResourcePair rp : this.resourceData.getResourceList()) {
-            AbstractVizResource<?, ?> rsc = rp.getResource();
-            if (rsc != null) {
-                rsc.project(mapData);
+        for (ResourcePair resourcePair : this.resourceData.getResourceList()) {
+            AbstractVizResource<?, ?> resource = resourcePair.getResource();
+            if (resource != null) {
+                resource.project(mapData);
             }
         }
     }
@@ -146,27 +143,28 @@ public class GroupResource extends
 
     public void setVisibleForAllResources(boolean visible) {
 
-        for (ResourcePair rp : this.resourceData.getResourceList()) {
-            AbstractVizResource<?, ?> resource = rp.getResource();
+        for (ResourcePair resourcePair : this.resourceData.getResourceList()) {
+            AbstractVizResource<?, ?> resource = resourcePair.getResource();
             if (resource == null)
                 continue;
             resource.getProperties().setVisible(visible);
         }
     }
-    
+
     public Boolean updateTimeline() {
-        for (ResourcePair rp : this.getResourceList()) {
-            if (rp.getResourceData() instanceof AbstractRequestableResourceData) {
-                ((AbstractNatlCntrsResource<?,?>)rp.getResource()).updateTimeline();
+        for (ResourcePair resourcePair : this.getResourceList()) {
+            if (resourcePair.getResourceData() instanceof AbstractRequestableResourceData) {
+                ((AbstractNatlCntrsResource<?, ?>) resourcePair.getResource())
+                        .updateTimeline();
             }
         }
-        
+
         return true;
     }
 
     @Override
     public void resourceAttrsModified() {
         // TODO Auto-generated method stub
-        
+
     }
 }

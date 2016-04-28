@@ -38,6 +38,7 @@ import com.raytheon.uf.edex.database.query.DatabaseQuery;
  *                                      to correctly handle the case when there are missing values 
  *                                      in the beginning of the list hourly average values
  * 10/07/2015   R11429      sgurung,jtravis Replaced hardcoded missing value codes
+ * 01/05/2016   R14697      sgurung,jtravis Refactored method retrieveHourlyAvg()
  * 
  * </pre>
  * 
@@ -85,17 +86,20 @@ public class DatabaseUtil {
         return resultsList;
     }
 
-    /*
-     * from geomag_houravg
+    /**
+     * Retrieve hourly average values from geomag_houravg table for a given
+     * station code and time
+     * 
+     * @param stationCode
+     * @param time
+     * @return
      */
-    public static List<GeoMagAvg> retrieveSingleAvg(String dataUri, Date time) {
+    public static GeoMagAvg retrieveHourlyAvg(String stationCode, Date time) {
+
         GeoMagAvgDao avgDao = new GeoMagAvgDao();
-        String station = CalcUtil.getStationFromUri(dataUri);
+        GeoMagAvg result = avgDao.getSingleAvg(stationCode, time);
 
-        List<GeoMagAvg> resultsList = null;
-        resultsList = avgDao.getSingleAvg(station, time);
-
-        return resultsList;
+        return result;
 
     }
 

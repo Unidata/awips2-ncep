@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>QPE_XNAV_TUA</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>TP6hr</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>TP6hr</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

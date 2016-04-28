@@ -2,36 +2,26 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Option Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.tools;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.15.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.tools.Activator
-Eclipse-BuddyPolicy: registered, ext, global
-Eclipse-RegisterBuddy: com.raytheon.viz.core, com.raytheon.uf.common.serialization
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- org.geotools;bundle-version="2.5.2",
+Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.ui,
- javax.measure;bundle-version="1.0.0",
  com.sun.jna;bundle-version="3.0.9",
- com.raytheon.viz.alerts,
  org.eclipse.core.runtime,
- org.eclipse.core.expressions,
- com.raytheon.uf.common.colormap;bundle-version="1.11.22",
- com.raytheon.uf.viz.core.maps;bundle-version="1.12.1174",
- com.raytheon.viz.core;bundle-version="1.10.13",
- com.raytheon.viz.ui.tools.map;bundle-version="1.10.13",
- gov.noaa.nws.ncep.viz.common;bundle-version="1.0.0",
+ com.raytheon.uf.common.colormap,
+ com.raytheon.uf.viz.core.maps,
+ com.raytheon.viz.core,
+ gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.localization,
- gov.noaa.nws.ncep.viz.resources;bundle-version="1.0.0",
+ gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.viz.ui.display,
- gov.noaa.nws.ncep.viz.ui.locator;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.rsc.plotdata,
- gov.noaa.nws.ncep.viz.rsc.satellite;bundle-version="1.0.0",
- gov.noaa.nws.ncep.gempak.parameters;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.gempak.nativelib;bundle-version="1.0.0"
+ gov.noaa.nws.ncep.viz.rsc.satellite,
+ gov.noaa.nws.ncep.common,
+ gov.noaa.nws.ncep.viz.gempak.nativelib,
+ gov.noaa.nws.ncep.ui.pgen
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.tools,
  gov.noaa.nws.ncep.viz.tools.aodt,
  gov.noaa.nws.ncep.viz.tools.colorMapEditor,

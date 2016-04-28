@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>SREF45</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>tp12c1</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>tp12c1</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

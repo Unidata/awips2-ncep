@@ -2,5 +2,17 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>ECMWFT</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>200mb_wind,850mb_wnd</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>200mb_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_wnd</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

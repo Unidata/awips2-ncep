@@ -1,29 +1,7 @@
-/**
- * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * This software product contains export-restricted data whose
- * export/transfer/disclosure is restricted by U.S. law. Dissemination
- * to non-U.S. persons whether in the United States or abroad requires
- * an export license or other authorization.
- * 
- * Contractor Name:        Raytheon Company
- * Contractor Address:     6825 Pine Street, Suite 340
- *                         Mail Stop B8
- *                         Omaha, NE 68106
- *                         402.291.0100
- * 
- * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
- * further licensing information.
- **/
-
 package gov.noaa.nws.ncep.common.dataplugin.modis.projection;
 
 import java.awt.geom.Point2D;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
-import java.util.TreeMap;
 
 import org.geotools.parameter.DefaultParameterDescriptor;
 import org.geotools.parameter.DefaultParameterDescriptorGroup;
@@ -43,14 +21,20 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * Modis map projection
+ * MODIS map projection
  * 
  * <pre>
  * SOFTWARE HISTORY
  * 
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * Oct 01, 2014            kbugenhagen  Initial creation
+ * 10/01/2014   R5116      kbugenhagen  Initial creation.
+ * 08/04/2015   R7270      kbugenhagen  Modified transformNormalized to 
+ *                                      interpolate to get i,j points instead
+ *                                      of finding closest.
+ * 08/12/2015   R7270      kbugenhagen  Modified transformNormalized to use
+ *                                      STRtree search in ModisPointDataSource class
+ *                                      instead of map lookup.
  * </pre>
  * 
  * @author kbugenhagen
@@ -61,7 +45,7 @@ public class ModisMapProjection extends MapProjection {
 
     private static final long serialVersionUID = -7936272226439544019L;
 
-    public static final String Modis_MAP_PROJECTION_GROUP = "Modis_CENTER_MAPPING";
+    public static final String MODIS_MAP_PROJECTION_GROUP = "Modis_CENTER_MAPPING";
 
     public static final String PROJECTION_NAME = "NPP Modis";
 
@@ -93,7 +77,7 @@ public class ModisMapProjection extends MapProjection {
 
     public static final double PIO2 = Math.PI / 2;
 
-    private final float[] latitudes;
+    private float[] latitudes;
 
     private final float[] longitudes;
 
@@ -109,7 +93,7 @@ public class ModisMapProjection extends MapProjection {
 
     private Point2D lastPoint;
 
-    private final TreeMap<String, Point2D> latLons;
+    private ModisPointDataSource pointDataSource;
 
     private void logDuration(long startTime, String method) {
         long endTime = System.nanoTime();
@@ -119,34 +103,11 @@ public class ModisMapProjection extends MapProjection {
         }
     }
 
-    // TODO: Write a more efficient method. This takes a LONG time to run.
-
-    private final TreeMap<String, Point2D> createLatLons() {
-        TreeMap<String, Point2D> map = new TreeMap<String, Point2D>();
-
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                Point2D point = new Point2D.Double();
-                point.setLocation(j, i);
-                int index = i * width + j;
-                String latLon = new String(latLonToString(latitudes[index],
-                        longitudes[index]));
-                map.put(latLon, point);
-            }
-        }
-        return map;
-    }
-
-    private String latLonToString(float lat, float lon) {
-        String latitude = String.valueOf(new BigDecimal(lat).setScale(4,
-                RoundingMode.HALF_UP));
-        String longitude = String.valueOf(new BigDecimal(lon).setScale(4,
-                RoundingMode.HALF_UP));
-        StringBuilder builder = new StringBuilder();
-        builder.append(latitude);
-        builder.append("/");
-        builder.append(longitude);
-        return builder.toString();
+    private ModisPointDataSource createPointDataSource() {
+        ModisPointDataSource dataSource = new ModisPointDataSource(width,
+                height, latitudes, longitudes);
+        dataSource.loadData();
+        return dataSource;
     }
 
     /**
@@ -160,7 +121,7 @@ public class ModisMapProjection extends MapProjection {
         this.longitudes = Provider.getValue(Provider.CENTER_LONS, values);
         this.width = Provider.getValue(Provider.WIDTH, values);
         this.height = Provider.getValue(Provider.HEIGHT, values);
-        this.latLons = createLatLons();
+        this.pointDataSource = createPointDataSource();
         this.envelope = Provider.getValue(Provider.ENVELOPE, values);
         this.resolution = Provider.getValue(Provider.RESOLUTION, values);
         this.actualHeight = Provider.getValue(Provider.CENTER_LENGTH, values);
@@ -182,33 +143,70 @@ public class ModisMapProjection extends MapProjection {
     protected Point2D transformNormalized(double aLonR, double aLatR,
             Point2D ptDst) throws ProjectionException {
 
-        Point2D point = ptDst != null ? ptDst : new Point2D.Double();
+        long startTime = System.nanoTime();
 
-        String latLon = latLonToString((float) Math.toDegrees(aLatR),
-                (float) Math.toDegrees(aLonR));
+        Point2D point = ptDst != null ? ptDst : new Point2D.Double();
+        double aLatD = Math.toDegrees(aLatR);
+        double aLonD = Math.toDegrees(aLonR);
 
         Coordinate[] coords = envelope.getCoordinates();
 
         // if lat/lon not within envelope, return last good point found
         if (!contains(coords, aLonR, aLatR)) {
-            return lastPoint == null ? point : lastPoint;
+            point.setLocation(Double.NaN, Double.NaN);
+            return point;
         }
 
-        Point2D lookupPoint = latLons.get(latLon);
+        Point2D lookupPoint = null;
+
+        Point2D point1 = new Point2D.Double(aLonD, aLatD);
+
+        // Find the closest pixel (i,j) for the lat/lon
+        lookupPoint = pointDataSource.getNearestPoint(point1);
+
         if (lookupPoint != null) {
-            lastPoint = point;
+            double x = lookupPoint.getX();
+            double y = lookupPoint.getY();
+            point.setLocation(x * resolution, y * resolution);
         } else {
-            lookupPoint = findClosestPoint(latLon, aLonR);
+            point.setLocation(Double.NaN, Double.NaN);
         }
 
-        double x = lookupPoint.getX();
-        double y = lookupPoint.getY();
+        logDuration(startTime, "transformNormalized");
 
-        point.setLocation(x, y);
+        return point;
+    }
 
-        // System.out.println("transform: returning point: " + point.getX() +
-        // ", "
-        // + point.getY() + " from lat/lon " + latLon);
+    /*
+     * pixel to lat/lon coordinates transform
+     * 
+     * (non-Javadoc)
+     * 
+     * @see org.geotools.referencing.operation.projection.MapProjection#
+     * inverseTransformNormalized(double, double, java.awt.geom.Point2D)
+     */
+    @Override
+    protected Point2D inverseTransformNormalized(double x, double y,
+            Point2D inputPoint) throws ProjectionException {
+
+        Coordinate latLon = new Coordinate();
+        double xi = x / resolution;
+        double yi = y / resolution;
+
+        Point2D point = inputPoint != null ? inputPoint : new Point2D.Double();
+
+        if (yi >= height) {
+            yi = height - 1;
+        }
+        if (xi >= width) {
+            xi = width - 1;
+        }
+
+        int idx = (int) yi * width + (int) xi;
+        latLon.x = longitudes[idx];
+        latLon.y = latitudes[idx];
+
+        point.setLocation(Math.toRadians(latLon.x), Math.toRadians(latLon.y));
 
         return point;
     }
@@ -234,86 +232,6 @@ public class ModisMapProjection extends MapProjection {
         }
 
         return true;
-    }
-
-    private Point2D findClosestPoint(String latLon, double aLonR) {
-        String lat = latLon.split("/")[0];
-        double aLonD = Math.toDegrees(aLonR);
-        double smallestDiff = 10000.0;
-        String closestLatLon = null;
-        Point2D point = null;
-
-        // search subset of lat/lon map starting at lat passed in
-        for (String ll : latLons.tailMap(lat).keySet()) {
-            String[] llParts = ll.split("/");
-            String latLookup = llParts[0];
-            String lonLookup = llParts[1];
-            if (lat.equals(latLookup)) {
-                double lonCheck = Double.valueOf(lonLookup);
-                double diff = Math.abs(lonCheck - aLonD);
-                if (diff < smallestDiff) {
-                    smallestDiff = diff;
-                    closestLatLon = ll;
-                }
-            } else {
-                // map is sorted so we've looked at all the latitudes of
-                // interest
-                if (closestLatLon != null) {
-                    point = latLons.get(closestLatLon);
-                    lastPoint = point;
-                } else {
-                    point = lastPoint;
-                }
-                break;
-            }
-        }
-        if (point == null) {
-            point = lastPoint;
-        }
-
-        return point;
-    }
-
-    /*
-     * pixel to lat/lon coordinates transform
-     * 
-     * (non-Javadoc)
-     * 
-     * @see org.geotools.referencing.operation.projection.MapProjection#
-     * inverseTransformNormalized(double, double, java.awt.geom.Point2D)
-     */
-    @Override
-    protected Point2D inverseTransformNormalized(double x, double y,
-            Point2D ptDst) throws ProjectionException {
-
-        Coordinate latLon = new Coordinate();
-        double xi = x / resolution - 1;
-        double yi = y / resolution - 1;
-        Point2D point = ptDst != null ? ptDst : new Point2D.Double();
-
-        if (yi < 0.0) {
-            yi = 0.0;
-        }
-        if (xi < 0.0) {
-            xi = 0.0;
-        }
-        if (yi >= height) {
-            yi = height - 1;
-        }
-        if (xi >= width) {
-            xi = width - 1;
-        }
-
-        int idx = (int) yi * width + (int) xi;
-        latLon.x = longitudes[idx];
-        latLon.y = latitudes[idx];
-
-        point.setLocation(Math.toRadians(latLon.x), Math.toRadians(latLon.y));
-
-        // System.out.println("inverse transform: returning point = " + latLon
-        // + "from pixel xi, yi = " + xi + ", " + yi);
-
-        return point;
     }
 
     /*
@@ -360,10 +278,6 @@ public class ModisMapProjection extends MapProjection {
                 .doubleToLongBits(other.resolution))
             return false;
         return true;
-    }
-
-    public TreeMap<String, Point2D> getLatLons() {
-        return latLons;
     }
 
     /*
@@ -415,7 +329,7 @@ public class ModisMapProjection extends MapProjection {
                         "Full size of center data", Integer.class, 0, true);
 
         static final ParameterDescriptorGroup PARAMETERS = new DefaultParameterDescriptorGroup(
-                Modis_MAP_PROJECTION_GROUP, new ParameterDescriptor[] {
+                MODIS_MAP_PROJECTION_GROUP, new ParameterDescriptor[] {
                         CENTER_LATS, CENTER_LONS, CENTER_LENGTH, RESOLUTION,
                         SEMI_MAJOR, SEMI_MINOR, CENTRAL_MERIDIAN, WIDTH,
                         HEIGHT, ENVELOPE });
@@ -435,6 +349,7 @@ public class ModisMapProjection extends MapProjection {
                 throws InvalidParameterNameException,
                 ParameterNotFoundException, InvalidParameterValueException,
                 FactoryException {
+
             return new ModisMapProjection(values);
         }
 
@@ -442,6 +357,10 @@ public class ModisMapProjection extends MapProjection {
                 ParameterValueGroup group) {
             return MathTransformProvider.value(descriptor, group);
         }
+    }
+
+    public Point2D getLastPoint() {
+        return lastPoint;
     }
 
 }

@@ -2,5 +2,29 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>UKMET</resource>
     <attrSetGroupName>marine</attrSetGroupName>
-    <attrSetNames>1000mb_hght_absv,500mb_hght_absv,850mb_hght_absv,pmsl_1000-850_thk,pmsl_bl_temp_wind</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>1000mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-850_thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_bl_temp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

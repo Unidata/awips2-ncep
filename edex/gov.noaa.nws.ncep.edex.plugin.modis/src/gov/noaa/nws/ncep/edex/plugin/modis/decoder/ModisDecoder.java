@@ -38,8 +38,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
  * 
  * Date         Ticket#    Engineer     Description
  * ------------ ---------- -----------  --------------------------
- * Oct 1,  2014            kbugenhagen  Initial creation
- * Feb 20, 2015            kbugenhagen  Updated for Cyanobacterial Index (CI)
+ * 10/01/2014   R5116      kbugenhagen  Initial creation.
+ * 02/20/2015   R5116      kbugenhagen  Updated for Cyanobacterial Index (CI)
  * 
  * </pre>
  * 
@@ -109,9 +109,11 @@ public class ModisDecoder extends AbstractDecoder {
     }
 
     /**
-     * The latitude and longitude arrays need to be "flipped"
+     * Decodes the MODIS netcdf file. The latitude and longitude arrays need to
+     * be "flipped"
      * 
      * @param dataTime
+     *            data time read from the database for this MODIS file.
      * @return
      */
     protected PluginDataObject[] decodeNetcdf(DataTime dataTime) {
@@ -165,6 +167,9 @@ public class ModisDecoder extends AbstractDecoder {
 
             int nx = spatialRecord.getNx();
             int ny = spatialRecord.getNy();
+
+            // The latitude and longitude arrays need to be "flipped" or they
+            // display upside down.
             ArraysUtil.flipHoriz(latitudes, ny, nx);
             ArraysUtil.flipHoriz(longitudes, ny, nx);
 
@@ -213,7 +218,7 @@ public class ModisDecoder extends AbstractDecoder {
 
             Calendar insertCal = Calendar.getInstance();
             record.setInsertTime(insertCal);
-            record.constructDataURI();
+            record.getDataURI();
             rval = new PluginDataObject[] { record };
 
         } catch (Exception e) {
@@ -223,7 +228,16 @@ public class ModisDecoder extends AbstractDecoder {
         return rval;
     }
 
-    // Compute and store the CI (Cyanobacterial Index) values
+    /**
+     * Compute and store the CI (Cyanobacterial Index) values
+     * 
+     * @param spatialRecord
+     *            Spatial record
+     * @param scale
+     *            Scaling to be applied to rho values
+     * @return Array of CI values
+     * @throws IOException
+     */
 
     private Object computeCI(ModisSpatialCoverage spatialRecord, float scale)
             throws IOException {
@@ -273,6 +287,16 @@ public class ModisDecoder extends AbstractDecoder {
 
     }
 
+    /**
+     * Reads in a rho array from the netcdf.
+     * 
+     * @param rhosName
+     *            Name of the rho variable
+     * @param spatialRecord
+     *            Spatial record
+     * @return Array of values
+     * @throws IOException
+     */
     private short[] read_rhos(String rhosName,
             ModisSpatialCoverage spatialRecord) throws IOException {
         Group root = dataFile.getRootGroup();
@@ -296,7 +320,7 @@ public class ModisDecoder extends AbstractDecoder {
         Object rawData = var.read().copyTo1DJavaArray();
         if (rawData == null) {
             logger.warn("Could not find rawdata for dataset entry: "
-                    + var.getName());
+                    + var.getFullName());
         }
 
         return (short[]) rawData;
@@ -306,6 +330,11 @@ public class ModisDecoder extends AbstractDecoder {
      * Flip short array along a vertical line.
      * 
      * @param baseArray
+     *            Array to be flipped
+     * @param height
+     *            Height of array
+     * @param width
+     *            Width of array
      * @return
      */
     public static void flipHoriz(short[] baseArray, int height, int width) {
@@ -322,6 +351,12 @@ public class ModisDecoder extends AbstractDecoder {
         }
     }
 
+    /**
+     * Extracts the data time from the netcdf.
+     * 
+     * @return the data time
+     * @throws ParseException
+     */
     private DataTime extractDataTime() throws ParseException {
 
         Integer passDate = 0;
@@ -339,15 +374,21 @@ public class ModisDecoder extends AbstractDecoder {
         long startMillis = (long) (passDate * MSEC_PER_DAY + startTime * 1000L);
         Date startDate = new Date(startMillis);
         Date endDate = new Date((long) (startMillis + temporalExtent * 1000L));
+        DataTime dataTime = new DataTime(startDate.getTime(), new TimeRange(
+                startDate, endDate));
 
-        DataTime dataTime = null;
-        if (startDate != null && endDate != null) {
-            dataTime = new DataTime(startDate.getTime(), new TimeRange(
-                    startDate, endDate));
-        }
         return dataTime;
     }
 
+    /**
+     * Get an attribute value from the netcdf
+     * 
+     * @param name
+     *            Name of attribute
+     * @param var
+     *            Attribute value
+     * @return
+     */
     @SuppressWarnings("unchecked")
     private <T> T getAttributeValue(String name, T var) {
         Attribute attrib = dataFile.findGlobalAttribute(name);

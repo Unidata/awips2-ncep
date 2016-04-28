@@ -2,5 +2,25 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>NWW3</resource>
     <attrSetGroupName>marine</attrSetGroupName>
-    <attrSetNames>sig_wave_cont_fill_feet,sig_wave_cont_fill_meters,sig_wave_gridded_meters,peak_swell_period_contoured</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>sig_wave_cont_fill_feet</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>sig_wave_cont_fill_meters</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>sig_wave_gridded_meters</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>peak_swell_period_contoured</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

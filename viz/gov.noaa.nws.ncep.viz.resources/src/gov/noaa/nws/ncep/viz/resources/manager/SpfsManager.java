@@ -581,8 +581,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         try {
             groupLocDir.delete();
         } catch (LocalizationException e) {
-            throw new VizException("Error deleting file:"
-                    + groupLocDir.getPath());
+            throw new VizException( e );
         }
     }
 

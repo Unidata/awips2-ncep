@@ -2,5 +2,18 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>Medr_Pres_Day</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>500mb_avg,pmsl_avg,thck_avg</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_avg</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_avg</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>thck_avg</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

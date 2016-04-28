@@ -40,6 +40,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="Filled" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *       &lt;attribute name="MonoColor" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *       &lt;attribute name="OnOff" type="{http://www.w3.org/2001/XMLSchema}boolean" />
+ *       &lt;attribute name="ContourParm" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="Name" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -86,6 +87,9 @@ public class PgenLayer {
 
     @XmlAttribute(name = "MetaInfo")
     protected String metaInfo;
+
+    @XmlAttribute(name = "ContourParm")
+    protected String contourParm;
 
     public String getMetaInfo() {
         return metaInfo;
@@ -312,6 +316,27 @@ public class PgenLayer {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the contourParm property.
+     * 
+     * @return possible object is {@link String }
+     * 
+     */
+    public String getContourParm() {
+        return contourParm;
+    }
+
+    /**
+     * Sets the value of the contourParm property.
+     * 
+     * @param value
+     *            allowed object is {@link String }
+     * 
+     */
+    public void setContourParm(String contourParm) {
+        this.contourParm = contourParm;
     }
 
 }

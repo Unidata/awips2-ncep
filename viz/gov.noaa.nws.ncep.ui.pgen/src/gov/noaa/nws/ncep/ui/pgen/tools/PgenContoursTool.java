@@ -25,12 +25,10 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElementFactory;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
-import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.eclipse.core.commands.ExecutionEvent;
 
@@ -59,6 +57,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/14        #1117       J. Wu       Set focus to label/use line color for label.
  * 05/14        TTR1008     J. Wu       Remove confirmation dialog when adding to an existing contour.
  * 01/15        R5200/T1059 J. Wu       Use setSettings(de) to save last-used attributes.
+ * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
  * 
  * </pre>
  * 
@@ -125,7 +124,6 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
         if (event != lastEvent) {
             if (de instanceof Contours) {
                 elem = (Contours) de;
-                // addContourLine = true;
                 this.setPgenSelectHandler();
                 PgenSession.getInstance().getPgenPalette()
                         .setActiveIcon("Select");
@@ -136,7 +134,6 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
         }
 
         if (attrDlg instanceof ContoursAttrDlg) {
-            // ((ContoursAttrDlg) attrDlg).disableActionButtons();
             ((ContoursAttrDlg) attrDlg).setDrawingTool(this);
             if (de != null) {
                 ((ContoursAttrDlg) attrDlg).setSelectMode();
@@ -793,28 +790,17 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          * Loop through current layer and see if there is an same type of
          * Contours. If yes, add to the existing contours. If not, draw a new
          * Contours.
+         * 
+         * If "one contour per layer" rule is forced and cannot find the same
+         * type of Contours, the first Contours in the layer is used.
          */
         private Contours checkExistingContours() {
 
             Contours existingContours = elem;
 
             if (existingContours == null) {
-
-                Iterator<AbstractDrawableComponent> it = drawingLayer
-                        .getActiveLayer().getComponentIterator();
-                while (it.hasNext()) {
-                    AbstractDrawableComponent adc = it.next();
-                    if (adc instanceof Contours && !(adc instanceof Outlook)) {
-                        Contours thisContour = (Contours) adc;
-                        ContoursAttrDlg thisDlg = (ContoursAttrDlg) attrDlg;
-
-                        if (thisContour.getKey().equals(
-                                Contours.getKey(thisDlg))) {
-                            existingContours = (Contours) adc;
-                            break;
-                        }
-                    }
-                }
+                existingContours = ((ContoursAttrDlg) attrDlg)
+                        .findExistingContours();
             }
 
             return existingContours;

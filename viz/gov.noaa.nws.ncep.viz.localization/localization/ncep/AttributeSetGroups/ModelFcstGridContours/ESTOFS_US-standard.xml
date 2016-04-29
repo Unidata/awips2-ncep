@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>ESTOFS_US</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>extra_tropical_storm_surge</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>extra_tropical_storm_surge</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

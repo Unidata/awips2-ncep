@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.dataplugin.message.DataURINotificationMessage;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
@@ -52,6 +56,7 @@ import com.raytheon.uf.edex.database.plugin.PluginFactory;
  * 12/23/2014   R5412       sgurung     Change float to double, add code changes related to "debug mode"
  * 06/08/2015   R8416       sgurung    Changed int[] to double[] for klimit
  * 10/07/2015   R11429     sgurung,jtravis  Replaced hard-coded missing value codes, replaced deprecated code
+ * 01/05/2016   R14697     sgurung,jtravis  Add fix for duplicate hourly averages issue
  * 
  * 
  * </pre>
@@ -70,6 +75,8 @@ public class TrigKCalculation {
     private GeoMagDao dao;
     private double[] defLength = new double[HOURS];
 
+    private final Log logger = LogFactory.getLog(getClass());
+
     public TrigKCalculation() {
 
     }
@@ -77,7 +84,7 @@ public class TrigKCalculation {
     /*
      * trigger
      */
-    public void trig1min(Object obj) throws StorageException {
+    public void trig1min(Object obj) {
 
         if (!(obj instanceof DataURINotificationMessage)) {
 
@@ -335,7 +342,7 @@ public class TrigKCalculation {
      * when uri time is 35 min past the hour, calculate the averages and write
      * to geomag_houravg
      */
-    public void calcSimpleHourAvg(String[] dataURIs) throws StorageException {
+    public void calcSimpleHourAvg(String[] dataURIs) {
 
         if (dao != null && dataURIs != null) {
             for (String dataURI : dataURIs) {
@@ -352,6 +359,8 @@ public class TrigKCalculation {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
+
+                int currentMinute = cal.get(Calendar.MINUTE);
 
                 List<?> dataList = null;
 
@@ -375,18 +384,11 @@ public class TrigKCalculation {
 
                     // look the avg table to see if the avg already exists
                     cal.set(Calendar.MINUTE, 30);
-                    List<GeoMagAvg> avgList = DatabaseUtil.retrieveSingleAvg(
-                            dataURI, cal.getTime());
+                    GeoMagAvg geomagAvg = DatabaseUtil.retrieveHourlyAvg(
+                            stationCode, cal.getTime());
 
-                    Integer recId = null;
-
-                    if (avgList != null && avgList.size() != 0) {
-                        for (int i = 0; i < avgList.size(); i++) { // 1
-                            GeoMagAvg row = avgList.get(i);
-                            recId = row.getId();
-                            recAvg.setId(recId);
-
-                        }
+                    if (geomagAvg != null) {
+                        recAvg.setId(geomagAvg.getId());
                     }
 
                     recAvg.setAvgTime(cal.getTime());
@@ -394,10 +396,30 @@ public class TrigKCalculation {
                     recAvg.setStationCode(stationCode);
                     recAvg.sethHrAvg(hrAvg[0]);
                     recAvg.setdHrAvg(hrAvg[1]);
+                    recAvg.setLastMinuteUsed(currentMinute);
 
                     GeoMagAvgDao avgDao = new GeoMagAvgDao();
-                    avgDao.persist(recAvg);
 
+                    try {
+
+                        avgDao.persist(recAvg);
+                    } catch (DataIntegrityViolationException e) {
+                        logger.info("GEOMAG ERROR: DataIntegrityViolationException occurred while persisting geomag hourly average record.");
+                        e.printStackTrace();
+
+                        geomagAvg = DatabaseUtil.retrieveHourlyAvg(stationCode,
+                                cal.getTime());
+
+                        if (geomagAvg != null) {
+                            int lastMinuteUsed = geomagAvg.getLastMinuteUsed();
+
+                            if (lastMinuteUsed < recAvg.getLastMinuteUsed()) {
+                                recAvg.setId(geomagAvg.getId());
+                                avgDao.persist(recAvg);
+                            }
+                        }
+
+                    }
                 }
             }
         }

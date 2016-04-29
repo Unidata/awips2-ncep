@@ -55,6 +55,8 @@
           <xsd:attribute name="textFont" type="xsd:string"></xsd:attribute>
           <xsd:attribute name="textStyle" type="xsd:string"></xsd:attribute>
           <xsd:attribute name="symbolSize" type="xsd:int"></xsd:attribute>
+          <xsd:attribute name="symbolWidth" type="xsd:int"></xsd:attribute>
+          <xsd:attribute name="markerType" type="xsd:int"></xsd:attribute>
        </xsd:complexType>
     </xsd:element>
 </xsd:schema>

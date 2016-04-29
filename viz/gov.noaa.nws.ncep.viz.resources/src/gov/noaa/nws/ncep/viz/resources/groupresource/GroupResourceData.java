@@ -36,6 +36,7 @@ public class GroupResourceData extends AbstractNatlCntrsResourceData implements
      * Date         Ticket#    Engineer    Description
      * ------------ ---------- ----------- --------------------------
      * 05/14        ?           B. Yin     Initial creation.
+     * 11/12/2015        R8829       B. Yin     keep rendering order when replacing
      * 
      * </pre>
      * 
@@ -85,7 +86,6 @@ public class GroupResourceData extends AbstractNatlCntrsResourceData implements
         resourceList.add(rp);
     }
 
-    // @XmlElement(name = "resource-in-group")
     public String[] getSerializableResources() {
         if (resourceList != null) {
             List<String> rps = new ArrayList<String>(resourceList.size());
@@ -176,8 +176,7 @@ public class GroupResourceData extends AbstractNatlCntrsResourceData implements
     }
 
     public void replaceResourcePair(ResourcePair oldPair, ResourcePair newPair) {
-        getResourceList().remove(oldPair);
-        getResourceList().add(newPair);
+        getResourceList().set(getResourceList().indexOf(oldPair), newPair);
     }
 
 }

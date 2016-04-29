@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>MOS_AK</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>MOS_TMPF_AK</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>MOS_TMPF_AK</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

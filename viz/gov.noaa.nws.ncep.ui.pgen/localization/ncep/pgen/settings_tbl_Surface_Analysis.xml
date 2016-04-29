@@ -246,6 +246,11 @@
                     <Point Lat="25.041121190893485" Lon="-113.04178096077794"/>
                     <Point Lat="25.30903863032713" Lon="-108.85906236863968"/>
                 </Line>
+                <Line pgenType="LINE_FILLED_CIRCLE_ARROW" pgenCategory="Lines" lineWidth="2.0" sizeScale="1.0" smoothFactor="2" closed="false" filled="false" fillPattern="SOLID" flipSide="false">
+                    <Color red="255" green="0" blue="0" alpha="255"/>
+                    <Point Lat="25.041121190893485" Lon="-113.04178096077794"/>
+                    <Point Lat="25.30903863032713" Lon="-108.85906236863968"/>
+                </Line>
                 <Line pgenType="DOUBLE_LINE" pgenCategory="Lines" lineWidth="2.0" sizeScale="1.0" smoothFactor="2" closed="false" filled="false" fillPattern="SOLID" flipSide="false">
                     <Color red="255" green="0" blue="0" alpha="255"/>
                     <Point Lat="23.89848709334172" Lon="-112.94180947987614"/>

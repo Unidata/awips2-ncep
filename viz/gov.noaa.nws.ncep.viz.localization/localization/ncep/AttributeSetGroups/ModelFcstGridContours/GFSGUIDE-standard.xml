@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>GFSGUIDE</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>iceg</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>iceg</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

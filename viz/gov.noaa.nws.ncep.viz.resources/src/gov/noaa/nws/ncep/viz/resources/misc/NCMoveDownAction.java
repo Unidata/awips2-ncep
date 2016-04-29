@@ -20,12 +20,7 @@ package gov.noaa.nws.ncep.viz.resources.misc;
  * further licensing information.
  **/
 
-import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResource;
-
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.rsc.ResourceList.MoveOperation;
-import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
 
 /**
  * 
@@ -37,46 +32,22 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 08/14            ?        B. Yin    Initial Creation.
+ * Nov 20, 2015  #12870    dgilling    Re-implement based on AbstractMoveResourceAction.
  * 
  * </pre>
  * 
  * @author byin
  * @version 1
  */
-public class NCMoveDownAction extends AbstractRightClickAction {
+public class NCMoveDownAction extends AbstractMoveResourceAction {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.action.Action#run()
-     */
-    @Override
-    public void run() {
-        IDescriptor desc = getDescriptor();
-
-        for (ResourcePair pair : desc.getResourceList()) {
-            if (selectedRsc == pair) {
-                desc.getResourceList().moveResource(
-                        getTopMostSelectedResource(), MoveOperation.Down);
-                break;
-            } else if (pair.getResource() instanceof GroupResource
-                    && ((GroupResource) pair.getResource()).getResourceList()
-                            .contains(selectedRsc)) {
-                ((GroupResource) pair.getResource()).getResourceList()
-                        .moveResource(selectedRsc.getResource(),
-                                MoveOperation.Down);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.action.Action#getText()
-     */
     @Override
     public String getText() {
         return "Move Down";
     }
 
+    @Override
+    MoveOperation getMoveOperation() {
+        return MoveOperation.Down;
+    }
 }

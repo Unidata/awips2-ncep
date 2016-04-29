@@ -56,7 +56,16 @@
         <areaID>4033</areaID>
     </satelliteArea>
     
+    <satelliteArea>
+        <alias>Area_4036</alias>
+        <areaID>4036</areaID>
+    </satelliteArea>
     
- 
+    <satelliteArea>
+        <alias>Area_4035</alias>
+        <areaID>4035</areaID>
+    </satelliteArea>
+    
+    
     
 </satelliteAreaList>

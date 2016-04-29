@@ -34,6 +34,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 10/25/11      #467       Greg Hull    add Replace Resource 
  * 02/22/13      #972       G. Hull      Only show resources for given NcDisplayType
  * 07/23/14        ?        B. Hebbard   Use custom selection control for NTRANS
+ * 01/14/2016    R12859     A. Su        Added to clean up data when the dialog is closed.
  * 
  * </pre>
  * 
@@ -79,7 +80,6 @@ public class ResourceSelectionDialog extends Dialog {
 
         shell = new Shell(parent, style);
         shell.setText(title);
-        // shell.setSize( 800, 520 ); // pack later
 
         GridLayout mainLayout = new GridLayout(1, true);
         mainLayout.marginHeight = 1;
@@ -127,6 +127,7 @@ public class ResourceSelectionDialog extends Dialog {
 
         can_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
+                sel_rsc_cntrl.cleanup();
                 shell.dispose();
             }
         });
@@ -156,8 +157,6 @@ public class ResourceSelectionDialog extends Dialog {
                 display.sleep();
             }
         }
-
-        // dlgLocation = shell.getLocation();
 
         return null;
     }
@@ -191,6 +190,7 @@ public class ResourceSelectionDialog extends Dialog {
     }
 
     public void close() {
+        sel_rsc_cntrl.cleanup();
         shell.dispose();
     }
 

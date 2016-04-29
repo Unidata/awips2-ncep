@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.viz.rsc.wavesat.rsc;
 
 import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.IDataLoader;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 
@@ -14,6 +15,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
@@ -31,6 +34,13 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  04/23/2015   R6281      B. Hebbard   Support both WaveSat and WaveSatV
  *  06/01/2015   R6281      B. Hebbard   Add Jason-3; update satelliteId for CryoSat-2
  *  06/16/2015   R6281      B. Hebbard   Update per code review comments
+ *  12/03/2015   R11819     S. Russell   Added the getDataLoader() funciton.
+ *                                       Modified constructResource() to
+ *                                       compensate for the deletion of
+ *                                       WaveSatResource and WaveSatVResource,
+ *                                       as well as the renaming of
+ *                                       AbstractWaveSatResource to just
+ *                                       WaveSatResource
  *  11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
@@ -67,6 +77,26 @@ public class WaveSatResourceData extends
     @XmlElement
     private Integer fontSize = 10;
 
+    @XmlElement
+    private String latParam = null;
+    @XmlElement
+    private String latParamInPdo = null;
+    @XmlElement
+    private String lonParam = null;
+    @XmlElement
+    private String lonParamInPdo = null;
+    @XmlElement
+    private String satIdParam = null;
+    @XmlElement
+    private String satIdParamInPdo = null;
+    @XmlElement
+    private String waveHeightParam = null;
+    @XmlElement
+    private String windSpeedParam = null;
+
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(WaveSatResourceData.class);
+
     // Note that the following are also in WaveSatResource & WaveSatVResource
     private final static String[] satelliteIdParamNames = { "satelliteId",
             "said" };
@@ -74,14 +104,12 @@ public class WaveSatResourceData extends
     private enum Satellite {
         // Consider moving this to common if useful elsewhere
         // @formatter:off
-        CRYOSAT_2 ( 47, "CryoSat-2"),
-        ENVISAT   ( 60, "Envisat"),
-        JASON_1   (260, "Jason-1"),
-        JASON_2   (261, "Jason-2"),
-        JASON_3   (262, "Jason-3"),
-        ALTIKA    (441, "AltiKa"),
-        // TODO: Check decoder. Stores following as ID for CryoSat-2; expecting 47 instead
-        CRYOSAT_2_AS_UNKNOWN (-9999998, "CryoSat-2");
+        CRYOSAT_2(47, "CryoSat-2"), ENVISAT(60, "Envisat"), JASON_1(260,
+                "Jason-1"), JASON_2(261, "Jason-2"), JASON_3(262, "Jason-3"), ALTIKA(
+                441, "AltiKa"),
+        // TODO: Check decoder. Stores following as ID for CryoSat-2; expecting
+        // 47 instead
+        CRYOSAT_2_AS_UNKNOWN(-9999998, "CryoSat-2");
         // @formatter:on
 
         private int id;
@@ -103,7 +131,7 @@ public class WaveSatResourceData extends
         }
     }
 
-    private AbstractWaveSatResource resource = null;
+    private WaveSatResource resource = null;
 
     public WaveSatResourceData() {
         super();
@@ -127,6 +155,15 @@ public class WaveSatResourceData extends
             colorBarForFeet.addColorBarInterval(0.0f, Float.POSITIVE_INFINITY,
                     new RGB(0, 255, 0));
         }
+
+    }
+
+    public String getLatParam() {
+        return latParam;
+    }
+
+    public void setLatParam(String latParam) {
+        this.latParam = latParam;
     }
 
     @Override
@@ -203,6 +240,16 @@ public class WaveSatResourceData extends
         this.useFeetInsteadOfMeters = useFeetInsteadOfMeters;
     }
 
+    public IDataLoader getDataLoader() {
+
+        IDataLoader waveSatDataLoader = new WaveSatDataLoader(this.latParam,
+                this.lonParam, this.satIdParam, this.waveHeightParam,
+                this.windSpeedParam);
+
+        return waveSatDataLoader;
+
+    }
+
     @Override
     protected AbstractVizResource<?, ?> constructResource(
             LoadProperties loadProperties, PluginDataObject[] objects)
@@ -214,17 +261,54 @@ public class WaveSatResourceData extends
                     .getConstraintValue();
         }
 
-        if (pluginName.equals("sgwh")) {
+        if ((pluginName.equals("sgwh")) || (pluginName.equals("sgwhv"))) {
+            logger.debug("Creating a WaveSatResourse object with plugin: "
+                    + pluginName);
             resource = new WaveSatResource(this, loadProperties);
-        } else if (pluginName.equals("sgwhv")) {
-            resource = new WaveSatVResource(this, loadProperties);
         } else {
-            System.out.println("Unrecognized EDEX pluginName: " + pluginName);
+            logger.debug("Unrecognized EDEX pluginName: " + pluginName);
         }
+
+        if (resource != null) {
+            // These values come from WaveSat.xml or WaveSatV.xml depending
+            // on the plugin named used. sgwhv is mostly defunct.
+
+            // By the time WaveSatResourceData is created it is initialized
+            // with the correct WaveSat*.xml per the appropriate plugin in
+            // use.
+
+            // This conditional replaces the existence of WaveSatResource.java
+            // WaveSatVResource.java which were both children of
+            // AbstractWaveSatResource.java. Those classes were empty of
+            // everything except a constructor where these string values
+            // were set. After those classes were removed
+            // AbstractWaveSatResource got renamed to just WaveSatResoure.
+            // Folling are comments from the constructors of those delted
+            // classes in regards to these strings:
+
+            // "Param" strings must match those in:
+            // gov.noaa.nws.ncep.edex.plugin.sgwh/res/pointdata/sgwh.xml
+
+            // "ParamInPdo" strings must match those in PDO class:
+            // gov.noaa.nws.ncep.common.dataplugin.sgwh.SgwhRecord
+
+            // Mappings between the two are defined in class:
+            // gov.noaa.nws.ncep.common.dataplugin.sgwh.SgwhPointDataTransform
+
+            resource.setLatParam(this.latParam);
+            resource.setLatParamInPdo(this.latParamInPdo);
+            resource.setLonParam(this.lonParam);
+            resource.setLonParamInPdo(this.lonParamInPdo);
+            resource.setSatIdParam(this.satIdParam);
+            resource.setSatIdParamInPdo(this.satIdParamInPdo);
+            resource.setWaveHeightParam(this.waveHeightParam);
+            resource.setWindSpeedParam(this.windSpeedParam);
+        }
+
         return resource;
     }
 
-    public AbstractWaveSatResource getResource() {
+    public WaveSatResource getResource() {
         return resource;
     }
 
@@ -252,4 +336,61 @@ public class WaveSatResourceData extends
 
         return true;
     }
+
+    public String getLatParamInPdo() {
+        return latParamInPdo;
+    }
+
+    public void setLatParamInPdo(String latParamInPdo) {
+        this.latParamInPdo = latParamInPdo;
+    }
+
+    public String getLonParam() {
+        return lonParam;
+    }
+
+    public void setLonParam(String lonParam) {
+        this.lonParam = lonParam;
+    }
+
+    public String getLonParamInPdo() {
+        return lonParamInPdo;
+    }
+
+    public void setLonParamInPdo(String lonParamInPdo) {
+        this.lonParamInPdo = lonParamInPdo;
+    }
+
+    public String getSatIdParam() {
+        return satIdParam;
+    }
+
+    public void setSatIdParam(String satIdParam) {
+        this.satIdParam = satIdParam;
+    }
+
+    public String getSatIdParamInPdo() {
+        return satIdParamInPdo;
+    }
+
+    public void setSatIdParamInPdo(String satIdParamInPdo) {
+        this.satIdParamInPdo = satIdParamInPdo;
+    }
+
+    public String getWaveHeightParam() {
+        return waveHeightParam;
+    }
+
+    public void setWaveHeightParam(String waveHeightParam) {
+        this.waveHeightParam = waveHeightParam;
+    }
+
+    public String getWindSpeedParam() {
+        return windSpeedParam;
+    }
+
+    public void setWindSpeedParam(String windSpeedParam) {
+        this.windSpeedParam = windSpeedParam;
+    }
+
 }

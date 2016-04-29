@@ -1,21 +1,3 @@
-/**
- * 
- * Ncscat Decoder
- * 
- * This Java class decodes ocean winds scatterometer/radiometer (NESDIS File) raw data.
- *  
- * HISTORY
- *
- * Date     	Author		Description
- * ------------	----------	-----------	--------------------------
- * 11/2009		Uma Josyula		Initial creation
- * 01/2011		B. Hebbard 		Handle ambiguity variants
- * 07/2012		B. Hebbard 		Handle OSCAT / OSCAT_HI
- * 10/2014      B. Hebbard      Get reportType from NcscatMode, instead of if-then-else'ing over hardcode integer lengths
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- */
-
 package gov.noaa.nws.ncep.edex.plugin.ncscat.decoder;
 
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatRecord;
@@ -34,6 +16,27 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.time.DataTime;
 
+/**
+ * <pre>
+ * Ncscat Decoder
+ * 
+ * This Java class decodes ocean winds scatterometer/radiometer (NESDIS File)
+ * raw data.
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 11/2009                  Uma Josyula Initial creation 
+ * 01/2011                  B. Hebbard  Handle ambiguity variants 
+ * 07/2012                  B. Hebbard  Handle OSCAT / OSCAT_HI
+ * 10/2014                  B. Hebbard  Get reportType from NcscatMode, instead of
+ *                                      if-then-else'ing over hardcode integer lengths 
+ * 01/08/2016   R10434      RReynolds   Added code to distinguish incoming ascatb/ascatd Metop ID's.
+ * 
+ * This code has been developed by the SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ */
+
 public class NcscatDecoder extends AbstractDecoder {
     String plugin;
 
@@ -43,7 +46,7 @@ public class NcscatDecoder extends AbstractDecoder {
 
     private Pattern pattern;
 
-    private static String pluginName;// = "NCSCAT";
+    private static String pluginName;
 
     /**
      * Constructor
@@ -54,14 +57,7 @@ public class NcscatDecoder extends AbstractDecoder {
         pluginName = name;
     }
 
-    // public PluginDataObject[] decode(byte[] data, Headers headers) throws
-    // DecoderException {
     public PluginDataObject[] decode(byte[] data) throws DecoderException {
-
-        String traceId = "";
-        /*
-         * if (headers != null) { traceId = (String) headers.get("traceId"); }
-         */
 
         NcscatRecord record = null;
         byte[] messageData = null;
@@ -85,6 +81,14 @@ public class NcscatDecoder extends AbstractDecoder {
             if (!ambigNumber.isEmpty()) {
                 record.setReportType(record.getReportType() + "-ambig"
                         + ambigNumber);
+            }
+
+            if (fileName.toLowerCase().contains("ascatb")) {
+                record.setReportType(record.getReportType().replaceAll("ascat",
+                        "ascat-b"));
+            } else if (fileName.toLowerCase().contains("ascatd")) {
+                record.setReportType(record.getReportType().replaceAll("ascat",
+                        "ascat-a"));
             }
 
             if (record != null) {
@@ -182,8 +186,6 @@ public class NcscatDecoder extends AbstractDecoder {
             } else {
                 ambigNumber = "";
             }
-            // [debug] System.out.println("fileName="+fileName +
-            // " ambigNumber="+ambigNumber);
 
             return decode(fileData);
 

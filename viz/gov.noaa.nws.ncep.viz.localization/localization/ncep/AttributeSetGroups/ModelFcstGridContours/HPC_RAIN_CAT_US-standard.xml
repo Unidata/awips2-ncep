@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>HPC_RAIN_CAT_US</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>categorical_rain</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>categorical_rain</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

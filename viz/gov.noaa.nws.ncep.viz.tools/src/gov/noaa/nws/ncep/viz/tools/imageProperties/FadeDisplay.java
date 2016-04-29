@@ -2,8 +2,8 @@ package gov.noaa.nws.ncep.viz.tools.imageProperties;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 import java.util.ArrayList;
 
@@ -38,20 +38,25 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 11/5/2009    183        qzhou      Initial created. 
- * 12/15/2009              G. Hull    display and pane listeners.
- * 10/04/2010   289        Archana    Added FadeHotKeyListener
- * 03/07/2011   R1G2-9     G. Hull    implement IVizEditorChangedListener, 
- *                                    editor no longer passed from Pane Changed Listener
- * 06/19/2012   #569       G. Hull    rm IVizEditorChangedListener. update() gets called
- *                                    from refreshGUIElements which is called from perspective's
- *                                    IVizEditorChangedListener
- * 06/21/2012   #632       G. Hull    Change behaviour for multiple images. Activate if all the 
- *                                    brightness's are the same.
- * 07/12/2012   ####       G. Hull    rm paneChangeListener. A pane change will now call refreshGUIElements
+ * Date         Ticket#    Engineer     Description
+ * ------------ ---------- -----------  --------------------------
+ * 11/5/2009    183        qzhou        Initial created. 
+ * 12/15/2009              G. Hull      display and pane listeners.
+ * 10/04/2010   289        Archana      Added FadeHotKeyListener
+ * 03/07/2011   R1G2-9     G. Hull      implement IVizEditorChangedListener, 
+ *                                      editor no longer passed from Pane Changed Listener
+ * 06/19/2012   #569       G. Hull      rm IVizEditorChangedListener. update() gets called
+ *                                      from refreshGUIElements which is called from perspective's
+ *                                      IVizEditorChangedListener
+ * 06/21/2012   #632       G. Hull      Change behaviour for multiple images. Activate if all the 
+ *                                      brightness's are the same.
+ * 07/12/2012   ####       G. Hull      rm paneChangeListener. A pane change will now call refreshGUIElements
  * 02/11/13     #972        G. Hull     AbstractEditor instead of NCMapEditor
+ * 09/22/2015   R7270      kbugenhagen  Added check that resource is an 
+ *                                      AbstractNatlCntrsResource in updateFadeDisplay 
+ *                                      to get rid of alert window for 
+ *                                      non-AbstractNatlCntrsResource resources
+ *                                      (like GeoTiffResource's).
  * 
  * </pre>
  * 
@@ -64,11 +69,11 @@ public class FadeDisplay extends ContributionItem {
 
     private Composite comp;
 
-    private Scale scale; // = null;
+    private Scale scale;
 
-    private Button btn0;// = null;
+    private Button btn0;
 
-    private Button btn50;// = null;
+    private Button btn50;
 
     private Font font = new Font(Display.getCurrent(), "Monospace", 10,
             SWT.NORMAL);
@@ -93,8 +98,6 @@ public class FadeDisplay extends ContributionItem {
      */
     @Override
     public void fill(Composite parent) {
-        // Shell fadeShell =
-        // PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
         comp = new Composite(parent, SWT.NONE);
         comp.setSize(200, 55);
@@ -104,8 +107,6 @@ public class FadeDisplay extends ContributionItem {
         comp.setLayout(gl);
 
         StatusLineLayoutData slLayoutData = new StatusLineLayoutData();
-        // slLayoutData.heightHint = 30;
-        // slLayoutData.widthHint = 300;
         comp.setLayoutData(slLayoutData);
 
         /*
@@ -210,8 +211,11 @@ public class FadeDisplay extends ContributionItem {
                 if (!rp.getProperties().isSystemResource()
                         && rp.getResource().getCapabilities()
                                 .hasCapability(ImagingCapability.class)) {
-                    imageResources.add((AbstractNatlCntrsResource<?, ?>) rp
-                            .getResource());
+                    if (rp.getResource() instanceof AbstractNatlCntrsResource<?, ?>) {
+                        imageResources.add((AbstractNatlCntrsResource<?, ?>) rp
+                                .getResource());
+                    }
+
                 }
             }
         }
@@ -220,17 +224,14 @@ public class FadeDisplay extends ContributionItem {
 
         // the buttons will work with multiple resources but
         // the scale will only work with more than one resource if all the
-        // brightness
-        // values are the same.
+        // brightness values are the same.
         if (!imageResources.isEmpty()) {
             brightness = (int) (imageResources.get(0)
                     .getCapability(ImagingCapability.class).getBrightness() * 100f);
 
             // TODO : It is possible that a rsc has no image and so there may
-            // not be a conflict. Or there may
-            // not be an image for the first frame (how does the brightness get
-            // set then?)
-            //
+            // not be a conflict. Or there may not be an image for the first
+            // frame.
             for (AbstractNatlCntrsResource<?, ?> imgRsc : imageResources) {
                 ImagingCapability imgCap = imgRsc
                         .getCapability(ImagingCapability.class);

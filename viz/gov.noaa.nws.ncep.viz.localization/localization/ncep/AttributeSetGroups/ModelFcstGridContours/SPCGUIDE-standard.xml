@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>SPCGUIDE</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>slight_risk_conv_outlook</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>slight_risk_conv_outlook</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

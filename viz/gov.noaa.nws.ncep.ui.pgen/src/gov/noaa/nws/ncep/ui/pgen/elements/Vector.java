@@ -28,8 +28,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------	----------	-----------	--------------------------
  * 01/09					J. Wu   	Initial Creation.
  * 04/11		#?			B. Yin		Re-factor IAttribute
- * 08/15        R8188      J. Lopez     Changed orientation and rotation 
+ * 08/15        R8188       J. Lopez     Changed orientation and rotation 
  *                                      of "Hash" to match legacy
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 
  * </pre>
  * 
@@ -39,8 +40,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 @ElementOperations({ Operation.COPY_MOVE, Operation.EXTRAPOLATE,
         Operation.ROTATE })
 public class Vector extends SinglePointElement implements IVector {
-
-    private static final String HASH = "Hash";
 
     private VectorType vectorType;
 
@@ -130,13 +129,7 @@ public class Vector extends SinglePointElement implements IVector {
      */
     public void setDirection(double direction) {
         if (!(new Double(direction).isNaN())) {
-
-            // rotates the hash mark clockwise to match legacy
-            if (pgenType.equalsIgnoreCase(HASH)) {
-                this.direction = 360 - direction;
-            } else {
-                this.direction = direction;
-            }
+            this.direction = direction;
         }
     }
 

@@ -6,7 +6,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -55,6 +55,7 @@ import com.vividsolutions.jts.geom.LineString;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 04/24/14     1130       S. Gurung	Initial Creation
+ * 02/17/16     #13554     dgilling     Implement IStaticDataNatlCntrsResource.
  * 
  * </pre>
  * 
@@ -64,7 +65,7 @@ import com.vividsolutions.jts.geom.LineString;
 public class DayNightTerminatorOverlayResource
         extends
         AbstractVizResource<DayNightTerminatorOverlayResourceData, IMapDescriptor>
-        implements INatlCntrsResource {
+        implements IStaticDataNatlCntrsResource {
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(DayNightTerminatorOverlayResource.class);
@@ -114,6 +115,7 @@ public class DayNightTerminatorOverlayResource
      * 
      * @see com.raytheon.viz.core.rsc.IVizResource#dispose()
      */
+    @Override
     public void disposeInternal() {
         clearWireFrameShapesArray(wireframeShapesMap);
     }

@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VaaCloudDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VolcanoVaaAttrDlg;
@@ -16,6 +17,8 @@ import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
+import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.AbstractSigmet;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
@@ -65,6 +68,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 04/13 		#874		B. Yin		Handle collection when OK is pressed for multi-selection.
  * 04/13        TTR399      J. Wu  		Make the dialog compact
  * 12/14		R5413		B. Yin		Refresh editor after dialog close
+ * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
  * 
  * </pre>
  * 
@@ -304,6 +308,21 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                         } else {
 
                             newList.add(newEl);
+
+                            // if text object, determines the parent pgenType
+                            // (if exists) obtains the updated text and
+                            // assigns it a place in pgenTypeLabels HashMap
+                            String pType = PgenConstant.PGENCATEGORY_TEXT;
+                            String[] pText;
+                            if (newEl instanceof Text) {
+                                pText = ((Text) newEl).getString();
+                                if ((newEl.getParent() instanceof DECollection)
+                                        && (!(newEl.getParent() instanceof Layer))) {
+                                    pType = newEl.getParent().getPgenType();
+                                }
+                                AttrSettings.getInstance().setPgenTypeLabel(
+                                        pType, pText);
+                            }
                         }
                     }
                 }

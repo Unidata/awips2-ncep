@@ -6,7 +6,7 @@
               </capabilities -->
               <resourceType>PLAN_VIEW</resourceType >
             </loadProperties>
-          <properties isSystemResource="false" isBlinking="false" isMapLayer="false" isHoverOn="false" isVisible="true">
+          <properties renderingOrderId="PLOT" isSystemResource="false" isBlinking="false" isMapLayer="false" isHoverOn="false" isVisible="true">
             </properties>
           <resourceData xsi:type="NC-IDFTResourceData" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="false">
            <timeMatchMethod>${timeMatchMethod}</timeMatchMethod>

@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
 import static java.lang.System.out;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryDefinition;
 import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryRequestMsg;
@@ -89,11 +90,12 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  11/2004       R4644       S. Gilbert  Removed dependency on specific PDOs and
  *                                        changed uEngine request to ThriftClinet
  *  12/24/14      R4508      S. Gurung    Add special handling for GHCD (generic high-cadence data) compound subType
- *  01/21/15	  R4646	  	 B. Yin       Handle PGEN resource group (subtype)
+ *  01/21/15      R4646      B. Yin       Handle PGEN resource group (subtype)
  *  05/14/15      R7656      A. Su        Retrieved the resource definitions of LocalRadar from an xml file.
  *  06/04/15      R7656      A. Su        Removed a debugging message when adding radar stations to generatedTypesList.
  *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
  *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
+ *  01/22/2016    R14142     R. Reynolds  Moved in mcidas specific aliasing code
  * 
  * 
  * </pre>
@@ -161,6 +163,8 @@ public class ResourceDefinition implements IAlertObserver,
 
     private static final int DEFAULT_TIME_RANGE = 24; // in hours
 
+    private String dispName = "";
+
     @XmlElement
     private int dfltFrameCount;
 
@@ -188,6 +192,8 @@ public class ResourceDefinition implements IAlertObserver,
     // be select in 0,3,6,9...
     @XmlElement
     private int dfltHourSnap;
+
+    private AttributeSet attributeSet;
 
     // where/how are the attribute sets located/organized
     //
@@ -748,10 +754,12 @@ public class ResourceDefinition implements IAlertObserver,
     public RequestConstraint getConstraintFromParamValue(String paramVal) {
 
         if (paramVal == null) {
-            System.out.println("    BAD paramVal");
+            statusHandler.handle(Priority.INFO, "BAD paramVal");
+
             paramVal = " ";
             return null;
         }
+
         if (paramVal.equals("%")) {
             return RequestConstraint.WILDCARD;
         } else if (paramVal.indexOf("%") != -1) {
@@ -1297,7 +1305,8 @@ public class ResourceDefinition implements IAlertObserver,
 
                 String subType = "";
                 for (int i = 0; i < numSubTypeGenParams; i++) {
-                    if ((subTypeParamNames[i].equals("resolution"))
+                    if ((subTypeParamNames[i]
+                            .equals(McidasConstants.RESOLUTION))
                             && queryResults[i].equals("0")) {
                         subType += "native_";
                     } else {
@@ -1701,7 +1710,8 @@ public class ResourceDefinition implements IAlertObserver,
                     String subType = null;
                     StringBuilder sb = new StringBuilder();
 
-                    if (getRscImplementation().equals("McidasSatellite")) {
+                    if (getRscImplementation().equals(
+                            McidasConstants.MCIDAS_SATELLITE)) {
 
                         SatelliteAreaManager.getInstance().setSubParams(
                                 subParams);
@@ -1709,9 +1719,12 @@ public class ResourceDefinition implements IAlertObserver,
                         areaId = (String) result.get("areaId");
                         // if (areaId.contains("335"))
                         // continue; // water vapor
-                        resolution = (Integer) result.get("resolution");
-                        projection = (String) result.get("projection");
-                        satelliteId = (String) result.get("satelliteId");
+                        resolution = (Integer) result
+                                .get(McidasConstants.RESOLUTION);
+                        projection = (String) result
+                                .get(McidasConstants.PROJECTION);
+                        satelliteId = (String) result
+                                .get(McidasConstants.SATELLITE_ID);
 
                         SatelliteNameManager.getInstance().setSatelliteId(
                                 satelliteId);
@@ -1724,7 +1737,8 @@ public class ResourceDefinition implements IAlertObserver,
 
                         for (int i = 0; i < subParams.length; i++) {
 
-                            if (subParams[i].equalsIgnoreCase("resolution")) {
+                            if (subParams[i]
+                                    .equalsIgnoreCase(McidasConstants.RESOLUTION)) {
                                 if (resolution == 0) {
                                     sb.append("native");
                                 } else {
@@ -1733,15 +1747,16 @@ public class ResourceDefinition implements IAlertObserver,
                                 }
                                 sb.append('_');
 
-                            } else if (subParams[i].equalsIgnoreCase("areaId")) {
+                            } else if (subParams[i]
+                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
                                 sb.append(areaId);
                                 sb.append('_');
                             } else if (subParams[i]
-                                    .equalsIgnoreCase("projection")) {
+                                    .equalsIgnoreCase(McidasConstants.PROJECTION)) {
                                 sb.append(projection);
                                 sb.append('_');
                             } else if (subParams[i]
-                                    .equalsIgnoreCase("satelliteId")) {
+                                    .equalsIgnoreCase(McidasConstants.SATELLITE_ID)) {
                                 sb.append(satelliteId);
                                 sb.append('_');
                             }
@@ -1787,10 +1802,6 @@ public class ResourceDefinition implements IAlertObserver,
                                 statusHandler
                                         .handle(Priority.PROBLEM,
                                                 ("Unrecognized PGEN rsc generating subType" + subTypeGenerator));
-                                System.out
-                                        .println("Unrecognized PGEN rsc generating subType"
-                                                + subTypeGenerator);
-
                             }
 
                             if (subType != null && !subType.trim().isEmpty()) {
@@ -1912,12 +1923,13 @@ public class ResourceDefinition implements IAlertObserver,
 
                 // this replaces the commented-out stuff below, because mcidas
                 // can now have up to 4 subTypeGenerators and in any order.
-            } else if (getRscImplementation().equals("McidasSatellite")) {
+            } else if (getRscImplementation().equals(
+                    McidasConstants.MCIDAS_SATELLITE)) {
                 String genPrm = "";
                 subType = "";
                 for (int i = 0; i < getSubTypeGenParamsList().length; i++) {
                     genPrm = getSubTypeGenParamsList()[i];
-                    if ((genPrm.equals("resolution"))
+                    if ((genPrm.equals(McidasConstants.RESOLUTION))
                             && (uriAttrValues.get(genPrm).toString()
                                     .equals("0"))) {
                         subType += "native_";
@@ -2049,6 +2061,153 @@ public class ResourceDefinition implements IAlertObserver,
         if (timelineGenMethod != other.timelineGenMethod)
             return false;
         return true;
+    }
+
+    /**
+     * This is a mcidas specific method to build the aliased Resource Group
+     * string by appending from 2 to 4 subTypes as specified in a Satellite
+     * Resource Definition XML file
+     */
+    public String getRscGroupDisplayName(String originalDisplayName) {
+
+        String displayName = originalDisplayName;
+
+        if (getRscImplementation().equals(McidasConstants.MCIDAS_SATELLITE)) {
+
+            String[] subParams = getSubTypeGenerator().split(",");
+            String[] str;
+
+            displayName = "";
+            str = originalDisplayName.split("_");
+
+            try {
+
+                for (int k = 0; k < subParams.length; k++) {
+
+                    if (subParams[k].toString().equalsIgnoreCase(
+                            McidasConstants.RESOLUTION)) {
+
+                        if (!subParams[k].contains("km"))
+                            str[k] += "km";
+                        displayName = displayName + " " + str[k];
+
+                    } else if (subParams[k].toString().equalsIgnoreCase(
+                            McidasConstants.PROJECTION)) {
+
+                        displayName = displayName + " " + str[k];
+
+                    } else if (subParams[k].toString().equalsIgnoreCase(
+                            McidasConstants.AREA_ID)) {
+
+                        SatelliteAreaManager satAreaMgr = SatelliteAreaManager
+                                .getInstance();
+
+                        String areaIdName = satAreaMgr
+                                .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                                        + SatelliteAreaManager.delimiter
+                                        + str[k].toString());
+
+                        if (areaIdName == null)
+                            areaIdName = str[k].toString();
+
+                        displayName = displayName + " " + areaIdName;
+
+                    } else if (subParams[k].toString().equalsIgnoreCase(
+                            McidasConstants.SATELLITE_ID)) {
+
+                        displayName = displayName
+                                + " "
+                                + SatelliteNameManager.getInstance()
+                                        .getDisplayedNameByID(str[k]);
+
+                    }
+                }
+            } catch (Exception ex) {
+                /**
+                 * TODO: Temporary DEBUG for error that only happens on NTBN
+                 * Remove System.out.println's if this error goes away and
+                 * replace with statusHandler/ex.getStackTrace(). System.out
+                 * will go to log, currently.
+                 */
+                ex.printStackTrace();
+                System.out.println("*subParms[] length =" + subParams.length);
+                for (int k = 0; k < subParams.length; k++) {
+                    System.out.println("subParams[" + k + "] = "
+                            + subParams[k].toString());
+                }
+                System.out.println("*displayName.length =" + str.length);
+                for (int k = 0; k < str.length; k++) {
+                    System.out.println("displayName[" + k + "] = "
+                            + str[k].toString());
+                }
+                displayName = originalDisplayName;
+            }
+
+        }
+
+        return displayName.trim();
+    }
+
+    /**
+     * This is a mcidas specific method to alias an attribute. The alias will be
+     * displayed in the Resource Attribute column and appended to the Resource
+     * Group name (DisplayName) which appears in the legend and Dialog Box
+     * invoked by the Edit Button on CreateRBD tab.
+     */
+    public String getRscAttributeDisplayName(String originalAttrSetName) {
+
+        String attrSetName = originalAttrSetName;
+
+        if (getRscImplementation().equals(McidasConstants.MCIDAS_SATELLITE)) {
+
+            String satName = attributeSet.getApplicableResource();
+            String satId = "";
+
+            HashMap<String, String> resParm = getResourceParameters(true);
+
+            satId = resParm.get(McidasConstants.SATELLITE_ID);
+
+            HashMap<String, String> atrSet = attributeSet.getAttributes();
+
+            if (satName == null || satId == null)
+                return originalAttrSetName;
+
+            SatelliteImageTypeManager satImMan = SatelliteImageTypeManager
+                    .getInstance();
+
+            if (!atrSet.containsKey(McidasConstants.IMAGE_TYPE_ID
+                    + McidasConstants.CUSTOM_NAME)) {
+
+                attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID);
+
+                if (attrSetName == null) {
+                    return originalAttrSetName;
+                }
+
+                atrSet.put(McidasConstants.IMAGE_TYPE_ID
+                        + McidasConstants.CUSTOM_NAME, attrSetName);
+
+                atrSet.put(McidasConstants.IMAGE_TYPE_ID, satImMan
+                        .getImageId_using_satId_and_ASname(satId, attrSetName));
+
+            }
+
+            attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
+                    + McidasConstants.CUSTOM_NAME);
+
+            satImMan.setAttributeNamesAndAliases(satId + ":"
+                    + attributeSet.getName().toString(), attrSetName);
+
+        }
+
+        return attrSetName.trim();
+    }
+
+    /**
+     * This is the attribute set used by the updateAttrSetName() method
+     */
+    public void setAttributeSet(AttributeSet attributeSet) {
+        this.attributeSet = attributeSet;
     }
 
 }

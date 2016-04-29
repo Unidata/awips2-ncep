@@ -22,7 +22,6 @@ import com.raytheon.uf.common.datastorage.StorageProperties;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.geospatial.interpolation.BilinearInterpolation;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
 import com.raytheon.uf.common.numeric.buffer.BufferWrapper;
 import com.raytheon.uf.common.numeric.buffer.ShortBufferWrapper;
@@ -37,15 +36,15 @@ import com.raytheon.uf.edex.database.plugin.DownscaleStoreUtil.IDataRecordCreato
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 
 /**
- * Modis DAO - creates storage records from PDOs
+ * MODIS DAO - creates storage records from PDOs
  * 
  * <pre>
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Oct 1, 2014             kbugenhagen Initial creation
+ * Date         Ticket#    Engineer     Description
+ * ------------ ---------- -----------  --------------------------
+ * 10/01/2014   R5116      kbugenhagen  Initial creation
  * 
  * </pre>
  * 
@@ -166,10 +165,11 @@ public class ModisDao extends PluginDao {
             }
         }
 
-        // now, add the down-scaled image arrays
+        // Add the down-scaled image arrays. Default interpolation (nearest
+        // neighbor) works better than bilinear interpolation. Colors are
+        // consistent when zooming.
         GridDownscaler downscaler = new GridDownscaler(
-                spatialRecord.getGridGeometry(latitudes, longitudes),
-                new BilinearInterpolation());
+                spatialRecord.getGridGeometry(latitudes, longitudes));
 
         DownscaleStoreUtil.storeInterpolated(dataStore, downscaler, ds,
                 creator, false);

@@ -2,5 +2,60 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>NatlMosaic</resource>
     <attrSetGroupName>ALL</attrSetGroupName>
-	<attrSetNames>BREF_2.00,BREF_nids_cmref,RALA_1.00,PRCP,PRCP1_4.00,PRCP24_4.00,PRCPC_4.00,CREF_4.00,CREF_1.00,CREF_30.00,CREF_nids_cmref,TOPS_4.00,TOPS2_4.00,TOPS18_1.00,TOPS30_1.00,VIL_1.00,VIL_4.00</attrSetNames>
+	
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>BREF_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF_nids_cmref</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>RALA_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCP</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCP1_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCP24_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCPC_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_30.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>CREF_nids_cmref</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TOPS_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TOPS2_4.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TOPS18_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>TOPS30_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VIL_1.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>VIL_4.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

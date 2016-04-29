@@ -135,6 +135,14 @@
             paramType="IMPLEMENTATION_PARAM"
             ncResourceName="DbOverlay">
       </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="String"
+            paramName="constraint"
+            constraintName="hwy_type"
+            defaultValue="%"
+            paramType="REQUEST_CONSTRAINT"
+            ncResourceName="DbOverlay">
+      </nc-resourceParameter>
 
 <!-- The Resource for displaying static PGEN Products -->
       <nc-resourceParameter

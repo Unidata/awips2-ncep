@@ -2,5 +2,30 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>LocalRadar</resource>
     <attrSetGroupName>2km</attrSetGroupName>
-    <attrSetNames>PRCP1_2.00,PRCP3_2.00,BREF3_2.00,PRCPC_2.00,BREF4_2.00,BREF1_2.00,BREF2_2.00</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>PRCP1_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCP3_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF3_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>PRCPC_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF4_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF1_2.00</name>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>BREF2_2.00</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

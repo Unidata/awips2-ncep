@@ -1,27 +1,8 @@
-/**
- * This software was developed and / or modified by Raytheon Company,
- * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * This software product contains export-restricted data whose
- * export/transfer/disclosure is restricted by U.S. law. Dissemination
- * to non-U.S. persons whether in the United States or abroad requires
- * an export license or other authorization.
- * 
- * Contractor Name:        Raytheon Company
- * Contractor Address:     6825 Pine Street, Suite 340
- *                         Mail Stop B8
- *                         Omaha, NE 68106
- *                         402.291.0100
- * 
- * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
- * further licensing information.
- **/
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
 import gov.noaa.nws.ncep.ui.pgen.display.IVector;
 import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,7 +11,7 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableString;
 
 /**
- * Interface via which NcPlotImageCreeator reports its completed results back to
+ * Interface via which NcPlotImageCreator reports its completed results back to
  * NcPlotResource2.
  * 
  * <pre>
@@ -39,7 +20,8 @@ import com.raytheon.uf.viz.core.DrawableString;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 31, 2015            bhebbard     Initial creation -- spun out of NcPlotImageCreator
+ * 08/31/2015              bhebbard    Initial creation -- spun out of NcPlotImageCreator
+ * 11/17/2015    R9579     bhebbard    Fix header and import of Station class
  * 
  * </pre>
  * 

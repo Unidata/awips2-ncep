@@ -72,5 +72,8 @@
 	<PlotParameterDefn  ncepParamName="BRBM" plotMode="barb" dbParamName="wsMan,wdMan" plotUnit="m/s" />     
 	   
  	<!-- <PlotParameterDefn  ncepParamName="PSYM" plotMode="text" dbParamName=""/>  -->
+
+    <!-- MARKERs -->
+    <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
     
 </PlotParameterDefns>

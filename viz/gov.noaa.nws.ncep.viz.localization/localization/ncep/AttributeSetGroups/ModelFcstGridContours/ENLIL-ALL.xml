@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>ENLIL</resource>
     <attrSetGroupName>ALL</attrSetGroupName>
-    <attrSetNames>2147483_speed</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>2147483_speed</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

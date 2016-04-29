@@ -5,7 +5,7 @@
          overlayMatchTolerance="1">
          <resourceType>PLAN_VIEW</resourceType>
       </loadProperties>
-      <properties isSystemResource="false" isBlinking="false"
+      <properties renderingOrderId="PLOT" isSystemResource="false" isBlinking="false"
          isMapLayer="false" isHoverOn="false" isVisible="true">
       </properties>
       <resourceData xsi:type="LightningResourceData"

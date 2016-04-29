@@ -2,5 +2,12 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>AK_Temps_Pop</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames></attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name></name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

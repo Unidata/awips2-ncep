@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>RFCQPF</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>tpFWR</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>tpFWR</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

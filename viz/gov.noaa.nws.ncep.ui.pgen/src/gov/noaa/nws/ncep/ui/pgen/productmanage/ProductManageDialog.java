@@ -73,6 +73,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
  * 08/14        TTR962      J. Wu       Format output file with DD, MM, YYYY, HH.
  * 06/15        R8189       J. Wu       Set Pgen palette per layer.
+ * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
  * 
  * </pre>
  * 
@@ -321,17 +322,6 @@ public class ProductManageDialog extends ProductDialog {
         Label prds = new Label(titleComp, SWT.NONE);
         prds.setText("Activities:");
 
-        /*
-         * if ( !compact ) { Button multiSaveBtn = new Button( titleComp,
-         * SWT.CHECK ); multiSaveBtn.setSelection( multiSave );
-         * multiSaveBtn.setEnabled( false ); multiSaveBtn.setText("Post-Save");
-         * multiSaveBtn.addSelectionListener( new SelectionAdapter() { public
-         * void widgetSelected(SelectionEvent event) { multiSave =
-         * ((Button)event.widget).getSelection(); } });
-         * 
-         * }
-         */
-
         addSeparator();
 
         // Create add/All On/delete buttons
@@ -402,6 +392,9 @@ public class ProductManageDialog extends ProductDialog {
      */
     private void createProducts() {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         Composite prdsComp = new Composite(shell, SWT.NONE);
 
         int numActionBtns;
@@ -426,13 +419,11 @@ public class ProductManageDialog extends ProductDialog {
             layerInUse = 0;
             currentProduct = prdList.get(prdInUse);
             currentProduct.setInUse(true);
-            // currentProduct.setOnOff( true );
             drawingLayer.setActiveProduct(currentProduct);
 
             layerList = (ArrayList<Layer>) currentProduct.getLayers();
             currentLayer = currentProduct.getLayer(layerInUse);
             currentLayer.setInUse(true);
-            // currentLayer.setOnOff( true );
             drawingLayer.setActiveLayer(currentLayer);
 
         }
@@ -685,6 +676,9 @@ public class ProductManageDialog extends ProductDialog {
      */
     private void createLayers() {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         if (layerList == null || layerList.size() == 0) {
             return;
         }
@@ -760,22 +754,7 @@ public class ProductManageDialog extends ProductDialog {
                 });
 
                 colorModeBtns.add(clrBtn);
-                /*
-                 * Button inoutBtn = new Button( layersComp, SWT.PUSH );
-                 * inoutBtn.setText( "I/O" );
-                 * 
-                 * inoutBtn.setData( ii );
-                 * 
-                 * inoutBtn.addSelectionListener( new SelectionAdapter() {
-                 * public void widgetSelected(SelectionEvent event) {
-                 * lpfFileBtnInUse = Integer.parseInt(
-                 * event.widget.getData().toString() ); editLayerLpfFileAttr();
-                 * }
-                 * 
-                 * });
-                 * 
-                 * lpfFileBtns.add( inoutBtn );
-                 */
+
             }
 
             ii++;
@@ -787,11 +766,31 @@ public class ProductManageDialog extends ProductDialog {
         }
 
         setButtonColor(layerNameBtns.get(layerInUse), activeButtonColor);
-        // displayOnOffBtns.get( layerInUse ).setSelection( true );
-        // layerList.get( layerInUse ).setInUse( true );
 
         currentLayer = layerList.get(layerInUse);
+
+        // Selects PGEN class from the current layer
+        selectPGENClass();
+
         drawingLayer.setActiveLayer(currentLayer);
+
+    }
+
+    /**
+     * Saves the selected PGEN class in the current layer
+     */
+    private void savePGENClass() {
+        currentLayer.setCategory(PgenSession.getInstance().getPgenPalette()
+                .getCurrentCategory());
+
+    }
+
+    /**
+     * Selects PGEN class from the current layer
+     */
+    private void selectPGENClass() {
+        PgenSession.getInstance().getPgenPalette()
+                .setCurrentCategory(currentLayer.getCategory(), true);
 
     }
 
@@ -942,6 +941,9 @@ public class ProductManageDialog extends ProductDialog {
      */
     private void addLayer() {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         // Set the flag to pop up the layer name editing dialog.
         openLayerNameDialog = true;
         openPrdNameDialog = false;
@@ -1008,6 +1010,9 @@ public class ProductManageDialog extends ProductDialog {
      */
     private void switchLayer(int which) {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
+
         /*
          * Reset the previous active layer's display status based on its display
          * option button.
@@ -1020,9 +1025,6 @@ public class ProductManageDialog extends ProductDialog {
         layerInUse = which;
 
         setButtonColor(layerNameBtns.get(layerInUse), activeButtonColor);
-
-        // Turn the display for the layer
-        // layerList.get( layerInUse ).setOnOff( true );
 
         openPrdNameDialog = false;
         openLayerNameDialog = false;
@@ -1099,13 +1101,6 @@ public class ProductManageDialog extends ProductDialog {
             layerList.get(ii).setOnOff(allOnOff);
         }
 
-        /*
-         * Always turn on the display for the active layer.
-         */
-        // displayOnOffBtns.get( layerInUse ).setSelection( true );
-        // layerList.get( layerInUse ).setOnOff( true );
-        // currentLayer.setOnOff( true );
-
         PgenUtil.refresh();
 
     }
@@ -1122,18 +1117,6 @@ public class ProductManageDialog extends ProductDialog {
         return null;
     }
 
-    /**
-     * Return the name of the layer on which the LPF file in/out button is
-     * clicked.
-     */
-    /*
-     * protected String getLpfFileLayerName() {
-     * 
-     * if ( layerList != null && lpfFileBtnInUse >= 0 ) { return layerList.get(
-     * lpfFileBtnInUse ).getName(); }
-     * 
-     * return null; }
-     */
     /**
      * Exit layering.
      */
@@ -1208,6 +1191,9 @@ public class ProductManageDialog extends ProductDialog {
         drawingLayer.setActiveLayer(currentLayer);
 
         layerList = (ArrayList<Layer>) currentProduct.getLayers();
+
+        // Selects PGEN class from the current layer
+        selectPGENClass();
 
         // Re-open the layering dialog.
         startProductManage();
@@ -1403,6 +1389,8 @@ public class ProductManageDialog extends ProductDialog {
      */
     private void addProduct() {
 
+        // Save the selected PGEN class to the current layer
+        savePGENClass();
         // Set the flag to pop up the product editing dialog.
         openPrdNameDialog = true;
         openLayerNameDialog = false;
@@ -1447,6 +1435,9 @@ public class ProductManageDialog extends ProductDialog {
      * Switch between products.
      */
     private void switchProduct(int which) {
+
+        // Save the current PGEN class
+        savePGENClass();
 
         // Switch the color for the active layers
         setButtonColor(prdNameBtns.get(prdInUse), defaultButtonColor);
@@ -1526,7 +1517,6 @@ public class ProductManageDialog extends ProductDialog {
 
         currentProduct = prdList.get(prdInUse);
         currentProduct.setInUse(true);
-        // currentProduct.setOnOff( true );
 
         drawingLayer.setActiveProduct(currentProduct);
 
@@ -1534,9 +1524,11 @@ public class ProductManageDialog extends ProductDialog {
         layerList = (ArrayList<Layer>) currentProduct.getLayers();
         layerInUse = layerList.size() - 1;
         currentLayer = layerList.get(layerInUse);
-        // currentLayer.setOnOff( true );
 
         drawingLayer.setActiveLayer(currentLayer);
+
+        // Selects PGEN class from the current layer
+        selectPGENClass();
 
         PgenUtil.refresh();
 
@@ -1562,13 +1554,6 @@ public class ProductManageDialog extends ProductDialog {
             prdDispOnOffBtns.get(ii).setSelection(prodAllOnOff);
             prdList.get(ii).setOnOff(prodAllOnOff);
         }
-
-        /*
-         * Always turn on the display for the active product.
-         */
-        // prdDispOnOffBtns.get( prdInUse ).setSelection( true );
-        // prdList.get( prdInUse ).setOnOff( true );
-        // currentProduct.setOnOff( true );
 
         PgenUtil.refresh();
 
@@ -1637,7 +1622,6 @@ public class ProductManageDialog extends ProductDialog {
                 value = value.trim();
             }
 
-            // currentProduct.setOutputFile( value );
         }
 
         /*
@@ -1682,7 +1666,6 @@ public class ProductManageDialog extends ProductDialog {
             prd.setType(prdtype);
 
             ProductType newType = prdTypesMap.get(prdtype);
-            ;
 
             // remove empty layers.
             ArrayList<Layer> layers = new ArrayList<Layer>();
@@ -1707,7 +1690,7 @@ public class ProductManageDialog extends ProductDialog {
 
                 if (psave != null) {
                     prd.setSaveLayers(psave.isSaveLayers());
-                    // prd.setOutputFile( psave.getOutputFile() );
+
                 }
 
                 ArrayList<Layer> lyrs = (ArrayList<Layer>) (prd.getLayers());
@@ -1853,12 +1836,6 @@ public class ProductManageDialog extends ProductDialog {
     }
 
     /**
-     * Return the status of the "multiSave" check box.
-     */
-    /*
-     * public boolean isMultiSave() { return multiSave; }
-     */
-    /**
      * Reset PGEN palette based on a product's type and layer.
      */
     private void resetPalette(Product prd, Layer clayer) {
@@ -1872,6 +1849,10 @@ public class ProductManageDialog extends ProductDialog {
         }
 
         PgenSession.getInstance().getPgenPalette().setActiveIcon("Select");
+
+        // Selects PGEN class from the current layer
+        selectPGENClass();
+
         PgenUtil.setSelectingMode();
 
     }

@@ -2,5 +2,12 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>d67_QPF_Day</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>precip_avg_48hr</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>precip_avg_48hr</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

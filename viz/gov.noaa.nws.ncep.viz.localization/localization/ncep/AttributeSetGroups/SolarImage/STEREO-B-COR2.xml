@@ -2,5 +2,12 @@
 <AttributeSetGroup xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
     <resource>STEREO-B-COR2</resource>
     <attrSetGroupName>STEREO-B-COR2</attrSetGroupName>
-    <attrSetNames>DEFAULT</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>DEFAULT</name>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

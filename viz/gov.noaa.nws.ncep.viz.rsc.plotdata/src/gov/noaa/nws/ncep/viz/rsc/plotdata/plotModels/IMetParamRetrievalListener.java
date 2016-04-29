@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.NcPlotResource2.Station;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
 
 import java.util.Collection;
 
@@ -16,7 +16,9 @@ import com.raytheon.uf.common.time.DataTime;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 31, 2015            bhebbard     Initial creation - spun out of NcPlotDataRequestor
+ * 08/31/2015              bhebbard    Initial creation - spun out of NcPlotDataRequestor
+ * 11/17/2015    R9579     bhebbard    Change import of Station class - no longer an inner class
+ * 
  * 
  * </pre>
  * 

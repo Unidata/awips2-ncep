@@ -173,6 +173,9 @@
                      dbParamName="clouds_bestCat" 
                      plotLookupTable="pgen_clouds_best_cat.txt" />                   
 
+
+<!-- MARKERs -->
+ <PlotParameterDefn  plotParamName="MARK" plotMode="marker"/>
     
 
 

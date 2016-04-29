@@ -16,6 +16,9 @@ import java.util.List;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+
 /**
  * 
  * gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools
@@ -29,7 +32,8 @@ import javax.measure.unit.SI;
  * -------      -------     --------    -----------
  * 07/24/2014               Chin Chen   Initial coding 
  *                                      Support PW computation
- * 07/20/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery, and Obsolete NcSoundingQuery2 and MergeSounding2
+ * 07/20/2015   R9173     Chin Chen   Clean up NcSoundingQuery, and Obsolete NcSoundingQuery2 and MergeSounding2
+ * 10/20/2015   R12599    Chin Chen   negative PWAT value when surface layer dew point is missing
  * 
  * 
  * </pre>
@@ -38,106 +42,120 @@ import javax.measure.unit.SI;
  * @version 1.0
  */
 public class NcSoundingTools {
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NcSoundingTools.class);
 
-    /*************************************************************
-     * PRECIP_WATER Calculates the Precipitation Water in mm from Bottom level
-     * of layer (mb) to Top level of layer (mb)
-     *************************************************************/
+    /**
+     * 
+     * PRECIP_WATER Calculates the precipitable water in mm from surface level
+     * of layer (mb) to highest level of layer (mb). The algorithm to compute
+     * precipitable water is based on this C function
+     * "float precip_water(float *param, float lower, float upper)" at
+     * skparams.c of BigSharpp library source code
+     * 
+     * @param sndlayers
+     *            - a list of NcSoundingLayer for pw computation
+     * @return - precipitable water in mm, -1 indicating pw is not computable
+     */
     public static float precip_water(List<NcSoundingLayer> sndlayers) {
+        return (precip_water(sndlayers, -1, -1));
+    }
+
+    /**
+     * 
+     * PRECIP_WATER Calculates the precipitable water in mm from caller
+     * specified bottom layer (in mb) to top layer (in mb). The algorithm to
+     * compute precipitable water is based on this C function "float
+     * precip_water(float *param, float lower, float upper)" at skparams.c of
+     * BigSharpp library source code
+     * 
+     * @param sndlayers
+     *            - a list of NcSoundingLayer for pw computation
+     * @param top
+     *            - the pressure of top level, -1 indicating the highest level
+     * @param bot
+     *            - the pressure of bottom level, -1 indicating the surface
+     *            level
+     * @return - precipitable water in mm, -1 indicating pw is not computable
+     */
+    public static float precip_water(List<NcSoundingLayer> sndlayers,
+            float top, float bot) {
         float pw = 0;
         float d1, p1, d2, p2, tot, w1, w2, wbar;
+        int botIndex = -1;
+        int topIndex = -1;
+        // find bottom layer index
+        if (bot == -1) {
+            // make sure surface layer dew point is NOT missing
+            if (sndlayers.get(0).getDewpoint() == -9999f) {
+                return -1;
+            } else {
+                botIndex = 0;
+            }
+        } else {
+            // Note that lowest level has the greatest pressure
+            // search from lowest level up and find bottom layer with valid
+            // dew point and pressure equal or lower than the input "bot"
+            for (int i = 0; i < sndlayers.size(); i++) {
+                if ((sndlayers.get(i).getDewpoint() != NcSoundingLayer.MISSING)
+                        && (sndlayers.get(i).getPressure() <= bot)) {
+                    botIndex = i;
+                    break;
+                }
+            }
 
-        // ----- Start with interpolated bottom layer -----
-        // find surface layer or first layer with valid dewpoint
-        int sfcIndex = 0;
-        for (int i = 0; i < sndlayers.size(); i++) {
-            if (sndlayers.get(i).getDewpoint() != -9999f) {
-                sfcIndex = i;
-                break;
+        }
+
+        if (botIndex == -1) {
+            return -1f;
+        }
+
+        // find top layer index
+        if (top == -1) {
+            {
+                topIndex = sndlayers.size() - 1;
+            }
+        } else {
+            // Note that highest level has the smallest pressure
+            // search from highest level down and find this first top layer with
+            // valid dew point and pressure equal or greater than the input
+            // "top"
+            for (int i = sndlayers.size() - 1; i > 0; i--) {
+                if ((sndlayers.get(i).getDewpoint() != NcSoundingLayer.MISSING)
+                        && (sndlayers.get(i).getPressure() >= top)) {
+                    topIndex = i;
+                    break;
+                }
             }
         }
-        d1 = sndlayers.get(sfcIndex).getDewpoint(); // dewp
-                                                    // in
-                                                    // C
-        p1 = sndlayers.get(sfcIndex).getPressure(); // pressure
-                                                    // n
-                                                    // mb
+        if ((topIndex == -1) || (topIndex <= botIndex)) {
+            return -1f;
+        }
+
+        d1 = sndlayers.get(botIndex).getDewpoint(); // dewpoint in C
+        p1 = sndlayers.get(botIndex).getPressure(); // pressure in mb
 
         tot = 0;
-        for (int i = sfcIndex + 1; i < sndlayers.size(); i++) {
-            /* ----- Calculate every level that reports a dwpt ----- */
-            d2 = sndlayers.get(i).getDewpoint(); // dewp
-                                                 // in C
-            if (d2 == -9999f)
+        for (int i = botIndex + 1; i <= topIndex; i++) {
+            // Calculate every level that reports a dwpt
+            d2 = sndlayers.get(i).getDewpoint();
+            if (d2 == -9999f) {
                 continue;
-            p2 = sndlayers.get(i).getPressure(); // pressure
-                                                 // n mb
+            }
+            p2 = sndlayers.get(i).getPressure();
             w1 = mixingRatio(d1, p1);
             w2 = mixingRatio(d2, p2);
             wbar = (w1 + w2) / 2;
             tot = tot + wbar * (p1 - p2);
-            // System.out.println("p1=" + p1 + " d1=" + d1 + " p2=" + p2 +
-            // " d2="
-            // + d2);
             d1 = d2;
             p1 = p2;
-            // test the case when top level is 400 mb
-            // if (p2 == 400)
-            // break;
         }
 
-        /* ----- Convert to mm (from g*mb/kg) ----- */
+        // Convert pw to mm from g*mb/kg
         pw = tot * 0.00040173f * 25.4f;
 
         return pw;
     }
-
-//    public static float precip_water2(List<NcSoundingLayer2> sndlayers) {
-//        float pw = 0;
-//        float d1, p1, d2, p2, tot, w1, w2, wbar;
-//        if (sndlayers == null || sndlayers.size() <= 0)
-//            return 0;
-//        // ----- Start with interpolated bottom layer -----
-//        // find surface layer or first layer with valid dewpoint
-//        int sfcIndex = 0;
-//        for (int i = 0; i < sndlayers.size(); i++) {
-//            if (sndlayers.get(i).getDewpoint().getValue().floatValue() != -9999f) {
-//                sfcIndex = i;
-//                break;
-//            }
-//        }
-//        d1 = sndlayers.get(sfcIndex).getDewpoint().getValue().floatValue(); // dewp
-//                                                                            // in
-//                                                                            // C
-//        p1 = sndlayers.get(sfcIndex).getPressure().getValue().floatValue(); // pressure
-//                                                                            // n
-//                                                                            // mb
-//
-//        tot = 0;
-//        for (int i = sfcIndex + 1; i < sndlayers.size(); i++) {
-//            /* ----- Calculate every level that reports a dwpt ----- */
-//            d2 = sndlayers.get(i).getDewpoint().getValue().floatValue(); // dewp
-//                                                                         // in C
-//            if (d2 == -9999f)
-//                continue;
-//            p2 = sndlayers.get(i).getPressure().getValue().floatValue(); // pressure
-//                                                                         // n mb
-//            w1 = mixingRatio(d1, p1);
-//            w2 = mixingRatio(d2, p2);
-//            wbar = (w1 + w2) / 2;
-//            tot = tot + wbar * (p1 - p2);
-//            d1 = d2;
-//            p1 = p2;
-//            // test the case when top level is 400 mb
-//            // if (p2 == 400)
-//            // break;
-//        }
-//
-//        /* ----- Convert to mm (from g*mb/kg) ----- */
-//        pw = tot * 0.00040173f * 25.4f;
-//
-//        return pw;
-//    }
 
     /*
      * Compute mixing ratio from DWPC and PRES. Chin: copy from
@@ -150,9 +168,13 @@ public class NcSoundingTools {
 
         float e = corr * vapr;
         if (e > (.5f * pres)) {
-            return -9999f;
+            {
+                return -9999f;
+            }
         } else {
-            return .62197f * (e / (pres - e)) * 1000.f;
+            {
+                return .62197f * (e / (pres - e)) * 1000.f;
+            }
         }
     }
 
@@ -164,43 +186,16 @@ public class NcSoundingTools {
         return (6.112f * (float) Math.exp((17.67 * td) / (td + 243.5)));
     }
 
-    // The followings are converted from BigSharp, the computation results are
-    // about the same as above methods.
-    // private static float mixratio(float pres, float temp)
-    //
-    // {
-    // float x, wfw, fwesw;
-    //
-    // x = 0.02f * (temp - 12.5f + 7500.0f / pres);
-    // wfw = 1.0f + 0.0000045f * pres + 0.0014f * x * x;
-    // fwesw = wfw * vappres(temp);
-    // return 621.97f * (fwesw / (pres - fwesw));
-    // }
-    //
-    // private static float vappres(float temp)
-    //
-    // {
-    // double pol;
-    // pol = temp * (1.1112018e-17 + temp * (-3.0994571e-20));
-    // pol = temp * (2.1874425e-13 + temp * (-1.789232e-15 + pol));
-    // pol = temp * (4.3884180e-09 + temp * (-2.988388e-11 + pol));
-    // pol = temp * (7.8736169e-05 + temp * (-6.111796e-07 + pol));
-    // pol = .99999683e-00 + temp * (-9.082695e-03 + pol);
-    // pol = (pol * pol);
-    // pol = (pol * pol);
-    // return (6.1078f / (float) (pol * pol));
-    // }
-
-	 /*
+    /*
      * Convert sounding data saved in NcSoundingLayer list to NcSoundingLayer2
      * list remove NcSoundingLayer data to have a smaller size for sending back
      * to client
      */
-	public static void convertNcSoundingLayerToNcSoundingLayer2(
-            List<NcSoundingProfile> pfLst) 
-	{
-		if(pfLst==null)
-			return;
+    public static void convertNcSoundingLayerToNcSoundingLayer2(
+            List<NcSoundingProfile> pfLst) {
+        if (pfLst == null) {
+            return;
+        }
         for (NcSoundingProfile pf : pfLst) {
             List<NcSoundingLayer2> soundLy2List = new ArrayList<NcSoundingLayer2>();
             for (NcSoundingLayer level : pf.getSoundingLyLst()) {
@@ -240,22 +235,16 @@ public class NcSoundingTools {
                     Omega omega = new Omega();
                     omega.setValueAs(level.getOmega(), "");
                     soundingLy2.setOmega(omega);
-                    // soundingLy.setPressure(level.getPressure().floatValue()/100);
-                    // soundingLy.setWindU(level.getUcWind().floatValue()); //
-                    // HDF5 data in unit of Knots, no conversion needed
-                    // soundingLy.setWindV(level.getVcWind().floatValue());
-                    // soundingLy.setSpecHumidity(level.getSpecificHumidity().floatValue());
                     soundLy2List.add(soundingLy2);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    statusHandler
+                            .handle(UFStatus.Priority.WARN,
+                                    "An Error occured while convertNcSoundingLayerToNcSoundingLayer2",
+                                    e);
                 }
-
             }
-            // Collections.sort(soundLyList,reversePressureComparator());
             pf.setSoundingLyLst2(soundLy2List);
             pf.getSoundingLyLst().clear();
         }
     }
-
 }

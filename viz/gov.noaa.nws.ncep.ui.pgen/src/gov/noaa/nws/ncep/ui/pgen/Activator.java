@@ -77,6 +77,7 @@ public class Activator extends AbstractUIPlugin {
                     PgenPreferences.V_WORKING_DIR);
             myprefs.setDefault(PgenPreferences.P_RECOVERY_DIR,
                     PgenPreferences.V_RECOVERY_DIR);
+            myprefs.setDefault(PgenPreferences.P_ICONS_PER_ROW, 5);
             myprefs.setDefault(PgenPreferences.P_AUTO_FREQ, 5);
             myprefs.setDefault(PgenPreferences.P_MAX_DIST, 30);
             myprefs.setDefault(PgenPreferences.P_PGEN_MODE,
@@ -86,6 +87,11 @@ public class Activator extends AbstractUIPlugin {
                     PgenPreferences.CED_COMP_COORD);
             myprefs.setDefault(PgenPreferences.P_AUTOPLACE_TEXT, false);
             myprefs.setDefault(PgenPreferences.P_AUTOPLACE_CONTOUR_LABEL, false);
+            myprefs.setDefault(
+                    PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_X, 0);
+            myprefs.setDefault(
+                    PgenPreferences.P_CONTOUR_SYMBOL_LABEL_SPACING_Y, 5);
+            myprefs.setDefault(PgenPreferences.P_ONE_CONTOUR_PER_LAYER, true);
             myprefs.setDefault(PgenPreferences.P_LAYER_MERGE, 4);
         }
 

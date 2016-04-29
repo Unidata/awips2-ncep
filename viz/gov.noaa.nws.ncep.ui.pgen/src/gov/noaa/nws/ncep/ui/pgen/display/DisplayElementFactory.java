@@ -11,6 +11,7 @@ import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
 import gov.noaa.nws.ncep.ui.pgen.PgenRangeRecord;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.CcfpAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourCircle;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
@@ -74,6 +75,8 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -152,6 +155,8 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * 08/15        R7757       B. Hebbard  Upgrade createDisplayElements(List<IVector>,--) to handle heterogeneous
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
+ * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
  * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * </pre>
  * 
@@ -159,6 +164,9 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 
  */
 public class DisplayElementFactory {
+
+    private static final IUFStatusHandler handler = UFStatus
+            .getHandler(DisplayElementFactory.class);
 
     /*
      * LinePattern segment scale types (used to rescale LinePattern so that line
@@ -208,6 +216,10 @@ public class DisplayElementFactory {
     ArrayList<IDisplayable> dlisti = null;
 
     private float zoomLevel = 0;
+
+    // Default spacing between a Contour symbol and its label.
+    private static int contourSymbolXOffset = 0;
+    private static int contourSymbolYOffset = 5;
 
     /*
      * R6520 - a factor to adjust the front pip size (scaleFactor) to visually
@@ -330,7 +342,7 @@ public class DisplayElementFactory {
                 geo = corrector.correct(GfaClip.getInstance()
                         .pointsToLineString(coord));
             } catch (Exception e) {
-                System.out.println("World wrap error: " + e.getMessage());
+                handler.error("World wrap error: ", e.getMessage());
                 return list;
             }
 
@@ -431,8 +443,7 @@ public class DisplayElementFactory {
             /*
              * could not find desired line pattern. Used solid line as default.
              */
-            System.out.println(lpe.getMessage()
-                    + ":  Using Solid Line by default.");
+            handler.warn(lpe.getMessage() + ":  Using Solid Line by default.");
             pattern = null;
         }
 
@@ -441,8 +452,6 @@ public class DisplayElementFactory {
          * the desired line width, update the pattern now
          */
         if ((pattern != null) && pattern.needsLengthUpdate()) {
-            // pattern = pattern.updateLength(screenToExtent * de.getLineWidth()
-            // / (de.getSizeScale() * deviceScale));
             pattern = pattern.updateLength(screenToExtent * drawLineWidth
                     / (drawSizeScale * deviceScale));
         }
@@ -484,7 +493,6 @@ public class DisplayElementFactory {
         list.addAll(createDisplayElementsFromPts(smoothpts, dspClr, pattern,
                 scaleType, getDisplayFillMode(de.isFilled()), drawLineWidth,
                 isCCFP, ccfp, paintProps));
-        // ((ILine) de).getLineWidth(), isCCFP, ccfp, paintProps));
 
         /*
          * Draw labels for contour lines.
@@ -679,11 +687,6 @@ public class DisplayElementFactory {
 
         list.addAll(createDisplayElementsForLines(de, smoothpts, paintProps));
 
-        /*
-         * Draw labels for contour lines.
-         */
-        // ???list.addAll(adjustContourLineLabels(elem, paintProps, smoothpts));
-
         return list;
     }
 
@@ -759,10 +762,6 @@ public class DisplayElementFactory {
                         gCollection.add(poly.buffer(.0001));
                     }
 
-                    // R4862 - moved above to fill only exterior polygons
-                    // if (countyGeo != null) {
-                    // gCollection.add(countyGeo.buffer(.02));
-                    // }
                 }
 
                 // Merge counties together and fill the whole area
@@ -776,9 +775,6 @@ public class DisplayElementFactory {
 
                 IShadedShape theShadedShape = target.createShadedShape(false,
                         iDescriptor, true);
-
-                // IWireframeShape theWireframeShape =
-                // target.createWireframeShape(false, mapDescriptor);
 
                 JTSCompiler compiler = new JTSCompiler(theShadedShape, null,
                         iDescriptor, PointStyle.CROSS);
@@ -796,14 +792,10 @@ public class DisplayElementFactory {
                     }
                     theShadedShape.compile();
 
-                    // theWireframeShape.compile();
-                    // dlist.add(new LineDisplayElement(theWireframeShape,
-                    // colors[1], .5f));
                     dlisti.add(new FillDisplayElement(theShadedShape, 1f));
 
                 } catch (VizException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    handler.warn("Error creating watch box: ", e.getMessage());
                 }
             } else {
                 for (SPCCounty cnty : counties) {
@@ -1122,7 +1114,7 @@ public class DisplayElementFactory {
         try {
             pattern = spl.getSymbolPattern(de.getPatternName());
         } catch (SymbolPatternException spe) {
-            System.out.println(spe.getMessage());
+            handler.warn(spe.getMessage());
             return slist;
         }
 
@@ -1229,7 +1221,6 @@ public class DisplayElementFactory {
          * Create a LengthIndexedLine used to reference points along the segment
          * at specific distances
          */
-        // GeometryFactory gf = new GeometryFactory();
         LineString ls = gf.createLineString(new Coordinate[] { startPixel,
                 endPixel });
         LengthIndexedLine lil = new LengthIndexedLine(ls);
@@ -1454,7 +1445,12 @@ public class DisplayElementFactory {
                             * ((ContourMinmax) tparent).getSymbol()
                                     .getSizeScale();
 
-                    pixel[1] = pixel[1] + sfactor * 5;
+                    Coordinate defaultSpacing = getDefaultContourLabelSpacing(((ContourMinmax) tparent)
+                            .getSymbol().getPgenType());
+
+                    pixel[0] = pixel[0] + sfactor * defaultSpacing.x;
+                    pixel[1] = pixel[1] + sfactor * defaultSpacing.y;
+
                     double[] nloc = iDescriptor.pixelToWorld(new double[] {
                             pixel[0], pixel[1], 0.0 });
                     ((Text) txt).setLocationOnly(new Coordinate(nloc[0],
@@ -1475,28 +1471,6 @@ public class DisplayElementFactory {
                 / paintProps.getCanvasBounds().width;
         double vertRatio = paintProps.getView().getExtent().getHeight()
                 / paintProps.getCanvasBounds().height;
-        /*
-         * Set background mask and outline
-         */
-        // TextStyle mask = TextStyle.NORMAL;
-        // if ( txt.maskText() && !txt.outlineText() ) {
-        // mask = TextStyle.BLANKED;
-        // }
-        // else if ( txt.maskText() && txt.outlineText() ) {
-        // mask = TextStyle.BOXED;
-        // }
-        // else if ( !txt.maskText() && txt.outlineText() ) {
-        // mask = TextStyle.OUTLINE;
-        // }
-
-        /*
-         * Initialize Font Style[] styles = null; if ( txt.getStyle() != null )
-         * { switch ( txt.getStyle() ) { case BOLD: styles = new Style[] {
-         * Style.BOLD }; break; case ITALIC: styles = new Style[] {
-         * Style.ITALIC}; break; case BOLD_ITALIC: styles = new Style[] {
-         * Style.BOLD, Style.ITALIC }; break; } } IFont font =
-         * target.initializeFont(txt.getFontName(), txt.getFontSize(), styles);
-         */
         IFont font = initializeFont(txt.getFontName(), txt.getFontSize(),
                 txt.getStyle());
 
@@ -1748,8 +1722,6 @@ public class DisplayElementFactory {
                 ret = "TROPICAL_STORM_SH";
         } else {
             ret = "TROPICAL_DEPRESSION";
-            // } else {
-            // ret = "LOW_X_FILLED";
         }
 
         return ret;
@@ -1976,8 +1948,6 @@ public class DisplayElementFactory {
         slist.add(new LineDisplayElement(arcpts, getDisplayColor(arc
                 .getColors()[0]), arc.getLineWidth()));
 
-        // slist.addAll(adjustContourCircleLabel(arc, paintProps, path));
-
         return slist;
     }
 
@@ -1992,7 +1962,7 @@ public class DisplayElementFactory {
      */
     public ArrayList<IDisplayable> createDisplayElements(IArc arc,
             PaintProperties paintProps) {
-        // double sfactor = deviceScale * de.getSizeScale();
+
         setScales(paintProps);
 
         /*
@@ -2031,7 +2001,6 @@ public class DisplayElementFactory {
          * Calculate points along the arc
          */
         // TODO - orientation issues
-        // double increment = 5.0; //degrees
         double angle = arc.getStartAngle();
         int numpts = (int) Math.round(arc.getEndAngle() - arc.getStartAngle()
                 + 1.0);
@@ -2039,18 +2008,11 @@ public class DisplayElementFactory {
         for (int j = 0; j < numpts; j++) {
             double thisSine = Math.sin(Math.toRadians(angle));
             double thisCosine = Math.cos(Math.toRadians(angle));
-            // Can maybe use simpler less expensive calculations for circle,
-            // if ever necessary.
-            // if ( arc.getAxisRatio() == 1.0 ) {
-            // path[j][0] = center[0] + (major * thisCosine );
-            // path[j][1] = center[1] + (minor * thisSine );
-            // }
-            // else {
+
             path[j][0] = center[0] + (major * cosineAxis * thisCosine)
                     - (minor * sineAxis * thisSine);
             path[j][1] = center[1] + (major * sineAxis * thisCosine)
                     + (minor * cosineAxis * thisSine);
-            // }
 
             angle += 1.0;
         }
@@ -2080,7 +2042,7 @@ public class DisplayElementFactory {
      */
     public ArrayList<IDisplayable> createDisplayElements(ITrack track,
             PaintProperties paintProps) {
-        // double sfactor = deviceScale * de.getSizeScale();
+
         ArrayList<IDisplayable> temps;
 
         ArrayList<Coordinate> points = new ArrayList<Coordinate>();
@@ -2105,7 +2067,6 @@ public class DisplayElementFactory {
          */
         points.clear();
         for (TrackPoint pt : track.getInitialPoints()) {
-            // displayTrackPoint(pt);
             points.add(pt.getLocation());
         }
         Line iline = new Line(null, new Color[] { iniDspClr },
@@ -2179,7 +2140,6 @@ public class DisplayElementFactory {
         Coordinate[] extrapPoints = new Coordinate[track.getExtrapPoints().length];
         for (TrackPoint pt : track.getExtrapPoints()) {
             // Add Coordinate point to array
-            // extrapPoints[m++] = new Coordinate(pt.getLocation());
             extrapPoints[m] = new Coordinate(pt.getLocation());
             /*
              * If there is a time associated with this point, create a
@@ -2269,10 +2229,6 @@ public class DisplayElementFactory {
          * create an AWT BufferedImage from the symbol pattern
          */
         sfactor *= screenToWorldRatio;
-        // BufferedImage image =
-        // SymbolImageUtil.createBufferedImage(sym.getPatternName(), sfactor,
-        // sym.getLineWidth(),
-        // sym.isClear(), dspClr[0] );
         IRenderedImageCallback imageCb = new SymbolImageCallback(
                 sym.getPatternName(), sfactor, sym.getLineWidth(),
                 sym.isClear(), dspClr[0]);
@@ -2283,11 +2239,8 @@ public class DisplayElementFactory {
         try {
             pic = target.initializeRaster(imageCb);
             pic.stage();
-            // pic = target.initializeRaster( new IODataPreparer(image,
-            // sym.getPatternName(), 0), null );
         } catch (Exception e) {
-            System.out.println("SAG:IMAGE CREATION");
-            e.printStackTrace();
+            handler.error("SAG:IMAGE CREATION ", e.getMessage());
             return slist;
         }
 
@@ -2941,8 +2894,7 @@ public class DisplayElementFactory {
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
-        // per
-        // line; in descending row order.
+        // per line; in descending row order.
         List<String> contents = new ArrayList<String>();
 
         // Add all cloud types and amounts to the list
@@ -2951,7 +2903,6 @@ public class DisplayElementFactory {
 
         // Add turbulence levels, if given
         if (midtxt.hasTurbulence()) {
-            // if ( contents.size()%2 == 1 ) contents.add(BLANK);
             StringTokenizer tok = new StringTokenizer(
                     midtxt.getTurbulenceLevels(), "/");
 
@@ -2974,8 +2925,6 @@ public class DisplayElementFactory {
 
         // Add icing levels, if given
         if (midtxt.hasIcing()) {
-            // if ( contents.size()%2 == 1 ) contents.add(BLANK);
-            // contents.addAll( getLevels( midtxt.getIcingLevels(), null ) );
             StringTokenizer tok = new StringTokenizer(midtxt.getIcingLevels(),
                     "/");
 
@@ -3073,8 +3022,7 @@ public class DisplayElementFactory {
         setScales(paintProps);
 
         // These list of Strings will be displayed in a text box; two strings
-        // per
-        // line; in descending row order.
+        // per line; in descending row order.
         List<String> contents = new ArrayList<String>();
 
         // Add all cloud types and amounts to the list
@@ -3384,8 +3332,6 @@ public class DisplayElementFactory {
          */
         double psize = pattern.getLength() * sfactor;
 
-        // psize = psize * 0.8;
-
         double numPatterns = Math.floor(totalDist / psize);
 
         /*
@@ -3400,7 +3346,6 @@ public class DisplayElementFactory {
         }
         // Calculate a scale factor that will be used to adjust the size of each
         // segment in the pattern
-        // double offset = 1.0 + ( leftover / (numPatterns * psize) );
         if (stype == ScaleType.SCALE_BLANK_LINE_ONLY)
             pattern = pattern.scaleBlankLineToLength(totalDist
                     / (numPatterns * sfactor));
@@ -3448,8 +3393,6 @@ public class DisplayElementFactory {
                 // Calculate end location of this segment
                 double seglen = seg.getLength() * sfactor; // size of pattern
                                                            // segment
-                // seglen *= offset; // resize segment to account for new full
-                // pattern size
                 endLoc = currDist + seglen;
 
                 /*
@@ -3767,9 +3710,10 @@ public class DisplayElementFactory {
                     /*
                      * Do nothing.
                      */
-                    System.out.println("Pattern definition: "
+                    handler.warn("Pattern definition: "
                             + seg.getPatternType().toString()
                             + " is not found.  Ignoring...");
+
                     break;
                 }
 
@@ -4014,13 +3958,15 @@ public class DisplayElementFactory {
         double[] tmp = { vect.getLocation().x, vect.getLocation().y, 0.0 };
         double[] start = iDescriptor.worldToPixel(tmp);
 
-        // TODO - Orientation issues
         /*
          * calculate the angle and distance to the four points defining the hash
          * mark
+         * 
+         * Note: hash direction is clockwise. Rotate to counter clockwise for
+         * display.
          */
         double angle = northOffsetAngle(vect.getLocation())
-                + vect.getDirection();
+                + (360.0 - vect.getDirection());
         double theta = Math.toDegrees(Math.atan(spacing / scaleSize));
         double dist = 0.5 * Math.sqrt((spacing * spacing)
                 + (scaleSize * scaleSize));
@@ -4138,13 +4084,6 @@ public class DisplayElementFactory {
                     { start[0] - dX1, start[1] + dY1, 0.0 },
                     { start[0] + dX2, start[1] - dY2, 0.0 } });
 
-            /*
-             * compile wireframe and add it to the return list
-             */
-            // hashMarks.compile();
-            // slist.add( new LineDisplayElement(hashMarks, getDisplayColor(
-            // vect.getColor() ), vect.getLineWidth()) );
-
         } // end for each vector
 
         /*
@@ -4195,12 +4134,9 @@ public class DisplayElementFactory {
         if (!vect.hasDirectionOnly())
             speed = vect.getSpeed();
         double arrowLength = sfactor * speed;
-        // TODO - orientation issues
 
         // Reverse 180 degrees since wind direction is the direction where the
         // wind comes from.
-        // double angle = -90.0 - northOffsetAngle(vect.getLocation()) -
-        // vect.getDirection();
         double angle = 90.0 - northOffsetAngle(vect.getLocation())
                 + vect.getDirection();
 
@@ -4351,8 +4287,6 @@ public class DisplayElementFactory {
 
             // Reverse 180 degrees since wind direction is the direction where
             // the wind comes from.
-            // double angle = -90.0 - northOffsetAngle(vect.getLocation()) -
-            // vect.getDirection();
             double angle = 90.0 - northOffsetAngle(vect.getLocation())
                     + vect.getDirection();
 
@@ -4961,8 +4895,6 @@ public class DisplayElementFactory {
         }
 
         return createDisplayElements((AbstractSigmet) isig, paintProps);
-
-        // return new ArrayList<IDisplayable>();
     }
 
     /**
@@ -5091,7 +5023,7 @@ public class DisplayElementFactory {
                         locs[locs.length - 1], widthInNautical,
                         (IMapDescriptor) iDescriptor));
             } catch (Throwable e) {
-                System.out.println("Isolated: " + e.getCause());
+                handler.error("Isolated: " + e.getCause());
             }// OutOfMemoryError
 
             arcpts.compile();
@@ -5102,7 +5034,6 @@ public class DisplayElementFactory {
             return slist;
         } else if (lineType.contains("Text")) {
 
-            String theTxt = lineType.split(SigmetInfo.LINE_SEPERATER)[1];
             Coordinate[] locs = sigmet.getLinePoints();
             ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
 
@@ -5196,7 +5127,6 @@ public class DisplayElementFactory {
                 LineString line = new LineString(cas, geometryFactory);
                 cas = new CoordinateArraySequence(new Coordinate[] { loc1 });
                 Point point = new Point(cas, geometryFactory);
-                // Coordinate[] c = DistanceOp.closestPoints(line, point);
                 Coordinate[] c = DistanceOp.nearestPoints(line, point);
                 loc2 = c[0];
             }
@@ -5729,23 +5659,23 @@ public class DisplayElementFactory {
             PaintProperties paintProps,
             gov.noaa.nws.ncep.ui.pgen.elements.DECollection ccfp) {
 
-        if (list == null || paintProps == null)// || ( !
-                                               // ((Ccfp)ccfp).isPrimaryDEClosed()))//
-                                               // || sigmet == null)
+        if (list == null || paintProps == null) {
             return;
+        }
 
         String[] spdDir = ccfp.getCollectionName().split(
                 CcfpInfo.TEXT_SEPERATOR);
 
-        if (!CcfpAttrDlg.AREA.equals(spdDir[spdDir.length - 1]))
-            return;// line type: Line/Line-Med
+        if (!CcfpAttrDlg.AREA.equals(spdDir[spdDir.length - 1])) {
+            return;
+        }
 
-        String spd = spdDir[1];// sigmet.getEditableAttrPhenomSpeed();
+        String spd = spdDir[1];
         if (spd != null && !spd.trim().equals("0")) {
 
-            String dir = spdDir[2];// sigmet.getEditableAttrPhenomDirection();
+            String dir = spdDir[2];
             Coordinate[] coors = ccfp.getPrimaryDE().getPoints()
-                    .toArray(new Coordinate[] {});// .getAreaLine().getLinePoints();//sigmet.getLinePoints();
+                    .toArray(new Coordinate[] {});
 
             ArrayList<Coordinate> spdCoors = CcfpInfo.getDirMostPts(dir, coors,
                     (IMapDescriptor) iDescriptor);
@@ -5759,7 +5689,7 @@ public class DisplayElementFactory {
 
                 gov.noaa.nws.ncep.ui.pgen.elements.Vector v = new gov.noaa.nws.ncep.ui.pgen.elements.Vector(
                         null,
-                        getDisplayColors(ccfp.getPrimaryDE().getColors()),// ccfp.getAreaLine().getColors()),//sigmet.getColors()),
+                        getDisplayColors(ccfp.getPrimaryDE().getColors()),
                         2.0F,
                         1.5,
                         false,
@@ -5767,15 +5697,12 @@ public class DisplayElementFactory {
                         gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType.ARROW,
                         10, vDir, 1.0, false, "Vector", "Arrow");
 
-                Text spdTxt = new Text(null, "Courier",
-                        14.0f,
-                        TextJustification.CENTER,// .LEFT_JUSTIFY,
-                        getCcfpTxtPts(v), 0.0, TextRotation.SCREEN_RELATIVE,
-                        new String[] { spd },// sigmet.getEditableAttrPhenomSpeed()},
-                        FontStyle.REGULAR,
-                        getDisplayColors(ccfp.getPrimaryDE().getColors())[0],// ccfp.getAreaLine().getColors())[0],//sigmet.getColors())[0],
-                        0, 0/* 3 */, false, DisplayType.NORMAL, "Text",
-                        "General Text");
+                Text spdTxt = new Text(null, "Courier", 14.0f,
+                        TextJustification.CENTER, getCcfpTxtPts(v), 0.0,
+                        TextRotation.SCREEN_RELATIVE, new String[] { spd },
+                        FontStyle.REGULAR, getDisplayColors(ccfp.getPrimaryDE()
+                                .getColors())[0], 0, 0, false,
+                        DisplayType.NORMAL, "Text", "General Text");
 
                 list.addAll(createDisplayElements((IVector) v, paintProps));
                 list.addAll(createDisplayElements((IText) spdTxt, paintProps));
@@ -5834,10 +5761,6 @@ public class DisplayElementFactory {
         double thisCosine = Math.cos(Math.toRadians(angle));
 
         double pt[] = new double[2];
-        // pt[0] = center[0] + (radius * cosineAxis * thisCosine ) - (radius *
-        // sineAxis * thisSine );
-        // pt[1] = center[1] + (radius * sineAxis * thisCosine ) + (radius *
-        // cosineAxis * thisSine );
         pt[0] = center[0] + (radius * thisCosine);
         pt[1] = center[1] + (radius * thisSine);
 
@@ -6079,11 +6002,8 @@ public class DisplayElementFactory {
         try {
             pic = target.initializeRaster(imageCb);
             pic.stage();
-            // pic = target.initializeRaster( new IODataPreparer(image,
-            // sym.getPatternName(), 0), null );
         } catch (Exception e) {
-            System.out.println("SAG:IMAGE CREATION");
-            e.printStackTrace();
+            handler.warn("SAG:IMAGE CREATION: ", e.getMessage());
         }
 
         /*
@@ -6528,5 +6448,29 @@ public class DisplayElementFactory {
         zoomLevel = paintProps.getZoomLevel();
 
         return zoomChk;
+    }
+
+    /*
+     * Retrieve the default spacing defined for a contour symbol and its label
+     * 
+     * @param symbolType PgenType for the contour symbol
+     * 
+     * @return A Coordinate representing default spacing in x and y direction.
+     */
+    private Coordinate getDefaultContourLabelSpacing(String symbolType) {
+
+        Coordinate defaultSpacing = AttrSettings.getInstance()
+                .getContourSymbolDefaultSpacing(symbolType);
+        if (defaultSpacing == null
+                || (defaultSpacing.x == 0 && defaultSpacing.y == 0)) {
+
+            defaultSpacing = PgenUtil.getContourSymbolLabelSpacing();
+            if (defaultSpacing.x == 0 && defaultSpacing.y == 0) {
+                defaultSpacing = new Coordinate(contourSymbolXOffset,
+                        contourSymbolYOffset);
+            }
+        }
+
+        return defaultSpacing;
     }
 }

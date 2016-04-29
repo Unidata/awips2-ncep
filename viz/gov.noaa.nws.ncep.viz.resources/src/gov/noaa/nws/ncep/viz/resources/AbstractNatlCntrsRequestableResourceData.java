@@ -166,7 +166,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
     protected AbstractVizResource<?, ?> ncRsc;
 
-    //
+    private final String PLUGIN_NAME = "pluginName";
+
     public static enum TimeMatchMethod {
         EXACT, BEFORE_OR_EQUAL, CLOSEST_BEFORE_OR_EQUAL, CLOSEST_AFTER_OR_EQUAL, CLOSEST_BEFORE_OR_AFTER,
         // Used by PGEN resource but it actually chooses the latest data
@@ -380,8 +381,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     public String getPluginName() {
-        if (getMetadataMap().containsKey("pluginName")) {
-            return getMetadataMap().get("pluginName").getConstraintValue();
+        if (getMetadataMap().containsKey(PLUGIN_NAME)) {
+            return getMetadataMap().get(PLUGIN_NAME).getConstraintValue();
         } else {
             return "";
         }
@@ -397,11 +398,11 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     public void setPluginName(String pluginName) {
-        if (!getMetadataMap().containsKey("pluginName")) {
-            getMetadataMap().put("pluginName", new RequestConstraint());
+        if (!getMetadataMap().containsKey(PLUGIN_NAME)) {
+            getMetadataMap().put(PLUGIN_NAME, new RequestConstraint());
         }
 
-        getMetadataMap().get("pluginName").setConstraintValue(pluginName);
+        getMetadataMap().get(PLUGIN_NAME).setConstraintValue(pluginName);
     }
 
     // implement here as a convienience since almost all of our
@@ -808,22 +809,9 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         // super.update( updateData );
     }
 
-    // using same logic as other resources. ie use frameIntervalval to set a
-    // range and offset
-    // and use these to create the normalized time.
-    // protected DataTime getNormalizedTime( DataTime time) {
-    // if( frameIntervalval == 0 ) {
-    // return time;
-    // }
-    // int intervalRange = frameIntervalval * 1000;
-    // int intervalOffset = intervalRange / 2;
-    //
-    // long millis = time.getValidTime().getTimeInMillis();
-    // millis -= intervalOffset;
-    // millis = ((millis / intervalRange) * intervalRange) + intervalRange;
-    // return new DataTime(new Date(millis));
-    // }
-    //
+    public IDataLoader getDataLoader() {
+        return null;
+    }
 
     public void setLegendColor(RGB legClr) {
         legendColor = legClr;

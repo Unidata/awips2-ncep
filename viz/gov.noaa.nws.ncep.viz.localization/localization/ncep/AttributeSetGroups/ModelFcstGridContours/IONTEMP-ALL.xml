@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>IONTEMP</resource>
     <attrSetGroupName>ALL</attrSetGroupName>
-    <attrSetNames>225000_iontmp</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>225000_iontmp</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

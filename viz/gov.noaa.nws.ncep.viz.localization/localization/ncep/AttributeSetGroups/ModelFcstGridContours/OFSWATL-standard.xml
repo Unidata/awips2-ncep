@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>OFSWATL</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>water_temperature</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>water_temperature</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

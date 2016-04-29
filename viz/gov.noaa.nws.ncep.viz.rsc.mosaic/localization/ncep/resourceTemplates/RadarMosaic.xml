@@ -10,7 +10,7 @@
               </capability>               
              </capabilities>
            </loadProperties>
-           <properties isSystemResource="false"
+           <properties renderingOrderId="IMAGE_COUNTRY" isSystemResource="false"
             isBlinking="false" isMapLayer="false" isHoverOn="false"
             isVisible="true" />
            <resourceData xsi:type="NC-MosaicResourceData"

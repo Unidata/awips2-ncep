@@ -104,7 +104,7 @@
      </vcordinfo>
      <vcordinfo>
           <name>Potential vorticity surface</name>
-          <units>K*m**2*kg-1*s-1</units>
+          <units>K*m^2*kg^-1*s^-1</units>
           <gnam>POTV</gnam>
           <scale>6</scale>
      </vcordinfo>

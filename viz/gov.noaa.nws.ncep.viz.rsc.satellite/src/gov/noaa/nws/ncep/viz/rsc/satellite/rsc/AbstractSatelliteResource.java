@@ -8,7 +8,6 @@ import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
@@ -64,7 +63,6 @@ import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
@@ -104,7 +102,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  
  *  06/07/2012      #717     archana     Added the method generateAndStoreColorBarLabelingInformation(),
  *                                       and the abstract methods getImageTypeNumber(),getParameterList(),getLocFilePathForImageryStyleRule()
- *  11/29/2012      #630     ghull       IGridGeometryProvider                             
+ *  11/29/2012      #630     ghull       IGridGeometryProvider
  *  12/19/2012      #960     Greg Hull   override propertiesChanged() to update colorBar.
  *  02/25/13         972     Greg Hull  define on NCMapDescriptor instead of IMapDescriptor
  *  04/30/2013      *886     sgilbert    Changed number of levels from 4 to 2 for native
@@ -113,6 +111,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  Nov 14, 2013    2393     bclement    changed how numLevels is calculated for mcidas
  *  03/12/2014      920      pswamy      Implemented changes to fix GINI VIS image display problems.
  *  03/23/2015      R6944    mkean       use new style rule manager
+ *  Sep 28, 2015    11385    njensen     Fix setDescriptor signature for proper generics
+ * 
  * </pre>
  * 
  * @author chammack
@@ -120,8 +120,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 public abstract class AbstractSatelliteResource extends
         AbstractNatlCntrsResource<SatelliteResourceData, NCMapDescriptor>
-        implements INatlCntrsResource, IResourceDataChanged,
-        IAreaProviderCapable {
+        implements IResourceDataChanged, IAreaProviderCapable {
 
     protected SatelliteResourceData satRscData;
 
@@ -131,12 +130,8 @@ public abstract class AbstractSatelliteResource extends
 
     protected ISpatialObject baseCoverage;
 
-    // private Map<SatelliteRecord, ByteDataRecord> fullDataSetMap = new
-    // HashMap<SatelliteRecord, ByteDataRecord>();
-    //
     protected String legendStr = "Satellite"; // init so not-null
 
-    // ? Why a list? Why would there be different image types?
     protected List<String> imageTypes; // ie physicalElements;
 
     protected String baseFileName;
@@ -150,6 +145,10 @@ public abstract class AbstractSatelliteResource extends
     protected ColorBarResource cbarResource;
 
     protected ResourcePair cbarRscPair;
+
+    protected final static String INSPECT_STRING_FORMAT = "%.1f%s";
+
+    protected final static String COLORBAR_STRING_FORMAT = "%.1f";
 
     public FileBasedTileSet getTileSet() {
         FrameData fd = (FrameData) this.getCurrentFrame();
@@ -165,27 +164,25 @@ public abstract class AbstractSatelliteResource extends
     protected class FrameData extends AbstractFrameData {
         FileBasedTileSet tileSet;
 
-        /**
-         * @return the tileSet
-         */
         public FileBasedTileSet getTileSet() {
             return tileSet;
         }
 
-        // PluginDataObject satRec;
         GridGeometry2D gridGeom;
 
         ISpatialObject frameCoverage;
 
-        DataTime tileTime; // the time of the data used to create the tileset
-                           // used to determine if we need to replace the tile
-                           // with a better timematch.
+        // The time of the data used to create the tileset.
+        // Used to determine if we need to replace the tile
+        // with a better timematch.
+        DataTime tileTime;
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
             tileTime = null;
         }
 
+        @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             PluginDataObject satRec = ((DfltRecordRscDataObj) rscDataObj)
                     .getPDO();
@@ -236,20 +233,16 @@ public abstract class AbstractSatelliteResource extends
                                 || getProjectionFromRecord(satRec)
                                         .equalsIgnoreCase("LCC")) {
 
-                            /*
-                             * for remapped projections such as MER, LCC, STR
-                             */
+                            // for remapped projections such as MER, LCC, STR
                             tileSet = baseTile = new McidasFileBasedTileSet(
                                     satRec, "Data", numLevels, 256, gridGeom,
                                     AbstractSatelliteResource.this,
                                     PixelInCell.CELL_CORNER, viewType);
                             tileTime = satRec.getDataTime();
                         } else {
-                            /*
-                             * for native Satellite projections. Note native
-                             * projections can vary with each image. cannot
-                             * specify a baseTile or baseGeom.
-                             */
+                            // for native Satellite projections. Note native
+                            // projections can vary with each image. cannot
+                            // specify a baseTile or baseGeom.
                             gridGeom = createNativeGeometry(satRec);
 
                             tileSet = new McidasFileBasedTileSet(satRec,
@@ -264,8 +257,9 @@ public abstract class AbstractSatelliteResource extends
                         if (tileSet != null && tileTime != null) {
                             if (timeMatch(satRec.getDataTime()) >= timeMatch(tileTime)) {
                                 return false;
-                            } else { // if this is a better match, we need to
-                                     // create a new tile.
+                            } else {
+                                // if this is a better match, we need to
+                                // create a new tile.
                                 if (tileSet == baseTile) {
                                     tileSet = null;
                                 } else {
@@ -286,16 +280,12 @@ public abstract class AbstractSatelliteResource extends
                     if (grphTarget != null)
                         tileSet.init(grphTarget);
 
-                    // tileSet.put(record.getDataTime(), tile);
-                    // dataTimes.add( satRecord.getDataTime() );
-
                     imageTypes.add(getImageTypeFromRecord(satRec));
 
                     Collections.sort(AbstractSatelliteResource.this.dataTimes);
 
                     List<String> paramList = getParameterList(satRec);
                     String unitStr = getDataUnitsFromRecord(satRec);
-                    // String locFileName = getLocFilePathForImageryStyleRule();
                     int imgNum = getImageTypeNumber(satRec);
                     generateAndStoreColorBarLabelingInformation(paramList,
                             unitStr, imgNum);
@@ -310,7 +300,8 @@ public abstract class AbstractSatelliteResource extends
             return true;
         }
 
-        public void dispose() { // not tested yet...
+        @Override
+        public void dispose() {
             if (tileSet != baseTile && tileSet != null) {
                 tileSet.dispose();
                 tileSet = null;
@@ -318,10 +309,10 @@ public abstract class AbstractSatelliteResource extends
         }
     }
 
-    // abstract methods used to get Record dependent info from the PDO
+    // Abstract methods used to get Record dependent info from the PDO
     // This represents the only differences between Mcidas and Gini Satellite
     // Resources.
-    //
+
     abstract String getImageTypeFromRecord(PluginDataObject pdo);
 
     abstract String getDataUnitsFromRecord(PluginDataObject pdo);
@@ -338,43 +329,15 @@ public abstract class AbstractSatelliteResource extends
 
     abstract String getLocFilePathForImageryStyleRule();
 
-    /**
-     * Constructor
-     * 
-     * @throws VizException
-     */
     public AbstractSatelliteResource(SatelliteResourceData data,
             LoadProperties props) {
         super(data, props);
         satRscData = data;
         satRscData.addChangeListener(this);
-        // this.tileSet = new HashMap<DataTime, FileBasedTileSet>();
-        // this.dataTimes = new ArrayList<DataTime>();
-
         this.imageTypes = new ArrayList<String>(); // physicalElements
         this.baseFileName = VizApp.getDataDir();
         grphTarget = null;
         numLevels = 0;
-
-        // SatelliteRecord[] records = data.getRecords();
-        // Arrays.sort(records, new SatelliteRecordComparator());
-        //
-        // for (SatelliteRecord record : records) {
-        // try {
-        // addRecord(record);
-        // } catch (VizException e) {
-        // UFStatus.handle(Priority.PROBLEM, Activator.PLUGIN_ID,
-        // StatusConstants.CATEGORY_WORKSTATION, "satellite",
-        // "Error adding satellite record", e);
-        // }
-        // }
-        //
-        /*
-         * This handles if there is no data for East & West CONUS simultaneously
-         */
-        // if (dataTimes.size() > 1) {
-        // currFrameTime = dataTimes.get(dataTimes.size() - 1);
-        // }
     }
 
     @Override
@@ -439,22 +402,12 @@ public abstract class AbstractSatelliteResource extends
         } else
             dataUnit = new GenericPixel();
 
-        // } else {
-        // if (physicalElement.equals("Gridded Cloud Amount")) {
-        // unit = new SounderCloudAmountPixel();
-        // } else if (physicalElement
-        // .equals("Gridded Cloud Top Pressure or Height")) {
-        // unit = new SounderCloudTopHeightPixel();
-        // }
-        // }
-
-        // ? This logic came from Raytheon's SatResource. Does it apply to
-        // McIdas?
+        // This logic came from Raytheon's SatResource.
         String creatingEntity = null;
 
         if (imgType.equals(SatelliteConstants.PRECIP)) {
 
-            creatingEntity = getCreatingEntityFromRecord(record); // .getCreatingEntity();
+            creatingEntity = getCreatingEntityFromRecord(record);
 
             if (creatingEntity.equals(SatelliteConstants.DMSP)
                     || creatingEntity.equals(SatelliteConstants.POES)) {
@@ -531,20 +484,6 @@ public abstract class AbstractSatelliteResource extends
 
     }
 
-    // @Override
-    // public String getName() {
-    // if(currFrameTime == null )
-    // return "Satellite - No Data Available";
-    // RequestConstraint rc =
-    // satRscData.getMetadataMap().get("physicalElement");
-    //
-    // // TODO : for to11dr11-determine creating entity
-    // return (rc == null ? "Satellite : " :
-    // SatelliteConstants.getLegend( rc.getConstraintValue(),
-    // "" )+" " )
-    // + " : " + currFrameTime.getLegendString();
-    // }
-
     @Override
     public void disposeInternal() {
         super.disposeInternal(); // dispose of the frameData
@@ -557,6 +496,7 @@ public abstract class AbstractSatelliteResource extends
         getDescriptor().getResourceList().remove(cbarRscPair);
     }
 
+    @Override
     public void initResource(IGraphicsTarget target) throws VizException {
         synchronized (this) {
             this.viewType = target.getViewType();
@@ -587,10 +527,9 @@ public abstract class AbstractSatelliteResource extends
         }
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frmData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
-        // this.displayedDate = paintProps.getDataTime();
-        // this.target = target;
 
         FrameData currFrame = (FrameData) frmData;
 
@@ -619,7 +558,8 @@ public abstract class AbstractSatelliteResource extends
         }
     }
 
-    public void setDescriptor(MapDescriptor descriptor) {
+    @Override
+    public void setDescriptor(NCMapDescriptor descriptor) {
         if (this.baseTile != null) {
             this.baseTile.setMapDescriptor(descriptor);
         }
@@ -660,16 +600,16 @@ public abstract class AbstractSatelliteResource extends
             float f1 = intervals[0];
             float f2 = intervals[intervals.length - 1];
             if (value > f1 && value > f2) {
-                return String.format(">%.1f%s", Math.max(f1, f2),
-                        unit == null ? "" : unit.toString());
+                return String.format(">" + INSPECT_STRING_FORMAT,
+                        Math.max(f1, f2), unit == null ? "" : unit.toString());
             }
             if (value < f1 && value < f2) {
-                return String.format("<%.1f%s", Math.min(f1, f2),
-                        unit == null ? "" : unit.toString());
+                return String.format("<" + INSPECT_STRING_FORMAT,
+                        Math.min(f1, f2), unit == null ? "" : unit.toString());
             }
         }
-        return String.format("%.1f%s", value,
-                unit == null ? "" : unit.toString());
+        return String.format(INSPECT_STRING_FORMAT, value, unit == null ? ""
+                : unit.toString());
     }
 
     public Double inspectValue(ReferencedCoordinate coord) throws VizException {
@@ -723,7 +663,6 @@ public abstract class AbstractSatelliteResource extends
 
     // This will return the temp in the units set as the display units in the
     // colormap parameters.
-    //
     public Double getSatIRTemperature(Coordinate latlon) {
         if (!isCloudHeightCompatible()) {
             return null;
@@ -761,7 +700,7 @@ public abstract class AbstractSatelliteResource extends
         }
     }
 
-    // the colorBar and/or the colormap may have changed so update the
+    // The colorBar and/or the colormap may have changed so update the
     // colorBarPainter and the colorMapParametersCapability which holds
     // the instance of the colorMap that Raytheon's code needs
     @Override
@@ -859,9 +798,8 @@ public abstract class AbstractSatelliteResource extends
         matchCriteria.setParameterName(parameterList);
 
         try {
-            /*
-             * R6944 - use new style rule manager
-             */
+
+            // Use new style rule manager
             StyleRule sr = StyleManager.getInstance().getStyleRule(
                     StyleManager.StyleType.IMAGERY, matchCriteria);
 
@@ -870,9 +808,8 @@ public abstract class AbstractSatelliteResource extends
                 AbstractStylePreferences stylePref = sr.getPreferences();
                 if (stylePref != null && stylePref instanceof ImagePreferences) {
                     imgPref = (ImagePreferences) stylePref;
-                    /*
-                     * Might need to change this if/when we use the data-scaling
-                     */
+
+                    // Might need to change this if/when we use the data-scaling
                     SamplePreferences samplePref = imgPref.getSamplePrefs();
                     if (samplePref != null) {
                         minPixVal = imgPref.getSamplePrefs().getMinValue();
@@ -899,7 +836,7 @@ public abstract class AbstractSatelliteResource extends
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        // these label value calculations are from legacy imlabl.f
+        // These label value calculations are from legacy imlabl.f
         if ((dataUnitString != null)
                 && ((dataUnitString).compareTo("BRIT") == 0)
                 && ((imageTypeNumber == 8) || (imageTypeNumber == 128))
@@ -918,9 +855,8 @@ public abstract class AbstractSatelliteResource extends
 
             entry.setPixelValue(1.0);
             entry.setDisplayValue(tmpc);
-            entry.setLabel(String.format("%.1f", tmpc));
+            entry.setLabel(String.format(COLORBAR_STRING_FORMAT, tmpc));
             dmPref.addEntry(entry);
-            // colorBar.labelPixel(entry.getPixelValue().intValue());
 
             int ibrit = (imndlv - 1) + (int) minPixVal;
             tmpk = pixelToTemperatureConverter.convert(ibrit);
@@ -929,9 +865,8 @@ public abstract class AbstractSatelliteResource extends
             entry = new DataMappingEntry();
             entry.setPixelValue(Double.valueOf(imndlv));
             entry.setDisplayValue(tmpc);
-            entry.setLabel(String.format("%.1f", tmpc));
+            entry.setLabel(String.format(COLORBAR_STRING_FORMAT, tmpc));
             dmPref.addEntry(entry);
-            // colorBar.labelPixel(entry.getPixelValue().intValue());
 
             NcIRTempToPixelConverter tempToPixConv = new NcIRTempToPixelConverter();
             tmpc = -100;
@@ -952,9 +887,6 @@ public abstract class AbstractSatelliteResource extends
                     entry.setDisplayValue(tmpc);
                     entry.setLabel(Integer.toString((int) tmpc));
                     dmPref.addEntry(entry);
-
-                    // colorBar.labelPixel( entry.getPixelValue().intValue() );
-
                 }
 
                 tmpc += 10;
@@ -969,18 +901,15 @@ public abstract class AbstractSatelliteResource extends
 
         }
 
-        else if (imgPref.getDataMapping() == null) { // no existing data
-                                                     // mapping, so we generate
-                                                     // it
+        // No existing data mapping, so we generate it
+        else if (imgPref.getDataMapping() == null) {
             // For all other images, the native units are used for display
-            // if (Double.isNaN(minPixVal) || Double.isNaN(maxPixVal)){
-            //
-            // }
+            if (imgPref.getDisplayUnitLabel() != null) {
 
-            if (imgPref.getDisplayUnitLabel() != null)
                 colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
-            else
+            } else {
                 colorBar.setDisplayUnitStr(dataUnitString);
+            }
 
             int imndlv = (int) Math.min(256, maxPixVal - minPixVal + 1);
             double ratio = (maxPixVal - minPixVal) / 255;
@@ -1022,8 +951,9 @@ public abstract class AbstractSatelliteResource extends
         }
 
         colorBar.setAlignLabelInTheMiddleOfInterval(false);
-        if (!colorBar.equals(satRscData.getColorBar()))
+        if (!colorBar.equals(satRscData.getColorBar())) {
             this.satRscData.setColorBar(colorBar);
+        }
 
     }
 
@@ -1036,8 +966,7 @@ public abstract class AbstractSatelliteResource extends
     }
 
     // for IAreaProviderCapable which triggers the Fit To Screen and Size Of
-    // Image
-    // context menus
+    // Image context menus
     @Override
     public AreaSource getSourceProvider() {
         return satRscData.getSourceProvider();

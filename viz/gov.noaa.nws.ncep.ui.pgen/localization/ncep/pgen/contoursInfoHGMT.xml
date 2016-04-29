@@ -16,6 +16,11 @@
   It is also used to select a list of line types, and a list of symbols/markers that will 
   show up in the Contours attributes GUI.
   
+  If the user links this parameter "HGMT" with a layer configured in an activity via the 
+  Activity Configuration Tool "Layer" tab, the default values for "HGMT"s meta info, including
+  level, forecast hour, and cint could be set via "default" in this table. So each time the
+  user switch to such a layer to draw a "HGMT" contour, these defaults will be used.
+  
   Please comment the entries you don't wish to use as shown below. -->
 <!-- label text="f072"/ -->
 <!--    
@@ -60,6 +65,13 @@
   	 <label text="f066"/>
   	 <label text="f072"/>
      </fhrs>
+     
+     <!-- 
+        Defaults for level, forecast hour, cint when "HGMT" is linked with a layer.
+        Note: cint should be the same as the one defined for the level in "level" section.
+     -->
+     <default level="700" fhrs="f036" cint="10/0/100"/>
+     
      <buttons name="Buttons">
          <!--  object name="PRESENT_WX_088" label="Moderate Hail Showers"  className="Symbol" / -->
          <object name="FILLED_HIGH_PRESSURE_H" label="High Presure H(filled)"  className="Symbol"/>

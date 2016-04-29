@@ -15,6 +15,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * 11/1/2010	362			Chin Chen	Initial coding
  * 12/16/2010   362         Chin Chen   add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
  * 07142015     RM#9173     Chin Chen   use NcSoundingQuery.genericSoundingDataQuery() to query observed sounding data
+ * 09/28/2015   RM#10295    Chin Chen   Let sounding data query run in its own thread to avoid gui locked out during load
  *
  * </pre>
  * 
@@ -22,38 +23,53 @@ package gov.noaa.nws.ncep.ui.nsharp.display.map;
  * @version 1.0
  */
 
-import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingProfile;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+
 import com.vividsolutions.jts.geom.Coordinate;
-//Chin-T import com.raytheon.uf.common.sounding.SoundingLayer;
 
-public class NsharpObservedSoundingQuery {
+public class NsharpObservedSoundingQuery extends Job {
+    private List<NsharpStationInfo> stnPtDataLineLst;
+    private Map<String, List<NcSoundingLayer>> soundingLysLstMap;
+    private boolean rawData;
 
-    // Chin-T public static void getObservedSndData(List<NsharpStationInfo>
-    // stnPtDataLineLst, Map<String, List<SoundingLayer>> soundingLysLstMap) {
-    // Chin: note that Nsharp currently GUI only allow user pick one stn at one
-    // time, but could be many refTimes.
-    public static void getObservedSndData(
-            List<NsharpStationInfo> stnPtDataLineLst, boolean rawData,
+    public NsharpObservedSoundingQuery(String name) {
+        super(name);
+    }
+
+    public void getObservedSndData(List<NsharpStationInfo> stnPtDataLineLst,
+            boolean rawData,
             Map<String, List<NcSoundingLayer>> soundingLysLstMap) {
-        // String pickedStnInfo = "";
+        this.soundingLysLstMap = soundingLysLstMap;
+        this.stnPtDataLineLst = stnPtDataLineLst;
+        this.rawData = rawData;
+        if (this.getState() != Job.RUNNING) {
+            this.schedule();
+        }
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
         List<Coordinate> coords = new ArrayList<Coordinate>();
         List<Long> refTimeLst = new ArrayList<Long>();
+        // note that Nsharp currently GUI only allow user pick one stn at
+        // one time, but user can and may pick multiple refTimes.
         // create refTime array and lat/lon array
         for (NsharpStationInfo StnPt : stnPtDataLineLst) {
             // one StnPt represent one data time line
-            // List<Integer> Ids = StnPt.getDbId();
-            // System.out.println("stn lat ="+StnPt.getLatitude()+
-            // " lon="+StnPt.getLongitude());
             boolean exist = false;
             for (Coordinate c : coords) {
                 if (c.x == StnPt.getLongitude() && c.y == StnPt.getLatitude()) {
@@ -80,42 +96,21 @@ public class NsharpObservedSoundingQuery {
         }
         Coordinate[] latLonAry = new Coordinate[coords.size()];
         for (int i = 0; i < coords.size(); i++) {
-        	latLonAry[i] = coords.get(i); 
+            latLonAry[i] = coords.get(i);
         }
-        //RM#9173
-//        NcSoundingCube cube = NcSoundingQuery
-//                .uaGenericSoundingQuery(refTimeLst.toArray(new Long[0]),
-//                        latLon, stnPtDataLineLst.get(0).getSndType(),
-//                        NcSoundingLayer.DataType.ALLDATA, !rawData, "-1");
         Long[] refTimeArray = refTimeLst.toArray(new Long[0]);
-        long[]  refTimelArray = new long[refTimeArray.length];
-        for(int i=0; i< refTimeArray.length;i++)
-        	refTimelArray[i]= refTimeArray[i];
-        NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery( refTimelArray, null, null, null,latLonAry,  
-        		null,stnPtDataLineLst.get(0).getSndType(),  NcSoundingLayer.DataType.ALLDATA,  !rawData,  null,null,true,false,false);
-      //end RM#9173
-        // NcSoundingCube cube =
-        // NcSoundingQuery.soundingQueryByLatLon(stnPtDataLineLst.get(0).getReftime().getTime(),
-        // coords, stnPtDataLineLst.get(0).getSndType(),
-        // NcSoundingLayer.DataType.ALLDATA, !rawData, "-1");
+        long[] refTimelArray = new long[refTimeArray.length];
+        for (int i = 0; i < refTimeArray.length; i++)
+            refTimelArray[i] = refTimeArray[i];
+        NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery(
+                refTimelArray, null, null, null, latLonAry, null,
+                stnPtDataLineLst.get(0).getSndType(),
+                NcSoundingLayer.DataType.ALLDATA, !rawData, null, null, true,
+                false, false);
         if (cube != null && cube.getSoundingProfileList().size() > 0
                 && cube.getRtnStatus() == NcSoundingCube.QueryStatus.OK) {
             for (NcSoundingProfile sndPf : cube.getSoundingProfileList()) {
                 List<NcSoundingLayer> rtnSndLst = sndPf.getSoundingLyLst();
-                // if(rtnSndLst != null && rtnSndLst.size() > 0){
-
-                // NcSoundingProfile sndPf =
-                // cube.getSoundingProfileList().get(0);
-                // System.out.println("size of profile = "+
-                // cube.getSoundingProfileList().size());
-                // debug
-                // for(NcSoundingProfile pf: cube.getSoundingProfileList()){
-                // System.out.println("sounding profile: lat="+pf.getStationLatitude()+" lon="+pf.getStationLongitude()+
-                // " stnId="+ pf.getStationId() );
-                // }
-                // List<NcSoundingLayer> rtnSndLst = sndPf.getSoundingLyLst();
-                // Chin-T List<SoundingLayer> sndLyList =
-                // NsharpSoundingQueryCommon.convertToSoundingLayerList(rtnSndLst);
                 if (rtnSndLst != null && rtnSndLst.size() > 0) {
                     // update sounding data so they can be used by Skewt
                     // Resource and PalletWindow
@@ -129,7 +124,7 @@ public class NsharpObservedSoundingQuery {
                                         sndPf.getStationElevation());
                     // minimum rtnSndList size will be 2 (50 & 75 mb layers),
                     // but that is not enough
-                    // We need at least 2 regular layers for plotting
+                    // We need at least 4 regular layers for plotting
                     if (rtnSndLst != null && rtnSndLst.size() > 4) {
                         String dispInfo = "";
                         for (NsharpStationInfo StnPt : stnPtDataLineLst) {
@@ -143,9 +138,12 @@ public class NsharpObservedSoundingQuery {
                     }
                 }
             }
-            // }
         }
 
+        NsharpSoundingQueryCommon.handleQueryResponse(stnPtDataLineLst.get(0),
+                soundingLysLstMap);
+
+        return Status.OK_STATUS;
     }
 
 }

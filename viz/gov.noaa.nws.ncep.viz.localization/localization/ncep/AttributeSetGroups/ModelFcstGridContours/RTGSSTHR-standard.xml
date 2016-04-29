@@ -2,5 +2,13 @@
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>RTGSSTHR</resource>
     <attrSetGroupName>standard</attrSetGroupName>
-    <attrSetNames>surface_temperature_as_points</attrSetNames>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>surface_temperature_as_points</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
 </AttributeSetGroup>
+

@@ -2000,7 +2000,7 @@ public class NcPlotResource2 extends
                     ds.addTextStyle(TextStyle.BOXED);
                 }
                 ds.horizontalAlignment = HorizontalAlignment.LEFT;
-                ds.verticallAlignment = VerticalAlignment.BOTTOM;
+                ds.verticalAlignment = VerticalAlignment.BOTTOM;
                 try {
                     target.drawStrings(ds);
                 } catch (VizException e1) {

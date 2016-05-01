@@ -1602,7 +1602,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 str.font = font20; // d2dlite
                 str.setCoordinates(dispX + 300 * zoomLevel * xRatio, dispY);
                 str.horizontalAlignment = HorizontalAlignment.LEFT;
-                str.verticallAlignment = VerticalAlignment.TOP;
+                str.verticalAlignment = VerticalAlignment.TOP;
                 DrawableString latlonstr = new DrawableString(latlon,
                         pickedStnColor);
                 latlonstr.font = font20; // d2dlite
@@ -1610,7 +1610,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                         dispY + target.getStringsBounds(str).getHeight()
                                 * vRatio);
                 latlonstr.horizontalAlignment = HorizontalAlignment.LEFT;
-                latlonstr.verticallAlignment = VerticalAlignment.TOP;
+                latlonstr.verticalAlignment = VerticalAlignment.TOP;
                 target.drawStrings(str, latlonstr);
             }
             pickedStnColor = linePropertyMap
@@ -1632,13 +1632,13 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         str.font = font20; // d2dlite
         str.setCoordinates(dispX, dispY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
-        str.verticallAlignment = VerticalAlignment.TOP;
+        str.verticalAlignment = VerticalAlignment.TOP;
         DrawableString latlonstr = new DrawableString(latlon, pickedStnColor);
         latlonstr.font = font20; // d2dlite
         latlonstr.setCoordinates(dispX, dispY
                 + target.getStringsBounds(str).getHeight() * vRatio);
         latlonstr.horizontalAlignment = HorizontalAlignment.LEFT;
-        latlonstr.verticallAlignment = VerticalAlignment.TOP;
+        latlonstr.verticalAlignment = VerticalAlignment.TOP;
         Rectangle2D rect = target.getStringsBounds(str);
         // rect.setRect(rect.getX(), rect.getY(), rect.getWidth(),
         // 2 * rect.getHeight());
@@ -1654,21 +1654,21 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str1.setCoordinates(dispX, dispY);
             str1.horizontalAlignment = HorizontalAlignment.LEFT;
-            str1.verticallAlignment = VerticalAlignment.TOP;
+            str1.verticalAlignment = VerticalAlignment.TOP;
             DrawableString str2 = new DrawableString(sTemperatureC,
                     NsharpConstants.color_red);
             str2.font = font20;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str2.setCoordinates(dispX, dispY);
             str2.horizontalAlignment = HorizontalAlignment.LEFT;
-            str2.verticallAlignment = VerticalAlignment.TOP;
+            str2.verticalAlignment = VerticalAlignment.TOP;
             DrawableString str3 = new DrawableString(sTemperatureF,
                     NsharpConstants.color_red);
             str3.font = font20;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str3.setCoordinates(dispX, dispY);
             str3.horizontalAlignment = HorizontalAlignment.LEFT;
-            str3.verticallAlignment = VerticalAlignment.TOP;
+            str3.verticalAlignment = VerticalAlignment.TOP;
 
             // column 2: m, ft, mixing ratio
             float heightM = nsharpNative.nsharpLib.ihght((float) dPressure);
@@ -1681,7 +1681,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             str4.font = font20;
             str4.setCoordinates(dispX, dispY);
             str4.horizontalAlignment = HorizontalAlignment.LEFT;
-            str4.verticallAlignment = VerticalAlignment.TOP;
+            str4.verticalAlignment = VerticalAlignment.TOP;
             String sHeightFt = String.format("%.0fft",
                     NsharpConstants.metersToFeet.convert(heightM));
             DrawableString str5 = new DrawableString(sHeightFt + "     ",
@@ -1690,14 +1690,14 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str5.setCoordinates(dispX, dispY);
             str5.horizontalAlignment = HorizontalAlignment.LEFT;
-            str5.verticallAlignment = VerticalAlignment.TOP;
+            str5.verticalAlignment = VerticalAlignment.TOP;
             DrawableString str6 = new DrawableString(sMixingRatio,
                     NsharpConstants.color_green);
             str6.font = font20;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str6.setCoordinates(dispX, dispY);
             str6.horizontalAlignment = HorizontalAlignment.LEFT;
-            str6.verticallAlignment = VerticalAlignment.TOP;
+            str6.verticalAlignment = VerticalAlignment.TOP;
 
             // column 3: Theta, ThetaW, ThetaE
             dispX = dispX + target.getStringsBounds(str5).getWidth() * hRatio;
@@ -1708,21 +1708,21 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             str7.font = font20;
             str7.setCoordinates(dispX, dispY);
             str7.horizontalAlignment = HorizontalAlignment.LEFT;
-            str7.verticallAlignment = VerticalAlignment.TOP;
+            str7.verticalAlignment = VerticalAlignment.TOP;
             DrawableString str8 = new DrawableString(sWThetaInK,
                     NsharpConstants.color_yellow);
             str8.font = font20;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str8.setCoordinates(dispX, dispY);
             str8.horizontalAlignment = HorizontalAlignment.LEFT;
-            str8.verticallAlignment = VerticalAlignment.TOP;
+            str8.verticalAlignment = VerticalAlignment.TOP;
             DrawableString str9 = new DrawableString(sEThetaInK,
                     NsharpConstants.color_yellow);
             str9.font = font20;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str9.setCoordinates(dispX, dispY);
             str9.horizontalAlignment = HorizontalAlignment.LEFT;
-            str9.verticallAlignment = VerticalAlignment.TOP;
+            str9.verticalAlignment = VerticalAlignment.TOP;
             sampleStrsWidth = target.getStringsBounds(str1).getWidth()
                     + target.getStringsBounds(str5).getWidth()
                     + target.getStringsBounds(str8).getWidth();

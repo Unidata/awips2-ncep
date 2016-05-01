@@ -445,7 +445,7 @@ public class NcscatResource extends
                         ds1.font = font;
                         ds1.horizontalAlignment = leftToRight ? HorizontalAlignment.RIGHT
                                 : HorizontalAlignment.LEFT;
-                        ds1.verticallAlignment = bottomToTop ? VerticalAlignment.BOTTOM
+                        ds1.verticalAlignment = bottomToTop ? VerticalAlignment.BOTTOM
                                 : VerticalAlignment.TOP;
                         ds1.setText(timeString,
                                 ncscatResourceData.timeStampColor);
@@ -457,7 +457,7 @@ public class NcscatResource extends
                         ds2.font = font;
                         ds2.horizontalAlignment = leftToRight ? HorizontalAlignment.LEFT
                                 : HorizontalAlignment.RIGHT;
-                        ds2.verticallAlignment = bottomToTop ? VerticalAlignment.TOP
+                        ds2.verticalAlignment = bottomToTop ? VerticalAlignment.TOP
                                 : VerticalAlignment.BOTTOM;
                         ds2.setText(timeString,
                                 ncscatResourceData.timeStampColor);

@@ -246,7 +246,7 @@ public class GeoMagSampling {
                     hoverString.font = hoverFont;
                     hoverString.textStyle = TextStyle.BOXED;
                     hoverString.horizontalAlignment = HorizontalAlignment.LEFT;
-                    hoverString.verticallAlignment = verticalAlignment;
+                    hoverString.verticalAlignment = verticalAlignment;
                     hoverString.boxColor = new RGB(255, 255, 255);
                     hoverString.setCoordinates(c.x, referencePtY);
 

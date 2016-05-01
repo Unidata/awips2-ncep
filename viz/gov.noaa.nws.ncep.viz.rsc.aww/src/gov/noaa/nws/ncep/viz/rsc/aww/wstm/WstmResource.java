@@ -452,7 +452,7 @@ public class WstmResource extends
                 zoneNameString.setCoordinates(currentDisplayLabelObj.displayCoords.getX(), currentDisplayLabelObj.displayCoords.getY());
                 zoneNameString.textStyle = TextStyle.NORMAL;
                 zoneNameString.horizontalAlignment = HorizontalAlignment.LEFT;
-                zoneNameString.verticallAlignment = VerticalAlignment.TOP;
+                zoneNameString.verticalAlignment = VerticalAlignment.TOP;
                 target.drawStrings(zoneNameString);
                 }
                 if (!wstmResourceDataObj.getOutlineEnable()) {

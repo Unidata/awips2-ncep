@@ -654,7 +654,7 @@ public class ContourSupport {
             string.setCoordinates(loc[0], loc[1]);
             string.font = contourGroup.labelParms.font;
             string.horizontalAlignment = contourGroup.labelParms.justification;
-            string.verticallAlignment = VerticalAlignment.MIDDLE;
+            string.verticalAlignment = VerticalAlignment.MIDDLE;
 
             if (contourGroup.labelParms.textStyle != null)
                 string.addTextStyle(contourGroup.labelParms.textStyle,

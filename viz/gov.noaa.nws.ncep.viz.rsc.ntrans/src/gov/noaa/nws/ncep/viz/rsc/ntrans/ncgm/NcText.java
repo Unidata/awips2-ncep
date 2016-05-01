@@ -63,7 +63,7 @@ public class NcText extends Text implements INcCommand {
         ds.font = ib.currentFont;
         ds.textStyle = ib.textStyle;
         ds.horizontalAlignment = ib.horizontalAlignment;
-        ds.verticallAlignment = ib.verticalAlignment;
+        ds.verticalAlignment = ib.verticalAlignment;
 
         // Don't draw the string right now; just add it to list of
         // strings in the image to be drawn later -- all at once.

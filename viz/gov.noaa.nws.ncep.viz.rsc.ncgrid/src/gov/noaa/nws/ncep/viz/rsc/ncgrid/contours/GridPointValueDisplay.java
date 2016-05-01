@@ -107,7 +107,7 @@ public class GridPointValueDisplay extends
             return null;
         }
         DrawableString string = new DrawableString(value, color);
-        string.verticallAlignment = VerticalAlignment.MIDDLE;
+        string.verticalAlignment = VerticalAlignment.MIDDLE;
         string.horizontalAlignment = HorizontalAlignment.CENTER;
         return string;
     }

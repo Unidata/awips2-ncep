@@ -265,9 +265,9 @@ public class GhcdGraph extends NCTimeSeriesGraph {
                             value = nf.format(xAxes[i].getDiscreteValue());
                         }
                         if (i == 0) {
-                            parameters.verticallAlignment = VerticalAlignment.BOTTOM;
+                            parameters.verticalAlignment = VerticalAlignment.BOTTOM;
                         } else {
-                            parameters.verticallAlignment = VerticalAlignment.MIDDLE;
+                            parameters.verticalAlignment = VerticalAlignment.MIDDLE;
                         }
                         parameters.setText(value, colorToUse);
                         parameters.setCoordinates(coords[0].x, coords[0].y,
@@ -491,7 +491,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
                     topTitleStr.font = titleFont;
                     topTitleStr.textStyle = TextStyle.DROP_SHADOW;
                     topTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-                    topTitleStr.verticallAlignment = VerticalAlignment.BOTTOM;
+                    topTitleStr.verticalAlignment = VerticalAlignment.BOTTOM;
                     topTitleStr.magnification = this.currentMagnification;
                     double x = graphExtent.getMinX();
                     double y = this.getExtent().getMinY() - 7;
@@ -507,7 +507,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
                     lastDataString.font = titleFont;
                     lastDataString.textStyle = TextStyle.DROP_SHADOW;
                     lastDataString.horizontalAlignment = HorizontalAlignment.CENTER;
-                    lastDataString.verticallAlignment = VerticalAlignment.BOTTOM;
+                    lastDataString.verticalAlignment = VerticalAlignment.BOTTOM;
                     lastDataString.magnification = this.currentMagnification;
                     double x = graphExtent.getMaxX() - 130
                             * paintProps.getZoomLevel()
@@ -540,7 +540,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
         titleString.font = titleFont;
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleString.verticallAlignment = VerticalAlignment.TOP;
+        titleString.verticalAlignment = VerticalAlignment.TOP;
         titleString.magnification = this.currentMagnification;
 
         double x = graphExtent.getMinX() + graphExtent.getWidth() / 2;
@@ -561,7 +561,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
         titleString.font = titleFont;
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleString.verticallAlignment = VerticalAlignment.BOTTOM;
+        titleString.verticalAlignment = VerticalAlignment.BOTTOM;
         titleString.rotation = 90;
         titleString.magnification = this.currentMagnification;
         int width = target.getStringsBounds(titleString).getBounds().width;
@@ -585,7 +585,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
         titleString.font = titleFont;
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleString.verticallAlignment = VerticalAlignment.BOTTOM;
+        titleString.verticalAlignment = VerticalAlignment.BOTTOM;
         titleString.rotation = 90;
         titleString.magnification = this.currentMagnification;
         int width = target.getStringsBounds(titleString).getBounds().width;
@@ -616,7 +616,7 @@ public class GhcdGraph extends NCTimeSeriesGraph {
                         sdf.format(date), labelColor);
                 parameters.font = unitsFont;
                 parameters.horizontalAlignment = HorizontalAlignment.CENTER;
-                parameters.verticallAlignment = VerticalAlignment.TOP;
+                parameters.verticalAlignment = VerticalAlignment.TOP;
                 parameters.magnification = this.currentMagnification;
 
                 double offset = yAxisPlacer.getPixelLoc(val);

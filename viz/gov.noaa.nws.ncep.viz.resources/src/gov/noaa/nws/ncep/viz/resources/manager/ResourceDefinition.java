@@ -1867,9 +1867,11 @@ public class ResourceDefinition implements IAlertObserver,
                 RequestConstraint rc = baseConstraints.get(prmName);
 
                 if (!uriAttrValues.containsKey(prmName)) {
+                	/*
                     out.println("??? dataUriNotification, " + alrtMsg.dataURI
                             + ", doesn't contain value for baseConstraint,"
                             + prmName);
+                    */
                     useUri = false;
                     break;
                 } else if (!rc.evaluate(uriAttrValues.get(prmName))) {

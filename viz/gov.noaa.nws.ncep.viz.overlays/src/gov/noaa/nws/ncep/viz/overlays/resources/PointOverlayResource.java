@@ -299,7 +299,7 @@ public class PointOverlayResource extends
                         drawStr.setCoordinates(pix[0] + offsetX, pix[1]
                                 + offsetY);
                         drawStr.horizontalAlignment = HorizontalAlignment.CENTER;
-                        drawStr.verticallAlignment = VerticalAlignment.MIDDLE;
+                        drawStr.verticalAlignment = VerticalAlignment.MIDDLE;
                         // WORD WRAP looks nicer but the drawing doesn't seem to
                         // be
                         // horizontally centering

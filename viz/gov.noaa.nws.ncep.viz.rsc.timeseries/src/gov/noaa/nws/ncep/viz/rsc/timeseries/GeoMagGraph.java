@@ -230,9 +230,9 @@ public class GeoMagGraph extends NCTimeSeriesGraph {
 
                         String value = df.format(xAxes[i].getDiscreteValue());
                         if (i == 0) {
-                            parameters.verticallAlignment = VerticalAlignment.BOTTOM;
+                            parameters.verticalAlignment = VerticalAlignment.BOTTOM;
                         } else {
-                            parameters.verticallAlignment = VerticalAlignment.MIDDLE;
+                            parameters.verticalAlignment = VerticalAlignment.MIDDLE;
                         }
                         parameters.setText(value, colorToUse);
                         parameters.setCoordinates(coords[0].x, coords[0].y,
@@ -443,7 +443,7 @@ public class GeoMagGraph extends NCTimeSeriesGraph {
         DrawableString titleString = new DrawableString(title, titleColor);
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleString.verticallAlignment = VerticalAlignment.TOP;
+        titleString.verticalAlignment = VerticalAlignment.TOP;
         titleString.magnification = this.currentMagnification;
 
         double x = graphExtent.getMinX() + graphExtent.getWidth() / 2;
@@ -463,7 +463,7 @@ public class GeoMagGraph extends NCTimeSeriesGraph {
         DrawableString titleString = new DrawableString(title, titleColor);
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleString.verticallAlignment = VerticalAlignment.BOTTOM;
+        titleString.verticalAlignment = VerticalAlignment.BOTTOM;
         titleString.rotation = 90;
         titleString.magnification = this.currentMagnification;
         int width = target.getStringsBounds(titleString).getBounds().width;
@@ -496,7 +496,7 @@ public class GeoMagGraph extends NCTimeSeriesGraph {
                     new IFont.Style[] {});
             parameters.font = unitsFont;
             parameters.horizontalAlignment = HorizontalAlignment.CENTER;
-            parameters.verticallAlignment = VerticalAlignment.TOP;
+            parameters.verticalAlignment = VerticalAlignment.TOP;
             parameters.magnification = this.currentMagnification;
 
             double offset = yAxisPlacer.getPixelLoc(val);

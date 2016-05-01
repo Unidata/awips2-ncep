@@ -217,9 +217,9 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
                             String value = df.format(xAxes[i]
                                     .getDiscreteValue()) + " ";
                             if (i == 0) {
-                                parameters.verticallAlignment = VerticalAlignment.BOTTOM;
+                                parameters.verticalAlignment = VerticalAlignment.BOTTOM;
                             } else {
-                                parameters.verticallAlignment = VerticalAlignment.MIDDLE;
+                                parameters.verticalAlignment = VerticalAlignment.MIDDLE;
                             }
                             parameters.setText(value, colorToUse);
                             parameters.setCoordinates(coords[0].x, coords[0].y,
@@ -438,7 +438,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.LEFT;
         titleString.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleString.verticallAlignment = VerticalAlignment.TOP;
+        titleString.verticalAlignment = VerticalAlignment.TOP;
         titleString.magnification = this.currentMagnification;
         double x = graphExtent.getMinX() + graphExtent.getWidth() / 2;
         titleString.setCoordinates(x, 100.0);
@@ -459,7 +459,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
         titleString.font = titleFont;
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleString.verticallAlignment = VerticalAlignment.BOTTOM;
+        titleString.verticalAlignment = VerticalAlignment.BOTTOM;
         titleString.rotation = 90;
         titleString.magnification = this.currentMagnification;
         int width = target.getStringsBounds(titleString).getBounds().width;
@@ -496,7 +496,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
                     colorToUse);
             parameters.font = unitsFont;
             parameters.horizontalAlignment = HorizontalAlignment.CENTER;
-            parameters.verticallAlignment = VerticalAlignment.TOP;
+            parameters.verticalAlignment = VerticalAlignment.TOP;
             parameters.magnification = this.currentMagnification;
 
             double offset = yAxisPlacer.getPixelLoc(val);
@@ -533,7 +533,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
         lastDataString.font = titleFont;
         lastDataString.textStyle = TextStyle.DROP_SHADOW;
         lastDataString.horizontalAlignment = HorizontalAlignment.CENTER;
-        lastDataString.verticallAlignment = VerticalAlignment.BOTTOM;
+        lastDataString.verticalAlignment = VerticalAlignment.BOTTOM;
         lastDataString.magnification = this.currentMagnification;
         double x = graphExtent.getMinX() + graphExtent.getWidth() / 1.3
                 - titleFont.getFontSize();
@@ -560,7 +560,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
         updatedString.font = titleFont;
         updatedString.textStyle = TextStyle.DROP_SHADOW;
         updatedString.horizontalAlignment = HorizontalAlignment.CENTER;
-        updatedString.verticallAlignment = VerticalAlignment.BOTTOM;
+        updatedString.verticalAlignment = VerticalAlignment.BOTTOM;
         updatedString.magnification = this.currentMagnification;
         updatedString.setCoordinates(x, 75.0);
 
@@ -578,7 +578,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
         titleString.font = titleFont;
         titleString.textStyle = TextStyle.DROP_SHADOW;
         titleString.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleString.verticallAlignment = VerticalAlignment.TOP;
+        titleString.verticalAlignment = VerticalAlignment.TOP;
         titleString.magnification = this.currentMagnification;
         double x = graphExtent.getMinX() + graphExtent.getWidth() / 2;
         double y = graphExtent.getMaxY() + 60.0;

@@ -588,7 +588,7 @@ public class DbOverlayResource extends
                     another.font = font;
                     another.setCoordinates(c.x, c.y, 0.0);
                     another.horizontalAlignment = HorizontalAlignment.CENTER;
-                    another.verticallAlignment = VerticalAlignment.MIDDLE;
+                    another.verticalAlignment = VerticalAlignment.MIDDLE;
                     labelStrings.add(another);
                 } catch (Exception e) {
                     throw new VizException("Unable to transform", e);

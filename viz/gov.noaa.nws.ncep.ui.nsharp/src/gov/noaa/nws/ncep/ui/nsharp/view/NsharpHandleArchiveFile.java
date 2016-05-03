@@ -191,8 +191,8 @@ public class NsharpHandleArchiveFile {
 				//BUFRUA  PTPN 06.12(Fri) BUFRUA  LAT=6.966670036315918 LON=158.2166748046875
 				// title is "PTPN 06.12(Fri) BUFRUA"
 				//format 2.
-				//NAM ETA218  PointA 150125/03(Sun) ETA218  LAT=39.66764519797457 LON=-105.92044834352876
-				// title is "PointA 150125/03(Sun) ETA218"
+				//NAM NAM12  PointA 150125/03(Sun) NAM12  LAT=39.66764519797457 LON=-105.92044834352876
+				// title is "PointA 150125/03(Sun) NAM12"
 				StringTokenizer hdrst = new StringTokenizer(strContent.toString());
 				int j =0;
 				int titleIndex =0;

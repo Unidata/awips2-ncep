@@ -119,7 +119,7 @@ public class ModelsSoundingQuery {
 		 * Select Distinct rangestart FROM grid FULL JOIN grid_info ON
 		 * grid.info_id=grid_info.id where grid.reftime = '2012-01-26 00:00:00'
 		 * AND grid.rangestart = grid.rangeend AND
-		 * grid_info.datasetid='mesoEta212' AND
+		 * grid_info.datasetid='NAM40' AND
 		 * grid_info.parameter_abbreviation='T' order by rangestart
 		 */
 		Object[] soundingTimeAry = null;
@@ -142,7 +142,7 @@ public class ModelsSoundingQuery {
 			 * FULL JOIN grid_info ON grid.info_id=grid_info.id FULL JOIN level
 			 * ON grid_info.level_id= level.id where grid.rangestart =
 			 * '2012-01-26 03:00:00.0' AND grid.rangestart = grid.rangeend AND
-			 * grid_info.datasetid='mesoEta212' AND
+			 * grid_info.datasetid='NAM40' AND
 			 * grid_info.parameter_abbreviation='T' AND level.levelonevalue >
 			 * 99) X HAVING count(X.rangestart) >5
 			 */

@@ -37,4 +37,5 @@ Import-Package: com.raytheon.uf.common.comm,
  com.sun.jna,
  com.sun.jna.ptr,
  gov.noaa.nws.ncep.common.log.logger,
+ gov.noaa.nws.ncep.common.tools,
  gov.noaa.nws.ncep.viz.gempak.grid.units

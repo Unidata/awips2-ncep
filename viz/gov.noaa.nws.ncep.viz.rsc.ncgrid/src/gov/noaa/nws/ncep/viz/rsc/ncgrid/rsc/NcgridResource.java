@@ -166,6 +166,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                          into one method. Replaced catching
  *                                          of nullpointerexceptions with
  *                                          null checks.
+ * 04/14/2016   R17316      K.Bugenhagen    Added call to paintFrame to reproject
+ *                                          for point data values (type = 'p') if
+ *                                          projection is changed.
  * </pre>
  * 
  * @author mli
@@ -211,7 +214,7 @@ public class NcgridResource extends
 
     private static NcgribLogger ncgribLogger;
 
-    private ArrayList<DataTime> dataTimesForDgdriv = new ArrayList<DataTime>();
+    private ArrayList<DataTime> dataTimesForDgdriv = new ArrayList<>();
 
     private ContourAttributes[] contourAttributes;
 
@@ -576,7 +579,7 @@ public class NcgridResource extends
                 }
             } else {
 
-                HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
+                HashMap<String, RequestConstraint> queryList = new HashMap<>(
                         gridRscData.getMetadataMap());
 
                 if (gridRscData.isEnsemble()) {
@@ -659,7 +662,7 @@ public class NcgridResource extends
                         responseList = response.getResults();
                     } else {
                         // empty list to simplify code
-                        responseList = new ArrayList<Map<String, Object>>(0);
+                        responseList = new ArrayList<>(0);
                     }
                     ISpatialObject cov = null;
                     if (responseList.size() > 0) {
@@ -1375,7 +1378,7 @@ public class NcgridResource extends
             return;
         }
 
-        List<DataTime> availableTimes = new ArrayList<DataTime>();
+        List<DataTime> availableTimes = new ArrayList<>();
 
         if (cycleTime != null
                 && gridRscData.getPluginName().equalsIgnoreCase(
@@ -1406,7 +1409,7 @@ public class NcgridResource extends
             availableTimes = gridRscData.getAvailableDataTimes();
         }
 
-        ArrayList<DataTime> dataTimes = new ArrayList<DataTime>();
+        ArrayList<DataTime> dataTimes = new ArrayList<>();
 
         // loop thru all the times for the grib records for this model and
         // if the time matches the cycle time for this resource and if
@@ -1636,10 +1639,13 @@ public class NcgridResource extends
                 if (type.contains("P")) {
                     GridPointValueDisplay gridPointValueDisplay = currFrame.gridPointValueDisplay[i];
                     if (gridPointValueDisplay != null) {
+                        if (currFrame.getReProjectFlag()) {
+                            gridPointValueDisplay.reproject();
+                        }
                         gridPointValueDisplay.paint(target, paintProps);
                     }
-
                 }
+
             }
         }
         currFrame.setReProjectFlag(false);
@@ -1702,7 +1708,7 @@ public class NcgridResource extends
             }
         }
 
-        ArrayList<DataTime> dataTimes = new ArrayList<DataTime>();
+        ArrayList<DataTime> dataTimes = new ArrayList<>();
         dataTimes.add(gdPrxy.getDataTime());
         synchronized (Dgdriv.class) {
             Dgdriv aDgdriv = new Dgdriv();
@@ -2664,7 +2670,7 @@ public class NcgridResource extends
 
         Level level = userSaveInput.getLevel();
         Parameter parameter = userSaveInput.getParameter();
-        Collection<FrameData> framesToSave = new ArrayList<FrameData>();
+        Collection<FrameData> framesToSave = new ArrayList<>();
 
         if (userSaveInput.isSaveAll()) {
 
@@ -2723,7 +2729,7 @@ public class NcgridResource extends
      */
     public List<String> queryDatasetIds() throws VizException {
 
-        HashMap<String, RequestConstraint> constraints = new HashMap<String, RequestConstraint>();
+        HashMap<String, RequestConstraint> constraints = new HashMap<>();
         constraints.put(PLUGIN_NAME, new RequestConstraint(GRID_KEY));
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(constraints);

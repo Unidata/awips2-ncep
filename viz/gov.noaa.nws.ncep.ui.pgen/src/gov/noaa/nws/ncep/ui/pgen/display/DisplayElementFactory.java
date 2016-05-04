@@ -158,6 +158,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
  * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
+ * Apr 28, 2016 5542       tgurney      Performance improvement in createDisplayElements(ILine, ...)
  * </pre>
  * 
  * @author sgilbert
@@ -316,20 +317,21 @@ public class DisplayElementFactory {
 
             // put line points in a coordinate array
             Coordinate[] coord;
+            Coordinate[] deLinePoints = de.getLinePoints();
             if (de.isClosedLine()) {
-                coord = new Coordinate[de.getLinePoints().length + 1];
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
+                coord = new Coordinate[deLinePoints.length + 1];
+                for (int ii = 0; ii < deLinePoints.length; ii++) {
+                    coord[ii] = new Coordinate(deLinePoints[ii].x,
+                            deLinePoints[ii].y);
                 }
-                coord[de.getLinePoints().length] = new Coordinate(
-                        de.getLinePoints()[0].x, de.getLinePoints()[0].y);
+                coord[deLinePoints.length] = new Coordinate(deLinePoints[0].x,
+                        deLinePoints[0].y);
             } else {
-                coord = new Coordinate[de.getLinePoints().length];
+                coord = new Coordinate[deLinePoints.length];
 
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
+                for (int ii = 0; ii < deLinePoints.length; ii++) {
+                    coord[ii] = new Coordinate(deLinePoints[ii].x,
+                            deLinePoints[ii].y);
                 }
 
             }

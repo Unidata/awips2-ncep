@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=QPE-XNAV-RHA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

@@ -78,7 +78,6 @@ Import-Package: com.raytheon.uf.common.message.response,
  com.raytheon.viz.core.graphing,
  gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.common.dataplugin.pgen,
- gov.noaa.nws.ncep.edex.common.ncinventory,
  gov.noaa.nws.ncep.gempak.parameters.colorbar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

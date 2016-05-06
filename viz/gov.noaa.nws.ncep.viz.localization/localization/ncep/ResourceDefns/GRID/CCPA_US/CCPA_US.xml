@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=ccpaUS
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

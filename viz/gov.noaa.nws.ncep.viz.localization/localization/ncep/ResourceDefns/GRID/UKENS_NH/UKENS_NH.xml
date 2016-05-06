@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=ENSEMBLE
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

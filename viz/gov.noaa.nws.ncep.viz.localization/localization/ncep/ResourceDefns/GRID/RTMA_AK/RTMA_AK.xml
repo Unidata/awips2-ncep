@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=AK-RTMA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

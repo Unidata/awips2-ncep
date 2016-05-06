@@ -1,8 +1,6 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
 import static java.lang.System.out;
-import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryDefinition;
-import gov.noaa.nws.ncep.edex.common.ncinventory.NcInventoryRequestMsg;
 import gov.noaa.nws.ncep.viz.common.SelectableFrameTimeMatcher;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
@@ -18,8 +16,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,7 +26,6 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.localization.FileUpdatedMessage;
 import com.raytheon.uf.common.localization.FileUpdatedMessage.FileChangeType;
 import com.raytheon.uf.common.localization.ILocalizationFileObserver;
@@ -46,7 +41,6 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.RecordFactory;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
 
 /**
  * 
@@ -103,7 +97,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *  09/25/2015    R12042     J. Lopez     Fix the bug where Attribute Set Groups and the Attributes are not loaded
  *  10/15/2015    R7190     R. Reynolds   Added support for Mcidas
  *  12/08/2015    #12868     P. Moyer     Added alphabetical sort for Resource Defintion filter combo box
- * 
+ *  04/05/2016    RM10435    rjpeter      Removed Inventory usage.
  * </pre>
  * 
  * @author ghull
@@ -119,7 +113,7 @@ public class ResourceDefnsMngr {
             .getHandler(ResourceDefnsMngr.class);
 
     // TODO : fold this into NcPathMngr
-    private NcPathManager pathMngr;
+    private final NcPathManager pathMngr;
 
     private HashMap<String, ResourceDefinition> resourceDefnsMap = null;
 
@@ -429,17 +423,6 @@ public class ResourceDefnsMngr {
         long t2 = System.currentTimeMillis();
 
         out.println("Time to read Attr Sets: " + (t2 - t1) + " ms");
-
-        List<String> errRdsList = findOrCreateInventoryForRscDefns(resourceDefnsMap
-                .values());
-
-        // loop thru the ResourceDefns and enable those that have been
-        // initialized and
-        // find any inventories that don't exist and create them
-
-        for (String rmRd : errRdsList) {
-            resourceDefnsMap.remove(rmRd);
-        }
     }
 
     private void readResourceDefn(LocalizationFile lFile) throws VizException {
@@ -724,7 +707,7 @@ public class ResourceDefnsMngr {
             // others. The resource
             // type is the lowest directory.
             String dirs[] = asLclFile.getName().split(File.separator);
-            if (dirs == null || dirs.length < 3) {
+            if ((dirs == null) || (dirs.length < 3)) {
                 continue; // ?????
             }
 
@@ -778,201 +761,12 @@ public class ResourceDefnsMngr {
         }
     }
 
-    public List<String> findOrCreateInventoryForRscDefns(
-            Collection<ResourceDefinition> rscDefnsToSetup) {
-        // loop thru the ResourceDefns and enable those that have been
-        // initialized and
-        // find any inventories that don't exist and create them
-
-        // This would read the inventoryDefns from localizations (ie what edex
-        // uses)
-        // to initialize but instead we will query edex to see what's there and
-        // only create inventories that don't exist.
-
-        Map<NcInventoryDefinition, NcInventoryDefinition> invDefnsMap = null;
-
-        // its possible this is failing/empty on the testbed for some unknown
-        // reason. Since this will cause 'duplicate' ID to be created we should
-        // retry to make sure.
-        for (int tryCount = 1; tryCount <= 5; tryCount++) {
-            try {
-                invDefnsMap = getInventoryDefinitions();
-
-                if (invDefnsMap == null || invDefnsMap.isEmpty()) {
-                    throw new VizException("Inventory Directory is Empty?");
-                } else {
-                    break;
-                }
-            } catch (VizException ve) {
-                statusHandler.handle(Priority.PROBLEM,
-                        ("Error getting NcInventory Directory" + ve
-                                .getMessage()));
-                try {
-
-                    Thread.sleep(1000);
-
-                } catch (InterruptedException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
-                }
-            }
-        }
-
-        if (invDefnsMap == null) {
-            invDefnsMap = new HashMap<NcInventoryDefinition, NcInventoryDefinition>();
-        }
-
-        List<NcInventoryDefinition> createInvDefns = new ArrayList<NcInventoryDefinition>();
-        List<NcInventoryDefinition> errList = new ArrayList<NcInventoryDefinition>();
-
-        for (ResourceDefinition rd : rscDefnsToSetup) {
-            try {
-                HashMap<String, RequestConstraint> rc = rd
-                        .getInventoryConstraintsFromParameters(rd
-                                .getResourceParameters(true));
-                List<String> reqParams = rd.getUnconstrainedParameters();
-                reqParams.add("dataTime");
-
-                for (NcInventoryDefinition edexID : invDefnsMap.keySet()) {
-                    if (edexID.supportsQuery(rc, reqParams)) {
-                        if (rd.isInventoryInitialized()) {
-                            statusHandler
-                                    .handle(Priority.INFO,
-                                            ("RD "
-                                                    + rd.getResourceDefnName()
-                                                    + " has more than one supporting ID, "
-                                                    + rd.getInventoryAlias()
-                                                    + " and " + edexID
-                                                    .getInventoryName()));
-                        }
-                        rd.setInventoryAlias(edexID.getInventoryName());
-
-                    }
-                }
-
-                if (rd.usesInventory() && rd.getInventoryEnabled()
-                        && !rd.isInventoryInitialized()) {
-
-                    createInvDefns.add(rd.createNcInventoryDefinition());
-                }
-            } catch (VizException e) {
-                out.println("Error creating ResourceDefn from file: "
-                        + rd.getLocalizationFile().getName());
-                out.println(" --->" + e.getMessage());
-                badRscDefnsList.add(e);
-            }
-        }
-
-        if (!createInvDefns.isEmpty()) {
-            InventoryLoaderJob invLoader = new InventoryLoaderJob(
-                    createInvDefns, false);
-
-            invLoader.schedule();
-
-            // TODO : update the progress monitor
-            while (invLoader.getNumberOfInventoriesLeftToLoad() > 0) {
-
-                try {
-                    Thread.sleep(400);
-                } catch (InterruptedException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            e.getLocalizedMessage(), e);
-                }
-            }
-
-            errList = Arrays.asList(invLoader.getUninitializedInventoryDefns());
-        }
-
-        List<String> errRdsList = new ArrayList<String>();
-
-        // for the rscDefns that just had an inventory created for them
-        // enable or disable based on whether there was an error.
-        for (ResourceDefinition rd : resourceDefnsMap.values()) {
-
-            if (rd.usesInventory()) {
-                try {
-                    NcInventoryDefinition invDefn = rd
-                            .createNcInventoryDefinition();
-
-                    // if created successfully set the inventoryName/Alias
-                    if (createInvDefns.contains(invDefn)
-                            && !errList.contains(invDefn)) {
-
-                        rd.setInventoryAlias(invDefn.getInventoryName());
-                    }
-
-                    // if there is an inventory and if it is enabled
-                    if (rd.getInventoryEnabled() && !errList.contains(invDefn)) {
-
-                        rd.enableInventoryUse(); // remove the
-                                                 // ProductAlertObserver
-                    } else {
-                        rd.disableInventoryUse(); // add the
-                                                  // ProductAlertObserver and
-                                                  // query types/subTypes
-                    }
-                } catch (VizException e) {
-                    errRdsList.add(rd.getResourceDefnName());
-
-                    out.println("Error creating ResourceDefn : "
-                            + rd.getResourceDefnName());
-                    out.println(" --->" + e.getMessage());
-                    badRscDefnsList.add(new VizException(
-                            "Error creating ResourceDefn : "
-                                    + rd.getResourceDefnName() + " : "
-                                    + e.getMessage()));
-                }
-            }
-        }
-
-        return errRdsList;
-    }
-
-    // a list of inventories definitions available on edex.
-    // used to set the inventoryInitialized flag.
-    public Map<NcInventoryDefinition, NcInventoryDefinition> getInventoryDefinitions()
-            throws VizException {
-
-        Map<NcInventoryDefinition, NcInventoryDefinition> invDefnsMap = null;
-
-        // query the list of inventories that exist on edex and set the
-        // inventoryInitialized flag in the ResourceDefns
-        NcInventoryRequestMsg dirRequest = NcInventoryRequestMsg
-                .makeDirectoryRequest();
-
-        Object rslts = ThriftClient.sendRequest(dirRequest);
-
-        if (rslts instanceof String) {
-            throw new VizException(rslts.toString());
-        }
-        if (!(rslts instanceof ArrayList<?>)) {
-            throw new VizException(
-                    "Inventory Directory Request Error: expecting ArrayList<NcInventoryDefinition>.");
-        } else if (((ArrayList<?>) rslts).isEmpty()) {
-            out.println("Inventory Directory Request Warning: No Inventories initialized.???");
-        } else if (!(((ArrayList<?>) rslts).get(0) instanceof NcInventoryDefinition)) {
-            throw new VizException(
-                    "Inventory Directory Request Error: expecting ArrayList<NcInventoryDefinition>.");
-        }
-
-        // used to set the inventory initialized flag
-        ArrayList<NcInventoryDefinition> invDefnsList = (ArrayList<NcInventoryDefinition>) rslts;
-
-        invDefnsMap = new HashMap<NcInventoryDefinition, NcInventoryDefinition>();
-
-        for (NcInventoryDefinition invDefn : invDefnsList) {
-            invDefnsMap.put(invDefn, invDefn);
-        }
-
-        return invDefnsMap;
-    }
-
     public boolean isResourceNameValid(ResourceName rscName) {
-        if (rscName == null || rscName.getRscCategory() == null
-                || rscName.getRscCategory() == ResourceCategory.NullCategory
-                || rscName.getRscType() == null
+        if ((rscName == null) || (rscName.getRscCategory() == null)
+                || (rscName.getRscCategory() == ResourceCategory.NullCategory)
+                || (rscName.getRscType() == null)
                 || rscName.getRscType().isEmpty()
-                || rscName.getRscAttrSetName() == null
+                || (rscName.getRscAttrSetName() == null)
                 || rscName.getRscAttrSetName().isEmpty()) {
 
             return false;
@@ -993,7 +787,7 @@ public class ResourceDefnsMngr {
         }
         // if there is no group/subType, make sure there isn't supposed to be
         // one.
-        if (rscName.getRscGroup() == null || rscName.getRscGroup().isEmpty()) {
+        if ((rscName.getRscGroup() == null) || rscName.getRscGroup().isEmpty()) {
 
             if (rd.applyAttrSetGroups() || !rd.getSubTypeGenerator().isEmpty()) {
                 return false;
@@ -1136,7 +930,7 @@ public class ResourceDefnsMngr {
             new SelectableFrameTimeMatcher(paramsMap.get("GDATTIM"));
 
             return paramsMap.get("GDATTIM");
-        } else if (rscDefn.getDfltFrameTimes() != null
+        } else if ((rscDefn.getDfltFrameTimes() != null)
                 && !rscDefn.getDfltFrameTimes().isEmpty()) {
 
             // check syntax
@@ -1243,8 +1037,9 @@ public class ResourceDefnsMngr {
                                     .substring(0,
                                             subTypeParamsArr[i].length() - 2);
                         }
-                        if (subTypeParamsArr[i].equals("native"))
+                        if (subTypeParamsArr[i].equals("native")) {
                             subTypeParamsArr[i] = "0";
+                        }
 
                     }
 
@@ -1325,7 +1120,7 @@ public class ResourceDefnsMngr {
             String prmStr = breader.readLine().trim();
 
             while (prmStr != null) {
-                if (prmStr.isEmpty() || prmStr.charAt(0) == '!') { // comments
+                if (prmStr.isEmpty() || (prmStr.charAt(0) == '!')) { // comments
                     prmStr = breader.readLine();
                     continue;
                 }
@@ -1344,7 +1139,7 @@ public class ResourceDefnsMngr {
                     // directory but with
                     // the localization, and since this is only used for
                     // colorbars,
-                    if (!prmVal.isEmpty() && prmVal.charAt(0) == '@') {
+                    if (!prmVal.isEmpty() && (prmVal.charAt(0) == '@')) {
                         try {
                             String refdLclName = NcPathConstants.NCEP_ROOT
                                     + prmVal.substring(1);
@@ -1416,17 +1211,19 @@ public class ResourceDefnsMngr {
             public int compare(ResourceDefinition rscDefn1,
                     ResourceDefinition rscDefn2) {
 
-                if (rscDefn1 == null)
+                if (rscDefn1 == null) {
                     return 1;
-                if (rscDefn2 == null)
+                }
+                if (rscDefn2 == null) {
                     return -1;
+                }
 
                 // categories will be the same for the types but we may want to
                 // order them differently
                 // based on the category
                 // for Surf or UAIR, Obs before Fcst
-                if (rscDefn1.getResourceCategory() == ResourceCategory.SurfaceRscCategory
-                        || rscDefn1.getResourceCategory() == ResourceCategory.UpperAirRscCategory) {
+                if ((rscDefn1.getResourceCategory() == ResourceCategory.SurfaceRscCategory)
+                        || (rscDefn1.getResourceCategory() == ResourceCategory.UpperAirRscCategory)) {
 
                     if ((!rscDefn1.isForecast() && rscDefn2.isForecast())
                             || (rscDefn1.isForecast() && !rscDefn2.isForecast())) {
@@ -1492,7 +1289,7 @@ public class ResourceDefnsMngr {
         TreeMap<LocalizationLevel, ResourceDefinitionFilter> filtMap = rscFiltersMap
                 .get(rscType);
         Iterator<LocalizationLevel> iter = filtMap.keySet().iterator();
-        LocalizationLevel llvl = (LocalizationLevel) iter.next();
+        LocalizationLevel llvl = iter.next();
 
         ResourceDefinitionFilter rdFilters = filtMap.get(llvl);
         return rdFilters;
@@ -1549,7 +1346,7 @@ public class ResourceDefnsMngr {
                 continue;
             }
 
-            if (filterStr == null
+            if ((filterStr == null)
                     || filterStr.isEmpty()
                     || getResourceDefnFilter(rscDefn.getResourceDefnName())
                             .testFilter(filterStr)) {
@@ -1669,11 +1466,11 @@ public class ResourceDefnsMngr {
 
         Map<String, AttributeSet> attrSetFiles = attrSetMap.get(asMapKey);
 
-        if (attrSetFiles == null || !attrSetFiles.containsKey(asName)) {
+        if ((attrSetFiles == null) || !attrSetFiles.containsKey(asName)) {
             return null;
         }
 
-        if (rscDefn.applyAttrSetGroups() && asgName != null
+        if (rscDefn.applyAttrSetGroups() && (asgName != null)
                 && !asgName.isEmpty()) {
 
             RscAndGroupName rscGrpName = new RscAndGroupName(
@@ -1682,7 +1479,7 @@ public class ResourceDefnsMngr {
             // Should we check that the asName is actually in the asGroup?
             AttrSetGroup asg = getAttrSetGroupForResource(rscGrpName);
 
-            if (asg == null || !asg.getAttrSetNames().contains(asName)) {
+            if ((asg == null) || !asg.getAttrSetNames().contains(asName)) {
                 out.println("Warning: AttrSet, " + asName
                         + ", is not in group " + asgName);
                 return null;
@@ -1927,8 +1724,8 @@ public class ResourceDefnsMngr {
 
         // if this is not a USER level file, we need to create another
         // Localization File at the USER Level
-        if (asgLclContext == null
-                || asgLclContext.getLocalizationLevel() != LocalizationLevel.USER) {
+        if ((asgLclContext == null)
+                || (asgLclContext.getLocalizationLevel() != LocalizationLevel.USER)) {
 
             asgLclContext = pathMngr.getContext(LocalizationType.CAVE_STATIC,
                     LocalizationLevel.USER);
@@ -2258,8 +2055,8 @@ public class ResourceDefnsMngr {
             for (AttrSetGroup asg : attrSetGroupsMap.values()) {
                 // if this is a BASE or SITE level group then it can't reference
                 // a user-defined attrSet.
-                if (asg.getLocalizationFile().getContext()
-                        .getLocalizationLevel() == LocalizationLevel.USER
+                if ((asg.getLocalizationFile().getContext()
+                        .getLocalizationLevel() == LocalizationLevel.USER)
                         && asg.getResource().equals(
                                 rscDefn.getResourceDefnName())) {
 
@@ -2285,7 +2082,7 @@ public class ResourceDefnsMngr {
 
                 for (AttrSetGroup asg : getAttrSetGroupsForResource(rscType)) {
 
-                    if (asg != null
+                    if ((asg != null)
                             && asg.getAttrSetNames().contains(attrSetName)) {
 
                         asg.removeAttrSet(attrSetName);
@@ -2398,17 +2195,7 @@ public class ResourceDefnsMngr {
             List<ResourceDefinition> rdList = new ArrayList<ResourceDefinition>();
             rdList.add(rscDefn);
 
-            List<String> errList = findOrCreateInventoryForRscDefns(rdList);
-
-            if (errList.isEmpty()) {
-                resourceDefnsMap.put(rscDefn.getResourceDefnName(), rscDefn);
-            } else {
-                throw new VizException("Error finding or Creating Inventory.");
-            }
-
-            // check to see if there is an inventory for this rscDefn or if
-            // we need to create one.
-
+            resourceDefnsMap.put(rscDefn.getResourceDefnName(), rscDefn);
         } catch (LocalizationOpFailedException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }

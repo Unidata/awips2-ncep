@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=ofsWatl
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

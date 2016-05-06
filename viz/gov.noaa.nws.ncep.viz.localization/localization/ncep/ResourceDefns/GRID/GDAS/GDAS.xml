@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=gdas
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

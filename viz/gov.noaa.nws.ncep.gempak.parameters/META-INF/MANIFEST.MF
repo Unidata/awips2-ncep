@@ -11,7 +11,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.4.1",
  com.raytheon.uf.viz.core;bundle-version="1.11.31",
  gov.noaa.nws.ncep.gempak.parameters.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: gov.noaa.nws.ncep.gempak.parameters.core.contourinterval,
  gov.noaa.nws.ncep.gempak.parameters.core.util,
  gov.noaa.nws.ncep.viz.common.ui,

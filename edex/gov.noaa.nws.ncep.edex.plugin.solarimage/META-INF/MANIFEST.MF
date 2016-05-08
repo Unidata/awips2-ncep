@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Fits
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.solarimage
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: gov.nasa.gsfc.fits,
  com.raytheon.edex.common;bundle-version="1.12.1174",
  gov.noaa.nws.ncep.common.dataplugin.solarimage;bundle-version="1.0.0"

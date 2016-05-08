@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Modis Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.modis
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization, org.geotools
 Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.17",
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",

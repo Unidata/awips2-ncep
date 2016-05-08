@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinitionFilters xmlns:ns2="com.raytheon.uf.common.datadelivery.registry" xmlns:ns3="http://www.example.org/productType">
-
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LocalRadar">
+<filters>Radar</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FNEXRAD">
+<filters>Radar</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES15-SXI-FM3">
 <filters>GOES</filters>
 </ResourceDefinitionFilter>

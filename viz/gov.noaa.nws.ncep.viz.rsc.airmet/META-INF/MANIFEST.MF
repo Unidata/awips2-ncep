@@ -22,6 +22,6 @@ Import-Package: com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.airmet,
  gov.noaa.nws.ncep.common.dataplugin.convsigmet,
  gov.noaa.nws.ncep.viz.ui.display
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.rsc.airmet,
  gov.noaa.nws.ncep.viz.rsc.airmet.rsc

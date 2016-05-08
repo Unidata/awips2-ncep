@@ -30,7 +30,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.style;bundle-version="1.0.0",
  com.raytheon.uf.viz.xy.timeseries
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.raytheon.uf.viz.xy.timeseries.adapter,
  com.raytheon.uf.viz.xy.timeseries.display,
  com.raytheon.uf.viz.xy.timeseries.graph,

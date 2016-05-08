@@ -23,6 +23,6 @@ Import-Package: com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.ui.pgen.display,
  gov.noaa.nws.ncep.ui.pgen.elements.tcm,
  gov.noaa.nws.ncep.viz.ui.display
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.rsc.hrcn,
  gov.noaa.nws.ncep.viz.rsc.hrcn.rsc

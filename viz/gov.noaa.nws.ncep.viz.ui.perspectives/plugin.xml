@@ -658,7 +658,7 @@
             </toolbar>
          </menuContribution>
          <menuContribution
-             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+             locationURI="toolbar:org.eclipse.ui.main.toolbar">
             <toolbar
                   id="NC-2">
                <command
@@ -704,7 +704,7 @@
             </toolbar>
          </menuContribution>
          <menuContribution
-             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+             locationURI="toolbar:org.eclipse.ui.main.toolbar">
             <toolbar
                   id="NC-3">
                 <command

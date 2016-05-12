@@ -994,7 +994,7 @@
          
          <key commandId="gov.noaa.nws.ncep.viz.ui.display.toggleLegend"
               contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext" 
-              schemeId="com.raytheon.viz.ui.awips.scheme"
+              schemeId="com.raytheon.viz.ui.cave.scheme"
               sequence="NUMPAD_ENTER">
         </key>
     </extension>

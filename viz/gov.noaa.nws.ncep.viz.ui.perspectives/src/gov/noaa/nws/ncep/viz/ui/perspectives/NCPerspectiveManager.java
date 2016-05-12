@@ -36,12 +36,14 @@ import javax.xml.bind.JAXBException;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 
 import com.raytheon.uf.common.dataplugin.satellite.units.SatelliteUnits;
 import com.raytheon.uf.common.derivparam.library.DerivedParameterGenerator;
@@ -119,6 +121,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/25/2015   R8833       N. Jensen   Added right click option to reverse legend mode
  * 02/04/2016   R13171      E. Brown    Added: short right click launches resource manager, added: item to launch resource
  *                                      manager in context menu that opens on long right mouse button
+ * 09/25/2015   5645        bsteffen    Eclipse 4: Use HandlerService for command execution.
  * </pre>
  * 
  * @author
@@ -166,6 +169,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
         ICommandService service = (ICommandService) curEd.getSite().getService(
                 ICommandService.class);
+        IHandlerService handlerService = curEd.getSite()
+                .getService(IHandlerService.class);
 
         Command cmd = service.getCommand(newDisplayCmd);
         if (cmd == null) {
@@ -177,8 +182,8 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             HashMap<String, Object> params = new HashMap<String, Object>();
             params.put("promptForName", "false");
 
-            ExecutionEvent exec = new ExecutionEvent(cmd, params, null, null);
-            Object obj = cmd.executeWithChecks(exec);
+            Object obj = handlerService.executeCommand(
+                    ParameterizedCommand.generateCommand(cmd, params), null);
 
             if (obj != null && obj instanceof AbstractEditor) {
 

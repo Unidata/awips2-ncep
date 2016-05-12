@@ -4,20 +4,19 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.common.preferences.NcepGeneralPreferencesPage;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Map;
 
 import org.eclipse.core.commands.Command;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.NotEnabledException;
-import org.eclipse.core.commands.NotHandledException;
-import org.eclipse.core.commands.common.NotDefinedException;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.commands.common.CommandException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.viz.ui.editor.EditorInput;
@@ -67,6 +66,8 @@ import com.raytheon.viz.ui.editor.VizMultiPaneEditor;
  * 01/18/12       #972         ghull       changed NCMapEditor to AbstractNcEditor
  * 01/20/12       #972         ghull       moved methods that simply delegated to NcPaneManager and 
  *                                         call them through NcEditorUtils.
+ * 09/25/2015     5645         bsteffen    Eclipse 4: Use HandlerService for command execution.
+
  * 
  * </pre>
  * 
@@ -227,41 +228,51 @@ public abstract class AbstractNcEditor extends VizMultiPaneEditor {
  	public void dispose() { 		
  		super.dispose();
 
-         IWorkbenchPage actPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-         
-         // if this is null then we are exiting
-         if( actPage == null ) {
-         	return;
-         }
- 				
  		IWorkbenchPage page = this.getSite().getPage();
 
+        IWorkbenchWindow window = page.getWorkbenchWindow();
+        
+        if (window.getWorkbench().isClosing()) {
+            return;
+        }
+
  		if( page.getEditorReferences().length == 0 ) {
- 			ICommandService service = (ICommandService) getSite().getService(
- 					ICommandService.class);
- 			Command cmd = service.getCommand("gov.noaa.nws.ncep.viz.ui.newMapEditor");
+            
+            ICommandService commandService = window
+                    .getService(ICommandService.class);
+            Command cmd = commandService
+                    .getCommand("gov.noaa.nws.ncep.viz.ui.newMapEditor");
  			if( cmd == null ) {
  				System.out.println("Can't find Command to create a new Display");
  				return;
  			}
- 			
- 			HashMap<String, Object> cmdParams = new HashMap<String, Object>();
- 			
- 			cmdParams.put("promptForName", "false" );
- 			
- 			ExecutionEvent event = new ExecutionEvent(
- 					cmd, cmdParams, null, null);
- 			try {
- 				cmd.executeWithChecks(event);
- 			} catch (ExecutionException e) {
- 				e.printStackTrace();
- 			} catch (NotDefinedException e) {
- 				e.printStackTrace();
- 			} catch (NotEnabledException e) {
- 				e.printStackTrace();
- 			} catch (NotHandledException e) {
- 				e.printStackTrace();
- 			}			
+
+            Map<String, Object> parameters = Collections
+                    .<String, Object> singletonMap("promptForName", "false");
+
+            final ParameterizedCommand pcmd = ParameterizedCommand
+                    .generateCommand(cmd, parameters);
+            final IHandlerService handlerService = window
+                    .getService(IHandlerService.class);
+
+            /*
+             * Dispose is called while in the process of removing the editor.
+             * Adding a new editor while still in the process of removing causes
+             * errors in eclipse. Run the new editor command async so it will
+             * occur after the removal is done.
+             */
+            window.getShell().getDisplay().asyncExec(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        handlerService.executeCommand(pcmd, null);
+                    } catch (CommandException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
  		}
  	}
     

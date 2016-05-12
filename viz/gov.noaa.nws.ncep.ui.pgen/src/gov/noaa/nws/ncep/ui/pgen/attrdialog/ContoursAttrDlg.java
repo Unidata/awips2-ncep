@@ -145,6 +145,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 03/30/2016   R16622      J. Wu       Use current date/time as default.
  * 03/23/2016   R16613      J. Huber    Change "Hide Labels" to "Collapse Levels".
+ * 05/07/2016   R17379      J. Wu       Overwrite contour level when user types in new value.
  * 
  * </pre>
  * 
@@ -4077,13 +4078,13 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
     /**
      * Call this to keep keyboard focus on the contour label text field. So the
      * user could type a new interval value without mouse click on the dialog.
-     * Also, the focus stays at the end of the text field so the user could use
-     * backspace to clean up the existing value.
+     * Also, the original text should be selected so whatever the user types
+     * will replace the existing value.
      */
     public void setLabelFocus() {
         if (!labelTxt.isDisposed()) {
             labelTxt.setFocus();
-            labelTxt.setSelection(labelTxt.getText().length());
+            labelTxt.selectAll();
 
             updateLabelBtnsSelection(labelTxt.getText());
         }

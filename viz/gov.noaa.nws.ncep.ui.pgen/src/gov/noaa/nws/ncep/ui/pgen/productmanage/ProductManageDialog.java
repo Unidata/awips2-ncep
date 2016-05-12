@@ -1,10 +1,3 @@
-/*
- * gov.noaa.nws.ncep.ui.pgen.productManage.ProductManageDialog
- * 
- * Sept 2009
- *
- * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
- */
 package gov.noaa.nws.ncep.ui.pgen.productmanage;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
@@ -24,7 +17,6 @@ import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -53,28 +45,33 @@ import org.eclipse.ui.PlatformUI;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 /**
+ * gov.noaa.nws.ncep.ui.pgen.productManage.ProductManageDialog his code has been
+ * developed by the NCEP/SIB for use in the AWIPS2 system.
+ * 
  * This class provides a dialog to manage PGEN products in National Centers
  * perspective.
  * 
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 09/09	  	#151		J. Wu		Initial creation. 
- * 09/10	  	#151		J. Wu		Updated with the layer configuration. 
- * 01/11	  	#151		J. Wu		Simplified output for post-processing 
- * 09/11	  	#335		J. Wu		Added file auto storage/acccess 
- * 09/11  		#335      	J. Wu 		made cascading menu for activity type/subtype. 
- * 06/12  		TTR253      J. Wu 		made layer check boxes to stay de-selected 
+ * ------------ ---------- -----------  --------------------------
+ * 09/09        #151        J. Wu       Initial creation. 
+ * 09/10        #151        J. Wu       Updated with the layer configuration. 
+ * 01/11        #151        J. Wu       Simplified output for post-processing 
+ * 09/11        #335        J. Wu       Added file auto storage/acccess 
+ * 09/11        #335        J. Wu       made cascading menu for activity type/subtype. 
+ * 06/12        TTR253      J. Wu       made layer check boxes to stay de-selected 
  *                                      unless the user selects them. 
- * 06/12		TTR559		B. Yin		Link the layer name to Outlook type
- * 12/12  		#937        J. Wu    	Update G_Airmet layers/hazard - "C&V"
- * 09/13  		?           J. Wu    	Use new "StoreActivityDialog" at exit.
- * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
+ * 06/12        TTR559      B. Yin      Link the layer name to Outlook type
+ * 12/12        #937        J. Wu       Update G_Airmet layers/hazard - "C&V"
+ * 09/13        ?           J. Wu       Use new "StoreActivityDialog" at exit.
+ * 11/13        #1049       B. Yin      Handle outlook type defined in layer.
  * 08/14        TTR962      J. Wu       Format output file with DD, MM, YYYY, HH.
  * 06/15        R8189       J. Wu       Set Pgen palette per layer.
  * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
- * 
+ * 05/02/2016   R16076      J. Wu       pull getPrdOutputFile() to PgenUtil.
+ * 05/10/2016   R13560      S. Russell  Updated exitProductManage() and renamed
+ *                                      it to exitPGenActivityManagement()
  * </pre>
  * 
  * @author jwu
@@ -89,14 +86,11 @@ public class ProductManageDialog extends ProductDialog {
      */
     private ArrayList<Product> prdList = null;
 
-    // private ArrayList<Combo> prdTypeCombos = null;
     private ArrayList<Text> prdTypeTexts = null;
 
     private ArrayList<Button> prdNameBtns = null;
 
     private ArrayList<Button> prdDispOnOffBtns = null;
-
-    // private ArrayList<Button> prdFileBtns = null;
 
     protected ProductNameDialog prdNameDlg = null;
 
@@ -110,11 +104,7 @@ public class ProductManageDialog extends ProductDialog {
 
     boolean openPrdNameDialog = false;
 
-    // private int prdFileBtnInUse = -1;
-
     protected LinkedHashMap<String, ProductType> prdTypesMap = null;
-
-    // private boolean multiSave = true;
 
     /**
      * Default colors for the default and active product of layer name button.
@@ -145,8 +135,6 @@ public class ProductManageDialog extends ProductDialog {
 
     private ArrayList<Button> colorModeBtns = null;
 
-    // private ArrayList<Button> lpfFileBtns = null;
-
     private Button allOnOffBtn = null;
 
     /**
@@ -157,8 +145,6 @@ public class ProductManageDialog extends ProductDialog {
     private int colorModeBtnInUse = -1;
 
     private boolean allOnOff = false;
-
-    // private int lpfFileBtnInUse = -1;
 
     /**
      * Open dialog in compact mode or full mode.
@@ -287,17 +273,12 @@ public class ProductManageDialog extends ProductDialog {
 
         currentLayer.setInUse(true);
 
-        prdNameBtns = new ArrayList<Button>();
-        prdDispOnOffBtns = new ArrayList<Button>();
-        prdTypeTexts = new ArrayList<Text>();
-        // prdTypeCombos = new ArrayList<Combo>();
-        // prdFileBtns = new ArrayList<Button>();
-
-        layerNameBtns = new ArrayList<Button>();
-        displayOnOffBtns = new ArrayList<Button>();
-        colorModeBtns = new ArrayList<Button>();
-        // lpfFileBtns = new ArrayList<Button>();
-
+        prdNameBtns = new ArrayList<>();
+        prdDispOnOffBtns = new ArrayList<>();
+        prdTypeTexts = new ArrayList<>();
+        layerNameBtns = new ArrayList<>();
+        displayOnOffBtns = new ArrayList<>();
+        colorModeBtns = new ArrayList<>();
     }
 
     /**
@@ -519,7 +500,7 @@ public class ProductManageDialog extends ProductDialog {
                 });
 
                 int ntyp = 1;
-                ArrayList<String> typeUsed = new ArrayList<String>();
+                ArrayList<String> typeUsed = new ArrayList<>();
                 for (String ptypName : prdTypesMap.keySet()) {
 
                     ProductType prdType = prdTypesMap.get(ptypName);
@@ -833,10 +814,7 @@ public class ProductManageDialog extends ProductDialog {
             }
 
             drawingLayer.setActiveLayer(currentLayer);
-
-            // openLayerNameDialog = false;
-
-            startProductManage();
+            startPGenActivityManagement();
         }
 
     }
@@ -862,16 +840,6 @@ public class ProductManageDialog extends ProductDialog {
     }
 
     /**
-     * Update a layer's input and output file name;
-     */
-    /*
-     * protected void updateLpfFileAttr( String fileIn, String fileOut ) { if (
-     * lpfFileBtnInUse >= 0 ) { layerList.get( lpfFileBtnInUse ).setInputFile(
-     * fileIn ); layerList.get( lpfFileBtnInUse ).setOutputFile( fileOut ); }
-     * 
-     * }
-     */
-    /*
      * Retrieve active layer;
      */
     protected Layer getActiveLayer() {
@@ -880,7 +848,7 @@ public class ProductManageDialog extends ProductDialog {
 
     }
 
-    /*
+    /**
      * Retrieve the layer associated with the color mode button;
      */
     protected Layer getLayerForColorMode() {
@@ -889,16 +857,6 @@ public class ProductManageDialog extends ProductDialog {
 
     }
 
-    /*
-     * Retrieve the layer associated with the file in/out button;
-     */
-    /*
-     * protected Layer getLayerForLpfFile() {
-     * 
-     * return layerList.get( lpfFileBtnInUse );
-     * 
-     * }
-     */
     /**
      * Edit a selected layer's name
      */
@@ -936,7 +894,7 @@ public class ProductManageDialog extends ProductDialog {
 
     }
 
-    /**
+    /*
      * Add a new layer.
      */
     private void addLayer() {
@@ -979,7 +937,7 @@ public class ProductManageDialog extends ProductDialog {
         layerInUse = layerList.size() - 1;
 
         // Re-open the layering control dialog.
-        startProductManage();
+        startPGenActivityManagement();
 
     }
 
@@ -1196,7 +1154,7 @@ public class ProductManageDialog extends ProductDialog {
         selectPGENClass();
 
         // Re-open the layering dialog.
-        startProductManage();
+        startPGenActivityManagement();
 
         PgenUtil.refresh();
 
@@ -1205,7 +1163,7 @@ public class ProductManageDialog extends ProductDialog {
     /**
      * Open the dialog.
      */
-    private void startProductManage() {
+    private void startPGenActivityManagement() {
 
         // Close dialogs.
         cleanupDialogs();
@@ -1235,23 +1193,30 @@ public class ProductManageDialog extends ProductDialog {
     }
 
     /**
-     * Exit product management.
+     * Exit the PGen Activity Management Center. Call a dialog asking the user
+     * if they would like to save their changes to the Activity Management
+     * Center dialogs.
      */
-    private void exitProductManage() {
+    private void exitPgenActivityManagement() {
 
-        /*
-         * Remind the user to save.
-         */
+        int returnCode = 0;
+
+        // If there are unsaved Activity Management Center changes
         if (needSaving()) {
+
+            // Launch a dialog box asking the user if they want to save their
+            // work
             MessageDialog confirmDlg = new MessageDialog(PlatformUI
                     .getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Confirm Exit from Product Management", null,
+                    "Confirm Exit from Activity Management", null,
                     "Do you want to save the changes?", MessageDialog.QUESTION,
-                    new String[] { "Yes", "No" }, 0);
+                    new String[] { "Yes", "No", "Cancel" }, 0);
 
-            confirmDlg.open();
+            returnCode = confirmDlg.open();
 
-            if (confirmDlg.getReturnCode() == MessageDialog.OK) {
+            // If the "Yes" button is pushed, bring up the diaglog to save
+            // the work
+            if (returnCode == MessageDialog.OK) {
 
                 StoreActivityDialog storeDlg = null;
                 if (storeDlg == null) {
@@ -1270,9 +1235,30 @@ public class ProductManageDialog extends ProductDialog {
         }
 
         /*
-         * Exit and reset to "Default" product with a "Default" Layer.
+         * If the Cancel button is pushed, don't save anything, and stop the
+         * process of shutting down the Activity Managment Center.
+         * 
+         * Note: JFace MessageDialogs assign int values to buttons from left to
+         * right.
+         * 
+         * Yes,No,Cancel becomes 0,1,2 respecitively. If Cancel was first it
+         * would be 0, not 2. *
+         * 
+         * Could not find any Eclipse enums or contstant where "Cancel" is 2, so
+         * a raw int is used in this conditional
          */
-        // Only one "Default" product
+
+        // If the Cancel button was pushed
+        if (returnCode == 2) {
+            // Abort the shutdown process of the Activity Management Center
+            return;
+        }
+
+        /*
+         * Reset to "Default" product with a "Default" Layer.
+         */
+
+        // If Only one "Default" product
         if (drawingLayer.getProducts().size() == 1
                 && currentProduct.getName().equalsIgnoreCase("Default")
                 && currentProduct.getType().equalsIgnoreCase("Default")) {
@@ -1311,8 +1297,8 @@ public class ProductManageDialog extends ProductDialog {
              * Dispose all layering dialogs.
              */
             cleanupDialogs();
-
             close();
+
         }
 
         // reset the output file to null
@@ -1347,7 +1333,7 @@ public class ProductManageDialog extends ProductDialog {
         exitBtn.setText("Exit");
         exitBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                exitProductManage();
+                exitPgenActivityManagement();
             }
         });
 
@@ -1377,7 +1363,7 @@ public class ProductManageDialog extends ProductDialog {
 
                 cleanupDialogs();
 
-                startProductManage();
+                startPGenActivityManagement();
 
             }
         });
@@ -1427,7 +1413,7 @@ public class ProductManageDialog extends ProductDialog {
         layerInUse = layerList.size() - 1;
 
         // Re-open the product manage dialog.
-        startProductManage();
+        startPGenActivityManagement();
 
     }
 
@@ -1484,7 +1470,7 @@ public class ProductManageDialog extends ProductDialog {
         PgenUtil.refresh();
 
         // Re-open the product manage dialog.
-        startProductManage();
+        startPGenActivityManagement();
 
         // load settings
         AttrSettings.getInstance().loadProdSettings(currentProduct.getType());
@@ -1533,7 +1519,7 @@ public class ProductManageDialog extends ProductDialog {
         PgenUtil.refresh();
 
         // Re-open the layering dialog.
-        startProductManage();
+        startPGenActivityManagement();
 
     }
 
@@ -1633,7 +1619,7 @@ public class ProductManageDialog extends ProductDialog {
 
             resetPalette(currentProduct, currentLayer);
 
-            startProductManage();
+            startPGenActivityManagement();
         }
 
     }
@@ -1642,14 +1628,20 @@ public class ProductManageDialog extends ProductDialog {
      * Update the layers defined in a new product type to a given product if the
      * new type is different from the given product's type.
      * 
-     * Rule: (1) Remove empty layers in the selected product, if there is at
-     * least one layer in the new product type. (2) If an existing layer has the
-     * same name as one defined in the new product type, update its attributes
-     * to those defined in the product type. (3) If a defined layer in the new
-     * product type does not exist in the selected product, add the defined
-     * layer. (4) If an existing layer is not empty but is not defined in the
-     * new product type, keep it as is and the user can decide later if to keep
-     * it or not.
+     * Rules:
+     * 
+     * (1) Remove empty layers in the selected product, if there is at least one
+     * layer in the new product type.
+     * 
+     * (2) If an existing layer has the same name as one defined in the new
+     * product type, update its attributes to those defined in the product type.
+     * 
+     * (3) If a defined layer in the new product type does not exist in the
+     * selected product, add the defined layer.
+     * 
+     * (4) If an existing layer is not empty but is not defined in the new
+     * product type, keep it as is and the user can decide later if to keep it
+     * or not.
      * 
      */
     private void updateLayerInfoFromNewPrdType(Product prd, String prdtype) {
@@ -1668,7 +1660,7 @@ public class ProductManageDialog extends ProductDialog {
             ProductType newType = prdTypesMap.get(prdtype);
 
             // remove empty layers.
-            ArrayList<Layer> layers = new ArrayList<Layer>();
+            ArrayList<Layer> layers = new ArrayList<>();
             for (Layer lyr : prd.getLayers()) {
                 if (lyr.getDrawables().size() > 0) {
                     layers.add(lyr);
@@ -1892,40 +1884,10 @@ public class ProductManageDialog extends ProductDialog {
      */
     public String getPrdOutputFile(Product prd) {
 
-        String sfile = null;
-
-        ProductType actTyp = prdTypesMap.get(prd.getType());
-        if (actTyp != null) {
-
-            if (actTyp.getPgenSave() != null) {
-                sfile = actTyp.getPgenSave().getOutputFile();
-            }
-
-            if (sfile != null && sfile.trim().length() > 0) {
-                String dtyp = new String(actTyp.getType());
-                String dstyp = actTyp.getSubtype();
-                if (dstyp != null && dstyp.trim().length() > 0
-                        && !dstyp.equalsIgnoreCase("None")) {
-                    dtyp = new String(actTyp.getType() + "(" + dstyp + ")");
-                }
-
-                if (!dtyp.equals(prd.getName())
-                        && (actTyp.getName() != null && !actTyp.getName()
-                                .equals(prd.getName()))) {
-                    sfile = new String(prd.getName() + "." + sfile);
-                }
-            }
-        }
-
-        if (sfile == null || sfile.trim().length() == 0) {
-            StringBuilder fname = new StringBuilder();
-            fname.append("Default.DDMMYYYY.HH.xml");
-            sfile = fname.toString();
-        }
+        String sfile = PgenUtil.buildPrdFileName(prd, prdTypesMap);
 
         String filename = new String(buildFilePath(prd) + File.separator
                 + sfile);
-        filename = PgenUtil.replaceWithDate(filename, Calendar.getInstance());
 
         return filename;
     }
@@ -1960,7 +1922,7 @@ public class ProductManageDialog extends ProductDialog {
     protected LinkedHashMap<String, String> getSubtypes(String ptype,
             boolean noAlias) {
 
-        LinkedHashMap<String, String> stypes = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> stypes = new LinkedHashMap<>();
 
         for (String typeID : prdTypesMap.keySet()) {
             ProductType prdType = prdTypesMap.get(typeID);
@@ -2015,7 +1977,7 @@ public class ProductManageDialog extends ProductDialog {
      * Clean up before close the shell - default is to do nothing.
      */
     protected void exit() {
-        exitProductManage();
+        exitPgenActivityManagement();
     }
 
     /*

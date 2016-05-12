@@ -1,6 +1,7 @@
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
 import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.controls.RetrieveActivityDialog.ActivityElement;
 
@@ -63,6 +64,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- -----------------------------------
  * 06/24/2015   R7806       A. Su       Initial creation.
+ * 05/03/2016   R16076      J. Wu       pull "optionAll" to PgenConstant.
  * 
  * </pre>
  * 
@@ -76,7 +78,7 @@ public class ActivityCollection {
     /**
      * The menu item in pull-down menus and a SWT list to designate all.
      */
-    private final static String optionAll = "All";
+    private final static String optionAll = PgenConstant.OPTION_ALL;
 
     /**
      * The internal string for empty desk or subtype.
@@ -92,7 +94,7 @@ public class ActivityCollection {
     /**
      * A list of activityElements retrieved from the database.
      */
-    private java.util.List<ActivityElement> retrievedActivityList = null;;
+    private java.util.List<ActivityElement> retrievedActivityList = null;
 
     /**
      * The current listing of the menu items in the pull-down menu for Site.

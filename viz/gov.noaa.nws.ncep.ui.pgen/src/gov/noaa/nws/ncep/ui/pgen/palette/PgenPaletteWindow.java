@@ -15,17 +15,20 @@ import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.controls.CommandStackListener;
+import gov.noaa.nws.ncep.ui.pgen.controls.StoreActivityDialog;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.filter.CategoryFilter;
 import gov.noaa.nws.ncep.ui.pgen.gfa.PreloadGfaDataThread;
 import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductDialogStarter;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenCycleTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenSelectingTool;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,9 +39,11 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -63,6 +68,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -74,10 +80,13 @@ import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.part.ViewPart;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
+import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.UiUtil;
@@ -127,6 +136,11 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  *                                      of buttons per row
  *                                      
  * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
+ * 
+ * 05/10/2016   R13560      S. Russell  Updated class declaration to implement
+ *                                      ISaveablePart2.  Added the Interface
+ *                                      methods for ISaveablePart and 
+ *                                      ISaveablePart2 *
  * </pre>
  * 
  * @author sgilbert
@@ -134,12 +148,18 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  */
 public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         DisposeListener, CommandStackListener, IPartListener2,
-        ISelectedPanesChangedListener {
+        ISelectedPanesChangedListener, ISaveablePart2 {
 
-    /*
-     * 1. Constants should be put in one place, probably in Utils.java. 2. The
-     * number of column is a configurable constant. User should be able to
-     * change it. We need to find a way to deal with these constants.
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(PgenPaletteWindow.class);
+
+    /*-
+     * 1. Constants should be put in one place, probably in Utils.java.
+     *  
+     * 2. The  number of column is a configurable constant. User should be 
+     * able to change it. 
+     * 
+     * TODO: We need to find a way to deal with these constants.
      */
 
     // blue
@@ -278,12 +298,11 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
          * gov.noaa.nws.ncep.ui.pgen.palette extension point, using the item's
          * name attribute as the key
          */
-        itemMap = new LinkedHashMap<String, IConfigurationElement>(
-                paletteElements.length);
-        controlNames = new ArrayList<String>();
-        actionNames = new ArrayList<String>();
-        classNames = new ArrayList<String>();
-        objectNames = new ArrayList<String>();
+        itemMap = new LinkedHashMap<>(paletteElements.length);
+        controlNames = new ArrayList<>();
+        actionNames = new ArrayList<>();
+        classNames = new ArrayList<>();
+        objectNames = new ArrayList<>();
 
         for (int i = 0; i < paletteElements.length; i++) {
 
@@ -308,9 +327,9 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
         // create hashmaps that will keep track of the buttons that appear on
         // the palette along with their images.
-        buttonMap = new HashMap<String, Button>();
-        iconMap = new HashMap<String, Image>();
-        activeIconMap = new HashMap<String, Image>();
+        buttonMap = new HashMap<>();
+        iconMap = new HashMap<>();
+        activeIconMap = new HashMap<>();
 
         // change the title to show cycle day and cycle hour
         PgenCycleTool.updateTitle();
@@ -927,6 +946,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         IWorkbenchPart part = partRef.getPart(false);
 
         if (part instanceof PgenPaletteWindow) {
+
             if (PgenUtil.getPgenMode() == PgenMode.SINGLE) {
                 PgenUtil.resetResourceData();
                 if (VizPerspectiveListener.getCurrentPerspectiveManager() == null) {
@@ -1185,7 +1205,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             try {
 
                 // Set up information to pass to the AbstractHandler
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", elem.getAttribute("name"));
                 params.put("className", elem.getAttribute("className"));
@@ -1256,7 +1276,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      *         of the Palette associated with the given Class/Category
      */
     public List<String> getObjectNames(String className) {
-        ArrayList<String> objs = new ArrayList<String>();
+        ArrayList<String> objs = new ArrayList<>();
         for (String name : getObjectNames()) {
             if (itemMap.get(name).getAttribute("className").equals(className))
                 objs.add(name);
@@ -1277,7 +1297,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
 
     /**
      * @param Name
-     *            of a button in the palette
+     *            of a button in the palate
      * @return The icon image associated with the button
      */
     public Image createNewImage(Image im, int fg, int bg) {
@@ -1451,7 +1471,7 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                     || currentAction.equalsIgnoreCase("Flip")
                     || currentAction.equalsIgnoreCase("Extrap")
                     || currentAction.equalsIgnoreCase("Interp")) {
-                IConfigurationElement elememt = itemMap.get(currentAction);
+                // IConfigurationElement elememt = itemMap.get(currentAction);
                 if (elem != null) {
                     exeCommand(itemMap.get(currentAction));
                 }
@@ -1461,4 +1481,128 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         paletteResize();
 
     }
-}
+
+    /*
+     * (non-Javadoc)
+     * 
+     * After the user has pressed "Yes" to save their PGen work launch a
+     * StoreActivityDialog for them to fill out the things in order to save it.
+     * 
+     * @see
+     * org.eclipse.ui.ISaveablePart#doSave(org.eclipse.core.runtime.IProgressMonitor
+     * )
+     */
+    public void doSave(IProgressMonitor monitor) {
+
+        StoreActivityDialog storeDialog = null;
+
+        try {
+            storeDialog = new StoreActivityDialog(PlatformUI.getWorkbench()
+                    .getActiveWorkbenchWindow().getShell(), "Save As");
+        } catch (VizException e) {
+            statusHandler.error("ERROR",
+                    "Failure To Save PGen Activty Upon Closing PGen", e);
+        }
+        if (storeDialog != null)
+            storeDialog.open();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * Is there unsaved PGen work?
+     * 
+     * @see org.eclipse.ui.ISaveablePart#isDirty()
+     */
+    public boolean isDirty() {
+        boolean needsSaving = false;
+        PgenResourceData prd = PgenSession.getInstance().getPgenResource()
+                .getResourceData();
+
+        if (prd == null) {
+            needsSaving = false;
+        } else {
+            needsSaving = prd.isNeedsSaving();
+        }
+
+        return needsSaving;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * Launch a custom dialog box to ask the user if they want to save their
+     * PGen work.
+     * 
+     * @see org.eclipse.ui.ISaveablePart2#promptToSaveOnClose()
+     */
+    public int promptToSaveOnClose() {
+
+        int returnCode = 0;
+
+        BufferedImage screenshot = PgenUtil.getActiveEditor()
+                .getActiveDisplayPane().getTarget().screenshot();
+
+        PgenResourceData prd = PgenSession.getInstance().getPgenResource()
+                .getResourceData();
+
+        if (prd != null) {
+            returnCode = prd.promptToSave(screenshot);
+        }
+
+        /*-
+         ********************************
+         Label   ISaveablePart2  IDialog
+         ********************************
+         YES     0               2
+         NO      1               3
+         CANCEL  2               1
+         *********************************
+         */
+
+        switch (returnCode) {
+        case IDialogConstants.YES_ID:
+            returnCode = ISaveablePart2.YES;
+            break;
+        case IDialogConstants.NO_ID:
+            PgenSession.getInstance().getPgenResource().getResourceData()
+                    .setNeedsSaving(false);
+            returnCode = ISaveablePart2.NO;
+            break;
+        case IDialogConstants.CANCEL_ID:
+            returnCode = ISaveablePart2.CANCEL;
+            break;
+        default:
+            returnCode = ISaveablePart2.YES;
+        }
+
+        return returnCode;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.ui.ISaveablePart#isSaveAsAllowed()
+     */
+    public boolean isSaveAsAllowed() {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.ui.ISaveablePart#isSaveOnCloseNeeded()
+     */
+    public boolean isSaveOnCloseNeeded() {
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.ui.ISaveablePart#doSaveAs()
+     */
+    public void doSaveAs() {
+    }
+
+}// end class PgenPaletteWindow

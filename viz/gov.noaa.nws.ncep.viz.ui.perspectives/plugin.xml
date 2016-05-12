@@ -970,7 +970,7 @@
          <key
             commandId="gov.noaa.nws.ncep.viz.actions.resourceManager"
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
+            schemeId="com.raytheon.viz.ui.cave.scheme"
             sequence="W">
                  <parameter
                        id="mode"
@@ -981,14 +981,14 @@
          <key
             commandId="gov.noaa.nws.ncep.viz.ui.actions.hideFrames"
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
+            schemeId="com.raytheon.viz.ui.cave.scheme"
             sequence="H">
          </key>  
 
          <key
             commandId="gov.noaa.nws.ncep.viz.ui.newResource"
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
+            schemeId="com.raytheon.viz.ui.cave.scheme"
             sequence="M1+SPACE">
          </key>
          

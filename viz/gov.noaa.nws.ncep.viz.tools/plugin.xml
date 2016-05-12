@@ -361,13 +361,13 @@
             <key
             commandId=""
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
+            schemeId="com.raytheon.viz.ui.cave.scheme"
             sequence="BACKSPACE">
           </key>
           <key
             commandId=""
             contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.awips.scheme"
+            schemeId="com.raytheon.viz.ui.cave.scheme"
             sequence="F12">
          </key>          
          <!-- Turn off the default keybinding in the National Centers context-->
@@ -411,7 +411,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F1">
                           <parameter id="keyNum" value="1"/>
          </key>
@@ -419,7 +419,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F2">
                           <parameter id="keyNum" value="2"/>
          </key>         
@@ -427,7 +427,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F3">
                           <parameter id="keyNum" value="3"/>
          </key>         
@@ -435,7 +435,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F4">
                           <parameter id="keyNum" value="4"/>
          </key>
@@ -443,7 +443,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F5">
                           <parameter id="keyNum" value="5"/>
          </key>         
@@ -451,7 +451,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F6">
                           <parameter id="keyNum" value="6"/>
          </key>   
@@ -459,7 +459,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F7">
                           <parameter id="keyNum" value="7"/>
          </key>
@@ -467,7 +467,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F8">
                           <parameter id="keyNum" value="8"/>
          </key>         
@@ -475,7 +475,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F9">
                           <parameter id="keyNum" value="9"/>
          </key>            
@@ -484,7 +484,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="F10">
                           <parameter id="keyNum" value="10"/>
          </key>
@@ -492,7 +492,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F1">
                           <parameter id="keyNum" value="11"/>
          </key>         
@@ -500,7 +500,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F2">
                           <parameter id="keyNum" value="12"/>
          </key>            
@@ -508,7 +508,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F3">
                           <parameter id="keyNum" value="13"/>
          </key>         
@@ -516,7 +516,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F4">
                           <parameter id="keyNum" value="14"/>
          </key>      
@@ -524,7 +524,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F5">
                           <parameter id="keyNum" value="15"/>
          </key>         
@@ -532,7 +532,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F6">
                           <parameter id="keyNum" value="16"/>
          </key>               
@@ -540,7 +540,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F7">
                           <parameter id="keyNum" value="17"/>
          </key>         
@@ -548,7 +548,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F8">
                           <parameter id="keyNum" value="18"/>
          </key>               
@@ -556,7 +556,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F9">
                           <parameter id="keyNum" value="19"/>
          </key>         
@@ -564,7 +564,7 @@
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M2+F10">
                           <parameter id="keyNum" value="20"/>
          </key>               
@@ -573,14 +573,14 @@
              <key
                 commandId="gov.noaa.nws.ncep.viz.ui.autoUpdate"
                 contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="A">
          </key>
          <!-- its easter egg time --> 
          <key
                 commandId="gov.noaa.nws.ncep.viz.ui.ncInventoryControl"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
+                schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="ALT+I">
          </key> 
          

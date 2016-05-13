@@ -145,6 +145,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 03/30/2016   R16622      J. Wu       Use current date/time as default.
  * 03/23/2016   R16613      J. Huber    Change "Hide Labels" to "Collapse Levels".
+ * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
  * 05/07/2016   R17379      J. Wu       Overwrite contour level when user types in new value.
  * 
  * </pre>
@@ -200,6 +201,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
     private final int MAX_QUICK_LINES = 8;
 
     private final int MAX_QUICK_SYMBOLS = 15;
+
+    private final int ROUND_UP_ONE_HOUR = 15; // Threshold to advance 1 hour
 
     private int numOfContrSymbols = 2;
 
@@ -3212,7 +3215,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                         selectedType = objstr;
 
                         Color clr = defaultButtonColor;
-                        Line ade = (Line) retrieveDefaultSettings(objstr);
+                        Line ade = (Line) contoursAttrSettings.get(objstr);
                         if (ade != null) {
                             clr = ade.getColors()[0];
                         }
@@ -3233,7 +3236,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         public void okPressed() {
 
             Color clr = activeButtonColor;
-            Line ade = (Line) retrieveDefaultSettings(selectedType);
+            Line ade = (Line) contoursAttrSettings.get(selectedType);
             if (ade != null) {
                 clr = ade.getColors()[0];
             }
@@ -3241,6 +3244,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
             activator.setData(selectedType);
             activator.setImage(getIcon(selectedType));
+            activator.setToolTipText(lineItemMap.get(selectedType)
+                    .getAttribute("label"));
             close();
         }
 
@@ -3322,7 +3327,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
                 if (str.equals(activator.getData().toString())) {
                     Color clr = defaultButtonColor;
-                    SinglePointElement ade = (SinglePointElement) retrieveDefaultSettings(str);
+                    SinglePointElement ade = (SinglePointElement) contoursAttrSettings
+                            .get(str);
                     if (ade != null) {
                         clr = ade.getColors()[0];
                     }
@@ -3337,12 +3343,6 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     public void handleEvent(Event event) {
 
                         Control[] wids = top.getChildren();
-                        Color clr = activeButtonColor;
-                        SinglePointElement ade = (SinglePointElement) retrieveDefaultSettings(selectedType);
-                        if (ade != null) {
-                            clr = ade.getColors()[0];
-                        }
-                        setButtonColor(activator, clr);
 
                         if (wids != null) {
                             for (int kk = 0; kk < wids.length; kk++) {
@@ -3353,9 +3353,10 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
                         String objstr = event.widget.getData().toString();
                         selectedType = objstr;
-                        Color clr1 = defaultButtonColor;
+                        Color clr1 = activeButtonColor;
 
-                        SinglePointElement ades = (SinglePointElement) retrieveDefaultSettings(objstr);
+                        SinglePointElement ades = (SinglePointElement) contoursAttrSettings
+                                .get(objstr);
                         if (ades != null) {
                             clr1 = ades.getColors()[0];
                         }
@@ -3376,7 +3377,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         public void okPressed() {
 
             Color clr = activeButtonColor;
-            SinglePointElement ade = (SinglePointElement) retrieveDefaultSettings(selectedType);
+            SinglePointElement ade = (SinglePointElement) contoursAttrSettings
+                    .get(selectedType);
             if (ade != null) {
                 clr = ade.getColors()[0];
             }
@@ -3384,6 +3386,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
             activator.setData(selectedType);
             activator.setImage(getIcon(selectedType));
+            activator.setToolTipText(symbolItemMap.get(selectedType)
+                    .getAttribute("label"));
 
             close();
         }
@@ -3936,12 +3940,12 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     (Contours) retrieveDefaultSettings(PgenConstant.CONTOURS));
 
             // Get all line types from "settings.tbl"
-            for (String str : contourLineType.keySet()) {
+            for (String str : lineIconType.keySet()) {
                 ncontoursAttrSettings.put(str, retrieveDefaultSettings(str));
             }
 
             // Get all symbols/markers from "settings.tbl"
-            for (String str : contourSymbolType.keySet()) {
+            for (String str : symbolItemMap.keySet()) {
                 ncontoursAttrSettings.put(str, retrieveDefaultSettings(str));
             }
 
@@ -4706,26 +4710,21 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
     /*
      * Initialize the default time to the current GMT time.
      * 
-     * If minutes >= 15, round to the next hour.
+     * If minutes >= ROUND_UP_ONE_HOUR (15 minutes), round to the next hour.
      * 
      * @param
      */
     private void setDefaultTimeToCurrent() {
         contourTime1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         int minute = contourTime1.get(Calendar.MINUTE);
-        if (minute >= 15) {
+        if (minute >= ROUND_UP_ONE_HOUR) {
             contourTime1.add(Calendar.HOUR_OF_DAY, 1);
         }
         contourTime1.set(Calendar.MINUTE, 0);
         contourTime1.set(Calendar.SECOND, 0);
         contourTime1.set(Calendar.MILLISECOND, 0);
 
-        contourTime2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        contourTime2.set(Calendar.HOUR_OF_DAY,
-                contourTime1.get(Calendar.HOUR_OF_DAY));
-        contourTime2.set(Calendar.MINUTE, 0);
-        contourTime2.set(Calendar.SECOND, 0);
-        contourTime2.set(Calendar.MILLISECOND, 0);
+        contourTime2 = (Calendar) contourTime1.clone();
     }
 
     /**

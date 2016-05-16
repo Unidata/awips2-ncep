@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.gempak.nativelib;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common.dataplugin.pgen;bundle-version="1.0.0",
- com.raytheon.uf.common.auth;bundle-version="1.12.1174"
+ com.raytheon.uf.common.auth;bundle-version="1.12.1174",
+ org.eclipse.core.expressions;bundle-version="3.5.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.ui.pgen.attrdialog,

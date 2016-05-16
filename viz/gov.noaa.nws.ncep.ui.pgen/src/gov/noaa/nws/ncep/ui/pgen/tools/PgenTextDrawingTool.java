@@ -49,11 +49,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/12         #591       J. Wu       TTR343 - added default label value for some fronts.
  * 10/13         TTR768     J. Wu       Set default attributes for outlook labels (Text).
  * 12/15         R12989     P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ *
  * </pre>
  * 
  * @author B. Yin
  */
-
 public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
     private boolean addLabelToSymbol;
@@ -88,14 +89,17 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
         if (attrDlg != null && !isDelObj()) {
 
-            String txt = "";
-            String param;
-            if ((param = event.getParameter(PgenConstant.EVENT_LABEL)) != null) {
+            String param = event.getParameter(PgenConstant.EVENT_LABEL);
+            if (param  != null) {
 
-                if (param.equalsIgnoreCase("true"))
+                AbstractDrawableComponent triggerComponent = PgenUtil
+                        .getTriggerComponent(event);
+
+                if (Boolean.parseBoolean(param)){
                     addLabelToSymbol = true;
-                if (event.getTrigger() instanceof AbstractDrawableComponent) {
-                    prevElem = (AbstractDrawableComponent) event.getTrigger();
+                }
+                if (triggerComponent != null) {
+                    prevElem = triggerComponent;
                     if (prevElem.getParent() instanceof Outlook
                             && ((Outlook) prevElem.getParent())
                                     .getOutlookType().equalsIgnoreCase(
@@ -180,7 +184,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                 if ((param = event
                         .getParameter(PgenConstant.EVENT_DEFAULT_TEXT)) != null
                         && !param.equalsIgnoreCase(PgenConstant.EVENT_OTHER)) {
-                    txt = param;
+                    String txt = param;
                     if (!txt.isEmpty()) {
                         String[] txtArray = { "", "" };
                         if (txt.contains("\n")) {
@@ -231,8 +235,6 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
             }
 
         }
-
-        return;
 
     }
 

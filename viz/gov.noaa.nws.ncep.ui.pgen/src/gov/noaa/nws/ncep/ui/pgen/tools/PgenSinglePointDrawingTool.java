@@ -41,6 +41,7 @@ import gov.noaa.nws.ncep.ui.pgen.attrdialog.VolcanoAttrDlg;
  * 05/09           #42      S. Gilbert  Added pgenType and pgenCategory
  * 05/09			79		B. Yin		Extends from AbstractPgenDrawingTool
  * 06/09		116			B. Yin		Use AbstractDrawableComponent
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * 
  * </pre>
  * 
@@ -61,26 +62,20 @@ public class PgenSinglePointDrawingTool extends AbstractPgenDrawingTool {
     	
     }
     
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
     protected void activateTool( ) {
-    	
     	super.activateTool();
         
     	if ( attrDlg != null && !isDelObj()){
     		
-    		String param;
-    		if ( event.getTrigger() instanceof AbstractDrawableComponent ) 
-    			prevElem = (AbstractDrawableComponent)event.getTrigger();
+            prevElem = PgenUtil.getTriggerComponent(event);
 
-    		if ( (param = event.getParameter("usePrevColor")) != null ) {
+            String param = event.getParameter("usePrevColor");
+            if (param != null) {
 
-    			if ( param.equalsIgnoreCase("true"))
-    				usePrevColor = true;
+                if (Boolean.parseBoolean(param)) {
+                    usePrevColor = true;
+                }
 
     			if ( usePrevColor){
     				((SymbolAttrDlg)attrDlg).setColor(prevElem.getPrimaryDE().getColors()[0]);

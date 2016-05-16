@@ -63,11 +63,12 @@ import com.vividsolutions.jts.geom.Point;
  * ------------	----------	-----------	--------------------------
  * 09/09					S. Gilbert   	Initial Creation.
  * 04/13        #977        S. Gilbert  PGEN Database support
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ *
  * </pre>
  * 
  * @author S. Gilbert
  */
-
 public class PgenTcaTool extends AbstractPgenDrawingTool {
 
     private static final String TCA_TYPE = "TCA";
@@ -124,9 +125,14 @@ public class PgenTcaTool extends AbstractPgenDrawingTool {
          * TCAElement to start with. Load it's attributes to the TCA attr
          * Dialog. If not. we will start with a new TCAelement
          */
-        elem = null;
-        if (event.getTrigger() instanceof TCAElement)
-            elem = (TCAElement) event.getTrigger();
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+
+        if (triggerComponent instanceof TCAElement) {
+            elem = (TCAElement) triggerComponent;
+        } else {
+            elem = null;
+        }
 
         if (attrDlg instanceof TcaAttrDlg) {
             tcaDlg = (TcaAttrDlg) attrDlg;

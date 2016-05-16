@@ -35,7 +35,6 @@ import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 
-
 /**
  * Implements a modal map tool to modify PGEN labeled lines.
  * 
@@ -47,11 +46,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/11			?		B. Yin		Added open/close line functions
  * 03/12        #697        Q. Zhou     Fixed line arrow head size
  * 03/13		#927		B. Yin		Added constructor for the handler. 
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ *
  * </pre>
  * 
  * @author	B. Yin
  */
-
 public class PgenLabeledLineModifyTool extends PgenSelectingTool implements 
         ILabeledLine{
 	Ccfp ccfp = null;
@@ -65,53 +65,46 @@ public class PgenLabeledLineModifyTool extends PgenSelectingTool implements
 	//location of the first mouse down
 	Coordinate click;
 
-	/*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
-    protected void activateTool( ) {
+    protected void activateTool() {
+        super.activateTool();
 
-    	super.activateTool();
-    	
-    	elSelected = null;
-    	click = null;
+        elSelected = null;
+        click = null;
 
         if (attrDlg == null)
             return;
 
-    	if ( event.getTrigger() instanceof Cloud ) {
-    		labeledLine = (LabeledLine)event.getTrigger();
-    		((CloudAttrDlg)attrDlg).setCloudDrawingTool(this);
-    		((CloudAttrDlg)attrDlg).resetLabeledLineBtns();
-    		
-    		if ( !(labeledLine == null )){
-    			((CloudAttrDlg)attrDlg).setAttrForDlg(null);
-          		attrDlg.enableButtons();
-    		}
-    	}
-    	else if ( event.getTrigger() instanceof Turbulence ) {
-    		labeledLine = (LabeledLine)event.getTrigger();
-    		((TurbAttrDlg)attrDlg).setTurbDrawingTool(this);
-    		((TurbAttrDlg)attrDlg).resetLabeledLineBtns();
-    		
-    		if ( !(labeledLine == null )){
-    			((TurbAttrDlg)attrDlg).setAttrForDlg(null);
-          		attrDlg.enableButtons();
-    		}
-    	}
-    	else if (event.getTrigger() instanceof Ccfp){
-    		labeledLine=(LabeledLine)event.getTrigger(); 
-    		attrDlg.enableButtons();
-    		((CcfpAttrDlg)attrDlg).setMouseHandlerName("LabeledLine Modify");    		
-    		ccfp=(Ccfp)labeledLine;
-    		((CcfpAttrDlg)attrDlg).setAttrForDlg(ccfp.getSigmet());
-    		((CcfpAttrDlg)attrDlg).setCcfpDrawingTool(this);
-    		ccfp.setAttributes(attrDlg);
-    	}
-    	this.setHandler( new PgenLabeledLineModifyHandler( this, mapEditor, drawingLayer, attrDlg ) );
-    	
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+
+        if (triggerComponent instanceof Cloud) {
+            labeledLine = (Cloud) triggerComponent;
+            CloudAttrDlg cloudAttrDlg = (CloudAttrDlg) attrDlg;
+            cloudAttrDlg.setCloudDrawingTool(this);
+            cloudAttrDlg.resetLabeledLineBtns();
+            cloudAttrDlg.setAttrForDlg(null);
+            cloudAttrDlg.enableButtons();
+        } else if (triggerComponent instanceof Turbulence) {
+            labeledLine = (Turbulence) triggerComponent;
+            TurbAttrDlg turbAttrDlg = (TurbAttrDlg) attrDlg;
+            turbAttrDlg.setTurbDrawingTool(this);
+            turbAttrDlg.resetLabeledLineBtns();
+            turbAttrDlg.setAttrForDlg(null);
+            turbAttrDlg.enableButtons();
+        } else if (triggerComponent instanceof Ccfp) {
+            ccfp = (Ccfp) triggerComponent;
+            labeledLine = ccfp;
+            CcfpAttrDlg ccfpAttrDlg = (CcfpAttrDlg) attrDlg;
+            ccfpAttrDlg.enableButtons();
+            ccfpAttrDlg.setMouseHandlerName("LabeledLine Modify");
+            ccfpAttrDlg.setAttrForDlg(ccfp.getSigmet());
+            ccfpAttrDlg.setCcfpDrawingTool(this);
+            ccfp.setAttributes(attrDlg);
+        }
+        this.setHandler(new PgenLabeledLineModifyHandler(this, mapEditor,
+                drawingLayer, attrDlg));
+
     }
 
     /**

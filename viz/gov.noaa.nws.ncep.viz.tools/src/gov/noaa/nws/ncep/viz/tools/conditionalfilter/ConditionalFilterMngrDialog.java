@@ -46,6 +46,7 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.conditionalfilter.ConditionalFilterMng
  * April 2012   #615             S. Gurung       Initial Creation
  * April 2012   #606             G. Hull         get 3 plot resource implementations.
  * 02/11/13      #972        G. Hull     AbstractEditor instead of NCMapEditor
+ * May 16, 2016 5647            tgurney         Remove minimize and maximize buttons
  * 
  * </pre>
  * 
@@ -84,7 +85,8 @@ public class ConditionalFilterMngrDialog extends Dialog {
 	public Object open() {
 		Shell parent = getParent();
 		Display display = parent.getDisplay();
-		shell = new Shell( parent, SWT.SHELL_TRIM | SWT.MODELESS);//SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
+        shell = new Shell(parent,
+                SWT.CLOSE | SWT.TITLE | SWT.RESIZE | SWT.MODELESS);
 		shell.setText("Conditional Filter Manager");
 
 		// Create the main layout for the shell.

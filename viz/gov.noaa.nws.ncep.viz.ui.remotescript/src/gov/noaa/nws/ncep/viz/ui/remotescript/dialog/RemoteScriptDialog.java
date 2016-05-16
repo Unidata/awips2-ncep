@@ -87,6 +87,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 03/14        ?           B. Yin  Initial Creation.
+ * May 16, 2016 5647        tgurney Remove maximize/minimize buttons
  * 
  * </pre>
  * 
@@ -136,8 +137,7 @@ public class RemoteScriptDialog extends Dialog implements IRemoteJobObserver {
 
     public RemoteScriptDialog(Shell parent) {
         super(parent);
-        setShellStyle(SWT.TITLE | SWT.CLOSE | SWT.MAX | SWT.MIN | SWT.RESIZE
-                | SWT.MODELESS);
+        setShellStyle(SWT.TITLE | SWT.CLOSE | SWT.RESIZE | SWT.MODELESS);
 
         JobsModelProvider.INSTANCE.registerJobObserver(this);
     }

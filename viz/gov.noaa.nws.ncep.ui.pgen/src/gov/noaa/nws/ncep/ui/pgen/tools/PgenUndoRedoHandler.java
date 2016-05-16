@@ -63,18 +63,16 @@ public class PgenUndoRedoHandler extends AbstractTool {
 
         PgenResource resource = session.getPgenResource();
         if (resource != null && resource.isEditable()) {
-            if (event.getParameter("name").equals("Undo")) {
+            String action = event.getParameter("name");
+            if ("Undo".equals(action)) {
                 session.getCommandManager().undo();
-
-            } else if (event.getParameter("name").equals("Redo")) {
+            } else if ("Redo".equals(action)) {
                 session.getCommandManager().redo();
-
-            } else if (event.getParameter("action") != null
-                    && !event.getParameter("action").isEmpty()) {
-                String actionToDo = event.getParameter("action");
-                if (actionToDo.equals("Undo")) {
+            } else {
+                action = event.getParameter("action");
+                if ("Undo".equals(action)) {
                     session.getCommandManager().undo();
-                } else if (actionToDo.equals("Redo")) {
+                } else if ("Redo".equals(action)) {
                     session.getCommandManager().redo();
                 }
             }

@@ -13,6 +13,7 @@ import gov.noaa.nws.ncep.ui.pgen.attrdialog.LineAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.WatchBoxAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
 import gov.noaa.nws.ncep.ui.pgen.display.ILine;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
@@ -36,38 +37,32 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/11		#?			B. Yin		Re-factor IAttribute
  * 03/12        #697        Q. Zhou     Fixed line arrow head size for watch
  * 12/13		TTR 800		B. Yin		Add a flag when opening the specification dialog.
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ * 
  * </pre>
  * 
- * @author	B. Yin
+ * @author B. Yin
  */
 
 public class PgenWatchStatusLineDrawingTool extends AbstractPgenDrawingTool{
 
 	//the watch element working on
-	private WatchBox wb;
+    private WatchBox wb;
 
-	/**
-	 * public constructor
-	 */
-	public PgenWatchStatusLineDrawingTool(){
-
-		super();
-
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-	 */
 	@Override
 	protected void activateTool( ) {
 		super.activateTool();
 
-		((LineAttrDlg)attrDlg).setSmoothLvl(0);
-		((LineAttrDlg)attrDlg).setColor(new Color[]{Color.RED, Color.RED });
+        LineAttrDlg lineAttrDlg = (LineAttrDlg) attrDlg;
+        lineAttrDlg.setSmoothLvl(0);
+        lineAttrDlg.setColor(new Color[] { Color.RED, Color.RED });
 
-		if ( event.getTrigger() instanceof WatchBox ) wb = (WatchBox)event.getTrigger(); 
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+
+        if (triggerComponent instanceof WatchBox) {
+            wb = (WatchBox) triggerComponent;
+        }
 
 		return;
 	}

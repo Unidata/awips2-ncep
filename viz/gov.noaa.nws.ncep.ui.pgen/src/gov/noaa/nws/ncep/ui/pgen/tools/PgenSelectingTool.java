@@ -9,6 +9,7 @@
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlgFactory;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
@@ -16,21 +17,21 @@ import gov.noaa.nws.ncep.ui.pgen.attrdialog.GfaAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.JetAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Jet;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
 import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
 import gov.noaa.nws.ncep.ui.pgen.gfa.Gfa;
+import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
 
 import java.util.Iterator;
 
-import org.eclipse.ui.IEditorPart;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
-import com.raytheon.viz.ui.EditorUtil;
-import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
  * Implements a modal map tool for PGEN selecting functions.
@@ -78,11 +79,12 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 03/13		 #927		B. Yin		Moved out the handler class.
  * 11/13		 #1063		B. Yin		Modified getMouseHandler to handle non-PgenSelectingMouseHandler
  * 11/13		 #1081		B. Yin		Removed prevDe and added getSelectedDE method.  
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
+ * 
  * </pre>
  * 
  * @author	B. Yin
  */
-
 public class PgenSelectingTool extends AbstractPgenDrawingTool 
 						implements IJetBarb {
 	
@@ -95,60 +97,44 @@ public class PgenSelectingTool extends AbstractPgenDrawingTool
     // if a jet is selected, it needs to be stored
     private Jet jet;
     
-    private Contours selectedContours;
-    
-    private boolean selectInContours;
-    
-    public PgenSelectingTool(){
-    	
-    	super();
-    	
-    }
-    
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
-    protected void activateTool( ) {
-    	
-    	if ( PgenSession.getInstance().getPgenPalette() == null ) return;
-    	
-    	IEditorPart ep = EditorUtil.getActiveEditor();
-        if (!(ep instanceof AbstractEditor) ){
+    protected void activateTool() {
+
+        PgenPaletteWindow palette = PgenSession.getInstance().getPgenPalette();
+        if (palette == null || editor == null) {
             return;
         }
-        //close attr dialog except contour dialog
-        if ( attrDlg != null && !(attrDlg instanceof ContoursAttrDlg) )attrDlg.close();
-    	attrDlg = null;
-    	if ( buttonName == null ) buttonName = new String("Select");
-    	PgenSession.getInstance().getPgenPalette().setDefaultAction();
 
-    	super.activateTool();
-    	
-    	/*
-    	 *  Check if the trigger object is a Contours
-    	 */
-    	Object de = event.getTrigger();
-    	if ( de instanceof Contours ) {
-    		selectInContours = true;
-     		selectedContours = (Contours)de;
-     	}
-    	else if ( de instanceof Gfa ) { //Added for gfa move text.
-    		attrDlg = AttrDlgFactory.createAttrDlg( ((Gfa)de).getPgenCategory(), ((Gfa)de).getPgenType(),
-        			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell() );
-    		attrDlg.setBlockOnOpen(false);
-    		if (attrDlg.getShell() == null) attrDlg.open();
-    		((GfaAttrDlg)attrDlg).enableMoveTextBtn(true);
-    		drawingLayer.setSelected((Gfa)de);
-    		editor.refresh();
-     	}
-	    else {
-     		selectInContours = false;  
-     		this.resetMouseHandler();
-	    }
-        
+        /* close attr dialog except contour dialog */
+        if (attrDlg != null && !(attrDlg instanceof ContoursAttrDlg)) {
+            attrDlg.close();
+        }
+        attrDlg = null;
+        if (buttonName == null) {
+            buttonName = "Select";
+        }
+        palette.setDefaultAction();
+
+        super.activateTool();
+
+        /* Check if the trigger object is a Contours */
+        AbstractDrawableComponent de = PgenUtil.getTriggerComponent(event);
+        if (de instanceof Gfa) { // Added for gfa move text.
+            Gfa gfa = (Gfa) de;
+            Shell shell = palette.getSite().getShell();
+            attrDlg = AttrDlgFactory.createAttrDlg(gfa.getPgenCategory(),
+                    gfa.getPgenType(), shell);
+            attrDlg.setBlockOnOpen(false);
+            if (attrDlg.getShell() == null) {
+                attrDlg.open();
+            }
+            ((GfaAttrDlg) attrDlg).enableMoveTextBtn(true);
+            drawingLayer.setSelected(gfa);
+            editor.refresh();
+        } else if (!(de instanceof Contours)) {
+            this.resetMouseHandler();
+        }
+
     }
 
     /*

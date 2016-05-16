@@ -16,6 +16,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -49,7 +52,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 06/19/12       #624      Greg Hull    clone imported RBD and set size based 
  *                                       on prev width.
  * 02/22/13       #972      Greg Hull    AbstractEditor
- *                                       
+ * May 16, 2016 5655        bsteffen     Close shell when parent is closed.
+ * 
  * </pre>
  * 
  * @author 
@@ -86,6 +90,30 @@ public class ResourceManagerDialog extends Dialog {
 
     	shell = new Shell( SWT.SHELL_TRIM | SWT.MODELESS );
     	shell.setText( dlgTitle);
+
+        final Shell parentShell = parShell;
+        final Shell currentShell = shell;
+        ShellListener closeListener = new ShellAdapter() {
+
+            @Override
+            public void shellClosed(ShellEvent e) {
+                if (e.widget != currentShell && !currentShell.isDisposed()) {
+                    currentShell.close();
+                }
+                parentShell.removeShellListener(this);
+            }
+
+        };
+        /*
+         * Add the close listener to parentShell so when the parent is closed
+         * the dialog will close.
+         */
+        parentShell.addShellListener(closeListener);
+        /*
+         * Add the close listener to the currentShell so when the dialog is
+         * closed it can remove the shell listener from the parent.
+         */
+        currentShell.addShellListener(closeListener);
 
     	GridLayout mainLayout = new GridLayout(1, true);
     	mainLayout.marginHeight = 1;

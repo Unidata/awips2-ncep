@@ -1,0 +1,8 @@
+colorMapName=wv_tpc
+colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
+! The DB values have spaces but imageType must use " "s. 
+imageType=CH-09-6.95um
+displayUnitStr=GenericPixel
+alpha=1.0
+brightness=1.0
+contrast=1.0

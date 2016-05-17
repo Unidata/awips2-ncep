@@ -112,6 +112,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  03/12/2014      920      pswamy      Implemented changes to fix GINI VIS image display problems.
  *  03/23/2015      R6944    mkean       use new style rule manager
  *  Sep 28, 2015    11385    njensen     Fix setDescriptor signature for proper generics
+ *  04/13/2016      R15954   SRussell    Updated method 
+ *                                       FrameData.updateFrameData()
  * 
  * </pre>
  * 
@@ -224,6 +226,20 @@ public abstract class AbstractSatelliteResource extends
                         initializeFirstFrame(satRec);
                     }
 
+                    if (tileSet != null && tileTime != null) {
+                        if (timeMatch(satRec.getDataTime()) >= timeMatch(tileTime)) {
+                            return false;
+                        } else {
+                            // if this is a better match, we need to
+                            // create a new tile.
+                            if (tileSet != baseTile) {
+                                tileSet.dispose();
+                            }
+                            tileSet = null;
+
+                        }
+                    }
+
                     if (baseTile == null) {
 
                         if (getProjectionFromRecord(satRec).equalsIgnoreCase(
@@ -250,29 +266,15 @@ public abstract class AbstractSatelliteResource extends
                                     AbstractSatelliteResource.this,
                                     PixelInCell.CELL_CORNER, viewType);
                             tileTime = satRec.getDataTime();
+
                         }
                     } else {
-                        // if the tileset is already set, and the new record is
-                        // is not a better match then return
-                        if (tileSet != null && tileTime != null) {
-                            if (timeMatch(satRec.getDataTime()) >= timeMatch(tileTime)) {
-                                return false;
-                            } else {
-                                // if this is a better match, we need to
-                                // create a new tile.
-                                if (tileSet == baseTile) {
-                                    tileSet = null;
-                                } else {
-                                    tileSet.dispose();
-                                    tileSet = null;
-                                }
-                            }
-                        }
 
                         tileSet = new McidasFileBasedTileSet(satRec, "Data",
                                 baseTile);
                         tileTime = satRec.getDataTime();
                         gridGeom = baseGeom;
+
                     }
 
                     tileSet.setMapDescriptor(getNcMapDescriptor());

@@ -1587,6 +1587,9 @@
 <ResourceDefinitionFilter rscDefnName="WINDSAT">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="SIMGOESR">
+<filters>SIMGOESR</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="VAAC">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>

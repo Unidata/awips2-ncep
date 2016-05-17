@@ -80,6 +80,7 @@ import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.UiUtil;
 import com.raytheon.viz.ui.VizWorkbenchManager;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -127,6 +128,8 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  *                                      of buttons per row
  *                                      
  * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
+ * 05/17/2016   5641        njensen     Don't activate context outside of NCP 
+ * 
  * </pre>
  * 
  * @author sgilbert
@@ -1307,19 +1310,26 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
     }
 
     private void deactivatePGENContext() {
-        if (pgenContextActivation != null) {
-
-            IContextService ctxSvc = (IContextService) PlatformUI
-                    .getWorkbench().getService(IContextService.class);
+        IEditorPart editor = EditorUtil.getActiveEditor();
+        if (pgenContextActivation != null
+                && PgenUtil.isNatlCntrsEditor(editor)) {
+            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+                    .getService(IContextService.class);
             ctxSvc.deactivateContext(pgenContextActivation);
             pgenContextActivation = null;
         }
     }
 
     private void activatePGENContext() {
-        if (pgenContextActivation == null) {
-            IContextService ctxSvc = (IContextService) PlatformUI
-                    .getWorkbench().getService(IContextService.class);
+        /*
+         * Don't activate context outside of NCP, key bindings will conflict
+         * with D2D
+         */
+        IEditorPart editor = EditorUtil.getActiveEditor();
+        if (pgenContextActivation == null
+                && PgenUtil.isNatlCntrsEditor(editor)) {
+            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+                    .getService(IContextService.class);
             pgenContextActivation = ctxSvc
                     .activateContext("gov.noaa.nws.ncep.ui.pgen.pgenContext");
         }

@@ -3413,6 +3413,9 @@
              <contextId
                    id="gov.noaa.nws.ncep.viz.ui.display.NCMapContext">
              </contextId>
+             <contextId
+                   id="gov.noaa.nws.ncep.ui.pgen.pgenContext">
+             </contextId>
          </classContext>
    </extension>
 </plugin>

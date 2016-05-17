@@ -1578,6 +1578,15 @@
 <ResourceDefinitionFilter rscDefnName="GOES15">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GOES-2">
+<filters>Standard,McIdas,GOES</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="SSMI">
+<filters>Standard,McIdas,GOES</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="WINDSAT">
+<filters>Standard,McIdas,GOES</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="VAAC">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>

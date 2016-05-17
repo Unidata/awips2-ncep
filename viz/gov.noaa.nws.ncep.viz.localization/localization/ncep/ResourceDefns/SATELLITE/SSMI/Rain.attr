@@ -1,7 +1,7 @@
-colorMapName=lingray
+colorMapName=microrain
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=VIS
-displayUnitStr=BRIT
+imageTypeId=85GHz
+displayUnitStr=C
 alpha=1.0
 brightness=1.0
 contrast=1.0

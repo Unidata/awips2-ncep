@@ -1,6 +1,6 @@
 colorMapName=lingray
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageTypeId=INFRARED
+imageTypeId=IR_10p7um-Clear
 displayUnitStr=C
 alpha=1.0
 brightness=1.0

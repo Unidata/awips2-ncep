@@ -1,7 +1,7 @@
-colorMapName=lingray
+colorMapName=wv_tpc
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
-imageType=CH-09-6.94um
+imageType=CH-08-6.24um
 displayUnitStr=GenericPixel
 alpha=1.0
 brightness=1.0

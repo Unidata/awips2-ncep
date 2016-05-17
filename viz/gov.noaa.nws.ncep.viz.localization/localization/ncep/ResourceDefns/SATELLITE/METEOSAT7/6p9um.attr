@@ -1,6 +1,6 @@
-colorMapName=lingray
+colorMapName=wv_tpc
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-imageType=IR2
+imageTypeId=WV_6p9um-UL
 displayUnitStr=C
 alpha=1.0
 brightness=1.0

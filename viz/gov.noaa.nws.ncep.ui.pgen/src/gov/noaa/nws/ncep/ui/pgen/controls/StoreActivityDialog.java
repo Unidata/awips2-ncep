@@ -11,6 +11,8 @@ import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
@@ -24,6 +26,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -31,6 +37,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -56,6 +63,8 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 01/14        #1105       J. Wu       Pre-fill for each activity info.
  * 05/14        TTR 963     J. Wu       Change activity Info to Activity Label.
  * 01/7/2016    R13162      J. Lopez    Added a combo box to save the file using the Default name
+ * 04/14/2016   R13245      B. Yin      Changed reference time to 24 hour format.
+ *                                      Added a drop down list for reference time.
  * 
  * 
  * </pre>
@@ -80,6 +89,10 @@ public class StoreActivityDialog extends CaveJFACEDialog {
     private static final int SHELLMINIMUMLENGTH = 400;
 
     private static final int PREFERREDWIDTH = 400;
+    
+    private static final int REF_TIME_LIMIT = 4;
+
+    private static final int REF_TIME_WIDTH = 90;
 
     private String title = null;
 
@@ -105,7 +118,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private DateTime validDate;
 
-    private DateTime validTime;
+    private Combo validTime;
 
     private Button autoSaveOffBtn;
 
@@ -309,11 +322,46 @@ public class StoreActivityDialog extends CaveJFACEDialog {
                 .setToolTipText("Activity's reference date, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
 
-        validTime = new DateTime(g2, SWT.BORDER | SWT.TIME | SWT.SHORT);
+        validTime = new Combo(g2, SWT.DROP_DOWN);
 
         validTime
                 .setToolTipText("Activity's reference time, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
+
+        validTime.setTextLimit(REF_TIME_LIMIT);
+        validTime.setLayoutData(new GridData(REF_TIME_WIDTH, -1));
+
+        Calendar curTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        validTime.setText(String.format("%02d%2d",
+                        curTime.get(Calendar.HOUR_OF_DAY),
+                        curTime.get(Calendar.MINUTE)));
+
+        validTime.addVerifyListener(new VerifyListener() {
+            @Override
+            public void verifyText(VerifyEvent ve) {
+                if (PgenUtil.validateDigitInput(ve)) {
+                    ve.doit = true;
+                } else {
+                    ve.doit = false;
+                    Display.getCurrent().beep();
+                }
+            }
+        });
+
+        validTime.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                if (!validTime.getText().isEmpty()) {
+                    if (PgenUtil.validateUTCTime(validTime.getText())) {
+                        validTime.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_WHITE));
+                    } else {
+                        validTime.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_RED));
+                    }
+                }
+            }
+        });
 
         Label utcLabel = new Label(g2, SWT.NONE);
         utcLabel.setText("UTC");
@@ -448,8 +496,26 @@ public class StoreActivityDialog extends CaveJFACEDialog {
             validDate.setYear(datetime.get(Calendar.YEAR));
             validDate.setMonth(datetime.get(Calendar.MONTH));
             validDate.setDay(datetime.get(Calendar.DAY_OF_MONTH));
-            validTime.setHours(datetime.get(Calendar.HOUR_OF_DAY));
-            validTime.setMinutes(datetime.get(Calendar.MINUTE));
+            validTime.setText(String.format("%02d%02d",
+                    datetime.get(Calendar.HOUR_OF_DAY),
+                    datetime.get(Calendar.MINUTE)));
+        }
+
+        /*
+         * Creates a drop down list for reference time
+         */
+        ProductType pType = ProductConfigureDialog.getProductTypes().get(type);
+
+        if ((pType != null) && (pType.getPgenSave() != null)
+                && (pType.getPgenSave().getRefTimeList() != null)) {
+            for (String refTime : pType.getPgenSave().getRefTimeList()
+                    .split(";")) {
+                validTime.add(refTime);
+            }
+        } else {
+            for (int jj = 0; jj < 24; jj++) {
+                validTime.add(String.format("%02d00", jj));
+            }
         }
 
     }
@@ -519,9 +585,18 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         info.setStatus(statusText.getText());
 
         Calendar refTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+        int hours = 0;
+        int minutes = 0;
+
+        try {
+            hours = Integer.valueOf(validTime.getText().substring(0, 2));
+            minutes = Integer.valueOf(validTime.getText().substring(2, 4));
+        } catch (Exception e) {
+        }
+
         refTime.set(validDate.getYear(), validDate.getMonth(),
-                validDate.getDay(), validTime.getHours(),
-                validTime.getMinutes(), 0);
+                validDate.getDay(), hours, minutes, 0);
         refTime.set(Calendar.MILLISECOND, 0);
 
         info.setRefTime(refTime);

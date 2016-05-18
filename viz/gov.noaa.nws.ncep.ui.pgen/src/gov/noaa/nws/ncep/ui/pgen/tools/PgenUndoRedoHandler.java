@@ -12,6 +12,8 @@ import org.eclipse.core.commands.ExecutionException;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 
 import com.raytheon.viz.ui.tools.AbstractTool;
 
@@ -28,6 +30,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * 
  * 04/10        ?          S. Gilbert   Created.
  * 12/09   R5197/TTR1056   J. Wu        Reset to the last action after Undo/Redo.
+ * May 16, 2016 5640        bsteffen    Access button name through command parameter.
  * 
  * </pre>
  * 
@@ -46,34 +49,31 @@ public class PgenUndoRedoHandler extends AbstractTool {
      */
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
+        PgenSession session = PgenSession.getInstance();
+        PgenPaletteWindow palette = session.getPgenPalette();
 
-        String activeIcon = PgenSession.getInstance().getPgenPalette()
-                .getCurrentAction();
+        String activeIcon = palette.getCurrentAction();
         if (activeIcon != null && !activeIcon.equals("Undo")
                 && !activeIcon.equals("Redo")) {
             lastActionIcon = activeIcon;
         }
 
-        String commandID = PgenSession.getInstance().getPgenPalette()
-                .getItemMap().get(lastActionIcon).getAttribute("commandId");
+        String commandID = palette.getItemMap().get(lastActionIcon)
+                .getAttribute("commandId");
 
-        if (PgenSession.getInstance().getPgenResource() != null
-                && PgenSession.getInstance().getPgenResource().isEditable()) {
-            if (event.getApplicationContext().equals("Undo"))
-                PgenSession.getInstance().getCommandManager().undo();
-
-            else if (event.getApplicationContext().equals("Redo"))
-                PgenSession.getInstance().getCommandManager().redo();
-
-            else {
-                if (event.getParameter("action") != null
-                        && !event.getParameter("action").isEmpty()) {
-                    String actionToDo = new String(event.getParameter("action"));
-                    if (actionToDo.equals("Undo")) {
-                        PgenSession.getInstance().getCommandManager().undo();
-                    } else if (actionToDo.equals("Redo")) {
-                        PgenSession.getInstance().getCommandManager().redo();
-                    }
+        PgenResource resource = session.getPgenResource();
+        if (resource != null && resource.isEditable()) {
+            String action = event.getParameter("name");
+            if ("Undo".equals(action)) {
+                session.getCommandManager().undo();
+            } else if ("Redo".equals(action)) {
+                session.getCommandManager().redo();
+            } else {
+                action = event.getParameter("action");
+                if ("Undo".equals(action)) {
+                    session.getCommandManager().undo();
+                } else if ("Redo".equals(action)) {
+                    session.getCommandManager().redo();
                 }
             }
 

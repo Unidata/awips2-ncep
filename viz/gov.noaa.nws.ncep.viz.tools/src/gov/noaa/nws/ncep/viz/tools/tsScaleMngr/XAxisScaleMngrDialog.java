@@ -49,6 +49,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * Date         Ticket#         Engineer        Description
  * ------------ ----------      -----------     --------------------------
  * 09/2014      R4875           sgurung         Initial creation
+ * May 16, 2016 5647            tgurney         Remove minimize/maximize buttons
  * 
  * </pre>
  * 
@@ -88,10 +89,8 @@ public class XAxisScaleMngrDialog extends Dialog {
     public Object open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
-        shell = new Shell(parent, SWT.SHELL_TRIM | SWT.MODELESS);// SWT.DIALOG_TRIM
-                                                                 // | SWT.RESIZE
-                                                                 // |
-                                                                 // SWT.APPLICATION_MODAL);
+        shell = new Shell(parent,
+                SWT.CLOSE | SWT.TITLE | SWT.RESIZE | SWT.MODELESS);
         shell.setText("Time-series X-axis Scale Manager");
 
         // Create the main layout for the shell.

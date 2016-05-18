@@ -356,21 +356,7 @@
        <scheme 
             id="gov.noaa.nws.ncep.viz.ui.NCPerspective.scheme"
             name="NcPerspective Key Binding Scheme"
-            /> 
-            <!-- Turn off Raytheon's keybinding in the National Centers context-->
-            <key
-            commandId=""
-            contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.cave.scheme"
-            sequence="BACKSPACE">
-          </key>
-          <key
-            commandId=""
-            contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext"
-            schemeId="com.raytheon.viz.ui.cave.scheme"
-            sequence="F12">
-         </key>          
-         <!-- Turn off the default keybinding in the National Centers context-->
+            />
 
          <key
                 commandId=""
@@ -406,8 +392,8 @@
                 schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
                 sequence="L">
          </key>
-                <!-- Hot keys from F1 though F10 activate tabs 1 through 10 respectively
-                      Hot keys <Shift + F1> through <Shift + F10> activate tabs 11 through 20 respectively-->
+                <!-- Hot keys from F1 though F10 activate power legends 1 through 10 respectively
+                      Hot keys <Shift + F1> through <Shift + F10> activate power legends 11 through 20 respectively-->
          <key
                 commandId="gov.noaa.nws.ncep.viz.tools.hotKeys.tabNavigation"
                 contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"

@@ -13,6 +13,9 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw"
           name="Pgen Single Point Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
+          <commandParameter id="usePrevColor" name="Use Previous Color" optional="true" />
       </command>     
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -43,6 +46,8 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenOutlookSetCont"
           name="Pgen Outlook Set Continue Lines">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>  
   	  <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -63,6 +68,9 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenLabeledLineModify"
           name="Pgen Labeled Line Modify">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
+          <commandParameter id="type" name="Sigmet Type" optional="true" />
       </command> 
 	  <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -73,11 +81,15 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchStatusLineDraw"
           name="Pgen Watch Status Line Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>  
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchBoxModify"
           name="Pgen Watch Box Modify">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -89,6 +101,11 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenTextDraw"
           name="Pgen Text Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
+          <commandParameter id="addLabel" name="Add label" optional="true" />
+          <commandParameter id="usePrevColor" name="Use Previous Color" optional="true" />
+          <commandParameter id="defaultTxt" name="Default Text" optional="true" />
       </command>      
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -277,11 +294,15 @@
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.tca"
           name="TCA">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.contours"
           name="Contours">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenVolCreate" 
@@ -290,6 +311,8 @@
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenTCMtool" 
           name="Pgen TCM Create"> 
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSpenesTool" 

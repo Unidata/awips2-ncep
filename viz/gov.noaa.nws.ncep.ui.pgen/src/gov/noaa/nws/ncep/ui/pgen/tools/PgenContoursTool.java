@@ -58,6 +58,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/14        TTR1008     J. Wu       Remove confirmation dialog when adding to an existing contour.
  * 01/15        R5200/T1059 J. Wu       Use setSettings(de) to save last-used attributes.
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * 
  * </pre>
  * 
@@ -93,34 +94,22 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
     private int redo = -1;
 
-    public PgenContoursTool() {
-
-        super();
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
     protected void activateTool() {
-
         super.activateTool();
-        // LibraryLoader.load("g2g");
 
         /*
          * if the ExecutionEvent's trigger has been set, it should be something
          * from a Contours to start with. Load it's attributes to the Contours
          * attr Dialog. If not. we will start with a new Contours.
          */
-        Object de = event.getTrigger();
+        AbstractDrawableComponent de = PgenUtil.getTriggerComponent(event);
 
-        // The same tool could be activated again (for instance, click on PGEN
-        // palette and then click in the editor).
-        // However the trigger of the event may not be the current contour if
-        // the contour is modified.
+        /*
+         * The same tool could be activated again (for instance, click on PGEN
+         * palette and then click in the editor). However the trigger of the
+         * event may not be the current contour if the contour is modified.
+         */
         if (event != lastEvent) {
             if (de instanceof Contours) {
                 elem = (Contours) de;
@@ -134,20 +123,17 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
         }
 
         if (attrDlg instanceof ContoursAttrDlg) {
-            ((ContoursAttrDlg) attrDlg).setDrawingTool(this);
+            ContoursAttrDlg contoursAttrDialog = (ContoursAttrDlg) attrDlg;
+            contoursAttrDialog.setDrawingTool(this);
             if (de != null) {
-                ((ContoursAttrDlg) attrDlg).setSelectMode();
+                contoursAttrDialog.setSelectMode();
             } else {
-                ((ContoursAttrDlg) attrDlg)
-                        .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.DRAW_LINE);
+                contoursAttrDialog.setDrawingStatus(
+                        ContoursAttrDlg.ContourDrawingStatus.DRAW_LINE);
             }
 
-            ((ContoursAttrDlg) attrDlg).setLabelFocus();
-
+            contoursAttrDialog.setLabelFocus();
         }
-
-        return;
-
     }
 
     /**

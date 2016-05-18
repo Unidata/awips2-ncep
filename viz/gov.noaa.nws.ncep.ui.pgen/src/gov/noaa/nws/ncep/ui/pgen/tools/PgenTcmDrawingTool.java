@@ -30,12 +30,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/11		?			B. Yin   	Initial Creation for TCM
  * 12/11		565			B. Yin		change return values for mouse handlers 
  *										in order for panning to work correctly
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  *
  * </pre>
  * 
  * @author	B. Yin
  */
-
 public class PgenTcmDrawingTool extends AbstractPgenDrawingTool {
 	
     public PgenTcmDrawingTool(){
@@ -50,19 +50,23 @@ public class PgenTcmDrawingTool extends AbstractPgenDrawingTool {
      * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
      */
     @Override
-    protected void activateTool( ) {
-    	
-    	super.activateTool();
-    	
-    	DrawableElement elem = null;
-    	if ( event.getTrigger() instanceof Tcm ) elem = (Tcm)event.getTrigger(); 
-    		
-    	if ( attrDlg instanceof TcmAttrDlg ) {
-    		if ( elem != null ) attrDlg.setAttrForDlg( elem );
-    		((TcmAttrDlg)attrDlg).setTcm((Tcm)elem);
-    	}
-    	
-    	return;
+    protected void activateTool() {
+        super.activateTool();
+
+        Tcm elem = null;
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+
+        if (triggerComponent instanceof Tcm) {
+            elem = (Tcm) triggerComponent;
+        }
+
+        if (attrDlg instanceof TcmAttrDlg) {
+            if (elem != null) {
+                attrDlg.setAttrForDlg(elem);
+            }
+            ((TcmAttrDlg) attrDlg).setTcm(elem);
+        }
     }
     
     /**

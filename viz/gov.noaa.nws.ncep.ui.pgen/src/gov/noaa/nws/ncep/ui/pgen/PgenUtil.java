@@ -30,6 +30,7 @@ import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
+import gov.noaa.nws.ncep.ui.pgen.sigmet.Ccfp;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Volcano;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
@@ -48,6 +49,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.xml.transform.Transformer;
@@ -58,6 +60,8 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
@@ -69,6 +73,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.geotools.geometry.jts.JTS;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -152,6 +157,9 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 12/14		R5413		B. Yin		  Check null in findResource
  * 12/17/2015   R12990      J. Wu         Added getContourSymbolLabelSpacing()
  * 01/12/2016   R13168      J. Wu         Added getOneContourperLayer()
+ * May 16, 2016 5640        bsteffen      Pass triggering component to handlers
+ *                                        through the evaluation context
+ *
  * </pre>
  * 
  * @author
@@ -321,30 +329,11 @@ public class PgenUtil {
     public static final void setDrawingSymbolMode(String symbolCat,
             String symbolType, boolean usePrevColor,
             AbstractDrawableComponent adc) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", symbolType);
-                params.put("className", symbolCat);
-                params.put("usePrevColor", new Boolean(usePrevColor).toString());
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, adc, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("name", symbolType);
+        params.put("className", symbolCat);
+        params.put("usePrevColor", new Boolean(usePrevColor).toString());
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw", adc);
     }
 
     /**
@@ -360,32 +349,14 @@ public class PgenUtil {
     public static final void setDrawingTextMode(boolean addLabel,
             boolean usePrevColor, String defaultTxt,
             AbstractDrawableComponent adc) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenTextDraw");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", "General Text");
-                params.put("className", "Text");
-                params.put("addLabel", new Boolean(addLabel).toString());
-                params.put("usePrevColor", new Boolean(usePrevColor).toString());
-                params.put("defaultTxt", defaultTxt);
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, adc, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("name", "General Text");
+        params.put("className", "Text");
+        params.put("addLabel", new Boolean(addLabel).toString());
+        params.put("usePrevColor", new Boolean(usePrevColor).toString());
+        params.put("defaultTxt", defaultTxt);
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenTextDraw", adc,
+                params);
     }
 
     /**
@@ -435,29 +406,11 @@ public class PgenUtil {
      * Set the drawing mode to watch status line.
      */
     public static final void setDrawingStatusLineMode(WatchBox wb) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchStatusLineDraw");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", "STATUS_LINE");
-                params.put("className", "Watch");
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, wb, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "STATUS_LINE");
+        params.put("className", "Watch");
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchStatusLineDraw",
+                wb, params);
     }
 
     /**
@@ -494,30 +447,8 @@ public class PgenUtil {
      * Load the 'Set continue Line' tool for outlooks.
      */
     public static final void loadOutlookSetContTool(Outlook otlk) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenOutlookSetCont");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", "Outlook");
-                params.put("className", "");
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, otlk,
-                        null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenOutlookSetCont",
+                otlk);
     }
 
     /**
@@ -527,27 +458,8 @@ public class PgenUtil {
      *            TCAElement to load into the TcaAttrDlg when the tool is loaded
      */
     public static final void loadTCATool(DrawableElement de) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service.getCommand("gov.noaa.nws.ncep.ui.pgen.tca");
-
-        if (cmd != null && de instanceof TCAElement) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", de.getPgenType());
-                params.put("className", de.getPgenCategory());
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
+        if (de instanceof TCAElement) {
+            executeCommand("gov.noaa.nws.ncep.ui.pgen.tca", de);
         }
     }
 
@@ -558,29 +470,7 @@ public class PgenUtil {
      *            WatchBox to load when the tool is loaded
      */
     public static final void loadWatchBoxModifyTool(DrawableElement de) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchBoxModify");
-
-        if (cmd != null && de instanceof WatchBox) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", de.getPgenType());
-                params.put("className", de.getPgenCategory());
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchBoxModify", de);
     }
 
     /**
@@ -590,35 +480,13 @@ public class PgenUtil {
      *            - LabeledLine to edit when the tool is loaded
      */
     public static final void loadLabeledLineModifyTool(LabeledLine ll) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenLabeledLineModify");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", ll.getPgenType());
-                params.put("className", ll.getPgenCategory());
-
-                if ("CCFP_SIGMET".equals(ll.getPgenType())) {
-                    params.put("type",
-                            ((gov.noaa.nws.ncep.ui.pgen.sigmet.Ccfp) ll)
-                                    .getSigmet().getType());
-                }
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, ll, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
+        Map<String, String> parameters = new HashMap<>();
+        if ("CCFP_SIGMET".equals(ll.getPgenType())) {
+            Ccfp ccfp = (Ccfp) ll;
+            parameters.put("type", ccfp.getSigmet().getType());
         }
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenLabeledLineModify",
+                ll, parameters);
     }
 
     /**
@@ -628,30 +496,67 @@ public class PgenUtil {
      *            - LabeledLine to edit when the tool is loaded
      */
     public static final void loadTcmTool(DrawableElement elem) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenTCMtool");
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenTCMtool", elem);
+    }
 
-        if (cmd != null) {
+    private static void executeCommand(String commandId,
+            AbstractDrawableComponent component) {
+        executeCommand(commandId, component, new HashMap<String, String>());
+    }
 
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                params.put("name", elem.getPgenType());
-                params.put("className", elem.getPgenCategory());
+    private static void executeCommand(String commandId,
+            AbstractDrawableComponent component,
+            Map<String, String> parameters) {
+        IEditorPart editor = EditorUtil.getActiveEditor();
+        IHandlerService handlerService = editor.getSite()
+                .getService(IHandlerService.class);
+        ICommandService commandService = editor.getSite()
+                .getService(ICommandService.class);
 
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, elem,
-                        null);
+        Command command = commandService.getCommand(commandId);
+        if (command == null) {
+            return;
+        }
 
-                cmd.executeWithChecks(exec);
+        IEvaluationContext context = handlerService.createContextSnapshot(true);
+        if (component != null) {
+            context.addVariable(AbstractDrawableComponent.class.getName(),
+                    component);
+        }
 
-            } catch (Exception e) {
+        /*
+         * Set type and category as parameters so handlers can access them
+         * easily.
+         */
+        if (!parameters.containsKey("name") && component != null) {
+            parameters.put("name", component.getPgenType());
+        }
+        if (!parameters.containsKey("className") && component != null) {
+            parameters.put("className", component.getPgenCategory());
+        }
+        ParameterizedCommand parameterizedCommand = ParameterizedCommand
+                .generateCommand(command, parameters);
+        try {
+            handlerService.executeCommandInContext(parameterizedCommand, null,
+                    context);
+        } catch (Exception e) {
 
-                e.printStackTrace();
+            e.printStackTrace();
+        }
+    }
+
+    public static AbstractDrawableComponent getTriggerComponent(
+            ExecutionEvent event) {
+        Object contextObj = event.getApplicationContext();
+        if (contextObj instanceof IEvaluationContext) {
+            IEvaluationContext context = (IEvaluationContext) contextObj;
+            Object componentObj = context
+                    .getVariable(AbstractDrawableComponent.class.getName());
+            if (componentObj instanceof AbstractDrawableComponent) {
+                return (AbstractDrawableComponent) componentObj;
             }
         }
+        return null;
     }
 
     /**
@@ -1031,33 +936,13 @@ public class PgenUtil {
      *            loaded
      */
     public static final void loadContoursTool(Contours de) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service.getCommand("gov.noaa.nws.ncep.ui.pgen.contours");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-
-                if (de != null) {
-                    params.put("name", de.getPgenType());
-                    params.put("className", de.getPgenCategory());
-                } else {
-                    params.put("name", "Contours");
-                    params.put("className", "MET");
-                }
-
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
+        if (de != null) {
+            executeCommand("gov.noaa.nws.ncep.ui.pgen.contours", de);
+        } else {
+            Map<String, String> params = new HashMap<>();
+            params.put("name", "Contours");
+            params.put("className", "MET");
+            executeCommand("gov.noaa.nws.ncep.ui.pgen.contours", de, params);
         }
     }
 
@@ -1065,26 +950,7 @@ public class PgenUtil {
      * Trigger the selecting tool with a selected element.
      */
     public static final void setSelectingMode(AbstractDrawableComponent de) {
-        IEditorPart part = EditorUtil.getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite().getService(
-                ICommandService.class);
-        Command cmd = service
-                .getCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect");
-
-        if (cmd != null) {
-
-            try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                params.put("editor", part);
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
-
-                cmd.executeWithChecks(exec);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect", de);
     }
 
     /**

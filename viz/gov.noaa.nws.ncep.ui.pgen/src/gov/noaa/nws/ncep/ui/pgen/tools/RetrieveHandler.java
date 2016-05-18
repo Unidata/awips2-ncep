@@ -9,6 +9,7 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.controls.RetrieveActivityDialog;
+import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -28,6 +29,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * ------------	----------	-----------	--------------------------
  * 03/13		#977		S. Gilbert	Modified from PgenFileManageHandler
  * 01/16/2016   5054        randerso    Use proper parent shell
+ * May 16, 2016 5640        bsteffen    Access button name through command parameter.
  * 
  * </pre>
  * 
@@ -36,40 +38,33 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  */
 public class RetrieveHandler extends AbstractTool {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands
-     * .ExecutionEvent)
-     */
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         Shell shell = HandlerUtil.getActiveShell(event);
-        String btnClicked = (String) event.getApplicationContext();
 
-        // Set "active" icon for the palette button corresponding to this tool
+        PgenPaletteWindow pallete = PgenSession.getInstance().getPgenPalette();
+
+        /*
+         * Set "active" icon for the palette button corresponding to this tool
+         */
         String btnName = event.getParameter("name");
-        PgenSession.getInstance().getPgenPalette().setActiveIcon(btnName);
-
-        RetrieveActivityDialog retrieveDlg = null;
+        pallete.setActiveIcon(btnName);
 
         try {
-            retrieveDlg = new RetrieveActivityDialog(shell, btnClicked);
+            RetrieveActivityDialog retrieveDlg = new RetrieveActivityDialog(
+                    shell, btnName);
             retrieveDlg.setBlockOnOpen(true);
+            retrieveDlg.open();
         } catch (VizException e) {
             e.printStackTrace();
         }
 
-        if (retrieveDlg != null)
-            retrieveDlg.open();
-
-        // Reset the original icon for the palette button corresponding to this
-        // tool
-        if (PgenSession.getInstance().getPgenPalette() != null) {
-            PgenSession.getInstance().getPgenPalette().resetIcon(btnName);
-        }
+        /*
+         * Reset the original icon for the palette button corresponding to this
+         * tool
+         */
+        pallete.resetIcon(btnName);
 
         return null;
     }

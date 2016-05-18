@@ -13,6 +13,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.WatchBoxAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.WatchInfoDlg;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.WatchBox;
@@ -46,35 +47,34 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/13		#927		B. Yin		Added constructor for the handler class.
  * 12/13		TTR 800		B. Yin		Add a flag when opening the specification dialog.
  * 01/14		TTR 800		B. Yin		Fixed the county lock issue.
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * 
  * </pre>
  * 
  * @author	B. Yin
  */
-
 public class PgenWatchBoxModifyTool extends PgenSelectingTool {
 
-	/*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-     */
     @Override
     protected void activateTool( ) {
-
     	super.activateTool();
     	
-    	if ( event.getTrigger() instanceof WatchBox ) {
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+
+        if (triggerComponent instanceof WatchBox) {
+            WatchBoxAttrDlg watchBoxAttrDlg = (WatchBoxAttrDlg) attrDlg;
+            watchBoxAttrDlg.setWbTool(this);
     		
-    		((WatchBoxAttrDlg)attrDlg).setWbTool(this);
-    		
-    		//set wb as selected and open spec dialog
-    		// this is for ending of the wb drawing.
+            /*
+             * set wb as selected and open spec dialog this is for ending of the
+             * wb drawing.
+             */
     		if ( drawingLayer.getSelectedDE() == null ){
-    			drawingLayer.setSelected( ((WatchBoxAttrDlg)attrDlg).getWatchBox());
-    			((WatchBoxAttrDlg)attrDlg).setAttrForDlg(((WatchBoxAttrDlg)attrDlg).getWatchBox() );
-    			((WatchBoxAttrDlg)attrDlg).enableButtons();
-    			((WatchBoxAttrDlg)attrDlg).openSpecDlg( false );
+                drawingLayer.setSelected(watchBoxAttrDlg.getWatchBox());
+                watchBoxAttrDlg.setAttrForDlg(watchBoxAttrDlg.getWatchBox());
+                watchBoxAttrDlg.enableButtons();
+                watchBoxAttrDlg.openSpecDlg(false);
     		}
     	}
         

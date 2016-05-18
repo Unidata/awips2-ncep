@@ -52,6 +52,7 @@ import com.raytheon.viz.ui.dialogs.colordialog.IColorWheelAction;
  * Feb 10 2012    #686     sgurung     Added fix for java.lang.IndexOutOfBoundsException while updating colormaps
  * March 15 2012  #621     sgurung     Check for locked colormaps
  * 02/11/13      #972        G. Hull     AbstractEditor instead of NCMapEditor
+ * May 16, 2016  5647      tgurney     Remove minimize button
  * 
  * </pre>
  * 
@@ -177,7 +178,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
     public Object open() {
         // Create a new shell object and set the text for the dialog.
         Shell parent = getParent();
-        shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.MIN);
+        shell = new Shell(parent, SWT.DIALOG_TRIM);
         shell.setText("Edit Colormaps");
 
         // Setup all of the layouts and the controls.

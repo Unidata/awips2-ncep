@@ -51,6 +51,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * June 2015     8051       Jonas  Okwara  Sorted list of Plot Models
  * June 2015     8051       Jonas Okwara   Added localization Level and User context
  * 10/05/2015    R8051      Edwin Brown  Added localization level and user context on plot model list
+ * May 16, 2016  5647       tgurney     Remove minimize/maximize buttons
  * </pre>
  * 
  * @author
@@ -127,7 +128,8 @@ public class PlotModelMngrDialog extends Dialog {
     public Object open() {
         Shell parent = getParent();
         Display display = parent.getDisplay();
-        shell = new Shell(parent, SWT.SHELL_TRIM | SWT.MODELESS);
+        shell = new Shell(parent,
+                SWT.CLOSE | SWT.TITLE | SWT.RESIZE | SWT.MODELESS);
 
         shell.setText(PLOT_MODEL_MANAGER);
 

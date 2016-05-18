@@ -10,6 +10,7 @@ package gov.noaa.nws.ncep.ui.pgen.tools;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.OutlookAttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
 import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.elements.Line;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
@@ -26,12 +27,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 04/10			?		B. Yin   	Initial Creation.
+ * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * 
  * </pre>
  * 
  * @author	B. Yin
  */
-
 public class PgenOutlookSetCont extends AbstractPgenDrawingTool{
 
 	//the Outlook working on
@@ -46,18 +47,15 @@ public class PgenOutlookSetCont extends AbstractPgenDrawingTool{
 
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.raytheon.viz.ui.tools.AbstractTool#runTool()
-	 */
 	@Override
 	protected void activateTool( ) {
 		super.activateTool();
 
-		if ( event.getTrigger() instanceof Outlook ) otlk = (Outlook)event.getTrigger(); 
-
-		return;
+        AbstractDrawableComponent triggerComponent = PgenUtil
+                .getTriggerComponent(event);
+        if (triggerComponent instanceof Outlook) {
+            otlk = (Outlook) triggerComponent;
+        }
 	}
 
 

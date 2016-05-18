@@ -658,7 +658,7 @@
             </toolbar>
          </menuContribution>
          <menuContribution
-             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+             locationURI="toolbar:org.eclipse.ui.main.toolbar">
             <toolbar
                   id="NC-2">
                <command
@@ -704,7 +704,7 @@
             </toolbar>
          </menuContribution>
          <menuContribution
-             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+             locationURI="toolbar:org.eclipse.ui.main.toolbar">
             <toolbar
                   id="NC-3">
                 <command
@@ -994,7 +994,7 @@
          
          <key commandId="gov.noaa.nws.ncep.viz.ui.display.toggleLegend"
               contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext" 
-              schemeId="com.raytheon.viz.ui.awips.scheme"
+              schemeId="com.raytheon.viz.ui.cave.scheme"
               sequence="NUMPAD_ENTER">
         </key>
     </extension>

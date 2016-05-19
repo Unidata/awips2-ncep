@@ -62,6 +62,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                        of a redesign.  Removed clearFrames()
  *                                        as it did exactly the same thing as
  *                                        disposeInternal().
+ * 04/13/2016      R15954    SRussell     changed "logger" to statusHandler,
+ *                                        set it to protected so child classes
+ *                                        can use it
  * </pre>
  * 
  * @author ghull
@@ -70,7 +73,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsRequestableResourceData, D extends INatlCntrsDescriptor>
         extends AbstractVizResource<T, D> implements INatlCntrsResource {
 
-    private static final IUFStatusHandler logger = UFStatus
+    protected static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(AbstractNatlCntrsResource.class);
 
     /*
@@ -325,8 +328,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 // resource then it should be an EXACT time match. Still, for
                 // now leave this logic in here.
                 if (dataTimeRange.isValid()) {
-                    logger.debug("Timematching a dataTime with a valid interval with a non-EXACT\n "
-                            + "TimeMatchMethod.");
+                    statusHandler
+                            .debug("Timematching a dataTime with a valid interval with a non-EXACT\n "
+                                    + "TimeMatchMethod.");
                     return -1;
                 }
 
@@ -449,11 +453,11 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
     protected AbstractNatlCntrsResource(T resourceData, LoadProperties props) {
         super(resourceData, props);
-        frameDataMap = new TreeMap<Long, AbstractFrameData>();
-        newRscDataObjsQueue = new ConcurrentLinkedQueue<IRscDataObject>();
+        frameDataMap = new TreeMap<>();
+        newRscDataObjsQueue = new ConcurrentLinkedQueue<>();
 
-        autoUpdateCache = new ArrayList<IRscDataObject>();
-        newFrameTimesList = new ArrayList<DataTime>();
+        autoUpdateCache = new ArrayList<>();
+        newFrameTimesList = new ArrayList<>();
         currFrameTime = null;
 
         // If requestable, add a resourceChanged listener that is called by
@@ -464,9 +468,10 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 public void resourceChanged(ChangeType type, Object object) {
 
                     if (object == null) {
-                        logger.debug("resourceChanged called with null object for "
-                                + getResourceData().getResourceName()
-                                        .toString());
+                        statusHandler
+                                .debug("resourceChanged called with null object for "
+                                        + getResourceData().getResourceName()
+                                                .toString());
                         return;
                     }
 
@@ -519,8 +524,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
 
         // loop thru all of the times in the frameDataMap and if the time is not
         // in the new frameTimes then remove the frame from the map.
-        ArrayList<Long> frameTimesInMap = new ArrayList<Long>(
-                frameDataMap.keySet());
+        ArrayList<Long> frameTimesInMap = new ArrayList<>(frameDataMap.keySet());
 
         for (long frameTimeMs : frameTimesInMap) {
             if (!newFrameTimes.contains(new DataTime(new Date(frameTimeMs)))) {
@@ -545,11 +549,12 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     // valid time.)
     protected IRscDataObject[] processRecord(Object pdo) {
         if (!(pdo instanceof PluginDataObject)) {
-            logger.debug("Resource Impl "
-                    + getClass().getName()
-                    + " must override "
-                    + "the processRecord method to process data objects of class: "
-                    + pdo.getClass().getName());
+            statusHandler
+                    .debug("Resource Impl "
+                            + getClass().getName()
+                            + " must override "
+                            + "the processRecord method to process data objects of class: "
+                            + pdo.getClass().getName());
             return null;
         }
 
@@ -582,7 +587,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     }
 
     public ArrayList<DataTime> getFrameTimes() {
-        ArrayList<DataTime> frmTimes = new ArrayList<DataTime>();
+        ArrayList<DataTime> frmTimes = new ArrayList<>();
         for (long t : frameDataMap.keySet()) {
             frmTimes.add(new DataTime(new Date(t)));
         }
@@ -595,7 +600,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
         if (getDescriptor() instanceof NCMapDescriptor) {
             return (NCMapDescriptor) getDescriptor();
         }
-        logger.debug("GetNcMapDescriptor() returning null????");
+        statusHandler.debug("GetNcMapDescriptor() returning null????");
         return null;
     }
 
@@ -659,8 +664,9 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
                 .getValidTime().getTime().getTime());
 
         if (currFrame == null) {
-            logger.debug("paint(): Unable to find Frame Data for current Time "
-                    + currFrameTime);
+            statusHandler
+                    .debug("paint(): Unable to find Frame Data for current Time "
+                            + currFrameTime);
             return;
         }
 
@@ -797,7 +803,7 @@ public abstract class AbstractNatlCntrsResource<T extends AbstractNatlCntrsReque
     // are all that is needed to query the data.
     public void queryRecords() throws VizException {
 
-        HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
+        HashMap<String, RequestConstraint> queryList = new HashMap<>(
                 resourceData.getMetadataMap());
 
         DbQueryRequest request = new DbQueryRequest();

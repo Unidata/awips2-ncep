@@ -6,7 +6,10 @@ import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
@@ -52,7 +55,6 @@ import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
 import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
-import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
@@ -106,16 +108,18 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  ------------ ---------- ----------- --------------------------
  *  09/28/2015   R11385     njensen     Initial creation
  *  10/28/2015   R11385     kbugenhagen Updated to use stylerules to generate colormap
+ *  04/12/2016   R16367     kbugenhagen Added support for SIMGOESR
+ *  04/15/2016   R15954     SRussell    Updated FrameData.updateFrameData()
+ *                                      Integrated class with IDataLoader design
  * 
  * </pre>
  * 
  */
 public class NcSatelliteResource extends
-        AbstractNatlCntrsResource<SatelliteResourceData, NCMapDescriptor>
+        AbstractNatlCntrsResource2<SatelliteResourceData, NCMapDescriptor>
         implements IResourceDataChanged, IAreaProviderCapable {
 
-    private static IUFStatusHandler logger = UFStatus
-            .getHandler(NcSatelliteResource.class);
+    private SatelliteResourceData satelliteResourceData = null;
 
     private static final String CREATING_ENTITY_KEY = "creatingEntity";
 
@@ -135,12 +139,13 @@ public class NcSatelliteResource extends
 
     // slimmed down variation on what was in AbstractSatelliteResource
     protected class FrameData extends AbstractFrameData {
+        DataTime tileTimePrevAddedRecord = null;
 
         // one renderable per frame, each renderable may have multiple tiles
         SatRenderable renderable;
 
         protected FrameData(DataTime time, int interval) {
-            super(time, interval);
+            super(time, interval, satelliteResourceData);
             renderable = new SatRenderable();
         }
 
@@ -159,7 +164,7 @@ public class NcSatelliteResource extends
                         try {
                             initializeFirstFrame(satRec);
                         } catch (Exception e) {
-                            logger.error(
+                            statusHandler.error(
                                     "Error initializing against SatelliteRecord "
                                             + satRec, e);
                             return false;
@@ -170,12 +175,43 @@ public class NcSatelliteResource extends
 
             Collections.sort(NcSatelliteResource.this.dataTimes);
             int imgNum = -1;
+
+            if (isExistingDataBetterTimeMatch(satRec)) {
+                return false;
+            }
+
             generateAndStoreColorBarLabelingInformation(satRec, imgNum);
-            renderable.addRecord(satRec);
+
+            if (satRec != null) {
+                tileTimePrevAddedRecord = satRec.getDataTime();
+                renderable.addRecord(satRec);
+            }
 
             return true;
         }
-    }
+
+        boolean isExistingDataBetterTimeMatch(SatelliteRecord newSatRec) {
+            boolean oldDataBetterTimeMatch = false;
+
+            if (tileTimePrevAddedRecord == null) {
+                oldDataBetterTimeMatch = false;
+                return oldDataBetterTimeMatch;
+            } else if (newSatRec == null) {
+                oldDataBetterTimeMatch = true;
+                return oldDataBetterTimeMatch;
+            }
+
+            DataTime newDataTime = newSatRec.getDataTime();
+
+            // Existing Data Is A Better Time Match
+            if (timeMatch(newDataTime) >= timeMatch(tileTimePrevAddedRecord)) {
+                oldDataBetterTimeMatch = true;
+            }
+
+            return oldDataBetterTimeMatch;
+        }
+
+    }// end inner class FrameData
 
     /**
      * Renderable for displaying satellite data. There is one renderable per
@@ -203,7 +239,7 @@ public class NcSatelliteResource extends
         public Collection<DrawableImage> getImagesToRender(
                 IGraphicsTarget target, PaintProperties paintProps)
                 throws VizException {
-            List<DrawableImage> images = new ArrayList<DrawableImage>();
+            List<DrawableImage> images = new ArrayList<>();
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
                     images.addAll(renderable.getImagesToRender(target,
@@ -217,6 +253,15 @@ public class NcSatelliteResource extends
             synchronized (tileMap) {
                 RecordTileSetRenderable tileSet = tileMap.get(record
                         .getCoverage());
+
+                // If a SatelliteRecord was previously added to this frame
+                if (tileSet != null) {
+                    // Get rid of it to make way for the new one
+                    tileSet.dispose();
+                    tileSet = null;
+                    tileMap.clear();
+                }
+
                 if (tileSet == null) {
                     tileSet = new RecordTileSetRenderable(
                             NcSatelliteResource.this, record,
@@ -257,6 +302,11 @@ public class NcSatelliteResource extends
             }
             return null;
         }
+
+        public Map<SatMapCoverage, RecordTileSetRenderable> getTileMap() {
+            return this.tileMap;
+        }
+
     }
 
     /**
@@ -264,6 +314,9 @@ public class NcSatelliteResource extends
      */
     public NcSatelliteResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
+        this.resourceData = data;
+        this.satelliteResourceData = data;
+
         resourceData.addChangeListener(this);
 
         if (resourceData.getMetadataMap().containsKey(CREATING_ENTITY_KEY)
@@ -337,8 +390,8 @@ public class NcSatelliteResource extends
             // Using old method of getting style rules since himawari style
             // rules file already exists in D2D and its values do not work
             // in NCP perspective.
-            StyleRuleset styleSet = (StyleRuleset) getJaxbManager()
-                    .unmarshalFromXmlFile(StyleRuleset.class, file);
+            StyleRuleset styleSet = getJaxbManager().unmarshalFromXmlFile(
+                    StyleRuleset.class, file);
             if (styleSet != null) {
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
@@ -364,7 +417,7 @@ public class NcSatelliteResource extends
     }
 
     protected List<String> getParameterList(PluginDataObject pdo) {
-        List<String> paramList = new ArrayList<String>(0);
+        List<String> paramList = new ArrayList<>(0);
         String paramStr = ((SatelliteRecord) pdo).getPhysicalElement();
         paramList.add(paramStr);
         return paramList;
@@ -398,9 +451,20 @@ public class NcSatelliteResource extends
                     name = "IR Default";
                 }
             }
-            ColorMap colorMap = (ColorMap) ColorMapUtil.loadColorMap(
-                    resourceData.getResourceName().getRscCategory()
-                            .getCategoryName(), resourceData.getColorMapName());
+            ColorMap colorMap = null;
+            String category = resourceData.getResourceName().getRscCategory()
+                    .getCategoryName();
+            try {
+                colorMap = (ColorMap) ColorMapUtil.loadColorMap(category, name);
+            } catch (VizException e) {
+                // This resource is probably trying to use a D2D colormap,
+                // so try using resource colormap name instead.
+
+                // TODO: this is a kludge that needs to be addressed in color
+                // map redesign.
+                colorMap = (ColorMap) ColorMapUtil.loadColorMap(category,
+                        resourceData.getColorMapName());
+            }
             colorMapParameters.setColorMap(colorMap);
         }
 
@@ -589,6 +653,8 @@ public class NcSatelliteResource extends
     protected String getLocFilePathForImageryStyleRule(SatelliteType type) {
         if (type == SatelliteType.HIMAWARI) {
             return NcPathConstants.HIMAWARI_IMG_STYLE_RULES;
+        } else if (type == SatelliteType.SIMGOESR) {
+            return NcPathConstants.SIMGOESR_IMG_STYLE_RULES;
         } else {
             return NcPathConstants.GINI_IMG_STYLE_RULES;
         }
@@ -650,7 +716,7 @@ public class NcSatelliteResource extends
                 true);
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
 
-        queryRecords();
+        dataLoader.loadData();
     }
 
     @Override
@@ -923,7 +989,7 @@ public class NcSatelliteResource extends
                 colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
             }
         } catch (Exception e) {
-            logger.error("Error generating colorbar data", e);
+            statusHandler.error("Error generating colorbar data", e);
         }
 
         // these label value calculations are from legacy imlabl.f

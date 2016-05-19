@@ -25,10 +25,11 @@ import com.raytheon.uf.common.time.DataTime;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 10/19/2015   R11819     srussell    Initial creation
+ * 10/19/2015   R11819     S. Russell  Initial creation
  * 03/07/2016   R10155     B Hebbard   In order to handle auto-update fully,
  *                                     move update-related code here from 
  *                                     the resource.
+ * 04/22/2016   R15494     S. Russell  Updated generics in setResource()
  * 
  * </pre>
  * 
@@ -60,7 +61,7 @@ public interface IDataLoader {
 
     public abstract void resourceDataUpdate(Object object);
 
-    public abstract void setResource(AbstractNatlCntrsResource2 resource);
+    public abstract void setResource(AbstractNatlCntrsResource2<?, ?> resource);
 
     public abstract void setNextFrameTime(DataTime nextFrameTime);
 

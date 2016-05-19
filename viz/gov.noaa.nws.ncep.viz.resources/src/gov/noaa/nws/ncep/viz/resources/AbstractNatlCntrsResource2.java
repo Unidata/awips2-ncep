@@ -77,16 +77,20 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                          move update-related code from this
  *                                          class over to AbstractDataLoader.
  *                                          
+ * 04/13/2016   R159454     S Russell       Set the statusHanlder to protected
+ *                                          so child classes can use it.
+ *                                          Changed the extends clause to
+ *                                          use a generic for resourceData
+ *                                          
  * 
  * @author ghull (original), srussell ( this truncated version )
  * @version 1
  */
 public abstract class AbstractNatlCntrsResource2<T extends AbstractNatlCntrsRequestableResourceData, D extends INatlCntrsDescriptor>
-        extends
-        AbstractVizResource<AbstractNatlCntrsRequestableResourceData, IDescriptor>
-        implements INatlCntrsResource {
+        extends AbstractVizResource<T, IDescriptor> implements
+        INatlCntrsResource {
 
-    private static final IUFStatusHandler statusHandler = UFStatus
+    protected static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(AbstractNatlCntrsResource2.class);
 
     // Has this resource been initialized yet?
@@ -110,14 +114,18 @@ public abstract class AbstractNatlCntrsResource2<T extends AbstractNatlCntrsRequ
 
     protected AbstractNatlCntrsResource2(T resourceData, LoadProperties props) {
         super(resourceData, props);
-        frameDataMap = new TreeMap<Long, AbstractFrameData>();
-        newRscDataObjsQueue = new ConcurrentLinkedQueue<IRscDataObject>();
+        frameDataMap = new TreeMap<>();
+        newRscDataObjsQueue = new ConcurrentLinkedQueue<>();
 
         currFrameTime = null;
 
         // If requestable, add a resourceChanged listener that is called by
         // Raytheon's AbstractRequestableResource when update() is called.
+        // This process starts with the class NcAutoUpdater.java routing the
+        // message to this listener. That class is hardcoded to only do that
+        // for AbstractNatlCntrsResource and AbstractNatlCntrsResource2
         if (resourceData instanceof AbstractNatlCntrsRequestableResourceData) {
+
             resourceData.addChangeListener(new IResourceDataChanged() {
                 @Override
                 public void resourceChanged(ChangeType type, Object object) {
@@ -205,7 +213,7 @@ public abstract class AbstractNatlCntrsResource2<T extends AbstractNatlCntrsRequ
     }
 
     public ArrayList<DataTime> getFrameTimes() {
-        ArrayList<DataTime> frmTimes = new ArrayList<DataTime>();
+        ArrayList<DataTime> frmTimes = new ArrayList<>();
         for (long t : frameDataMap.keySet()) {
             frmTimes.add(new DataTime(new Date(t)));
         }

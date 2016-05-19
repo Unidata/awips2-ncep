@@ -25,6 +25,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang.Validate;
 
 import com.raytheon.uf.common.serialization.ISerializableObject;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.AbstractTimeMatcher;
@@ -57,13 +59,17 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 06/17/12       713      Greg Hull    typo in copy constr for skipValue
  * 08/27/12       851      Greg Hull    ignore dataTime level when creating new frame Time
  * 02/12/13       972      Greg Hull    changed to work with INatlCntrsDescriptor
- * 04/24/13		  689	   Xiaochuan	Loop length in slctFrames that is set based on default
- * 										or size of selectableDataTimes.
+ * 04/24/13       689      Xiaochuan    Loop length in slctFrames that is set based on default
+ *                                      or size of selectableDataTimes.
  * 05/14/14       1131     Quan Zhou    Added graphRange and hourSnap.  MouModified generateTimeline
  * 07/11/14       TTR1032  J. Wu        No timeline needed if no data times available.
  * 07/28/14       TTR1034+ J. Wu        Build timeline only from available datatimes..
  * 07/29/14       R4078    s. Gurung    Commented out code that sets numFrames=1 for graph/timeseries display
- * 08/25/14       RM4097  kbugenhagen   Added EVENT_BEFORE_OR_AFTER time matching
+ * 08/25/14       R4097    kbugenhagen  Added EVENT_BEFORE_OR_AFTER time matching
+ * 02/16/16       R15244   bkowal       Added {@link #update(NCTimeMatcherSettings)} to set
+ *                                      timeline settings based on cached information.
+ * 04/20/16       R17324   P. Moyer     Added BINNING_FOR_GRID_RESOURCES time matching.
+ *                                      Eliminated redundant generic types.
  * 
  * </pre>
  * 
@@ -131,17 +137,20 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
 
     private final ArrayList<INatlCntrsDescriptor> descriptorList;
 
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(NCTimeMatcher.class);
+
     /**
      * Default Constructor.
      */
     public NCTimeMatcher() {
         super();
-        descriptorList = new ArrayList<INatlCntrsDescriptor>();
+        descriptorList = new ArrayList<>();
         dominantRscData = null;
         dominantResourceName = null;
-        allAvailDataTimes = new ArrayList<DataTime>();
-        selectableDataTimes = new ArrayList<DataTime>();
-        frameTimes = new ArrayList<DataTime>();
+        allAvailDataTimes = new ArrayList<>();
+        selectableDataTimes = new ArrayList<>();
+        frameTimes = new ArrayList<>();
         numFrames = dfltNumFrames;
         graphRange = dfltGraphRange;
         hourSnap = dfltHourSnap;
@@ -157,10 +166,10 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
 
     public NCTimeMatcher(NCTimeMatcher tm) {
         super();
-        descriptorList = new ArrayList<INatlCntrsDescriptor>();
-        allAvailDataTimes = new ArrayList<DataTime>(tm.allAvailDataTimes);
-        selectableDataTimes = new ArrayList<DataTime>(tm.selectableDataTimes);
-        frameTimes = new ArrayList<DataTime>(tm.frameTimes);
+        descriptorList = new ArrayList<>();
+        allAvailDataTimes = new ArrayList<>(tm.allAvailDataTimes);
+        selectableDataTimes = new ArrayList<>(tm.selectableDataTimes);
+        frameTimes = new ArrayList<>(tm.frameTimes);
         timesLoaded = tm.timesLoaded;
         numFrames = tm.numFrames;
         graphRange = tm.graphRange;
@@ -291,7 +300,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
     }
 
     public void setCurrentRefTime() {
-        refTime = null;// new DataTime( Calendar.getInstance().getTime() );
+        refTime = null;
     }
 
     public boolean isLatestRefTime() {
@@ -330,16 +339,8 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
 
     // set the dominant resource and update the frameTimes
     public void updateFromDominantResource() {
-
         if (dominantRscData == null) {
-            frameTimes.clear();
-            selectableDataTimes.clear();
-            numFrames = 0;
-            graphRange = 0;
-            frameInterval = -1;
-            timeRange = 0;
-            isForecast = false;
-            refTime = null;
+            this.clearSettings();
             return;
         }
 
@@ -347,20 +348,56 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
         graphRange = dominantRscData.getDfltGraphRange();
         hourSnap = dominantRscData.getDfltHourSnap();
         timeRange = dominantRscData.getDfltTimeRange();
-
         skipValue = 0; // no default but reset to 0
-
         isForecast = dominantRscData.isForecastResource();
-
         dfltFrameTimesStr = dominantRscData.getDfltFrameTimes();
-
-        // if (isForecast) {
         if (dominantRscData.getResourceName().getCycleTime() != null) {
             refTime = null;
         } else {
             setCurrentRefTime();
         }
+        this.update();
+        loadTimes(true);
+    }
 
+    public void update(NCTimeMatcherSettings timeSettings) {
+        if (dominantRscData == null) {
+            this.clearSettings();
+            return;
+        }
+
+        numFrames = (timeSettings.getNumberFrames() == null) ? this.dominantRscData
+                .getDfltNumFrames() : timeSettings.getNumberFrames();
+        graphRange = dominantRscData.getDfltGraphRange();
+        hourSnap = dominantRscData.getDfltHourSnap();
+        timeRange = (timeSettings.getTimeRange() == null) ? this.dominantRscData
+                .getDfltTimeRange() : timeSettings.getTimeRange();
+        skipValue = (timeSettings.getSkipValue() == null) ? 0 : timeSettings
+                .getSkipValue();
+        isForecast = dominantRscData.isForecastResource();
+        dfltFrameTimesStr = dominantRscData.getDfltFrameTimes();
+        if (timeSettings.getFrameInterval() != null) {
+            frameInterval = timeSettings.getFrameInterval();
+        } else {
+            this.update();
+        }
+        if (timeSettings.getRefTimeSelection() != null) {
+            switch (timeSettings.getRefTimeSelection()) {
+            case CALENDAR:
+                this.setRefTime(new DataTime(timeSettings.getSelectedRefTime()));
+                break;
+            case CURRENT:
+                this.setCurrentRefTime();
+                break;
+            case LATEST:
+                this.setLatestRefTime();
+                break;
+            }
+        }
+        loadTimes(true);
+    }
+
+    private void update() {
         TimelineGenMethod tLineGenMthd = dominantRscData.getTimelineGenMethod();
 
         // the frameInterval here is only used to generate the timeline.
@@ -375,11 +412,20 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                 || tLineGenMthd == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME
                 || tLineGenMthd == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION) {
             frameInterval = dominantRscData.getFrameSpan();
-        } else { // ???
+        } else {
             return;
         }
+    }
 
-        loadTimes(true);
+    private void clearSettings() {
+        frameTimes.clear();
+        selectableDataTimes.clear();
+        numFrames = 0;
+        graphRange = 0;
+        frameInterval = -1;
+        timeRange = 0;
+        isForecast = false;
+        refTime = null;
     }
 
     // if refTime is null, then either use the most recent data as the refTime
@@ -389,7 +435,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
         frameTimes.clear();
         selectableDataTimes.clear();
 
-        List<DataTime> selDataTimes = new ArrayList<DataTime>();
+        List<DataTime> selDataTimes = new ArrayList<>();
 
         if (dominantRscData == null) {
             return false;
@@ -449,10 +495,8 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
         // will need to query the times of the dominant resource.
         if (refTimeMillisecs == 0 || frameInterval == -1) {
 
-            // allAvailDataTimes = dominantRscData.getAvailableDataTimes(); //??
-
             if (allAvailDataTimes == null) { // no data
-                allAvailDataTimes = new ArrayList<DataTime>(); //
+                allAvailDataTimes = new ArrayList<DataTime>();
                 return false;
             }
 
@@ -532,7 +576,6 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                             new Date(frameTimeMillisecs)));
 
                     selDataTimes.add(0, normRefTime);
-                    // selectableDataTimes.add(0, normRefTime);
 
                     frameTimeMillisecs -= frameIntervalMillisecs;
                 }
@@ -633,7 +676,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
         // can mess up the equals() method.
         DataTime newFrameTime = new DataTime(newDataTime.getValidTime());
 
-        ArrayList<DataTime> newFrameTimes = new ArrayList<DataTime>(1);
+        ArrayList<DataTime> newFrameTimes = new ArrayList<>(1);
 
         // if the timeline was created using DATA_TIMES then the new time is the
         // new frame time unless
@@ -819,21 +862,6 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
         }
     }
 
-    // @Override
-    // public void notifyResourceAdd(AbstractVizResource<?, ?> resource,
-    // IDescriptor descriptor) {
-    // // NC will be setting the tmb directly
-    // if (!(resource.getResourceData() instanceof
-    // AbstractRequestableResourceData)) {
-    // return;
-    // }
-    // // TODO: Will it be ok to add a non-requestable resource? probably not.
-    // if( !(resource instanceof INatlCntrsResource ) ||
-    // !(resource.getResourceData() instanceof INatlCntrsResourceData ) ) {
-    // System.out.println("Sanity Check: Adding non-NatlCntrs Resource to ncTimeMatcher");
-    // }
-    // }
-
     @Override
     public DataTime[] initialLoad(LoadProperties loadProps,
             DataTime[] availableTimes, IDescriptor descriptor)
@@ -932,6 +960,20 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
             case MATCH_ALL_DATA: {
                 startTime = new DataTime(new Date(0));
                 endTime = new DataTime(new Date(Long.MAX_VALUE));
+                break;
+            }
+            case BINNING_FOR_GRID_RESOURCES: {
+                startTime = new DataTime(new Date(frameMillis - frameInterval
+                        * 1000 * 60 / 2));
+                endTime = new DataTime(new Date(frameMillis + frameInterval
+                        * 1000 * 60 / 2 - 1000));
+                break;
+            }
+            default: {
+                String msg = resourceData.getTimeMatchMethod().toString()
+                        + " is not a valid frame time match method.";
+                statusHandler.error("FrameDataContainer(): ", msg);
+                break;
             }
             }
 
@@ -945,6 +987,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
 
             long dataTimeMillis = dataTime.getValidTime().getTimeInMillis();
             TimeRange dataTimeRange = dataTime.getValidPeriod();
+            long frameTimeMillis = frameTime.getValidTime().getTimeInMillis();
 
             switch (resourceData.getTimeMatchMethod()) {
 
@@ -952,10 +995,6 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                 return 0;
 
             case EXACT: {
-                // case EVENT: {
-                long frameTimeMillis = frameTime.getValidTime()
-                        .getTimeInMillis();
-
                 if (dataTimeRange.isValid()) {
                     if (dataTimeRange.getStart().getTime() <= frameTimeMillis
                             && frameTimeMillis <= dataTimeRange.getEnd()
@@ -1026,6 +1065,14 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
                             - dataTimeMillis) / 1000;
                 }
             }
+            case BINNING_FOR_GRID_RESOURCES: {
+                // If Data Time >= Frame Time, It Is A Match
+                if (dataTimeMillis >= frameTimeMillis) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
 
             }
             return -1;
@@ -1063,7 +1110,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
 
         selectableDataTimes.clear();
 
-        List<DataTime> selDataTimes = new ArrayList<DataTime>();
+        List<DataTime> selDataTimes = new ArrayList<>();
 
         if (dominantRscData == null) {
             return false;
@@ -1130,7 +1177,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
             // allAvailDataTimes = dominantRscData.getAvailableDataTimes(); //??
 
             if (allAvailDataTimes == null) { // no data
-                allAvailDataTimes = new ArrayList<DataTime>(); //
+                allAvailDataTimes = new ArrayList<>(); //
                 return false;
             }
 
@@ -1239,7 +1286,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher implements
          * selectableDataTimes - e.g, CAVE keeps running and the user comes back
          * in a few days later to open the data selection window?
          */
-        List<DataTime> ftimes = new ArrayList<DataTime>();
+        List<DataTime> ftimes = new ArrayList<>();
         for (DataTime fdt : frameTimes) {
             long frameTimeMillisecs = fdt.getValidTime().getTimeInMillis();
             for (DataTime dt : selectableDataTimes) {

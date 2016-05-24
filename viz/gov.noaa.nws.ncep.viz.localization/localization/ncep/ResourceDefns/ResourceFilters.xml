@@ -578,7 +578,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS40">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS20">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="HRRR">

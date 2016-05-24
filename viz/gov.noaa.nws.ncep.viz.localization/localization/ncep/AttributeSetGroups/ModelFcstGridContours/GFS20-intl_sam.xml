@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>GFS40</resource>
-    <attrSetGroupName>medr</attrSetGroupName>
+    <resource>GFS20</resource>
+    <attrSetGroupName>intl_sam</attrSetGroupName>
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>1000-500_thkn</name>
+              <name>bl_2-meter_temp_c</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>bl_1000mb_temp</name>
+              <name>bl_dwpt_c</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>bl_2-meter_temp</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>bl_sgma_9950_temp</name>
+              <name>svrwx_intl</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

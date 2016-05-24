@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>GFS40</resource>
-    <attrSetGroupName>qpf</attrSetGroupName>
+    <resource>GFS20</resource>
+    <attrSetGroupName>no_col-fill</attrSetGroupName>
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>300mb_ageo_div_isotachs</name>
+              <name>250mb_hght_wind_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>700mb_hght_wind_dwpt</name>
+              <name>400mb_avg_rh_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850mb_h2o_transport</name>
+              <name>500mb_absv_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850mb_hght_wind_dwpt</name>
+              <name>500mb_hght_absv_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850mb_thtae_advection</name>
+              <name>700mb_hght_rh_omega_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_tmp_wind_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
@@ -29,39 +33,23 @@
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>bl_moistconv_wind_dwpt_global</name>
+              <name>850mb_wind_pw_mm_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>kindex_700mbtemp_bldwpt_mslp_global</name>
+              <name>bl_h2o_conv_ncf_global</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>lifted_index_global</name>
+              <name>lifted_index_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>pcpn_potential_global</name>
+              <name>pcpn_potential_ncf_global</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>pw_emsl_c-vec</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>ransnocsi_500-850</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>ransnocsi_700-850</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>svrwx_global</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>hud_hvyqpf_stnd</name>
+              <name>precip_type_vv_ncf_global</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

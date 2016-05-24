@@ -960,6 +960,9 @@
              <contextId
                    id="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext">
              </contextId>
+             <contextId
+                   id="gov.noaa.nws.ncep.ui.pgen.pgenContext">
+             </contextId>
          </classContext>
    </extension> 
    

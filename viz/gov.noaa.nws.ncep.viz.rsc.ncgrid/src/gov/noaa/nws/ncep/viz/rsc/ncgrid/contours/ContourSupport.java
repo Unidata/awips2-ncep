@@ -156,6 +156,8 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  *    11/05/2015 R13016  bsteffen/rkean - handle non-linear FINTs
  *    03/08/2016 R16221  jhuber        make Fill color "0" transparent
  *    04/21/2016 R17741  sgilbert      Changes to reduce memory usage
+ *    05/06/2016 R17323  kbugenhagen   In createColorFills, only subgrid if
+ *                                     ncgrid proxy is not null.
  * 
  * </pre>
  * 
@@ -1058,6 +1060,7 @@ public class ContourSupport {
                 || type.toUpperCase().contains("I")) {
 
             // Equidistant_Cylindrical image requires special handling
+            // (subgridding)
             if (getProjectionName(
                     imageGridGeometry.getCoordinateReferenceSystem()).equals(
                     "Equidistant_Cylindrical")
@@ -1068,22 +1071,37 @@ public class ContourSupport {
                 // issues (ie. color bands) in some projections
                 ncGridDataProxy = ((FrameData) resource.getCurrentFrame())
                         .getProxy();
-                if (ncGridDataProxy != null) {
+
+                /*
+                 * The imageGridGeometry passed into this method
+                 * (newSpatialObject, which is 360 degrees) causes problems in
+                 * display when it gets subgridded. Ignore the subgridding if
+                 * the proxy is null. If the proxy is not null, the
+                 * imageGridGeometry associated with it (spatialObject, which is
+                 * 359 degrees) is correct and so you can do the subgridding.
+                 */
+
+                // SpatialObject = 359 degrees, NewSpatialObject = 360 degrees
+                // (has 0th deg added), so it's "new"
+                if (ncGridDataProxy != null
+                        && ncGridDataProxy.getSpatialObject() != null) {
+
                     imageGridGeometry = MapUtil.getGridGeometry(ncGridDataProxy
                             .getSpatialObject());
-                }
-                try {
-                    // create subGrid (same as D2D)
-                    SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
-                            descriptor.getGridGeometry().getEnvelope(),
-                            imageGridGeometry);
 
-                    if (!subGridGeometry.isEmpty()) {
-                        imageGridGeometry = subGridGeometry
-                                .getSubGridGeometry2D();
+                    try {
+
+                        // create subGrid (same as D2D)
+                        SubGridGeometryCalculator subGridGeometry = new SubGridGeometryCalculator(
+                                descriptor.getGridGeometry().getEnvelope(),
+                                imageGridGeometry);
+                        if (!subGridGeometry.isEmpty()) {
+                            imageGridGeometry = subGridGeometry
+                                    .getSubGridGeometry2D();
+                        }
+                    } catch (Exception ex) {
+                        statusHandler.error("Error Creating subGrid: ", ex);
                     }
-                } catch (Exception ex) {
-                    statusHandler.error("Error Creating subGrid: ", ex);
                 }
             }
 

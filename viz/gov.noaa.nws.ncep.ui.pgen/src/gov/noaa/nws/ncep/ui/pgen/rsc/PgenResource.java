@@ -1,11 +1,3 @@
-/*
- * gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource
- * 
- * 25 November 2008
- *
- * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
- */
-
 package gov.noaa.nws.ncep.ui.pgen.rsc;
 
 import gov.noaa.nws.ncep.ui.pgen.Activator;
@@ -62,7 +54,6 @@ import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -93,7 +84,6 @@ import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceList.RemoveListener;
 import com.raytheon.uf.viz.core.rsc.capabilities.EditableCapability;
-import com.raytheon.viz.core.gl.IGLTarget;
 import com.raytheon.viz.ui.cmenu.IContextMenuProvider;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.editor.IMultiPaneEditor;
@@ -109,12 +99,16 @@ import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.Point;
 
 /**
+ * gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource This code has been developed by
+ * the NCEP/SIB for use in the AWIPS2 system.
+ * 
  * Implements a drawing layer for PGEN products.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 11/25/2008                           Creation
  * 02/09                    B. Yin      Initial Creation.
  * 04/09                    S. Gilbert  Added PgenCommand for undo/redo.
  * 04/09        #88         J. Wu       Added Text.
@@ -140,12 +134,12 @@ import com.vividsolutions.jts.geom.Point;
  * 09/10        #290        B. Yin      Calculate distance from line segment
  * 09/10        #151        J. Wu       Save product in LPF-style
  * 10/10        #310        S. Gilbert  Modified to support PGEN SINGLE mode
- * 02/11        ?	        B. Yin      Select elements only in certain distance.
- * 04/11        ?	        B. Yin      Re-factor IAttribute
- * 09/11        ?	        B. Yin      Added Circle symbol for Inc/Dec selection.			
- * 01/12        ?	        J. Wu       TTR 444-Always display active product's active layer.			
- * 03/12        ?	        B. Yin      Make VAA text editable
- * 04/12        ?	        B. Hebbard  Per B. Yin; in paintInternal(), add makeContextCurrent()
+ * 02/11        ?           B. Yin      Select elements only in certain distance.
+ * 04/11        ?           B. Yin      Re-factor IAttribute
+ * 09/11        ?           B. Yin      Added Circle symbol for Inc/Dec selection.			
+ * 01/12        ?           J. Wu       TTR 444-Always display active product's active layer.			
+ * 03/12        ?           B. Yin      Make VAA text editable
+ * 04/12        ?           B. Hebbard  Per B. Yin; in paintInternal(), add makeContextCurrent()
  *                                       on IGLTarget after screenshot to avoid GLException:
  *                                      "No OpenGL context current on this thread"; 
  *                                      workaround pending RTS regression fix.
@@ -172,6 +166,12 @@ import com.vividsolutions.jts.geom.Point;
  *                                      new class PgenActionXtra
  * 12/16/2105   R12597      B. Yin      Added context menu item to add line to contours
  * 01/27/2016   R13166      J. Wu       Add context menu item to add Text to contours as label-only min/max.
+ * 05/11/2016   R13560      S. Russell  Updated PaintInternal() to no longer
+ *                                      take screenshots.  That functionality
+ *                                      was moved to PgenPaletteWindow where
+ *                                      it is used to make an exit dialog with
+ *                                      a picture of CAVE.  Removed member
+ *                                      variable paneImage ( the screen shot )
  * </pre>
  * 
  * @author B. Yin
@@ -204,10 +204,6 @@ public class PgenResource extends
 
     private Color ptsSelectedColor = null;
 
-    private BufferedImage paneImage;
-
-    private boolean saveOnNextPaint = true;
-
     // a collection of filters
     private ElementFilterCollection filters;
 
@@ -219,11 +215,11 @@ public class PgenResource extends
     private static final double GFA_TEXTBOX_SELECT_SCALE = 2.0;
 
     private static final int LABEL_DIALOG_WIDTH = 400;
-    
+
     private static final int LABEL_DIALOG_HEIGHT = 300;
-    
+
     private static final int LABEL_DIALOG_OFFSET_X = 100;
-    
+
     private static final int LABEL_DIALOG_OFFSET_Y = 100;
 
     private boolean needsDisplay = false;
@@ -240,9 +236,9 @@ public class PgenResource extends
         resourceData.addChangeListener(this); // we want to know when PGEN
                                               // objects change
 
-        elSelected = new ArrayList<AbstractDrawableComponent>();
-        selectedSymbol = new HashMap<AbstractDrawableComponent, Symbol>();
-        displayMap = new ConcurrentHashMap<DrawableElement, AbstractElementContainer>();
+        elSelected = new ArrayList<>();
+        selectedSymbol = new HashMap<>();
+        displayMap = new ConcurrentHashMap<>();
         filters = new ElementFilterCollection();
         setCatFilter(new CategoryFilter());
 
@@ -408,20 +404,7 @@ public class PgenResource extends
             if (ghost != null)
                 ghost.draw(target, paintProps, df, descriptor);
 
-            // Save current graphics target for possible future reminder
-            if (saveOnNextPaint) {
-                paneImage = target.screenshot();
-                // Following line is workaround (pending RTS solution) for RTS
-                // changes ~OB12.4
-                // that would cause GLException:
-                // "No OpenGL context current on this thread"
-                if (target instanceof IGLTarget)
-                    ((IGLTarget) target).makeContextCurrent();
-                saveOnNextPaint = false;
-            }
-
         }
-        // lastTarget = target;
     }
 
     /*
@@ -493,75 +476,13 @@ public class PgenResource extends
     }
 
     /**
-     * Loops through all products in the PGEN drawing layer draws the display
-     * elements.
-     * 
-     * Note: This is the original drawing code - regardless of the typ eof
-     * elements.
-     * 
-     * @param target
-     *            Graphic target from the paint() method.
-     * @param paintProps
-     *            Paint properties from the paint() method.
-     */
-    private void drawProductOriginal(IGraphicsTarget target,
-            PaintProperties paintProps) {
-
-        int nprds = resourceData.getProductList().size();
-
-        for (Product prod : resourceData.getProductList()) {
-            if (prod.isOnOff() || nprds == 1
-                    || prod == resourceData.getActiveProduct()) {
-
-                int nlyrs = prod.getLayers().size();
-
-                for (Layer layer : prod.getLayers()) {
-
-                    if (layer.isOnOff() || nlyrs == 1
-                            || layer == resourceData.getActiveLayer()) {
-
-                        DisplayProperties dprops = new DisplayProperties();
-                        if (layer != resourceData.getActiveLayer()) {
-                            dprops.setLayerMonoColor(layer.isMonoColor());
-                            dprops.setLayerColor(layer.getColor());
-                            dprops.setLayerFilled(layer.isFilled());
-                        }
-
-                        Iterator<DrawableElement> iterator = layer
-                                .createDEIterator();
-                        while (iterator.hasNext()) {
-                            DrawableElement el = iterator.next();
-                            if (filters.acceptOnce(el)) {
-                                if (!displayMap.containsKey(el)) {
-                                    AbstractElementContainer container = ElementContainerFactory
-                                            .createContainer(el, descriptor,
-                                                    target);
-                                    displayMap.put(el, container);
-                                }
-                                displayMap.get(el).draw(target, paintProps,
-                                        dprops);
-                            }
-
-                        }
-
-                    }
-                }
-
-            }
-        }
-
-    }
-
-    /**
      * Adds a product into the PGEN drawing layer.
      * 
      * @param prd
      *            The product being added.
      */
     public void addProduct(Product prd) {
-
         resourceData.getProductList().add(prd);
-
     }
 
     /**
@@ -576,9 +497,7 @@ public class PgenResource extends
         } else {
             this.ghost.dispose();
         }
-        // this.ghost = ghost;
         this.ghost.setGhostLine(ghost);
-
     }
 
     /**
@@ -616,9 +535,6 @@ public class PgenResource extends
         } else {
             return nearestElm;
         }
-
-        // return getNearestElement( point, catFilter );
-        // return getNearestElement( point, new AcceptFilter() );
     }
 
     /**
@@ -727,8 +643,8 @@ public class PgenResource extends
                 && PgenSession.getInstance().getPgenPalette() != null) {
             DisplayElementFactory df = new DisplayElementFactory(target,
                     descriptor);
-            List<IDisplayable> displayEls = new ArrayList<IDisplayable>();
-            HashMap<Symbol, CoordinateList> map = new HashMap<Symbol, CoordinateList>();
+            List<IDisplayable> displayEls = new ArrayList<>();
+            HashMap<Symbol, CoordinateList> map = new HashMap<>();
 
             Symbol defaultSymbol;
             if (PgenSession.getInstance().getPgenPalette().getCurrentAction()
@@ -808,49 +724,6 @@ public class PgenResource extends
     }
 
     /**
-     * Draws handle bars on the selected elements. Original version. creates new
-     * symbol for each selected point. This turns out to be costly. Use other
-     * drawSelected() instead
-     * 
-     * @param target
-     * @param paintProps
-     *            private void drawSelected( IGraphicsTarget target,
-     *            PaintProperties paintProps ){
-     * 
-     *            DisplayElementFactory df = new DisplayElementFactory( target,
-     *            descriptor ); DrawableElementFactory def = new
-     *            DrawableElementFactory();
-     * 
-     *            for ( AbstractDrawableComponent el : elSelected ){ for (
-     *            Coordinate point : el.getPoints() ){
-     * 
-     *            Symbol elem; // // If the selected element is registered with
-     *            a marker, use that marker/symbol // to display the element in
-     *            selected mode // if ( selectedSymbol.containsKey(el) ) { elem
-     *            = selectedSymbol.get(el); elem.setLocation(point); } else { //
-     *            Otherwise, use default symbol elem =
-     *            (Symbol)def.create(DrawableType.SYMBOL, null, "Marker", "DOT",
-     *            point, this.getActiveLayer()); elem.setClear(false);
-     *            elem.setLineWidth( 2.5f ); elem.setSizeScale( 5.0 ); }
-     * 
-     *            boolean gotColor = false; if ( ptsSelectedIndex != null &&
-     *            !ptsSelectedIndex.isEmpty()){ for ( Integer idx :
-     *            ptsSelectedIndex ){ if ( el.getPoints().get(idx.intValue()) ==
-     *            point ){ //elem.setColors( new
-     *            Color[]{Color.red,Color.black}); elem.setColors( new
-     *            Color[]{getPtsSelectedColor(),Color.black}); gotColor = true;
-     *            break; } } }
-     * 
-     *            if ( !gotColor && !selectedSymbol.containsKey(el) ){ // use
-     *            default color elem.setColors( new
-     *            Color[]{Color.lightGray,Color.black}); }
-     * 
-     *            drawElement( target, paintProps, df, elem );
-     * 
-     *            } } }
-     */
-
-    /**
      * Sets the selected element to the input element.
      * 
      * @param element
@@ -863,6 +736,9 @@ public class PgenResource extends
 
     }
 
+    /**
+     * @param adcList
+     */
     public void setSelected(List<AbstractDrawableComponent> adcList) {
 
         elSelected.clear();
@@ -1135,7 +1011,7 @@ public class PgenResource extends
     public void addPtSelected(int ptIdx) {
 
         if (ptsSelectedIndex == null) {
-            ptsSelectedIndex = new ArrayList<Integer>();
+            ptsSelectedIndex = new ArrayList<>();
         }
 
         ptsSelectedIndex.add(ptIdx);
@@ -1377,18 +1253,11 @@ public class PgenResource extends
     }
 
     /**
-     * closes any
+     * closes any dialogs
      */
     public void closeDialogs() {
 
         resourceData.closeDialogs();
-        /*
-         * if ( layeringControlDlg != null && layeringControlDlg.isOpen() ) {
-         * layeringControlDlg.close(); }
-         * 
-         * if ( productManageDlg != null && productManageDlg.isOpen() ) {
-         * productManageDlg.close(); }
-         */
     }
 
     /**
@@ -1516,7 +1385,7 @@ public class PgenResource extends
              * this resource is about to be removed, allow resourceData chance
              * to clean up
              */
-            resourceData.cleanup(paneImage);
+            resourceData.cleanup();
         }
 
     }
@@ -1745,7 +1614,7 @@ public class PgenResource extends
     }
 
     /**
-     * Caculate SCREEN distance from an input point to a line segment The
+     * Calculate SCREEN distance from an input point to a line segment The
      * coordinate of the point and line are lat/lon.
      * 
      * @param loc
@@ -1776,7 +1645,7 @@ public class PgenResource extends
 
     @Override
     public void resourceChanged(ChangeType type, Object object) {
-        saveOnNextPaint = true;
+        // saveOnNextPaint = true;
     }
 
     public void setCatFilter(CategoryFilter catFilter) {
@@ -2026,13 +1895,11 @@ public class PgenResource extends
 
             Iterator<DrawableElement> iterator = layer.createDEIterator();
 
-            ArrayList<DrawableElement> filledElements = new ArrayList<DrawableElement>();
-            // ArrayList<DrawableElement> textElements = new
-            // ArrayList<DrawableElement>();
-            ArrayList<DrawableElement> ccfpTextElements = new ArrayList<DrawableElement>();
-            ArrayList<DrawableElement> nonCcfpTextElements = new ArrayList<DrawableElement>();
-            ArrayList<DrawableElement> otherElements = new ArrayList<DrawableElement>();
-            ArrayList<DrawableElement> ccfpArrowElements = new ArrayList<DrawableElement>();
+            ArrayList<DrawableElement> filledElements = new ArrayList<>();
+            ArrayList<DrawableElement> ccfpTextElements = new ArrayList<>();
+            ArrayList<DrawableElement> nonCcfpTextElements = new ArrayList<>();
+            ArrayList<DrawableElement> otherElements = new ArrayList<>();
+            ArrayList<DrawableElement> ccfpArrowElements = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 DrawableElement el = iterator.next();
@@ -2223,7 +2090,7 @@ public class PgenResource extends
                     menuManager.add(new PgenAction(act.trim()));
                 }
             }
-            
+
             // Add an menu item "Add to Contours" for regular line (not Arc)
             if (adc instanceof Line && !(adc instanceof Arc)
                     && adc.getParent() instanceof Layer) {
@@ -2236,100 +2103,117 @@ public class PgenResource extends
             }
         }
     }
-    
+
     /**
      * Creates a submenu "Add To Contour" and its menu items
      * 
-     * @param menuManager - context menu manager
-     * @param line        - line selected
-     */ 
-    private void generateSubMenu( IMenuManager menuManager, final Line line){
-    	IMenuManager subMenu = new MenuManager("Add To Contour", null);
-    	final Layer layer = getResourceData().getActiveLayer();
-    	Iterator<AbstractDrawableComponent> it = layer.getComponentIterator();
-    	
-    	// Find all contour sets in current layer and put them in the menu
-    	while ( it.hasNext() ) {
-    		final AbstractDrawableComponent adc = it.next();
-    		if ( adc instanceof Contours ){
-    			final Contours contours = (Contours)adc;
-    			
-    			// Add action to menu items
-    			subMenu.add( new Action (contours.getParm()+ contours.getLevel() + contours.getForecastHour()){
-    				  @Override
-    				    public void run() {
-    					  // Prompt user to type in label value
-    					  InputDialog inputDialog = new InputDialog(new Shell(), "Please type in contour label", 
-    							  "Please type in the label of the contour line:", "", null) {
-    						  @Override
-    						  protected void configureShell(Shell shell){
-    							  super.configureShell(shell);
-    							  shell.setBounds(shell.getBounds().x + LABEL_DIALOG_OFFSET_X, 
-    									  shell.getBounds().y + LABEL_DIALOG_OFFSET_Y, 
-    									  LABEL_DIALOG_WIDTH, LABEL_DIALOG_HEIGHT);
-    						  }
-    					  };
-    					  
-    					  if ( inputDialog.open() == Window.OK ) {
-    						  addLineToContour( line, contours, inputDialog.getValue());
-    						  
-    						  //clean up
-    						  layer.remove(line);
-    						  PgenUtil.setSelectingMode();
-    						  PgenResource.this.setSelected((AbstractDrawableComponent)null);
-    					  }
-    				    }
-    			});
-    		}
-    	}
-    	menuManager.add( subMenu);
+     * @param menuManager
+     *            - context menu manager
+     * @param line
+     *            - line selected
+     */
+    private void generateSubMenu(IMenuManager menuManager, final Line line) {
+        IMenuManager subMenu = new MenuManager("Add To Contour", null);
+        final Layer layer = getResourceData().getActiveLayer();
+        Iterator<AbstractDrawableComponent> it = layer.getComponentIterator();
+
+        // Find all contour sets in current layer and put them in the menu
+        while (it.hasNext()) {
+            final AbstractDrawableComponent adc = it.next();
+            if (adc instanceof Contours) {
+                final Contours contours = (Contours) adc;
+
+                // Add action to menu items
+                subMenu.add(new Action(contours.getParm() + contours.getLevel()
+                        + contours.getForecastHour()) {
+                    @Override
+                    public void run() {
+                        // Prompt user to type in label value
+                        InputDialog inputDialog = new InputDialog(
+                                new Shell(),
+                                "Please type in contour label",
+                                "Please type in the label of the contour line:",
+                                "", null) {
+                            @Override
+                            protected void configureShell(Shell shell) {
+                                super.configureShell(shell);
+                                shell.setBounds(shell.getBounds().x
+                                        + LABEL_DIALOG_OFFSET_X,
+                                        shell.getBounds().y
+                                                + LABEL_DIALOG_OFFSET_Y,
+                                        LABEL_DIALOG_WIDTH, LABEL_DIALOG_HEIGHT);
+                            }
+                        };
+
+                        if (inputDialog.open() == Window.OK) {
+                            addLineToContour(line, contours,
+                                    inputDialog.getValue());
+
+                            // clean up
+                            layer.remove(line);
+                            PgenUtil.setSelectingMode();
+                            PgenResource.this
+                                    .setSelected((AbstractDrawableComponent) null);
+                        }
+                    }
+                });
+            }
+        }
+        menuManager.add(subMenu);
     }
 
     /**
      * Adds a line into a contour set
      * 
-     * @param line     - line to be added in contour
-     * @param contours - a contour set
-     * @param label    - label of the line
-     */ 
-    private void addLineToContour(Line line, Contours contours, String label ){
-    	
-    	//Create a default contour label
-    	Text lbl = new Text( null, "Courier", 14.0f, TextJustification.CENTER,
-                 line.getPoints().get(0), 0.0, TextRotation.SCREEN_RELATIVE, new String[]{label},
-                 FontStyle.REGULAR, Color.RED, 0, 0, true, DisplayType.NORMAL,
-                 "Text", "General Text" );;
-    	 
-        //set line and label attributes
-    	if ( !contours.getContourLines().isEmpty() ){
-    	   line.setAttr(contours.getContourLines().get(0).getLine().getAttr());
-    	   line.setColors( contours.getContourLines().get(0).getLine().getColors() );
-    	   line.setPgenType( contours.getContourLines().get(0).getLine().getPgenType() );
-    	  
-    	   if ( !contours.getContourLines().get(0).getLabels().isEmpty() ){
-    		   lbl = (Text) contours.getContourLines().get(0).getLabels().get(0).copy();
-    		   lbl.setText( new String[]{label} );
-    	   }
-    	}
+     * @param line
+     *            - line to be added in contour
+     * @param contours
+     *            - a contour set
+     * @param label
+     *            - label of the line
+     */
+    private void addLineToContour(Line line, Contours contours, String label) {
 
-    	//add the line in contours
- 	    ContourLine cline = new ContourLine(line, lbl, 1);
+        // Create a default contour label
+        Text lbl = new Text(null, "Courier", 14.0f, TextJustification.CENTER,
+                line.getPoints().get(0), 0.0, TextRotation.SCREEN_RELATIVE,
+                new String[] { label }, FontStyle.REGULAR, Color.RED, 0, 0,
+                true, DisplayType.NORMAL, "Text", "General Text");
+        ;
+
+        // set line and label attributes
+        if (!contours.getContourLines().isEmpty()) {
+            line.setAttr(contours.getContourLines().get(0).getLine().getAttr());
+            line.setColors(contours.getContourLines().get(0).getLine()
+                    .getColors());
+            line.setPgenType(contours.getContourLines().get(0).getLine()
+                    .getPgenType());
+
+            if (!contours.getContourLines().get(0).getLabels().isEmpty()) {
+                lbl = (Text) contours.getContourLines().get(0).getLabels()
+                        .get(0).copy();
+                lbl.setText(new String[] { label });
+            }
+        }
+
+        // add the line in contours
+        ContourLine cline = new ContourLine(line, lbl, 1);
 
         // Add the new ContourLine to the contour
         Contours newContour = contours.copy();
         newContour.add(cline);
 
-        List<AbstractDrawableComponent> oldObjects = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> oldObjects = new ArrayList<>();
         oldObjects.add(line);
         oldObjects.add(contours);
 
-        List<AbstractDrawableComponent> newObjects = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> newObjects = new ArrayList<>();
         newObjects.add(newContour);
 
         // Replace and allow undo/redo.
         PgenResource.this.replaceElements(oldObjects, newObjects);
     }
-    
+
     /**
      * Creates a submenu "Add To Contour" and its menu items for a Text.
      * 
@@ -2388,11 +2272,11 @@ public class PgenResource extends
         Contours newContour = contours.copy();
         newContour.add(cmm);
 
-        List<AbstractDrawableComponent> oldObjects = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> oldObjects = new ArrayList<>();
         oldObjects.add(labelText);
         oldObjects.add(contours);
 
-        List<AbstractDrawableComponent> newObjects = new ArrayList<AbstractDrawableComponent>();
+        List<AbstractDrawableComponent> newObjects = new ArrayList<>();
         newObjects.add(newContour);
 
         // Replace and allow undo/redo.
@@ -2452,7 +2336,7 @@ public class PgenResource extends
      */
     public List<DrawableElement> getActiveDrawableElements() {
 
-        List<DrawableElement> des = new ArrayList<DrawableElement>();
+        List<DrawableElement> des = new ArrayList<>();
 
         for (Layer layer : resourceData.getActiveProduct().getLayers()) {
             if (layer != null && layer.isOnOff()) {

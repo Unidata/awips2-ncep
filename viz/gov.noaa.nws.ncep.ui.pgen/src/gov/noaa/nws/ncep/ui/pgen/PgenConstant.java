@@ -15,6 +15,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 12/17/2015    R12990    J. Wu       Add more constants.
  * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
  * 01/27/2016    R13166    J. Wu       Add CIRCLE.
+ * 05/02/2016    R16076    J. Wu       Add more constants.
  * 
  * </pre>
  * 
@@ -71,6 +72,10 @@ public final class PgenConstant {
 
     public static final String NONE = "None";
 
+    public static final String DEFAULT_ACTIVITY_TYPE = "Default";
+
+    public static final String DEFAULT_ACTIVITY_LABEL = "Default.DDMMYYYY.HH.xml";
+
     public static final String DEFAULT_SUBTYPE = "None";
 
     public static final String CONTOURS = "Contours";
@@ -82,4 +87,11 @@ public final class PgenConstant {
     public static final String EVENT_PREV_COLOR = "usePrevColor";
 
     public static final String EVENT_OTHER = "Other";
+
+    public static final String GENERAL_DEFAULT = "Default";
+
+    public static final String OPTION_ALL = "All";
+
+    public static final String DESK = "DESK";
+
 }

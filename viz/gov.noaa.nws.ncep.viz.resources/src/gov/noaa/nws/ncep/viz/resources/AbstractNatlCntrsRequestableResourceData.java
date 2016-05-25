@@ -90,8 +90,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
  * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
  * 06/16/2015      RM6580  kvepuri     Updated PGEN latest file logic
+ * 02/16/2016      R15244  bkowal      Prevent potential Null Pointer Exception.
  * 03/01/2016      R6821   kbugenhagen Date/time changes for Blender and cleanup.
- * 04/05/2016   RM#10435   rjpeter     Removed Inventory usage.
+ * 04/05/2016      R10435  rjpeter     Removed Inventory usage.
  * </pre>
  * 
  * *
@@ -535,7 +536,9 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             // PGEN needs to display latest file, so don't display
             // multiple available files. availTimesList is already sorted, pick
             // the latest
-            if (rscDefn.getResourceCategory().isPgenCategory()
+
+            if (rscDefn != null
+                    && rscDefn.getResourceCategory().isPgenCategory()
                     && (availTimesList.size() > 1)) {
                 availTimesList = Arrays
                         .asList(availTimes[availTimes.length - 1]);

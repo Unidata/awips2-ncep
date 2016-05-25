@@ -15,6 +15,7 @@ import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
+import gov.noaa.nws.ncep.viz.resourceManager.timeline.cache.TimeSettingsCacheManager;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
@@ -172,15 +173,16 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 05/07/2014   TTR991       D. Sushon   if a different NCP editor is selected, the CreateRDB tab should now adjust.
  * 05/29/2014     #1131      qzhou       Added NcDisplayType
  *                                       Modified creating new timelineControl in const and updateGUI
- * 08/14/2014		?		 B. Yin		 Added power legend (resource group) support.
- * 09/092014		?		 B. Yin		 Fixed NumPad enter issue and the "ResetToDefault" issue for groups. 
+ * 08/14/2014       ?        B. Yin      Added power legend (resource group) support.
+ * 09/092014        ?        B. Yin      Fixed NumPad enter issue and the "ResetToDefault" issue for groups. 
  * 07/28/2014     R4079      sgurung     Fixed the issue related to CreateRbd dialog size (bigger than usual).
  *                                       Also, added code to set geosync to true for graphs.
  * 11/12/2015     R8829      B. Yin      Implemented up/down arrows to move a resource in list.
- * 01/14/2016     R14896	 J. Huber	 Repair Replace Resource button which was broken during cleanup of
- * 										 previous change.
- * 01/01/2016      R14142     RCReynolds  Reformatted Mcidas resource string
- * 01/25/2016      R14142     RCReynolds  Moved mcidas related sting construction out to ResourceDefinition
+ * 01/14/2016     R14896     J. Huber    Repair Replace Resource button which was broken during cleanup of
+ *                                       previous change.
+ * 01/01/2016     R14142    RCReynolds   Reformatted Mcidas resource string
+ * 01/25/2016     R14142    RCReynolds   Moved mcidas related sting construction out to ResourceDefinition
+ * 02/16/2016     R15244    bkowal       Cleaned up warnings.
  * </pre>
  * 
  * @author ghull
@@ -1794,8 +1796,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                         // select this one
                         if (timelineControl.getDominantResource() == null) {
                             timelineControl
-                                    .setDominantResource((AbstractNatlCntrsRequestableResourceData) rbt
-                                            .getResourceData());
+                                    .setDominantResource(
+                                            (AbstractNatlCntrsRequestableResourceData) rbt
+                                                    .getResourceData(), replace);
                         }
                     }
                 } catch (VizException e) {
@@ -1899,7 +1902,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             public void widgetSelected(SelectionEvent ev) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                         .getSelection();
-                Iterator itr = sel_elems.iterator();
+                Iterator<?> itr = sel_elems.iterator();
 
                 // note: the base may be selected if there are multi selected
                 // with others.
@@ -2399,9 +2402,12 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     importRbdName).getName();
             if (importRbdName.equals(rbdMngr.getRbdName())) {
                 import_rbd_combo.select(i);
+                break;
             }
         }
 
+        TimeSettingsCacheManager.getInstance().updateCacheLookupKey(
+                rbdMngr.getRbdName());
         if (import_rbd_combo.getSelectionIndex() == -1) {
             import_rbd_combo.select(import_rbd_combo.getItemCount() - 1);
         }
@@ -2674,6 +2680,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             rbdMngr.init(curDispType);
         }
 
+        TimeSettingsCacheManager.getInstance().reset();
         updateGUI();
 
         curGrp = -1;
@@ -2692,8 +2699,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             StructuredSelection orig_sel_elems = (StructuredSelection) seld_rscs_lviewer
                     .getSelection();
-            List<ResourceSelection> origSeldRscsList = (List<ResourceSelection>) orig_sel_elems
-                    .toList();
+            List<?> origSeldRscsList = orig_sel_elems.toList();
 
             if (groupListViewer.getSelection().isEmpty()
                     || groupListViewer.getTable().getSelection()[0].getText()
@@ -2711,7 +2717,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             List<ResourceSelection> newSeldRscsList = new ArrayList<ResourceSelection>();
 
             // create a new list of selected elements
-            for (ResourceSelection rscSel : origSeldRscsList) {
+            for (Object object : origSeldRscsList) {
+                ResourceSelection rscSel = (ResourceSelection) object;
                 for (int r = 0; r < seld_rscs_lviewer.getList().getItemCount(); r++) {
                     if (rscSel == seld_rscs_lviewer.getElementAt(r)) {
                         newSeldRscsList.add(rscSel);
@@ -3165,6 +3172,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // updateGUI triggers the spinner which ends up calling
         // rbdMngr.setPaneLayout(), so we need to reset this here.
         rbdMngr.setRbdModified(false);
+
     }
 
     // import just the given pane in the rbdBndl into the dialog's currently

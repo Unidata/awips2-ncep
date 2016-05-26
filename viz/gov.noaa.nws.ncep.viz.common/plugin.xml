@@ -4,7 +4,7 @@
    <extension-point id="areaProvider" name="areaProvider" schema="schema/areaProvider.exsd"/>
    
     <extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
@@ -14,7 +14,7 @@
 	         extensionFilter=".tbl,.cmap">
        </path>
     </extension>
-    <extension point="com.raytheon.uf.viz.localization.localizationpath">
+    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
@@ -24,7 +24,7 @@
 	          extensionFilter=".xml">
        </path>
     </extension>
-    <extension point="com.raytheon.uf.viz.localization.localizationpath">
+    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
@@ -34,7 +34,7 @@
 	          extensionFilter=".xml">
        </path>
     </extension>
-    <extension point="com.raytheon.uf.viz.localization.localizationpath">
+    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"

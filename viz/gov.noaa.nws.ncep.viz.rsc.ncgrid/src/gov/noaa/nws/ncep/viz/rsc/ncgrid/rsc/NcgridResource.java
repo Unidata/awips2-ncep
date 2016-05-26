@@ -36,7 +36,6 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
@@ -170,6 +169,10 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                          for point data values (type = 'p') if
  *                                          projection is changed.
  * 04/21/2016   R17741      S. Gilbert      removed isseuRefresh() that was causing continuous paint.
+ * 05/06/2016   R17323      K.Bugenhagen    Save ncgrid proxy with each frame.
+ *                                          Remove unnecessary issueRefresh call in
+ *                                          paintFrame. Removed getFileName method 
+ *                                          (not used anywhere). Use slf4j logger.
  * </pre>
  * 
  * @author mli
@@ -535,6 +538,10 @@ public class NcgridResource extends
             return this.gdPrxy;
         }
 
+        private void setProxy(NcGridDataProxy proxy) {
+            gdPrxy = proxy;
+        }
+
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof NcGridDataProxy)) {
                 statusHandler
@@ -849,6 +856,13 @@ public class NcgridResource extends
                             hasData = false;
                             if (gdPrxy != null
                                     && gdPrxy.getNewSpatialObject() != null) {
+
+                                // Set the proxy for this frame. Gets used in
+                                // ContourSupport to get imageGridGeometry.
+                                FrameData frame = (FrameData) getCurrentFrame();
+                                if (frame != null) {
+                                    frame.setProxy(gdPrxy);
+                                }
 
                                 contourRenderable[i] = new ContourRenderable(
                                         gridData, getNcMapDescriptor(),
@@ -1334,7 +1348,8 @@ public class NcgridResource extends
                             + (t2 - t1));
                 }
             } catch (DgdrivException e) {
-                statusHandler.error("Could not Retrieve grid:", e);
+                statusHandler.error("Error getting data from Dgdriv", e);
+
                 return null;
             }
             return gridData;
@@ -2467,49 +2482,6 @@ public class NcgridResource extends
             return "M ";
         }
         return "";
-    }
-
-    public static String getFilename(String dataURI) {
-        String filename = null;
-        File file = null;
-        String[] uriStr = dataURI.split("/");
-        String path = uriStr[3];
-        StringBuilder sb = new StringBuilder();
-        String[] tmStr = uriStr[2].split("_");
-        String dataDateStr = tmStr[0];
-        String fhrs = tmStr[2].substring(tmStr[2].indexOf("(") + 1,
-                tmStr[2].indexOf(")"));
-        String fhStr;
-        int number = 0;
-
-        if (fhrs == null) {
-            fhStr = "000";
-        } else {
-            try {
-                number = Integer.parseInt(fhrs);
-            } catch (NumberFormatException e) {
-                statusHandler
-                        .info("NcgridResource.getFilename(S): "
-                                + "NumberFormat Exception: error processing \"fhrs\" value == "
-                                + fhrs);
-            }
-            fhStr = forecastHourFormat.format(number);
-        }
-        sb.append(path);
-        sb.append("-");
-        sb.append(dataDateStr);
-        String dataTimeStr = tmStr[1].split(":")[0] + "-FH-" + fhStr;
-        sb.append("-");
-        sb.append(dataTimeStr);
-        sb.append(".h5");
-
-        file = new File(dataURI.split("/")[1] + File.separator + path
-                + File.separator + sb.toString());
-
-        if (file != null) {
-            filename = file.getAbsolutePath();
-        }
-        return filename;
     }
 
     /**

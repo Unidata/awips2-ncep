@@ -90,7 +90,7 @@ import com.raytheon.uf.common.time.DataTime;
  * 08/13/2014     R4079     sgurung     Added code changes from TimeLineControl (related to TTR1032)
  * 03/18/2015     R6920     sgurung     Fix NullPointerException in method snapAvailtimes() and remove commented out code
  * 03/11/2016     R15244    bkowal      Initial cleanup to fix how time line control has been extended.
- * 
+ * 05/26/2016     R19195    sgurung     Fix errors introduced by Redmine Ticket 15244 (error thrown when switching to Graph RBD)
  * </pre>
  * 
  * @author qzhou
@@ -205,7 +205,25 @@ public class GraphTimelineControl extends TimelineControl {
         setControlsEnabled(!disable);
         canvas.redraw();
     }
+    
+    /* (non-Javadoc)
+     * @see gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl#updateTimeline(gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher)
+     */
+    @Override
+    public void updateTimeline(NCTimeMatcher tm) {
+        timeMatcher = tm;
 
+        if (timeMatcher.isCurrentRefTime()) {
+            refTimeCombo.select(0);
+        } else if (timeMatcher.isLatestRefTime()) {
+            refTimeCombo.select(1);
+        } else {
+            refTimeCombo.select(2);
+        }
+
+        updateTimeline();
+    }
+    
     private void updateTimeline() {
 
         if (timeMatcher.getFrameTimes().isEmpty()) {

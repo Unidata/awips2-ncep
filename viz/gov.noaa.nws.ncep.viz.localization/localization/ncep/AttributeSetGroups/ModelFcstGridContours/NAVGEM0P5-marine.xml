@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
+    <resource>NAVGEM0P5</resource>
+    <attrSetGroupName>marine</attrSetGroupName>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>1000mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-850_thk_global</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_and_bl_wind_nogaps</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
+</AttributeSetGroup>
+

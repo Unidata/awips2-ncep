@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+  <attrSetGroupName>wave_period</attrSetGroupName>
+  <resource>ECMWF0P25WAVE</resource>
+  <attrSetLabels>
+    <attrSetLabel>
+      <name>peak_swell_per_fill</name>
+    </attrSetLabel>
+    <attrSetLabel>
+      <name>peak_swell_per_grid</name>
+    </attrSetLabel>
+  </attrSetLabels>
+</AttributeSetGroup>
+

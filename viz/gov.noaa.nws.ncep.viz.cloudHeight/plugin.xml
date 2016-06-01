@@ -22,7 +22,7 @@
       </handler>
    </extension>
     <extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"

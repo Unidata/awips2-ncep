@@ -246,7 +246,7 @@
    </extension>
    
    <extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        	<path
              application="NCEP"
              localizationType="CAVE_STATIC"
@@ -261,7 +261,7 @@
         under the plot models so there is no need to have a duplicate entry 
         by extending the ext point again
    <extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        	<path
              application="NCEP"
              localizationType="CAVE_STATIC"
@@ -272,7 +272,7 @@
        </path>
     </extension>
  	<extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        	<path
              application="NCEP"
              localizationType="CAVE_STATIC"

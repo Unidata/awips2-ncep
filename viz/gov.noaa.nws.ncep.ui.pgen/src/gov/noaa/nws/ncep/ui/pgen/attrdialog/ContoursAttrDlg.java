@@ -147,6 +147,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/23/2016   R16613      J. Huber    Change "Hide Labels" to "Collapse Levels".
  * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
  * 05/07/2016   R17379      J. Wu       Overwrite contour level when user types in new value.
+ * 05/16/2016   R18388      J. Wu       Use some contants in PgenConstant.
  * 
  * </pre>
  * 
@@ -2042,7 +2043,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
      */
     private String getLabelTempKey() {
 
-        String tempKey = PgenConstant.PGENTYPE_GENERAL_TEXT;
+        String tempKey = PgenConstant.TYPE_GENERAL_TEXT;
         if (drawSymbol() && activeContourSymbolBtn != null) {
             tempKey = new String(activeContourSymbolBtn.getData().toString()
                     + labelSuffix);
@@ -2062,7 +2063,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
      */
     private String getLabelTempKey(AbstractDrawableComponent de) {
 
-        String tempKey = PgenConstant.PGENTYPE_GENERAL_TEXT;
+        String tempKey = PgenConstant.TYPE_GENERAL_TEXT;
         AbstractDrawableComponent dp = de.getParent();
         if (dp != null) {
             if (dp instanceof ContourLine) {
@@ -3954,9 +3955,8 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
                     retrieveDefaultSettings(PgenConstant.CIRCLE));
 
             // Get Default for label.
-            ncontoursAttrSettings
-                    .put(PgenConstant.PGENTYPE_GENERAL_TEXT,
-                            retrieveDefaultSettings(PgenConstant.PGENTYPE_GENERAL_TEXT));
+            ncontoursAttrSettings.put(PgenConstant.TYPE_GENERAL_TEXT,
+                    retrieveDefaultSettings(PgenConstant.TYPE_GENERAL_TEXT));
 
             /*
              * Get line, text, symbols/markers, circles found in the Contours in

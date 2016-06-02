@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
 /**
  * The grid contour attribute editing dialog.
@@ -35,7 +36,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * Dec 13 2011  578         G. Hull     added ensembleComponentWeights, and folded the 
  *                                      EnsembleSelectDialog into this one.
  * Feb 15 2013              X. Guo      Added skip and filter
- * 03/22/2016   R10366      bkowal      Cleanup. Check for Ensemble GD File updates on close.                                                                         
+ * 03/22/2016   R10366      bkowal      Cleanup. Check for Ensemble GD File updates on close.
+ * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.                                                                       
  * 
  * @author mli
  * @version 1
@@ -118,15 +120,9 @@ public class EditEnsembleAttributesDialog extends
 
     private EnsembleSelectComposite ensSelComp;
 
-    /**
-     * Constructor
-     * 
-     * @param parentShell
-     * @param dialogTitle
-     */
     public EditEnsembleAttributesDialog(Shell parentShell,
-            INatlCntrsResourceData rd, Boolean apply) {
-        super(parentShell, rd, apply);
+            INatlCntrsResourceData rd, Capabilities capabilities, Boolean apply) {
+        super(parentShell, rd, capabilities, apply);
     }
 
     @Override
@@ -161,15 +157,18 @@ public class EditEnsembleAttributesDialog extends
         }
 
         if (cintString == null
-                || ((String) cintString.getAttrValue()).trim().length() <= 0)
-            cintString.setAttrValue((String) "");
+                || ((String) cintString.getAttrValue()).trim().length() <= 0) {
+            cintString.setAttrValue("");
+        }
 
-        if (hilo != null && ((String) hilo.getAttrValue()).trim().length() <= 0)
-            hilo.setAttrValue((String) "");
+        if (hilo != null && ((String) hilo.getAttrValue()).trim().length() <= 0) {
+            hilo.setAttrValue("");
+        }
 
         if (hlsym != null
-                && ((String) hlsym.getAttrValue()).trim().length() <= 0)
-            hlsym.setAttrValue((String) "");
+                && ((String) hlsym.getAttrValue()).trim().length() <= 0) {
+            hlsym.setAttrValue("");
+        }
 
         // Resources Tab
         TabFolder tabFolder = new TabFolder(composite, SWT.TOP);
@@ -200,8 +199,9 @@ public class EditEnsembleAttributesDialog extends
         glevelText.setLayoutData(new GridData(600, SWT.DEFAULT));
         glevelText.setText((String) glevel.getAttrValue());
         glevelText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                glevel.setAttrValue((String) glevelText.getText().trim());
+                glevel.setAttrValue(glevelText.getText().trim());
             }
 
         });
@@ -213,8 +213,9 @@ public class EditEnsembleAttributesDialog extends
         gvcordText.setLayoutData(new GridData(600, SWT.DEFAULT));
         gvcordText.setText((String) gvcord.getAttrValue());
         gvcordText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                gvcord.setAttrValue((String) gvcordText.getText().trim());
+                gvcord.setAttrValue(gvcordText.getText().trim());
             }
         });
 
@@ -225,8 +226,9 @@ public class EditEnsembleAttributesDialog extends
         skipText.setLayoutData(new GridData(600, SWT.DEFAULT));
         skipText.setText((String) skip.getAttrValue());
         skipText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                skip.setAttrValue((String) skipText.getText().trim());
+                skip.setAttrValue(skipText.getText().trim());
             }
         });
 
@@ -237,8 +239,9 @@ public class EditEnsembleAttributesDialog extends
         filterText.setLayoutData(new GridData(600, SWT.DEFAULT));
         filterText.setText((String) filter.getAttrValue());
         filterText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                filter.setAttrValue((String) filterText.getText().trim());
+                filter.setAttrValue(filterText.getText().trim());
             }
         });
 
@@ -249,8 +252,9 @@ public class EditEnsembleAttributesDialog extends
         scaleText.setLayoutData(new GridData(600, SWT.DEFAULT));
         scaleText.setText((String) scale.getAttrValue());
         scaleText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                scale.setAttrValue((String) scaleText.getText().trim());
+                scale.setAttrValue(scaleText.getText().trim());
             }
         });
 
@@ -261,8 +265,9 @@ public class EditEnsembleAttributesDialog extends
         gdpfunText.setLayoutData(new GridData(600, SWT.DEFAULT));
         gdpfunText.setText((String) gdpfun.getAttrValue());
         gdpfunText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                gdpfun.setAttrValue((String) gdpfunText.getText().trim());
+                gdpfun.setAttrValue(gdpfunText.getText().trim());
             }
         });
 
@@ -273,8 +278,9 @@ public class EditEnsembleAttributesDialog extends
         typeText.setLayoutData(new GridData(600, SWT.DEFAULT));
         typeText.setText((String) type.getAttrValue());
         typeText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                type.setAttrValue((String) typeText.getText().trim());
+                type.setAttrValue(typeText.getText().trim());
             }
         });
 
@@ -285,8 +291,9 @@ public class EditEnsembleAttributesDialog extends
         cintText.setLayoutData(new GridData(600, SWT.DEFAULT));
         cintText.setText((String) cintString.getAttrValue());
         cintText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                cintString.setAttrValue((String) cintText.getText().trim());
+                cintString.setAttrValue(cintText.getText().trim());
             }
 
         });
@@ -298,8 +305,9 @@ public class EditEnsembleAttributesDialog extends
         lineAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
         lineAttrText.setText((String) lineAttr.getAttrValue());
         lineAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                lineAttr.setAttrValue((String) lineAttrText.getText().trim());
+                lineAttr.setAttrValue(lineAttrText.getText().trim());
             }
         });
 
@@ -310,8 +318,9 @@ public class EditEnsembleAttributesDialog extends
         fintAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
         fintAttrText.setText((String) fint.getAttrValue());
         fintAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                fint.setAttrValue((String) fintAttrText.getText().trim());
+                fint.setAttrValue(fintAttrText.getText().trim());
             }
         });
 
@@ -322,8 +331,9 @@ public class EditEnsembleAttributesDialog extends
         flineAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
         flineAttrText.setText((String) fline.getAttrValue());
         flineAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                fline.setAttrValue((String) flineAttrText.getText().trim());
+                fline.setAttrValue(flineAttrText.getText().trim());
             }
         });
 
@@ -335,8 +345,9 @@ public class EditEnsembleAttributesDialog extends
             hiloAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
             hiloAttrText.setText((String) hilo.getAttrValue());
             hiloAttrText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    hilo.setAttrValue((String) hiloAttrText.getText().trim());
+                    hilo.setAttrValue(hiloAttrText.getText().trim());
                 }
             });
         }
@@ -349,8 +360,9 @@ public class EditEnsembleAttributesDialog extends
             hlsymAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
             hlsymAttrText.setText((String) hlsym.getAttrValue());
             hlsymAttrText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    hlsym.setAttrValue((String) hlsymAttrText.getText().trim());
+                    hlsym.setAttrValue(hlsymAttrText.getText().trim());
                 }
             });
         }
@@ -362,8 +374,9 @@ public class EditEnsembleAttributesDialog extends
         windAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
         windAttrText.setText((String) wind.getAttrValue());
         windAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                wind.setAttrValue((String) windAttrText.getText().trim());
+                wind.setAttrValue(windAttrText.getText().trim());
             }
         });
 
@@ -374,8 +387,9 @@ public class EditEnsembleAttributesDialog extends
         titleAttrText.setLayoutData(new GridData(600, SWT.DEFAULT));
         titleAttrText.setText((String) title.getAttrValue());
         titleAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                title.setAttrValue((String) titleAttrText.getText().trim());
+                title.setAttrValue(titleAttrText.getText().trim());
             }
         });
 
@@ -386,8 +400,9 @@ public class EditEnsembleAttributesDialog extends
         colorsText.setLayoutData(new GridData(600, SWT.DEFAULT));
         colorsText.setText((String) colors.getAttrValue());
         colorsText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                colors.setAttrValue((String) colorsText.getText().trim());
+                colors.setAttrValue(colorsText.getText().trim());
             }
         });
 
@@ -398,8 +413,9 @@ public class EditEnsembleAttributesDialog extends
         markerText.setLayoutData(new GridData(600, SWT.DEFAULT));
         markerText.setText((String) marker.getAttrValue());
         markerText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                marker.setAttrValue((String) markerText.getText().trim());
+                marker.setAttrValue(markerText.getText().trim());
             }
         });
 
@@ -408,11 +424,12 @@ public class EditEnsembleAttributesDialog extends
         grdlblLabel.setText("GRDLBL:");
         grdlblText = new Text(gridAttrsComp, SWT.SINGLE | SWT.BORDER);
         grdlblText.setLayoutData(new GridData(600, SWT.DEFAULT));
-        grdlblText.setText(String.valueOf((Integer) grdlbl.getAttrValue()));
+        grdlblText.setText(String.valueOf(grdlbl.getAttrValue()));
         grdlblText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                grdlbl.setAttrValue((Integer) Integer.valueOf(grdlblText
-                        .getText().trim()));
+                grdlbl.setAttrValue(Integer
+                        .valueOf(grdlblText.getText().trim()));
             }
         });
 
@@ -420,6 +437,7 @@ public class EditEnsembleAttributesDialog extends
         toolTipDisplay.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT));
         toolTipDisplay.setText("ToolTips OFF");
         toolTipDisplay.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (toolTipDisplay.getSelection()) {
                     toolTipDisplay.setText("ToolTips ON");

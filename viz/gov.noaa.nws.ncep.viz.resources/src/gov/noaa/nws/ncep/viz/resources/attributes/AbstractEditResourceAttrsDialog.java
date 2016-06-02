@@ -4,6 +4,10 @@ import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -18,6 +22,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
 /**
  * an interface to edit resource attributes
@@ -29,7 +35,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * ------------ ----------  ----------- --------------------------
  * 29 May 2009   #115        Greg Hull  Initial Creation.
  * 19 Nov 2009   #192        M. Li      Added new constructor
- * 15 Dec 2009               Greg Hull  removed new constructor	
+ * 15 Dec 2009               Greg Hull  removed new constructor 
  * 04 Apr 2010   #259        Greg Hull  add dispose()
  * 27 Apr 2010   #245        Greg Hull  Added Apply Button
  * 22 Nov 2011   #495        Greg Hull  Make Application Modal when from ResourceManager.
@@ -37,6 +43,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * 28 March 2012 #651        S. Gurung  Removed changes made by Archana. 
  *                                      Moved the changes to a new class AbstractEditResourceAttrsInteractiveDialog.
  * 03/22/2016    R10366      bkowal     Cleanup and added {@link #handleOK()}.
+ * 04/05/2016    R15715      dgilling   Pass Capabilites object through to concrete classes.
  * 
  * </pre>
  * 
@@ -48,12 +55,54 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
 
     protected final IUFStatusHandler statusHandler = UFStatus
             .getHandler(getClass());
-    
+
+    /*
+     * Associate with each line style a list of segment lengths (in pixels) of
+     * the repeating pattern. Numbers are pixels on, pixels off, on, off, ...
+     * 
+     * (Derived from similar structure in NMAP NxmLineA.c) CAUTION: Duplication
+     * (of a sort). This governs only local display of line patterns in this
+     * dialog (preview and line style selector buttons).
+     * 
+     * Actual drawing of lines with these styles is up to the implementation of
+     * IGraphicsTarget being used.
+     */
+    protected static final Map<LineStyle, int[]> STYLE_MAP = Collections
+            .unmodifiableMap(new EnumMap<LineStyle, int[]>(LineStyle.class) {
+                {
+                    // GEMPAK line type 1
+                    put(LineStyle.SOLID, new int[] { 4 });
+                    // GEMPAK line type 2
+                    put(LineStyle.SHORT_DASHED, new int[] { 4, 4 });
+                    // GEMPAK line type 3
+                    put(LineStyle.MEDIUM_DASHED, new int[] { 8, 8 });
+                    // GEMPAK line type 4
+                    put(LineStyle.LONG_DASH_SHORT_DASH,
+                            new int[] { 16, 8, 4, 8 });
+                    // GEMPAK line type 5
+                    put(LineStyle.LONG_DASHED, new int[] { 16, 8 });
+                    // GEMPAK line type 6
+                    put(LineStyle.LONG_DASH_THREE_SHORT_DASHES, new int[] { 16,
+                            8, 4, 8, 4, 8, 4, 8 });
+                    // GEMPAK line type 7
+                    put(LineStyle.LONG_DASH_DOT, new int[] { 16, 8, 2, 8 });
+                    // GEMPAK line type 8
+                    put(LineStyle.LONG_DASH_THREE_DOTS, new int[] { 16, 8, 2,
+                            8, 2, 8, 2, 8 });
+                    // GEMPAK line type 9
+                    put(LineStyle.MEDIUM_DASH_DOT, new int[] { 8, 8, 2, 8 });
+                    // GEMPAK line type 10
+                    put(LineStyle.DOTS, new int[] { 2, 4 });
+                }
+            });
+
+    protected final INatlCntrsResourceData rscData;
+
+    protected final Capabilities capabilities;
+
     protected Shell shell;
 
-    protected String dlgTitle = null;
-
-    protected INatlCntrsResourceData rscData;
+    protected String dlgTitle;
 
     protected ResourceAttrSet editedRscAttrSet = null;
 
@@ -62,11 +111,13 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
     protected boolean ok = false;
 
     public AbstractEditResourceAttrsDialog(Shell parentShell,
-            INatlCntrsResourceData r, Boolean apply) {
+            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
         super(parentShell);
-        rscData = r;
-        ResourceName rscName = rscData.getResourceName();
-        this.dlgTitle = "Edit " + rscName.toString() + " Attributes";
+
+        this.rscData = r;
+        this.capabilities = capabilities;
+        ResourceName rscName = this.rscData.getResourceName();
+        this.dlgTitle = String.format("Edit %s Attributes", rscName);
 
         hasApplyBtn = apply;
     }
@@ -118,6 +169,7 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
         canBtn.setText(" Cancel ");
 
         canBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 ok = false;
                 shell.dispose();
@@ -129,6 +181,7 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
             applyBtn.setText(" Apply ");
 
             applyBtn.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     rscData.setRscAttrSet(editedRscAttrSet);
                     rscData.setIsEdited(true);
@@ -141,6 +194,7 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
         okBtn.setText("    OK    ");
 
         okBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 handleOK();
             }

@@ -18,6 +18,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit FFG resource attributes.
  * 
@@ -31,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
  * 21 Mar 2010   #259        Greg Hull     add colorbar editor
  * 27 Apr 2010   #245        Greg Hull     Added Apply Button
  * 01 Jul 2014 TTR 1018      Steve Russell Updated call to ColorBarEditor
+ * 04/05/2016   R15715       dgilling      Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -40,9 +43,9 @@ import org.eclipse.swt.widgets.Shell;
 
 public class EditFFGAttrsDialog extends AbstractEditResourceAttrsDialog {
 
-    public EditFFGAttrsDialog(Shell parentShell, INatlCntrsResourceData r, Boolean apply) {
-        super(parentShell, r, apply);
-        // TODO Auto-generated constructor stub
+    public EditFFGAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
 
     private RscAttrValue dispValsAttr = null;
@@ -55,26 +58,31 @@ public class EditFFGAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     private ColorBarEditor colorBarEditor = null;
 
-    // 
+    //
     @Override
     public Composite createDialog(Composite topComp) {
 
         dispValsAttr = editedRscAttrSet.getRscAttr("displayValues");
         colorBarAttr = editedRscAttrSet.getRscAttr("colorBar");
 
-        if (dispValsAttr == null || dispValsAttr.getAttrClass() != Boolean.class) {
-            System.out.println("displayValues is null or not of expected class Boolean?");
+        if (dispValsAttr == null
+                || dispValsAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("displayValues is null or not of expected class Boolean?");
             return null;
         }
-        if (colorBarAttr == null || colorBarAttr.getAttrClass() != ColorBar.class) {
-            System.out.println("colorBar is null or not of expected class ColorBar?");
+        if (colorBarAttr == null
+                || colorBarAttr.getAttrClass() != ColorBar.class) {
+            statusHandler
+                    .error("colorBar is null or not of expected class ColorBar?");
             return null;
         }
 
         FormLayout layout0 = new FormLayout();
         topComp.setLayout(layout0);
 
-        final Combo showAsCombo = new Combo(topComp, SWT.READ_ONLY | SWT.DROP_DOWN);
+        final Combo showAsCombo = new Combo(topComp, SWT.READ_ONLY
+                | SWT.DROP_DOWN);
         FormData fd = new FormData();
         fd.left = new FormAttachment(20, 0);
         fd.top = new FormAttachment(0, 20);
@@ -82,14 +90,17 @@ public class EditFFGAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         showAsCombo.setItems(new String[] { "Values", "Symbols" });
 
-        showAsCombo.select(((Boolean) dispValsAttr.getAttrValue()).booleanValue() ? 0 : 1);
+        showAsCombo.select(((Boolean) dispValsAttr.getAttrValue())
+                .booleanValue() ? 0 : 1);
 
         showAsCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                boolean dispVals = (showAsCombo.getSelectionIndex() == 0 ? true : false);
+                boolean dispVals = (showAsCombo.getSelectionIndex() == 0 ? true
+                        : false);
                 dispValsAttr.setAttrValue(new Boolean(dispVals));
 
-                dispVals = false; // symobl selection not implemented
+                dispVals = false; // symbol selection not implemented
                 symbolCombo.setEnabled(dispVals);
                 symbolLbl.setEnabled(dispVals);
             }
@@ -124,7 +135,7 @@ public class EditFFGAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         Group colorBarGrp = new Group(topComp, SWT.NONE);
         colorBarGrp.setText("Edit Color Bar");
-        fd = new FormData();//400,300);        
+        fd = new FormData();
         fd.left = new FormAttachment(0, 15);
         fd.right = new FormAttachment(100, -15);
         fd.top = new FormAttachment(showAsCombo, 15, SWT.BOTTOM);
@@ -144,10 +155,10 @@ public class EditFFGAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     @Override
     public void initWidgets() {
-        // done in createDialog		
+        // done in createDialog
     }
 
-    // allow to override	
+    // allow to override
     @Override
     protected void dispose() {
         super.dispose();

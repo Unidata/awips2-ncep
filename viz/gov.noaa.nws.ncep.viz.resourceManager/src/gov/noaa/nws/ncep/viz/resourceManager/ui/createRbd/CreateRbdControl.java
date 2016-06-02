@@ -19,7 +19,7 @@ import gov.noaa.nws.ncep.viz.resourceManager.timeline.cache.TimeSettingsCacheMan
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.EditResourceAttrsAction;
+import gov.noaa.nws.ncep.viz.resources.attributes.EditResourceAttrsDialogFactory;
 import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
@@ -121,6 +121,7 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 import com.raytheon.viz.ui.UiPlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -129,9 +130,9 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/26/10		  #226		 Greg Hull	 Broke out and refactored from ResourceMngrDialog
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 01/26/10       #226       Greg Hull   Broke out and refactored from ResourceMngrDialog
  * 04/27/10       #245       Greg Hull   Added Apply Button
  * 06/13/10       #273       Greg Hull   RscBndlTemplate->ResourceSelection, use ResourceName
  * 07/14/10       #273       Greg Hull   remove Select Overlay list (now in ResourceSelection)
@@ -148,13 +149,13 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 08/20/11       #450       Greg Hull   Use new SpfsManager
  * 10/22/11       #467       Greg Hull   Add Modify button
  * 11/03/11       #???       B. Hebbard  Add "Save Source Timestamp As:" Constant / Latest 
- * 02/15/2012     627        Archana      Updated the call to addRbd() to accept 
- *                                      a NCMapEditor object as one of the arguments
+ * 02/15/2012     627        Archana     Updated the call to addRbd() to accept 
+ *                                       a NCMapEditor object as one of the arguments
  * 04/26/2012     #766       Quan Zhou   Modified rscSelDlg listener for double click w. existing rsc--close the dlg.
  * 04/03/2012     #765       S. Gurung   Modified method importRBD to change the display when a RBD is imported
  * 05/17/2012     #791       Quan Zhou   Added getDefaultRbdRsc() to get name and rsc from original defaultRbd.xml
- * 										 Modified LoadRBD to check if default editor is empty, then replace it.
- * 										 findCloseEmptyEdotor() is ready but not used now.
+ *                                       Modified LoadRBD to check if default editor is empty, then replace it.
+ *                                       findCloseEmptyEdotor() is ready but not used now.
  * 06/18/2012     #624       Greg Hull   set size correctly when initially importing mult-pane
  * 06/18/2012     #713       Greg Hull   clone the RbdBundl when importing
  * 06/20/2012     #647       Greg Hull   dont call selectDominantResource() after importRbd.
@@ -170,7 +171,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 06/03/2013     #1001      Greg Hull   allow multiple Remove/TurnOff of resources
  * 10/22/2013     #1043      Greg Hull   setSelectedResource() if rsc sel dlg is already up.
  * 11/25/2013     #1079      Greg Hull   adjust size/font of area toolbar based on the text
- * 05/07/2014   TTR991       D. Sushon   if a different NCP editor is selected, the CreateRDB tab should now adjust.
+ * 05/07/2014     TTR991     D. Sushon   if a different NCP editor is selected, the CreateRDB tab should now adjust.
  * 05/29/2014     #1131      qzhou       Added NcDisplayType
  *                                       Modified creating new timelineControl in const and updateGUI
  * 08/14/2014       ?        B. Yin      Added power legend (resource group) support.
@@ -183,6 +184,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 01/01/2016     R14142    RCReynolds   Reformatted Mcidas resource string
  * 01/25/2016     R14142    RCReynolds   Moved mcidas related sting construction out to ResourceDefinition
  * 02/16/2016     R15244    bkowal       Cleaned up warnings.
+ * 04/05/2016     R15715     dgilling    Refactored out PopupEditAttrsDialog and associated methods.
  * </pre>
  * 
  * @author ghull
@@ -397,8 +399,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         timeline_grp.setLayout(new GridLayout());
 
         if (mngr.getRbdType().equals(NcDisplayType.GRAPH_DISPLAY)) {
-            timelineControl = (GraphTimelineControl) new GraphTimelineControl(
-                    timeline_grp);
+            timelineControl = new GraphTimelineControl(timeline_grp);
         } else {
             timelineControl = new TimelineControl(timeline_grp);
         }
@@ -656,10 +657,11 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // dropdown. This will also trigger the menu manager to create
         // the menu items for the available areas.
         areaTItm.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 ToolItem ti = ((ToolItem) event.widget);
                 Rectangle bounds = ti.getBounds();
-                Point point = ((ToolBar) ti.getParent()).toDisplay(bounds.x,
+                Point point = ti.getParent().toDisplay(bounds.x,
                         bounds.y + bounds.height);
 
                 areaCtxMenu.setLocation(point);
@@ -839,6 +841,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         move_down_btn.setEnabled(false);
 
         move_down_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 StructuredSelection groups = ((StructuredSelection) groupListViewer
@@ -897,6 +900,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         move_up_btn.setEnabled(false);
 
         move_up_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 StructuredSelection groups = ((StructuredSelection) groupListViewer
@@ -1072,8 +1076,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                         List<ResourceSelection> list = new ArrayList<ResourceSelection>(
                                 Arrays.asList(groups));
                         list.add(0, ungrouped);
-                        groups1 = (ResourceSelection[]) list
-                                .toArray(new ResourceSelection[list.size()]);
+                        groups1 = list.toArray(new ResourceSelection[list
+                                .size()]);
                     } else {
                         groups1 = new ResourceSelection[] { ungrouped };
                     }
@@ -1096,6 +1100,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         groupListViewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
                 ResourceSelection rscSel = (ResourceSelection) element;
                 if (rscSel.getResourceData() instanceof GroupResourceData) {
@@ -1110,11 +1115,13 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // enable/disable the Edit/Delete/Clear buttons...
         groupListViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                     }
                 });
 
         groupListViewer.getTable().addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 curGrp = groupListViewer.getTable().getSelectionIndex();
@@ -1172,14 +1179,16 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         ColumnViewerEditorActivationStrategy activationSupport = new ColumnViewerEditorActivationStrategy(
                 groupListViewer) {
+            @Override
             protected boolean isEditorActivationEvent(
             // Enable editor only with mouse double click
                     ColumnViewerEditorActivationEvent event) {
                 if (event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION) {
                     EventObject source = event.sourceEvent;
                     if (source instanceof MouseEvent
-                            && ((MouseEvent) source).button == 3)
+                            && ((MouseEvent) source).button == 3) {
                         return false;
+                    }
                     if (((GroupResourceData) ((ResourceSelection) ((org.eclipse.jface.viewers.ViewerCell) event
                             .getSource()).getElement()).getResourcePair()
                             .getResourceData()).getGroupName()
@@ -1229,6 +1238,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         groupListViewer.getTable().addListener(SWT.MouseUp, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 org.eclipse.swt.widgets.Table grpList = (org.eclipse.swt.widgets.Table) event.widget;
 
@@ -1260,6 +1270,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         grpMoveUpBtn.setLayoutData(fd);
         grpMoveUpBtn.setEnabled(true);
         grpMoveUpBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 StructuredSelection isel = ((StructuredSelection) groupListViewer
                         .getSelection());
@@ -1285,6 +1296,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         grpMoveDownBtn.setLayoutData(fd);
         grpMoveDownBtn.setEnabled(true);
         grpMoveDownBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 StructuredSelection isel = ((StructuredSelection) groupListViewer
                         .getSelection());
@@ -1311,6 +1323,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         delGrpBtn.setLayoutData(fd);
         delGrpBtn.setEnabled(true);
         delGrpBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 ResourceSelection sel = (ResourceSelection) ((StructuredSelection) groupListViewer
                         .getSelection()).getFirstElement();
@@ -1399,6 +1412,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             num_rows_btns[r].setSize(20, 20);
             num_rows_btns[r].setData(new Integer(r + 1));
             num_rows_btns[r].addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     selectPane(rbdMngr.setPaneLayout(new NcPaneLayout(
                             (Integer) e.widget.getData(),
@@ -1419,6 +1433,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             num_cols_btns[c].setData(new Integer(c + 1));
 
             num_cols_btns[c].addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     selectPane(rbdMngr.setPaneLayout(new NcPaneLayout(
                             ((NcPaneLayout) rbdMngr.getPaneLayout()).getRows(),
@@ -1482,6 +1497,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             pane_sel_btns[r][c].setData(pid);
             pane_sel_btns[r][c].addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     NcPaneID seldPane = (NcPaneID) e.widget.getData();
                     selectPane(seldPane);
@@ -1518,13 +1534,16 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     private void setContentProviders() {
 
         seld_rscs_lviewer.setContentProvider(new IStructuredContentProvider() {
+            @Override
             public void dispose() {
             }
 
+            @Override
             public void inputChanged(Viewer viewer, Object oldInput,
                     Object newInput) {
             }
 
+            @Override
             public Object[] getElements(Object inputElement) {
                 return ((ResourceSelection[]) inputElement);
             }
@@ -1533,6 +1552,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // get the full path of the attr file and then remove .prm extension
         // and the prefix path up to the cat directory.
         seld_rscs_lviewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
                 ResourceSelection rscSel = (ResourceSelection) element;
                 return rscSel.getRscLabel();
@@ -1544,6 +1564,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // enable/disable the Edit/Delete/Clear buttons...
         seld_rscs_lviewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         updateSelectedResourcesView(false);
                     }
@@ -1551,6 +1572,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         seld_rscs_lviewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
+                    @Override
                     public void handleEvent(Event event) {
                         editResourceData();
                     }
@@ -1562,6 +1584,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     void addSelectionListeners() {
 
         disp_type_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 NcDisplayType selDispType = NcDisplayType
                         .getDisplayType(disp_type_combo.getText());
@@ -1604,11 +1627,11 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         sel_rsc_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                         .getSelection();
-                List<ResourceSelection> seldRscsList = (List<ResourceSelection>) sel_elems
-                        .toList();
+                List<ResourceSelection> seldRscsList = sel_elems.toList();
                 int numSeldRscs = seld_rscs_lviewer.getList()
                         .getSelectionCount();
 
@@ -1644,6 +1667,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // may be invisible, if implementing the Replace on the Select Resource
         // Dialog
         replace_rsc_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (!rscSelDlg.isOpen()) {
                     StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
@@ -1821,6 +1845,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         size_of_image_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 rbdMngr.setZoomLevel((size_of_image_btn.getSelection() ? ZoomLevelStrings.SizeOfImage
                         .toString() : ZoomLevelStrings.FitToScreen.toString()));
@@ -1829,6 +1854,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         fit_to_screen_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 rbdMngr.setZoomLevel((fit_to_screen_btn.getSelection() ? ZoomLevelStrings.FitToScreen
                         .toString() : ZoomLevelStrings.SizeOfImage.toString()));
@@ -1841,6 +1867,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // single pane, but if they reset multi-pane then should the
         // resources in other panes still be selected.
         multi_pane_tog.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 rbdMngr.setMultiPane(multi_pane_tog.getSelection());
 
@@ -1860,6 +1887,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         // if syncing the panes
         geo_sync_panes.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
 
                 if (geo_sync_panes.getSelection()) {
@@ -1887,18 +1915,21 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         custom_area_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
             }
         });
 
         // only 1 should be selected or this button should be greyed out
         edit_rsc_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 editResourceData();
             }
         });
 
         del_rsc_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                         .getSelection();
@@ -1920,6 +1951,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         disable_rsc_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                         .getSelection();
@@ -1937,42 +1969,49 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         clr_pane_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 clearSeldResources();
             }
         });
 
         clear_rbd_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 clearRBD();
             }
         });
 
         load_rbd_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 loadRBD(false);
             }
         });
 
         load_and_close_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 loadRBD(true);
             }
         });
 
         load_pane_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 loadPane();
             }
         });
 
         save_rbd_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveRBD(false);
             }
         });
 
         import_rbd_combo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 importRBD(import_rbd_combo.getText());
             }
@@ -2015,6 +2054,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         import_pane_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 SelectRbdsDialog impDlg = new SelectRbdsDialog(shell,
                         "Import Pane", true, false, true);
@@ -2075,6 +2115,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         ok_edit_btn.setVisible(true);
 
         cancel_edit_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 editedRbd = null;
                 shell.dispose();
@@ -2083,6 +2124,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         // dispose and leave the edited RBD in
         ok_edit_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 createEditedRbd();
                 shell.dispose();
@@ -2418,8 +2460,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         timelineControl.dispose();
         if (rbdMngr.getRbdType().equals(NcDisplayType.GRAPH_DISPLAY)) {
 
-            timelineControl = (GraphTimelineControl) new GraphTimelineControl(
-                    timeline_grp);
+            timelineControl = new GraphTimelineControl(timeline_grp);
         } else {
             timelineControl = new TimelineControl(timeline_grp);
         }
@@ -2469,9 +2510,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // set the list of available resources for the timeline
         for (int paneIndx = 0; paneIndx < paneLayout.getNumberOfPanes(); paneIndx++) {
 
-            for (ResourceSelection rscSel : rbdMngr
-                    .getRscsForPane((NcPaneID) paneLayout
-                            .createPaneId(paneIndx))) {
+            for (ResourceSelection rscSel : rbdMngr.getRscsForPane(paneLayout
+                    .createPaneId(paneIndx))) {
 
                 if (rscSel.getResourceData() instanceof GroupResourceData) {
                     for (ResourcePair pair : ((GroupResourceData) rscSel
@@ -2578,15 +2618,25 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             statusHandler.handle(Priority.INFO, "no resource is selected");
             return;
         }
-        INatlCntrsResourceData rscData = rscSel.getResourceData();
 
+        Capabilities capObj = new Capabilities();
+
+        ResourcePair rp = rscSel.getResourcePair();
+
+        // getLoadProperties() is not null safe but getCapabilities() is, thus
+        // only one check is needed.
+
+        if (rp.getLoadProperties() != null) {
+            capObj = rp.getLoadProperties().getCapabilities();
+        }
+        INatlCntrsResourceData rscData = rscSel.getResourceData();
         if (rscData == null) {
             statusHandler.handle(Priority.INFO,
                     "seld resource is not a INatlCntrsResource");
             return;
         }
-        EditResourceAttrsAction editAction = new EditResourceAttrsAction();
 
+        EditResourceAttrsDialogFactory factory = new EditResourceAttrsDialogFactory();
         try {
 
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
@@ -2610,15 +2660,16 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             // simply change the popup title
             if (!updatedAttrSetName.isEmpty()) {
                 displayName += " " + updatedAttrSetName;
-                editAction.setText(displayName);
+                factory.setTitle(displayName);
             }
 
         } catch (VizException e) {
             statusHandler.handle(Priority.PROBLEM, e.getMessage());
         }
 
-        if (editAction.PopupEditAttrsDialog(shell,
-                (INatlCntrsResourceData) rscData, false)) {
+        factory.setShell(shell).setResourceData(rscData)
+                .setCapabilities(capObj).setApplyBtn(false);
+        if (factory.construct()) {
             rbdMngr.setRbdModified(true);
         }
 
@@ -2699,6 +2750,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             StructuredSelection orig_sel_elems = (StructuredSelection) seld_rscs_lviewer
                     .getSelection();
+
             List<?> origSeldRscsList = orig_sel_elems.toList();
 
             if (groupListViewer.getSelection().isEmpty()
@@ -2742,8 +2794,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         StructuredSelection sel_elems = (StructuredSelection) seld_rscs_lviewer
                 .getSelection();
-        List<ResourceSelection> seldRscsList = (List<ResourceSelection>) sel_elems
-                .toList();
+        List<ResourceSelection> seldRscsList = sel_elems.toList();
 
         // Can't delete, replace or turn off the base overlay.
         Boolean isBaseLevelRscSeld = false;
@@ -2982,6 +3033,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         } catch (VizException e) {
             final String msg = e.getMessage();
             VizApp.runSync(new Runnable() {
+                @Override
                 public void run() {
                     Status status = new Status(Status.ERROR,
                             UiPlugin.PLUGIN_ID, 0, msg, null);
@@ -3072,6 +3124,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         } catch (VizException e) {
             final String msg = e.getMessage();
             VizApp.runSync(new Runnable() {
+                @Override
                 public void run() {
                     Status status = new Status(Status.ERROR,
                             UiPlugin.PLUGIN_ID, 0, msg, null);
@@ -3276,6 +3329,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     rbdBndl, saveRefTime, saveTimeAsConstant);
 
             VizApp.runSync(new Runnable() {
+                @Override
                 public void run() {
                     String msg = null;
                     msg = new String("Resource Bundle Display "
@@ -3293,6 +3347,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         } catch (VizException e) {
             final String msg = e.getMessage();
             VizApp.runSync(new Runnable() {
+                @Override
                 public void run() {
                     Status status = new Status(Status.ERROR,
                             UiPlugin.PLUGIN_ID, 0, msg, null);
@@ -3326,6 +3381,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             editedRbd = null;
             final String msg = e.getMessage();
             VizApp.runSync(new Runnable() {
+                @Override
                 public void run() {
                     Status status = new Status(Status.ERROR,
                             UiPlugin.PLUGIN_ID, 0, msg, null);

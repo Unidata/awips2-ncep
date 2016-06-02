@@ -139,6 +139,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  *                                      methods for ISaveablePart and 
  *                                      ISaveablePart2 *
  * 05/16/2016   R18388      J. Wu       Show all classes for MULTI-SELECT.
+ * 06/02/2016   R19326      S. Russell  updated method isDirty()
  * 
  * </pre>
  * 
@@ -775,7 +776,8 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
                             DrawableElement currentDe = ((PgenSelectingTool) tool)
                                     .getSelectedDE();
                             if (currentDe != null
-                                    && (currentDe.getPgenCategory()
+                                    && (currentDe
+                                            .getPgenCategory()
                                             .equalsIgnoreCase(
                                                     PgenConstant.CATEGORY_LINES) || currentDe
                                             .getPgenCategory()
@@ -1561,13 +1563,16 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
      * @see org.eclipse.ui.ISaveablePart#isDirty()
      */
     public boolean isDirty() {
-        boolean needsSaving = false;
-        PgenResourceData prd = PgenSession.getInstance().getPgenResource()
-                .getResourceData();
 
-        if (prd == null) {
-            needsSaving = false;
-        } else {
+        boolean needsSaving = false;
+
+        PgenSession pgenSession = PgenSession.getInstance();
+        if (pgenSession == null) {
+            return false;
+        }
+
+        PgenResourceData prd = pgenSession.getPgenResourceData();
+        if (prd != null) {
             needsSaving = prd.isNeedsSaving();
         }
 

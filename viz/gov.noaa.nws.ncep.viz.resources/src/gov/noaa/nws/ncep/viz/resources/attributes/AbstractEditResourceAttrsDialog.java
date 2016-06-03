@@ -16,6 +16,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+
 /**
  * an interface to edit resource attributes
  * 
@@ -24,15 +27,16 @@ import org.eclipse.swt.widgets.Shell;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 29 May 2009   #115        Greg Hull    Initial Creation.
- * 19 Nov 2009	 #192		 M. Li		Added new constructor
+ * 29 May 2009   #115        Greg Hull  Initial Creation.
+ * 19 Nov 2009   #192        M. Li      Added new constructor
  * 15 Dec 2009               Greg Hull  removed new constructor	
  * 04 Apr 2010   #259        Greg Hull  add dispose()
  * 27 Apr 2010   #245        Greg Hull  Added Apply Button
  * 22 Nov 2011   #495        Greg Hull  Make Application Modal when from ResourceManager.
  * 13 Mar 2012   #651        Archana    Updated the code to reuse editedRscAttrSet in case of a roll-back  
  * 28 March 2012 #651        S. Gurung  Removed changes made by Archana. 
- * 										Moved the changes to a new class AbstractEditResourceAttrsInteractiveDialog.
+ *                                      Moved the changes to a new class AbstractEditResourceAttrsInteractiveDialog.
+ * 03/22/2016    R10366      bkowal     Cleanup and added {@link #handleOK()}.
  * 
  * </pre>
  * 
@@ -41,6 +45,10 @@ import org.eclipse.swt.widgets.Shell;
  */
 
 public abstract class AbstractEditResourceAttrsDialog extends Dialog {
+
+    protected final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
+    
     protected Shell shell;
 
     protected String dlgTitle = null;
@@ -53,15 +61,14 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
 
     protected boolean ok = false;
 
-    public AbstractEditResourceAttrsDialog(Shell parentShell, INatlCntrsResourceData r, Boolean apply) {
+    public AbstractEditResourceAttrsDialog(Shell parentShell,
+            INatlCntrsResourceData r, Boolean apply) {
         super(parentShell);
         rscData = r;
         ResourceName rscName = rscData.getResourceName();
         this.dlgTitle = "Edit " + rscName.toString() + " Attributes";
 
         hasApplyBtn = apply;
-        // editedRscAttrSet = new ResourceAttrSet(
-        // rscData.getRscAttrSet().getRscAttrSetName() );
     }
 
     public abstract Composite createDialog(Composite topComp);
@@ -77,7 +84,6 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
 
         shell = new Shell(getParent(), style);
         shell.setText(dlgTitle);
-        // shell.setSize( 600, 800 ); // pack later
 
         GridLayout mainLayout = new GridLayout(1, true);
         mainLayout.marginHeight = 1;
@@ -93,7 +99,7 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
         gd.verticalAlignment = SWT.FILL;
         topComp.setLayoutData(gd);
 
-        Composite editComp = createDialog(topComp);
+        createDialog(topComp);
         Label sep = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
@@ -136,11 +142,14 @@ public abstract class AbstractEditResourceAttrsDialog extends Dialog {
 
         okBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                ok = true;
-                // get the
-                shell.dispose();
+                handleOK();
             }
         });
+    }
+
+    protected void handleOK() {
+        ok = true;
+        shell.dispose();
     }
 
     public boolean isOpen() {

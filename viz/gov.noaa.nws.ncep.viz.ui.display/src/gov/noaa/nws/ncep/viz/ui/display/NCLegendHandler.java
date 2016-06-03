@@ -67,7 +67,7 @@ import com.raytheon.viz.ui.input.EditableManager;
  * 08/18/2014   ?         B. Yin         Handle GroupResource.
  * 11/06/2015   R9398     Edwin Brown    Corrected issue with hiding the color bar, broke up/ clarified,
  *                                       toggleVisibility, misc. clean up work
- * 
+ * 11/25/2015   12830     B. Yin         Up/Down hot keys rotate resources in group
  * 
  * </pre>
  * 
@@ -87,7 +87,13 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
     private ResourcePair mouseDownResourcePair = null;
 
     private static int currentResourceIndex = 0;
-
+    
+    private static int currentIndexInGroup = 0;
+    
+    private static ResourcePair currentGrp = null;
+    
+    private static ResourcePair lastClickedResourcePair = null;
+    
     private boolean isShiftDown = false;
 
     private static boolean isFirstTime = true;
@@ -251,9 +257,22 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
              * Set the visibility for all the resources in both lists to false.
              */
             boolean allVisible = true;
-
+            boolean rotateInGroup = false;
+            ResourcePair group = null;
+            int rscIndex = 0;
+            
             for (ResourcePair resourcePair : theMainList) {
-
+                /*
+                 * If any visible group is expanded, set the rotateInGroup flag.
+                 */
+                if ( !rotateInGroup && resourcePair.getResource() instanceof IPowerLegend 
+                        && !((IPowerLegend)resourcePair.getResource()).getResourceList().isEmpty()
+                        && ((IPowerLegend)resourcePair.getResource()).isNameExpanded()
+                        &&  (resourcePair.getProperties().isVisible())) {
+                    rotateInGroup = true;
+                    group = resourcePair;
+                }
+                
                 if (!resourcePair.getProperties().isSystemResource()
                         && !resourcePair.getProperties().isMapLayer()
                         && resourcePair.getResource().getClass()
@@ -262,12 +281,41 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                     allVisible = allVisible
                             && resourcePair.getProperties().isVisible();
                     resourcePair.getProperties().setVisible(false);
+                    
+                    /*
+                     * Rotate from last clicked visible resource.
+                     */
+                    if ( resourcePair == lastClickedResourcePair ){
+                        currentResourceIndex = rscIndex;
+                        lastClickedResourcePair = null;
+                    }
+                    
+                    rscIndex++;
                 }
             }
 
             if (subListOfResourcesToToggle.isEmpty())
                 return false;
 
+            if ( rotateInGroup ){
+                if ( group != currentGrp ){
+                    isFirstTime = true;
+                    currentGrp = group;
+                }
+                else {
+                    isFirstTime = false;
+                }
+                
+                lastClickedResourcePair = currentGrp;
+                
+                group.getProperties().setVisible(true);
+                ((IPowerLegend)group.getResource()).setNameExpanded(true);
+                ((IPowerLegend)group.getResource()).setVisibleForAllResources(false);
+                loopInGroup((IPowerLegend)group.getResource(), keyCode);
+                editor.refresh();
+                return true; 
+            }
+            
             if (allVisible)
                 isFirstTime = true;
 
@@ -318,6 +366,13 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             ResourcePair resourceToSetVisible = subListOfResourcesToToggle
                     .get(currentResourceIndex);
             resourceToSetVisible.getProperties().setVisible(true);
+            
+            /*
+             * Turn on all resources in a group
+             */
+            if ( resourceToSetVisible.getResource() instanceof IPowerLegend ) {
+               ((IPowerLegend)resourceToSetVisible.getResource()).setVisibleForAllResources(true);
+            }
 
             // Some resources may have an associated colorBar resource. This
             // will be toggled when the resource's propertiesChanged() method is
@@ -551,7 +606,15 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                         && resourcePair == mouseDownResourcePair) {
 
                     mouseDownResourcePair = null;
-
+                    
+                    /*
+                     * Save the resource pair that is going to be turned on
+                     * so we can use it as the starting point for hot keys.
+                     */
+                    if ( !resourcePair.getProperties().isVisible() ) {
+                        lastClickedResourcePair = resourcePair;
+                    }
+                    
                     toggleVisibility(resourcePair, resourcePairGroup);
 
                     editor.refresh();
@@ -592,10 +655,51 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                 }
             }
 
+            /*
+             * Reset current resource index
+             */
+            currentIndexInGroup = 0;
             resource.issueRefresh();
             return true;
         } else {
             return false;
+        }
+    }
+     
+    /**
+     * Handles up/down hot keys when a group is expanded
+     * @param groupRsc - the group resource that is expanded
+     * @param keyCode  - code of the pressed key 
+     */
+    private void loopInGroup(IPowerLegend groupRsc, int keyCode ){
+        
+        ResourceList rscList = groupRsc.getResourceList();
+        int listSize = rscList.size();
+        
+        if (keyCode == SWT.ARROW_UP) {
+            if ( isFirstTime )
+                currentIndexInGroup = 0;
+            else {
+                currentIndexInGroup++;
+                if (currentIndexInGroup > (listSize - 1))
+                    currentIndexInGroup = 0;
+            }
+
+        } else if (keyCode == SWT.ARROW_DOWN) {
+            if (isFirstTime)
+                currentIndexInGroup = listSize - 1;
+            else {
+                currentIndexInGroup--;
+                if (currentIndexInGroup < 0)
+                    currentIndexInGroup = listSize - 1;
+            }
+        }
+
+        rscList.get(currentIndexInGroup).getProperties().setVisible(true);
+
+        if (isFirstTime
+                && ((keyCode == SWT.ARROW_DOWN) || (keyCode == SWT.ARROW_UP))){
+            isFirstTime = false;
         }
     }
 

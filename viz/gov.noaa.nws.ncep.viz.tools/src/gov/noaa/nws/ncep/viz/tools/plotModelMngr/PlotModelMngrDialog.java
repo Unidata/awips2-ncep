@@ -31,6 +31,9 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 /**
@@ -38,25 +41,39 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#         Engineer        Description
- * ------------ ----------      -----------     --------------------------
- * Nov. 2009                            M. Li  initial creation
+ * Date         Ticket#     Engineer        Description
+ * ------------ --------    -----------     --------------------------
+ * Nov. 2009                M. Li       initial creation
  * Dec. 2009     217        Greg Hull   Get Categories from resources dir and 
  *                                      read from individual plotModel files.
  * Feb. 2010     226        Greg Hull   NmapCommon -> NmapResourceUtils
  * Mar  2011     425        Greg Hull   categories are now the plotData plugins;   
- *               					    add a Delete and Save As button
+ *                                      add a Delete and Save As button
  * Jan 2012                 S. Gurung   Changed resource parameter name plugin to pluginName in init().
  * Mar 2012      606        Greg Hull   now have 3 Plot resource Implementations.
- * June 2015     8051       Jonas  Okwara  Sorted list of Plot Models
+ * June 2015     8051       Jonas Okwara  Sorted list of Plot Models
  * June 2015     8051       Jonas Okwara   Added localization Level and User context
  * 10/05/2015    R8051      Edwin Brown  Added localization level and user context on plot model list
+ * 03/29/2016    R7567      A. Su        Changed label "Plot Model Category" to "Data Plugin".
+ *                                       Changed label "Plot Models" to "Plot Model".
+ *                                       Disabled and enabled Edit button at right moments to
+ *                                         prevent more than one Edit Plot Model dialog to open for the same plot model.
+ *                                       Allowed Edit Plot Model dialogs to open for different plot models
+ *                                         with each new dialog positioned slightly lower-left to the previous one.
+ *                                       Brought Edit Plot Model dialog to front when its plot model is re-selected.
+ *                                       Allowed to clear the selection of Plot Model when Edit Plot Model dialog is closed.
+ *                                       Handle the event for the window close button to clean up saved info.
+ *                                       Handle the double click event on the plot model list 
+ *                                          to open or bring to front an Edit Plot Model dialog.
  * </pre>
  * 
  * @author
  * @version 1
  */
 public class PlotModelMngrDialog extends Dialog {
+    private static IUFStatusHandler statusHandler = UFStatus
+            .getHandler(PlotModelMngrDialog.class);
+
     private Shell shell;
 
     private Font font;
@@ -81,13 +98,13 @@ public class PlotModelMngrDialog extends Dialog {
 
     protected String ERROR = "Error";
 
-    protected String PLOT_MODELS = "Plot Models";
+    protected String PLOT_MODELS = "Plot Model";
 
     protected String EDIT = " Edit...";
 
     protected String DELETE = " Delete ";
 
-    protected String PLOT_MODEL_CATEGORY = "Plot Model Category";
+    protected String PLOT_MODEL_CATEGORY = "Data Plugin";
 
     protected String SAVE_PLOT_MODEL_ERROR = "Error Saving Plot Model ";
 
@@ -112,6 +129,39 @@ public class PlotModelMngrDialog extends Dialog {
     protected String PLOT_MODEL_MANAGER = "Plot Model Manager";
 
     protected String FONT_NAME = "Monospace";
+
+    private EditPlotModelDialogManager manager = EditPlotModelDialogManager
+            .getInstance();
+
+    /**
+     * Initial offset of X coordinate for Edit Plot Model dialog.
+     */
+    private static final int INIT_X_COORD_OFFSET = 10;
+
+    /**
+     * Marginal offset of x coordinate for Edit Plot Model dialog.
+     */
+    public static final int X_MARGINAL_OFFSET_FOR_EDIT_PLOT_MODEL_DIALOG = 30;
+
+    /**
+     * Marginal offset of y coordinate for Edit Plot Model dialog.
+     */
+    public static final int Y_MARGINAL_OFFSET_FOR_EDIT_PLOT_MODEL_DIALOG = 25;
+
+    /**
+     * Offset count for positioning Edit Plot Model dialogs.
+     */
+    private int offsetCount = 0;
+
+    /**
+     * The initial x coordinate for positioning Edit Plot Model dialogs.
+     */
+    private int initXCoord = 0;
+
+    /**
+     * The initial y coordinate for positioning Edit Plot Model dialogs.
+     */
+    private int initYCoord = 0;
 
     // the resource ext point mngr is used to get a list of all the
     // resources that have a plotModel attribute and then we will
@@ -143,6 +193,13 @@ public class PlotModelMngrDialog extends Dialog {
 
         createMainWindow();
         init();
+
+        // Handle the event triggered by the window close button.
+        shell.addListener(SWT.Close, new Listener() {
+            public void handleEvent(Event event) {
+                handleDialogClosing();
+            }
+        });
 
         shell.setMinimumSize(100, 300);
         shell.pack();
@@ -219,26 +276,53 @@ public class PlotModelMngrDialog extends Dialog {
         plotModelList.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 if (plotModelList.getSelectionCount() > 0) {
-                    editPlotModelBtn.setEnabled(true);
-                    deletePlotModelBtn.setEnabled(false);
+
                     String plotModelName = getSelectedPlotModelName();
 
-                    // if this plotModel is in the USER context
-                    // then allow the user to delete it.
-                    PlotModel pm = PlotModelMngr.getInstance().getPlotModel(
-                            seldPlugin, plotModelName);
-                    if (pm != null
-                            && pm.getLocalizationFile().getContext()
-                                    .getLocalizationLevel() == LocalizationLevel.USER) {
-                        deletePlotModelBtn.setEnabled(true);
+                    // If plot model is being edited, do not edit it twice, but
+                    // bring its dialog to front.
+                    if (manager.isPlotModelActivelyEdited(seldPlugin,
+                            plotModelName)) {
+
+                        editPlotModelBtn.setEnabled(false);
+                        deletePlotModelBtn.setEnabled(false);
+
+                        manager.bringShellToFront(seldPlugin, plotModelName);
+
+                    } else {
+                        editPlotModelBtn.setEnabled(true);
+                        deletePlotModelBtn.setEnabled(false);
+
+                        // if this plotModel is in the USER context
+                        // then allow the user to delete it.
+                        PlotModel pm = PlotModelMngr.getInstance()
+                                .getPlotModel(seldPlugin, plotModelName);
+
+                        if (pm != null
+                                && pm.getLocalizationFile().getContext()
+                                        .getLocalizationLevel() == LocalizationLevel.USER) {
+                            deletePlotModelBtn.setEnabled(true);
+                        }
                     }
                 }
             }
         });
 
+        // Handle double click event on the plot model list.
         plotModelList.addListener(SWT.MouseDoubleClick, new Listener() {
             public void handleEvent(Event event) {
-                editPlotModel();
+
+                String plotModelName = getSelectedPlotModelName();
+
+                if (manager
+                        .isPlotModelActivelyEdited(seldPlugin, plotModelName)) {
+
+                    manager.bringShellToFront(seldPlugin, plotModelName);
+
+                } else {
+                    editPlotModel();
+                }
+
             }
         });
 
@@ -294,6 +378,7 @@ public class PlotModelMngrDialog extends Dialog {
 
         closeBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
+                handleDialogClosing();
                 shell.dispose();
             }
         });
@@ -305,6 +390,7 @@ public class PlotModelMngrDialog extends Dialog {
      * @return plotModelName
      */
     private String getSelectedPlotModelName() {
+        // ArrayIndex Out of Bounds Exceptions ASU ***
         String plotModelName = plotModelList.getSelection()[0];
         String delimeter = "\\=";
         String[] pltMName = plotModelName.split(delimeter);
@@ -318,6 +404,10 @@ public class PlotModelMngrDialog extends Dialog {
 
     private void editPlotModel() {
         String plotModelName = getSelectedPlotModelName();
+
+        editPlotModelBtn.setEnabled(false);
+        deletePlotModelBtn.setEnabled(false);
+
         if (plotModelName == null) {
             return; // nothing selected; sanity check
         }
@@ -335,9 +425,28 @@ public class PlotModelMngrDialog extends Dialog {
         }
 
         editPlotModelDlg = new EditPlotModelDialog(shell, pm);
-        PlotModel newPlotModel = (PlotModel) editPlotModelDlg.open(
-                shell.getLocation().x + shell.getSize().x + 10,
-                shell.getLocation().y);
+
+        // Open a new Edit Plot Model dialog each time positioned slightly
+        // lower-left to the previous one.
+        int xCoordinate, yCoordinate;
+        if (offsetCount == 0) {
+            initXCoord = shell.getLocation().x + shell.getSize().x
+                    + INIT_X_COORD_OFFSET;
+            initYCoord = shell.getLocation().y;
+        }
+        xCoordinate = initXCoord + offsetCount
+                * X_MARGINAL_OFFSET_FOR_EDIT_PLOT_MODEL_DIALOG;
+        yCoordinate = initYCoord + offsetCount
+                * Y_MARGINAL_OFFSET_FOR_EDIT_PLOT_MODEL_DIALOG;
+        offsetCount++;
+
+        PlotModel newPlotModel = (PlotModel) editPlotModelDlg.open(this,
+                seldPlugin, plotModelName, xCoordinate, yCoordinate);
+
+        // This prevents exceptions for "widget is disposed".
+        if (shell.isDisposed()) {
+            return;
+        }
 
         if (newPlotModel != null) {
 
@@ -357,8 +466,8 @@ public class PlotModelMngrDialog extends Dialog {
                         new String[] { OK }, 0);
                 errDlg.open();
             } catch (LocalizationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                statusHandler.handle(Priority.PROBLEM,
+                        "Localization exception: " + e.toString());
             }
         }
     }
@@ -397,6 +506,9 @@ public class PlotModelMngrDialog extends Dialog {
             if (confirmDlg.getReturnCode() == MessageDialog.CANCEL) {
                 return;
             }
+
+            manager.removeFromActivelyEditedPlotModelList(seldPlugin,
+                    plotModelName);
 
             PlotModelMngr.getInstance().deletePlotModel(seldPlugin,
                     plotModelName);
@@ -470,6 +582,7 @@ public class PlotModelMngrDialog extends Dialog {
                         .getContext().getLocalizationLevel();
                 String lContext = pltMdl.getLocalizationFile().getContext()
                         .getContextName();
+
                 if (lLvl == LocalizationLevel.BASE) {
                     plotModelList.add(pltMdl.getName() + " (" + lLvl.name()
                             + ")");
@@ -479,7 +592,6 @@ public class PlotModelMngrDialog extends Dialog {
                             + "=" + lContext + ")");
                     sortPlotModels();
                 }
-
             }
 
             editPlotModelBtn.setEnabled(false);
@@ -500,4 +612,20 @@ public class PlotModelMngrDialog extends Dialog {
         plotModelList.setItems(items);
     }
 
+    /**
+     * Reset saved information when the dialog is closing.
+     */
+    private void handleDialogClosing() {
+        manager.clearEditedList();
+        manager.clearAdvancedOptionsDialogPositionOffsetCount();
+    }
+
+    /**
+     * Clear the selection in the Plot Model list.
+     */
+    public void clearPlotModelListSelections() {
+        editPlotModelBtn.setEnabled(false);
+        deletePlotModelBtn.setEnabled(false);
+        plotModelList.deselectAll();
+    }
 }

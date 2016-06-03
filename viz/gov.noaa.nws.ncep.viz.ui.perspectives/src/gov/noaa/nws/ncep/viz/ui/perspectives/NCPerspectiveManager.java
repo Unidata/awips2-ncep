@@ -73,9 +73,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date			Ticket#		Engineer	Description
+ * Date        Ticket#     Engineer     Description
  * ------------	----------	-----------	--------------------------
- * 12/2008		22			M. Li		Created
+ * 12/2008      22          M. Li       Created
  * 03/2009      75          B. Hebbard  Rename class and all references NMAP->NC
  * 08/05/09                 G. Hull     Load a default RBD
  * 09/27/09     #169        G. Hull     create an NCMapEditor and remove non NC editors
@@ -101,7 +101,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      a NCMapEditor object as one of the arguments
  *                                      Removed the call to setNcEditor() and updated initFromEditor()
  *                                      to take an editor as one of the arguments    
- * 04/16/2012	740			B. Yin		Start the static data service before opening map editor.  
+ * 04/16/2012   740         B. Yin      Start the static data service before opening map editor.  
  * 03/01/2012   #606        G. Hull     initialize NcInventory
  * 05/15/2012               X. Guo      initialize NcGridInventory
  * 05/17/2012               X. Guo      Changed "true" to "false" to initialize NcGridInventory
@@ -120,6 +120,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 02/04/2016   R13171      E. Brown    Added: short right click launches resource manager, added: item to launch resource
  *                                      manager in context menu that opens on long right mouse button
  * 03/15/2016   R16112      E. Brown    Opening resource manager by right clicking goes to correct "Create RBD" tab
+ * 04/04/2016   R17317      A. Su       Added to close resource manager by right mouse click if dialog is open.
+ * 
  * </pre>
  * 
  * @author
@@ -604,8 +606,14 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             public boolean handleMouseUp(int x, int y, int mouseButton) {
 
                 // Launch Resource Manager dialog on a right mouseUp
+                // and close it on a right mouseUp if the dialog is open.
                 if (mouseButton == 3) {
-                    launchResourceManager();
+                    if (ResourceManagerDialog.isOpen()) {
+
+                        ResourceManagerDialog.close();
+                    } else {
+                        launchResourceManager();
+                    }
                 }
                 return false;
             }
@@ -657,7 +665,6 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
             for (String toolbarID : NmapCommon.getGUIUpdateElementCommands()) {
                 service.refreshElements(toolbarID, null);
             }
-
         } catch (Exception e) {
             // Error executing Handler
 

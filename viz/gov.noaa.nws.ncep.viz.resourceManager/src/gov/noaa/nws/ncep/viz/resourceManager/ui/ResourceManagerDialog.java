@@ -213,7 +213,7 @@ public class ResourceManagerDialog extends Dialog {
     }
     
     
-   	public boolean isOpen() {
+   	public static boolean isOpen() {
         return isOpen; // shell != null && !shell.isDisposed();
     }
 

@@ -8,6 +8,7 @@ import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.GraphRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceBndlLoader;
@@ -104,6 +105,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 02/22/2013     #972      G. Hull         work with AbstractRBD
  * 05/07/2014   TTR991      D. Sushon       if a different NCP editor is selected, the CreateRDB tab should now adjust.
  * 07/28/2014     R4079     sgurung         Load graph RBDs.
+ * 03/10/2016     R16237    B. Yin          Get dominant resource within a group resource.
  * 
  * </pre>
  * 
@@ -751,14 +753,7 @@ public class LoadRbdControl extends Composite {
                     .getDisplays();
 
             for (AbstractRenderableDisplay pane : panes) {
-                ResourceList rscList = pane.getDescriptor().getResourceList();
-                for (ResourcePair rp : rscList) {
-                    if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        timelineControl
-                                .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) rp
-                                        .getResourceData());
-                    }
-                }
+                addDomResources( pane.getDescriptor().getResourceList() );
             }
 
             timelineControl.setTimeMatcher(timeMatcher);
@@ -1062,5 +1057,21 @@ public class LoadRbdControl extends Composite {
                         .getTimeMatcher().getDominantResource());
         shell.pack();
         shell.setSize(initDlgSize);
+    }
+    
+    /**
+     * Adds resources into the dominant resource combo in time line control 
+     * @param rscList - resource list that goes to the dominant list
+     */
+    private void addDomResources( ResourceList rscList ){
+        for ( ResourcePair rp : rscList ) {
+            if ( rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData ) {
+                timelineControl.addAvailDomResource((AbstractNatlCntrsRequestableResourceData)rp
+                .getResourceData());
+            }
+            else if ( rp.getResourceData() instanceof GroupResourceData ){
+                addDomResources( ((GroupResourceData)rp.getResourceData()).getResourceList() );
+            }
+        }
     }
 }

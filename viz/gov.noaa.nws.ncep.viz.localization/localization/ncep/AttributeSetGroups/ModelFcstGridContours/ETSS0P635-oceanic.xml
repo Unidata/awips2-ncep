@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+	<attrSetGroupName>oceanic</attrSetGroupName>
+	<resource>ETSS0P635</resource>
+	<attrSetLabels>
+		<attrSetLabel>
+			<name>surge+tides_grids_color</name>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>hi_surge+tides_contours</name>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>estofs_grids_color</name>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>surge+tides_contours</name>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>surge+tides_contours_nofill</name>
+		</attrSetLabel>
+	</attrSetLabels>
+</AttributeSetGroup>

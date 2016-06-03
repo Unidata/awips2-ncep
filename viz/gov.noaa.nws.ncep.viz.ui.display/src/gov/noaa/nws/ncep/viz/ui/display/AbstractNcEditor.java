@@ -12,6 +12,7 @@ import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.commands.common.CommandException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
@@ -66,8 +67,9 @@ import com.raytheon.viz.ui.editor.VizMultiPaneEditor;
  * 01/18/12       #972         ghull       changed NCMapEditor to AbstractNcEditor
  * 01/20/12       #972         ghull       moved methods that simply delegated to NcPaneManager and 
  *                                         call them through NcEditorUtils.
- * 09/25/2015     5645         bsteffen    Eclipse 4: Use HandlerService for command execution.
-
+ * 05/12/2016     5645         bsteffen    Eclipse 4: Use HandlerService for command execution.
+ * 06/03/2016     5678         bsteffen    Eclipse 4: Do not open new editor when closing NCP.
+ * 
  * 
  * </pre>
  * 
@@ -256,6 +258,14 @@ public abstract class AbstractNcEditor extends VizMultiPaneEditor {
                     .getService(IHandlerService.class);
 
             /*
+             * When the command is run later, double check the current
+             * perspective and if it has changed than assume the editor was
+             * closed as part of a perspective switch and do not run the
+             * command.
+             */
+            final IPerspectiveDescriptor perspective = page.getPerspective();
+
+            /*
              * Dispose is called while in the process of removing the editor.
              * Adding a new editor while still in the process of removing causes
              * errors in eclipse. Run the new editor command async so it will
@@ -265,6 +275,9 @@ public abstract class AbstractNcEditor extends VizMultiPaneEditor {
 
                 @Override
                 public void run() {
+                    if (page.getPerspective() != perspective) {
+                        return;
+                    }
                     try {
                         handlerService.executeCommand(pcmd, null);
                     } catch (CommandException e) {

@@ -1,39 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>GFS40</resource>
-    <attrSetGroupName>surface</attrSetGroupName>
+    <resource>GFS20</resource>
+    <attrSetGroupName>exp_marine</attrSetGroupName>
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>1000-500_thkn</name>
+              <name>1000-850thk_only</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>1000-850_thkn</name>
+              <name>500_vort_only</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_absv_ncf</name>
+              <name>pmsl_1000-850thk</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_hght</name>
+              <name>pmsl_1000-500thk</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850-700_thkn</name>
+              <name>bl_winds_only_ukmet</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850mb_thtae_ncf</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>bl_thte_ncf</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>pmsl</name>
+              <name>pmsl_only</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

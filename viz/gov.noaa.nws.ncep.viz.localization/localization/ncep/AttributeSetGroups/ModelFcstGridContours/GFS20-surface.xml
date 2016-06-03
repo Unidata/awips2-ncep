@@ -1,35 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>GFS40</resource>
-    <attrSetGroupName>hurricane</attrSetGroupName>
+    <resource>GFS20</resource>
+    <attrSetGroupName>surface</attrSetGroupName>
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>250mb_hght_wind</name>
+              <name>1000-500_thkn</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>250mb_wind_and_rel_vort</name>
+              <name>1000-850_thkn</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_hght_absv</name>
+              <name>500mb_absv_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_wind_and_rel_vort</name>
+              <name>500mb_hght</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>700mb_wind_and_rel_vort</name>
+              <name>850-700_thkn</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850-300mb_wind_shear</name>
+              <name>850mb_thtae_ncf</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>850mb_wind_and_rel_vort</name>
+              <name>bl_thte_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl</name>
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

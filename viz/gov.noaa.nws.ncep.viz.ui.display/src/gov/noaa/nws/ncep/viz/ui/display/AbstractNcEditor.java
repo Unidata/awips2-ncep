@@ -230,7 +230,7 @@ public abstract class AbstractNcEditor extends VizMultiPaneEditor {
  	public void dispose() { 		
  		super.dispose();
 
- 		IWorkbenchPage page = this.getSite().getPage();
+        final IWorkbenchPage page = this.getSite().getPage();
 
         IWorkbenchWindow window = page.getWorkbenchWindow();
         

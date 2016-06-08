@@ -70,6 +70,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 12/16/2015     R8554     A. Su         Modified to remember last selected filter and resource.
  * 01/27/2016     R12859    A. Su         Sorted the list of cycle times in the cycleTimeCombo widget.
  *                                        Fixed bugs in Metafile Name and Product Group selections.
+ * 04/05/2016   RM#10435    rjpeter       Removed Inventory usage.
  * </pre>
  * 
  * @author bhebbard
@@ -100,7 +101,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     /**
      * A mapping from Resource Type to last selected ResourceName for this type.
      */
-    protected static HashMap<String, ResourceName> prevTypes2SelectedRscNames = new HashMap<String, ResourceName>();
+    protected static HashMap<String, ResourceName> prevTypes2SelectedRscNames = new HashMap<>();
 
     // protected Label rscGroupLbl = null;
 
@@ -380,6 +381,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         rscTypeLViewer.setComparator(new ViewerComparator() {
 
+            @Override
             public int category(Object element) {
                 ResourceDefinition rd = (ResourceDefinition) element;
                 return (rd.isForecast() ? 1 : 0);
@@ -396,6 +398,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         });
 
         rscTypeLViewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
                 ResourceDefinition rd = (ResourceDefinition) element;
 
@@ -420,7 +423,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                         List<String> rscAttrSetsList = rscDefnsMngr
                                 .getAttrSetGroupNamesForResource(rscType);
 
-                        if (rscAttrSetsList != null
+                        if ((rscAttrSetsList != null)
                                 && !rscAttrSetsList.isEmpty()) {
                             return rscAttrSetsList.toArray();
                         }
@@ -429,7 +432,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                             String[] rscGroups = rscDefnsMngr
                                     .getResourceSubTypes(rscType);
 
-                            if (rscGroups != null && rscGroups.length != 0) {
+                            if ((rscGroups != null) && (rscGroups.length != 0)) {
 
                                 buildMetafileToProductsMap(rscGroups);
 
@@ -471,7 +474,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 // recent data appear at the top. But among files representing
                 // the same date"+"time, we want to revert to standard
                 // lexicographical ordering.
-                if (!(obj1 instanceof String && obj2 instanceof String)) {
+                if (!((obj1 instanceof String) && (obj2 instanceof String))) {
                     return super.compare(viewer, obj1, obj2);
                 } else {
 
@@ -510,7 +513,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             @Override
             public Object[] getElements(Object inputElement) {
 
-                if (metafileToProductsMap == null || selectedMetafile.isEmpty()) {
+                if ((metafileToProductsMap == null)
+                        || selectedMetafile.isEmpty()) {
                     return new String[] {};
                 }
 
@@ -543,6 +547,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         });
 
         productLViewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
                 String productName = (String) element;
 
@@ -569,8 +574,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                     maxLengthOfSelectableAttrSets = 0;
 
                     for (AttributeSet attrSet : attrSets) {
-                        if (attrSet != null
-                                && attrSet.getName().length() > maxLengthOfSelectableAttrSets) {
+                        if ((attrSet != null)
+                                && (attrSet.getName().length() > maxLengthOfSelectableAttrSets)) {
                             maxLengthOfSelectableAttrSets = attrSet.getName()
                                     .length();
                         }
@@ -607,6 +612,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         });
 
         rscAttrSetLViewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
                 String attrSetName = ((AttributeSet) element).getName();
 
@@ -633,29 +639,20 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                     attrSetName = attrSetName + " ";
                 }
 
-                // If we aren't using the inventory then the query is too slow
-                // for the gui. <p> TODO: If the inventory doesn't pan out then
-                // we could either implement this in another thread and accept
-                // the delay or add a 'Check Availability' button.
-                if (rscName.isValid() && rscDefn.usesInventory()
-                        && rscDefn.getInventoryEnabled()) {
+                try {
+                    DataTime latestTime = rscDefn.getLatestDataTime(rscName);
 
-                    try {
-                        DataTime latestTime = rscDefn
-                                .getLatestDataTime(rscName);
+                    if (latestTime.isNull()) {
+                        attrSetName = attrSetName + " (No Data)";
+                    } else {
+                        String latestTimeStr = NmapCommon
+                                .getTimeStringFromDataTime(latestTime, "_");
 
-                        if (latestTime.isNull()) {
-                            attrSetName = attrSetName + " (No Data)";
-                        } else {
-                            String latestTimeStr = NmapCommon
-                                    .getTimeStringFromDataTime(latestTime, "_");
-
-                            attrSetName = attrSetName + " (" + latestTimeStr
-                                    + ")";
-                        }
-                    } catch (VizException e) {
-                        statusHandler.error(e.getMessage());
+                        attrSetName = attrSetName + " (" + latestTimeStr + ")";
                     }
+                } catch (VizException e) {
+                    statusHandler.error("Error occurred looking up times for "
+                            + rscDefn.getResourceDefnName(), e);
                 }
                 return attrSetName;
             }
@@ -667,14 +664,14 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         // Given an array of combined metafile_product strings, build map from
         // metafiles to lists of associated products.
         if (metafileToProductsMap == null) {
-            metafileToProductsMap = new HashMap<String, ArrayList<String>>();
+            metafileToProductsMap = new HashMap<>();
         } else {
             metafileToProductsMap.clear();
         }
 
         for (String pairname : rscGroups) {
             String[] splits = pairname.split("_", 2);
-            if (splits == null || splits.length < 2) {
+            if ((splits == null) || (splits.length < 2)) {
                 // error
             } else {
                 String metafile = splits[0];
@@ -685,7 +682,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 // if map doesn't yet contain an entry (products list) for
                 // this metafile, add one
                 if (products == null) {
-                    products = new ArrayList<String>();
+                    products = new ArrayList<>();
                     metafileToProductsMap.put(metafile, products);
                 }
                 products.add(product);
@@ -699,6 +696,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
     protected void addSelectionListeners() {
 
         filterCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 String selectedFilter = filterCombo.getText();
@@ -716,6 +714,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         rscTypeLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -746,6 +745,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         metafileLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -761,6 +761,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         productLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -774,6 +775,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         rscAttrSetLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -800,6 +802,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
          * now.
          */
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 selectResource(false, false);
             }
@@ -809,6 +812,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
          * TODO: do we want replace to pop down the dialog?
          */
         replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 selectResource(true, false);
             }
@@ -819,6 +823,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
          */
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
+                    @Override
                     public void handleEvent(Event event) {
                         if (addResourceBtn.isVisible()) {
                             selectResource(false, true);
@@ -829,6 +834,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 });
 
         cycleTimeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 updateSelectedResource();
             }
@@ -892,6 +898,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
      * refresh the types list based on the type in the seldResourceName use
      * seldResourceName to select the type
      */
+    @Override
     protected void updateResourceTypes() {
 
         rscTypeLViewer.setInput(rscDefnsMngr);
@@ -960,7 +967,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             // if no metafile is selected or it is not found for some reason,
             // select the first
             if (selectedRscName.getRscGroup().isEmpty()
-                    && metafileLViewer.getList().getItemCount() > 0) {
+                    && (metafileLViewer.getList().getItemCount() > 0)) {
 
                 metafileLViewer.getList().select(0);
                 StructuredSelection selectedElement = (StructuredSelection) metafileLViewer
@@ -1013,7 +1020,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             }
 
             if (selectedRscName.getRscGroup().isEmpty()
-                    && productLViewer.getList().getItemCount() > 0) {
+                    && (productLViewer.getList().getItemCount() > 0)) {
 
                 productLViewer.getList().select(0);
                 StructuredSelection selectedElement = (StructuredSelection) productLViewer
@@ -1054,7 +1061,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         }
 
         if (selectedRscName.getRscAttrSetName().isEmpty()
-                && rscAttrSetLViewer.getList().getItemCount() > 0) {
+                && (rscAttrSetLViewer.getList().getItemCount() > 0)) {
 
             rscAttrSetLViewer.getList().select(0);
             StructuredSelection seld_elem = (StructuredSelection) rscAttrSetLViewer
@@ -1087,7 +1094,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         ResourceDefinition rscDefn = rscDefnsMngr
                 .getResourceDefinition(selectedRscName.getRscType());
 
-        if (!selectedRscName.isValid() || rscDefn == null) {
+        if (!selectedRscName.isValid() || (rscDefn == null)) {
             enableSelections = false;
         }
 
@@ -1110,7 +1117,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                     DataTime latestTime = rscDefn
                             .getLatestDataTime(selectedRscName);
 
-                    if (latestTime == null || latestTime.isNull()) {
+                    if ((latestTime == null) || latestTime.isNull()) {
                         enableSelections = false;
                     } else {
                         availMsg = "Latest Data: "
@@ -1184,7 +1191,8 @@ public class NtransSelectionControl extends ResourceSelectionControl {
      * gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl
      * #updateCycleTimes()
      */
-    public void updateCycleTimes() {
+    @Override
+    protected void updateCycleTimes() {
         ResourceDefinition rscDefn = rscDefnsMngr
                 .getResourceDefinition(selectedRscName);
 
@@ -1222,8 +1230,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
             }
 
-            clearCycleTimeComboData();
-            cycleTimeCombo.removeAll();
+            clearCycleTimeCombo();
 
             for (DataTime aTime : availableTimes) {
                 DataTime refTime = new DataTime(aTime.getRefTime());
@@ -1243,7 +1250,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             } else {
                 // Remove duplicate cycle times and sort the cycle times.
                 List<String> cycleTimeList = Arrays.asList(cycleTimeArray);
-                Set<String> cycleTimeSet = new HashSet<String>(cycleTimeList);
+                Set<String> cycleTimeSet = new HashSet<>(cycleTimeList);
                 cycleTimeArray = cycleTimeSet.toArray(new String[cycleTimeSet
                         .size()]);
                 Arrays.sort(cycleTimeArray, Collections.reverseOrder());
@@ -1253,6 +1260,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             }
 
         } catch (VizException e) {
+            statusHandler.error("Error requesting cycle times", e);
             MessageDialog errDlg = new MessageDialog(
                     NcDisplayMngr.getCaveShell(), "Error", null,
                     "Error Requesting Cycle Times:" + e.getMessage(),

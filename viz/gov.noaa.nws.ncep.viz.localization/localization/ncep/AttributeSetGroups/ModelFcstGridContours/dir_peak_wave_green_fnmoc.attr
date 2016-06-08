@@ -1,0 +1,25 @@
+!
+! Restore File : drct_peak_wave
+!
+! Log:
+! M.Mainelli/TPC     09/2004  Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 
+SCALE  = 0
+GDPFUN = mask(dirpw,sea)
+TYPE   = d
+CINT   = 0
+LINE   = 
+FINT   = 
+FLINE  = 
+HILO   = 0
+HLSYM  = 
+WIND   = 3/0.7/.6/212/.6
+TITLE  = 5/-1/?~^  PEAK SWELL DIR (arrow)!0
+TEXT   = 1.3/21/1/hw
+COLORS = 1
+MARKER = 0
+GRDLBL = 5
+FILTER = yes

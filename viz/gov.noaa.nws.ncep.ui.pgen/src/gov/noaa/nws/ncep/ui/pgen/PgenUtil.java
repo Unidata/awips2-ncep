@@ -48,6 +48,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.xml.transform.Transformer;
@@ -148,10 +149,12 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 07/14                    Chin Chen     In latlonToPixel(), make sure not to add null pixel to its return pixel array
  * 08/14         TTR962     J. Wu         Add replaceWithDate to format output file with DD, MM, YYYY, HH.
  * 12/14     R5197/TTR1056  J. Wu         Make setCommandMode public.
- * 12/14		R5413		B. Yin		  Add a listener for D2D swapping pane 
- * 12/14		R5413		B. Yin		  Check null in findResource
+ * 12/14        R5413       B. Yin        Add a listener for D2D swapping pane 
+ * 12/14        R5413       B. Yin        Check null in findResource
  * 12/17/2015   R12990      J. Wu         Added getContourSymbolLabelSpacing()
  * 01/12/2016   R13168      J. Wu         Added getOneContourperLayer()
+ * 04/14/2016   R13245      B. Yin        Added UTC time validation methods.
+ * 05/02/2016   R16076      J. Wu         Add buildPrdFileName().
  * </pre>
  * 
  * @author
@@ -297,7 +300,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 ExecutionEvent exec = new ExecutionEvent(cmd, params, null,
                         null);
@@ -330,7 +333,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", symbolType);
                 params.put("className", symbolCat);
@@ -369,7 +372,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", "General Text");
                 params.put("className", "Text");
@@ -403,7 +406,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", "GFA");
                 params.put("className", "MET");
@@ -444,7 +447,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", "STATUS_LINE");
                 params.put("className", "Watch");
@@ -473,7 +476,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", front.getPgenType());
                 params.put("className", front.getPgenCategory());
@@ -503,7 +506,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", "Outlook");
                 params.put("className", "");
@@ -535,7 +538,7 @@ public class PgenUtil {
         if (cmd != null && de instanceof TCAElement) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", de.getPgenType());
                 params.put("className", de.getPgenCategory());
@@ -567,7 +570,7 @@ public class PgenUtil {
         if (cmd != null && de instanceof WatchBox) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", de.getPgenType());
                 params.put("className", de.getPgenCategory());
@@ -599,7 +602,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", ll.getPgenType());
                 params.put("className", ll.getPgenCategory());
@@ -637,7 +640,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", elem.getPgenType());
                 params.put("className", elem.getPgenCategory());
@@ -667,7 +670,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 params.put("name", "Outlook");
                 params.put("className", "");
@@ -823,6 +826,46 @@ public class PgenUtil {
     }
 
     /**
+     * This method checks if the input character is digit or delete or
+     * backspace.
+     * 
+     * @param event
+     *            - Event that activates the listener.
+     * @return - true if the input character is digit or delete or backspace.
+     */
+    public static final boolean validateDigitInput(VerifyEvent event) {
+        return (Character.isDigit(event.character)
+                || Character.UNASSIGNED == event.character
+                || event.character == SWT.BS || event.character == SWT.DEL);
+    }
+
+    /**
+     * This method checks if a time string is between 0000 and 2359.
+     * 
+     * @param String
+     *            - time string.
+     * @return - true if the time string is between 0000 and 2359
+     */
+    public static final boolean validateUTCTime(String utcTime) {
+
+        int time = 0;
+        try {
+            time = Integer.parseInt(utcTime);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        int hour = time / 100;
+        int minute = time % 100;
+
+        if (hour >= 0 && hour <= 23 && minute >= 00 && minute <= 59) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * This method checks if the content in a text filed is a valid double. It
      * should be called in a verify-listener of the text field.
      * 
@@ -941,7 +984,7 @@ public class PgenUtil {
      */
     public static final ArrayList<Coordinate> pixelToLatlon(double[][] pixels,
             IMapDescriptor mapDescriptor) {
-        ArrayList<Coordinate> crd = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> crd = new ArrayList<>();
 
         for (int ii = 0; ii < pixels.length; ii++) {
             double[] pt = mapDescriptor.pixelToWorld(pixels[ii]);
@@ -1039,7 +1082,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
 
                 if (de != null) {
@@ -1074,7 +1117,7 @@ public class PgenUtil {
         if (cmd != null) {
 
             try {
-                HashMap<String, Object> params = new HashMap<String, Object>();
+                HashMap<String, Object> params = new HashMap<>();
                 params.put("editor", part);
                 ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
 
@@ -1310,12 +1353,11 @@ public class PgenUtil {
      */
     public static double getSphPolyArea(Coordinate ptsin[]) {
 
-        final double HalfPi = 1.5707963267948966192313, Degree = 57.295779513082320876798, // degrees
-                                                                                           // per
-                                                                                           // radian
-        M2NM = 5.4e-4F, // meter to nautical mile
-        RADIUS = 6371200.0F, // earth radius
-        GDIFFD = 0.000001;
+        final double HalfPi = 1.5707963267948966192313;// Degrees per radian
+        final double Degree = 57.295779513082320876798;
+        final double M2NM = 5.4e-4F; // meter to nautical mile
+        final double RADIUS = 6371200.0F; // earth radius
+        final double GDIFFD = 0.000001;
 
         int jj, kk;
         double Lam1, Lam2, Beta1, Beta2, CosB1, CosB2, HavA;
@@ -1591,7 +1633,7 @@ public class PgenUtil {
 
         aa = PgenUtil.latlonToGrid(lonlat.toArray(aa));
 
-        return new ArrayList<Coordinate>(Arrays.asList(aa));
+        return new ArrayList<>(Arrays.asList(aa));
     }
 
     /**
@@ -1608,7 +1650,7 @@ public class PgenUtil {
 
         aa = PgenUtil.gridToLatlon(gridpts.toArray(aa));
 
-        return new ArrayList<Coordinate>(Arrays.asList(aa));
+        return new ArrayList<>(Arrays.asList(aa));
 
     }
 
@@ -2032,11 +2074,19 @@ public class PgenUtil {
         return false;
     }
 
-    // TODO: Do we need to look in all the panes or just the active (or the
-    // selected panes)
-    //
-    public static final AbstractVizResource findResource(
-            Class<? extends AbstractVizResource> rscClass, AbstractEditor aEdit) {
+    /**
+     * 
+     * @param rscClass
+     * @param aEdit
+     * @return
+     */
+    public static final AbstractVizResource<?, ?> findResource(
+            Class<? extends AbstractVizResource<?, ?>> rscClass,
+            AbstractEditor aEdit) {
+
+        // TODO: Do we need to look in all the panes or just the active (or the
+        // selected panes)
+
         AbstractEditor editor = (aEdit != null ? aEdit : getActiveEditor());
         if (editor == null)
             return null;
@@ -2314,7 +2364,7 @@ public class PgenUtil {
         Layer activeLayer = new Layer();
         activeProduct.addLayer(activeLayer);
 
-        List<Product> productList = new ArrayList<Product>();
+        List<Product> productList = new ArrayList<>();
         productList.add(activeProduct);
 
         for (Coordinate c : pts) {
@@ -2344,7 +2394,7 @@ public class PgenUtil {
             List<Coordinate> linePoints, boolean closed, Coordinate point1,
             Coordinate point2) {
 
-        ArrayList<ArrayList<Coordinate>> listOfNewLines = new ArrayList<ArrayList<Coordinate>>();
+        ArrayList<ArrayList<Coordinate>> listOfNewLines = new ArrayList<>();
 
         Coordinate firstPt;
         Coordinate secondPt;
@@ -2393,7 +2443,7 @@ public class PgenUtil {
 
                 // One point selected was an endpoint, remove part from one end
                 // to get a new line.
-                ArrayList<Coordinate> newLine = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> newLine = new ArrayList<>();
                 if (lil.getStartIndex().compareTo(firstLoc) == 0) {
                     newLine.add(secondPt);
                     newLine.addAll(linePoints.subList(
@@ -2409,11 +2459,11 @@ public class PgenUtil {
                     listOfNewLines.add(newLine);
             } else {
                 // remove part in the middle of line, create two new lines.
-                ArrayList<Coordinate> newLine1 = new ArrayList<Coordinate>(
+                ArrayList<Coordinate> newLine1 = new ArrayList<>(
                         linePoints.subList(0, firstLoc.getSegmentIndex() + 1));
                 newLine1.add(firstPt);
 
-                ArrayList<Coordinate> newLine2 = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> newLine2 = new ArrayList<>();
                 newLine2.add(secondPt);
                 newLine2.addAll(linePoints.subList(
                         secondLoc.getSegmentIndex() + 1, linePoints.size()));
@@ -2425,7 +2475,7 @@ public class PgenUtil {
             }
         } else { // closed line
 
-            ArrayList<Coordinate> newLine = new ArrayList<Coordinate>();
+            ArrayList<Coordinate> newLine = new ArrayList<>();
 
             int pointsBetween = secondLoc.getSegmentIndex()
                     - firstLoc.getSegmentIndex();
@@ -2505,6 +2555,49 @@ public class PgenUtil {
     public static boolean getOneContourPerLayer() {
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
         return prefs.getBoolean(PgenPreferences.P_ONE_CONTOUR_PER_LAYER);
+    }
+
+    /**
+     * Build a specified file name for the product with current date/hour.
+     */
+    public static String buildPrdFileName(Product prd,
+            Map<String, ProductType> prdTypesMap) {
+
+        String sfile = null;
+
+        ProductType actTyp = prdTypesMap.get(prd.getType());
+        if (actTyp != null) {
+
+            if (actTyp.getPgenSave() != null) {
+                sfile = actTyp.getPgenSave().getOutputFile();
+            }
+
+            if (sfile != null && sfile.trim().length() > 0) {
+                String dtyp = new String(actTyp.getType());
+                String dstyp = actTyp.getSubtype();
+                if (dstyp != null && dstyp.trim().length() > 0
+                        && !dstyp.equalsIgnoreCase(PgenConstant.NONE)) {
+                    dtyp = new String(actTyp.getType() + "(" + dstyp + ")");
+                }
+
+                if (!dtyp.equals(prd.getName())
+                        && (actTyp.getName() != null && !actTyp.getName()
+                                .equals(prd.getName()))) {
+                    sfile = new String(prd.getName() + "." + sfile);
+                }
+            }
+        }
+
+        if (sfile == null || sfile.trim().length() == 0) {
+            StringBuilder fname = new StringBuilder();
+            fname.append(PgenConstant.DEFAULT_ACTIVITY_LABEL);
+            sfile = fname.toString();
+        }
+
+        String fileName = PgenUtil.replaceWithDate(sfile,
+                Calendar.getInstance());
+
+        return fileName;
     }
 
 }

@@ -26,15 +26,16 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/09		#167		J. Wu   	Initial Creation.
- * 06/10		#215		J. Wu   	Added min/max.
- * 07/10		#215		J. Wu   	Create a new Contours from
- * 										 a set of lines.
- * 11/10		#345		J. Wu		Added support for Contours Circle
- * 07/13		TTR765		J. Wu   	DEL_PART between vertexes.
- * 05/14        TTR1008     J. Wu       Added getKey() method.
+ * Date         Ticket#     Engineer     Description
+ * --------------------------------------------------------------------
+ * 10/09        #167        J. Wu        Initial Creation.
+ * 06/10        #215        J. Wu        Added min/max.
+ * 07/10        #215        J. Wu        Create a new Contours from
+ *                                       a set of lines.
+ * 11/10        #345        J. Wu        Added support for Contours Circle
+ * 07/13        TTR765      J. Wu        DEL_PART between vertexes.
+ * 05/14        TTR1008     J. Wu        Added getKey() method.
+ * 03/30/2016   R16622      J. Wu        Use current date/time as default.
  * 
  * </pre>
  * 
@@ -468,17 +469,22 @@ public class Contours extends DECollection implements IContours {
         hr += ctr.getTime1().get(Calendar.HOUR_OF_DAY);
 
         String mt = "";
-        if (ctr.getTime1().get(Calendar.MINUTE) < 10) {
-            mt = "0";
+        int minute = ctr.getTime1().get(Calendar.MINUTE);
+        if (minute > 0) {
+            mt += ":";
+            if (minute < 10) {
+                mt += "0";
+            }
+
+            mt += minute;
         }
-        mt += ctr.getTime1().get(Calendar.MINUTE);
 
         String key = ctr.getParm() + "," + ctr.getLevel() + ","
                 + ctr.getForecastHour() + "|"
                 + ctr.getTime1().get(Calendar.YEAR) + "-"
                 + (ctr.getTime1().get(Calendar.MONTH) + 1) + "-"
-                + ctr.getTime1().get(Calendar.DAY_OF_MONTH) + "," + hr + ":"
-                + mt + "Z";
+                + ctr.getTime1().get(Calendar.DAY_OF_MONTH) + "," + hr + mt
+                + "Z";
         return key;
     }
 

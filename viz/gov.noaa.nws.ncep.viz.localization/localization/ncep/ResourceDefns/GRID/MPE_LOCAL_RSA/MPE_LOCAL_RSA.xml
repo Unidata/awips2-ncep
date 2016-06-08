@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-RSA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

@@ -18,5 +18,4 @@ pluginName=grid
 GDFILE=cmce
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

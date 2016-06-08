@@ -85,6 +85,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 05/15/2014   #1131      Quan Zhou       added rbdType GRAPH_DISPLAY
  * 08/14/2014 	?          B. Yin		   Handle GroupResource for power legend.
  * 11/12/2015   #8829      B. Yin          Make sure the list is in rendering order.
+ * 05/26/2016   R19195     S. Gurung       Resolve warning message "Unable to load non-NC 
+ * 										   non-System Resource" when loading a Graph Resource Data
  * </pre>
  * 
  * @author ghull
@@ -93,6 +95,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 public class RscBundleDisplayMngr {
 
     private static final String PGENRESOURCEDATA = "PgenResourceData";
+    
+    private static final String NCGRAPHRESOURCEDATA = "NcGraphResourceData";
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(RscBundleDisplayMngr.class);
@@ -611,7 +615,9 @@ public class RscBundleDisplayMngr {
 
             } else if (!rp.getProperties().isSystemResource()
                     && !(rp.getResourceData().getClass().getName()
-                            .endsWith(PGENRESOURCEDATA))) {
+                            .endsWith(PGENRESOURCEDATA))
+                            && !(rp.getResourceData().getClass().getName()
+                                    .endsWith(NCGRAPHRESOURCEDATA))) {
                 statusHandler.handle(Priority.PROBLEM,
                         "Unable to load non-NC non-System Resource:"
                                 + rp.getResourceData().toString());

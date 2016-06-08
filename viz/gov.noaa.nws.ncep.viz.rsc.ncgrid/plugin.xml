@@ -462,4 +462,14 @@
 	         extensionFilter=".xml">
        </path>
     </extension>
+    <extension
+      point="com.raytheon.viz.ui.contextualMenu">
+      <contextualMenu
+            actionClass="gov.noaa.nws.ncep.viz.rsc.ncgrid.actions.SaveGridAction"
+            capabilityInterface="gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource"
+            capabilityClass="gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource"
+            name="SaveGrid"
+            sortID="15">
+      </contextualMenu>
+   </extension>    
 </plugin>   

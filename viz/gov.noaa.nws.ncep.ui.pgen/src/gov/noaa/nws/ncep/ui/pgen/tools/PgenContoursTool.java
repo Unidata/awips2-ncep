@@ -40,24 +40,24 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/09        #167		J. Wu  		Initial creation
- * 12/09		?			B. Yin		check if the attrDlg is 
- * 										the contours dialog
- * 12/09        #167		J. Wu  		Allow editing line and label attributes.
- * 06/10		#215		J. Wu		Added support for Contours Min/Max
- * 11/10		#345		J. Wu		Added support for Contours Circle
- * 02/11					J. Wu		Preserve auto/hide flags for text
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 11/11		#?			J. Wu		Add check for the existing Contours of
- * 										the same type.
- * 03/13		#927		B. Yin		Added right mouse click context menu
- * 08/13		TTR778		J. Wu		Move loading libg2g to GraphToGridParamDialog.
+ * Date         Ticket#     Engineer    Description
+ * ----------------------------------------------------------------------------
+ * 10/09        #167        J. Wu       Initial creation
+ * 12/09         ?          B. Yin      check if the attrDlg is the contours dialog
+ * 12/09        #167        J. Wu       Allow editing line and label attributes.
+ * 06/10        #215        J. Wu       Added support for Contours Min/Max
+ * 11/10        #345        J. Wu       Added support for Contours Circle
+ * 02/11                    J. Wu       Preserve auto/hide flags for text
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 11/11        #?          J. Wu       Add check for the existing Contours of the same type.
+ * 03/13        #927        B. Yin       Added right mouse click context menu
+ * 08/13        TTR778      J. Wu       Move loading libg2g to GraphToGridParamDialog.
  * 04/14        #1117       J. Wu       Set focus to label/use line color for label.
  * 05/14        TTR1008     J. Wu       Remove confirmation dialog when adding to an existing contour.
  * 01/15        R5200/T1059 J. Wu       Use setSettings(de) to save last-used attributes.
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
  * 
  * </pre>
  * 
@@ -108,7 +108,6 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
     protected void activateTool() {
 
         super.activateTool();
-        // LibraryLoader.load("g2g");
 
         /*
          * if the ExecutionEvent's trigger has been set, it should be something
@@ -117,10 +116,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          */
         Object de = event.getTrigger();
 
-        // The same tool could be activated again (for instance, click on PGEN
-        // palette and then click in the editor).
-        // However the trigger of the event may not be the current contour if
-        // the contour is modified.
+        /*
+         * The same tool could be activated again (for instance, click on PGEN
+         * palette and then click in the editor). However the trigger of the
+         * event may not be the current contour if the contour is modified.
+         */
         if (event != lastEvent) {
             if (de instanceof Contours) {
                 elem = (Contours) de;
@@ -302,32 +302,45 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawSymbol()) {
 
                 ContoursAttrDlg dlg = (ContoursAttrDlg) attrDlg;
-                ContourMinmax ghost = null;
-                ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
-                        dlg.getActiveSymbolObjType(),
-                        new String[] { dlg.getLabel() }, dlg.hideSymbolLabel());
+                String symbType = dlg.getActiveSymbolObjType();
+                String[] symbLabel = new String[] { dlg.getLabel() };
 
-                IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
-                        .getMinmaxTemplate();
-
-                if (mmTemp != null) {
-                    Symbol oneSymb = (Symbol) (ghost.getSymbol());
-                    oneSymb.update(mmTemp);
+                if (dlg.isMinmaxSymbolOnly()) {
+                    symbLabel = null;
                 }
 
-                IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
-                        .getLabelTemplate();
-                if (lblTemp != null) {
-                    Text lbl = ghost.getLabel();
-                    String[] oldText = lbl.getText();
-                    boolean hide = lbl.getHide();
-                    boolean auto = lbl.getAuto();
-                    lbl.update(lblTemp);
-                    lbl.setText(oldText);
-                    lbl.setHide(hide);
-                    lbl.setAuto(auto);
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(mmTemp.getColors());
+                if (dlg.isMinmaxLabelOnly()) {
+                    symbType = null;
+                }
+
+                ContourMinmax ghost = null;
+                ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
+                        symbType, symbLabel, dlg.hideSymbolLabel());
+
+                IAttribute mmTemp = dlg.getMinmaxTemplate();
+
+                if (ghost.getSymbol() != null) {
+                    if (mmTemp != null) {
+                        Symbol oneSymb = (Symbol) (ghost.getSymbol());
+                        oneSymb.update(mmTemp);
+                    }
+                }
+
+                if (ghost.getLabel() != null) {
+                    IAttribute lblTemp = dlg.getLabelTemplate();
+                    if (lblTemp != null) {
+                        Text lbl = ghost.getLabel();
+                        String[] oldText = lbl.getText();
+                        boolean hide = lbl.getHide();
+                        boolean auto = lbl.getAuto();
+                        lbl.update(lblTemp);
+                        lbl.setText(oldText);
+                        lbl.setHide(hide);
+                        lbl.setAuto(auto);
+                    }
+
+                    if (dlg.isUseMainColor() && mmTemp != null) {
+                        ghost.getLabel().setColors(mmTemp.getColors());
                     }
                 }
 
@@ -367,9 +380,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setText(oldText);
                         lbl.setHide(hide);
                         lbl.setAuto(auto);
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(circleTemp.getColors());
-                        }
+                    }
+
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && circleTemp != null) {
+                        ghost.getLabel().setColors(circleTemp.getColors());
                     }
 
                     drawingLayer.setGhostLine(ghost);
@@ -410,8 +425,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
                         .getLabelTemplate();
-                if (lblTemp != null) {
-                    for (Text lbl : cline.getLabels()) {
+                for (Text lbl : cline.getLabels()) {
+                    if (lblTemp != null) {
                         String[] oldText = lbl.getText();
                         boolean hide = lbl.getHide();
                         boolean auto = lbl.getAuto();
@@ -419,9 +434,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setText(oldText);
                         lbl.setHide(hide);
                         lbl.setAuto(auto);
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(lineTemp.getColors());
-                        }
+                    }
+
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && lineTemp != null) {
+                        lbl.setColors(lineTemp.getColors());
                     }
                 }
 
@@ -487,8 +504,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
                         .getLabelTemplate();
-                if (lblTemp != null) {
-                    for (Text lbl : cline.getLabels()) {
+                for (Text lbl : cline.getLabels()) {
+                    if (lblTemp != null) {
                         String[] oldText = lbl.getText();
                         boolean hide = lbl.getHide();
                         boolean auto = lbl.getAuto();
@@ -498,10 +515,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setAuto(auto);
 
                         ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+                    }
 
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(lineTemp.getColors());
-                        }
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && lineTemp != null) {
+                        lbl.setColors(lineTemp.getColors());
                     }
                 }
 
@@ -565,41 +583,50 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
             if (loc != null) {
 
-                String cls = ((ContoursAttrDlg) attrDlg).getActiveSymbolClass();
-                String type = ((ContoursAttrDlg) attrDlg)
-                        .getActiveSymbolObjType();
-                ContourMinmax cmm = new ContourMinmax(
-                        loc,
-                        cls,
-                        type,
-                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() },
-                        ((ContoursAttrDlg) attrDlg).hideSymbolLabel());
+                ContoursAttrDlg contoursDlg = (ContoursAttrDlg) attrDlg;
 
-                IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
-                        .getMinmaxTemplate();
+                String cls = contoursDlg.getActiveSymbolClass();
+                String type = contoursDlg.getActiveSymbolObjType();
+                String[] symbLabel = new String[] { contoursDlg.getLabel() };
 
-                if (mmTemp != null) {
-                    Symbol oneSymb = (Symbol) (cmm.getSymbol());
-                    oneSymb.update(mmTemp);
-                    ((ContoursAttrDlg) attrDlg).setSettings(oneSymb.copy());
+                if (contoursDlg.isMinmaxSymbolOnly()) {
+                    symbLabel = null;
                 }
 
-                IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
-                        .getLabelTemplate();
-                if (lblTemp != null) {
-                    Text lbl = cmm.getLabel();
-                    String[] oldText = lbl.getText();
-                    boolean hide = lbl.getHide();
-                    boolean auto = lbl.getAuto();
-                    lbl.update(lblTemp);
-                    lbl.setText(oldText);
-                    lbl.setHide(hide);
-                    lbl.setAuto(auto);
+                if (contoursDlg.isMinmaxLabelOnly()) {
+                    type = null;
+                }
 
-                    ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+                ContourMinmax cmm = new ContourMinmax(loc, cls, type,
+                        symbLabel, contoursDlg.hideSymbolLabel());
 
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(mmTemp.getColors());
+                IAttribute mmTemp = (contoursDlg).getMinmaxTemplate();
+                if (cmm.getSymbol() != null) {
+                    if (mmTemp != null) {
+                        Symbol oneSymb = (Symbol) (cmm.getSymbol());
+                        oneSymb.update(mmTemp);
+                        contoursDlg.setSettings(oneSymb.copy());
+                    }
+                }
+
+                if (cmm.getLabel() != null) {
+                    IAttribute lblTemp = contoursDlg.getLabelTemplate();
+
+                    if (lblTemp != null) {
+                        Text lbl = cmm.getLabel();
+                        String[] oldText = lbl.getText();
+                        boolean hide = lbl.getHide();
+                        boolean auto = lbl.getAuto();
+                        lbl.update(lblTemp);
+                        lbl.setText(oldText);
+                        lbl.setHide(hide);
+                        lbl.setAuto(auto);
+
+                        contoursDlg.setSettings(lbl.copy());
+                    }
+
+                    if (contoursDlg.isUseMainColor() && mmTemp != null) {
+                        cmm.getLabel().setColors(mmTemp.getColors());
                     }
                 }
 
@@ -634,7 +661,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                     cmm.setParent(newElem);
 
-                    newElem.update((ContoursAttrDlg) attrDlg);
+                    newElem.update(contoursDlg);
 
                     newElem.add(cmm);
 
@@ -645,7 +672,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                 }
 
-                ((ContoursAttrDlg) attrDlg).setCurrentContours(elem);
+                contoursDlg.setCurrentContours(elem);
 
             }
 
@@ -727,9 +754,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     lbl.setHide(hide);
                     lbl.setAuto(auto);
                     ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(circleTemp.getColors());
-                    }
+                }
+
+                if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                        && circleTemp != null) {
+                    cmm.getLabel().setColors(circleTemp.getColors());
                 }
 
                 // Check if we need to add to existing contours or create a new

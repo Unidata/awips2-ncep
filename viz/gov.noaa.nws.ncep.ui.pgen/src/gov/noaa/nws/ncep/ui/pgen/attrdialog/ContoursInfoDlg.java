@@ -11,6 +11,7 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourDefault;
+import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourFiles;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLabel;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLevel;
@@ -37,8 +38,12 @@ import org.dom4j.Document;
 import org.dom4j.io.SAXReader;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -46,6 +51,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -72,6 +78,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  *                          Chowdhuri      - Refinements to contoursInfo.xml
  * 09/29/2015   R8163       J. Wu         Prevent exception when contour type changes.
  * 11/18/2015   R12829      J. Wu         Link "Contours Parameter" to the one defined on layer.
+ * 04/14/2016   R13245      B. Yin        Changed time fields to 24 hour format.
  * 
  * </pre>
  * 
@@ -83,6 +90,12 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     // Status handling
     private static final IUFStatusHandler handler = UFStatus
             .getHandler(ContoursInfoDlg.class);
+
+    //Time field width
+    private static final int TIME_FILED_WIDTH = 50;
+
+    //Time text limit 
+    private static final int TIME_TEXT_LIMIT = 4;
 
     // Contours information files
     private static List<String> contoursInfoParamFilelist;
@@ -119,11 +132,11 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
     private DateTime date1 = null;
 
-    private DateTime time1 = null;
+    private Text time1 = null;
 
     private DateTime date2 = null;
 
-    private DateTime time2 = null;
+    private Text time2 = null;
 
     /*
      * Constructor
@@ -297,7 +310,9 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         dtComp.setLayout(layout1);
 
         date1 = new DateTime(dtComp, SWT.BORDER | SWT.DATE);
-        time1 = new DateTime(dtComp, SWT.BORDER | SWT.TIME | SWT.SHORT);
+
+        time1 = new Text(dtComp, SWT.SINGLE);
+        addTimeField(time1);
 
         // Contours date/time 2
         Label dateLbl2 = new Label(comp, SWT.NONE);
@@ -307,7 +322,9 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         dtComp2.setLayout(layout1);
 
         date2 = new DateTime(dtComp2, SWT.BORDER | SWT.DATE | SWT.TIME);
-        time2 = new DateTime(dtComp2, SWT.BORDER | SWT.TIME | SWT.SHORT);
+
+        time2 = new Text(dtComp2, SWT.SINGLE);
+        addTimeField(time2);
 
         Label cintLbl = new Label(comp, SWT.NONE);
         cintLbl.setText("Cint:");
@@ -321,6 +338,42 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         updateContourInfoSelection((IContours) contoursAttrDlg);
 
+    }
+
+    /**
+     * Sets layout data and limit for the time fields. Adds UTC time validation
+     * listeners.
+     * 
+     * @param timeField
+     */
+    private void addTimeField(final Text timeField) {
+        timeField.setTextLimit(TIME_TEXT_LIMIT);
+        timeField.setLayoutData(new GridData(TIME_FILED_WIDTH, -1));
+        timeField.addVerifyListener(new VerifyListener() {
+            @Override
+            public void verifyText(VerifyEvent ve) {
+                if (PgenUtil.validateDigitInput(ve)) {
+                    ve.doit = true;
+                } else {
+                    ve.doit = false;
+                    Display.getCurrent().beep();
+                }
+            }
+        });
+        timeField.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                if (!timeField.getText().isEmpty()) {
+                    if (PgenUtil.validateUTCTime(timeField.getText())) {
+                        timeField.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_WHITE));
+                    } else {
+                        timeField.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_RED));
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -401,10 +454,35 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     public Calendar getTime1() {
 
         Calendar myTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        myTime.set(date1.getYear(), date1.getMonth(), date1.getDay(),
-                time1.getHours(), time1.getMinutes(), 0);
+
+        myTime.set(date1.getYear(), date1.getMonth(), date1.getDay(), 0, 0, 0);
+        setHourMinute(myTime, time1);
 
         return myTime;
+
+    }
+
+    /**
+     * Sets the hour field and minute field of a calendar object from the input
+     * text field.
+     * 
+     * @param cal
+     *            - Calendar object
+     * @param text
+     *            - Time input field
+     */
+    private void setHourMinute(Calendar cal, Text text) {
+        int hours = 0;
+        int minutes = 0;
+
+        try {
+            hours = Integer.valueOf(text.getText().substring(0, 2));
+            minutes = Integer.valueOf(text.getText().substring(2, 4));
+        } catch (Exception e) {
+        }
+
+        cal.set(Calendar.HOUR_OF_DAY, hours);
+        cal.set(Calendar.MINUTE, minutes);
 
     }
 
@@ -415,9 +493,8 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         date1.setYear(time.get(Calendar.YEAR));
         date1.setMonth(time.get(Calendar.MONTH));
         date1.setDay(time.get(Calendar.DAY_OF_MONTH));
-        time1.setHours(time.get(Calendar.HOUR));
-        time1.setMinutes(time.get(Calendar.MINUTE));
-        time1.setSeconds(0);
+        time1.setText(String.format("%02d%02d", time.get(Calendar.HOUR_OF_DAY),
+                time.get(Calendar.MINUTE)));
     }
 
     /**
@@ -426,8 +503,9 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     public Calendar getTime2() {
 
         Calendar myTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        myTime.set(date2.getYear(), date2.getMonth(), date2.getDay(),
-                time2.getHours(), time2.getMinutes(), 0);
+
+        myTime.set(date2.getYear(), date2.getMonth(), date2.getDay(), 0, 0, 0);
+        setHourMinute(myTime, time2);
 
         return myTime;
 
@@ -441,9 +519,8 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
             date2.setYear(time.get(Calendar.YEAR));
             date2.setMonth(time.get(Calendar.MONTH));
             date2.setDay(time.get(Calendar.DAY_OF_MONTH));
-            time2.setHours(time.get(Calendar.HOUR));
-            time2.setMinutes(time.get(Calendar.MINUTE));
-            time2.setSeconds(0);
+            time2.setText(String.format("%02d%02d",
+                    time.get(Calendar.HOUR_OF_DAY), time.get(Calendar.MINUTE)));
         }
     }
 

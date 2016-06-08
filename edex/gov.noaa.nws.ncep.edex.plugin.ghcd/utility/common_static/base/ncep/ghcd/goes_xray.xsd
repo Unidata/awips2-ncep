@@ -54,7 +54,9 @@
    -->
    <xs:complexType name="time-tagged-data">
       <xs:all>
+         <xs:element name="x_short_qf" type="quality-flag-data-item" minOccurs="0"/>
          <xs:element name="x_short" type="xray-short-data-item" minOccurs="0"/>
+         <xs:element name="x_long_qf" type="quality-flag-data-item" minOccurs="0"/>
          <xs:element name="x_long" type="xray-long-data-item"  minOccurs="0"/>
          <xs:element name="x_ratio" type="xray-ratio-data-item"  minOccurs="0"/>
       </xs:all>
@@ -95,7 +97,7 @@
          <xs:enumeration value="days"/>
       </xs:restriction>
    </xs:simpleType>
-   
+
    <!--
         A complex type used to specify the data sampling resolution
         for the contents of the data set.
@@ -107,7 +109,26 @@
          </xs:extension>
       </xs:simpleContent>
    </xs:complexType>
-      
+
+   <!--
+         A simpleType specifying the type for a quality flag
+         (0 = good data, non-0 is data value has issue.
+   -->
+   <xs:simpleType name="quality-flag-type">
+      <xs:restriction base="xs:unsignedInt">
+         <xs:minInclusive value="0"/>
+         <xs:maxInclusive value="4294967295"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <xs:complexType name="quality-flag-data-item">
+      <xs:simpleContent>
+         <xs:extension base="quality-flag-type">
+            <xs:attribute name="description" fixed="0 = good data, non-0 is data value has issue"/>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+
    <!--
          A simpleType specifying the type and value restrictions
          for the x-ray short data.
@@ -118,7 +139,7 @@
          <xs:maxInclusive value="1e-3"/>
       </xs:restriction>
    </xs:simpleType>
-   
+
    <xs:complexType name="xray-short-data-item">
       <xs:simpleContent>
          <xs:extension base="xray-short-type">
@@ -155,7 +176,9 @@
    <xs:simpleType name="xray-ratio-type">
       <xs:restriction base="xs:float">
          <xs:minInclusive value="0"/>
+<!-- ratios should be in interval [0., 1.], but ...
          <xs:maxInclusive value="1"/>
+-->
       </xs:restriction>
    </xs:simpleType>
    

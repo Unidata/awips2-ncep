@@ -56,6 +56,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
  * 12/15        R12990      J. Wu       Added default spacing for contour symbols and their labels.
  * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for Contours Min/Max.
  * </pre>
  * 
  * @author J. Wu
@@ -432,7 +433,8 @@ public class AttrSettings {
                             .getContourMinmaxs();
                     if (csymbols != null && csymbols.size() > 0) {
                         for (ContourMinmax cmx : csymbols) {
-                            if (cmx.getLabel() != null) {
+                            if (cmx.getLabel() != null
+                                    && cmx.getSymbol() != null) {
                                 contourSymbolSpacing.put(cmx.getSymbol()
                                         .getPgenType(), new Coordinate(cmx
                                         .getLabel().getXOffset(), cmx

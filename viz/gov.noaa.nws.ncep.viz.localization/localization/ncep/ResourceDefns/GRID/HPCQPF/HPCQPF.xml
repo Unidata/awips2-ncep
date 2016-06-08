@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=HPCqpf
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

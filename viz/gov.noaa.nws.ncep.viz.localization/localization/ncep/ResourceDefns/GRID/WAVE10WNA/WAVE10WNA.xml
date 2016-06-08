@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=WNAwave10
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

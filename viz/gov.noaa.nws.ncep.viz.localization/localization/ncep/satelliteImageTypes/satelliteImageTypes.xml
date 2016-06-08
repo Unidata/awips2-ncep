@@ -1,81 +1,147 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <satelliteImageTypeList>
 
-    <satelliteImageType>
-        <satelliteId>84</satelliteId>
-        <imageTypeId>2</imageTypeId>
-        <ASImageTypeId>INFRARED</ASImageTypeId>
-    </satelliteImageType>
-
-    <satelliteImageType>
-        <satelliteId>180</satelliteId>
-        <imageTypeId>4</imageTypeId>
-        <ASImageTypeId>WaterVapor</ASImageTypeId>
-    </satelliteImageType>
-    
-        <satelliteImageType>
-        <satelliteId>180</satelliteId>
-        <imageTypeId>1</imageTypeId>
-        <ASImageTypeId>0p6_VIS-Red</ASImageTypeId>
-    </satelliteImageType>
-    
-
-    <satelliteImageType>
-        <satelliteId>180</satelliteId>
-        <imageTypeId>8</imageTypeId>
-        <ASImageTypeId>INFRARED</ASImageTypeId>
-    </satelliteImageType>
-    
-        <satelliteImageType>
-        <satelliteId>180</satelliteId>
-        <imageTypeId>8</imageTypeId>
-        <ASImageTypeId>INFRA8</ASImageTypeId>
-    </satelliteImageType>
-
+	<!-- GE -->
+	<satelliteImageType>
+		<satelliteId>180</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>VIS_0p6um-Red</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>180</satelliteId>
+		<imageTypeId>2</imageTypeId>
+		<ASImageTypeId>SWIR_3p9um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>180</satelliteId>
+		<imageTypeId>4</imageTypeId>
+		<ASImageTypeId>WV_6p5um-UL</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>180</satelliteId>
+		<imageTypeId>8</imageTypeId>
+		<ASImageTypeId>IR_10p7um-Clear</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>180</satelliteId>
+		<imageTypeId>32</imageTypeId>
+		<ASImageTypeId>IR_13p3um-CO2</ASImageTypeId>
+	</satelliteImageType>
+	<!-- GW -->
+	<satelliteImageType>
+		<satelliteId>184</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>VIS_0p6um-Red</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>184</satelliteId>
+		<imageTypeId>2</imageTypeId>
+		<ASImageTypeId>SWIR_3p9um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>184</satelliteId>
+		<imageTypeId>4</imageTypeId>
+		<ASImageTypeId>WV_6p5um-UL</ASImageTypeId>
+	</satelliteImageType>
 	<satelliteImageType>
 		<satelliteId>184</satelliteId>
 		<imageTypeId>8</imageTypeId>
-		<ASImageTypeId>INFRARED</ASImageTypeId>
+		<ASImageTypeId>IR_10p7um-Clear</ASImageTypeId>
 	</satelliteImageType>
-
+	<satelliteImageType>
+		<satelliteId>184</satelliteId>
+		<imageTypeId>32</imageTypeId>
+		<ASImageTypeId>IR_13p3um-CO2</ASImageTypeId>
+	</satelliteImageType>
+	<!-- MSG-10 -->
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>VIS_0p6um-Red</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>2048</imageTypeId>
+		<ASImageTypeId>VIS_0p7um-HiRes</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>8</imageTypeId>
+		<ASImageTypeId>SWIR_3p9um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>16</imageTypeId>
+		<ASImageTypeId>WV_6p2um-UL</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>32</imageTypeId>
+		<ASImageTypeId>WV_7p3um-ML</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>128</imageTypeId>
+		<ASImageTypeId>IR_9p7um-Ozone</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>256</imageTypeId>
+		<ASImageTypeId>IR_10p8um</ASImageTypeId>
+	</satelliteImageType>
+	<!-- MSG-7 -->
+	<satelliteImageType>
+		<satelliteId>58</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>VIS_0p7um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>58</satelliteId>
+		<imageTypeId>128</imageTypeId>
+		<ASImageTypeId>IR_11p5um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>58</satelliteId>
+		<imageTypeId>512</imageTypeId>
+		<ASImageTypeId>WV_6p9um-UL</ASImageTypeId>
+	</satelliteImageType>
+	<!-- SSMI -->
+	<satelliteImageType>
+		<satelliteId>9</satelliteId>
+		<imageTypeId>2</imageTypeId>
+		<ASImageTypeId>85GHz</ASImageTypeId>
+	</satelliteImageType>
+	<!-- Windsat -->
+	<satelliteImageType>
+		<satelliteId>3</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>37H</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>3</satelliteId>
+		<imageTypeId>1</imageTypeId>
+		<ASImageTypeId>37V</ASImageTypeId>
+	</satelliteImageType>
+	<!-- DPD -->
 	<satelliteImageType>
 		<satelliteId>185</satelliteId>
-		<imageTypeId>64</imageTypeId>
+		<imageTypeId>8</imageTypeId>
 		<ASImageTypeId>CAPE</ASImageTypeId>
 	</satelliteImageType>
-
 	<satelliteImageType>
 		<satelliteId>185</satelliteId>
-		<imageTypeId>64</imageTypeId>
+		<imageTypeId>16</imageTypeId>
 		<ASImageTypeId>CINH</ASImageTypeId>
 	</satelliteImageType>
-
 	<satelliteImageType>
 		<satelliteId>185</satelliteId>
-		<imageTypeId>64</imageTypeId>
+		<imageTypeId>32</imageTypeId>
 		<ASImageTypeId>LI</ASImageTypeId>
 	</satelliteImageType>
-
 	<satelliteImageType>
 		<satelliteId>185</satelliteId>
 		<imageTypeId>64</imageTypeId>
 		<ASImageTypeId>TPW</ASImageTypeId>
 	</satelliteImageType>
-
-	<satelliteImageType>
-		<satelliteId>default</satelliteId>
-		<imageTypeId>8</imageTypeId>
-		<ASImageTypeId>INFRARED</ASImageTypeId>
-	</satelliteImageType>
-
-
-	<default>
-		<imageTypeId>8</imageTypeId>
-		<ASImageTypeId>INFRARED</ASImageTypeId>
-	</default>
-
-
-
-
 
 </satelliteImageTypeList> 

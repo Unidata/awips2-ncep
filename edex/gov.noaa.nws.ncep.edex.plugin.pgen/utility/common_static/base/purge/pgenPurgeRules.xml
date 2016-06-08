@@ -1,7 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <purgeRuleSet>
-	<defaultRule>
-		<period>07-00:00:00</period>
-		<!--logOnly>true</logOnly-->
-	</defaultRule>
+    <key>activityType</key>
+    <key>activitySubtype</key>
+    <key>activityLabel</key>
+    
+    <defaultRule>
+        <period>07-00:00:00</period>
+    </defaultRule>
+    
+    <!-- 
+        You may notice that there are three potential keys defined above. 
+        However, there are only two actual key values declared in this rule. 
+        This will allow any record that has an activityType of 'Default' and an 
+        activitySubtype of '' to match regardless of what 'activityLabel' has been 
+        set to. 100 versions of each pgen record that matches this rule would be kept.
+     -->
+    <!--
+    <rule>
+        <keyValue>Default</keyValue>
+        <keyValue></keyValue>
+        <versionsToKeep>100</versionsToKeep>
+    </rule>
+    -->
+    
+    <!-- 
+        Example 2: Ensures only 20 versions of pgen records with an activityType
+        of 'Default' and an activitySubtype of 'VOO' are kept. This is another case
+        where the value of 'activityLabel' will not matter. 
+     -->
+    <!--
+    <rule>
+        <keyValue>Default</keyValue>
+        <keyValue>VOO</keyValue>
+        <versionsToKeep>20</versionsToKeep>
+    </rule>
+    -->
+    
+    <!-- 
+        Example 3: Ensures that only 5 versions of pgen records with an activityType
+        of 'GS', an activitySubtype of '', and an 'activityLabel' of 'VDE' are
+        kept. No other records will match if 'activityLabel' is anything other than
+        'VDE' unlike the previous two examples.
+    -->
+    <!--
+    <rule>
+        <keyValue>GS</keyValue>
+        <keyValue></keyValue>
+        <keyValue>VDE</keyValue>
+        <versionsToKeep>5</versionsToKeep>
+    </rule>
+    -->
 </purgeRuleSet>

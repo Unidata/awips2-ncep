@@ -1,25 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.ncgrib;
 
-/**
- * This software was developed and / or modified by Raytheon Company,
- * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
- * 
- * U.S. EXPORT CONTROLLED TECHNICAL DATA
- * This software product contains export-restricted data whose
- * export/transfer/disclosure is restricted by U.S. law. Dissemination
- * to non-U.S. persons whether in the United States or abroad requires
- * an export license or other authorization.
- * 
- * Contractor Name:        Raytheon Company
- * Contractor Address:     6825 Pine Street, Suite 340
- *                         Mail Stop B8
- *                         Omaha, NE 68106
- *                         402.291.0100
- * 
- * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
- * further licensing information.
- **/
-
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,13 +49,6 @@ public class NcgribFileNameProcessor implements Processor {
     // might add alaska fire weather later...
     private static final Pattern FIREWXNEST_ID_PATTERN = Pattern
             .compile("^firewxnest$");
-
-    // anything that ends in nest is assumed to be a nested grid identifier
-    // private static final Pattern NEST_ID_PATTERN =
-    // Pattern.compile("^.*nest$");
-
-    // SREF gets special handling, does this apply to other models?
-    // private static final Pattern SREF_PATTERN = Pattern.compile("^sref_.*$");
 
     // This is the least generic pattern ever, are there any constraints on
     // event names, who knows?
@@ -129,15 +102,7 @@ public class NcgribFileNameProcessor implements Processor {
                 matcher.find();
                 ensembleid = matcher.group(1);
             } else if (FIREWXNEST_ID_PATTERN.matcher(token).find()) {
-                // datasetid = "NAMFIREWX";
                 datasetid = "fireWxNAM";
-                // secondaryid = token;
-                // } else if (NEST_ID_PATTERN.matcher(token).find()) {
-                // secondaryid = token;
-                // } else if (SREF_PATTERN.matcher(token).find()) {
-                // String[] tokens = token.split("_");
-                // datasetid = tokens[0].toUpperCase();
-                // secondaryid = tokens[1].toUpperCase();
             } else if (HURRICANE_PATTERN.matcher(token).find()) {
                 Matcher matcher = HURRICANE_PATTERN.matcher(token);
                 matcher.find();

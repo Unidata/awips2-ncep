@@ -100,7 +100,9 @@ public class ResourceManagerDialog extends Dialog {
                 if (e.widget != currentShell && !currentShell.isDisposed()) {
                     currentShell.close();
                 }
-                parentShell.removeShellListener(this);
+                if (!parentShell.isDisposed()) {
+                    parentShell.removeShellListener(this);
+                }
             }
 
         };

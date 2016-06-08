@@ -43,6 +43,13 @@
             </iterate>
          </with>
       </definition>
+      
+      <definition id="gov.noaa.nws.ncep.viz.ui.inNCPerspective">
+            <with variable="activeWorkbenchWindow.activePerspective">
+                <equals value="gov.noaa.nws.ncep.viz.ui.NCPerspective">
+                </equals>
+            </with>
+        </definition>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -874,10 +881,6 @@
             id="gov.noaa.nws.ncep.viz.ui.preferences.handler"
             name="Preferences Handler">
       </command>
-      <command
-            id="gov.noaa.nws.ncep.viz.ui.display.toggleLegend"
-            name="Toggle Legend">
-      </command>
    </extension>
    
    <extension
@@ -900,7 +903,11 @@
       </handler>
       <handler
             class="gov.noaa.nws.ncep.viz.ui.display.ChangeNcLegendModeHandler"
-            commandId="gov.noaa.nws.ncep.viz.ui.display.toggleLegend">
+            commandId="com.raytheon.uf.viz.core.rsc.changeLegendMode">
+            <activeWhen>
+                <reference definitionId="gov.noaa.nws.ncep.viz.ui.inNCPerspective">
+                </reference>
+            </activeWhen>
       </handler>
       
    </extension>
@@ -960,9 +967,6 @@
              <contextId
                    id="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext">
              </contextId>
-             <contextId
-                   id="gov.noaa.nws.ncep.ui.pgen.pgenContext">
-             </contextId>
          </classContext>
    </extension> 
    
@@ -995,11 +999,6 @@
             sequence="M1+SPACE">
          </key>
          
-         <key commandId="gov.noaa.nws.ncep.viz.ui.display.toggleLegend"
-              contextId="gov.noaa.nws.ncep.viz.ui.display.NCMapContext" 
-              schemeId="com.raytheon.viz.ui.cave.scheme"
-              sequence="NUMPAD_ENTER">
-        </key>
     </extension>
 
 </plugin>

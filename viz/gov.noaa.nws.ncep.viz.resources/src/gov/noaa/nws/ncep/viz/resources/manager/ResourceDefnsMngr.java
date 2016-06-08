@@ -2015,7 +2015,7 @@ public class ResourceDefnsMngr {
             rdList.add(rscDefn);
 
             resourceDefnsMap.put(rscDefn.getResourceDefnName(), rscDefn);
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Localizing file:" + e.getMessage());
         }
 

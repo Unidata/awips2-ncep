@@ -94,6 +94,7 @@ import com.vividsolutions.jts.geom.Point;
  * 03/15/2016   R15959      E. Brown    Fixed issue where right click was launching the resource manager
  *                                      while a PGEN attribute dialog was open and/or selecting/editing a 
  *                                      PGEN object
+ * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
  * 
  * </pre>
  * 
@@ -398,6 +399,17 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         // Update the settings.
                         ((ContoursAttrDlg) attrDlg).setSettings(elSelected
                                 .copy());
+
+                        if (elSelected instanceof Arc) {
+                            ((ContoursAttrDlg) attrDlg).openCircleAttrDlg();
+                        } else if (elSelected instanceof Line) {
+                            ((ContoursAttrDlg) attrDlg).openLineAttrDlg();
+                        } else if (elSelected instanceof Symbol) {
+                            ((ContoursAttrDlg) attrDlg).openSymbolAttrDlg();
+                        } else if (elSelected instanceof Text) {
+                            ((ContoursAttrDlg) attrDlg).openLabelAttrDlg();
+                        }
+                        
                     }
 
                 } else {
@@ -1034,6 +1046,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         closeAttrDlg(attrDlg, pgenType);
                         attrDlg = null;
                         PgenUtil.setSelectingMode();
+                    } 
+                    else {
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                     }
                 } else {
                     closeAttrDlg(attrDlg, pgenType);

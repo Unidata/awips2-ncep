@@ -17,6 +17,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 01/27/2016    R13166    J. Wu       Add CIRCLE.
  * 05/02/2016    R16076    J. Wu       Add more constants.
  * 05/16/2016    R18388    J. Wu       Add more constants.
+ * 05/25/2016    R17940    J. Wu       Add more constants.
  * 
  * </pre>
  * 
@@ -157,5 +158,7 @@ public final class PgenConstant {
     public static final String OPTION_ALL = "All";
 
     public static final String DESK = "DESK";
+
+    public static final String G2G_BOUND_MARK = "9999";
 
 }

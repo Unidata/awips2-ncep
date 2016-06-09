@@ -55,12 +55,13 @@ import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 12/14		R5413		B. Yin   	Added IPartListener2 and IRenderableDisplayChangedListener
- * 										to make the swapping in D2D work
- * 12/14		R5413		B. Yin		Added exception handling, perspective id, and endSession.
- * 01/15        R5413       B. Yin      Added closePalette method. 
+ * Date       Ticket#       Engineer    Description
+ * ------------------------------------------------------------------------
+ * 12/14      R5413         B. Yin      Added IPartListener2 and IRenderableDisplayChangedListener
+ *                                      to make the swapping in D2D work
+ * 12/14      R5413         B. Yin      Added exception handling, perspective id, and endSession.
+ * 01/15      R5413         B. Yin      Added closePalette method.
+ * 05/16/2016 R18388        J. Wu       Use PgenConstant.
  * 
  */
 
@@ -168,8 +169,6 @@ public class PgenSession implements IPartListener2,
     public PgenResource getPgenResource() {
 
         if (pgenResource == null) {
-            // PgenResource rsc =
-            // PgenUtil.findPgenResource(NmapUiUtils.getActiveNatlCntrsEditor());
             PgenResource rsc = PgenUtil.findPgenResource(PgenUtil
                     .getActiveEditor());
             if (rsc != null) {
@@ -319,7 +318,7 @@ public class PgenSession implements IPartListener2,
                         // editor has PGEN resource, reset to selecting mode
                         pgenResource = PgenUtil.findPgenResource(editorChanged);
                         pgenResource.setCatFilter(new CategoryFilter());
-                        palette.setCurrentCategory(PgenPaletteWindow.CATEGORY_ANY);
+                        palette.setCurrentCategory(PgenConstant.CATEGORY_ANY);
                         PgenUtil.setSelectingMode();
                     }
                 } else {
@@ -359,11 +358,12 @@ public class PgenSession implements IPartListener2,
                             this.pgenResource = PgenUtil
                                     .findPgenResource(editorChanged);
                             this.pgenResource.setCatFilter(new CategoryFilter());
-                            this.palette.setCurrentCategory(PgenPaletteWindow.CATEGORY_ANY);
+                            this.palette
+                                    .setCurrentCategory(PgenConstant.CATEGORY_ANY);
                             PgenUtil.setSelectingMode();
                         } catch (Exception e) {
                             statusHandler.handle(Priority.PROBLEM,
-                                    "Cannot open PGEN palette view", e);           
+                                    "Cannot open PGEN palette view", e);
                             }
 
                     }

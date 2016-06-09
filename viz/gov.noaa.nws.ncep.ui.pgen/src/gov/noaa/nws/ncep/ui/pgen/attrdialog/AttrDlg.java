@@ -42,49 +42,43 @@ import org.eclipse.swt.widgets.Shell;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
-//import gov.noaa.nws.ncep.viz.ui.display.NCMapEditor;
-
 /**
  * This class is the abstract class that all PGEN attribute dialogs extend from.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/09					B. Yin   	Initial Creation.
- * 04/09        #72      	S. Gilbert  Added IText
- * 04/09        #89      	J. Wu  		Added IArc
- * 05/09        #111     	J. Wu  		Added IVector
- * 05/09		#116		B. Yin		Override open() to set dialog location
+ * Date         Ticket#     Engineer    Description
+ * --------------------------------------------------------------------
+ * 02/09        ?           B. Yin      Initial Creation.
+ * 04/09        #72         S. Gilbert  Added IText
+ * 04/09        #89         J. Wu       Added IArc
+ * 05/09        #111        J. Wu       Added IVector
+ * 05/09        #116        B. Yin      Override open() to set dialog location
  * 07/09        #104        S. Gilbert  Added IAvnText methods
- * 08/09		#135		B. Yin		Modified okPressed method to handle jet barbs
- * 08/09		#149		B. Yin		Modified okPressed method to handle MultiSelect
+ * 08/09        #135        B. Yin      Modified okPressed method to handle jet barbs
+ * 08/09        #149        B. Yin      Modified okPressed method to handle MultiSelect
  * 09/09        #169        Greg Hull   NCMapEditor
- * 01/10		#182		G. Zhang	Added DrawableElement and mousehandlerName for CONVSIGMET
- * 10/10		#?			B. Yin		Changed DrawableElement de to AbstractDrawableComponent
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 08/12		#?			B. Yin		Fixed the mouse-over issue for PGEN palette.
- * 03/13		#928		B. Yin		Make the button bar smaller.
- * 04/13 		#874		B. Yin		Handle collection when OK is pressed for multi-selection.
- * 04/13        TTR399      J. Wu  		Make the dialog compact
- * 12/14		R5413		B. Yin		Refresh editor after dialog close
+ * 01/10        #182        G. Zhang    Added DrawableElement and mousehandlerName for CONVSIGMET
+ * 10/10        #?          B. Yin      Changed DrawableElement de to AbstractDrawableComponent
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 08/12        #?          B. Yin      Fixed the mouse-over issue for PGEN palette.
+ * 03/13        #928        B. Yin      Make the button bar smaller.
+ * 04/13        #874        B. Yin      Handle collection when OK is pressed for multi-selection.
+ * 04/13        TTR399      J. Wu       Make the dialog compact
+ * 12/14        R5413       B. Yin      Refresh editor after dialog close
  * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
  * 
  * </pre>
  * 
  * @author B. Yin
  */
 
-// public abstract class AttrDlg extends CaveJFACEDialog implements IAttribute {
 public abstract class AttrDlg extends Dialog implements IAttribute {
 
     public static int ctrlBtnWidth = 70;
 
     public static int ctrlBtnHeight = 28;
-
-    // public static int ctrlBtnWidth = 90;
-
-    // public static int ctrlBtnHeight = 30;
 
     /**
      * A handler to the current PGEN drawing layer, which is used to get the
@@ -198,7 +192,6 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
      * 
      * @param me
      */
-    // public void setMapEditor( NCMapEditor me ){
     public void setMapEditor(AbstractEditor me) {
         this.mapEditor = me;
     }
@@ -312,7 +305,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                             // if text object, determines the parent pgenType
                             // (if exists) obtains the updated text and
                             // assigns it a place in pgenTypeLabels HashMap
-                            String pType = PgenConstant.PGENCATEGORY_TEXT;
+                            String pType = PgenConstant.CATEGORY_TEXT;
                             String[] pText;
                             if (newEl instanceof Text) {
                                 pText = ((Text) newEl).getString();
@@ -378,22 +371,20 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         }
 
         final Shell shell = this.getShell();
-        // When the editor pane is being activated, the tool manager will
-        // re-activate all tools and thus
-        // the PGEN attribute dialog will re-open. However if the PGEN palette
-        // gets activated by a mouse
-        // click (or mouse over) before the attribute dialog is open, you will
-        // get an exception that
-        // activates PGEN palette in the middle of activating the editor. The
-        // reason why this happens is that
-        // the shell open() method forces the display to dispatch the click
-        // event on PGEN palette, which
-        // activates the PGEN palette.
-        // To prevent this happens, the super.open() method must be invoked
-        // after the editor has been activated.
-        // We put super.open() in the UI thread, which is the same thread the
-        // activation is running, so that
-        // it is invoked after the activation. --bingfan 8/10/12
+        /*
+         * When the editor pane is being activated, the tool manager will
+         * re-activate all tools and thus the PGEN attribute dialog will
+         * re-open. However if the PGEN palette gets activated by a mouse click
+         * (or mouse over) before the attribute dialog is open, you will get an
+         * exception that activates PGEN palette in the middle of activating the
+         * editor. The reason why this happens is that the shell open() method
+         * forces the display to dispatch the click event on PGEN palette, which
+         * activates the PGEN palette.To prevent this happens, the super.open()
+         * method must be invoked after the editor has been activated.We put
+         * super.open() in the UI thread, which is the same thread the
+         * activation is running, so that it is invoked after the activation.
+         * --bingfan 8/10/12
+         */
         Display.getDefault().asyncExec(new Runnable() {
             @Override
             public void run() {
@@ -496,17 +487,18 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     public void setDrawableElement(AbstractDrawableComponent adc) {
         if (adc instanceof DrawableElement) {
             DrawableElement de = (DrawableElement) adc;
-            if ("INTL_SIGMET".equals(pgenType)) {
+            if (PgenConstant.TYPE_INTL_SIGMET.equals(pgenType)) {
                 ((SigmetAttrDlg) this).setSigmet(de);
                 ((SigmetAttrDlg) this)
                         .copyEditableAttrToSigmetAttrDlg((Sigmet) de);
-            } else if ("VOLC_SIGMET".equals(pgenType)) {
+            } else if (PgenConstant.TYPE_VOLC_SIGMET.equals(pgenType)) {
                 ((VolcanoVaaAttrDlg) this).setVolcano(de);
-            } else if ("VACL_SIGMET".equals(pgenType)) {
+            } else if (PgenConstant.TYPE_VACL_SIGMET.equals(pgenType)) {
                 ((VaaCloudDlg) this).setSigmet(de);
-            } else if ("SIGMET".equalsIgnoreCase(pgenCategory)) {
+            } else if (PgenConstant.CATEGORY_SIGMET
+                    .equalsIgnoreCase(pgenCategory)) {
 
-                if ("CCFP_SIGMET".equals(pgenType)) {
+                if (PgenConstant.TYPE_CCFP_SIGMET.equals(pgenType)) {
                     ((gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.CcfpAttrDlg) this)
                             .setAbstractSigmet(de);
                     return;

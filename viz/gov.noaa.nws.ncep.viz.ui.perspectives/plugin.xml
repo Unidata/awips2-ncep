@@ -6,6 +6,7 @@
       <perspective
             class="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspective"
             id="gov.noaa.nws.ncep.viz.ui.NCPerspective"
+            icon="icons/ncp.png"
             name="NCP">
       </perspective>
    </extension>

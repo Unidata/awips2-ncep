@@ -40,6 +40,8 @@ import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.catalog.CatalogQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
+import com.raytheon.viz.satellite.SatelliteConstants;
+ 
 
 /**
  * 
@@ -87,6 +89,10 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
  *  01/22/2016    R14142     R. Reynolds  Moved in mcidas specific aliasing code
  *  04/05/2016    RM10435    rjpeter      Removed Inventory usage.
+ *  04/12/2016    R15945     R. Reynolds  Added code to build initial custom Mcidas legend string
+ *  06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
+ * 
+ * 
  * </pre>
  * 
  * @author ghull
@@ -188,6 +194,9 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     // where/how are the attribute sets located/organized
     //
+
+    private String areaName = "";
+
     public static enum AttrSetsOrganization {
         // GRIDS, RADAR... use ATTR SET GROUP
         BY_ATTR_SET_GROUP, BY_RSC_DEFN, DETERMINE_BY_RSC_CATEGORY
@@ -249,6 +258,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     @XmlElement
     private Boolean addToURICatalog = false;
+
+    private String mcidasAliasedValues = "";
 
     public ResourceDefinition() {
         resourceDefnName = "";
@@ -388,6 +399,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         HashMap<String, String> prmsWithoutComments = new HashMap<>();
 
         for (String prmName : resourceParameters.keySet()) {
+
             if (!prmName.trim().startsWith("!")) {
                 prmsWithoutComments.put(prmName,
                         resourceParameters.get(prmName));
@@ -1050,7 +1062,6 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                     }
                 }
             } else if (getSubTypeGenParamsList().length > 0) {
-
                 String[] subParams = getSubTypeGenParamsList();
                 String areaId = "";
                 Integer resolution = 0;
@@ -1060,6 +1071,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
 
                 if (!(getResourceCategory() == ResourceCategory.PGENRscCategory)) {
+
                     request.addFields(subParams);
                     request.setDistinct(true);
                 }
@@ -1319,7 +1331,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     }
 
     /**
-     * This is a mcidas specific method to build the aliased Resource Group
+     * This is a MciDAS specific method to build the aliased Resource Group
      * string by appending from 2 to 4 subTypes as specified in a Satellite
      * Resource Definition XML file
      */
@@ -1328,6 +1340,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         String displayName = originalDisplayName;
 
         if (getRscImplementation().equals(McidasConstants.MCIDAS_SATELLITE)) {
+
+            mcidasAliasedValues = "";
 
             String[] subParams = getSubTypeGenerator().split(",");
             String[] str;
@@ -1346,6 +1360,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                             str[k] += "km";
                         }
                         displayName = displayName + " " + str[k];
+                        mcidasAliasedValues = mcidasAliasedValues
+                                + McidasConstants.RESOLUTION + ":" + str[k] + ",";
 
                     } else if (subParams[k].toString().equalsIgnoreCase(
                             McidasConstants.PROJECTION)) {
@@ -1368,17 +1384,24 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         }
 
                         displayName = displayName + " " + areaIdName;
+                        mcidasAliasedValues = mcidasAliasedValues + McidasConstants.AREA
+                                + ":" + areaIdName + ",";
 
                     } else if (subParams[k].toString().equalsIgnoreCase(
                             McidasConstants.SATELLITE_ID)) {
+                        String value = SatelliteNameManager.getInstance()
+                                .getDisplayedNameByID(str[k]);
 
-                        displayName = displayName
-                                + " "
-                                + SatelliteNameManager.getInstance()
-                                        .getDisplayedNameByID(str[k]);
+                        displayName = displayName + " " + value;
+                        mcidasAliasedValues = mcidasAliasedValues + McidasConstants.SATELLLITE
+                                + ":" + value + ",";
 
                     }
                 }
+
+                mcidasAliasedValues = mcidasAliasedValues.substring(0,
+                        mcidasAliasedValues.length() - 1);
+
             } catch (Exception ex) {
                 /**
                  * TODO: Temporary DEBUG for error that only happens on NTBN
@@ -1406,11 +1429,12 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     }
 
     /**
-     * This is a mcidas specific method to alias an attribute. The alias will be
+     * This is a MciDAS specific method to alias an attribute. The alias will be
      * displayed in the Resource Attribute column and appended to the Resource
      * Group name (DisplayName) which appears in the legend and Dialog Box
      * invoked by the Edit Button on CreateRBD tab.
      */
+
     public String getRscAttributeDisplayName(String originalAttrSetName) {
 
         String attrSetName = originalAttrSetName;
@@ -1461,11 +1485,14 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         return attrSetName.trim();
     }
 
+    public String getMcidasAliasedValues() {
+        return mcidasAliasedValues;
+    }
+
     /**
      * This is the attribute set used by the updateAttrSetName() method
      */
     public void setAttributeSet(AttributeSet attributeSet) {
         this.attributeSet = attributeSet;
     }
-
 }

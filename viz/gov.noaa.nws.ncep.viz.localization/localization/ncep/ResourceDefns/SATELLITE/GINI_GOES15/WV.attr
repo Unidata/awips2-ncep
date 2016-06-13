@@ -6,3 +6,4 @@ displayUnitStr=DerivedWVPixel
 alpha=1.0
 brightness=1.0
 contrast=1.0
+legendString= {RD} {channel}

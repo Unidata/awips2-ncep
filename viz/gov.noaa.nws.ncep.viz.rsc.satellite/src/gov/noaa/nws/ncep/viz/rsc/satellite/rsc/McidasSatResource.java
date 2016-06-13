@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
@@ -8,10 +9,15 @@ import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -24,6 +30,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.viz.satellite.SatelliteConstants;
 
 /**
  * Provides satellite raster rendering support
@@ -44,6 +51,8 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  10/15/2015    #R7190     R. Reynolds  Added support for Mcidas
  *  12/03/2015    R12953     R. Reynolds  Modified to enhance Legend title
  *  02/04/2016    R14142     RCReynolds   Moved mcidas related string construction out to ResourceDefinition
+ *  04/12/2016    R15945     RCReynolds   Added code to build customized string for input to getLegendString
+ *  06/06/2016    R15945     RCReynolds   Used McidasConstants instead of SatelliteConstants
  * </pre>
  * 
  * @author ghull
@@ -59,17 +68,36 @@ public class McidasSatResource extends AbstractSatelliteResource implements
 
     public McidasSatResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
+
+        /**
+         * Get configuredLegendString (with aliases) from resourceDefinition. If
+         * empty string is returned then get regular aliased legend.
+         * 
+         */
+
         satRscData = data;
         ResourceName rscName = satRscData.getResourceName();
 
         try {
 
             legendStr = "";
+            StringBuffer sb = new StringBuffer("");
+            char x;
 
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
 
             ResourceDefinition rscDefn = rscDefnsMngr
                     .getResourceDefinition(rscName.getRscType());
+
+            AttributeSet attributeSet = rscDefnsMngr.getAttrSet(rscName);
+
+            rscDefn.setAttributeSet(attributeSet);
+
+            HashMap<String, String> attributes = attributeSet.getAttributes();
+
+            Map<String, String> variables = new HashMap<String, String>();
+
+            String legendStringAttribute = attributes.get("legendString");
 
             String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
 
@@ -80,15 +108,90 @@ public class McidasSatResource extends AbstractSatelliteResource implements
                         + "_";
             }
 
-            legendStr = legendStr.substring(0, legendStr.length() - 1);
-
             legendStr = rscDefn.getRscGroupDisplayName(legendStr) + " ";
 
-            AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
+            String[] keysValues = rscDefn.getMcidasAliasedValues().split(","); // what's
+                                                                               // in
+                                                                               // subType
+                                                                               // generators
+            /**
+             * These are the keywords found in the legendString (built from
+             * subType generator content)
+             */
+            String value = "";
+            for (int i = 0; i < keysValues.length; i++) {
+                value = keysValues[i].split(":")[1];
+                if (value != null && !value.isEmpty()) {
+                    if (keysValues[i].startsWith(McidasConstants.SATELLLITE
+                            + ":")) {
+                        variables.put(McidasConstants.SATELLLITE, value);
+                    } else if (keysValues[i].startsWith(McidasConstants.AREA
+                            + ":")) {
+                        variables.put(McidasConstants.AREA, value);
+                    } else if (keysValues[i]
+                            .startsWith(McidasConstants.RESOLUTION + ":")) {
+                        variables.put(McidasConstants.RESOLUTION, value);
+                    }
+                }
+            }
 
-            rscDefn.setAttributeSet(attSet);
+            // add in these last two.
+
+            value = rscDefn.getResourceDefnName();
+            if (value != null && !value.isEmpty())
+                variables.put(McidasConstants.RESOURCE_DEFINITION,
+                        rscDefn.getResourceDefnName());
+
+            value = rscDefnsMngr.getAttrSet(rscName).getName();
+            if (value != null && !value.isEmpty())
+                variables.put(McidasConstants.CHANNEL, rscDefnsMngr
+                        .getAttrSet(rscName).getName());
+
+            /*
+             * "variables map" now contains keywords/values available for
+             * building the custom legend string. Examine marked-up legend
+             * string looking for {keyword} that matches in "variables". If it
+             * doesn't then remove it from legendString.
+             */
+            Pattern p = Pattern.compile("\\{(.*?)\\}");
+            Matcher m = p.matcher(legendStringAttribute.toString());
+
+            while (m.find()) {
+                value = variables.get(m.group(1));
+                if (value == null || value.isEmpty()) {
+
+                    legendStringAttribute = legendStringAttribute.replace("{"
+                            + m.group(1) + "}", "");
+                }
+            }
+
+            /*
+             * change all occurrences of '{' to "${" because that's what
+             * VariableSubstituterNCEP expects
+             */
+            for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+                x = legendStringAttribute.charAt(ipos);
+                sb.append(x == '{' ? "${" : x);
+            }
+
+            String customizedlegendString = VariableSubstitutorNCEP
+                    .processVariables(sb.toString(), variables);
+
+            /*
+             * If user coded legendString properly there shouldn't be any "${"
+             * present, but if there are then change them back to "{"
+             */
+            sb.setLength(0);
+            for (int ipos = 0; ipos < customizedlegendString.length(); ipos++) {
+                x = customizedlegendString.charAt(ipos);
+                sb.append(x == '$' ? "{" : x);
+            }
+            customizedlegendString = sb.toString();
 
             legendStr += rscDefn.getRscAttributeDisplayName("");
+
+            legendStr = (customizedlegendString.isEmpty()) ? legendStr
+                    : customizedlegendString;
 
             legendStr.trim();
 

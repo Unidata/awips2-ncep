@@ -70,6 +70,7 @@ Import-Package: com.raytheon.uf.viz.core.maps,
  com.raytheon.uf.viz.xy.graph,
  com.raytheon.viz.alerts.observers,
  com.raytheon.viz.core.graphing,
+ com.raytheon.viz.satellite,
  gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.gempak.parameters.colorbar

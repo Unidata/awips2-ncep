@@ -58,6 +58,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
+ * 06/01/2016   R18387      B. Yin      Open line dialog in activateTool().
  * 
  * </pre>
  * 
@@ -140,6 +141,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             } else {
                 ((ContoursAttrDlg) attrDlg)
                         .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.DRAW_LINE);
+                ((ContoursAttrDlg) attrDlg).setLineTemplate(null);
+                ((ContoursAttrDlg) attrDlg).openLineAttrDlg();
             }
 
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
@@ -203,6 +206,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     if (attrDlg != null) {
                         ((ContoursAttrDlg) attrDlg)
                                 .setDrawingStatus(ContourDrawingStatus.SELECT);
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                     }
                     drawingLayer.removeGhostLine();
 
@@ -238,6 +242,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     if (attrDlg != null) {
                         ((ContoursAttrDlg) attrDlg)
                                 .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                     }
                     drawingLayer.removeGhostLine();
 
@@ -263,6 +268,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 if (points.size() == 0) {
                     ((ContoursAttrDlg) attrDlg)
                             .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
+                    ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                 } else {
                     setDrawingMode();
                     drawContours();
@@ -899,6 +905,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
      */
     public void clearSelected() {
         drawingLayer.removeSelected();
+        points.clear();
         mapEditor.refresh();
     }
 

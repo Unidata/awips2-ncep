@@ -75,11 +75,13 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date         Ticket#      Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 01/15        #5413       B. Yin      Close PGEN palette in cleanup
- * 05/02/2016  R16076         J. Wu           update startProductManage()   
+ * 05/02/2016   R16076      J. Wu       update startProductManage()   
  * 05/10/2016   R13560      S. Russell  Updated promptToSave to no longer save
  *                                      data, that is done in PGenPaletteWindow
  *                                      ISaveablePart2 code.  Also modified it
  *                                      to return the return code of the dialog
+ * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
+ * 
  * </pre>
  * 
  * @author sgilbert
@@ -170,8 +172,6 @@ public class PgenResourceData extends AbstractResourceData implements
      */
     @Override
     public void update(Object updateData) {
-        // TODO Auto-generated method stub
-
     }
 
     /*
@@ -183,7 +183,6 @@ public class PgenResourceData extends AbstractResourceData implements
      */
     @Override
     public boolean equals(Object obj) {
-        // TODO Auto-generated method stub
         return obj == this;
     }
 
@@ -503,7 +502,7 @@ public class PgenResourceData extends AbstractResourceData implements
         /*
          * Incoming activity always has only one activity
          */
-        if (productList.size() < 1) {
+        if (productList.isEmpty()) {
             productList.add(prds.get(0));
             activeProduct = productList.get(0);
             activeLayer = productList.get(0).getLayer(0);
@@ -758,7 +757,6 @@ public class PgenResourceData extends AbstractResourceData implements
         removeTempFile();
 
         if (autosave) {
-
             storeAllProducts();
         }
 
@@ -1121,7 +1119,6 @@ public class PgenResourceData extends AbstractResourceData implements
             long current = System.currentTimeMillis();
             if ((current - lastSaveTime) > autosaveInterval) {
                 storeAllProducts();
-                // saveProducts(autoSaveFilename, multiSave);
                 lastSaveTime = current;
                 needsSaving = false;
             }

@@ -318,6 +318,8 @@
 	<alias base="TOZNE">TOZO</alias>
 	<alias base="TP">APCP</alias>
 	<alias base="TP1hr">P01M</alias>
+	<alias base="tpHPC">TP</alias>
+	<alias base="tpHPCndfd">TP</alias>
 	<alias base="TP3hr">P03M</alias>
 	<alias base="TP6hr">P06M</alias>
 	<alias base="TP9hr">P09M</alias>

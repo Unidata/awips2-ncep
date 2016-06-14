@@ -1,0 +1,26 @@
+!
+! Restore File : max_only_ft_yel
+!
+! Log:
+! J. Carr/HPC		 9/98	Initial creation
+! F.Achorn/OPC		05/22/08 Modify for use with wave watch
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0
+GDPFUN = mul(htsgw,3.2808)
+TYPE   = c
+CINT   = 0
+LINE   = 0
+FINT   = 
+FLINE  = 
+HILO   = 5/+#/1-100/5/15;15/y
+HLSYM  = 1.5;1/1;1/21;21/1.5;1.5/hw
+WIND   = 
+TITLE  = 5/-2/?~^  MAX SIG WAVE HGHT + (FT)
+TEXT   = 1/21//hw
+COLORS = 1
+MARKER = 0
+GRDLBL = 5
+FILTER = yes

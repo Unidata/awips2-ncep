@@ -6,6 +6,7 @@
 GDFILE=HYSPLIT
 pluginName=grid
 eventName=%
+inventoryParam=P
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

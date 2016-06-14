@@ -15,6 +15,6 @@
 ensembleMember=%
 pluginName=grid
 GDFILE=ENSEMBLE40
-
+inventoryParam=PMSL
 </resourceParameters>
 </ResourceDefinition>

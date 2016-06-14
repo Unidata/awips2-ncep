@@ -40,8 +40,6 @@ import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.catalog.CatalogQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.satellite.SatelliteConstants;
- 
 
 /**
  * 
@@ -90,9 +88,8 @@ import com.raytheon.viz.satellite.SatelliteConstants;
  *  01/22/2016    R14142     R. Reynolds  Moved in mcidas specific aliasing code
  *  04/05/2016    RM10435    rjpeter      Removed Inventory usage.
  *  04/12/2016    R15945     R. Reynolds  Added code to build initial custom Mcidas legend string
- *  06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
- * 
- * 
+ *  06/02/2016    RM18743    rjpeter      Fix Radar generatedTypes.
+ *  06/06/2016    R15945     RCReynolds   Using McidasConstants instead of SatelliteConstants
  * </pre>
  * 
  * @author ghull
@@ -1014,28 +1011,27 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             return;
         }
 
-        generatedSubTypesList.clear();
-        generatedTypesList.clear();
-
         // R7656: Special case for LocalRadar:
         // Retrieve the station IDs of radar stations from an XML file,
         // bypassing its original CatalogQuery.performQuery.
 
-        if (!isLocalRadarProcessed
-                && getResourceDefnName().equals(localRadarResourceDefnName)) {
+        if (localRadarResourceDefnName.equals(getResourceDefnName())) {
+            if (!isLocalRadarProcessed) {
+                generatedTypesList.clear();
+                List<String> stationIDs = LocalRadarStationManager
+                        .getInstance().getStationIDs();
 
-            List<String> stationIDs = LocalRadarStationManager.getInstance()
-                    .getStationIDs();
-
-            if (stationIDs != null) {
-                for (String id : stationIDs) {
-                    generatedTypesList.add(id);
+                if (stationIDs != null) {
+                    generatedTypesList.addAll(stationIDs);
                 }
-            }
 
-            isLocalRadarProcessed = true;
+                isLocalRadarProcessed = true;
+            }
             return;
         }
+
+        generatedSubTypesList.clear();
+        generatedTypesList.clear();
 
         try {
             // the parameters used to define the data that gets stored in the
@@ -1361,7 +1357,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         }
                         displayName = displayName + " " + str[k];
                         mcidasAliasedValues = mcidasAliasedValues
-                                + McidasConstants.RESOLUTION + ":" + str[k] + ",";
+                                + McidasConstants.RESOLUTION + ":" + str[k]
+                                + ",";
 
                     } else if (subParams[k].toString().equalsIgnoreCase(
                             McidasConstants.PROJECTION)) {
@@ -1384,8 +1381,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         }
 
                         displayName = displayName + " " + areaIdName;
-                        mcidasAliasedValues = mcidasAliasedValues + McidasConstants.AREA
-                                + ":" + areaIdName + ",";
+                        mcidasAliasedValues = mcidasAliasedValues
+                                + McidasConstants.AREA + ":" + areaIdName + ",";
 
                     } else if (subParams[k].toString().equalsIgnoreCase(
                             McidasConstants.SATELLITE_ID)) {
@@ -1393,8 +1390,9 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                                 .getDisplayedNameByID(str[k]);
 
                         displayName = displayName + " " + value;
-                        mcidasAliasedValues = mcidasAliasedValues + McidasConstants.SATELLLITE
-                                + ":" + value + ",";
+                        mcidasAliasedValues = mcidasAliasedValues
+                                + McidasConstants.SATELLLITE + ":" + value
+                                + ",";
 
                     }
                 }

@@ -14,7 +14,7 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=NCOM
-
+inventoryParam=T
 </resourceParameters>
 <attrSetOrg>BY_ATTR_SET_GROUP</attrSetOrg>
 </ResourceDefinition>

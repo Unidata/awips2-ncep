@@ -15,6 +15,6 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=nam32E
-
+inventoryParam=P
 </resourceParameters>
 </ResourceDefinition>

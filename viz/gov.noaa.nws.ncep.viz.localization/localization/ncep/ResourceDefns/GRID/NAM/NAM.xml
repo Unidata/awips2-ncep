@@ -5,6 +5,7 @@
     <resourceParameters>
 GDFILE=nam
 pluginName=grid
+inventoryParam=P
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

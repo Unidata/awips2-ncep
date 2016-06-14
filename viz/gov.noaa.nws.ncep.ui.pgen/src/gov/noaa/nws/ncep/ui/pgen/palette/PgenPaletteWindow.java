@@ -129,6 +129,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  *                                      
  * 12/21/2015   R12964      J. Lopez    Layers remember the last selected class
  * 05/17/2016   5641        njensen     Don't activate context outside of NCP 
+ * 06/13/2016   5640        bsteffen    Delay opening of remind dialog during close.
  * 
  * </pre>
  * 
@@ -930,26 +931,38 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         IWorkbenchPart part = partRef.getPart(false);
 
         if (part instanceof PgenPaletteWindow) {
-            if (PgenUtil.getPgenMode() == PgenMode.SINGLE) {
-                PgenUtil.resetResourceData();
-                if (VizPerspectiveListener.getCurrentPerspectiveManager() == null) {
-                    return;
+            /**
+             * Perform cleanup async, after the part has fully closed.
+             * Triggering other UI interaction during close can lead to errors,
+             * specifically this has been seen with the PgenRemindDialog.
+             */
+            VizApp.runAsync(new Runnable() {
+
+                @Override
+                public void run() {
+                    if (PgenUtil.getPgenMode() == PgenMode.SINGLE) {
+                        PgenUtil.resetResourceData();
+                        if (VizPerspectiveListener
+                                .getCurrentPerspectiveManager() == null) {
+                            return;
+                        }
+                        for (AbstractEditor editor : PgenSession.getInstance()
+                                .getEditors()) {
+                            unloadPgenResource(editor);
+                        }
+
+                        PgenSession.getInstance().endSession();
+
+                        // R8354.
+                        deactivatePGENContext();
+                    }
+
+                    if (currentIsMultiPane != null) {
+                        PgenUtil.removeSelectedPaneChangedListener(
+                                currentIsMultiPane, PgenPaletteWindow.this);
+                    }
                 }
-                for (AbstractEditor editor : PgenSession.getInstance()
-                        .getEditors()) {
-                    unloadPgenResource(editor);
-                }
-
-                PgenSession.getInstance().endSession();
-
-                // R8354.
-                deactivatePGENContext();
-            }
-
-            if (currentIsMultiPane != null) {
-                PgenUtil.removeSelectedPaneChangedListener(currentIsMultiPane,
-                        this);
-            }
+            });
         } else if (PgenUtil.isNatlCntrsEditor(part)) {
             PgenResource pgen = PgenUtil
                     .findPgenResource((AbstractEditor) part);

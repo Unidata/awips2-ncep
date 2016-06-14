@@ -904,7 +904,7 @@
       </handler>
       <handler
             class="gov.noaa.nws.ncep.viz.ui.display.ChangeNcLegendModeHandler"
-            commandId="com.raytheon.uf.viz.core.rsc.changeLegendMode">
+            commandId="com.raytheon.uf.viz.core.rsc.key.numpadEnter">
             <activeWhen>
                 <reference definitionId="gov.noaa.nws.ncep.viz.ui.inNCPerspective">
                 </reference>

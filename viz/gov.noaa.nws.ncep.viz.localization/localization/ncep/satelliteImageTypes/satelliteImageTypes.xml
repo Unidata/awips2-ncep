@@ -66,6 +66,16 @@
 	</satelliteImageType>
 	<satelliteImageType>
 		<satelliteId>53</satelliteId>
+		<imageTypeId>2</imageTypeId>
+		<ASImageTypeId>VIS_0p8um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
+		<imageTypeId>4</imageTypeId>
+		<ASImageTypeId>NIR_1p6um</ASImageTypeId>
+	</satelliteImageType>
+	<satelliteImageType>
+		<satelliteId>53</satelliteId>
 		<imageTypeId>8</imageTypeId>
 		<ASImageTypeId>SWIR_3p9um</ASImageTypeId>
 	</satelliteImageType>

@@ -108,7 +108,6 @@ import com.vividsolutions.jts.geom.Point;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 11/25/2008                           Creation
  * 02/09                    B. Yin      Initial Creation.
  * 04/09                    S. Gilbert  Added PgenCommand for undo/redo.
  * 04/09        #88         J. Wu       Added Text.
@@ -136,8 +135,8 @@ import com.vividsolutions.jts.geom.Point;
  * 10/10        #310        S. Gilbert  Modified to support PGEN SINGLE mode
  * 02/11        ?           B. Yin      Select elements only in certain distance.
  * 04/11        ?           B. Yin      Re-factor IAttribute
- * 09/11        ?           B. Yin      Added Circle symbol for Inc/Dec selection.			
- * 01/12        ?           J. Wu       TTR 444-Always display active product's active layer.			
+ * 09/11        ?           B. Yin      Added Circle symbol for Inc/Dec selection.          
+ * 01/12        ?           J. Wu       TTR 444-Always display active product's active layer.           
  * 03/12        ?           B. Yin      Make VAA text editable
  * 04/12        ?           B. Hebbard  Per B. Yin; in paintInternal(), add makeContextCurrent()
  *                                       on IGLTarget after screenshot to avoid GLException:
@@ -147,7 +146,7 @@ import com.vividsolutions.jts.geom.Point;
  * 05/12        #610        J. Wu       TTR 397 - Select GFA by text box.
  * 07/12        #695        B. Yin      TTR 261 - Add Pgen resource editable capability.
  * 08/12        #655        B. Hebbard  TTR 382 - Add paintProps as parameter to IDisplayable draw
- * 09/12        	        B. Hebbard  Merge out RTS changes from OB12.9.1
+ * 09/12                    B. Hebbard  Merge out RTS changes from OB12.9.1
  * 03/13        #927        B. Yin      Implemented IContextMenuProvider interface
  * 04/13        #874        B. Yin      Added a method replaceElements with parameter parent.
  * 04/13        #977        S. Gilbert  PGEN Database support
@@ -166,12 +165,15 @@ import com.vividsolutions.jts.geom.Point;
  *                                      new class PgenActionXtra
  * 12/16/2105   R12597      B. Yin      Added context menu item to add line to contours
  * 01/27/2016   R13166      J. Wu       Add context menu item to add Text to contours as label-only min/max.
+ *  
  * 05/11/2016   R13560      S. Russell  Updated PaintInternal() to no longer
  *                                      take screenshots.  That functionality
  *                                      was moved to PgenPaletteWindow where
  *                                      it is used to make an exit dialog with
  *                                      a picture of CAVE.  Removed member
  *                                      variable paneImage ( the screen shot )
+ * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
+ * *
  * </pre>
  * 
  * @author B. Yin
@@ -184,7 +186,6 @@ public class PgenResource extends
     /**
      * Ghost line for multi-point element.
      */
-    // private AbstractDrawableComponent ghost = null;
     PgenResourceGhost ghost = null;
 
     /*
@@ -309,9 +310,7 @@ public class PgenResource extends
      */
     @Override
     public String getName() {
-
         return resourceName;
-
     }
 
     /**
@@ -377,13 +376,6 @@ public class PgenResource extends
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.viz.core.drawables.IRenderable#paint(com.raytheon.viz.core
-     * .IGraphicsTarget, com.raytheon.viz.core.drawables.PaintProperties)
-     */
     @Override
     public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
@@ -403,7 +395,6 @@ public class PgenResource extends
                 drawSelected(target, paintProps);
             if (ghost != null)
                 ghost.draw(target, paintProps, df, descriptor);
-
         }
     }
 
@@ -586,7 +577,6 @@ public class PgenResource extends
      * @return the nearest component
      */
     public AbstractDrawableComponent getNearestComponent(Coordinate point) {
-        // return getNearestComponent( point, catFilter );
         return getNearestComponent(point, new AcceptFilter(), false);
     }
 
@@ -708,7 +698,6 @@ public class PgenResource extends
                 }
             }
 
-            // drawElement( target, paintProps, df, symset );
             for (IDisplayable each : displayEls) {
                 each.draw(target, paintProps);
                 each.dispose();
@@ -1256,7 +1245,6 @@ public class PgenResource extends
      * closes any dialogs
      */
     public void closeDialogs() {
-
         resourceData.closeDialogs();
     }
 
@@ -1763,13 +1751,15 @@ public class PgenResource extends
         drawNonFilledElements(target, paintProps);
     }
 
-    /*
+    /**
      * Loops through all products in the PGEN drawing layer to draw all filled
      * elements
      * 
-     * @param target Graphic target from the paint() method.
+     * @param target
+     *            Graphic target from the paint() method.
      * 
-     * @param paintProps Paint properties from the paint() method.
+     * @param paintProps
+     *            Paint properties from the paint() method.
      */
     private void drawFilledElements(IGraphicsTarget target,
             PaintProperties paintProps) {
@@ -1925,7 +1915,6 @@ public class PgenResource extends
 
             drawElements(otherElements, target, paintProps, dprops);
 
-            // drawElements(textElements, target, paintProps, dprops);
             drawElements(nonCcfpTextElements, target, paintProps, dprops);
             drawElements(ccfpTextElements, target, paintProps, dprops);
 
@@ -2092,9 +2081,9 @@ public class PgenResource extends
             }
 
             // Add an menu item "Add to Contours" for regular line (not Arc)
-            if (adc instanceof Line && !(adc instanceof Arc)
-                    && adc.getParent() instanceof Layer) {
-                generateSubMenu(menuManager, (Line) adc);
+            if (getSelectedDE() instanceof Line
+                    && getSelectedDE().getParent() instanceof Layer) {
+                generateSubMenu(menuManager, (Line) getSelectedDE());
             }
 
             // Add an menu item "Add to Contours" for Text object
@@ -2198,7 +2187,7 @@ public class PgenResource extends
 
         // add the line in contours
         ContourLine cline = new ContourLine(line, lbl, 1);
-
+        contours.add(cline);
         // Add the new ContourLine to the contour
         Contours newContour = contours.copy();
         newContour.add(cline);

@@ -95,6 +95,7 @@ import com.vividsolutions.jts.geom.Point;
  *                                      while a PGEN attribute dialog was open and/or selecting/editing a 
  *                                      PGEN object
  * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
+ * 06/15/2016   R13559      bkowal      File cleanup. No longer simulate mouse clicks.
  * 
  * </pre>
  * 
@@ -164,8 +165,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
      */
     protected int inOut = 1;
 
-    protected boolean simulate = false;
-
     public PgenSelectHandler(AbstractPgenTool tool, AbstractEditor mapEditor,
             PgenResource resource, AttrDlg attrDlg) {
         this.mapEditor = mapEditor;
@@ -183,12 +182,12 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseDown(int anX, int aY, int button) {
 
-        if (!tool.isResourceEditable()) {
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
         // Check if mouse is in geographic extent
         Coordinate loc = mapEditor.translateClick(anX, aY);
-        if (loc == null || shiftDown || simulate) {
+        if (loc == null || shiftDown) {
             return false;
         }
         preempt = false;
@@ -360,7 +359,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
                 if (attrDlg != null
                         && !(attrDlg instanceof ContoursAttrDlg && tool instanceof PgenContoursTool)) {
-
                     closeAttrDlg(attrDlg, elSelected.getPgenType());
                     attrDlg = null;
                 }
@@ -409,7 +407,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         } else if (elSelected instanceof Text) {
                             ((ContoursAttrDlg) attrDlg).openLabelAttrDlg();
                         }
-                        
+
                     }
 
                 } else {
@@ -523,7 +521,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
 
-        if (!tool.isResourceEditable()) {
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
 
@@ -587,16 +585,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 inOut = 0;
             }
 
-            if (tmpEl == null) { // make sure if no DE is selected, no moving
-                                 // the DE for pan
-                return false;
-            } else {
-                simulate = true;
-                PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-                simulate = false;
-
-                return true; // for DE
-            }
+            return (tmpEl != null);
         }
 
         if (tmpEl != null) {
@@ -761,18 +750,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
                 }
 
-                simulate = true;
-                PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-                simulate = false;
                 return true;
             }
         }
 
-        if (preempt) {
-            simulate = true;
-            PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-            simulate = false;
-        }
         return preempt;
 
     }
@@ -794,7 +775,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
         // that the mouse button click never reaches the NCPer handler
         boolean preempt = false;
 
-        if (!tool.isResourceEditable()) {
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
 
@@ -1034,7 +1015,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 }
 
                 mapEditor.refresh();
-
+                return true;
             }
         } else if (button == 3) {
 
@@ -1046,8 +1027,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         closeAttrDlg(attrDlg, pgenType);
                         attrDlg = null;
                         PgenUtil.setSelectingMode();
-                    } 
-                    else {
+                    } else {
                         ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                     }
                 } else {

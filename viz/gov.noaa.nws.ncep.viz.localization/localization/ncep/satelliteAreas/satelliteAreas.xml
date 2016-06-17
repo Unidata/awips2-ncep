@@ -598,6 +598,14 @@
 		<alias>VAAC_Fulldisk_3023</alias>
 		<areaID>3023</areaID>
 	</satelliteArea>
+	<satelliteArea>
+		<alias>Atlantic_7914</alias>
+		<areaID>7914</areaID>
+	</satelliteArea>
+	<satelliteArea>
+		<alias>Atlantic_7931</alias>
+		<areaID>7931</areaID>
+	</satelliteArea>
 	
 	<!-- MSG-7 -->
 	<satelliteArea>

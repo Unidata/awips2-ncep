@@ -13,6 +13,7 @@ import gov.noaa.nws.ncep.ui.pgen.elements.ProductTime;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenLayer;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.PgenSave;
 import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
 
 import java.awt.Color;
 import java.io.File;
@@ -72,6 +73,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 05/02/2016   R16076      J. Wu       pull getPrdOutputFile() to PgenUtil.
  * 05/10/2016   R13560      S. Russell  Updated exitProductManage() and renamed
  *                                      it to exitPGenActivityManagement()
+ * 06/29/2016   R18611      S. Russell  Updated exitPgenActivityManagement() to
+ *                                      add code to set the needsSaving flag
+ *                                      to false after all products are removed
  * </pre>
  * 
  * @author jwu
@@ -1285,17 +1289,20 @@ public class ProductManageDialog extends ProductDialog {
             drawingLayer.setActiveProduct(currentProduct);
             drawingLayer.setActiveLayer(currentLayer);
 
-            /*
-             * Refresh display and reset undo/redo as well.
-             */
+            // Refresh display and reset undo/redo as well.
             PgenUtil.refresh();
 
-            // PgenUtil.resetUndoRedo();
             PgenSession.getInstance().disableUndoRedo();
 
-            /*
-             * Dispose all layering dialogs.
-             */
+            // All Products ( including drawables ) were just removed and
+            // new empty layers were created. Nothing ( objects draw on the
+            // map ) to save. Reset the needsSaving flag to false
+            PgenResourceData prd = drawingLayer.getResourceData();
+            if (prd != null) {
+                prd.setNeedsSaving(false);
+            }
+
+            // Dispose all layering dialogs.
             cleanupDialogs();
             close();
 

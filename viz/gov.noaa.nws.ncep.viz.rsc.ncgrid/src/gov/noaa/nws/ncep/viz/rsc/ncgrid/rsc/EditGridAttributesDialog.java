@@ -19,6 +19,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * The grid contour attribute editing dialog.
  * 
@@ -26,15 +28,16 @@ import org.eclipse.swt.widgets.Text;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * March 2010	164		     M. Li		
- * July	 2010	164		     M. Li		Re-build the GUI using GEMPAK style
- * Sept  2010   164			 M. Li		Add fint, fline and title
- * Nove  2010	             M. Li		Add wind
- * Nov,22 2010  352			 X. Guo     Add HILO, HLSYM and move all help functions
+ * March 2010   164          M. Li  
+ * July  2010   164          M. Li      Re-build the GUI using GEMPAK style
+ * Sept  2010   164          M. Li      Add fint, fline and title
+ * Nove  2010                M. Li      Add wind
+ * Nov,22 2010  352          X. Guo     Add HILO, HLSYM and move all help functions
  *                                      into NcgridAttributesHelp.java
  * Feb 06, 2012  #538        Q. Zhou    Added skip and filter areas and implements. 
- * Sep 07, 2012  #743        Archana      Added CLRBAR
+ * Sep 07, 2012  #743        Archana    Added CLRBAR
  * Sep 11, 2013  #1036       S. Gurung  Added TEXT attribute
+ * 04/05/2016   R15715       dgilling   Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * @author mli
  * @version 1
@@ -130,8 +133,8 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
      * @param dialogTitle
      */
     public EditGridAttributesDialog(Shell parentShell,
-            INatlCntrsResourceData rd, Boolean apply) {
-        super(parentShell, rd, apply);
+            INatlCntrsResourceData rd, Capabilities capabilities, Boolean apply) {
+        super(parentShell, rd, capabilities, apply);
     }
 
     @Override
@@ -180,19 +183,22 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         }
 
         if (cintString == null
-                || ((String) cintString.getAttrValue()).trim().length() <= 0)
-            cintString.setAttrValue((String) "");
+                || ((String) cintString.getAttrValue()).trim().length() <= 0) {
+            cintString.setAttrValue("");
+        }
 
         if (hilo != null && ((String) hilo.getAttrValue()).trim().length() <= 0) {
-            hilo.setAttrValue((String) "");
+            hilo.setAttrValue("");
         }
 
         if (hlsym != null
-                && ((String) hlsym.getAttrValue()).trim().length() <= 0)
-            hlsym.setAttrValue((String) "");
+                && ((String) hlsym.getAttrValue()).trim().length() <= 0) {
+            hlsym.setAttrValue("");
+        }
 
-        if (text != null && ((String) text.getAttrValue()).trim().length() <= 0)
-            text.setAttrValue((String) "");
+        if (text != null && ((String) text.getAttrValue()).trim().length() <= 0) {
+            text.setAttrValue("");
+        }
 
         // contour attributes editing
         Group contourAttributesGroup = new Group(composite, SWT.SHADOW_NONE);
@@ -216,8 +222,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         glevelText.setLayoutData(new GridData(230, SWT.DEFAULT));
         glevelText.setText((String) glevel.getAttrValue());
         glevelText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                glevel.setAttrValue((String) glevelText.getText().trim());
+                glevel.setAttrValue(glevelText.getText().trim());
             }
 
         });
@@ -229,8 +236,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         gvcordText.setLayoutData(new GridData(230, SWT.DEFAULT));
         gvcordText.setText((String) gvcord.getAttrValue());
         gvcordText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                gvcord.setAttrValue((String) gvcordText.getText().trim());
+                gvcord.setAttrValue(gvcordText.getText().trim());
             }
         });
 
@@ -241,8 +249,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         skipText.setLayoutData(new GridData(230, SWT.DEFAULT));
         skipText.setText((String) skip.getAttrValue());
         skipText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                skip.setAttrValue((String) skipText.getText().trim());
+                skip.setAttrValue(skipText.getText().trim());
             }
         });
 
@@ -253,8 +262,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         filterText.setLayoutData(new GridData(230, SWT.DEFAULT));
         filterText.setText((String) filter.getAttrValue());
         filterText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                filter.setAttrValue((String) filterText.getText().trim());
+                filter.setAttrValue(filterText.getText().trim());
             }
         });
 
@@ -265,8 +275,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         scaleText.setLayoutData(new GridData(230, SWT.DEFAULT));
         scaleText.setText((String) scale.getAttrValue());
         scaleText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                scale.setAttrValue((String) scaleText.getText().trim());
+                scale.setAttrValue(scaleText.getText().trim());
             }
         });
 
@@ -277,8 +288,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         gdpfunText.setLayoutData(new GridData(230, SWT.DEFAULT));
         gdpfunText.setText((String) gdpfun.getAttrValue());
         gdpfunText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                gdpfun.setAttrValue((String) gdpfunText.getText().trim());
+                gdpfun.setAttrValue(gdpfunText.getText().trim());
             }
         });
 
@@ -289,8 +301,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         typeText.setLayoutData(new GridData(230, SWT.DEFAULT));
         typeText.setText((String) type.getAttrValue());
         typeText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                type.setAttrValue((String) typeText.getText().trim());
+                type.setAttrValue(typeText.getText().trim());
             }
         });
 
@@ -301,8 +314,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         cintText.setLayoutData(new GridData(230, SWT.DEFAULT));
         cintText.setText((String) cintString.getAttrValue());
         cintText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                cintString.setAttrValue((String) cintText.getText().trim());
+                cintString.setAttrValue(cintText.getText().trim());
             }
 
         });
@@ -314,8 +328,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         lineAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
         lineAttrText.setText((String) lineAttr.getAttrValue());
         lineAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                lineAttr.setAttrValue((String) lineAttrText.getText().trim());
+                lineAttr.setAttrValue(lineAttrText.getText().trim());
             }
         });
 
@@ -326,8 +341,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         fintAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
         fintAttrText.setText((String) fint.getAttrValue());
         fintAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                fint.setAttrValue((String) fintAttrText.getText().trim());
+                fint.setAttrValue(fintAttrText.getText().trim());
             }
         });
 
@@ -338,8 +354,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         flineAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
         flineAttrText.setText((String) fline.getAttrValue());
         flineAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                fline.setAttrValue((String) flineAttrText.getText().trim());
+                fline.setAttrValue(flineAttrText.getText().trim());
             }
         });
 
@@ -351,8 +368,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
             hiloAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
             hiloAttrText.setText((String) hilo.getAttrValue());
             hiloAttrText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    hilo.setAttrValue((String) hiloAttrText.getText().trim());
+                    hilo.setAttrValue(hiloAttrText.getText().trim());
                 }
             });
         }
@@ -364,8 +382,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
             hlsymAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
             hlsymAttrText.setText((String) hlsym.getAttrValue());
             hlsymAttrText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    hlsym.setAttrValue((String) hlsymAttrText.getText().trim());
+                    hlsym.setAttrValue(hlsymAttrText.getText().trim());
                 }
             });
         }
@@ -377,8 +396,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
             clrbarText.setLayoutData(new GridData(230, SWT.DEFAULT));
             clrbarText.setText((String) clrbar.getAttrValue());
             clrbarText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    clrbar.setAttrValue((String) clrbarText.getText().trim());
+                    clrbar.setAttrValue(clrbarText.getText().trim());
                     NcDisplayMngr.getActiveNatlCntrsEditor().refresh();
                 }
             });
@@ -392,8 +412,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
             textAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
             textAttrText.setText((String) text.getAttrValue());
             textAttrText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
-                    text.setAttrValue((String) textAttrText.getText().trim());
+                    text.setAttrValue(textAttrText.getText().trim());
                 }
             });
         }
@@ -405,8 +426,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         windAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
         windAttrText.setText((String) wind.getAttrValue());
         windAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                wind.setAttrValue((String) windAttrText.getText().trim());
+                wind.setAttrValue(windAttrText.getText().trim());
             }
         });
 
@@ -417,8 +439,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         titleAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
         titleAttrText.setText((String) title.getAttrValue());
         titleAttrText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                title.setAttrValue((String) titleAttrText.getText().trim());
+                title.setAttrValue(titleAttrText.getText().trim());
             }
         });
 
@@ -429,8 +452,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         colorsText.setLayoutData(new GridData(230, SWT.DEFAULT));
         colorsText.setText((String) colors.getAttrValue());
         colorsText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                colors.setAttrValue((String) colorsText.getText().trim());
+                colors.setAttrValue(colorsText.getText().trim());
             }
         });
 
@@ -441,8 +465,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         markerText.setLayoutData(new GridData(230, SWT.DEFAULT));
         markerText.setText((String) marker.getAttrValue());
         markerText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                marker.setAttrValue((String) markerText.getText().trim());
+                marker.setAttrValue(markerText.getText().trim());
             }
         });
 
@@ -451,11 +476,12 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         grdlblLabel.setText("GRDLBL:");
         grdlblText = new Text(comp, SWT.SINGLE | SWT.BORDER);
         grdlblText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        grdlblText.setText(String.valueOf((Integer) grdlbl.getAttrValue()));
+        grdlblText.setText(String.valueOf(grdlbl.getAttrValue()));
         grdlblText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                grdlbl.setAttrValue((Integer) Integer.valueOf(grdlblText
-                        .getText().trim()));
+                grdlbl.setAttrValue(Integer
+                        .valueOf(grdlblText.getText().trim()));
             }
         });
 
@@ -469,6 +495,7 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         toolTipDisplay.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT));
         toolTipDisplay.setText("ToolTips OFF");
         toolTipDisplay.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (toolTipDisplay.getSelection()) {
                     toolTipDisplay.setText("ToolTips ON");

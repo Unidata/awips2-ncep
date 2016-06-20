@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit resource attributes interactively.
  * 
@@ -26,6 +28,7 @@ import org.eclipse.swt.widgets.Shell;
  * 03/29/2012  #651        S. Gurung    Initial Creation.
  * 06/21/2012  #569        G. Hull      call refreshGUIElements() to update the Fade Display
  * 03/08/2016  R15519      RC Reynolds  Changed modality from APPLICATION_MODAL to PRIMARY_MODAL (default)
+ * 04/05/2016  R15715      dgilling     Pass Capabilites object through to concrete classes.
  * 
  * </pre>
  * 
@@ -47,9 +50,8 @@ public class AbstractEditResourceAttrsInteractiveDialog extends
     }
 
     public AbstractEditResourceAttrsInteractiveDialog(Shell parentShell,
-            INatlCntrsResourceData r, Boolean apply) {
-        super(parentShell, r, apply);
-        // TODO Auto-generated constructor stub
+            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
 
     @Override
@@ -104,6 +106,7 @@ public class AbstractEditResourceAttrsInteractiveDialog extends
         canBtn.setText(" Cancel ");
 
         canBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 rscData.setRscAttrSet(new ResourceAttrSet(editedRscAttrSet));
 
@@ -122,6 +125,7 @@ public class AbstractEditResourceAttrsInteractiveDialog extends
         okBtn.setText("    OK    ");
 
         okBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 // This is to update the Fade Display with a possible change in

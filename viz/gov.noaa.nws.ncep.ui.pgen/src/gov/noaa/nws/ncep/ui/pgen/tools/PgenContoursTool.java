@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
@@ -58,6 +59,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
  * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
+ * 05/25/2016   R17940      J. Wu       Re-work on mouseDown & mouseUp actions.
  * 06/01/2016   R18387      B. Yin      Open line dialog in activateTool().
  * 
  * </pre>
@@ -127,7 +129,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 elem = (Contours) de;
                 this.setPgenSelectHandler();
                 PgenSession.getInstance().getPgenPalette()
-                        .setActiveIcon("Select");
+                        .setActiveIcon(PgenConstant.ACTION_SELECT);
             } else {
                 elem = null;
             }
@@ -181,101 +183,92 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          * int, int)
          */
         @Override
-        public boolean handleMouseUp(int anX, int aY, int button) {
-            if (!isResourceEditable())
+        public boolean handleMouseDown(int anX, int aY, int button) {
+
+            if (!isResourceEditable()) {
                 return false;
+            }
 
             // Check if mouse is in geographic extent
             Coordinate loc = mapEditor.translateClick(anX, aY);
-            if (loc == null || shiftDown)
+            if (loc == null || shiftDown) {
                 return false;
+            }
 
+            // Set focus on label input box.
             if (attrDlg != null) {
                 ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            } else {
+                return false;
             }
 
-            // Drawing Min/Max symbol
-            if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawSymbol()) {
+            /*
+             * Check drawing mode and draw either symbol, circle or save point
+             * to draw line later.
+             */
+            if (button == 1) {
 
-                if (button == 1) {
+                if (((ContoursAttrDlg) attrDlg).drawSymbol()) { // symbol
                     drawContourMinmax(loc);
                     ((ContoursAttrDlg) attrDlg).updateSymbolAttrOnGUI(loc);
-                } else if (button == 3) {
-
-                    points.clear();
-                    if (attrDlg != null) {
-                        ((ContoursAttrDlg) attrDlg)
-                                .setDrawingStatus(ContourDrawingStatus.SELECT);
-                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
-                    }
-                    drawingLayer.removeGhostLine();
-
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-            // Drawing Circle
-            if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawCircle()) {
-
-                if (button == 1) {
-
+                } else if (((ContoursAttrDlg) attrDlg).drawCircle()) { // Circle
                     if (points.size() == 0) {
-
                         points.add(0, loc);
-
                     } else {
-
                         if (points.size() > 1)
                             points.remove(1);
 
                         points.add(1, loc);
                         drawContourCircle();
                     }
-
-                    return true;
-
-                } else if (button == 3) {
-
-                    points.clear();
-                    if (attrDlg != null) {
-                        ((ContoursAttrDlg) attrDlg)
-                                .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
-                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
-                    }
-                    drawingLayer.removeGhostLine();
-
-                    return true;
-                } else {
-                    return false;
-                }
-
-            }
-
-            // Drawing line
-            if (button == 1) {
-
-                if (attrDlg != null
-                        && !((ContoursAttrDlg) attrDlg).drawSymbol()
-                        && !((ContoursAttrDlg) attrDlg).drawCircle()) {
-
+                } else { // Line
                     points.add(loc);
                 }
 
                 return true;
             } else if (button == 3) {
-                if (points.size() == 0) {
-                    ((ContoursAttrDlg) attrDlg)
-                            .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
-                    ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
-                } else {
-                    setDrawingMode();
-                    drawContours();
-                }
                 return true;
             } else if (button == 2) {
                 return true;
+            } else {
+                return false;
+            }
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
+         * int, int)
+         */
+        @Override
+        public boolean handleMouseUp(int anX, int aY, int button) {
+            if (!isResourceEditable())
+                return false;
+
+            if (button == 3) {
+                // End drawing symbol or circle
+                if (((ContoursAttrDlg) attrDlg).drawSymbol()
+                        || ((ContoursAttrDlg) attrDlg).drawCircle()) {
+                    points.clear();
+                    ((ContoursAttrDlg) attrDlg)
+                            .setDrawingStatus(ContourDrawingStatus.SELECT);
+                    drawingLayer.removeGhostLine();
+                } else { // Handling line drawing
+                    if (points.size() == 0) {
+                        ((ContoursAttrDlg) attrDlg)
+                                .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
+                    } else {
+                        setDrawingMode();
+                        drawContours();
+                    }
+
+                }
+
+                return true;
+
             } else {
                 return false;
             }
@@ -425,7 +418,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 }
 
                 String lblstr = ((ContoursAttrDlg) attrDlg).getLabel();
-                if (lblstr != null && lblstr.contains("9999")) {
+                if (lblstr != null
+                        && lblstr.contains(PgenConstant.G2G_BOUND_MARK)) {
                     cline.getLine().setSmoothFactor(0);
                 }
 
@@ -449,7 +443,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 }
 
                 Contours el = (Contours) (def.create(DrawableType.CONTOURS,
-                        null, "MET", "Contours", points,
+                        null, "MET", PgenConstant.CONTOURS, points,
                         drawingLayer.getActiveLayer()));
 
                 cline.setParent(el);
@@ -504,7 +498,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 }
 
                 String lblstr = ((ContoursAttrDlg) attrDlg).getLabel();
-                if (lblstr != null && lblstr.contains("9999")) {
+                if (lblstr != null
+                        && lblstr.contains(PgenConstant.G2G_BOUND_MARK)) {
                     cline.getLine().setSmoothFactor(0);
                 }
 
@@ -540,7 +535,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cline.setParent(elem);
@@ -646,7 +641,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cmm.setParent(elem);
@@ -777,7 +772,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cmm.setParent(elem);

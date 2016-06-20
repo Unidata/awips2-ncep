@@ -9,6 +9,8 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit MODIS resource attributes.
  * 
@@ -19,6 +21,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Oct 01, 2014            kbugenhagen Initial creation
+ * 04/05/2016   R15715     dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -30,13 +33,9 @@ public class EditModisAttrsDialog extends
         AbstractEditResourceAttrsInteractiveDialog {
 
     public EditModisAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
-            Boolean apply) {
-
-        super(parentShell, r, apply);
-        resourceData = r;
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
-
-    private INatlCntrsResourceData resourceData;
 
     private ColorBarFromColorMapAttrsEditorComposite cBarComposite = null;
 
@@ -48,7 +47,7 @@ public class EditModisAttrsDialog extends
         topComp.setLayout(layout0);
 
         cBarComposite = new ColorBarFromColorMapAttrsEditorComposite(topComp,
-                SWT.NONE, resourceData);
+                SWT.NONE, rscData, capabilities);
 
         return topComp;
     }
@@ -62,8 +61,9 @@ public class EditModisAttrsDialog extends
     protected void dispose() {
         super.dispose();
         // colorBarEditor.dispose();
-        if (cBarComposite != null)
+        if (cBarComposite != null) {
             cBarComposite.dispose();
+        }
     }
 
 }

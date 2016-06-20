@@ -9,21 +9,18 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 public class EditViirsAttrsDialog extends
         AbstractEditResourceAttrsInteractiveDialog {
 
     public EditViirsAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
-            Boolean apply) {
-
-        super(parentShell, r, apply);
-        resourceData = r;
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
-
-    private INatlCntrsResourceData resourceData;
 
     private ColorBarFromColorMapAttrsEditorComposite cBarComposite = null;
 
-    //
     @Override
     public Composite createDialog(Composite topComp) {
 
@@ -31,7 +28,7 @@ public class EditViirsAttrsDialog extends
         topComp.setLayout(layout0);
 
         cBarComposite = new ColorBarFromColorMapAttrsEditorComposite(topComp,
-                SWT.NONE, resourceData);
+                SWT.NONE, rscData, capabilities);
 
         return topComp;
     }
@@ -44,9 +41,9 @@ public class EditViirsAttrsDialog extends
     @Override
     protected void dispose() {
         super.dispose();
-        // colorBarEditor.dispose();
-        if (cBarComposite != null)
+        if (cBarComposite != null) {
             cBarComposite.dispose();
+        }
     }
 
 }

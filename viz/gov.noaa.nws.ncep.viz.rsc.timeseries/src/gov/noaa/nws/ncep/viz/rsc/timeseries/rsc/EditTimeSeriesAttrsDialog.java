@@ -12,6 +12,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit TimeSeries resource attributes.
  * 
@@ -20,6 +22,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 06/18/2014   #1136       qzhou        Initial Creation.
+ * 04/05/2016   R15715      dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -31,14 +34,9 @@ public class EditTimeSeriesAttrsDialog extends
         AbstractEditResourceAttrsInteractiveDialog {
 
     public EditTimeSeriesAttrsDialog(Shell parentShell,
-            INatlCntrsResourceData r, Boolean apply) {
-
-        super(parentShell, r, apply);
-        resourceData = r;
-
+            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
-
-    private INatlCntrsResourceData resourceData;
 
     @Override
     public Composite createDialog(Composite topComp) {

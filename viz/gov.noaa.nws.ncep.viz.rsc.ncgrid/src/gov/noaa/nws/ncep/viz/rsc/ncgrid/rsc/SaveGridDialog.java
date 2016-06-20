@@ -20,6 +20,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * The grid contour attribute editing dialog.
  * 
@@ -27,7 +29,8 @@ import org.eclipse.swt.widgets.Text;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer       Description
  * ------------ ----------  -----------    --------------------------
- * 03/01/2016	R6821	    K. Bugenhagen  Initial creation.		
+ * 03/01/2016   R6821       K. Bugenhagen  Initial creation.
+ * 04/05/2016   R15715      dgilling       Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * @author kbugenhagen
  * @version 1
@@ -49,19 +52,14 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
 
     private SaveGridInput saveInput;
 
-    /**
-     * Constructor
-     * 
-     * @param parentShell
-     * @param dialogTitle
-     */
     public SaveGridDialog(SaveGridInput saveInput, Shell parentShell,
-            INatlCntrsResourceData rd) {
-        super(parentShell, rd, false);
-        this.dlgTitle = "Save " + rd.getResourceName() + " Grid";
+            INatlCntrsResourceData rd, Capabilities capabilities) {
+        super(parentShell, rd, capabilities, false);
+        this.dlgTitle = "Save " + this.rscData.getResourceName() + " Grid";
         this.saveInput = saveInput;
     }
 
+    @Override
     public Composite createDialog(Composite composite) {
 
         // contour attributes editing
@@ -94,6 +92,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         modelNameText.setLayoutData(new GridData(230, SWT.DEFAULT));
         modelNameText.setText("");
         modelNameText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 saveInput.setModelName(modelNameText.getText().trim());
             }
@@ -106,6 +105,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         gparmText.setLayoutData(new GridData(230, SWT.DEFAULT));
         gparmText.setText(saveInput.getGparm());
         gparmText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 saveInput.setGparm(gparmText.getText().trim());
             }
@@ -118,6 +118,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         gvcordText.setLayoutData(new GridData(230, SWT.DEFAULT));
         gvcordText.setText(saveInput.getGvcord());
         gvcordText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 saveInput.setGvcord(gvcordText.getText().trim());
             }
@@ -130,6 +131,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         glevelText.setLayoutData(new GridData(230, SWT.DEFAULT));
         glevelText.setText(saveInput.getGlevel());
         glevelText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 saveInput.setGlevel(glevelText.getText().trim());
             }
@@ -143,6 +145,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         gdattimText.setLayoutData(new GridData(230, SWT.DEFAULT));
         gdattimText.setText(saveInput.getGdattim());
         gdattimText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 saveInput.setModelName(gdattimText.getText().trim());
             }
@@ -157,6 +160,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         // saveAll.setText("Save All Frames");
         saveAll.setSelection(saveInput.isSaveAll());
         saveAll.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 saveInput.setSaveAll(saveAll.getSelection());
                 if (saveAll.getSelection()) {
@@ -179,6 +183,7 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         toolTipDisplay.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT));
         toolTipDisplay.setText("ToolTips OFF");
         toolTipDisplay.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (toolTipDisplay.getSelection()) {
                     toolTipDisplay.setText("ToolTips ON");
@@ -211,10 +216,12 @@ public class SaveGridDialog extends AbstractEditResourceAttrsDialog {
         }
     }
 
+    @Override
     public void initWidgets() {
         // TODO Auto-generated method stub
     }
 
+    @Override
     public Object open() {
         Display display = getParent().getDisplay();
 

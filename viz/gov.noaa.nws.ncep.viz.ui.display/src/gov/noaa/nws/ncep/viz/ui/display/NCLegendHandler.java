@@ -55,6 +55,8 @@ import com.raytheon.viz.ui.input.EditableManager;
  *                                       getResourcesClickedList(),
  *                                       isAnyVisibleLegendGroupExpanded(), and
  *                                       isAProperLegendResource()
+ * 06/15/2016   R13559    J. Lopez       Added an if statement in handleMouseUp() to 
+ *                                       prevent PGEN from interfering with the legend
  * </pre>
  * 
  * @author sgurung
@@ -116,8 +118,11 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             ctrlDown = false;
         }
 
-        // Update this member variable since it is used as a flag
-        mouseDownResourcePair = getClickedNcLegendResource(x, y);
+        // Update this member variable since it is used as a flag if the right
+        // mouse button is clicked
+        if (mouseButton == 3) {
+            mouseDownResourcePair = getClickedNcLegendResource(x, y);
+        }
 
         // Is an NcLegendResource still clicked/selected ?
         if (mouseDownResourcePair != null) {

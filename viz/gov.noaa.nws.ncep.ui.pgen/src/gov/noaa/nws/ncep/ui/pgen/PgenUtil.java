@@ -155,6 +155,7 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 01/12/2016   R13168      J. Wu         Added getOneContourperLayer()
  * 04/14/2016   R13245      B. Yin        Added UTC time validation methods.
  * 05/02/2016   R16076      J. Wu         Add buildPrdFileName().
+ * 06/15/2016   R13559      bkowal        Removed simulated mouse click.
  * </pre>
  * 
  * @author
@@ -2094,8 +2095,9 @@ public class PgenUtil {
         IRenderableDisplay disp = editor.getActiveDisplayPane()
                 .getRenderableDisplay();
 
-        if (disp == null)
+        if (disp == null) {
             return null;
+        }
 
         ResourceList rscList = disp.getDescriptor().getResourceList();
 
@@ -2305,25 +2307,6 @@ public class PgenUtil {
 
         return nCal;
 
-    }
-
-    /**
-     * Simulate a mouse down event.
-     * 
-     * @param x
-     * @param y
-     * @param button
-     * @param mapEditor
-     */
-    public static void simulateMouseDown(int x, int y, int button,
-            AbstractEditor mapEditor) {
-        Event me = new Event();
-        me.display = mapEditor.getActiveDisplayPane().getDisplay();
-        me.button = 1;
-        me.type = SWT.MouseDown;
-        me.x = x;
-        me.y = y;
-        mapEditor.getMouseManager().handleEvent(me);
     }
 
     /**

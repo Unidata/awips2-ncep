@@ -1,19 +1,28 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
-  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
 
-	<bean id="ncepSessionFactory"
-		class="com.raytheon.uf.edex.database.DatabaseSessionFactoryBean">
-		<!--  no annotations to load, so no databaseSessionConfig -->
-		<property name="configLocation">
-			<value>file:///${edex.home}/conf/db/hibernateConfig/ncep/hibernate.cfg.xml</value>
-		</property>
-	</bean>
+    <bean id="ncepSessionFactory" class="com.raytheon.uf.edex.database.DatabaseSessionFactoryBean">
+        <!-- no annotations to load, so no databaseSessionConfig -->
+        <property name="configLocation">
+            <value>file:///${edex.home}/conf/db/hibernateConfig/ncep/hibernate.cfg.xml</value>
+        </property>
+    </bean>
 
-	<bean id="ncepTxManager"
-		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
-		<property name="sessionFactory" ref="ncepSessionFactory" />
-	</bean>
+    <bean id="ncepTxManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="ncepSessionFactory" />
+    </bean>
   
+    <bean id="admin_ncepSessionFactory" class="com.raytheon.uf.edex.database.DatabaseSessionFactoryBean">
+        <!-- no annotations to load, so no databaseSessionConfig -->
+        <property name="configLocation">
+            <value>file:///${edex.home}/conf/db/hibernateConfig/ncep/hibernate.admin.cfg.xml</value>
+        </property>
+    </bean>
+
+    <bean id="admin_ncepTxManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="admin_ncepSessionFactory" />
+    </bean>
  </beans>

@@ -6,6 +6,7 @@
 GDFILE=ecens
 pluginName=grid
 ensembleMember=%
+inventoryParam=P
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

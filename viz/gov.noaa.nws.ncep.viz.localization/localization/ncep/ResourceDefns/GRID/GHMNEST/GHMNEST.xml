@@ -6,6 +6,7 @@
 GDFILE=GHMNEST
 pluginName=grid
 eventName=%
+inventoryParam=PMSL
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

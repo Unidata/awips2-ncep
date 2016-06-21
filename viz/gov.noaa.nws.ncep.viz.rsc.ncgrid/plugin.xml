@@ -404,7 +404,16 @@
              paramType="REQUEST_CONSTRAINT"
              constraintName="info.ensembleId">
        </nc-resourceParameter>
-       
+
+      <nc-resourceParameter
+             ncResourceName="ModelFcstGridContours"
+             paramClass="String"
+             defaultValue="%"
+             paramName="inventoryParam"
+             paramType="REQUEST_CONSTRAINT"
+             constraintName="info.parameter.abbreviation">
+       </nc-resourceParameter>
+
        <nc-resourceParameter
              ncResourceName="EnsembleFcstGridContours"
              paramClass="String"

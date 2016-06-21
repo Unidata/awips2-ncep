@@ -16,6 +16,6 @@
 ensembleMember=%
 pluginName=grid
 GDFILE=cmce
-
+inventoryParam=P
 </resourceParameters>
 </ResourceDefinition>

@@ -3,7 +3,6 @@
           <loadProperties loadWithoutData="true"  overlayMatchTolerance="1">
             <capabilities>
               <capability xsi:type="colorMapCapability">
-<!-- a temp colormap name since this will be set from the colorBar -->
                  <colorMapParameters colorMapName="colorMapName"/>
               </capability>
               <capability xsi:type="imagingCapability" 
@@ -16,7 +15,7 @@
                           isBlinking="false" isMapLayer="false" 
                           isHoverOn="false" isVisible="true">
             </properties>
-            <resourceData xsi:type="NcModisResourceData" 
+            <resourceData xsi:type="NcSatelliteResourceData"             
                           isUpdatingOnMetadataOnly="false" 
                           isRequeryNecessaryOnTimeMatch="true">
               <satelliteType>MODIS</satelliteType>
@@ -35,22 +34,6 @@
               <metadataMap>
                  <mapping key="pluginName">
                      <constraint constraintValue="${pluginName}" 
-                                constraintType="EQUALS"/>
-                 </mapping>
-                 <mapping key="imageType">
-                    <constraint constraintValue="${imageType}" 
-                                constraintType="EQUALS"/>
-                 </mapping>
-                 <mapping key="areaName">
-                    <constraint constraintValue="${areaName}" 
-                                constraintType="EQUALS"/>
-                 </mapping>
-                 <mapping key="satelliteName">
-                    <constraint constraintValue="${satelliteName}" 
-                                constraintType="EQUALS"/>
-                 </mapping>
-                 <mapping key="resolution">
-                    <constraint constraintValue="${resolution}" 
                                 constraintType="EQUALS"/>
                  </mapping>
                </metadataMap>

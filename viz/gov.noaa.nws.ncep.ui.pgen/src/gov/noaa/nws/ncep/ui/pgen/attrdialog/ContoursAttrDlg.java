@@ -75,6 +75,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
@@ -82,6 +83,7 @@ import org.eclipse.ui.contexts.IContextService;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -140,6 +142,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 09/29/2015   R8163       J. Wu       Prevent exception when contour type changes.
  * 11/18/2015   R12829      J. Wu       Link "Contours Parameter" to the one defined on layer.
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
+ * 05/17/2016   5641        njensen     Don't activate context outside of NCP
  * 
  * </pre>
  * 
@@ -4161,9 +4164,15 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
      * Activate pgenContoursContext for contours hotkeys.
      */
     private void activatePGENContoursContext() {
-        if (pgenContoursContextActivation == null) {
-            IContextService ctxSvc = (IContextService) PlatformUI
-                    .getWorkbench().getService(IContextService.class);
+        /*
+         * Don't activate context outside of NCP, key bindings will conflict
+         * with D2D
+         */
+        IEditorPart editor = EditorUtil.getActiveEditor();
+        if (pgenContoursContextActivation == null
+                && PgenUtil.isNatlCntrsEditor(editor)) {
+            IContextService ctxSvc = (IContextService) PlatformUI.getWorkbench()
+                    .getService(IContextService.class);
             pgenContoursContextActivation = ctxSvc
                     .activateContext("gov.noaa.nws.ncep.ui.pgen.pgenContoursContext");
         }

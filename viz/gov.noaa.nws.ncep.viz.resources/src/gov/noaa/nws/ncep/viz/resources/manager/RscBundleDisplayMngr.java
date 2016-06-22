@@ -51,10 +51,10 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 12/1/08		#24			Greg Hull		Initial creation
- * 12/15/08     #43     	Greg Hull    	Call NmapCommon methods
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 12/1/08      #24         Greg Hull       Initial creation
+ * 12/15/08     #43         Greg Hull       Call NmapCommon methods
  * 06/22/09     #115        Greg Hull       Sort overlays. Integrate with new RBTemplate
  * 07/16/09     #139        Greg Hull       Template creates the rsc name now.
  * 08/10/09                 Greg Hull       get attrSet filename from NmapCommon method
@@ -83,10 +83,13 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 11/25/2013   #1078      Greg Hull       check for FitToScreen and SizeOfImage in setPaneData()
  * 11/25/2013   #1079      Greg Hull       checkAndUpdateAreaFromResource
  * 05/15/2014   #1131      Quan Zhou       added rbdType GRAPH_DISPLAY
- * 08/14/2014 	?          B. Yin		   Handle GroupResource for power legend.
+ * 08/14/2014   ?          B. Yin          Handle GroupResource for power legend.
  * 11/12/2015   #8829      B. Yin          Make sure the list is in rendering order.
  * 05/26/2016   R19195     S. Gurung       Resolve warning message "Unable to load non-NC 
  * 										   non-System Resource" when loading a Graph Resource Data
+ * 06/22/2015   R8878      J. Lopez        Area list contains PredefinedAreas from selected resources. 
+ *                                         getAvailAreaMenuItems() Uses a AreaMenuTree to store AreaMenuItem
+ *                                         Rather than List<List<AreaMenuItem>
  * </pre>
  * 
  * @author ghull
@@ -95,7 +98,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 public class RscBundleDisplayMngr {
 
     private static final String PGENRESOURCEDATA = "PgenResourceData";
-    
+
     private static final String NCGRAPHRESOURCEDATA = "NcGraphResourceData";
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -616,8 +619,8 @@ public class RscBundleDisplayMngr {
             } else if (!rp.getProperties().isSystemResource()
                     && !(rp.getResourceData().getClass().getName()
                             .endsWith(PGENRESOURCEDATA))
-                            && !(rp.getResourceData().getClass().getName()
-                                    .endsWith(NCGRAPHRESOURCEDATA))) {
+                    && !(rp.getResourceData().getClass().getName()
+                            .endsWith(NCGRAPHRESOURCEDATA))) {
                 statusHandler.handle(Priority.PROBLEM,
                         "Unable to load non-NC non-System Resource:"
                                 + rp.getResourceData().toString());
@@ -818,69 +821,67 @@ public class RscBundleDisplayMngr {
         return areaChanged;
     }
 
-    public List<List<AreaMenuItem>> getAvailAreaMenuItems() {
-        List<List<AreaMenuItem>> areaMenuItems = new ArrayList<List<AreaMenuItem>>();
-        AreaMenuItem ami, seldami, dfltami;
-        List<AreaMenuItem> amiList;
+    /**
+     * Gets all Available Menu items
+     * 
+     * @return areaMenu in a AreaMenuTree object
+     */
+    public AreaMenuTree getAvailAreaMenuItems() {
+        AreaMenuTree areaMenu = new AreaMenuTree();
+
+        AreaMenuItem menuItem, selectedMenuItem, defaultMenuItem;
         AreaName areaName;
 
-        // ?? create area factories for NTRANS and SOLAR (just one 'default'
+        // create area factories for NTRANS and SOLAR (just one 'default'
         // area for now...)
         if (rbdType == NcDisplayType.NTRANS_DISPLAY
                 || rbdType == NcDisplayType.SOLAR_DISPLAY
                 || rbdType == NcDisplayType.GRAPH_DISPLAY) {
-            areaMenuItems.add(new ArrayList<AreaMenuItem>());
-            areaMenuItems.get(0).add(
-                    new AreaMenuItem(new AreaName(AreaSource.PREDEFINED_AREA,
-                            rbdType.getDefaultMap())));
-            return areaMenuItems;
+            areaMenu.addAreaMenuItem(new AreaMenuItem(new AreaName(
+                    AreaSource.PREDEFINED_AREA, rbdType.getDefaultMap())));
+
+            return areaMenu;
         }
 
         // first is the selected area (not in a submenu)
-        amiList = new ArrayList<AreaMenuItem>();
         areaName = new AreaName(getSelectedArea().getSource(),
                 getSelectedArea().getAreaName());
 
         if (areaName.getSource() == AreaSource.INITIAL_DISPLAY_AREA) {
-            seldami = new AreaMenuItem("Custom", "", areaName.getName(),
-                    areaName.getSource().toString());
+            selectedMenuItem = new AreaMenuItem("Custom", "",
+                    areaName.getName(), areaName.getSource().toString());
         } else {
-            seldami = new AreaMenuItem(areaName);
+            selectedMenuItem = new AreaMenuItem(areaName);
         }
 
-        amiList.add(seldami);
-        areaMenuItems.add(amiList);
+        areaMenu.addAreaMenuItem(selectedMenuItem);
 
-        amiList = new ArrayList<AreaMenuItem>();
-
-        // if the initial area is custom and not seleced then add it since it
+        // if the initial area is custom and not selected then add it since it
         // won't be saved
-
         PredefinedArea initArea = selectedPaneData.getInitialArea();
         if (initArea != null && initArea != getSelectedArea()
                 && initArea.getSource() == AreaSource.INITIAL_DISPLAY_AREA) {
 
-            seldami = new AreaMenuItem("Custom", "", initArea.getAreaName(),
-                    initArea.getSource().toString());
-            amiList.add(seldami);
-            areaMenuItems.add(amiList);
+            selectedMenuItem = new AreaMenuItem("Custom", "",
+                    initArea.getAreaName(), initArea.getSource().toString());
+
+            areaMenu.addAreaMenuItem(selectedMenuItem);
         }
 
         // the default next if its not selected.
         if (getSelectedArea().getAreaName().equals(rbdType.getDefaultMap())) {
-            dfltami = seldami;
+            defaultMenuItem = selectedMenuItem;
         } else {
-            amiList = new ArrayList<AreaMenuItem>();
+            // areaMenuItems = new ArrayList<AreaMenuItem>();
             areaName = new AreaName(AreaSource.PREDEFINED_AREA,
                     rbdType.getDefaultMap());
-            dfltami = new AreaMenuItem(areaName);
-            amiList.add(dfltami);
-            areaMenuItems.add(amiList);
+            defaultMenuItem = new AreaMenuItem(areaName);
+
+            areaMenu.addAreaMenuItem(defaultMenuItem);
         }
 
         // next areas from the current display (if multipane then put in a
         // submenu)
-        amiList = new ArrayList<AreaMenuItem>();
         AbstractEditor ed = NcDisplayMngr.getActiveNatlCntrsEditor();
 
         if (ed != null && NcEditorUtil.getNcDisplayType(ed) == rbdType) {
@@ -889,63 +890,50 @@ public class RscBundleDisplayMngr {
 
             for (IDisplayPane pane : panes) {
                 if (pane.getRenderableDisplay() instanceof IAreaProviderCapable) {
-                    IAreaProviderCapable aPrv = (IAreaProviderCapable) pane
+                    IAreaProviderCapable areaProvider = (IAreaProviderCapable) pane
                             .getRenderableDisplay();
 
-                    ami = new AreaMenuItem(aPrv.getAreaName(),
+                    menuItem = new AreaMenuItem(areaProvider.getAreaName(),
                             (panes.length > 1 ? "Display" : ""),
-                            aPrv.getAreaName(), aPrv.getSourceProvider()
-                                    .toString());
+                            areaProvider.getAreaName(), areaProvider
+                                    .getSourceProvider().toString());
 
-                    amiList.add(ami);
+                    areaMenu.addAreaMenuItem(menuItem);
+
                 }
             }
         }
 
-        if (!amiList.isEmpty()) {
-            areaMenuItems.add(amiList);
-        }
-
         // next are any area provided by a selected resource.
-        amiList = getResourceProvidedAreas();
-
-        if (!amiList.isEmpty()) {
-            areaMenuItems.add(amiList);
-        }
+        areaMenu.addSubMenu(getAreasFromResources());
 
         // finally add the areas from the areaMenus file.
         Map<String, List<AreaMenuItem>> areaMenusMap = AreaMenusMngr
                 .getInstance().getPredefinedAreasForMenus();
 
-        for (List<AreaMenuItem> alst : areaMenusMap.values()) {
-            if (alst == null || alst.isEmpty()
-                    || alst.get(0).getSubMenuName().isEmpty()) {
-                continue;
-            }
-            areaMenuItems.add(alst);
-        }
+        // add the areas that uses a submenu
+        areaMenu.addSubMenu(areaMenusMap);
 
-        amiList = new ArrayList<AreaMenuItem>();
-
+        // add the area that don't use a submenu
         if (areaMenusMap.containsKey("")) {
-            for (AreaMenuItem i : areaMenusMap.get("")) {
-                if (!seldami.equals(i) && !dfltami.equals(i)) {
-                    amiList.add(i);
+            for (AreaMenuItem areaMenuItem : areaMenusMap.get("")) {
+                if (!selectedMenuItem.equals(areaMenuItem)
+                        && !defaultMenuItem.equals(areaMenuItem)) {
+                    areaMenu.addAreaMenuItem(areaMenuItem);
                 }
             }
         }
 
-        if (!amiList.isEmpty()) {
-            areaMenuItems.add(amiList);
-        }
-
-        return areaMenuItems;
+        return areaMenu;
     }
 
-    // get a list of all available areas resource-defined areas Called by
-    // getAvailAreaMenuItems and used to determine if an area is still avail
-    // after a resource has been removed or replaced.
-
+    /**
+     * get a list of all available areas resource-defined areas Called by
+     * getAvailAreaMenuItems and used to determine if an area is still available
+     * after a resource has been removed or replaced.
+     * 
+     * @return List of all ResourceProvidedAreas
+     */
     public List<AreaMenuItem> getResourceProvidedAreas() {
         List<AreaMenuItem> amiList = new ArrayList<AreaMenuItem>();
 
@@ -969,6 +957,42 @@ public class RscBundleDisplayMngr {
             }
         }
         return amiList;
+    }
+
+    /**
+     * Looks at all selected resources, either multi-pane, group, or neither, to
+     * create an areaMenuItem from the predefined area and stores them in a
+     * AreaMenuTree
+     * 
+     * @return AreaMenuTree
+     */
+    public AreaMenuTree getAreasFromResources() {
+        AreaMenuTree subMenu = new AreaMenuTree("Areas from Resources");
+
+        // If mutli-pane is selected
+        if (isMultiPane()) {
+            for (int paneIndx = 0; paneIndx < currRbdPaneLayout
+                    .getNumberOfPanes(); paneIndx++) {
+
+                INcPaneID paneid = currRbdPaneLayout.createPaneId(paneIndx);
+
+                subMenu.addSubMenu(getRscsForPane(paneid),
+                        "Pane " + paneid.toString());
+
+            }
+            return subMenu;
+        }
+
+        // There there are group resources
+        if (getGroupResources().length > 0) {
+            subMenu.addSubMenu(getUngroupedResources(), "Static Group");
+            subMenu.addSubMenu(getGroupResources(), "Group Resources");
+            return subMenu;
+        }
+
+        // If there's only Static Group
+        subMenu.addAreaMenuItems(getUngroupedResources(), "Static Group");
+        return subMenu;
     }
 
     public boolean addSelectedResource(ResourceSelection rsel, boolean ordering) {

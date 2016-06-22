@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -67,7 +69,11 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 04/13        TTR399      J. Wu       Make the dialog compact
  * 12/14        R5413       B. Yin      Refresh editor after dialog close
  * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * <<<<<<< HEAD
  * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
+ * =======
+ * 06/16/2016   R18370      B. Yin      Set focus back to map editor when multi-selecting
+ * >>>>>>> eec9049... VLab Issue #17380 - Pgen multi-select panning; fixes #17380
  * 
  * </pre>
  * 
@@ -105,6 +111,11 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     protected static AbstractDrawableComponent de = null;
 
     protected Point shellLocation;
+
+    /*
+     * Flag for PGEN multi-selecting
+     */
+    private boolean multiSelectFlag = false;
 
     /**
      * AttrDlg constructor
@@ -394,7 +405,29 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
                 if (!(shell == null || shell.isDisposed())) { // make sure the
                                                               // dialog is not
                                                               // closed
+                    shell.addFocusListener(new FocusListener() {
+
+                        @Override
+                        public void focusGained(FocusEvent e) {
+                            if (multiSelectFlag) {
+                                mapEditor.setFocus();
+                                multiSelectFlag = false;
+                            }
+
+                        }
+
+                        @Override
+                        public void focusLost(FocusEvent e) {
+                        }
+
+                    });
+
+                    AttrDlg.super.setBlockOnOpen(false);
                     AttrDlg.super.open();
+
+                    if (multiSelectFlag) {
+                        shell.forceFocus();
+                    }
                 }
             }
         });
@@ -581,4 +614,7 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
         return gl;
     }
 
+    public void setMultiSelectMode(boolean flag) {
+        this.multiSelectFlag = flag;
+    }
 }

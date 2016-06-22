@@ -1,4 +1,4 @@
-colorMapName=DVL
+colorMapName=Radar/Digital VIL
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=DVL

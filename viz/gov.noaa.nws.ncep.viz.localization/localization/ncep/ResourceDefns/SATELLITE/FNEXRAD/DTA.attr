@@ -1,7 +1,7 @@
-colorMapName=Radar/Enhanced Echo Tops
+colorMapName=Radar/UPC One Hour Precip
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
-imageType=EET
+imageType=DTA
 displayUnitStr=IRPixel
 alpha=1.0
 brightness=1.0

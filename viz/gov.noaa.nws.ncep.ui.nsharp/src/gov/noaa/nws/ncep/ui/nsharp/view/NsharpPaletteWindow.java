@@ -435,13 +435,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void init(IViewSite site) {
         try {
-
             super.init(site);
-
         } catch (PartInitException pie) {
-
             pie.printStackTrace();
-
         }
 
         page = site.getPage();
@@ -463,7 +459,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             compareSndIsOn = rsc.isCompareSndIsOn();
             compareTmIsOn = rsc.isCompareTmIsOn();
         }
-
     }
 
     /**
@@ -493,7 +488,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                             rsc.unload();
                             display.getDescriptor().getResourceList()
                                     .removePreRemoveListener(rsc);
-
                         }
                     }
                 }

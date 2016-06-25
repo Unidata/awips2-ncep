@@ -530,5 +530,257 @@
  	  </colorbarLabeling>
   </imageStyle>
 </styleRule>
-
+<!-- Unidata FNEXRAD Rules -->
+<styleRule>
+	<paramLevelMatches>
+		<parameter>N0R</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>dBZ</displayUnits>
+		<defaultColormap>Radar/OSF/16 Level Reflectivity</defaultColormap>
+		<dataMapping>
+			<entry displayValue='0' pixelValue='30' label="" />
+			<entry displayValue='5' />
+			<entry displayValue='10' />
+			<entry displayValue='15' />
+			<entry displayValue='20' />
+			<entry displayValue='25' />
+			<entry displayValue='30' />
+			<entry displayValue='35' />
+			<entry displayValue='40' />
+			<entry displayValue='45' />
+			<entry displayValue='50' />
+			<entry displayValue='55' />
+			<entry displayValue='60' />
+			<entry displayValue='65' />
+			<entry displayValue='70' />
+			<entry displayValue='80' pixelValue='110' label="" />
+		</dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>DHR</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>dBZ</displayUnits>
+		<defaultColormap>Radar/DHR</defaultColormap>
+		<dataMapping>
+			<entry displayValue='-32.5' pixelValue='16' label="" />
+			<entry displayValue='-20.0' pixelValue='33' />
+			<entry displayValue='-10.0' />
+			<entry displayValue='  0.0' label="0" />
+			<entry displayValue=' 10.0' label="10" />
+			<entry displayValue=' 20.0' label="20" />
+			<entry displayValue=' 30.0' label="30" />
+			<entry displayValue=' 40.0' label="40" />
+			<entry displayValue=' 50.0' label="50" />
+			<entry displayValue=' 60.0' label="60" />
+			<entry displayValue=' 70.0' label="70" />
+			<entry displayValue=' 75.0' pixelValue='240' label="" />
+			<entry displayValue=' 94.5' pixelValue='255' label="" />
+		</dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>N0Q</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>dBZ</displayUnits>
+		<defaultColormap>Radar/DHR</defaultColormap>
+		<dataMapping>
+			<entry displayValue='-32.5' pixelValue='16' label="" />
+			<entry displayValue='-20.0' pixelValue='33' />
+			<entry displayValue='-10.0' />
+			<entry displayValue='  0.0' label="0" />
+			<entry displayValue=' 10.0' label="10" />
+			<entry displayValue=' 20.0' label="20" />
+			<entry displayValue=' 30.0' label="30" />
+			<entry displayValue=' 40.0' label="40" />
+			<entry displayValue=' 50.0' label="50" />
+			<entry displayValue=' 60.0' label="60" />
+			<entry displayValue=' 70.0' label="70" />
+			<entry displayValue=' 75.0' pixelValue='240' label="" />
+			<entry displayValue=' 94.5' pixelValue='255' label="" />
+		</dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>DVL</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>kg/m^2</displayUnits>
+		<samplePrefs>
+		    <!-- Number of decimal places to format the sample string to -->
+			<formatString>4</formatString>
+		</samplePrefs>
+		<defaultColormap>Radar/OSF/Digital VIL</defaultColormap>
+		<dataMapping>
+			<entry displayValue='0' pixelValue='0' label="" />
+			<entry displayValue='.1' pixelValue='10' label=".1" />
+			<entry displayValue='.5' pixelValue='55' label=".5" />
+			<entry displayValue='1' pixelValue='80' label="1" />
+			<entry displayValue='2' pixelValue='105' label="2" />
+			<entry displayValue='5' pixelValue='143' label="5" />
+			<entry displayValue='10' pixelValue='170' label="10" />
+			<entry displayValue='20' pixelValue='200' label="20" />
+			<entry displayValue='40' pixelValue='227' label="40" />
+			<entry displayValue='60' pixelValue='245' label="60" />
+			<entry displayValue='80' pixelValue='254' label="" />
+		</dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>N1P</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>in</displayUnits>
+		<samplePrefs>
+		    <!-- Number of decimal places to format the sample string to -->
+			<formatString>4</formatString>
+		</samplePrefs>
+		<defaultColormap>Radar/8-bit STP</defaultColormap>
+        <dataMapping>
+                <entry displayValue='0' pixelValue='0' label="0"/>
+                <entry displayValue='.1' pixelValue='20' label=""/>
+                <entry displayValue='.25' pixelValue='50' label=".25"/>
+                <entry displayValue='.5' pixelValue='100' label=""/>
+                <entry displayValue='1' pixelValue='111' label="1"/>
+                <entry displayValue='1.5' pixelValue='122' label=""/>
+                <entry displayValue='2' pixelValue='133' label="2"/>
+                <entry displayValue='2.5' pixelValue='144' label=""/>
+                <entry displayValue='3' pixelValue='155' label="3"/>
+                <entry displayValue='3.5' pixelValue='166' label=""/>
+                <entry displayValue='4' pixelValue='177' label="4"/>
+                <entry displayValue='4.5' pixelValue='188' label=""/>
+                <entry displayValue='5' pixelValue='200'  label="5"/>
+                <entry displayValue='10' pixelValue='239'  label="10"/>
+                <entry displayValue='12' pixelValue='255'  label=""/>
+        </dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>DAA</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>in</displayUnits>
+		<samplePrefs>
+		    <!-- Number of decimal places to format the sample string to -->
+			<formatString>4</formatString>
+		</samplePrefs>
+		<defaultColormap>Radar/8-bit STP</defaultColormap>
+        <dataMapping>
+                <entry displayValue='0' pixelValue='0' label="0"/>
+                <entry displayValue='.1' pixelValue='20' label=""/>
+                <entry displayValue='.25' pixelValue='50' label=".25"/>
+                <entry displayValue='.5' pixelValue='100' label=""/>
+                <entry displayValue='1' pixelValue='111' label="1"/>
+                <entry displayValue='1.5' pixelValue='122' label=""/>
+                <entry displayValue='2' pixelValue='133' label="2"/>
+                <entry displayValue='2.5' pixelValue='144' label=""/>
+                <entry displayValue='3' pixelValue='155' label="3"/>
+                <entry displayValue='3.5' pixelValue='166' label=""/>
+                <entry displayValue='4' pixelValue='177' label="4"/>
+                <entry displayValue='4.5' pixelValue='188' label=""/>
+                <entry displayValue='5' pixelValue='200'  label="5"/>
+                <entry displayValue='10' pixelValue='239'  label="10"/>
+                <entry displayValue='12' pixelValue='255'  label=""/>
+        </dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>NTP</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>in</displayUnits>
+		<samplePrefs>
+		    <!-- Number of decimal places to format the sample string to -->
+			<formatString>4</formatString>
+		</samplePrefs>
+		<defaultColormap>Radar/8-bit STP</defaultColormap>
+        <dataMapping>
+                <entry displayValue='0' pixelValue='0' label='0'/>
+                <entry displayValue='1' pixelValue='33' label='1'/>
+                <entry displayValue='2' pixelValue='67' label='2'/>
+                <entry displayValue='3' pixelValue='100' label='3'/>
+                <entry displayValue='5' pixelValue='129' label='5'/>
+	            <entry displayValue='8' pixelValue='171' label='8'/>
+                <entry displayValue='10' pixelValue='200'  label='10'/>
+                <entry displayValue='20' pixelValue='239'  label='20'/>
+                <entry displayValue='24' pixelValue='255' label='24' />
+        </dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>DTA</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>in</displayUnits>
+		<samplePrefs>
+		    <!-- Number of decimal places to format the sample string to -->
+			<formatString>4</formatString>
+		</samplePrefs>
+		<defaultColormap>Radar/8-bit STP</defaultColormap>
+        <dataMapping>
+                <entry displayValue='0' pixelValue='0' label='0'/>
+                <entry displayValue='1' pixelValue='33' label='1'/>
+                <entry displayValue='2' pixelValue='67' label='2'/>
+                <entry displayValue='3' pixelValue='100' label='3'/>
+                <entry displayValue='5' pixelValue='129' label='5'/>
+	            <entry displayValue='8' pixelValue='171' label='8'/>
+                <entry displayValue='10' pixelValue='200'  label='10'/>
+                <entry displayValue='20' pixelValue='239'  label='20'/>
+                <entry displayValue='24' pixelValue='255' label='24' />
+        </dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+	<paramLevelMatches>
+		<parameter>EET</parameter>
+	</paramLevelMatches>
+	<imageStyle>
+		<displayUnits>kft</displayUnits>
+		<dataMapping>
+			<entry displayValue='0' pixelValue='0' label="" />
+			<entry displayValue='20' pixelValue='20' label="20" />
+			<entry displayValue='50' pixelValue='50' label="50" />
+			<entry displayValue='71' pixelValue='71' label="70" />
+			<entry displayValue='130' pixelValue='130' label="0" />
+			<entry displayValue='150' pixelValue='150' label="20" />
+			<entry displayValue='170' pixelValue='170' label="50" />
+			<entry displayValue='199' pixelValue='199' label="70" />
+			<entry displayValue='255' pixelValue='255' label="Topped" />
+		</dataMapping>
+	</imageStyle>
+</styleRule>
+<styleRule>
+    <paramLevelMatches>
+            <parameter>HHC</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+            <displayUnits>*1</displayUnits>
+            <defaultColormap>Radar/HHC NEXRCOMP</defaultColormap>
+            <dataMapping>
+                    <entry displayValue='0' pixelValue='0' label='' />
+                    <entry displayValue='10' pixelValue='10' label='BI' sample='Biological' />
+                    <entry displayValue='20' pixelValue='20' label='GC' sample='Clutter' />
+                    <entry displayValue='30' pixelValue='30' label='IC' sample='Ice Crystals' />
+                    <entry displayValue='40' pixelValue='40' label='DS' sample='Dry Snow' />
+                    <entry displayValue='50' pixelValue='50' label='WS' sample='Wet Snow' />
+                    <entry displayValue='60' pixelValue='60' label='RA' sample='Rain' />
+                    <entry displayValue='70' pixelValue='70' label='HR' sample='Heavy Rain' />
+                    <entry displayValue='80' pixelValue='80' label='BD' sample='Big Drops' />
+                    <entry displayValue='90' pixelValue='90' label='GR' sample='Graupel' />
+                    <entry displayValue='95' pixelValue='100' label='HA' sample='Hail-Rain' />
+                    <entry displayValue='140' pixelValue='140' label='UK' sample='Unknown' />
+                    <entry displayValue='150' pixelValue='150' label='RF' />
+            </dataMapping>
+    </imageStyle>
+</styleRule>
 </styleRuleset>

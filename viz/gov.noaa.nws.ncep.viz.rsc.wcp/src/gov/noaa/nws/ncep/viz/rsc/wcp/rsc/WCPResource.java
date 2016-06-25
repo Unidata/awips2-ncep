@@ -64,7 +64,8 @@ public class WCPResource extends AbstractNatlCntrsResource<WCPResourceData, NCMa
 //    private RGB color; // Resource legend color
     private IFont font;
     
-    private class WcpRscDataObj implements IRscDataObject {
+    @SuppressWarnings("deprecation")
+	private class WcpRscDataObj implements IRscDataObject {
     	String	 watchType;
     	DataTime issueTime;
     	DataTime eventTime;

@@ -513,6 +513,7 @@ public class NcSatelliteResource extends
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
                     MatchCriteria styleMatchCriteria = sr.getMatchCriteria();
+                    Integer matchValue = styleMatchCriteria.matches(matchCriteria);
                     if (styleMatchCriteria.matches(matchCriteria) > 0) {
                         styleRule = sr;
                         break;
@@ -857,15 +858,15 @@ public class NcSatelliteResource extends
 
             ColorMapParameters params = getCapability(ColorMapCapability.class)
                     .getColorMapParameters();
-            if (params.getColorMap() == null) {
-                String colorMapName = params.getColorMapName();
+                String colorMapName = resourceData.getColorMapName();
                 if (colorMapName == null) {
                     colorMapName = "Sat/VIS/ZA (Vis Default)";
                 }
+                
+                // the D2D name is sent here, which was unaccounted for in ColorMapUtil
                 params.setColorMap(ColorMapUtil.loadColorMap(
                         ResourceCategory.SatelliteRscCategory.getCategoryName(),
                         colorMapName));
-            }
 
             satr.paint(target, paintProps);
         }

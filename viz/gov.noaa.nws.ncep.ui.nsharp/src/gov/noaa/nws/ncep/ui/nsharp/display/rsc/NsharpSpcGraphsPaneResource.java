@@ -175,7 +175,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * spcFrameWidth;
         ypos = ystart + 0.3 * charHeight;
         titleStr.setCoordinates(xpos, ypos);
@@ -203,7 +203,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         supercellTitleStr.font = font11;
         supercellTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        supercellTitleStr.verticallAlignment = VerticalAlignment.TOP;
+        supercellTitleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.15 * spcFrameWidth;
         ypos = ypos + 0.5 * charHeight;
         supercellTitleStr.setCoordinates(xpos, ypos);
@@ -213,7 +213,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         hailTitleStr.font = font11;
         hailTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        hailTitleStr.verticallAlignment = VerticalAlignment.TOP;
+        hailTitleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.65 * spcFrameWidth;
         hailTitleStr.setCoordinates(xpos, ypos);
         strList.add(hailTitleStr);
@@ -253,7 +253,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                         strColor);
                 supercellMatchStr.font = font10;
                 supercellMatchStr.horizontalAlignment = HorizontalAlignment.LEFT;
-                supercellMatchStr.verticallAlignment = VerticalAlignment.TOP;
+                supercellMatchStr.verticalAlignment = VerticalAlignment.TOP;
                 xpos = xstart;
                 supercellMatchStr.setCoordinates(xpos, ypos);
                 strList.add(supercellMatchStr);
@@ -279,7 +279,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                         strColor);
                 hailMatchStr.font = font10;
                 hailMatchStr.horizontalAlignment = HorizontalAlignment.LEFT;
-                hailMatchStr.verticallAlignment = VerticalAlignment.TOP;
+                hailMatchStr.verticalAlignment = VerticalAlignment.TOP;
                 xpos = xstart + 0.51 * spcFrameWidth;
                 hailMatchStr.setCoordinates(xpos, ypos);
                 strList.add(hailMatchStr);
@@ -317,7 +317,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_yellow);
         titleStr.font = font10;
         titleStr.horizontalAlignment = HorizontalAlignment.CENTER;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * spcFrameWidth;
         ypos = ystart + 0.3 * charHeight;
         titleStr.setCoordinates(xpos, ypos);
@@ -340,7 +340,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     strColor);
             hailDrawStr.font = font10;
             hailDrawStr.horizontalAlignment = HorizontalAlignment.LEFT;
-            hailDrawStr.verticallAlignment = VerticalAlignment.TOP;
+            hailDrawStr.verticalAlignment = VerticalAlignment.TOP;
             xpos = xstart;
             if (i == 4) {
                 DrawableLine line1 = new DrawableLine(); // draw line
@@ -386,7 +386,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                         NsharpConstants.color_yellow);
                 sarsHailStr.font = font10;
                 sarsHailStr.horizontalAlignment = HorizontalAlignment.CENTER;
-                sarsHailStr.verticallAlignment = VerticalAlignment.TOP;
+                sarsHailStr.verticalAlignment = VerticalAlignment.TOP;
                 xpos = xstart + 0.5 * spcFrameWidth;
                 sarsHailStr.setCoordinates(xpos, ypos);
                 strList.add(sarsHailStr);
@@ -431,7 +431,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             sarsOutputStr.font = font10;
             sarsOutputStr.horizontalAlignment = HorizontalAlignment.CENTER;
-            sarsOutputStr.verticallAlignment = VerticalAlignment.TOP;
+            sarsOutputStr.verticalAlignment = VerticalAlignment.TOP;
             xpos = xstart + 0.5 * spcFrameWidth;
             ypos = ypos + 2 * charHeight;
             sarsOutputStr.setCoordinates(xpos, ypos);
@@ -448,7 +448,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     DrawableString hailSizeStr = new DrawableString(
                             hailSize[row][column], hailSizeColor[row][column]);
                     hailSizeStr.horizontalAlignment = HorizontalAlignment.LEFT;
-                    hailSizeStr.verticallAlignment = VerticalAlignment.TOP;
+                    hailSizeStr.verticalAlignment = VerticalAlignment.TOP;
                     xpos = xstart + column * tokenLen;
                     hailSizeStr.setCoordinates(xpos, ypos);
                     if (row == 0 && hailSize[row][column].equals(reportHailStr)) {
@@ -504,7 +504,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.25 * spcFrameWidth;
         ypos = ystart;
         titleStr.setCoordinates(xpos, ypos);
@@ -513,7 +513,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_lawngreen);
         moistureTStr.font = font12;
         moistureTStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        moistureTStr.verticallAlignment = VerticalAlignment.TOP;
+        moistureTStr.verticalAlignment = VerticalAlignment.TOP;
         double xleft = xstart + 0.1 * spcFrameWidth;
         ypos = ypos + 2 * charHeight;
         moistureTStr.setCoordinates(xleft, ypos);
@@ -522,7 +522,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_dodgerblue);
         llWindTStr.font = font12;
         llWindTStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        llWindTStr.verticallAlignment = VerticalAlignment.TOP;
+        llWindTStr.verticalAlignment = VerticalAlignment.TOP;
         double xright = xstart + 0.5 * spcFrameWidth;
         llWindTStr.setCoordinates(xright, ypos);
         strList.add(llWindTStr);
@@ -537,7 +537,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString sfcRhStr = new DrawableString(sfcRh.trim(), sfcRhColor);
         sfcRhStr.font = font12;
         sfcRhStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        sfcRhStr.verticallAlignment = VerticalAlignment.TOP;
+        sfcRhStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + charHeight;
         sfcRhStr.setCoordinates(xleft, ypos);
         strList.add(sfcRhStr);
@@ -545,14 +545,14 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         sfcStr.font = font10;
         sfcStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        sfcStr.verticallAlignment = VerticalAlignment.TOP;
+        sfcStr.verticalAlignment = VerticalAlignment.TOP;
         sfcStr.setCoordinates(xright, ypos);
         strList.add(sfcStr);
         DrawableString zeroOneRhStr = new DrawableString(zeroOneKmRh.trim(),
                 NsharpConstants.color_white);
         zeroOneRhStr.font = font10;
         zeroOneRhStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        zeroOneRhStr.verticallAlignment = VerticalAlignment.TOP;
+        zeroOneRhStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + 2 * charHeight;
         zeroOneRhStr.setCoordinates(xleft, ypos);
         strList.add(zeroOneRhStr);
@@ -560,14 +560,14 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 zeroOneKmMean.trim(), NsharpConstants.color_white);
         zeroOneKmMeanStr.font = font10;
         zeroOneKmMeanStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        zeroOneKmMeanStr.verticallAlignment = VerticalAlignment.TOP;
+        zeroOneKmMeanStr.verticalAlignment = VerticalAlignment.TOP;
         zeroOneKmMeanStr.setCoordinates(xright, ypos);
         strList.add(zeroOneKmMeanStr);
         DrawableString blMeanRhStr = new DrawableString(blMeanRh.trim(),
                 NsharpConstants.color_white);
         blMeanRhStr.font = font10;
         blMeanRhStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        blMeanRhStr.verticallAlignment = VerticalAlignment.TOP;
+        blMeanRhStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + 2 * charHeight;
         blMeanRhStr.setCoordinates(xleft, ypos);
         strList.add(blMeanRhStr);
@@ -575,7 +575,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         blMeanStr.font = font10;
         blMeanStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        blMeanStr.verticallAlignment = VerticalAlignment.TOP;
+        blMeanStr.verticalAlignment = VerticalAlignment.TOP;
         blMeanStr.setCoordinates(xright, ypos);
         strList.add(blMeanStr);
         DrawableString pwStr = new DrawableString(pw.trim(), pwColor);
@@ -584,21 +584,21 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         else
             pwStr.font = font10;
         pwStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        pwStr.verticallAlignment = VerticalAlignment.TOP;
+        pwStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + 2 * charHeight;
         pwStr.setCoordinates(xleft, ypos);
         strList.add(pwStr);
         DrawableString blMaxStr = new DrawableString(blMax.trim(), blMaxColor);
         blMaxStr.font = font12;
         blMaxStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        blMaxStr.verticallAlignment = VerticalAlignment.TOP;
+        blMaxStr.verticalAlignment = VerticalAlignment.TOP;
         blMaxStr.setCoordinates(xright, ypos);
         strList.add(blMaxStr);
         DrawableString derivedTStr = new DrawableString("Derived Indices",
                 NsharpConstants.color_orange);
         derivedTStr.font = font12;
         derivedTStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        derivedTStr.verticallAlignment = VerticalAlignment.TOP;
+        derivedTStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + 3 * charHeight;
         derivedTStr.setCoordinates(xstart + 0.3 * spcFrameWidth, ypos);
         strList.add(derivedTStr);
@@ -614,7 +614,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 fosbergColor);
         fosbergStr.font = font12;
         fosbergStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        fosbergStr.verticallAlignment = VerticalAlignment.TOP;
+        fosbergStr.verticalAlignment = VerticalAlignment.TOP;
         ypos = ypos + charHeight;
         fosbergStr.setCoordinates(xstart + 0.27 * spcFrameWidth, ypos);
         strList.add(fosbergStr);
@@ -656,7 +656,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_yellow);
         titleStr.font = font11;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.1 * spcFrameWidth;
         ypos = ystart;
         titleStr.setCoordinates(xpos, ypos);
@@ -670,7 +670,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString oprhStr = new DrawableString(oprh.trim(), oprhColor);
         oprhStr.font = font10;
         oprhStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        oprhStr.verticallAlignment = VerticalAlignment.TOP;
+        oprhStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * spcFrameWidth;
         ypos = ypos + 1.5 * charHeight;
         ;
@@ -681,7 +681,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         layerDepthStr.font = font10;
         layerDepthStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        layerDepthStr.verticallAlignment = VerticalAlignment.TOP;
+        layerDepthStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
 
@@ -692,7 +692,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         meanLayerRhStr.font = font10;
         meanLayerRhStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        meanLayerRhStr.verticallAlignment = VerticalAlignment.TOP;
+        meanLayerRhStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
         ;
@@ -712,7 +712,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 meanLayerMixRat.trim(), NsharpConstants.color_white);
         meanLayerMixRatStr.font = font10;
         meanLayerMixRatStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        meanLayerMixRatStr.verticallAlignment = VerticalAlignment.TOP;
+        meanLayerMixRatStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         meanLayerMixRatStr.setCoordinates(xpos, ypos);
         strList.add(meanLayerMixRatStr);
@@ -721,7 +721,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         meanLayerPwStr.font = font10;
         meanLayerPwStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        meanLayerPwStr.verticallAlignment = VerticalAlignment.TOP;
+        meanLayerPwStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
 
@@ -732,7 +732,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 meanLayerOmega.trim(), NsharpConstants.color_white);
         meanLayerOmegaStr.font = font10;
         meanLayerOmegaStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        meanLayerOmegaStr.verticallAlignment = VerticalAlignment.TOP;
+        meanLayerOmegaStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         meanLayerOmegaStr.setCoordinates(xpos, ypos);
         strList.add(meanLayerOmegaStr);
@@ -751,7 +751,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         initPhaseStr.font = font10;
         initPhaseStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        initPhaseStr.verticallAlignment = VerticalAlignment.TOP;
+        initPhaseStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 0.5 * charHeight;
         initPhaseStr.setCoordinates(xpos, ypos);
@@ -781,7 +781,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 "TEMPERATURE PROFILE", NsharpConstants.color_white);
         tempProfileTitleStr.font = font10;
         tempProfileTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        tempProfileTitleStr.verticallAlignment = VerticalAlignment.TOP;
+        tempProfileTitleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 0.5 * charHeight;
         tempProfileTitleStr.setCoordinates(xpos, ypos);
@@ -791,7 +791,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         wetbulbTitleStr.font = font10;
         wetbulbTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        wetbulbTitleStr.verticallAlignment = VerticalAlignment.TOP;
+        wetbulbTitleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         wetbulbTitleStr.setCoordinates(xpos, ypos);
         strList.add(wetbulbTitleStr);
@@ -800,7 +800,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         temp1Str.font = font10;
         temp1Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        temp1Str.verticallAlignment = VerticalAlignment.TOP;
+        temp1Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
         temp1Str.setCoordinates(xpos, ypos);
@@ -810,7 +810,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         wetbulb1Str.font = font10;
         wetbulb1Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        wetbulb1Str.verticallAlignment = VerticalAlignment.TOP;
+        wetbulb1Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         wetbulb1Str.setCoordinates(xpos, ypos);
         strList.add(wetbulb1Str);
@@ -819,7 +819,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         temp2Str.font = font10;
         temp2Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        temp2Str.verticallAlignment = VerticalAlignment.TOP;
+        temp2Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
         temp2Str.setCoordinates(xpos, ypos);
@@ -829,7 +829,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         wetbulb2Str.font = font10;
         wetbulb2Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        wetbulb2Str.verticallAlignment = VerticalAlignment.TOP;
+        wetbulb2Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         wetbulb2Str.setCoordinates(xpos, ypos);
         strList.add(wetbulb2Str);
@@ -838,7 +838,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         temp3Str.font = font10;
         temp3Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        temp3Str.verticallAlignment = VerticalAlignment.TOP;
+        temp3Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.3 * charWidth;
         ypos = ypos + 1.5 * charHeight;
         temp3Str.setCoordinates(xpos, ypos);
@@ -848,7 +848,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         wetbulb3Str.font = font10;
         wetbulb3Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        wetbulb3Str.verticallAlignment = VerticalAlignment.TOP;
+        wetbulb3Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.5 * charWidth + 0.5 * spcFrameWidth;
         wetbulb3Str.setCoordinates(xpos, ypos);
         strList.add(wetbulb3Str);
@@ -867,7 +867,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         bestGuessTitleStr.font = font10;
         bestGuessTitleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        bestGuessTitleStr.verticallAlignment = VerticalAlignment.TOP;
+        bestGuessTitleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.25 * spcFrameWidth;
         ypos = ypos + 2 * charHeight;
         bestGuessTitleStr.setCoordinates(xpos, ypos);
@@ -877,7 +877,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         bestGuess1Str.font = font12;
         bestGuess1Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        bestGuess1Str.verticallAlignment = VerticalAlignment.TOP;
+        bestGuess1Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.45 * spcFrameWidth;
         ypos = ypos + 1.5 * charHeight;
         bestGuess1Str.setCoordinates(xpos, ypos);
@@ -887,7 +887,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         bestGuess2Str.font = font10;
         bestGuess2Str.horizontalAlignment = HorizontalAlignment.LEFT;
-        bestGuess2Str.verticallAlignment = VerticalAlignment.TOP;
+        bestGuess2Str.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.25 * spcFrameWidth;
         ypos = ypos + 1.5 * charHeight;
         bestGuess2Str.setCoordinates(xpos, ypos);
@@ -913,7 +913,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.1 * spcFrameWidth;
         ypos = ystart;
         titleStr.setCoordinates(xpos, ypos);
@@ -931,7 +931,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.LEFT;
-            lb.verticallAlignment = VerticalAlignment.MIDDLE;
+            lb.verticalAlignment = VerticalAlignment.MIDDLE;
             xpos = xstart;
             lb.setCoordinates(xpos, ypos);
             strList.add(lb);
@@ -967,7 +967,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.CENTER;
-            lb.verticallAlignment = VerticalAlignment.TOP;
+            lb.verticalAlignment = VerticalAlignment.TOP;
             xpos = xstart + (xend - xstart) / 3.0 * (i + 1);
             lb.setCoordinates(xpos, ship0Ypos + 0.5 * charWidth);
             strList.add(lb);
@@ -1042,7 +1042,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 "Effective-Layer STP (with CIN)", NsharpConstants.color_white);
         titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.1 * spcFrameWidth;
         ypos = ystart;
         titleStr.setCoordinates(xpos, ypos);
@@ -1060,7 +1060,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.LEFT;
-            lb.verticallAlignment = VerticalAlignment.MIDDLE;
+            lb.verticalAlignment = VerticalAlignment.MIDDLE;
             xpos = xstart;
             lb.setCoordinates(xpos, ypos);
             strList.add(lb);
@@ -1129,7 +1129,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.CENTER;
-            lb.verticallAlignment = VerticalAlignment.TOP;
+            lb.verticalAlignment = VerticalAlignment.TOP;
             xpos = xstart + (xend - xstart) / 7.0 * (i + 1);
             lb.setCoordinates(xpos, stp0Ypos + 0.5 * charWidth);
             strList.add(lb);
@@ -1226,7 +1226,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lb.font = font10;
         lb.horizontalAlignment = HorizontalAlignment.LEFT;
-        lb.verticallAlignment = VerticalAlignment.TOP;
+        lb.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = stp11Ypos;
         lb.setCoordinates(xpos, ypos);
@@ -1235,7 +1235,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lb1.font = font10;
         lb1.horizontalAlignment = HorizontalAlignment.LEFT;
-        lb1.verticallAlignment = VerticalAlignment.TOP;
+        lb1.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = ypos + charHeight;
         lb1.setCoordinates(xpos, ypos);
@@ -1309,7 +1309,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbCAPE.font = font10;
         lbCAPE.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbCAPE.verticallAlignment = VerticalAlignment.TOP;
+        lbCAPE.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         lbCAPE.setCoordinates(xpos, ypos);
         tboxValueStart = tboxStart + (xend - tboxStart) * 0.7;// -
@@ -1319,7 +1319,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString valueCAPE = new DrawableString(psigt_mlcape, mlcapeColor);
         valueCAPE.font = font10;
         valueCAPE.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueCAPE.verticallAlignment = VerticalAlignment.TOP;
+        valueCAPE.verticalAlignment = VerticalAlignment.TOP;
         valueCAPE.setCoordinates(tboxValueStart, ypos);
         strList.add(valueCAPE);
 
@@ -1360,7 +1360,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbLCL.font = font10;
         lbLCL.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbLCL.verticallAlignment = VerticalAlignment.TOP;
+        lbLCL.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = ypos + charHeight;
         lbLCL.setCoordinates(xpos, ypos);
@@ -1368,7 +1368,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString valueLCL = new DrawableString(psigt_mllcl, mllclColor);
         valueLCL.font = font10;
         valueLCL.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueLCL.verticallAlignment = VerticalAlignment.TOP;
+        valueLCL.verticalAlignment = VerticalAlignment.TOP;
         valueLCL.setCoordinates(tboxValueStart, ypos);
         strList.add(valueLCL);
         oldlplchoice = rscHandler.getCurrentParcel();
@@ -1449,7 +1449,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbesrh.font = font10;
         lbesrh.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbesrh.verticallAlignment = VerticalAlignment.TOP;
+        lbesrh.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = ypos + charHeight;
         lbesrh.setCoordinates(xpos, ypos);
@@ -1457,7 +1457,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString valueEsrh = new DrawableString(psigt_esrh, esrhColor);
         valueEsrh.font = font10;
         valueEsrh.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueEsrh.verticallAlignment = VerticalAlignment.TOP;
+        valueEsrh.verticalAlignment = VerticalAlignment.TOP;
         valueEsrh.setCoordinates(tboxValueStart, ypos);
         strList.add(valueEsrh);
 
@@ -1550,7 +1550,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbEshear.font = font10;
         lbEshear.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbEshear.verticallAlignment = VerticalAlignment.TOP;
+        lbEshear.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = ypos + charHeight;
         lbEshear.setCoordinates(xpos, ypos);
@@ -1559,7 +1559,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 eshearColor);
         valueEshear.font = font10;
         valueEshear.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueEshear.verticallAlignment = VerticalAlignment.TOP;
+        valueEshear.verticalAlignment = VerticalAlignment.TOP;
         valueEshear.setCoordinates(tboxValueStart, ypos);
         strList.add(valueEshear);
 
@@ -1633,7 +1633,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbStpc.font = font10;
         lbStpc.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbStpc.verticallAlignment = VerticalAlignment.TOP;
+        lbStpc.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         // ypos = ypos + charHeight;
         lbStpc.setCoordinates(xpos, ypos);
@@ -1641,7 +1641,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString valueStpc = new DrawableString(psigt_stpcin, stpcColor);
         valueStpc.font = font10;
         valueStpc.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueStpc.verticallAlignment = VerticalAlignment.TOP;
+        valueStpc.verticalAlignment = VerticalAlignment.TOP;
         valueStpc.setCoordinates(tboxValueStart, ypos);
         strList.add(valueStpc);
 
@@ -1698,7 +1698,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         lbStp.font = font10;
         lbStp.horizontalAlignment = HorizontalAlignment.LEFT;
-        lbStp.verticallAlignment = VerticalAlignment.TOP;
+        lbStp.verticalAlignment = VerticalAlignment.TOP;
         xpos = tboxStart + 0.5 * charWidth;
         ypos = ypos + charHeight;
         lbStp.setCoordinates(xpos, ypos);
@@ -1706,7 +1706,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         DrawableString valueStp = new DrawableString(psigt_stp, stpColor);
         valueStp.font = font10;
         valueStp.horizontalAlignment = HorizontalAlignment.LEFT;
-        valueStp.verticallAlignment = VerticalAlignment.TOP;
+        valueStp.verticalAlignment = VerticalAlignment.TOP;
         valueStp.setCoordinates(tboxValueStart, ypos);
         strList.add(valueStp);
         target.drawStrings(strList.toArray(new DrawableString[strList.size()]));
@@ -1728,7 +1728,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white);
         titleStr.font = font12;
         titleStr.horizontalAlignment = HorizontalAlignment.LEFT;
-        titleStr.verticallAlignment = VerticalAlignment.TOP;
+        titleStr.verticalAlignment = VerticalAlignment.TOP;
         xpos = xstart + 0.1 * spcFrameWidth;
         ypos = ystart;
         titleStr.setCoordinates(xpos, ypos);
@@ -1740,14 +1740,14 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
         ypos = ypos + 1.5 * charHeight;
         subTStr1.font = font10;
         subTStr1.horizontalAlignment = HorizontalAlignment.LEFT;
-        subTStr1.verticallAlignment = VerticalAlignment.TOP;
+        subTStr1.verticalAlignment = VerticalAlignment.TOP;
         subTStr1.setCoordinates(xpos, ypos);
         strList.add(subTStr1);
         DrawableString subTStr2 = new DrawableString("non-supercell",
                 NsharpConstants.color_darkorange);
         subTStr2.font = font10;
         subTStr2.horizontalAlignment = HorizontalAlignment.LEFT;
-        subTStr2.verticallAlignment = VerticalAlignment.TOP;
+        subTStr2.verticalAlignment = VerticalAlignment.TOP;
         xpos = xpos + (target.getStringsBounds(subTStr1).getWidth()) * hRatio;
         subTStr2.setCoordinates(xpos, ypos);
         strList.add(subTStr2);
@@ -1764,7 +1764,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.LEFT;
-            lb.verticallAlignment = VerticalAlignment.MIDDLE;
+            lb.verticalAlignment = VerticalAlignment.MIDDLE;
             xpos = xstart;
             lb.setCoordinates(xpos, ypos);
             strList.add(lb);
@@ -1805,7 +1805,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_white);
             lb.font = font10;
             lb.horizontalAlignment = HorizontalAlignment.CENTER;
-            lb.verticallAlignment = VerticalAlignment.BOTTOM;
+            lb.verticalAlignment = VerticalAlignment.BOTTOM;
             lb.setCoordinates(xpos, ypos);
             strList.add(lb);
             int cellIndex = i / 10 - 1;
@@ -1856,7 +1856,7 @@ public class NsharpSpcGraphsPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.color_yellow);
             lb.font = font12;
             lb.horizontalAlignment = HorizontalAlignment.LEFT;
-            lb.verticallAlignment = VerticalAlignment.TOP;
+            lb.verticalAlignment = VerticalAlignment.TOP;
             lb.setCoordinates(xpos, cellYPosStart - 7 * knotDist);
             strList.add(lb);
         } else {

@@ -7,7 +7,7 @@
     <isDefaultRbd>true</isDefaultRbd>
     <timeMatcher skipValue="0" numFrames="10"/>
     <displayList>
-  <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.25" mapCenter="-96.5 38.5 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <displays xsi:type="NC-MapRenderableDisplay" zoomLevel="0.37" mapCenter="-85.0914 23.163 0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <descriptor xsi:type="NCMapDescriptor">
 	            <resource>
                    <properties renderingOrderId="NCP_LOCATOR" isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
@@ -49,169 +49,160 @@
                     
                     <resourceData xsi:type="NC-OverlayResourceGroupData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false" >
 
-	                    <color>RGB {255, 228, 220}</color>
+	                    <!-- <color>RGB {255, 228, 220}</color> -->
 
                         <resource>
                             <loadProperties loadWithoutData="false">
+                                <capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="1"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#9b9b9b"/>
+                                </capabilities>
                                 <resourceType>PLAN_VIEW</resourceType>
                             </loadProperties>
-                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
                                 <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
                             </properties>
-                            <resourceData xsi:type="NC-dbOverlayResourceData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false">
+                            <resourceData xsi:type="dbMapResourceData">
                                 <mapName>World</mapName>
                                 <table>mapdata.world</table>
                                 <geomField>the_geom</geomField>
-                                <labelField>name</labelField>
-                                
-                                <color>RGB {255, 228, 220}</color>
-                                <lineWidth>1</lineWidth>
-                                <lineStyle>SOLID</lineStyle>
                             </resourceData>
                         </resource>
-
-<!--   PGEN bounds file persistence
-
-For PGEN bounds files to persist across tabs uncomment below code. Valid xml files
-can be found in the Localization Perspective under NCEP-> StaticPgenOverlays.
-Site/Desk/User overrides can be placed/found under 
-/awips2/edex/data/utility/cave_static/<site,desk,user>/<site id,desk name,username>/StaticPgenOverlays
---> 
-        <!-- <resource>
-            <resourceData xsi:type="PgenOverlayResourceData">  
- 		        <pgenStaticProductName>asccarrfa.xml</pgenStaticProductName>  
-		        <pgenStaticProductLocation>ncep/StaticPgenOverlays</pgenStaticProductLocation>
-            </resourceData>
-        </resource> -->
-                           <resource>
+						<resource>
                             <loadProperties loadWithoutData="false">
+                            	<capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="2"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#ffffff"/>
+                                </capabilities>
                                 <resourceType>PLAN_VIEW</resourceType>
                             </loadProperties>
-                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
-                                <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
+                                <pdProps maxDisplayWidth="750000" minDisplayWidth="0"/>
                             </properties>
-                            <resourceData xsi:type="NC-dbOverlayResourceData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false">
-                                <mapName>State Boundaries</mapName>
-                                <table>mapdata.states</table>
+                            <resourceData xsi:type="dbMapResourceData">
+                                <mapName>Canada Zoom</mapName>
+                                <table>mapdata.canada</table>
                                 <geomField>the_geom</geomField>
-                                <color>RGB {255, 228, 220}</color>
-                                <lineWidth>1</lineWidth>
-                                <lineStyle>SOLID</lineStyle>
                             </resourceData>
                         </resource>
-                        <resource>
+						<resource>
                             <loadProperties loadWithoutData="false">
+                                <capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="1"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#9b9b9b"/>
+                                </capabilities>
                                 <resourceType>PLAN_VIEW</resourceType>
                             </loadProperties>
-                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
-                                <pdProps maxDisplayWidth="100000000" minDisplayWidth="0"/>
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
+                                <pdProps maxDisplayWidth="7500000" minDisplayWidth="750000"/>
                             </properties>
-                            <resourceData xsi:type="NC-dbOverlayResourceData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false">
+                            <resourceData xsi:type="dbMapResourceData">
                                 <mapName>Canada</mapName>
                                 <table>mapdata.canada</table>
                                 <geomField>the_geom</geomField>
-                                
-<!--   don't need this since displayLabelField is not set
-		          <labelField>name</labelField>
-  -->
-                                <color>RGB {255, 228, 220}</color>
-                                <lineWidth>1</lineWidth>
-                                <lineStyle>SOLID</lineStyle>
                             </resourceData>
                         </resource>
                         <resource>
                             <loadProperties loadWithoutData="false">
+                                <capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="1"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#9b9b9b"/>
+                                </capabilities>
                                 <resourceType>PLAN_VIEW</resourceType>
                             </loadProperties>
-<!-- Mexico is 'disabled'. To have mexico display set the maxDisplayWidth="100000000" -->
-                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
-                                <pdProps maxDisplayWidth="1" minDisplayWidth="0"/>
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
+                                <pdProps maxDisplayWidth="750000" minDisplayWidth="0"/>
                             </properties>
-                            <resourceData xsi:type="NC-dbOverlayResourceData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false">
-                                <mapName>Mexico</mapName>
-                                <table>mapdata.mexico</table>
-                                <geomField>the_geom</geomField>
-
-                                <labelField>name</labelField> 
-                                <color>RGB {255, 228, 220}</color>
-                                <lineWidth>1</lineWidth>
-                                <lineStyle>SOLID</lineStyle>
-                            </resourceData>
-                        </resource>
-                        <resource>
-                            <loadProperties loadWithoutData="false">
-                                <resourceType>PLAN_VIEW</resourceType>
-                            </loadProperties>
-                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" isVisible="true">
-                                <pdProps maxDisplayWidth="1" minDisplayWidth="0"/>
-                            </properties>
-<!-- Counties are 'disabled'. 
-     To display set the maxDisplayWidth="100000000" -->
-                            <resourceData xsi:type="NC-dbOverlayResourceData" resourceName="OVERLAY/GeoPolitical/default" isEdited="false" >
+                            <resourceData xsi:type="dbMapResourceData">
                                 <mapName>County Boundaries</mapName>
                                 <table>mapdata.county</table>
-                                <geomField>the_geom</geomField>
-                                <displayLabelField>false</displayLabelField>                                
-                                <labelField>countyname</labelField>
-                                <color>RGB {255, 228, 220}</color>
-                                <lineWidth>1</lineWidth>
-                                <lineStyle>SOLID</lineStyle>
                             </resourceData>
                         </resource>
-                        <mapName>Geo-Political</mapName>
-                        <color>RGB {255, 228, 220}</color>
-                        <lineWidth>1</lineWidth>
-                        <lineStyle>SOLID</lineStyle>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+                            	<capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="2"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#ffffff"/>
+                                </capabilities>
+                                <resourceType>PLAN_VIEW</resourceType>
+                            </loadProperties>
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
+                                <pdProps maxDisplayWidth="750000" minDisplayWidth="0"/>
+                            </properties>
+                            <resourceData xsi:type="dbMapResourceData">
+                                <mapName>State Boundaries Zoom</mapName>
+                                <table>mapdata.states</table>
+                                <geomField>the_geom</geomField>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+                                <capabilities>
+                                    <capability xsi:type="outlineCapability" lineStyle="SOLID" outlineOn="true" outlineWidth="1"/>
+                                    <capability xsi:type="colorableCapability" colorAsString="#9b9b9b"/>
+                                </capabilities>
+                                <resourceType>PLAN_VIEW</resourceType>
+                            </loadProperties>
+                            <properties isSystemResource="false" isBlinking="false" isMapLayer="true" isHoverOn="false" opacity="1.0" isVisible="true">
+                                <pdProps maxDisplayWidth="7500000" minDisplayWidth="750000"/>
+                            </properties>
+                            <resourceData xsi:type="dbMapResourceData">
+                                <mapName>State Boundaries</mapName>
+                                <table>mapdata.states</table>
+                                <geomField>the_geom</geomField>
+                            </resourceData>
+                        </resource>
+                        <mapName>State/County Boundaries</mapName>
                     </resourceData>
                 </resource>
                 <timeMatcher xsi:type="ncTimeMatcher" numFrames="10" skipValue="0"/>
-                <numberOfFrames>10</numberOfFrames>
-                <gridGeometry envelopeMaxY="1.3E7" envelopeMinY="-1.3E7" envelopeMaxX="1.3E7" envelopeMinX="-1.3E7" rangeY="0 10000" rangeX="0 10000">
-                    <CRS>PROJCS["Polar_Stereographic", 
-  GEOGCS["WGS84", 
-    DATUM["WGS84", 
-      SPHEROID["WGS84", 6378137.0, 298.257223563]], 
-    PRIMEM["Greenwich", 0.0], 
-    UNIT["degree", 0.017453292519943295], 
-    AXIS["Geodetic longitude", EAST], 
-    AXIS["Geodetic latitude", NORTH]], 
-  PROJECTION["Polar_Stereographic"], 
-  PARAMETER["semi_major", 6371200.0], 
-  PARAMETER["semi_minor", 6371200.0], 
-  PARAMETER["central_meridian", -103.0], 
-  PARAMETER["latitude_of_origin", 90.0], 
-  PARAMETER["scale_factor", 1.0], 
-  PARAMETER["false_easting", 0.0], 
-  PARAMETER["false_northing", 0.0], 
-  UNIT["m", 1.0], 
-  AXIS["Easting", EAST], 
-  AXIS["Northing", NORTH]]</CRS>
-                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+				<gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+        			<CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+    </gridGeometry>
             </descriptor>
-	 		<initialArea areaName="BasicWX_US" mapCenter="-96.5 38.5 0.0">
+	 		<initialArea areaName="BasicWX_US" mapCenter="-85.0914 23.163 0.0" >
 	 		    <zoomLevel>0.25</zoomLevel>
 	 			<areaSource>PREDEFINED_AREA</areaSource>
-                <gridGeometry envelopeMaxY="1.3E7" envelopeMinY="-1.3E7" envelopeMaxX="1.3E7" envelopeMinX="-1.3E7" rangeY="0 10000" rangeX="0 10000">
-                    <CRS>PROJCS["Polar_Stereographic", 
-  GEOGCS["WGS84", 
-    DATUM["WGS84", 
-      SPHEROID["WGS84", 6378137.0, 298.257223563]], 
-    PRIMEM["Greenwich", 0.0], 
-    UNIT["degree", 0.017453292519943295], 
-    AXIS["Geodetic longitude", EAST], 
-    AXIS["Geodetic latitude", NORTH]], 
-  PROJECTION["Polar_Stereographic"], 
-  PARAMETER["semi_major", 6371200.0], 
-  PARAMETER["semi_minor", 6371200.0], 
-  PARAMETER["central_meridian", -103.0], 
-  PARAMETER["latitude_of_origin", 90.0], 
-  PARAMETER["scale_factor", 1.0], 
-  PARAMETER["false_easting", 0.0], 
-  PARAMETER["false_northing", 0.0], 
-  UNIT["m", 1.0], 
-  AXIS["Easting", EAST], 
-  AXIS["Northing", NORTH]]</CRS>
-                </gridGeometry>
+				<gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+        			<CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+    </gridGeometry>
 			</initialArea>
 
         </displays>

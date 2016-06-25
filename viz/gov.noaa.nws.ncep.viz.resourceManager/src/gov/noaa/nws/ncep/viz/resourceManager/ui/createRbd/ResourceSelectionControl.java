@@ -184,12 +184,6 @@ public class ResourceSelectionControl extends Composite {
     // allow both later (and remove the Modify button from the Create RBD tab)
     protected Button addResourceBtn = null;
 
-    protected Button replaceResourceBtn = null;
-
-    protected Boolean replaceBtnVisible;
-
-    protected Boolean replaceBtnEnabled;
-
     protected Button addToAllPanesBtn = null;
 
     protected Label rscTypeLbl = null;
@@ -237,9 +231,6 @@ public class ResourceSelectionControl extends Composite {
         onlyShowResourcesWithData = false;
 
         rscDefnsMngr = ResourceDefnsMngr.getInstance();
-
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
 
         sel_rsc_comp = this;
 
@@ -298,79 +289,61 @@ public class ResourceSelectionControl extends Composite {
 
         rscCatLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        FormData fd = new FormData();
+        FormData fd = new FormData();// 100, RSC_LIST_VIEWER_HEIGHT);
         fd.height = RSC_LIST_VIEWER_HEIGHT;
-        fd.top = new FormAttachment(0, 75);
+    	fd.top = new FormAttachment( 0, 20 );
         fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(0, 110);
-
-        // This allows a resize to change the size of the lists.
-        fd.bottom = new FormAttachment(100, -125);
+        fd.right = new FormAttachment( 15, 0 );
+    	fd.bottom = new FormAttachment( 100, -75 );
         rscCatLViewer.getList().setLayoutData(fd);
 
         Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
         rscCatLbl.setText("Category");
         fd = new FormData();
         fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscCatLViewer.getList(), -3, SWT.TOP);
+        fd.bottom = new FormAttachment(rscCatLViewer.getList(), -2, SWT.TOP);
         rscCatLbl.setLayoutData(fd);
 
         // first create the lists and then attach the label to the top of them
         rscTypeLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();
+        fd = new FormData();// 150, RSC_LIST_VIEWER_HEIGHT);
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(37, 0);
-
+    	fd.right = new FormAttachment( 37, 0 );
+    	fd.width = 180;
         fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0, SWT.BOTTOM);
         rscTypeLViewer.getList().setLayoutData(fd);
-
+        
         rscTypeLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscTypeLbl.setText("Resource Type");
+    	rscTypeLbl.setText("Source");
         fd = new FormData();
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -3, SWT.TOP);
-
+        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -2, SWT.TOP);
         rscTypeLbl.setLayoutData(fd);
-
-        filterCombo = new Combo(sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fd = new FormData();
-        fd.width = 130;
-        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -30, SWT.TOP);
-        fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
-        filterCombo.setLayoutData(fd);
-
-        Label filt_lbl = new Label(sel_rsc_comp, SWT.NONE);
-        filt_lbl.setText("Type Filter:");
-        fd = new FormData();
-        fd.left = new FormAttachment(filterCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(filterCombo, -3, SWT.TOP);
-        filt_lbl.setLayoutData(fd);
 
         // first create the lists and then attach the label to the top of them
         rscGroupLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();
+        fd = new FormData();// 150, RSC_LIST_VIEWER_HEIGHT);
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(62, 0);
-
+    	fd.width = 180;
         fd.bottom = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.BOTTOM);
         rscGroupLViewer.getList().setLayoutData(fd);
 
         rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscTypeGroupLbl.setText("Resource Group");
+        rscTypeGroupLbl.setText("Group");
         fd = new FormData();
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -3, SWT.TOP);
+        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -2, SWT.TOP);
         rscTypeGroupLbl.setLayoutData(fd);
 
         rscAttrSetLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE
                 | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        fd = new FormData();
+        fd = new FormData();// 260, RSC_LIST_VIEWER_HEIGHT);
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 8, SWT.RIGHT);
@@ -379,7 +352,7 @@ public class ResourceSelectionControl extends Composite {
         rscAttrSetLViewer.getList().setLayoutData(fd);
 
         Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscAttrsLbl.setText("Resource Attributes");
+        rscAttrsLbl.setText("Attributes");
         fd = new FormData();
         fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
         fd.bottom = new FormAttachment(rscAttrSetLViewer.getList(), -3, SWT.TOP);
@@ -393,69 +366,61 @@ public class ResourceSelectionControl extends Composite {
         fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
 
-        seldRscNameTxt = new Text(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
-                | SWT.READ_ONLY);
+    	filterCombo = new Combo( sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY );
         fd = new FormData();
+    	fd.width = 130;
         fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.right = new FormAttachment(75, 0);
-        seldRscNameTxt.setLayoutData(fd);
+    	filterCombo.setLayoutData( fd );
 
-        Label seld_rsc_name_lbl = new Label(sel_rsc_comp, SWT.None);
-        seld_rsc_name_lbl.setText("Selected Resource Name");
-        fd = new FormData();
-        fd.left = new FormAttachment(seldRscNameTxt, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(seldRscNameTxt, -3, SWT.TOP);
-        seld_rsc_name_lbl.setLayoutData(fd);
+    	Label filt_lbl = new Label(sel_rsc_comp, SWT.NONE);
+    	filt_lbl.setText("Type Filter:");
+    	fd = new FormData();
+    	fd.left = new FormAttachment( filterCombo, 0, SWT.LEFT );
+    	fd.bottom = new FormAttachment( filterCombo, -3, SWT.TOP );
+    	filt_lbl.setLayoutData( fd );
+    	
+       	seldRscNameTxt = new Text( sel_rsc_comp, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
+    	fd = new FormData(400,20);
+    	fd.top = new FormAttachment( rscCatLViewer.getList(), 40, SWT.BOTTOM );
+    	fd.left = new FormAttachment( filterCombo, 10, SWT.RIGHT );
+        seldRscNameTxt.setLayoutData(fd);
+    	seldRscNameTxt.setEnabled( false );
 
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
-
         fd = new FormData();
-
-        if (replaceBtnVisible) {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.right = new FormAttachment(50, -20);
-        } else {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.left = new FormAttachment(50, 20);
-        }
+        fd.top  = new FormAttachment( seldRscNameTxt, 0, SWT.TOP );
+        fd.right = new FormAttachment( 100, -10 );
         addResourceBtn.setLayoutData(fd);
-        addResourceBtn.setText("  Add Resource "); // Add To RBD
-
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace Resource ");
-
-        // both for now unless we change it to be one or the other
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-
+    	addResourceBtn.setText( "   Add   " ); // Add To RBD
+    	
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
         fd = new FormData();
         fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
-        fd.top = new FormAttachment(replaceResourceBtn, 0, SWT.TOP);
+    	fd.top  = new FormAttachment( addResourceBtn, 0, SWT.TOP );
         addToAllPanesBtn.setLayoutData(fd);
         addToAllPanesBtn.setText("Add To All Panes");
-
         addToAllPanesBtn.setVisible(multiPane);
-
-        // allow the user to enter any previous datatime
-        cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
-        fd = new FormData();
-        fd.left = new FormAttachment(80, 0);
-        fd.right = new FormAttachment(100, -20);
-        fd.top = new FormAttachment(seldRscNameTxt, 0, SWT.TOP);
-
-        cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
         cycleTimeLbl.setText("Cycle Time");
         fd = new FormData();
-        fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
+    	fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 10, SWT.BOTTOM);
         cycleTimeLbl.setLayoutData(fd);
+        
+        // allow the user to enter any previous datatime
+        cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
+        fd = new FormData();
+        // fd.left = new FormAttachment( addResourceBtn, 30, SWT.RIGHT );
+    	//fd.left = new FormAttachment( 55, 0 );
+        //fd.right = new FormAttachment( can_btn, -10, SWT.LEFT  );
+        fd.width = 150;
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
+    	fd.left = new FormAttachment( cycleTimeLbl, 10, SWT.RIGHT );
+        // fd.bottom = new FormAttachment( 100, -10 );
+        cycleTimeCombo.setLayoutData(fd);
+
     }
 
     private void setContentProviders() {
@@ -981,12 +946,14 @@ public class ResourceSelectionControl extends Composite {
             }
         });
 
+        /*
         replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
                 selectResource(true, false);
             }
         });
+        */
 
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
@@ -1295,7 +1262,6 @@ public class ResourceSelectionControl extends Composite {
         if (enableSelections) {
 
             addResourceBtn.setEnabled(true);
-            replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
             if (this.isForecast()) {
                 cycleTimeLbl.setEnabled(true);
@@ -1321,7 +1287,6 @@ public class ResourceSelectionControl extends Composite {
             if (selectedRscName.isLatestCycleTime()) {
 
                 addResourceBtn.setEnabled(false);
-                replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
             } else {
                 seldRscNameTxt.setText(selectedRscName.toString());
@@ -1329,7 +1294,6 @@ public class ResourceSelectionControl extends Composite {
         } else {
             seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
-            replaceResourceBtn.setEnabled(false);
 
             availDataTimeLbl.setVisible(true);
             availDataTimeLbl.setText(availMsg);
@@ -1502,14 +1466,6 @@ public class ResourceSelectionControl extends Composite {
 
     public void setMultiPaneEnabled(Boolean multPaneEnable) {
         addToAllPanesBtn.setVisible(multPaneEnable);
-    }
-
-    public void setReplaceEnabled(Boolean rplEnbld) {
-        replaceBtnEnabled = rplEnbld;
-
-        if (!isDisposed()) {
-            updateSelectedResource();
-        }
     }
 
     public ResourceName getPrevSelectedResource() {

@@ -151,7 +151,7 @@ public class LocatorResourceData extends AbstractNatlCntrsResourceData {
 		if( getPos5Enabled() ) {
 			legendStr += ", "+getPos5LocatorSource();
 		}
-		legendStr += ")";
+		legendStr += " )";
 	}
 
     @Override

@@ -1207,6 +1207,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         } catch (Exception e) {
             throw new VizException(e);
         }
+                	/*
+                    */
 
         lastTypeQueryCacheExpireTime = System.currentTimeMillis()
                 + TYPE_QUERY_CACHE_TIME;

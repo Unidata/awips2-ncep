@@ -132,9 +132,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         rscDefnsMngr = ResourceDefnsMngr.getInstance();
 
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
-
         sel_rsc_comp = this;
 
         GridData gd = new GridData();
@@ -288,31 +285,16 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         fd = new FormData();
 
-        if (replaceBtnVisible) {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.right = new FormAttachment(50, -20);
-        } else {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.left = new FormAttachment(50, 20);
-        }
+        fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
+        fd.left = new FormAttachment(50, 20);
 
         addResourceBtn.setLayoutData(fd);
         addResourceBtn.setText("  Add Resource ");
 
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace Resource ");
-
-        // both for now unless we change it to be one or the other
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
         fd = new FormData();
         fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
-        fd.top = new FormAttachment(replaceResourceBtn, 0, SWT.TOP);
+        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
         addToAllPanesBtn.setLayoutData(fd);
         addToAllPanesBtn.setText("Add To All Panes");
 
@@ -809,16 +791,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         });
 
         /*
-         * TODO: do we want replace to pop down the dialog?
-         */
-        replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent ev) {
-                selectResource(true, false);
-            }
-        });
-
-        /*
          * a double click will add the resource and close the dialog
          */
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
@@ -1135,7 +1108,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         if (enableSelections) {
 
             addResourceBtn.setEnabled(true);
-            replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
             if (rscDefn.isForecast()) {
 
@@ -1158,7 +1130,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             if (selectedRscName.isLatestCycleTime()) {
 
                 addResourceBtn.setEnabled(false);
-                replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
             } else {
                 seldRscNameTxt.setText(selectedRscName.toString());
@@ -1166,7 +1137,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         } else {
             seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
-            replaceResourceBtn.setEnabled(false);
 
             availDataTimeLbl.setVisible(true);
             availDataTimeLbl.setText(availMsg);

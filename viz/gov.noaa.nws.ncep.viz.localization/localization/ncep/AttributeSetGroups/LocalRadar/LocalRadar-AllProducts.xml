@@ -4,6 +4,24 @@
     <attrSetGroupName>AllProducts</attrSetGroupName>
     
     <attrSetLabels>
+    	<attrSetLabel>
+              <name>DHR</name>
+         </attrSetLabel>
+		 <attrSetLabel>
+              <name>DVL</name>
+         </attrSetLabel>
+		 <attrSetLabel>
+              <name>DTA</name>
+         </attrSetLabel>
+		 <attrSetLabel>
+              <name>DSD</name>
+         </attrSetLabel>
+		 <attrSetLabel>
+              <name>DSP</name>
+         </attrSetLabel>
+		 <attrSetLabel>
+              <name>DAA</name>
+         </attrSetLabel>
          <attrSetLabel>
               <name>VIL_4.00</name>
          </attrSetLabel>

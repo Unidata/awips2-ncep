@@ -141,16 +141,10 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
 
     @Override
     protected String getTitle(String title) {
-
-        String desk = LocalizationManager.getContextName(LocalizationLevel
-                .valueOf("DESK"));
-
-        if ((desk == null) || desk.isEmpty() || desk.equalsIgnoreCase("none")) {
-            desk = "NONE";
-        }
-        return title + ": "
+        //if ((desk == null) || desk.isEmpty() || desk.equalsIgnoreCase("none")) {
+        	return title + ": "
                 + LocalizationManager.getContextName(LocalizationLevel.SITE)
-                + "/" + desk + " - " + getLabel();
+                + "/" + getLabel();
     }
 
     // Issue the newDisplay command the same as if called from the main menu
@@ -356,7 +350,7 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
                                 perspectiveWindow.getShell(), "Warning", null,
                                 msgBuf.toString(), MessageDialog.WARNING,
                                 new String[] { "OK" }, 0);
-                        warnDlg.open();
+                        //warnDlg.open();
                     }
                 });
             }

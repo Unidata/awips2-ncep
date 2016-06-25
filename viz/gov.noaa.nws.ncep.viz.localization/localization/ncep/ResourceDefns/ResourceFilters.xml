@@ -1,1722 +1,713 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinitionFilters xmlns:ns2="com.raytheon.uf.common.datadelivery.registry" xmlns:ns3="http://www.example.org/productType">
 
-<ResourceDefinitionFilter rscDefnName="GOES15-SXI-FM3">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES15-SXI-FM3">
 <filters>GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-A-EUVI">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-A-EUVI">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-A-HI1">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-A-HI1">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-A-HI2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-A-HI2">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-A-COR1">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-A-COR1">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-A-COR2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-A-COR2">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-B-EUVI">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-B-EUVI">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-B-HI1">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-B-HI1">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-B-HI2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-B-HI2">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-B-COR1">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-B-COR1">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="STEREO-B-COR2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="STEREO-B-COR2">
 <filters>STEREO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SDO-HMI-SIDE1">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SDO-HMI-SIDE1">
 <filters>SDO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SDO-AIA">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SDO-AIA">
 <filters>SDO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SDO-THEMATIC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SDO-THEMATIC">
 <filters>SDO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NSO-GONG">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NSO-GONG">
 <filters>NSO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SOHO-EIT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SOHO-EIT">
 <filters>SOHO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SOHO-LASCO-C2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SOHO-LASCO-C2">
 <filters>SOHO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SOHO-LASCO-C3">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SOHO-LASCO-C3">
 <filters>SOHO</filters>
 </ResourceDefinitionFilter>
-
-<ResourceDefinitionFilter rscDefnName="PAFM">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="PAFM">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SCD">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SCD">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SYNOP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SYNOP">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="METAR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="METAR">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVNMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AVNMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ETAMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ETAMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFG">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FFG">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IDFT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IDFT">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HPCMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSXMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFSXMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LAMPMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LAMPMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSMOS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFSMOS">
 <filters>Forecast,MOS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SHIP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SHIP">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SHIP6HR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SHIP6HR">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
 <!-- PGEN Display Resources -->
-<ResourceDefinitionFilter rscDefnName="CCFP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CCFP">
 <filters>CCFP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCFP-ByZ">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CCFP-ByZ">
 <filters>CCFP</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="International_Sigmet">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="International_Sigmet">
 <filters>Sigmet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="G_AIRMET">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="G_AIRMET">
 <filters>G_AIRMET</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="G_AIRMET-East">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="G_AIRMET-East">
 <filters>G_AIRMET</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="G_AIRMET-West">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="G_AIRMET-West">
 <filters>G_AIRMET</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="G_AIRMET-ByLabel">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="G_AIRMET-ByLabel">
 <filters>G_AIRMET</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="G_AIRMET-BySubType">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="G_AIRMET-BySubType">
 <filters>G_AIRMET</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Extended_Range">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Extended_Range">
 <filters>Extended_Range</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Surface_Analysis">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Surface_Analysis">
 <filters>Surface,Analysis</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Sample">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Sample">
 <filters>Sample</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NONCONV_SIGMET">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NONCONV_SIGMET">
 <filters>NonConvective,Sigmet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIGWX_High">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="SIGWX_High">
 <filters>SIGWX</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIGWX_High-North">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SIGWX_High-North">
 <filters>SIGWX</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIGWX_High-BySubType">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SIGWX_High-BySubType">
 <filters>SIGWX</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIGWX_Medium">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SIGWX_Medium">
 <filters>SIGWX</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIGWX_Low">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SIGWX_Low">
 <filters>SIGWX</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Hazard_Outlook">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Hazard_Outlook">
 <filters>Hazard,Outlook</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_QPF">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HPC_QPF">
 <filters>HPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_Basic_WX">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HPC_Basic_WX">
 <filters>HPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Convective_Outlook">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Convective_Outlook">
 <filters>Convective,Outlook</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Atlantic_Wind_Wave">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Atlantic_Wind_Wave">
 <filters>Atlantic,Wind,Wave</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Atlantic_500mb">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Atlantic_500mb">
 <filters>Atlantic,500mb</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Atlantic_Surface">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Atlantic_Surface">
 <filters>Atlantic,Surface</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Atlantic_HS_Wave">
-<filters>Atlantic,HighSeas,Wave</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Gulf_Stream">
-<filters>GulfStream</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Ice_Edge">
-<filters>IceEdge</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Pacific_HS_500mb">
-<filters>Pacific,HighSeas,500mb</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Pacific_HS_Surface">
-<filters>Pacific,HighSeas,Surface</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Pacific_HS_Wave">
-<filters>Pacific,HighSeas,Wave</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VOLCANO">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VOLCANO">
 <filters>VOLCANO</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CONV_SIGMET">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CONV_SIGMET">
 <filters>Convective,Sigmet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WCP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WCP">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="EXASCT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="EXASCT">
 <filters>SCAT</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SVRL">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SVRL">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFA">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FFA">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SGWH_AltiKa">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SGWH">
 <filters>Satellite</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SGWH_CryoSat-2">
-<filters>Satellite</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SGWH_Jason-1">
-<filters>Satellite</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SGWH_Jason-2">
-<filters>Satellite</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SGWH_Jason-3">
-<filters>Satellite</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OSCT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="OSCT">
 <filters>SCAT</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WOU">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WOU">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ATCF">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ATCF">
 <filters>Hurricane</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WSTM">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WSTM">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CSIG">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CSIG">
 <filters>SigMet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ASCT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ASCT">
 <filters>SCAT</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ENS_CYC_FCST">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ENS_CYC_FCST">
 <filters>Forecast,Hurricane</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ISIG">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ISIG">
 <filters>SigMet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LTNG2">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LTNG2">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AIRMET">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AIRMET">
 <filters>SigMet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LTNG">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LTNG">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NCON">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NCON">
 <filters>SigMet</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ENS_CYC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ENS_CYC">
 <filters>Hurricane</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HRCN">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HRCN">
 <filters>Hurricane</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WSAT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WSAT">
 <filters>SCAT</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WCN">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WCN">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WARN">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WARN">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WATCH">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WATCH">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CGM">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CMC_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE_AVGSPR_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="DGEX_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMC_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCVER_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RAP_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CPC_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DGEX_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECENS_AVGSPR_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECENS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_HR_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ENSVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FNMOCWAVE_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GDAS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEFS_AVGSPR_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEFS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSP_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSVERP_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GHM_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCQPF_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HWRF_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HYSPLIT_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICEACCR_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICEACCR">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="JMAP_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MEDRT_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM20_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM44_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAVGEM_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NOGAPS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NWW3_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NWW3P_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPC_ENS_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OTHER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAPP_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREFX_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SST_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SST_NT">
 <filters>Analysis,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_NT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="UKMET_NT">
 <filters>Forecast,NTRANS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMETVER_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VAFTAD_NT">
-<filters>Forecast,NTRANS</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMSND">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAMSND">
 <filters>Forecast,MODEL</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AIREP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AIREP">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AMDAR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AMDAR">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UAIR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="UAIR">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="PIREP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="PIREP">
 <filters>Observed</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="countyNames">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="countyNames">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FfgZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FfgZones">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FcstZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FcstZones">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FireWxAOR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FireWxAOR">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FireWxZones">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="88Ds">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="88Ds">
 <filters>Stations</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AkPsa">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AkPsa">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SPCOutlook">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SPCOutlook">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WrZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WrZones">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VORs">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VORs">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VorNames">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VorNames">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="rfcBoundaries">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="rfcBoundaries">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GreatLakes">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GreatLakes">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Tweb">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Tweb">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VolcanoNames">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VolcanoNames">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NPsa">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NPsa">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LatLon">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="LatLon">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFMPSmallStreamBasins">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AtlanticFullBasin">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFMPSmallStreams">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RiverDrainageBasins">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AtlanticFullBasin">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Counties">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Counties">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="iscAll">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Carrfa">
+<filters></filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="BWX1224">
+<filters></filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="EnhArea">
+<filters></filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Ccfcan">
+<filters></filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SfcStns">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SynopStations">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SynopStationIds">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="MetarStations">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IcaoStations">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RAOBs">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RaobNames">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Nexrad">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Buoys">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="BuoysFixed">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CMAN">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="States">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Carrfa">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FireBnds">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="BWX1224">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Interstates">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Airports">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Railroads">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Cities">
+<filters>ManMadeFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HCN">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="EnhArea">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="wrqpf">
+<filters>Stations</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Airways">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Ccfcan">
-<filters></filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Rivers">
+<filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SfcStns">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="MarineCounty">
+<filters>NaturalFeatures</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="cpcStations">
 <filters>Stations</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SynopStations">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SynopStationIds">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MetarStations">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IcaoStations">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAOBs">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RaobNames">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Nexrad">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Buoys">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="BuoysFixed">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMAN">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="States">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="TimeZones">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FireBnds">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="OPCOffshorePacZones">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Interstates">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FixesAndIntersections">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Highways">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Interstates and US Highways">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Airports">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="all Airports">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="acarsAirports">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Railroads">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Cities">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HCN">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="wrqpf">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Airways">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HighAltitudeRoutes">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LowAltitudeRoutes">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SpecialUseAirways">
-<filters>ManMadeFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="allRivers">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="majorRivers">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MarineCounty">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MarineZones">
-<filters>NaturalFeatures</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="cpcStations">
-<filters>Stations</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TimeZones">
-<filters>AdministrativeBoundaries</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCOffshorePacZones">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Locator">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Locator">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="PacificFullBasin">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="PacificFullBasin">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="countyCluster">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="countyCluster">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GfaConus">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GfaConus">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CONUS">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HighSeasZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HighSeasZones">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NHCOffshoreAtlZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NHCOffshoreAtlZones">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FAArea">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FAArea">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CPCUS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CPCUS">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FAAreaX">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FAAreaX">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Lakes">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Lakes">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="snapPoints">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="snapPoints">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Scale">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Scale">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="BWUS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="BWUS">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WFOs">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WFOs">
 <filters>Stations</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TropFirs">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="TropFirs">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UA">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="UA">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MWO">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="MWO">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TPC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="TPC">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IcaoUkMidlvl">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IcaoUkMidlvl">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IntlSigmetAreas">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IntlSigmetAreas">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SSA">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SSA">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FirBnds">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FirBnds">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GulfFa">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GulfFa">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IcaoUkAreas">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IcaoUkAreas">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ARTCC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ARTCC">
 <filters>AdministrativeBoundaries,PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCBNDS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="OPCBNDS">
 <filters>AdministrativeBoundaries,PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IcaoAreas">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IcaoAreas">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VAACAR">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VAACAR">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ElevNam1000">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ElevNam1000">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IcaoUsMidlvl">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IcaoUsMidlvl">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC050Med">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HPC050Med">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WST">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="WST">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCNomex">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="OPCNomex">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCSFC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HPCSFC">
 <filters>AdministrativeBoundaries,PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="World">
-<filters>PgenXmlOverlay</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WorldNmap">
-<filters>Misc</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="World">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="World">
 <filters>PGEN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="BWUSLabel">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="BWUSLabel">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCOffshoreAtlZones">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="OPCOffshoreAtlZones">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FARegion">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="FARegion">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Volcanos">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Volcanos">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VolcanosAll">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VolcanosAll">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DwmStns">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="DwmStns">
 <filters>Stations</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AirmetCstl">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="AirmetCstl">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="spcwatch">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="spcwatch">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SpcWatchName">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="SpcWatchName">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Hifiwo">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Hifiwo">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="PFZ">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="PFZ">
 <filters>NaturalFeatures</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Spotters">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CWAs">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CWAs">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GeoPolitical">
 <filters>AdministrativeBoundaries</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GeoPolitical">
-<filters>AdministrativeBoundaries</filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="CMC">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Mexico">
-<filters>AdministrativeBoundaries</filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="DGEX">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Canada">
-<filters>AdministrativeBoundaries</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="USAK">
-<filters></filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_E">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFT">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GEFS">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN80PAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NOHRSC_SNOW">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GHM">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HYSPLIT">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM40">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM5">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM40_SFC">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HRRR">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP32">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS40US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DGEX_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCWAVE12_ATL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ORN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWW">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_WPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RCM">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS20">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OFSGMEX">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="HRRR">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE15ENP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM4">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR15ENP">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM12">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTGSST">
-<filters>Analysis,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEFS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCQPF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GHMNEST">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM20">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NAM40">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NamDNG">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RAP13">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RAP40">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ESTOFS">
+<filters>Forecast,Ocean</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ECMWF">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GRLKWAVE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NWW3">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MOS">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_SJU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GDAS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="UKMET">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM12_CNTRL_US">
-<filters>Forecast,Regional,SBN</filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ETSS">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET">
-<filters>Forecast,Global</filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="RTMA">
+<filters>Forecast,Analysis</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10AK">
-<filters>Forecast</filters>
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="URMA25">
+<filters>Forecast,Analysis</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_BC">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFG">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_AUTO_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE12TH">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS95US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RSA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFG_TIR_HIRES">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF190PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_W">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SAF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_RHA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TPC_WIND_PROB">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCQPFNDFD">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_FWR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_STR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCWAVE12_SPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE12SH">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSGUIDE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM95AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWWP5">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MOS_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AUTOSPE">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_NA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TIR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_CPAC">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF0P25">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP40">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_HI">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM11">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_AK">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_AK_HR">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS0P5">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_NA">
-<filters>Forecast,Ensemble</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_ATL">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_PTR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_ATL_EQ">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CPCOUTLK80US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_PR">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_RSA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_AU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE15WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR15WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_HI">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE25SH">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM45AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF40">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE_ENS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE12NH">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_GU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_US">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_US">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_W">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN80US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_FWR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_GU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_ASIA">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFWAVE">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE25NH">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFSALL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FNMOCWAVE">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ESTOFS_PR">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ESTOFS_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_SJU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA2P5">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSLAMPTSTORM">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN190AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM80">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10EP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10EP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE30MGLOBAL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF160HI">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_EU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMNEST_HI">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NOGAPS">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAVGEM">
-<filters>Forecast,Global,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_SJU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTGSSTHR">
-<filters>Analysis,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_NH">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_GU">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOESGFS">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FIREWX">
-<filters>Forecast,Regional,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_ASIA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_E">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCGUIDE_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OFSWATL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_RHA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE2AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM20">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_STR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICEP5">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_HI">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCWAVE12_NPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM22AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM11AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EPAC_EQ">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_WPAC_EQ">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_PAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF190AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWW233">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32">
-<filters>Forecast,Regional,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32E">
-<filters>Forecast,Regional,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32PR">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF45">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVIATION">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_HR">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_KRF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_CPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR30GLOBAL">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_AK">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="PROB3HR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_HI">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SPCGUIDE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF2P5">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ORN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_GU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_SJU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DGEX_AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_SJU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFG_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_FWR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE30MAO">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ORN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_AK">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RHA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_AF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RFCQPF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="LocalRadar">
-<filters>LocalRadar</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NatlMosaic">
-<filters>RadarMosaic</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM_00">
-<filters>Forecast,Ensemble</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEFS_ENS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_ENS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pres_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pres_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d45_QPF_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d45_QPF_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d67_QPF_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d67_QPF_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Temps_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Temps_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pop_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pop_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d1q_day_pre">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d1q_eve_fin">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d1q_mid_pre">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d1q_mid_fin">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d23_day_pre">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d23_day_fin">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d23_mid_pre">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d23_mid_fin">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MDD_day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MDD_nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pres">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d45_QPF">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="d67_QPF">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Temps">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Medr_Pop">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="precip_blend">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AK_Pres_blend">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AK_Temps_Pop">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Bawx_Day">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="day_p1">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="day_p2">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="day_p3">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="day_p4">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Bawx_Nite">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="nite_p1">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="nite_p2">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="nite_p3">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="nite_p4">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_POES-NPOESS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_POES-NPOESS">
 <filters>GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES14">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="GINI_GOES14">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES12">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_GOES12">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES13">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_GOES13">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_Composite">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_Composite">
 <filters>GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES15">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_GOES15">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MTS">
-<filters>Standard,McIdas</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES12">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="GOES12">
 <filters>McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES13">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES13">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES14">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES14">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES15">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES15">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-2">
-<filters>Standard,McIdas,GOES</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SSMI">
-<filters>Standard,McIdas,GOES</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WINDSAT">
-<filters>Standard,McIdas,GOES</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SIMGOESR">
-<filters>SIMGOESR</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VAAC">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VAAC">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="METEOSAT8">
-<filters>McIdas,METEOSAT</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="METEOSAT9">
-<filters>Standard,McIdas,METEOSAT</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="METEOSAT10">
-<filters>McIdas,METEOSAT</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES11">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_GOES11">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_GOES10">
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="GINI_GOES10">
 <filters>GOES,GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IND">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="IND">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DPD">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="DPD">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="Global">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="Global">
 <filters>Standard,McIdas</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MTSAT2">
-<filters>McIdas</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GINI_Miscellaneous">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GINI_Miscellaneous">
 <filters>GINI</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TAF">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="TAF">
 <filters>Forecast,SBN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SPAC_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_EU_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_ASIA_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_EPAC_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_ATL_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SAF_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_AU_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SPAC_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SA_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECENS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECENS_DERV">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CONDUCTIVITY">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DRAP20">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ENLIL">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="EPFLUX">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IONTEMP">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="IRGF">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OVATION">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SXI">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SOLARFLUX">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEOMAG">
-<filters>Forecast,SWPC</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="VIIRS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="VIIRS">
 <filters>VIIRS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MODIS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="MODIS">
 <filters>MODIS</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DayNightTerminator">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="DayNightTerminator">
 <filters>Misc</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ACE">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ACE">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-13">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-13">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-14">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-14">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-15">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-15">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-16">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-16">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES-R">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GOES-R">
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NCOM">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="NCOM">
 <filters>Analysis,SBN</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="LocalRadar">
+<filters>Radar</filters>
 </ResourceDefinitionFilter>
 </ResourceDefinitionFilters>

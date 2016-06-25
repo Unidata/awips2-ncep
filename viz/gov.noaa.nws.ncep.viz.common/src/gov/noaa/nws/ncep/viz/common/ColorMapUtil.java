@@ -47,6 +47,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 04/10/2013   #958         qzhou       Added SolarImage in getColorMapCategories.
  * 08/06/2013   2210         njensen     Moved colormaps to common_static
  * Nov 11, 2013 2361         njensen     Use ColorMap.JAXB for XML processing
+ * 01/18/2016   ----         mjames@ucar Check common_static if ncpath is null
  * 05/17/2016   R18398       S. Russell  Updated method loadLockedColorMap()
  *                                       and removed deprecated method calls to
  *                                       deprecated LocalizationFile.getFile(),
@@ -64,6 +65,10 @@ public class ColorMapUtil {
 
     ColorMapUtil() {
     }
+
+    public static final String EXTENSION = ".cmap";
+    
+    public static final String DIR_NAME = "colormaps";
 
     /**
      * Load a colormap by name
@@ -106,7 +111,13 @@ public class ColorMapUtil {
                     cm.setName(name);
 
                 } else {
-                    throw new VizException("Error finding colormap " + fname);
+              	    LocalizationFile lf = PathManagerFactory.getPathManager()
+              	    		.getStaticLocalizationFile(
+              	    				DIR_NAME + IPathManager.SEPARATOR + name
+              	    				+ EXTENSION);
+					File lfFile = lf.getFile();
+					cm = ColorMap.JAXB.unmarshalFromXmlFile(lfFile);
+					cm.setName(name);
                 }
             } catch (Exception e) {
                 throw new VizException("Error umarshalling colormap " + fname,

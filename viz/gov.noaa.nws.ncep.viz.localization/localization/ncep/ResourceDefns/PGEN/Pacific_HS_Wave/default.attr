@@ -1,6 +1,6 @@
 ! Attributes for PGEN XML
 !
-color=RGB {155, 155, 155}
+color=RGB {255, 255, 255}
 monoColorEnable=false
 monoColor=RGB {0, 255, 0}
 fillModeEnable=true

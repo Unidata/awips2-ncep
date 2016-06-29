@@ -86,6 +86,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.maps.display.VizMapEditor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
+import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.EditorUtil;
@@ -156,6 +157,7 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  * 04/14/2016   R13245      B. Yin        Added UTC time validation methods.
  * 05/02/2016   R16076      J. Wu         Add buildPrdFileName().
  * 06/15/2016   R13559      bkowal        Removed simulated mouse click.
+ * 06/28/2016   R10233      J. Wu         Add parameter to loadContoursTool().
  * </pre>
  * 
  * @author
@@ -1073,8 +1075,10 @@ public class PgenUtil {
      * @param de
      *            Contours to load into the ContoursAttrDlg when the tool is
      *            loaded
+     * @param handler
+     *            the current handler that calls this method
      */
-    public static final void loadContoursTool(Contours de) {
+    public static final void loadContoursTool(Contours de, IInputHandler handler) {
         IEditorPart part = EditorUtil.getActiveEditor();
         ICommandService service = (ICommandService) part.getSite().getService(
                 ICommandService.class);
@@ -1094,7 +1098,8 @@ public class PgenUtil {
                     params.put("className", "MET");
                 }
 
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, de, null);
+                ExecutionEvent exec = new ExecutionEvent(cmd, params, de,
+                        handler);
 
                 cmd.executeWithChecks(exec);
 

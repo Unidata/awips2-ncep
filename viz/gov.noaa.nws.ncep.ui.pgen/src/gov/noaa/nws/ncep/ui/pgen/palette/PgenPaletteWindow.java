@@ -140,6 +140,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  *                                      ISaveablePart2 *
  * 05/16/2016   R18388      J. Wu       Show all classes for MULTI-SELECT.
  * 06/02/2016   R19326      S. Russell  updated method isDirty()
+ * 06/30/2016   R17964      J. Wu       Update filter after setting category.
  * 
  * </pre>
  * 
@@ -1423,6 +1424,19 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
         this.setActiveIcon(currentCategory);
         if (createObjectSection) {
             populateObjectSection(null);
+        }
+
+        /*
+         * Update category filter
+         */
+        PgenResource rsc = PgenSession.getInstance().getPgenResource();
+        if (rsc != null) {
+            String catg = PgenConstant.CATEGORY_ANY;
+            if (currentCategory != null) {
+                catg = currentCategory;
+            }
+
+            rsc.setCatFilter(new CategoryFilter(catg));
         }
 
     }

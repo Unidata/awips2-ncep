@@ -106,4 +106,16 @@
                 <parameter  id="action" value="arrowup" />           
          </key>    
    </extension>
+   
+   <extension point="com.raytheon.uf.viz.core.classContext">
+    <classContext
+        class="gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow">
+            <contextId id="com.raytheon.viz.ui.loopContext"/>
+            <contextId id="com.raytheon.viz.ui.loop.space"/>
+    </classContext>
+    <classContext
+        class="gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor">
+            <contextId id="com.raytheon.viz.ui.loop.space"/>
+    </classContext>
+</extension>
 </plugin>

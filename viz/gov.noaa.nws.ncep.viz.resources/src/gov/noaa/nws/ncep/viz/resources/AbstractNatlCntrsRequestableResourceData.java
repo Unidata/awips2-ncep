@@ -93,9 +93,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 02/16/2016      R15244  bkowal      Prevent potential Null Pointer Exception.
  * 03/01/2016      R6821   kbugenhagen Date/time changes for Blender and cleanup.
  * 04/05/2016      R10435  rjpeter     Removed Inventory usage.
+ * 07/06/2016      R17376  kbugenhagen Added getMethods method.
  * 07/14/2016      R17949  Jeff Beck   Add support for displaying multiple PGEN resources selected from a list of available times.
  *                                     Removed some code from getAvailableDataTimes()
- * 
  * </pre>
  * 
  * *
@@ -612,14 +612,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 continue;
             }
 
-            Method[] mthds = this.getClass().getDeclaredMethods();
             String paramName = prmInfo.getAttributeName();
-
             String getMthdName = "get"
                     + paramName.substring(0, 1).toUpperCase()
                     + paramName.substring(1);
 
-            for (Method m : mthds) {
+            for (Method m : getMethods()) {
                 if (m.getName().equals(getMthdName)) {
                     Class<?>[] params = m.getParameterTypes();
                     Class<?> rtype = m.getReturnType();
@@ -655,6 +653,13 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         // }
 
         return rscAttrSet;
+    }
+
+    /**
+     * @return array of methods for this class
+     */
+    protected Method[] getMethods() {
+        return this.getClass().getDeclaredMethods();
     }
 
     // The rscAttrSet should only contain attributes defined for this resource.

@@ -121,6 +121,10 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  06/01/2016   R18511     kbugenhagen Refactored to support Modis, Viirs and
  *                                      Mcidas satellite viz resources and remove
  *                                      need for AbstractSatelliteResource class.
+ *  07/01/2016   R17376     kbugenhagen Added getColorMapName method to allow
+ *                                      different satellite resources to use
+ *                                      different methods for getting the colormap 
+ *                                      name (i.e. via stylerules or attribute files.
  * 
  * </pre>
  * 
@@ -649,20 +653,11 @@ public class NcSatelliteResource extends
             colorMapParameters = new ColorMapParameters();
         }
         if (colorMapParameters.getColorMap() == null) {
-            String name = colorMapParameters.getColorMapName();
-            if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                name = resourceData.getColorMapName();
-                if (imagePreferences != null) {
-                    name = imagePreferences.getDefaultColormap();
-                }
-                if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                    name = "IR Default";
-                }
-            }
+            String colorMapName = getColorMapName(colorMapParameters);
             // load colormap by name
             ColorMap colorMap = (ColorMap) ColorMapUtil.loadColorMap(
                     resourceData.getResourceName().getRscCategory()
-                            .getCategoryName(), name);
+                            .getCategoryName(), colorMapName);
             colorMapParameters.setColorMap(colorMap);
         }
         try {
@@ -672,6 +667,26 @@ public class NcSatelliteResource extends
         }
 
         return colorMapParameters;
+    }
+
+    /**
+     * Gets the colormap name from the image preferences
+     * 
+     * @param colorMapParameters
+     * @return name of colormap
+     */
+    protected String getColorMapName(ColorMapParameters colorMapParameters) {
+        String name = colorMapParameters.getColorMapName();
+        if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
+            name = resourceData.getColorMapName();
+            if (imagePreferences != null) {
+                name = imagePreferences.getDefaultColormap();
+            }
+            if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
+                name = "IR Default";
+            }
+        }
+        return name;
     }
 
     /**

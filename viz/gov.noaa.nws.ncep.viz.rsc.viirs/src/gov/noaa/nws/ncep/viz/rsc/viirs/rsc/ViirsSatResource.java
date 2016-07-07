@@ -37,7 +37,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.RasterMode;
 import com.raytheon.uf.viz.core.IMesh;
 import com.raytheon.uf.viz.core.PixelCoverage;
-import com.raytheon.uf.viz.core.drawables.ColorMapLoader;
 import com.raytheon.uf.viz.core.drawables.IImage;
 import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormappedImageExtension;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -66,6 +65,9 @@ import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
  *                                       but was moved back to this project
  *                                       due to an RPM cyclical build dependency
  *                                       on the npp viirs project and nsharp.
+ *  07/01/2016   R17376     kbugenhagen  Updated to use colormap name in 
+ *                                       attribute set file.  Removed overloaded
+ *                                       loadColorMapParameters method.
  * </pre>
  * 
  * @author kbugenhagen
@@ -86,6 +88,7 @@ public class ViirsSatResource extends
 
     public ViirsSatResource(ViirsResourceData data, LoadProperties props) {
         super(data, props);
+        resourceData = data;
         dataRecordMap = new LinkedHashMap<>();
     }
 
@@ -244,46 +247,6 @@ public class ViirsSatResource extends
     /*
      * (non-Javadoc)
      * 
-     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
-     * loadColorMapParameters
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
-     */
-    @Override
-    protected ColorMapParameters loadColorMapParameters(IPersistable dataRecord)
-            throws VizException {
-        ColorMapParameters colorMapParameters = getCapability(
-                ColorMapCapability.class).getColorMapParameters();
-        if (colorMapParameters == null) {
-            colorMapParameters = new ColorMapParameters();
-        }
-        if (colorMapParameters.getColorMap() == null) {
-            String name = colorMapParameters.getColorMapName();
-            if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                name = resourceData.getColorMapName();
-                if (imagePreferences != null) {
-                    name = imagePreferences.getDefaultColormap();
-                }
-                if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                    name = "IR Default";
-                }
-            }
-
-            // load colormap by name
-            colorMapParameters.setColorMap(ColorMapLoader.loadColorMap(name));
-        }
-
-        try {
-            setColorMapUnits(dataRecord, colorMapParameters);
-        } catch (StyleException e) {
-            throw new VizException(e.getLocalizedMessage(), e);
-        }
-
-        return colorMapParameters;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see
      * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource
      * #setColorMapUnits(com.raytheon.uf.common.dataplugin.persist.IPersistable,
@@ -338,6 +301,7 @@ public class ViirsSatResource extends
 
         colorMapParameters.setDataUnit(dataUnit);
         colorMapParameters.setColorMapUnit(dataUnit);
+        colorMapParameters.setColorMapName(resourceData.getColorMapName());
         colorMapParameters.setDisplayUnit(displayUnit);
 
         colorMapParameters.setColorMapMin(colorMapParameters.getDataMin());

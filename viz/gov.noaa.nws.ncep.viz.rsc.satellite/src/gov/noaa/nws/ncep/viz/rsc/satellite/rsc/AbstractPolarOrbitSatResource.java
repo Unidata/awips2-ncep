@@ -60,15 +60,21 @@ import com.vividsolutions.jts.geom.Point;
  *  Date         Ticket#    Engineer     Description
  *  ------------ --------   -----------  --------------------------
  *  06/01/2016   R18511     kbugenhagen  Initial creation.
+ *  07/01/2016   R17376     kbugenhagen  Overloaded getColorMapName method to allow
+ *                                       Modis/Viirs to use colormap names
+ *                                       specified in attribute set files.
  * 
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1
+ */
+
+/**
+ * 
  * @param <R>
  *            data record for resource
  */
-
 public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
         extends NcSatelliteResource implements ISamplingResource {
 
@@ -281,6 +287,18 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
                 colorMapParameters);
         resourceChanged(ChangeType.CAPABILITY,
                 getCapability(ColorMapCapability.class));
+    }
+
+    /**
+     * Gets the colormap name from the resource data (attributes file)
+     * 
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getColorMapName(com.raytheon.uf.common.colormap.prefs.ColorMapParameters)
+     */
+    @Override
+    protected String getColorMapName(ColorMapParameters colorMapParameters) {
+        return resourceData.getColorMapName();
     }
 
     /**

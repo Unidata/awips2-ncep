@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourceDefinition xmlns:ns2="http://www.example.org/productType">
-    <resourceDefnName>GFS40US</resourceDefnName>
+<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <resourceDefnName>GFS0P25</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
+    <resourceParameters>
+GDFILE=gfs0p25
+pluginName=grid
+inventoryParam=P
+    </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
@@ -11,10 +16,4 @@
     <dfltFrameCount>999</dfltFrameCount>
     <dfltTimeRange>384</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
-    <resourceParameters>
-pluginName=grid
-GDFILE=GFS212
-inventoryParam=P
-
-</resourceParameters>
 </ResourceDefinition>

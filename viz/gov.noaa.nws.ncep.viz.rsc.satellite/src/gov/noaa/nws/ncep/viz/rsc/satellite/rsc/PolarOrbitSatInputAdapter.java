@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.rsc.viirs.rsc;
+package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
@@ -16,7 +16,7 @@ import com.raytheon.viz.ui.panes.VizDisplayPane;
 import com.vividsolutions.jts.geom.Coordinate;
 
 /**
- * Default input handler for Viirs sampling
+ * Default input handler for polar-orbiting satellite sampling.
  * 
  * <pre>
  * 
@@ -24,26 +24,33 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * Date         Ticket# Engineer        Description
  * ------------ ------- -----------     --------------------------
- * 11/13/2015   R13133  kbugenhagen     Initial creation
- * 12/15/2015   R13133  kbugenhagen     Took out generics; unnecessary.
- * 
+ * 05/24/2016   R18511  kbugenhagen     Initial creation.
  * 
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1.0
+ * @param <R>
+ *            satellite resource
  */
 
-public class ViirsInputAdapter extends InputAdapter {
+public class PolarOrbitSatInputAdapter<R extends AbstractPolarOrbitSatResource<?>>
+        extends InputAdapter {
 
-    private ViirsResource resource;
+    private R resource;
 
-    public ViirsInputAdapter(ViirsResource resource) {
+    public PolarOrbitSatInputAdapter(R resource) {
         this.resource = resource;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.raytheon.viz.ui.input.InputAdapter#handleMouseMove(int, int)
+     */
     @Override
     public boolean handleMouseMove(int x, int y) {
+
         IDisplayPaneContainer container = resource.getResourceContainer();
         Coordinate c = container.translateClick(x, y);
 
@@ -60,11 +67,10 @@ public class ViirsInputAdapter extends InputAdapter {
             AbstractVizResource<?, ?> activeRsc = rp.getResource();
 
             if (activeRsc != null
-                    && activeRsc instanceof ViirsResource
+                    && activeRsc instanceof AbstractPolarOrbitSatResource<?>
                     && rp.getProperties().isVisible()
-                    && !((ViirsResource) activeRsc).getLegendStr().equals(
-                            "No Data")) {
-
+                    && !((AbstractPolarOrbitSatResource<?>) activeRsc)
+                            .getLegendStr().equals("No Data")) {
                 if (activeRsc.equals(resource)) {
                     isActiveResource = true;
                 }
@@ -76,22 +82,20 @@ public class ViirsInputAdapter extends InputAdapter {
         if (resource.getResourceContainer().getDisplayPanes().length > 1) {
             for (IDisplayPane pane : resource.getResourceContainer()
                     .getDisplayPanes()) {
-
                 if (!pane.equals(activePane) && isActiveResource) {
-
                     ResourceList resources = pane.getDescriptor()
                             .getResourceList();
                     int size = resources.size();
-
                     for (int i = 0; i < size && size > 1; i++) {
                         ResourcePair rp = resources.get(i);
                         AbstractVizResource<?, ?> rsc = rp.getResource();
 
-                        if (rsc != null && rsc instanceof ViirsResource
+                        if (rsc != null
+                                && rsc instanceof AbstractPolarOrbitSatResource<?>
                                 && rp.getProperties().isVisible()) {
                             ((VizDisplayPane) pane).setVirtualCursor(c);
-                            ((ViirsResource) rsc).issueRefresh();
-
+                            ((AbstractPolarOrbitSatResource<?>) rsc)
+                                    .issueRefresh();
                         }
                     }
                 }
@@ -113,11 +117,25 @@ public class ViirsInputAdapter extends InputAdapter {
         return false;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.raytheon.viz.ui.input.InputAdapter#handleMouseDownMove(int, int,
+     * int)
+     */
     @Override
     public boolean handleMouseDownMove(int x, int y, int mouseButton) {
         return handleMouseMove(x, y);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.viz.ui.input.InputAdapter#handleMouseExit(org.eclipse.swt
+     * .widgets.Event)
+     */
+    @Override
     public boolean handleMouseExit(Event event) {
         resource.sampleCoord = null;
         resource.virtualCursor = null;
@@ -127,6 +145,14 @@ public class ViirsInputAdapter extends InputAdapter {
         return false;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.viz.ui.input.InputAdapter#handleMouseEnter(org.eclipse.swt
+     * .widgets.Event)
+     */
+    @Override
     public boolean handleMouseEnter(Event event) {
         return handleMouseMove(event.x, event.y);
     }

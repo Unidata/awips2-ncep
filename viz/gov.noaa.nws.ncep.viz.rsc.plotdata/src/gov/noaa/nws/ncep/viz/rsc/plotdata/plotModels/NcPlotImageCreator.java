@@ -1485,7 +1485,7 @@ public class NcPlotImageCreator {
                                 drawableString = new DrawableString(
                                         formattedString, textColor);
                                 drawableString.horizontalAlignment = HorizontalAlignment.CENTER;
-                                drawableString.verticallAlignment = VerticalAlignment.MIDDLE;
+                                drawableString.verticalAlignment = VerticalAlignment.MIDDLE;
                                 drawableString.font = font;
                                 drawableString.magnification = 1.0;
 

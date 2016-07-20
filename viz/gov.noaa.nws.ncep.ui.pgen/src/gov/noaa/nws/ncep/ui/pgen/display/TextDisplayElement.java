@@ -100,7 +100,7 @@ public class TextDisplayElement implements IDisplayable {
          * dstring = new DrawableString( text, color); dstring.font = font;
          * dstring.setCoordinates(xpos, ypos); dstring.textStyle =
          * TextStyle.NORMAL; dstring.horizontalAlignment = horizontalAlignment;
-         * dstring.verticallAlignment = VerticalAlignment.MIDDLE;
+         * dstring.verticalAlignment = VerticalAlignment.MIDDLE;
          * dstring.rotation = rotation;
          */
 

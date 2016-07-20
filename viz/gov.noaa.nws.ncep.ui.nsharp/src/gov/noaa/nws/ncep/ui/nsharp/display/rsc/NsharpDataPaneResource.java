@@ -628,14 +628,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         str.setCoordinates(startX, curY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
-        str.verticallAlignment = VerticalAlignment.TOP;
+        str.verticalAlignment = VerticalAlignment.TOP;
         str.font = myfont;
         str.setText("PW=", NsharpConstants.color_white);
         DrawableString str1 = new DrawableString(textStr,
                 NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
-        str1.verticallAlignment = VerticalAlignment.TOP;
+        str1.verticalAlignment = VerticalAlignment.TOP;
         str1.font = myfont;
         target.drawStrings(str, str1);
 
@@ -1375,14 +1375,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         str.setCoordinates(startX, curY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
-        str.verticallAlignment = VerticalAlignment.TOP;
+        str.verticalAlignment = VerticalAlignment.TOP;
         str.font = myfont;
         str.setText("BRN Shear = ", NsharpConstants.color_white);
         DrawableString str1 = new DrawableString(textStr,
                 NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
-        str1.verticallAlignment = VerticalAlignment.TOP;
+        str1.verticalAlignment = VerticalAlignment.TOP;
         str1.font = myfont;
         target.drawStrings(str, str1);
 
@@ -1485,7 +1485,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         DrawableString str2 = new DrawableString(textStr,
                 NsharpConstants.color_cyan);
         str2.horizontalAlignment = HorizontalAlignment.LEFT;
-        str2.verticallAlignment = VerticalAlignment.TOP;
+        str2.verticalAlignment = VerticalAlignment.TOP;
         str2.font = myfont;
         str2.setCoordinates(thirdToken
                 + (target.getStringsBounds(str).getWidth() + target
@@ -1495,7 +1495,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         DrawableString str3 = new DrawableString(textStr,
                 NsharpConstants.color_white);
         str3.horizontalAlignment = HorizontalAlignment.LEFT;
-        str3.verticallAlignment = VerticalAlignment.TOP;
+        str3.verticalAlignment = VerticalAlignment.TOP;
         str3.font = myfont;
         str3.setCoordinates(thirdToken
                 + (target.getStringsBounds(str).getWidth()
@@ -3693,66 +3693,66 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText("D2D Lite Page", NsharpConstants.color_red);
         str1.setCoordinates(startX, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
-        str1.verticallAlignment = VerticalAlignment.TOP;
+        str1.verticalAlignment = VerticalAlignment.TOP;
         DrawableString str2 = new DrawableString("",
                 NsharpConstants.color_white);
         str2.horizontalAlignment = HorizontalAlignment.LEFT;
-        str2.verticallAlignment = VerticalAlignment.TOP;
+        str2.verticalAlignment = VerticalAlignment.TOP;
         str2.font = myfont;
         DrawableString str3 = new DrawableString("",
                 NsharpConstants.color_white);
         str3.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str3.verticallAlignment = VerticalAlignment.TOP;
+        str3.verticalAlignment = VerticalAlignment.TOP;
         str3.font = myfont;
         DrawableString str4 = new DrawableString("",
                 NsharpConstants.color_white);
         str4.horizontalAlignment = HorizontalAlignment.LEFT;
-        str4.verticallAlignment = VerticalAlignment.TOP;
+        str4.verticalAlignment = VerticalAlignment.TOP;
         str4.font = myfont;
         DrawableString str5 = new DrawableString("",
                 NsharpConstants.color_white);
         str5.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str5.verticallAlignment = VerticalAlignment.TOP;
+        str5.verticalAlignment = VerticalAlignment.TOP;
         str5.font = myfont;
         DrawableString str6 = new DrawableString("",
                 NsharpConstants.color_white);
         str6.horizontalAlignment = HorizontalAlignment.LEFT;
-        str6.verticallAlignment = VerticalAlignment.TOP;
+        str6.verticalAlignment = VerticalAlignment.TOP;
         str6.font = myfont;
         DrawableString str7 = new DrawableString("",
                 NsharpConstants.color_white);
         str7.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str7.verticallAlignment = VerticalAlignment.TOP;
+        str7.verticalAlignment = VerticalAlignment.TOP;
         str7.font = myfont;
         DrawableString str8 = new DrawableString("",
                 NsharpConstants.color_white);
         str8.horizontalAlignment = HorizontalAlignment.LEFT;
-        str8.verticallAlignment = VerticalAlignment.TOP;
+        str8.verticalAlignment = VerticalAlignment.TOP;
         str8.font = myfont;
         DrawableString str9 = new DrawableString("",
                 NsharpConstants.color_white);
         str9.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str9.verticallAlignment = VerticalAlignment.TOP;
+        str9.verticalAlignment = VerticalAlignment.TOP;
         str9.font = myfont;
         DrawableString str10 = new DrawableString("",
                 NsharpConstants.color_white);
         str10.horizontalAlignment = HorizontalAlignment.LEFT;
-        str10.verticallAlignment = VerticalAlignment.TOP;
+        str10.verticalAlignment = VerticalAlignment.TOP;
         str10.font = myfont;
         DrawableString str11 = new DrawableString("",
                 NsharpConstants.color_white);
         str11.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str11.verticallAlignment = VerticalAlignment.TOP;
+        str11.verticalAlignment = VerticalAlignment.TOP;
         str11.font = myfont;
         DrawableString str12 = new DrawableString("",
                 NsharpConstants.color_white);
         str12.horizontalAlignment = HorizontalAlignment.LEFT;
-        str12.verticallAlignment = VerticalAlignment.TOP;
+        str12.verticalAlignment = VerticalAlignment.TOP;
         str12.font = myfont;
         DrawableString str13 = new DrawableString("",
                 NsharpConstants.color_white);
         str13.horizontalAlignment = HorizontalAlignment.RIGHT;
-        str13.verticallAlignment = VerticalAlignment.TOP;
+        str13.verticalAlignment = VerticalAlignment.TOP;
         str13.font = myfont;
 
         target.drawStrings(str1);

@@ -1006,7 +1006,7 @@ public class WcnResource extends
                         wcnTime.setCoordinates(labelPix[0], labelPix[1], 0.0);
                         wcnTime.textStyle = TextStyle.NORMAL;
                         wcnTime.horizontalAlignment = HorizontalAlignment.LEFT;
-                        wcnTime.verticallAlignment = VerticalAlignment.BOTTOM;
+                        wcnTime.verticalAlignment = VerticalAlignment.BOTTOM;
                         target.drawStrings(wcnTime);
                     }
 
@@ -1180,7 +1180,7 @@ public class WcnResource extends
                 wcnTime.setCoordinates(labelPix[0], labelPix[1], 0.0);
                 wcnTime.textStyle = TextStyle.NORMAL;
                 wcnTime.horizontalAlignment = HorizontalAlignment.LEFT;
-                wcnTime.verticallAlignment = VerticalAlignment.BOTTOM;
+                wcnTime.verticalAlignment = VerticalAlignment.BOTTOM;
                 target.drawStrings(wcnTime);
             }
         } catch (Exception e) {

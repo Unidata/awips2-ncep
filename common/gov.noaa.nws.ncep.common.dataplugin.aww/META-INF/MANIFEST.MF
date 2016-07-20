@@ -11,7 +11,6 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  com.raytheon.uf.edex.decodertools.time,
- gov.noaa.nws.ncep.edex.common.dao,
- org.osgi.framework
+ gov.noaa.nws.ncep.edex.common.dao
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.aww,
  gov.noaa.nws.ncep.common.dataplugin.aww.dao

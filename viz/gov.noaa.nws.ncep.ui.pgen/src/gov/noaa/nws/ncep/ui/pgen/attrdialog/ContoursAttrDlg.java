@@ -62,6 +62,8 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -150,6 +152,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/07/2016   R17379      J. Wu       Overwrite contour level when user types in new value.
  * 05/16/2016   R18388      J. Wu       Use some contants in PgenConstant.
  * 06/01/2016   R18387      B. Yin      Removed "Edit" and "All" buttons.
+ * 07/01/2016   R17377      J. Wu       Add "shiftDownInContourDialog" flag.
  * 
  * </pre>
  * 
@@ -247,14 +250,6 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
 
     private Button activeContourSymbolBtn = null;
 
-    private Button applyAllLineBtn = null;
-
-    private Button applyAllLabelBtn = null;
-
-    private Button applyAllSymbolBtn = null;
-
-    private Button applyAllCircleBtn = null;
-
     private Button circleTypeBtn = null;
 
     private Button hideCircleLabelBtn = null;
@@ -350,6 +345,17 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
      * A context activation for contours-specific hotkeys.
      */
     private IContextActivation pgenContoursContextActivation;
+
+    /*
+     * A flag to check if "shift" key is pressed down.
+     * 
+     * When this dialog is up, its "labelTxt" always has keyboard focus.
+     * However, other tools like panning tool needs the status of SHIFT key to
+     * be activated. So we need to trace this "SHIFT" key and allow the contour
+     * drawing tool to retrieve its status to decide if the panning tool should
+     * be activated.
+     */
+    private boolean shiftDownInContourDialog;
 
     /**
      * Private constructor
@@ -908,6 +914,21 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
             }
 
             public void focusGained(FocusEvent e) {
+            }
+        });
+
+        // Key listener to check the status of "shift" key.
+        labelTxt.addKeyListener(new KeyListener() {
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == SWT.SHIFT) {
+                    shiftDownInContourDialog = true;
+                }
+            }
+
+            public void keyReleased(KeyEvent e) {
+                if (e.keyCode == SWT.SHIFT) {
+                    shiftDownInContourDialog = false;
+                }
             }
         });
 
@@ -4620,6 +4641,21 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
     private Point getAttrDlgLocation() {
         return new Point(getShell().getLocation().x + getShell().getSize().x,
                 getShell().getLocation().y);
+    }
+
+    /**
+     * @return the shiftDownInContourDialog
+     */
+    public boolean isShiftDownInContourDialog() {
+        return shiftDownInContourDialog;
+    }
+
+    /**
+     * @param shiftDownInContourDialog
+     *            the shiftDownInContourDialog to set
+     */
+    public void setShiftDownInContourDialog(boolean shiftDown) {
+        this.shiftDownInContourDialog = shiftDown;
     }
 
 }

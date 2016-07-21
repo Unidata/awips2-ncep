@@ -97,6 +97,7 @@ import com.vividsolutions.jts.geom.Point;
  * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
  * 06/15/2016   R13559      bkowal      File cleanup. No longer simulate mouse clicks.
  * 06/28/2016   R10233      J. Wu       Pass calling handler to PgenContoursTool.
+ * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 
  * </pre>
  * 
@@ -195,6 +196,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         if (button == 1) {
@@ -544,6 +548,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Check if mouse is in geographic extent
@@ -791,6 +798,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Finish the editing

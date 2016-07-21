@@ -33,8 +33,6 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.FrameData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource.NcGridDataProxy;
-import gov.noaa.nws.ncep.viz.tools.contour.ContourException;
-import gov.noaa.nws.ncep.viz.tools.contour.ContourGenerator;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
@@ -44,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -77,6 +76,7 @@ import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
 import com.raytheon.uf.common.numeric.source.DataSource;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.util.GridUtil;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -95,6 +95,9 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.DataSourceTileImageCreator;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
+import com.raytheon.viz.core.contours.util.ContourContainer;
+import com.raytheon.viz.core.contours.util.FortConBuf;
+import com.raytheon.viz.core.contours.util.FortConConfig;
 import com.raytheon.viz.core.contours.util.StreamLineContainer;
 import com.raytheon.viz.core.contours.util.StreamLineContainer.StreamLinePoint;
 import com.raytheon.viz.core.contours.util.StrmPak;
@@ -109,6 +112,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.linearref.LinearLocation;
@@ -158,11 +162,10 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
  *    04/21/2016 R17741  sgilbert      Changes to reduce memory usage
  *    05/06/2016 R17323  kbugenhagen   In createColorFills, only subgrid if
  *                                     ncgrid proxy is not null.
+ *    07/21/2016 R20574  njensen       Switch contour algorithm from CNFNative to FortConBuf
  * 
  * </pre>
  * 
- * @author chammack
- * @version 1
  */
 public class ContourSupport {
     private static final IUFStatusHandler statusHandler = UFStatus
@@ -1505,52 +1508,92 @@ public class ContourSupport {
         return null;
     }
 
-    private void genContour(List<Double> cvalues) {
+    /**
+     * Uses the FortConBuf algorithm to generate contour lines in x/y space.
+     * 
+     * @param contourVals
+     *            The desired values of the lines
+     * @return a Map of the contour line value to a Geometry of the contour(s)
+     *         in x/y space
+     */
+    private Map<Float, Geometry> fortConBuf(List<Double> contourVals) {
+        float[] contVals = new float[contourVals.size()];
+        for (int i = 0; i < contourVals.size(); i++) {
+            contVals[i] = contourVals.get(i).floatValue();
+        }
 
-        ContourCalculationReentrantLock.getReentrantLock();
+        FortConConfig cfg = new FortConConfig();
+        // mode: seed.length
+        cfg.mode = contVals.length;
+        // seed: desired contour lines/values
+        cfg.seed = contVals;
+        // badlo: always seems to be this number
+        cfg.badlo = GridUtil.GRID_FILL_VALUE - 1;
+        // badhi: always seem to be this number
+        cfg.badhi = GridUtil.GRID_FILL_VALUE + 1;
+        cfg.xOffset = 0;
+        cfg.yOffset = 0;
+
+        ContourContainer contours = FortConBuf.contour(cntrData,
+                cntrData.getX(), cntrData.getY(), cfg);
+        GeometryFactory geomFactory = new GeometryFactory();
+
+        // map of contour value to xy lines
+        Map<Float, List<LineString>> contourResult = new HashMap<>();
+        int nLines = contours.contourVals.size();
+        for (int i = 0; i < nLines; i++) {
+            // value of the line
+            Float contourVal = contours.contourVals.get(i).floatValue();
+            // build a line
+            float[] pointArray = contours.xyContourPoints.get(i);
+            CoordinateSequence coords = new PackedCoordinateSequence.Double(
+                    pointArray, 2);
+            if (coords.size() < 2) {
+                continue;
+            }
+            LineString line = geomFactory.createLineString(coords);
+
+            /*
+             * a single contour value, e.g. 850, could have multiple lines on
+             * different areas, so we need a List of lines for that value
+             */
+            List<LineString> linesForContourVal = contourResult.get(contourVal);
+            if (linesForContourVal == null) {
+                linesForContourVal = new ArrayList<>();
+                contourResult.put(contourVal, linesForContourVal);
+            }
+            linesForContourVal.add(line);
+        }
+
+        // create MultiLineStrings so we get all lines for each value
+        Map<Float, Geometry> result = new HashMap<>();
+        for (Float f : contourResult.keySet()) {
+            List<LineString> lines = contourResult.get(f);
+            MultiLineString mls = geomFactory.createMultiLineString(lines
+                    .toArray(new LineString[0]));
+            result.put(f, mls);
+        }
+
+        return result;
+    }
+
+    private void genContour(List<Double> cvalues) {
         List<Double> allvalues = new ArrayList<>(cvalues);
         Collections.sort(allvalues);
 
         long t1a = System.currentTimeMillis();
-        ContourGenerator cgen = new ContourGenerator(cntrData.getData(),
-                cntrData.getX(), cntrData.getY());
-        long t1b = System.currentTimeMillis();
-        logger.debug("Creating contour values took: " + (t1b - t1a));
-        cgen.setContourValues(allvalues);
-
-        long t1c = System.currentTimeMillis();
-        logger.debug("ContourGenerator.setContourValues(allvalues) took: "
-                + (t1c - t1b));
-
-        try {
-            cgen.generateContours();
-        } catch (ContourException e1) {
-            cgen.dispose();
-            isCntrsCreated = false;
-            ContourCalculationReentrantLock.releaseReentrantLock();
-            return;
+        Map<Float, Geometry> contours = fortConBuf(cvalues);
+        for (Float f : contours.keySet()) {
+            Geometry xygeom = contours.get(f);
+            Geometry llgeom = transformGeometry(xygeom, rastPosToLatLon);
+            contourGroup.latlonContours.put(f.toString(), llgeom);
         }
-
         long t2 = System.currentTimeMillis();
-        if (ncgribLogger.enableCntrLogs())
-            logger.debug("===ContourGenerator.generateContours() for (" + name
-                    + ") took: " + (t2 - t1a));
-
         logger.debug("Total generating contour line values took: " + (t2 - t1a));
-        if (cvalues != null) {
-            for (Double cval : cvalues) {
-                float fval = (float) (cval * 1.0f);
 
-                Geometry geom = cgen.getContours(fval);
-                Geometry llgeom = transformGeometry(geom, rastPosToLatLon);
-                contourGroup.latlonContours.put(cval.toString(), llgeom);
-            }
-        }
-
-        cgen.dispose();
-        ContourCalculationReentrantLock.releaseReentrantLock();
-        if (ncgribLogger.enableCntrLogs())
+        if (ncgribLogger.enableCntrLogs()) {
             printSize();
+        }
     }
 
     private void printSize() {

@@ -173,7 +173,8 @@ import com.vividsolutions.jts.geom.Point;
  *                                      a picture of CAVE.  Removed member
  *                                      variable paneImage ( the screen shot )
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
- * *
+ * 07/11/2016   R17943      J. Wu       Display all objects in a non-active activity if its display flag is on.
+ * 
  * </pre>
  * 
  * @author B. Yin
@@ -1768,7 +1769,8 @@ public class PgenResource extends
         for (Product prod : resourceData.getProductList()) {
             if (prod.isOnOff() && prod != resourceData.getActiveProduct()) {
                 for (Layer layer : prod.getLayers()) {
-                    drawFilledElements(layer, target, paintProps);
+                    drawFilledElements(layer, target, paintProps,
+                            prod.isOnOff());
                 }
             }
         }
@@ -1776,12 +1778,13 @@ public class PgenResource extends
         // Draw filled elements in the active product's non-active layers
         for (Layer layer : resourceData.getActiveProduct().getLayers()) {
             if (layer != resourceData.getActiveLayer()) {
-                drawFilledElements(layer, target, paintProps);
+                drawFilledElements(layer, target, paintProps, false);
             }
         }
 
         // Draw filled elements in the active layer
-        drawFilledElements(resourceData.getActiveLayer(), target, paintProps);
+        drawFilledElements(resourceData.getActiveLayer(), target, paintProps,
+                true);
 
     }
 
@@ -1793,12 +1796,19 @@ public class PgenResource extends
      * @param target Graphic target from the paint() method.
      * 
      * @param paintProps Paint properties from the paint() method.
+     * 
+     * @param displayProduct flag to display this product regardless of layers.
      */
     private void drawFilledElements(Layer layer, IGraphicsTarget target,
-            PaintProperties paintProps) {
+            PaintProperties paintProps, boolean displayProduct) {
 
+        /*
+         * The layer will be displayed if the displayProduct flag is on or the
+         * layer display flag is on or this layer is the active layer.
+         */
         if (layer != null
-                && (layer.isOnOff() || layer == resourceData.getActiveLayer())) {
+                && (displayProduct || layer.isOnOff() || layer == resourceData
+                        .getActiveLayer())) {
 
             DisplayProperties dprops = new DisplayProperties();
 
@@ -1841,7 +1851,8 @@ public class PgenResource extends
         for (Product prod : resourceData.getProductList()) {
             if (prod.isOnOff() && prod != resourceData.getActiveProduct()) {
                 for (Layer layer : prod.getLayers()) {
-                    drawNonFilledElements(layer, target, paintProps);
+                    drawNonFilledElements(layer, target, paintProps,
+                            prod.isOnOff());
                 }
             }
         }
@@ -1849,12 +1860,13 @@ public class PgenResource extends
         // Draw non-filled elements in the active product's non-active layers
         for (Layer layer : resourceData.getActiveProduct().getLayers()) {
             if (layer != resourceData.getActiveLayer()) {
-                drawNonFilledElements(layer, target, paintProps);
+                drawNonFilledElements(layer, target, paintProps, false);
             }
         }
 
         // Draw non-filled elements in the active layer
-        drawNonFilledElements(resourceData.getActiveLayer(), target, paintProps);
+        drawNonFilledElements(resourceData.getActiveLayer(), target,
+                paintProps, true);
 
     }
 
@@ -1869,12 +1881,19 @@ public class PgenResource extends
      * @param target Graphic target from the paint() method.
      * 
      * @param paintProps Paint properties from the paint() method.
+     * 
+     * @param displayProduct flag to display this layer regardless of layers.
      */
     private void drawNonFilledElements(Layer layer, IGraphicsTarget target,
-            PaintProperties paintProps) {
+            PaintProperties paintProps, boolean displayProduct) {
 
+        /*
+         * The layer will be displayed if the displayProduct flag is on or the
+         * layer display flag is on or this layer is the active layer.
+         */
         if (layer != null
-                && (layer.isOnOff() || layer == resourceData.getActiveLayer())) {
+                && (displayProduct || layer.isOnOff() || layer == resourceData
+                        .getActiveLayer())) {
 
             DisplayProperties dprops = new DisplayProperties();
             if (layer != resourceData.getActiveLayer()) {

@@ -21,11 +21,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.WorkbenchPage;
 
+import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
@@ -39,6 +38,7 @@ import com.raytheon.viz.ui.views.DetachPart;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 01/15		#5413		B. Yin   	Added meesage box if PGEN is running in another perspective
+ * 06/20/2016    5640       bsteffen    Fix detach in eclipse 4.
  *
  * </pre>
  * 
@@ -47,7 +47,6 @@ import com.raytheon.viz.ui.views.DetachPart;
 
 public class PgenPaletteAction extends AbstractHandler {
 
-	@SuppressWarnings("restriction")
 	@Override
 	public Object execute(ExecutionEvent arg0) throws ExecutionException { 
 		
@@ -98,26 +97,29 @@ public class PgenPaletteAction extends AbstractHandler {
 
 			try {
 
-				if ( vpart == null ){
+                if (vpart == null || !wpage.isPartVisible(vpart)) {
 
-					vpart = wpage.showView( PgenUtil.VIEW_ID );
-					IViewReference pgenViewRef =   wpage.findViewReference(PgenUtil.VIEW_ID);
-					if(pgenViewRef != null&& wpage instanceof WorkbenchPage ){
-					    DetachPart.detach(pgenViewRef.getPart(true));
-					}
-				}
-				else {
+                    vpart = wpage.showView(PgenUtil.VIEW_ID);
+                    if (vpart != null) {
+                        /**
+                         * DetachPart does not know what size the new window
+                         * should be until the window layout is applied. Since
+                         * the window can defer the layout until after this
+                         * event so it is necessary to async detach to ensure
+                         * that the layout is done and the window size is
+                         * accurate.
+                         */
+                        final IViewPart finalPart = vpart;
+                        VizApp.runAsync(new Runnable() {
 
-					if ( ! wpage.isPartVisible(vpart) ){ 
-						vpart = wpage.showView( PgenUtil.VIEW_ID );
-						IViewReference pgenViewRef =   wpage.findViewReference(PgenUtil.VIEW_ID);
-						if(pgenViewRef != null&& wpage instanceof WorkbenchPage ){
-						    DetachPart.detach(pgenViewRef.getPart(true));
-						}
-					}
-
-				}
-			}
+                            @Override
+                            public void run() {
+                                DetachPart.detach(finalPart);
+                            }
+                        });
+                    }
+                }
+            }
 			catch (Exception e) {
 
 				e.printStackTrace();

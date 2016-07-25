@@ -333,7 +333,8 @@ public class PgenUtil {
         params.put("name", symbolType);
         params.put("className", symbolCat);
         params.put("usePrevColor", new Boolean(usePrevColor).toString());
-        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw", adc);
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSingleDraw", adc,
+                params);
     }
 
     /**

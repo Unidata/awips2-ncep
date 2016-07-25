@@ -110,6 +110,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                       Removed unneeded code for remembering last selected resource.
  *                                       Removed dead code for mcidas.
  * 04/05/2016   RM#10435    rjpeter      Removed Inventory usage.
+ * 06/16/2016     R17949    Jeff Beck    Add the capability to select PGEN resources from available times,
+ *                                       using a comboBox and using the same UI layout familiar to users when selecting "Cycle Times".
+ *                                       Previous PGEN data in the UI will be labeled "Available Times" not "Cycle Times".
  * </pre>
  * 
  * @author ghull
@@ -451,7 +454,11 @@ public class ResourceSelectionControl extends Composite {
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
-        cycleTimeLbl.setText("Cycle Time");
+        // Default to the maximum string (length) the label might be:
+        // We use "Available Times" (for PGEN) and "Cycle Time" for all others
+        // If it's not used for PGEN, it will be set to "Cycle Time" in the
+        // listener
+        cycleTimeLbl.setText("Available Times");
         fd = new FormData();
         fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
         fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
@@ -974,6 +981,7 @@ public class ResourceSelectionControl extends Composite {
 
         // get the selected rsc and add to the list.
         // ignoring the cycle time for now.
+        // This is true and makes the UI "clumsy"" and misleading
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
@@ -1244,9 +1252,25 @@ public class ResourceSelectionControl extends Composite {
         updateSelectedResource();
     }
 
+    /**
+     * Convenience method to avoid adding isPgenResource() to existing
+     * conditional expressions.
+     * 
+     * @param rscDefn
+     *            the definition of the currently selected resoure name
+     * 
+     * @return true if our intent is to display a cycle times comboBox in the
+     *         resource selection manager UI
+     */
+    private boolean usingCycleTimes(ResourceDefinition rscDefn) {
+        return isForecast() || rscDefn.isPgenResource();
+    }
+
     /*
      * when an attrSetName is selected and resource name, with possible cycle
      * time, is ready for selection
+     * 
+     * The "selectedResource" is basically the 2nd column...
      */
     public void updateSelectedResource() {
 
@@ -1265,12 +1289,10 @@ public class ResourceSelectionControl extends Composite {
 
         if (enableSelections) {
             try {
-                if (this.isForecast()) {
+                if (usingCycleTimes(rscDefn)) {
                     if (cycleTimeCombo.getItems().length == 0) {
                         enableSelections = false;
                     }
-                } else if (rscDefn.isPgenResource()) {
-                    availMsg = "";
                 } else if (!rscDefn.isRequestable()) {
                     availMsg = "";
                 } else {
@@ -1293,11 +1315,11 @@ public class ResourceSelectionControl extends Composite {
         }
 
         if (enableSelections) {
-
             addResourceBtn.setEnabled(true);
             replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
-            if (this.isForecast()) {
+            // combo box will now be enabled for PGEN Available times
+            if (usingCycleTimes(rscDefn)) {
                 cycleTimeLbl.setEnabled(true);
                 cycleTimeCombo.setEnabled(true);
                 cycleTimeLbl.setVisible(true);
@@ -1319,7 +1341,6 @@ public class ResourceSelectionControl extends Composite {
 
             // For now, don't let the user select 'Latest'
             if (selectedRscName.isLatestCycleTime()) {
-
                 addResourceBtn.setEnabled(false);
                 replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
@@ -1347,13 +1368,16 @@ public class ResourceSelectionControl extends Composite {
 
     /*
      * code for the Listeners for the Add Resource button and the double Click
-     * /on the list
+     * on the list. Get the selected rsc and add to the list, ignoring the cycle
+     * time for now. This is true and makes the UI "clumsy"" and misleading
      */
     public void selectResource(boolean replaceRsc, boolean done) {
 
         boolean addToAllPanes = (addToAllPanesBtn.isVisible() && addToAllPanesBtn
                 .getSelection());
+
         if ((selectedRscName != null) && selectedRscName.isValid()) {
+
             for (IResourceSelectedListener lstnr : rscSelListeners) {
                 lstnr.resourceSelected(selectedRscName, replaceRsc,
                         addToAllPanes, done);
@@ -1388,12 +1412,20 @@ public class ResourceSelectionControl extends Composite {
         cycleTimeLbl.setEnabled(true);
         cycleTimeCombo.setEnabled(true);
 
-        boolean isRDForecast = rscDefn.isForecast();
-        cycleTimeLbl.setVisible(isRDForecast);
-        cycleTimeCombo.setVisible(isRDForecast);
-        availDataTimeLbl.setVisible(!isRDForecast);
+        boolean cycleTimeEnabled = (rscDefn.isForecast() || rscDefn
+                .isPgenResource());
+        cycleTimeLbl.setVisible(cycleTimeEnabled);
+        cycleTimeCombo.setVisible(cycleTimeEnabled);
+        availDataTimeLbl.setVisible(!cycleTimeEnabled);
 
-        if (!isForecast()) {
+        // use a different label name if PGEN
+        if (rscDefn.isPgenResource()) {
+            cycleTimeLbl.setText("Available Times");
+        } else {
+            cycleTimeLbl.setText("Cycle Time");
+        }
+
+        if (!isForecast() && !rscDefn.isPgenResource()) {
             selectedRscName.setCycleTime(null);
             clearCycleTimeCombo();
             return;
@@ -1439,7 +1471,9 @@ public class ResourceSelectionControl extends Composite {
                     availableTimes.add(new DataTime(cal));
                 }
             } else {
+
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
+
             }
 
             /* Use map to handle dupElim */

@@ -12,6 +12,10 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import javax.measure.unit.SI;
+
+import org.geotools.referencing.datum.DefaultEllipsoid;
+
 import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
@@ -42,6 +46,8 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * 11/2011                  T. Lee      Enhanced for ntbn
  * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract
  * 10/2015      7190        R.Reynolds  Send data directly to Mcidas database/no routing through mapping tables
+ * Jul 26, 2016 R19277      bsteffen    Convert RECT navigation to an equidistant cylindrical projection.
+ * 
  * </pre>
  * 
  * @author tlee
@@ -330,6 +336,9 @@ public class McidasDecoder extends AbstractDecoder {
                     resolution = resolution / 1000;
                 }
                 iproj = 3;
+            } else if (navtyp.equals("RECT")) {
+                resolution = (yres < xres) ? yres : xres;
+                iproj = 7;
             } else {
                 // native satellite projections ( not remapped )
                 iproj = 7585;
@@ -600,6 +609,91 @@ public class McidasDecoder extends AbstractDecoder {
                 } else {
                     urlon = (float) clon;
                 }
+            } else if (iproj == 7) {
+                proj = navtyp;
+
+                stdlat1 = stdlat2 = 0.0f;
+
+                /*
+                 * Everything is encoded as an int but for most of these values
+                 * we want a decimal value so it is encoded with two ints, one
+                 * as a base value and another is a scale factor.
+                 */
+                int anchor_row = byteArrayToInt(navigation, 4, endian);
+                int unscaled_anchor_lat = byteArrayToInt(navigation, 8, endian);
+                int anchor_col = byteArrayToInt(navigation, 12, endian);
+                int unscaled_anchor_lon = byteArrayToInt(navigation, 16, endian);
+                int unscaled_lat_spacing = byteArrayToInt(navigation, 20,
+                        endian);
+                int unscaled_lon_spacing = byteArrayToInt(navigation, 24,
+                        endian);
+                int unscaled_earth_radius = byteArrayToInt(navigation, 28,
+                        endian);
+                int swap_lon_sign = byteArrayToInt(navigation, 40, endian);
+
+                int anchor_lat_scale = byteArrayToInt(navigation, 44, endian);
+                int anchor_lon_scale = byteArrayToInt(navigation, 48, endian);
+                int lat_spacing_scale = byteArrayToInt(navigation, 52, endian);
+                int lon_spacing_scale = byteArrayToInt(navigation, 56, endian);
+                int earth_radius_scale = byteArrayToInt(navigation, 60, endian);
+
+                /*
+                 * Each value has a different default scale value that is used
+                 * if the scale is set to 0.
+                 */
+                if (anchor_lat_scale == 0) {
+                    anchor_lat_scale = 4;
+                }
+                if (anchor_lon_scale == 0) {
+                    anchor_lon_scale = 4;
+                }
+                if (lat_spacing_scale == 0) {
+                    lat_spacing_scale = 4;
+                }
+                if (lon_spacing_scale == 0) {
+                    lon_spacing_scale = 4;
+                }
+                if (earth_radius_scale == 0) {
+                    earth_radius_scale = 3;
+                }
+
+                double anchor_lat = unscaled_anchor_lat
+                        / Math.pow(10.0, anchor_lat_scale);
+                double anchor_lon = unscaled_anchor_lon
+                        / Math.pow(10.0, anchor_lon_scale);
+
+                /* This dx/dy is in degree spacing */
+                dx = (float) (unscaled_lat_spacing / Math.pow(10.0,
+                        lat_spacing_scale));
+                dy = (float) (unscaled_lon_spacing / Math.pow(10.0,
+                        lon_spacing_scale));
+
+                if (swap_lon_sign >= 0) {
+                    dx = -1 * dx;
+                    anchor_lon = -1 * anchor_lon;
+                }
+
+                urlon = (float) (anchor_lon + (anchor_col - ulelem) * dx);
+                urlat = (float) (anchor_lat + (anchor_row - ulline) * dy);
+                lllon = urlon - nx * dx;
+                lllat = urlat - ny * dy;
+
+                clon = (lllon + urlon) / 2;
+
+                double scaled_re_in_km = unscaled_earth_radius
+                        / Math.pow(10.0, earth_radius_scale);
+                re = (int) (scaled_re_in_km) * 1000;
+
+                /*
+                 * Need to recalculate dx/dy in a meter spacing since it will be
+                 * used with an Equidistant Cylindrical CRS.
+                 */
+                DefaultEllipsoid ellipsoid = DefaultEllipsoid.createEllipsoid(
+                        "Mcidas", re, re, SI.METER);
+                dx = (float) ellipsoid.orthodromicDistance(clon, 0, clon + dx,
+                        0);
+                dy = (float) ellipsoid.orthodromicDistance(clon, 0, clon, dy);
+
             } else if (iproj == 7585) {
                 // native satellite projections ( not remapped )
                 proj = navtyp;
@@ -616,7 +710,7 @@ public class McidasDecoder extends AbstractDecoder {
              */
             McidasMapCoverage mapCoverage = null;
             try {
-                if (iproj <= 5) {
+                if (iproj <= 7) {
                     mapCoverage = McidasSpatialFactory.getInstance()
                             .getMapCoverage(iproj, nx, ny, dx, dy, clon,
                                     stdlat1, stdlat2, lllat, lllon, urlat,
@@ -629,7 +723,7 @@ public class McidasDecoder extends AbstractDecoder {
                 }
             } catch (Exception e) {
                 StringBuffer buf = new StringBuffer();
-                if (iproj <= 5) {
+                if (iproj <= 7) {
                     buf.append(
                             "Error getting or constructing SatMapCoverage for values: ")
                             .append("\n\t");

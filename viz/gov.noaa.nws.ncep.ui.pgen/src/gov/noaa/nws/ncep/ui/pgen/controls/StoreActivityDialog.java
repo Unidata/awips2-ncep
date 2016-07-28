@@ -26,6 +26,7 @@ import java.util.TimeZone;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -70,6 +71,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 04/14/2016   R13245      B. Yin      Changed reference time to 24 hour format.
  *                                      Added a drop down list for reference time.
  * 05/02/2016   R16076      J. Wu       change type/subtype/site/desk to pulldown menu.
+ * 07/28/2016   R17954      B. Yin      return CANCEL when Cancel button is pressed.
  * 
  * </pre>
  * 
@@ -395,6 +397,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         if (buttonId == SAVE_ID) {
             storeProducts();
         } else if (buttonId == CANCEL_ID) {
+            setReturnCode(Window.CANCEL);
             close();
         }
     }

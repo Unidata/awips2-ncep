@@ -1,5 +1,37 @@
 package gov.noaa.nws.ncep.ui.pgen.rsc;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.ISaveablePart2;
+import org.eclipse.ui.PlatformUI;
+
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.viz.core.drawables.IDescriptor;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
+import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.viz.ui.editor.AbstractEditor;
+import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
+import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
+import com.raytheon.viz.ui.tools.AbstractModalTool;
+import com.vividsolutions.jts.geom.Coordinate;
+
 import gov.noaa.nws.ncep.ui.pgen.Activator;
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenPreferences;
@@ -34,36 +66,7 @@ import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductManageDialog;
 import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenDrawingTool;
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
-
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
-import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.ui.editor.AbstractEditor;
-import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
-import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
-import com.raytheon.viz.ui.tools.AbstractModalTool;
-import com.vividsolutions.jts.geom.Coordinate;
+import gov.noaa.nws.ncep.viz.common.ISaveableResourceData;
 
 /**
  * Contains all the PGEN Products, layers, and Elements behind the PgenResource.
@@ -81,7 +84,12 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      ISaveablePart2 code.  Also modified it
  *                                      to return the return code of the dialog
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
+ * 07/28/2016   R17954      B. Yin      Close PGEN palette only in D2D.
+ *                                      Implemented ISaveableResourceData
  * 08/15/2016   R21066      J. Wu       Add switchLayer() for hot key handler.
+ * 11/30/2016   R17954      Bugenhagen  Keep track of total number of pgen resources
+ *                                      in session.  Modified cleanup method.
+ *                                      Always return resource data as dirty.
  * 
  * </pre>
  * 
@@ -90,8 +98,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
-public class PgenResourceData extends AbstractResourceData implements
-        CommandStackListener {
+public class PgenResourceData extends AbstractResourceData
+        implements CommandStackListener, ISaveableResourceData {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(PgenResourceData.class);
 
@@ -132,6 +140,11 @@ public class PgenResourceData extends AbstractResourceData implements
 
     private boolean needsDisplay = false;
 
+    /**
+     * Number of pgen resources for this resource data object. Not to be
+     * confused with the total number of pgen resources in a pgen session
+     * {@link PgenSession#getNumberOfSessionResources}.
+     */
     private int numberOfResources = 0;
 
     private ArrayList<PgenResource> rscList = new ArrayList<>();
@@ -141,9 +154,8 @@ public class PgenResourceData extends AbstractResourceData implements
         productList = new ArrayList<>();
         commandMgr = new PgenCommandManager();
         commandMgr.addStackListener(this);
-        recoveryFilename = PgenUtil.RECOVERY_PREFIX
-                + System.currentTimeMillis() + "." + this.hashCode()
-                + PgenUtil.RECOVERY_POSTFIX;
+        recoveryFilename = PgenUtil.RECOVERY_PREFIX + System.currentTimeMillis()
+                + "." + this.hashCode() + PgenUtil.RECOVERY_POSTFIX;
         initializeProducts();
     }
 
@@ -159,6 +171,7 @@ public class PgenResourceData extends AbstractResourceData implements
     public PgenResource construct(LoadProperties loadProperties,
             IDescriptor descriptor) throws VizException {
         numberOfResources++;
+        PgenSession.getInstance().bumpNumberOfSessionResources();
         PgenResource rsc = new PgenResource(this, loadProperties);
         rscList.add(rsc);
         return rsc;
@@ -271,10 +284,11 @@ public class PgenResourceData extends AbstractResourceData implements
             productManageDlg.close();
         }
 
-        if (!activeProduct.getName().equalsIgnoreCase(
-                PgenConstant.GENERAL_DEFAULT)
-                || !activeProduct.getType().equalsIgnoreCase(
-                        PgenConstant.GENERAL_DEFAULT) || productList.size() > 1) {
+        if (!activeProduct.getName()
+                .equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
+                || !activeProduct.getType()
+                        .equalsIgnoreCase(PgenConstant.GENERAL_DEFAULT)
+                || productList.size() > 1) {
 
             activeProduct.setOnOff(true);
 
@@ -492,7 +506,8 @@ public class PgenResourceData extends AbstractResourceData implements
                 && productList.get(0).getLayers().size() == 1
                 && productList.get(0).getLayers().get(0).getName()
                         .equals("Default")
-                && productList.get(0).getLayers().get(0).getDrawables().size() == 0) {
+                && productList.get(0).getLayers().get(0).getDrawables()
+                        .size() == 0) {
 
             if (prds != null && prds.size() > 0) {
                 productList.clear();
@@ -741,20 +756,30 @@ public class PgenResourceData extends AbstractResourceData implements
     public synchronized void cleanup() {
 
         closeDialogs();
-        PgenSession.getInstance().closePalette();
 
         numberOfResources--;
         if (numberOfResources != 0) {
             return; // not ready yet
-
         }
+
+        int numResourcesinSession = PgenSession.getInstance()
+                .getNumberOfSessionResources();
+
+        // if not multi-mode or only one resource remaining in session,
+        // close palette
+        if (PgenUtil.getPgenMode() != PgenMode.MULTIPLE
+                || numResourcesinSession == 1) {
+            PgenSession.getInstance().closePalette();
+        }
+
+        // decrement number of session resources
+        PgenSession.getInstance()
+                .setNumberOfSessionResources(--numResourcesinSession);
 
         commandMgr.flushStacks();
         commandMgr.removeStackListener(this);
 
-        /*
-         * remove Temp recovery file
-         */
+        // remove temp recovery file
         removeTempFile();
 
         if (autosave) {
@@ -850,14 +875,14 @@ public class PgenResourceData extends AbstractResourceData implements
              */
             int lastind = filename.lastIndexOf("/");
             if (lastind < 0) {
-                filename = new String(PgenUtil.getWorkingDirectory() + filename);
+                filename = new String(
+                        PgenUtil.getWorkingDirectory() + filename);
             }
 
             String dlftPrdSaveDir;
             if (filename.endsWith(".xml")) {
-                dlftPrdSaveDir = new String(filename.substring(0,
-                        filename.length() - 4)
-                        + "_post");
+                dlftPrdSaveDir = new String(
+                        filename.substring(0, filename.length() - 4) + "_post");
             } else {
                 dlftPrdSaveDir = new String(filename + "_post");
             }
@@ -911,26 +936,25 @@ public class PgenResourceData extends AbstractResourceData implements
                 // configured save
                 Products singlePrd = ProductConverter.convert(onePrd);
                 if (givenPrdSaveDir != null) {
-                    String outpf = new String(givenPrdSaveDir + "/"
-                            + prd.getName() + ".xml");
+                    String outpf = new String(
+                            givenPrdSaveDir + "/" + prd.getName() + ".xml");
                     if (givenPrdSaveFile != null) {
-                        outpf = new String(givenPrdSaveDir + "/"
-                                + givenPrdSaveFile);
+                        outpf = new String(
+                                givenPrdSaveDir + "/" + givenPrdSaveFile);
                     }
 
                     FileTools.write(outpf, singlePrd);
                 } else {
                     if (givenPrdSaveFile != null) {
-                        String outpf = new String(
-                                PgenUtil.getWorkingDirectory() + "/"
-                                        + givenPrdSaveFile);
+                        String outpf = new String(PgenUtil.getWorkingDirectory()
+                                + "/" + givenPrdSaveFile);
                         FileTools.write(outpf, singlePrd);
                     }
                 }
 
                 // Forced save
-                String defaultPrdFile = new String(dlftPrdSaveDir + "/"
-                        + prd.getName() + ".xml");
+                String defaultPrdFile = new String(
+                        dlftPrdSaveDir + "/" + prd.getName() + ".xml");
 
                 if (postSave || prd.isSaveLayers()) {
 
@@ -946,9 +970,9 @@ public class PgenResourceData extends AbstractResourceData implements
                         onePrd.clear();
                         onePrd.add(backupPrd);
 
-                        String outlyrfile = new String(dlftPrdSaveDir + "/"
-                                + prd.getName() + "_post/" + lyr.getName()
-                                + ".xml");
+                        String outlyrfile = new String(
+                                dlftPrdSaveDir + "/" + prd.getName() + "_post/"
+                                        + lyr.getName() + ".xml");
 
                         Products oneLayerPrd = ProductConverter.convert(onePrd);
                         FileTools.write(outlyrfile, oneLayerPrd);
@@ -960,9 +984,8 @@ public class PgenResourceData extends AbstractResourceData implements
                             if (givenPrdSaveFile != null) {
                                 String pname = givenPrdSaveFile.substring(0,
                                         givenPrdSaveFile.length() - 4);
-                                outpf = new String(givenPrdSaveDir + "/"
-                                        + pname + "_post/" + lyr.getName()
-                                        + ".xml");
+                                outpf = new String(givenPrdSaveDir + "/" + pname
+                                        + "_post/" + lyr.getName() + ".xml");
                             } else {
                                 outpf = new String(givenPrdSaveDir + "/"
                                         + prd.getName() + "_post/"
@@ -1006,8 +1029,8 @@ public class PgenResourceData extends AbstractResourceData implements
              */
             String infile = null;
             String outfile = null;
-            String oneFile = filename
-                    .substring(0, filename.lastIndexOf(".xml"));
+            String oneFile = filename.substring(0,
+                    filename.lastIndexOf(".xml"));
 
             for (Product prd : prds) {
                 prd.setUseFile(true);
@@ -1107,7 +1130,8 @@ public class PgenResourceData extends AbstractResourceData implements
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
 
         // convert minutes to milliseconds
-        autosaveInterval = prefs.getLong(PgenPreferences.P_AUTO_FREQ) * 60 * 1000;
+        autosaveInterval = prefs.getLong(PgenPreferences.P_AUTO_FREQ) * 60
+                * 1000;
 
         // Write out a temporary recovery file
         recoverySave();
@@ -1141,15 +1165,19 @@ public class PgenResourceData extends AbstractResourceData implements
 
         int returnCode = 0;
 
-        // Create SWT image of the editor pane
-        ImageData tmpdata = SymbolImageUtil.convertToSWT(paneImage);
-        ImageData idata = tmpdata.scaledTo(tmpdata.width / 2,
-                tmpdata.height / 2);
-        Image im = new Image(PlatformUI.getWorkbench().getDisplay(), idata);
+        Image im = null;
+        if (paneImage != null) {
+            // Create SWT image of the editor pane
+            ImageData tmpdata = SymbolImageUtil.convertToSWT(paneImage);
+            ImageData idata = tmpdata.scaledTo(tmpdata.width / 2,
+                    tmpdata.height / 2);
+            im = new Image(PlatformUI.getWorkbench().getDisplay(), idata);
+        }
 
         // Display confirmation dialog
-        PgenRemindDialog confirmDlg = new PgenRemindDialog(PlatformUI
-                .getWorkbench().getActiveWorkbenchWindow().getShell(), im);
+        PgenRemindDialog confirmDlg = new PgenRemindDialog(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                im);
 
         confirmDlg.open();
         returnCode = confirmDlg.getReturnCode();
@@ -1195,9 +1223,9 @@ public class PgenResourceData extends AbstractResourceData implements
                 prds.clear();
                 prds.add(backupPrd);
 
-                String outlyrfile = new String(filename.substring(0,
-                        filename.length() - 4)
-                        + "." + lyr.getName() + ".xml");
+                String outlyrfile = new String(
+                        filename.substring(0, filename.length() - 4) + "."
+                                + lyr.getName() + ".xml");
 
                 Products oneLayerPrd = ProductConverter.convert(prds);
                 FileTools.write(outlyrfile, oneLayerPrd);
@@ -1379,7 +1407,8 @@ public class PgenResourceData extends AbstractResourceData implements
                 && productList.get(0).getLayers().size() == 1
                 && productList.get(0).getLayers().get(0).getName()
                         .equals("Default")
-                && productList.get(0).getLayers().get(0).getDrawables().size() == 0) {
+                && productList.get(0).getLayers().get(0).getDrawables()
+                        .size() == 0) {
             remove = true;
         }
 
@@ -1399,6 +1428,32 @@ public class PgenResourceData extends AbstractResourceData implements
             productManageDlg.switchLayer(layerName);
         } else if (layeringControlDlg != null && layeringControlDlg.isOpen()) {
             layeringControlDlg.switchLayer(layerName);
+        }
+    }
+
+    @Override
+    public boolean isResourceDataDirty() {
+        return true;
+    }
+
+    @Override
+    public int promptToSaveOnCloseResourceData() {
+        if ((PgenUtil.getPgenMode() == PgenMode.MULTIPLE)
+                && (PgenSession.getInstance().getPgenPalette() != null)
+                || ((PgenUtil.getPgenMode() == PgenMode.SINGLE && PgenSession
+                        .getInstance().getPgenResourceData() == this))) {
+            return PgenSession.getInstance().getPgenPalette()
+                    .promptToSaveOnClose();
+        } else {
+            return ISaveablePart2.DEFAULT;
+        }
+
+    }
+
+    @Override
+    public void doSaveResourceData(IProgressMonitor monitor) {
+        if (PgenSession.getInstance().getPgenPalette() != null) {
+            PgenSession.getInstance().getPgenPalette().doSave(monitor);
         }
     }
 

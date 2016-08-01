@@ -61,6 +61,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
  * 05/25/2016   R17940      J. Wu       Re-work on mouseDown & mouseUp actions.
  * 06/01/2016   R18387      B. Yin      Open line dialog in activateTool().
+ * 06/13/2016   R10233      J. Wu       Retain flags from previous PgenSelectHandler.
+ * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 
  * </pre>
  * 
@@ -128,6 +130,17 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             if (de instanceof Contours) {
                 elem = (Contours) de;
                 this.setPgenSelectHandler();
+
+                // Retain flags from previous PgenSelectHandler.
+                if (event.getApplicationContext() instanceof PgenSelectHandler) {
+                    ((PgenSelectHandler) this.getMouseHandler())
+                            .setPreempt(((PgenSelectHandler) event
+                                    .getApplicationContext()).isPreempt());
+                    ((PgenSelectHandler) this.getMouseHandler())
+                            .setDontMove(((PgenSelectHandler) event
+                                    .getApplicationContext()).isDontMove());
+                }
+
                 PgenSession.getInstance().getPgenPalette()
                         .setActiveIcon(PgenConstant.ACTION_SELECT);
             } else {
@@ -198,6 +211,9 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             // Set focus on label input box.
             if (attrDlg != null) {
                 ((ContoursAttrDlg) attrDlg).setLabelFocus();
+                if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -244,7 +260,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          */
         @Override
         public boolean handleMouseUp(int anX, int aY, int button) {
-            if (!isResourceEditable())
+            if (!isResourceEditable() || shiftDown)
                 return false;
 
             if (button == 3) {
@@ -295,6 +311,9 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
             if (attrDlg != null) {
                 ((ContoursAttrDlg) attrDlg).setLabelFocus();
+                if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                    return false;
+                }
             }
 
             // Draw a ghost contour min/max
@@ -467,6 +486,14 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             if (!isResourceEditable() || shiftDown) {
                 return false;
             } else {
+                if (attrDlg != null) {
+                    ((ContoursAttrDlg) attrDlg).setLabelFocus();
+                    if (((ContoursAttrDlg) attrDlg)
+                            .isShiftDownInContourDialog()) {
+                        return false;
+                    }
+                }
+
                 return true;
             }
         }

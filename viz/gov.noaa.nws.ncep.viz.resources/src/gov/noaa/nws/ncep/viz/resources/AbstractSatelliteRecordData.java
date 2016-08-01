@@ -8,7 +8,7 @@ import java.util.List;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.opengis.geometry.Envelope;
 
-import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
+import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.geospatial.util.EnvelopeIntersection;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -35,13 +35,16 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
  * Date         Ticket#     Engineer     Description
  * ------------ ----------  -----------  --------------------------
  * 11/30/2015   R13133      kbugenhagen  Initial creation.
+ * 06/01/2016   R18511      kbugenhagen  Changes for satellite viz resource 
+ *                                       refactoring.
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1.0
+ * @param <S>
+ *            data record
  */
-
-public abstract class AbstractSatelliteRecordData<S extends PersistablePluginDataObject> {
+public abstract class AbstractSatelliteRecordData<S extends IPersistable> {
 
     protected static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(AbstractSatelliteRecordData.class);
@@ -100,8 +103,7 @@ public abstract class AbstractSatelliteRecordData<S extends PersistablePluginDat
                                 (int) (tileSetEnvelope.getSpan(1) / (resolution * intersectionFactor)));
                 if (intersection != null) {
                     int numGeoms = intersection.getNumGeometries();
-                    targetIntersection = new ArrayList<PreparedGeometry>(
-                            numGeoms);
+                    targetIntersection = new ArrayList<>(numGeoms);
                     for (int n = 0; n < numGeoms; ++n) {
                         targetIntersection.add(PreparedGeometryFactory
                                 .prepare(intersection.getGeometryN(n).buffer(
@@ -132,7 +134,7 @@ public abstract class AbstractSatelliteRecordData<S extends PersistablePluginDat
         }
     }
 
-    protected S getRecord() {
+    public S getRecord() {
         return record;
     }
 

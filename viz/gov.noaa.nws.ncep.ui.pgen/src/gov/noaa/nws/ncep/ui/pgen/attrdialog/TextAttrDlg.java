@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.IText;
@@ -62,6 +63,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/15        R8903       J. Lopez        Creates a pop up if the text field is left blank
  * 08/15        R8553       B. Yin          Remember last text per box type
  * 12/22/2015   R13545      K. Bugenhagen   Remember all attributes per box type
+ * 06/30/2016   R17980      B. Yin          Fixed error dialog issue in multi-select mode.
  * </pre>
  * 
  * @author J. Wu
@@ -1298,8 +1300,14 @@ public class TextAttrDlg extends AttrDlg implements IText {
         /*
          * An error will pop up if the user leaves the text field blank. This
          * prevents errors in DisplayElementsFactory.java when bounds is null
+         * Don't open error dialog in multi-select mode when checkbox is 
+         * unchecked.
          */
-        if (text.getText().length() == 0 || text.getText().matches("^[ \n]*$")) {
+        if (!(PgenSession.getInstance().getPgenPalette().getCurrentAction()
+                .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT) && !chkBox[ChkBox.TEXT
+                .ordinal()].getSelection())
+                && (text.getText().length() == 0 || text.getText().matches(
+                        "^[ \n]*$"))) {
 
             MessageDialog.openError(null, "Warning!", "No text entered");
 

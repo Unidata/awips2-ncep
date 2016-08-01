@@ -14,7 +14,6 @@ import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 
 import java.awt.Rectangle;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -104,6 +103,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/19/2012   #960       Greg Hull   override propertiesChanged() to update colorBar.
  * 06/10/2013   #999       Greg Hull   RadarRecords from RadarFrameData, rm interrogator
  * 06/30/2014    3165      njensen     Use ColorMapLoader to get ColorMap
+ * 06/15/2016   R19647     bsteffen    Remove unused reference to RadarTileSet, formatting, and cleanup.
  * 
  * </pre>
  * 
@@ -112,7 +112,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 
 public abstract class RadarImageResource<D extends IDescriptor> extends
-		AbstractRadarResource<D>  implements IMeshCallback, IRangeableResource, IResourceDataChanged {
+        AbstractRadarResource<D> implements IMeshCallback, IRangeableResource,
+        IResourceDataChanged {
     protected static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(RadarImageResource.class);
 
@@ -122,185 +123,180 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
     // a map from the time of the radar record to the image
     // TODO : move DrawableImage to a member of ImageRadarFrameData.
-    protected Map<DataTime, DrawableImage> images = new ConcurrentHashMap<DataTime, DrawableImage>();
-    
-    protected RadarTileSet baseTile;
-    
+    protected Map<DataTime, DrawableImage> images = new ConcurrentHashMap<>();
+
     private ColorMapParameters colorMapParameters = null;
-    
+
     protected ColorBarResource cbarResource;
-    protected ResourcePair     cbarRscPair;
-    
+
+    protected ResourcePair cbarRscPair;
+
     protected boolean refreshImage = false;
-   
+
     /**
      * @param resourceData
      * @param loadProperties
      * @throws VizException
      */
-    protected RadarImageResource(RadarResourceData resourceData, LoadProperties loadProperties)
-            throws VizException {
+    protected RadarImageResource(RadarResourceData resourceData,
+            LoadProperties loadProperties) throws VizException {
         super(resourceData, loadProperties);
-        rangeCircle = new HashMap<Float, IWireframeShape>();
-    	refreshImage = false;
+        rangeCircle = new HashMap<>();
+        refreshImage = false;
     }
-    
+
     // TODO : add/move DrawableImage here too
     protected class RadarImageFrameData extends RadarFrameData {
 
-		public RadarImageFrameData(DataTime time, int interval) {
-			super(time, interval);	
-		}
+        public RadarImageFrameData(DataTime time, int interval) {
+            super(time, interval);
+        }
 
-		@Override
-        public boolean updateFrameData( IRscDataObject rscDataObj ) {
+        @Override
+        public boolean updateFrameData(IRscDataObject rscDataObj) {
 
-			super.updateFrameData(rscDataObj);
+            super.updateFrameData(rscDataObj);
 
-			try{
-				setColorMapParameters( getRadarRecord() );
-			}
-			catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (StorageException e) {
-				e.printStackTrace();
-			} catch (VizException e) {
-				e.printStackTrace();
-			}
-			return true;
-		}
-		
-		@Override
+            try {
+                setColorMapParameters(getRadarRecord());
+            } catch (VizException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
         public void dispose() {
-//			if( tileSet != baseTile && tileSet != null ) {
-//				tileSet.dispose();
-//				tileSet = null;
-//			}
-			}
-		}
+
+        }
+    }
 
     @Override
-	protected AbstractFrameData createNewFrame( DataTime frameTime, int frameInterval) {
-		return new RadarImageFrameData(frameTime, frameInterval );
-	}
-    
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int frameInterval) {
+        return new RadarImageFrameData(frameTime, frameInterval);
+    }
+
     @SuppressWarnings("unchecked")
-	private void setColorMapParameters(VizRadarRecord radarRecord) throws FileNotFoundException, StorageException, VizException {
+    private void setColorMapParameters(VizRadarRecord radarRecord)
+            throws VizException {
 
-    	// TODO : replace this with call to VizRadarRecord
-//		dataStore = radarRecord.getStoredData();
-//		File loc = HDF5Util.findHDF5Location(radarRecord);
-//
-//		IDataStore dataStore = DataStoreFactory.getDataStore(loc);
-//
-//		RadarDataRetriever.populateRadarRecord(dataStore, radarRecord);
-		// Don't need the store for the units
-		Unit<?> dataUnit = null;
-		if (radarRecord.getUnit() != null) {
-			try {
-				dataUnit = UnitFormat.getUCUMInstance().parseProductUnit(
-						radarRecord.getUnit(), new ParsePosition(0));
-			} catch (ParseException e) {
-				throw new VizException("Unable to parse units ", e);
-			}
-		} else {
-			dataUnit = Unit.ONE;
-		}
-		int numLevels = radarRecord.getNumLevels();
-		Object[] thresholds = radarRecord.getDecodedThresholds();
-		DataMappingPreferences dmPref = new DataMappingPreferences();
-		DataMappingEntry dmEntry;
-		List<DataMappingEntry> dmEntriesList = new ArrayList<DataMappingEntry>(0);		
-		if (numLevels <= 16) {
-			ArrayList<Integer> pixel = new ArrayList<Integer>();
-			ArrayList<Float> real = new ArrayList<Float>();
-			for (int i = 0; i < numLevels; i++) {
-				dmEntry = new DataMappingEntry();
-			    dmEntry.setPixelValue(new Double(i));				
-				if (thresholds[i] instanceof Float) {
-					pixel.add(i);
-					real.add((Float) thresholds[i]);
-					dmEntry.setDisplayValue(((Float)thresholds[i]).doubleValue());
-					dmEntry.setLabel(((Float)thresholds[i]).toString());					
-				}else{
-					   dmEntry.setDisplayValue(Double.NaN);
-					   
-					   if ( ((String)thresholds[i]).compareToIgnoreCase("NO DATA") == 0 ){
-						    dmEntry.setLabel("ND");
-					   }else
-						   dmEntry.setLabel((String)thresholds[i]);
-				}
-				
-			    dmEntriesList.add(dmEntry);
-			}
+        // TODO : replace this with call to VizRadarRecord
+        // dataStore = radarRecord.getStoredData();
+        // File loc = HDF5Util.findHDF5Location(radarRecord);
+        //
+        // IDataStore dataStore = DataStoreFactory.getDataStore(loc);
+        //
+        // RadarDataRetriever.populateRadarRecord(dataStore, radarRecord);
+        // Don't need the store for the units
+        Unit<?> dataUnit = null;
+        if (radarRecord.getUnit() != null) {
+            try {
+                dataUnit = UnitFormat.getUCUMInstance().parseProductUnit(
+                        radarRecord.getUnit(), new ParsePosition(0));
+            } catch (ParseException e) {
+                throw new VizException("Unable to parse units ", e);
+            }
+        } else {
+            dataUnit = Unit.ONE;
+        }
+        int numLevels = radarRecord.getNumLevels();
+        Object[] thresholds = radarRecord.getDecodedThresholds();
+        DataMappingPreferences dmPref = new DataMappingPreferences();
+        DataMappingEntry dmEntry;
+        List<DataMappingEntry> dmEntriesList = new ArrayList<>(0);
+        if (numLevels <= 16) {
+            ArrayList<Integer> pixel = new ArrayList<>();
+            ArrayList<Float> real = new ArrayList<>();
+            for (int i = 0; i < numLevels; i++) {
+                dmEntry = new DataMappingEntry();
+                dmEntry.setPixelValue(new Double(i));
+                if (thresholds[i] instanceof Float) {
+                    pixel.add(i);
+                    real.add((Float) thresholds[i]);
+                    dmEntry.setDisplayValue(((Float) thresholds[i])
+                            .doubleValue());
+                    dmEntry.setLabel(((Float) thresholds[i]).toString());
+                } else {
+                    dmEntry.setDisplayValue(Double.NaN);
 
-			double[] pix = new double[pixel.size()];
-			int i = 0;
-			for (Integer p : pixel) {
-				pix[i++] = p;
-			}
+                    if (((String) thresholds[i]).compareToIgnoreCase("NO DATA") == 0) {
+                        dmEntry.setLabel("ND");
+                    } else
+                        dmEntry.setLabel((String) thresholds[i]);
+                }
 
-			double[] std = new double[real.size()];
-			i = 0;
-			for (Float r : real) {
-				std[i++] = r;
-			}
+                dmEntriesList.add(dmEntry);
+            }
 
-			dataUnit = new PiecewisePixel(dataUnit, pix, std);
-		} else {
-			double offset = radarRecord.getThreshold(0);
-			double scale = radarRecord.getThreshold(1);
-			offset -= 2 * scale;
-			double[] pix = { 2, 255 };
-			double[] data = { 2 * scale + offset, 255 * scale + offset };
-			dataUnit = new PiecewisePixel(dataUnit, pix, data);
-		}
+            double[] pix = new double[pixel.size()];
+            int i = 0;
+            for (Integer p : pixel) {
+                pix[i++] = p;
+            }
 
-		ColorMap colorMap;
-		try {
-			colorMap = (ColorMap) ColorMapUtil.loadColorMap( 
-					((RadarResourceData)resourceData).getResourceName().getRscCategory().getCategoryName(), 
-					((RadarResourceData)resourceData).getColorMapName() );
-		} catch (VizException e) {
-			throw new VizException("Error loading colormap: "+ ((RadarResourceData)resourceData).getColorMapName() );
-		}
+            double[] std = new double[real.size()];
+            i = 0;
+            for (Float r : real) {
+                std[i++] = r;
+            }
 
-		ColorBarFromColormap colorBar = ((RadarResourceData)resourceData).getColorBar();
+            dataUnit = new PiecewisePixel(dataUnit, pix, std);
+        } else {
+            double offset = radarRecord.getThreshold(0);
+            double scale = radarRecord.getThreshold(1);
+            offset -= 2 * scale;
+            double[] pix = { 2, 255 };
+            double[] data = { 2 * scale + offset, 255 * scale + offset };
+            dataUnit = new PiecewisePixel(dataUnit, pix, data);
+        }
 
-		colorBar.setColorMap( colorMap );
+        ColorMap colorMap;
+        try {
+            colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
+                    .getResourceName().getRscCategory().getCategoryName(),
+                    resourceData.getColorMapName());
+        } catch (VizException e) {
+            throw new VizException("Error loading colormap: "
+                    + resourceData.getColorMapName());
+        }
 
-		colorMapParameters = new ColorMapParameters();
-		colorMapParameters.setColorMap( colorMap );
+        ColorBarFromColormap colorBar = resourceData.getColorBar();
 
-		if (colorMapParameters.getDisplayUnit() == null) {
-			colorMapParameters.setDisplayUnit(dataUnit);
-		}
+        colorBar.setColorMap(colorMap);
 
-		colorMapParameters.setColorMapMax(255);
-		colorMapParameters.setColorMapMin(0);
-		colorMapParameters.setDataMax(255);
-		colorMapParameters.setDataMin(0);
-		// set in the capability not in the radar record.
-		//radarRecord.params  = colorMapParameters;
-		getCapability(ColorMapCapability.class).setColorMapParameters(
-				colorMapParameters);
-		if ( dmEntriesList.size() > 0 ){
-		    DataMappingEntry[] dmEntryArray = new DataMappingEntry[dmEntriesList.size()];
-		    dmEntriesList.toArray(dmEntryArray);
- 		    dmPref.setSerializableEntries(dmEntryArray);
- 		    ImagePreferences imgPref = new ImagePreferences();
- 		    imgPref.setDataMapping(dmPref);
- 		    SamplePreferences sampPref = new SamplePreferences();
- 		    sampPref.setMinValue(0);
- 		    sampPref.setMaxValue(255);
- 		    imgPref.setSamplePrefs(sampPref);	
- 		    colorBar.setImagePreferences(imgPref);
- 		    colorBar.setDisplayUnitStr(radarRecord.getUnit());
- 		    colorBar.setAlignLabelInTheMiddleOfInterval(true);
- 		    this.cbarResource.getResourceData().setColorBar(colorBar);
-		}		
-	}
-    
+        colorMapParameters = new ColorMapParameters();
+        colorMapParameters.setColorMap(colorMap);
+
+        if (colorMapParameters.getDisplayUnit() == null) {
+            colorMapParameters.setDisplayUnit(dataUnit);
+        }
+
+        colorMapParameters.setColorMapMax(255);
+        colorMapParameters.setColorMapMin(0);
+        colorMapParameters.setDataMax(255);
+        colorMapParameters.setDataMin(0);
+        // set in the capability not in the radar record.
+        // radarRecord.params = colorMapParameters;
+        getCapability(ColorMapCapability.class).setColorMapParameters(
+                colorMapParameters);
+        if (dmEntriesList.size() > 0) {
+            DataMappingEntry[] dmEntryArray = new DataMappingEntry[dmEntriesList
+                    .size()];
+            dmEntriesList.toArray(dmEntryArray);
+            dmPref.setSerializableEntries(dmEntryArray);
+            ImagePreferences imgPref = new ImagePreferences();
+            imgPref.setDataMapping(dmPref);
+            SamplePreferences sampPref = new SamplePreferences();
+            sampPref.setMinValue(0);
+            sampPref.setMaxValue(255);
+            imgPref.setSamplePrefs(sampPref);
+            colorBar.setImagePreferences(imgPref);
+            colorBar.setDisplayUnitStr(radarRecord.getUnit());
+            colorBar.setAlignLabelInTheMiddleOfInterval(true);
+            this.cbarResource.getResourceData().setColorBar(colorBar);
+        }
+    }
 
     @Override
     protected void disposeInternal() {
@@ -316,33 +312,34 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             disposeImage(image);
         }
         images.clear();
-        if( cbarResource.getResourceData().getColorbar() != null ){
-        	cbarResource.getResourceData().getColorbar().dispose();
-        	cbarResource.getResourceData().setColorBar(null);
+        if (cbarResource.getResourceData().getColorbar() != null) {
+            cbarResource.getResourceData().getColorbar().dispose();
+            cbarResource.getResourceData().setColorBar(null);
         }
-        
+
         issueRefresh();
     }
 
     @Override
-	public void initResource(IGraphicsTarget target) throws VizException {
+    public void initResource(IGraphicsTarget target) throws VizException {
 
-        // create the colorBar Resource and add it to the resourceList for this descriptor.
-        cbarRscPair  = ResourcePair.constructSystemResourcePair( 
-		           new ColorBarResourceData( ((RadarResourceData)resourceData).getColorBar() ) );
+        /*
+         * create the colorBar Resource and add it to the resourceList for this
+         * descriptor.
+         */
+        cbarRscPair = ResourcePair
+                .constructSystemResourcePair(new ColorBarResourceData(
+                        resourceData.getColorBar()));
 
-        getDescriptor().getResourceList().add(  cbarRscPair );
-        getDescriptor().getResourceList().instantiateResources( getDescriptor(), true );
+        getDescriptor().getResourceList().add(cbarRscPair);
+        getDescriptor().getResourceList().instantiateResources(getDescriptor(),
+                true);
 
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
-        
-        if (this.baseTile != null) {
-            this.baseTile.init(target);
-        }
-        
-        queryRecords();        
-	}
-    
+
+        queryRecords();
+    }
+
     /**
      * Create the radar tile given the tileRecord to populate and a RadarRecord
      * with all data populated
@@ -358,18 +355,19 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
     protected void createTile(IGraphicsTarget target,
             VizRadarRecord populatedRecord) throws StorageException,
             IOException, ClassNotFoundException, VizException {
-    	
-    	ColorMapParameters params = getColorMapParameters(target, populatedRecord);
-    	
+
+        ColorMapParameters params = getColorMapParameters(target,
+                populatedRecord);
+
         PixelCoverage coverage = buildCoverage(target, populatedRecord);
         if (coverage.getMesh() == null) {
             coverage.setMesh(buildMesh(target, populatedRecord));
         }
-       
+
         IImage image = createImage(target, params, populatedRecord,
                 new Rectangle(0, 0, populatedRecord.getNumBins(),
                         populatedRecord.getNumRadials()));
-        DrawableImage dImage = images.put( populatedRecord.getDataTime(),
+        DrawableImage dImage = images.put(populatedRecord.getDataTime(),
                 new DrawableImage(image, coverage));
         if (dImage != null) {
             disposeImage(dImage);
@@ -388,7 +386,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             RadarRecord record) throws VizException {
         ColorMapParameters params = getCapability(ColorMapCapability.class)
                 .getColorMapParameters();
-    
+
         String colorMapName = "";
         IColorMap colorMap = null;
         float cMapMax = 255;
@@ -398,21 +396,20 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         } else if (params != null) {
             colorMapName = params.getColorMapName();
             colorMap = params.getColorMap();
-            //if colorMap range has changed, get updated max and min
+            // if colorMap range has changed, get updated max and min
             if (refreshImage) {
-	            cMapMax = params.getColorMapMax();
-	            cMapMin = params.getColorMapMin();
+                cMapMax = params.getColorMapMax();
+                cMapMin = params.getColorMapMin();
             }
         }
-             
+
         // Setup the ColorMap settings
         int prodCode = record.getProductCode();
         Unit<?> dataUnit = DataUtilities.getDataUnit(record);
 
         try {
             params = ColorMapParameterFactory.build((Object) null, ""
-                    + prodCode, dataUnit, null,
-                    ((RadarResourceData) resourceData).mode);
+                    + prodCode, dataUnit, null, resourceData.mode);
         } catch (StyleException e) {
             throw new VizException(e.getLocalizedMessage(), e);
         }
@@ -445,10 +442,10 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             params.setDataMapping(dataMapping);
             params.setColorBarIntervals(null);
         }
-        
+
         getCapability(ColorMapCapability.class).setColorMapParameters(params);
 
-        if (colorMap != null) {        	
+        if (colorMap != null) {
             params.setColorMap(colorMap);
             params.setColorMapName(colorMapName);
         }
@@ -460,7 +457,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             if (colorMapName == null) {
                 colorMapName = "Radar/OSF/16 Level Reflectivity";
             }
-         
+
             try {
                 params.setColorMap(ColorMapLoader.loadColorMap(colorMapName));
             } catch (ColorMapException e) {
@@ -470,10 +467,10 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         }
 
         params.setColorMapMax(cMapMax);
-	    params.setColorMapMin(cMapMin);
+        params.setColorMapMin(cMapMin);
         params.setDataMax(255);
         params.setDataMin(0);
-        
+
         return params;
     }
 
@@ -485,15 +482,17 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
      * .uf.viz.core.IGraphicsTarget,
      * com.raytheon.uf.viz.core.drawables.PaintProperties)
      */
-     @Override
-	protected void paintFrame(AbstractFrameData frameData,
-			   IGraphicsTarget target, PaintProperties paintProps ) throws VizException{
-	
+    @Override
+    protected void paintFrame(AbstractFrameData frameData,
+            IGraphicsTarget target, PaintProperties paintProps)
+            throws VizException {
+
         if ((paintProps == null) || (paintProps.getDataTime() == null)) {
             return;
         }
 
-        VizRadarRecord radarRecord =  ((RadarFrameData)getCurrentFrame()).getRadarRecord();
+        VizRadarRecord radarRecord = ((RadarFrameData) getCurrentFrame())
+                .getRadarRecord();
 
         if (radarRecord == null) {
             issueRefresh();
@@ -501,17 +500,18 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         }
 
         synchronized (this.images) {
-           
-        	DataTime imgTime = radarRecord.getDataTime();
-        	
-            this.actualLevel = String.format("%1.1f", radarRecord.getTrueElevationAngle());
+
+            DataTime imgTime = radarRecord.getDataTime();
+
+            this.actualLevel = String.format("%1.1f",
+                    radarRecord.getTrueElevationAngle());
 
             try {
-                DrawableImage image = images.get( imgTime );
+                DrawableImage image = images.get(imgTime);
                 if (refreshImage) {
-                	redoImage(imgTime);
-                	image = null;  
-                	images.clear();
+                    redoImage(imgTime);
+                    image = null;
+                    images.clear();
                 }
                 if (image == null || image.getCoverage() == null) {
                     if (radarRecord.getStoredDataAsync() == null) {
@@ -520,22 +520,23 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
                     }
                     createTile(target, radarRecord);
                     image = images.get(imgTime);
-                }               
+                }
 
                 if (image != null) {
-                	
-    	        	ImagingCapability imgCap = new ImagingCapability(); //getCapability(ImagingCapability.class);//
-    	        	imgCap.setBrightness(((RadarResourceData)resourceData).getBrightness());
-    	        	imgCap.setContrast(((RadarResourceData)resourceData).getContrast());
-    	        	imgCap.setAlpha(((RadarResourceData)resourceData).getAlpha());    	        	
-    	        	//((RadarResourceData)resourceData).fireChangeListeners(ChangeType.CAPABILITY, imgCap);
-    	        	
-    	        	image.getImage().setBrightness(((RadarResourceData)resourceData).getBrightness());
-    	        	image.getImage().setContrast(((RadarResourceData)resourceData).getContrast());
-    	        	image.getImage().setInterpolated(imgCap.isInterpolationState());
-    	        	
-    	        	paintProps.setAlpha(((RadarResourceData)resourceData).getAlpha());    	        	
-    	        	target.drawRasters(paintProps, image);
+
+                    ImagingCapability imgCap = new ImagingCapability(); // getCapability(ImagingCapability.class);//
+                    imgCap.setBrightness(resourceData.getBrightness());
+                    imgCap.setContrast(resourceData.getContrast());
+                    imgCap.setAlpha(resourceData.getAlpha());
+
+                    image.getImage()
+                            .setBrightness(resourceData.getBrightness());
+                    image.getImage().setContrast(resourceData.getContrast());
+                    image.getImage().setInterpolated(
+                            imgCap.isInterpolationState());
+
+                    paintProps.setAlpha(resourceData.getAlpha());
+                    target.drawRasters(paintProps, image);
                 }
 
                 if (image == null || image.getCoverage() == null
@@ -551,16 +552,16 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             }
         }
 
-    	refreshImage = false;   
+        refreshImage = false;
 
-        // Draw circle 
-        if (((RadarResourceData)resourceData).rangeRings) {
+        // Draw circle
+        if (resourceData.rangeRings) {
             IWireframeShape rangeCircle = this.rangeCircle.get(actualLevel);
 
             Float elev = 0.0f;
             if (radarRecord.getPrimaryElevationAngle() != null) {
                 elev = radarRecord.getPrimaryElevationAngle().floatValue();
-    }
+            }
             // create range circle
             rangeCircle = this.rangeCircle.get(elev);
             if (rangeCircle == null) {
@@ -575,8 +576,9 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
             if ((rangeCircle != null)
                     && (getCapability(OutlineCapability.class).isOutlineOn())) {
-                target.drawWireframeShape(rangeCircle,
-                		new RGB(0, 0, 0),//getCapability(ColorableCapability.class).getColor(),
+                target.drawWireframeShape(
+                        rangeCircle,
+                        new RGB(0, 0, 0),// getCapability(ColorableCapability.class).getColor(),
                         getCapability(OutlineCapability.class)
                                 .getOutlineWidth(),
                         getCapability(OutlineCapability.class).getLineStyle(),
@@ -587,7 +589,6 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         rrcap.setRangeableResource(this);
         rrcap.paint(target, paintProps);
     }
-
 
     /**
      * Shared by image and non-image
@@ -646,7 +647,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             if (imageUnit != null && dataUnit.isCompatible(imageUnit)) {
                 dataToImage = dataUnit.getConverterTo(imageUnit);
             } else if (imageUnit != null) {
-                dataUnit = DataUtilities.getDataUnit(record, ((RadarResourceData)resourceData).mode);
+                dataUnit = DataUtilities.getDataUnit(record, resourceData.mode);
                 if (dataUnit.isCompatible(imageUnit)) {
                     dataToImage = dataUnit.getConverterTo(imageUnit);
                 }
@@ -786,97 +787,84 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         if (image != null) {
             image.dispose();
         }
-    }    
-
-    // the colorBar and/or the colormap may have changed so update the 
-    // colorBarPainter and the colorMapParametersCapability which holds
-    // the instance of the colorMap that Raytheon's code needs
-	@Override
-	public void resourceAttrsModified() {
-		
-		// update the colorbarPainter with a possibly new colorbar
-    	ColorBarFromColormap colorBar = ((RadarResourceData)resourceData).getColorBar();
-
-    	cbarResource.setColorBar( colorBar );
-		    	    	
-    	ColorMapParameters cmapParams = getCapability(ColorMapCapability.class).getColorMapParameters();
-    	cmapParams.setColorMap( colorBar.getColorMap());
-    	cmapParams.setColorMapName( ((RadarResourceData)resourceData).getColorMapName() );
-    			
-    	getCapability(ColorMapCapability.class).setColorMapParameters( cmapParams );
-        refreshImage = true;
-        
-        // TODO : how to migrate this to to11dr11? Or do we still need to do this?
-        // baseTile.resourceChanged(ChangeType.CAPABILITY, this.getCapability( ColorMapCapability.class));
-	}
-
-    /*@Override
-    public void remove(DataTime dataTime) {
-        super.remove(dataTime);
-        final DrawableImage image = images.remove(dataTime);
-        if (image == null) {
-            return;
-        }
-        // Run this in the UI thread to avoid accidentally disposing of things
-        // that are painting. This is better than synchronizing because it makes
-        // it much more difficult to deadlock.
-        VizApp.runAsync(new Runnable() {
-            @Override
-            public void run() {
-                disposeImage(image);
-            }
-        });
-    }*/
-	
-	@Override
-    public void propertiesChanged(ResourceProperties updatedProps) {
-    	
-    	if( cbarRscPair != null ) {
-    		cbarRscPair.getProperties().setVisible( updatedProps.isVisible() );
-    	}
     }
 
+    // the colorBar and/or the colormap may have changed so update the
+    // colorBarPainter and the colorMapParametersCapability which holds
+    // the instance of the colorMap that Raytheon's code needs
+    @Override
+    public void resourceAttrsModified() {
 
-	@Override
-	public void resourceChanged(ChangeType type, Object object) {
-	
-        if ( type != null && type == ChangeType.CAPABILITY ){
-        	if (object instanceof ImagingCapability ){
-        		ImagingCapability imgCap = getCapability(ImagingCapability.class);
-           		ImagingCapability newImgCap = ( ImagingCapability ) object;
-        		imgCap.setBrightness(newImgCap.getBrightness(), false);
-        		imgCap.setContrast(newImgCap.getContrast(), false);
-        		imgCap.setAlpha(newImgCap.getAlpha(), false);
-        		((RadarResourceData)resourceData).setAlpha(  imgCap.getAlpha()  );
-        		((RadarResourceData)resourceData).setBrightness(  imgCap.getBrightness() );
-        		((RadarResourceData)resourceData).setContrast(  imgCap.getContrast() );
-        		issueRefresh();        		
-        	}
-        	else if (object instanceof ColorMapCapability ){
-        		
-        		ColorMapCapability colorMapCap = getCapability(ColorMapCapability.class);
-        		ColorMapCapability newColorMapCap = (ColorMapCapability) object;
-        		ColorMapParameters newColorMapParms = newColorMapCap.getColorMapParameters();
-        		                
-        		if (newColorMapParms != null) {        			
-	        		colorMapCap.setColorMapParameters(newColorMapParms, false);
-	        		ColorMap theColorMap = ( ColorMap ) colorMapCap.getColorMapParameters().getColorMap();
-	        		String colorMapName = colorMapCap.getColorMapParameters().getColorMapName();
-	        		((RadarResourceData)resourceData).setColorMapName( colorMapName );
-	        		((RadarResourceData)resourceData).getRscAttrSet().setAttrValue( "colorMapName", colorMapName );
-	        	    ColorBarFromColormap cBar = ((RadarResourceData)resourceData).getColorBar();
-	        	    cBar.setColorMap( theColorMap );
-	        	    ((RadarResourceData)resourceData).getRscAttrSet().setAttrValue( "colorBar", cBar );
-	        	    ((RadarResourceData)resourceData).setIsEdited( true );        	    
-	        	    
-	        	    refreshImage = true;
-	        		issueRefresh();
-        		}
-        	}
+        // update the colorbarPainter with a possibly new colorbar
+        ColorBarFromColormap colorBar = resourceData.getColorBar();
+
+        cbarResource.setColorBar(colorBar);
+
+        ColorMapParameters cmapParams = getCapability(ColorMapCapability.class)
+                .getColorMapParameters();
+        cmapParams.setColorMap(colorBar.getColorMap());
+        cmapParams.setColorMapName(resourceData.getColorMapName());
+
+        getCapability(ColorMapCapability.class).setColorMapParameters(
+                cmapParams);
+        refreshImage = true;
+
+        // TODO : how to migrate this to to11dr11? Or do we still need to do
+        // this?
+        // baseTile.resourceChanged(ChangeType.CAPABILITY, this.getCapability(
+        // ColorMapCapability.class));
+    }
+
+    @Override
+    public void propertiesChanged(ResourceProperties updatedProps) {
+
+        if (cbarRscPair != null) {
+            cbarRscPair.getProperties().setVisible(updatedProps.isVisible());
         }
-	}
+    }
 
-   
+    @Override
+    public void resourceChanged(ChangeType type, Object object) {
+
+        if (type != null && type == ChangeType.CAPABILITY) {
+            if (object instanceof ImagingCapability) {
+                ImagingCapability imgCap = getCapability(ImagingCapability.class);
+                ImagingCapability newImgCap = (ImagingCapability) object;
+                imgCap.setBrightness(newImgCap.getBrightness(), false);
+                imgCap.setContrast(newImgCap.getContrast(), false);
+                imgCap.setAlpha(newImgCap.getAlpha(), false);
+                resourceData.setAlpha(imgCap.getAlpha());
+                resourceData.setBrightness(imgCap.getBrightness());
+                resourceData.setContrast(imgCap.getContrast());
+                issueRefresh();
+            } else if (object instanceof ColorMapCapability) {
+
+                ColorMapCapability colorMapCap = getCapability(ColorMapCapability.class);
+                ColorMapCapability newColorMapCap = (ColorMapCapability) object;
+                ColorMapParameters newColorMapParms = newColorMapCap
+                        .getColorMapParameters();
+
+                if (newColorMapParms != null) {
+                    colorMapCap.setColorMapParameters(newColorMapParms, false);
+                    ColorMap theColorMap = (ColorMap) colorMapCap
+                            .getColorMapParameters().getColorMap();
+                    String colorMapName = colorMapCap.getColorMapParameters()
+                            .getColorMapName();
+                    resourceData.setColorMapName(colorMapName);
+                    resourceData.getRscAttrSet().setAttrValue("colorMapName",
+                            colorMapName);
+                    ColorBarFromColormap cBar = resourceData.getColorBar();
+                    cBar.setColorMap(theColorMap);
+                    resourceData.getRscAttrSet().setAttrValue("colorBar", cBar);
+                    resourceData.setIsEdited(true);
+
+                    refreshImage = true;
+                    issueRefresh();
+                }
+            }
+        }
+    }
+
     protected static class RadarImageDataRetrievalAdapter implements
             IColorMapDataRetrievalCallback {
 
@@ -885,11 +873,11 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         protected final byte[] table;
 
         protected Rectangle rect;
-        
+
         private final int hashCode;
 
         public RadarImageDataRetrievalAdapter(RadarRecord record, byte[] table,
-        		Rectangle rect) {
+                Rectangle rect) {
             this.record = record;
             this.table = table;
             this.rect = rect;
@@ -908,7 +896,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             return new ColorMapData(ByteBuffer.wrap(convertData()), new int[] {
                     rect.width, rect.height });
         }
-        
+
         public byte[] convertData() {
             return record.getRawData();
         }
@@ -917,7 +905,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
             // do nothing
             return false;
         }
-        
+
         @Override
         public int hashCode() {
             return hashCode;
@@ -944,4 +932,3 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
     }
 }
-

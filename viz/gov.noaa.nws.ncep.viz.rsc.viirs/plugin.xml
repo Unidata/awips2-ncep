@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
+<?eclipse version="3.2"?>
 <plugin>
    <extension
          point="com.raytheon.uf.viz.core.resource">
       <resource
-            class="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.ViirsResource"
+            class="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.ViirsSatResource"
             name="ViirsSatellite"
-            recordClass="com.raytheon.uf.common.dataplugin.npp.viirs.VIIRSDataRecord"
-            renderingOrderId="IMAGE_COUNTRY">
+            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            renderingOrderId="IMAGE_COUNTRY"
+            resourceType="PLAN_VIEW">
       </resource>
    </extension>
    <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-Resource">
       <nc-resource
             class="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.ViirsResourceData"
-            editDialogClass="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.EditViirsAttrsDialog"
+            editDialogClass="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.EditSatelliteAttrsDialog"
             name="ViirsSatellite">
       </nc-resource>
    </extension>
-   
-      <extension
+   <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-ResourceParameter">
+         
       <nc-resourceParameter
             paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
             paramName="colorBar"
@@ -28,7 +29,7 @@
             paramRefLocation="ncep/ColorBars/Satellite"
             ncResourceName="ViirsSatellite">
       </nc-resourceParameter>
-      
+            
       <nc-resourceParameter
             paramClass="String"
             paramName="colorMapName"
@@ -90,17 +91,28 @@
             paramName="resolution"
             defaultValue="VIIRS"
             paramType="EDITABLE_ATTRIBUTE">
-      </nc-resourceParameter> 
+      </nc-resourceParameter>                       
    </extension>
-
+   
+   <extension
+          point="com.raytheon.uf.viz.localization.localizationpath">
+       	<path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Style Rules"
+             recursive="true"
+             value="ncep/styleRules"
+	         extensionFilter=".xml">
+       </path>
+    </extension>
    <extension
       point="com.raytheon.viz.ui.contextualMenu">
       <contextualMenu
             actionClass="gov.noaa.nws.ncep.viz.resources.misc.EnableDisableSamplingAction"
-            capabilityInterface="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.ViirsResource"
+            capabilityInterface="gov.noaa.nws.ncep.viz.rsc.viirs.rsc.ViirsSatResource"
             name="Sample"
             sortID="14">
       </contextualMenu>
-   </extension> 
-
+   </extension>    
+    
 </plugin>

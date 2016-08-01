@@ -96,6 +96,8 @@ import com.vividsolutions.jts.geom.Point;
  *                                      PGEN object
  * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
  * 06/15/2016   R13559      bkowal      File cleanup. No longer simulate mouse clicks.
+ * 06/28/2016   R10233      J. Wu       Pass calling handler to PgenContoursTool.
+ * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 
  * </pre>
  * 
@@ -194,6 +196,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         if (button == 1) {
@@ -337,7 +342,16 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         && adc.getName().equalsIgnoreCase("Contours")) {
                     pgCategory = adc.getPgenCategory();
                     pgenType = adc.getPgenType();
-                    PgenUtil.loadContoursTool((Contours) adc);
+
+                    /*
+                     * set "dontMove" flag to be retrieved in contour tool.
+                     */
+                    if (elSelected != null) {
+                        dontMove = true;
+                    }
+
+                    PgenUtil.loadContoursTool((Contours) adc, this);
+
                 } else if (adc != null && elSelected instanceof Line
                         && adc instanceof Outlook) {
                     pgenType = "Outlook";
@@ -534,6 +548,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Check if mouse is in geographic extent
@@ -781,6 +798,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Finish the editing
@@ -873,8 +893,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                 }
 
                                 pgenrsc.replaceElement(oldContours, newContours);
-                                ((PgenContoursTool) tool)
-                                        .setCurrentContour(newContours);
+
+                                if (tool instanceof PgenContoursTool) {
+                                    ((PgenContoursTool) tool)
+                                            .setCurrentContour(newContours);
+                                }
 
                                 Iterator<DrawableElement> it = oldAdc
                                         .createDEIterator();
@@ -1369,5 +1392,35 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     public PgenResource getPgenrsc() {
         return pgenrsc;
+    }
+
+    /**
+     * @return the preempt
+     */
+    public boolean isPreempt() {
+        return preempt;
+    }
+
+    /**
+     * @param preempt
+     *            the preempt to set
+     */
+    public void setPreempt(boolean preempt) {
+        this.preempt = preempt;
+    }
+
+    /**
+     * @return the dontMove
+     */
+    public boolean isDontMove() {
+        return dontMove;
+    }
+
+    /**
+     * @param dontMove
+     *            the dontMove to set
+     */
+    public void setDontMove(boolean dontMove) {
+        this.dontMove = dontMove;
     }
 }

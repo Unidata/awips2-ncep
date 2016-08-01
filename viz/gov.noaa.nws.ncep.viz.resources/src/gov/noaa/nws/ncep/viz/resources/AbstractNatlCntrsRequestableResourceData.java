@@ -93,6 +93,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 02/16/2016      R15244  bkowal      Prevent potential Null Pointer Exception.
  * 03/01/2016      R6821   kbugenhagen Date/time changes for Blender and cleanup.
  * 04/05/2016      R10435  rjpeter     Removed Inventory usage.
+ * 07/14/2016      R17949  Jeff Beck   Add support for displaying multiple PGEN resources selected from a list of available times.
+ *                                     Removed some code from getAvailableDataTimes()
+ * 
  * </pre>
  * 
  * *
@@ -531,17 +534,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 statusHandler.debug("Error getting Available Times: "
                         + e.getMessage());
                 return null;
-            }
-
-            // PGEN needs to display latest file, so don't display
-            // multiple available files. availTimesList is already sorted, pick
-            // the latest
-
-            if (rscDefn != null
-                    && rscDefn.getResourceCategory().isPgenCategory()
-                    && (availTimesList.size() > 1)) {
-                availTimesList = Arrays
-                        .asList(availTimes[availTimes.length - 1]);
             }
 
         } catch (VizException e1) {

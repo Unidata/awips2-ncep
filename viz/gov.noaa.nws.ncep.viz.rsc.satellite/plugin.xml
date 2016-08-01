@@ -17,6 +17,20 @@
             resourceType="PLAN_VIEW">
       </resource>
       <resource
+            class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ModisSatResource"
+            name="ModisSatellite"
+            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            renderingOrderId="IMAGE_COUNTRY"
+            resourceType="PLAN_VIEW">
+      </resource>
+      <resource
+            class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource"
+            name="HimawariSatellite"
+            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            renderingOrderId="IMAGE_COUNTRY"
+            resourceType="PLAN_VIEW">
+      </resource>
+      <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource"
             name="SimgoesrSatellite"
             recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
@@ -39,11 +53,23 @@
       <nc-resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData"
             editDialogClass="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.EditSatelliteAttrsDialog"
+            name="ModisSatellite">
+      </nc-resource>
+      <nc-resource
+            class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData"
+            editDialogClass="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.EditSatelliteAttrsDialog"
+            name="HimawariSatellite">
+      </nc-resource>
+      <nc-resource
+            class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData"
+            editDialogClass="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.EditSatelliteAttrsDialog"
             name="SimgoesrSatellite">
       </nc-resource>
    </extension>
    <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-ResourceParameter">
+         
+      <!-- Gini -->
       <nc-resourceParameter
             paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
             paramName="colorBar"
@@ -58,26 +84,6 @@
             ncResourceName="GiniSatellite">
       </nc-resourceParameter>
       <nc-resourceParameter
-            paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
-            paramName="colorBar"
-            paramType="EDITABLE_ATTRIBUTE"
-            paramRefLocation="ncep/ColorBars/Satellite"
-            ncResourceName="McidasSatellite">
-      </nc-resourceParameter>
-      <nc-resourceParameter
-            paramClass="String"
-            paramName="colorMapName"
-            paramType="EDITABLE_ATTRIBUTE"
-            ncResourceName="McidasSatellite">
-      </nc-resourceParameter>
-      <nc-resourceParameter
-            paramClass="Float"
-            paramName="alpha"
-            paramType="EDITABLE_ATTRIBUTE"
-            defaultValue="1.0"
-            ncResourceName="McidasSatellite">
-      </nc-resourceParameter>
-      <nc-resourceParameter
             paramClass="Float"
             paramName="alpha"
             paramType="EDITABLE_ATTRIBUTE"
@@ -89,21 +95,7 @@
             paramName="brightness"
             paramType="EDITABLE_ATTRIBUTE"
             defaultValue="1.0"
-            ncResourceName="McidasSatellite">
-      </nc-resourceParameter>      
-      <nc-resourceParameter
-            paramClass="Float"
-            paramName="brightness"
-            paramType="EDITABLE_ATTRIBUTE"
-            defaultValue="1.0"
             ncResourceName="GiniSatellite">
-      </nc-resourceParameter>      
-      <nc-resourceParameter
-            paramClass="Float"
-            paramName="contrast"
-            paramType="EDITABLE_ATTRIBUTE"
-            defaultValue="1.0"
-            ncResourceName="McidasSatellite">
       </nc-resourceParameter>      
       <nc-resourceParameter
             paramClass="Float"
@@ -111,8 +103,7 @@
             defaultValue="1.0"
             paramType="EDITABLE_ATTRIBUTE"
             ncResourceName="GiniSatellite">
-      </nc-resourceParameter>
-      
+      </nc-resourceParameter>      
       <nc-resourceParameter
             constraintName="creatingEntity"
             ncResourceName="GiniSatellite"
@@ -137,6 +128,106 @@
             paramName="sectorID"
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>     
+      <nc-resourceParameter
+            ncResourceName="GiniSatellite"
+            paramClass="RGB"
+            paramName="legendColor"
+            defaultValue="RGB {155, 155, 155}"
+            paramType="IMPLEMENTATION_PARAM">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            ncResourceName="GiniSatellite"
+            paramClass="String"
+            paramName="displayUnitStr"
+            defaultValue="BRIT"
+            paramType="NON_EDITABLE_ATTRIBUTE">
+      </nc-resourceParameter>      
+      
+      <!-- Modis -->
+      <nc-resourceParameter
+            paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
+            paramName="colorBar"
+            paramType="EDITABLE_ATTRIBUTE"
+            paramRefLocation="ncep/ColorBars/Satellite"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="String"
+            paramName="colorMapName"
+            paramType="EDITABLE_ATTRIBUTE"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="alpha"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="brightness"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>      
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="contrast"
+            defaultValue="1.0"
+            paramType="EDITABLE_ATTRIBUTE"
+            ncResourceName="ModisSatellite">
+      </nc-resourceParameter>      
+      <nc-resourceParameter
+            ncResourceName="ModisSatellite"
+            paramClass="RGB"
+            paramName="legendColor"
+            defaultValue="RGB {155, 155, 155}"
+            paramType="IMPLEMENTATION_PARAM">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            ncResourceName="ModisSatellite"
+            paramClass="String"
+            paramName="displayUnitStr"
+            defaultValue="BRIT"
+            paramType="NON_EDITABLE_ATTRIBUTE">
+      </nc-resourceParameter>      
+      
+      <!-- Mcidas -->      
+      <nc-resourceParameter
+            paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
+            paramName="colorBar"
+            paramType="EDITABLE_ATTRIBUTE"
+            paramRefLocation="ncep/ColorBars/Satellite"
+            ncResourceName="McidasSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="String"
+            paramName="colorMapName"
+            paramType="EDITABLE_ATTRIBUTE"
+            ncResourceName="McidasSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="alpha"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="McidasSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="brightness"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="McidasSatellite">
+      </nc-resourceParameter>      
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="contrast"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="McidasSatellite">
+      </nc-resourceParameter>      
       <nc-resourceParameter
             ncResourceName="McidasSatellite"
             paramClass="String"
@@ -163,35 +254,102 @@
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>
       <nc-resourceParameter
-            ncResourceName="GiniSatellite"
+            ncResourceName="McidasSatellite"
+            paramClass="RGB"
+            paramName="legendColor"
+            defaultValue="RGB {155, 155, 155}"
+            paramType="IMPLEMENTATION_PARAM">
+      </nc-resourceParameter>            
+      <nc-resourceParameter
+            ncResourceName="McidasSatellite"
+            paramClass="String"
+            paramName="displayUnitStr"
+            defaultValue="BRIT"
+            paramType="NON_EDITABLE_ATTRIBUTE">
+      </nc-resourceParameter>      
+      
+      <!-- Himawari -->
+      <nc-resourceParameter
+            ncResourceName="HimawariSatellite"
             paramClass="RGB"
             paramName="legendColor"
             defaultValue="RGB {155, 155, 155}"
             paramType="IMPLEMENTATION_PARAM">
       </nc-resourceParameter>
       <nc-resourceParameter
-            ncResourceName="McidasSatellite"
-            paramClass="RGB"
-            paramName="legendColor"
-            defaultValue="RGB {155, 155, 155}"
-            paramType="IMPLEMENTATION_PARAM">
-      </nc-resourceParameter>      
-      
+            constraintName="creatingEntity"
+            ncResourceName="HimawariSatellite"
+            paramClass="String"
+            paramName="satelliteName"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>
+      <nc-resourceParameter      
+            paramClass="gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap"
+            paramName="colorBar"
+            paramType="EDITABLE_ATTRIBUTE"
+            paramRefLocation="ncep/ColorBars/Satellite"
+            ncResourceName="HimawariSatellite">
+      </nc-resourceParameter>
       <nc-resourceParameter
-            ncResourceName="GiniSatellite"
+            paramClass="String"
+            paramName="colorMapName"
+            paramType="EDITABLE_ATTRIBUTE"
+            ncResourceName="HimawariSatellite">
+      </nc-resourceParameter>       
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="alpha"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="HimawariSatellite">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="brightness"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="HimawariSatellite">
+      </nc-resourceParameter>      
+      <nc-resourceParameter
+            paramClass="Float"
+            paramName="contrast"
+            paramType="EDITABLE_ATTRIBUTE"
+            defaultValue="1.0"
+            ncResourceName="HimawariSatellite">
+      </nc-resourceParameter>      
+      <nc-resourceParameter
+            constraintName="creatingEntity"
+            ncResourceName="HimawariSatellite"
+            paramClass="String"
+            paramName="satelliteName"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>
+      <!-- the image type is given in the attrSet but we provide a
+           default value here to pass validity checking -->
+      <nc-resourceParameter
+            constraintName="physicalElement"
+            ncResourceName="HimawariSatellite"
+            paramClass="String"
+            paramName="imageType"
+            defaultValue="not-specified"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            constraintName="sectorID"
+            ncResourceName="HimawariSatellite"
+            paramClass="String"
+            paramName="sectorID"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>
+      <nc-resourceParameter
+            ncResourceName="HimawariSatellite"
             paramClass="String"
             paramName="displayUnitStr"
             defaultValue="BRIT"
             paramType="NON_EDITABLE_ATTRIBUTE">
       </nc-resourceParameter>      
-      <nc-resourceParameter
-            ncResourceName="McidasSatellite"
-            paramClass="String"
-            paramName="displayUnitStr"
-            defaultValue="BRIT"
-            paramType="NON_EDITABLE_ATTRIBUTE">
-      </nc-resourceParameter>      
       
+      <!-- Simgoesr -->
       <nc-resourceParameter
             ncResourceName="SimgoesrSatellite"
             paramClass="RGB"
@@ -273,6 +431,7 @@
       </nc-resourceParameter>      
                  
    </extension>
+   
    <extension
           point="com.raytheon.uf.viz.localization.localizationpath">
        	<path
@@ -295,8 +454,15 @@
              areaSourceName="GINI_SECTOR_ID"
              isImageBased="true"
              sourceFactory="gov.noaa.nws.ncep.viz.rsc.satellite.area.GiniAreaProviderFactory"
-             sourceLocation="satellite|sector_id"/>    
-               
+             sourceLocation="satellite|sector_id"/>                   
    </extension>
+   <extension point="com.raytheon.viz.ui.contextualMenu">
+      <contextualMenu
+            actionClass="gov.noaa.nws.ncep.viz.resources.misc.EnableDisableSamplingAction"
+            capabilityInterface="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ModisSatResource"
+            name="Sample"
+            sortID="14">
+      </contextualMenu>
+   </extension> 
     
 </plugin>

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <requestPatterns xmlns:ns2="group">
-<!--  Text decoder pattern -->
-	<regex>^[ACFNRUW][A-Z].*</regex>
+    <!--  Text decoder pattern 
+	we need to prevent nctext from picking up:
+	FNMOC: ^US058...
+	CMC: ^CMC_...
+    -->
+    <regex>^[AFNRW][A-Z].*</regex>
+    <regex>^C[A-LN-Z].*</regex>
+    <regex>^U[A-RT-Z].*</regex>
+    <regex>^US[A-Z].*</regex>
     <regex>^S[A-CEG-Z].*</regex>
     <!-- Only have AFOS mapping for T[BCX] -->
     <regex>^T[BCX].*</regex>

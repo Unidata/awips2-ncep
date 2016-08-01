@@ -51,6 +51,8 @@ public class PgenSave {
     protected String outputFile;
     @XmlAttribute
     protected String inputFile;
+    @XmlAttribute
+    protected String refTimeList;
 
     /**
      * Gets the value of the autoSaveFreq property.
@@ -137,6 +139,16 @@ public class PgenSave {
     }
 
     /**
+     * Gets the value of the refTimeList property.
+     * 
+     * @return possible object is {@link String }
+     * 
+     */
+    public String getRefTimeList() {
+        return refTimeList;
+    }
+
+    /**
      * Sets the value of the outputFile property.
      * 
      * @param value
@@ -170,6 +182,17 @@ public class PgenSave {
      */
     public void setInputFile(String value) {
         this.inputFile = value;
+    }
+
+    /**
+     * Sets the value of the refTimeList property.
+     * 
+     * @param value
+     *            allowed object is {@link String }
+     * 
+     */
+    public void setRefTimeList(String refTimeList) {
+        this.refTimeList = refTimeList;
     }
 
 }

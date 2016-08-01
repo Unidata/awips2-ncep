@@ -578,7 +578,7 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS40">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="GFS20">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="HRRR">
@@ -605,13 +605,13 @@
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="RAP40">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="estofsUS">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ESTOFS">
 <filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="ECMW-NorthernHemisphere">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="ECMWF">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter isEnabled="true" rscDefnName="UKMET-NorthernHemisphere">
+<ResourceDefinitionFilter isEnabled="true" rscDefnName="UKMET">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="ETSS">
@@ -706,5 +706,8 @@
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter isEnabled="true" rscDefnName="NCOM">
 <filters>Analysis,SBN</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter isEnabled="false" rscDefnName="LocalRadar">
+<filters>Radar</filters>
 </ResourceDefinitionFilter>
 </ResourceDefinitionFilters>

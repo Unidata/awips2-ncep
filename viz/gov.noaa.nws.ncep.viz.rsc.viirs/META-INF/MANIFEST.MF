@@ -5,31 +5,25 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.viirs;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.common, gov.noaa.nws.ncep.viz.resources, org.apache.velocity, com.raytheon.edex.common, com.raytheon.uf.common.serialization, com.raytheon.uf.common.status, com.raytheon.viz.ui, com.raytheon.viz.core, com.raytheon.uf.viz.core, com.raytheon.uf.common.serialization
 Eclipse-BuddyPolicy: ext, global
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: com.raytheon.viz.ui,
  com.raytheon.uf.viz.core,
  gov.noaa.nws.ncep.viz.resources,
- gov.noaa.nws.ncep.viz.rsc.satellite;bundle-version="1.0.0",
  com.raytheon.uf.common.dataplugin.npp.viirs;bundle-version="1.0.0",
- gov.noaa.nws.ncep.viz.rsc.ncscat;bundle-version="1.0.0",
  javax.measure;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0",
- gov.noaa.nws.ncep.ui.pgen,
  com.raytheon.uf.common.geospatial;bundle-version="1.12.1174",
- gov.noaa.nws.ncep.viz.common,
  com.raytheon.uf.viz.npp.viirs;bundle-version="1.0.0",
  com.raytheon.uf.common.colormap;bundle-version="1.12.1174",
  com.raytheon.uf.common.style;bundle-version="1.0.0",
- com.raytheon.uf.viz.npp;bundle-version="1.0.0"
-Bundle-ActivationPolicy: lazy
+ com.raytheon.viz.ui;bundle-version="1.15.2",
+ gov.noaa.nws.ncep.viz.common;bundle-version="1.15.0",
+ com.raytheon.uf.common.inventory;bundle-version="1.14.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.dataplugin.persist,
  com.raytheon.uf.common.datastorage,
  com.raytheon.uf.common.datastorage.records,
- com.raytheon.uf.common.inventory,
  com.raytheon.uf.common.time,
- com.raytheon.uf.common.units,
- com.raytheon.uf.viz.d2d.core.map,
  com.raytheon.uf.viz.datacube,
  com.raytheon.viz.core.rsc.hdf5,
  com.raytheon.viz.ui.cmenu,
@@ -37,8 +31,4 @@ Import-Package: com.raytheon.uf.common.dataplugin,
  com.raytheon.viz.ui.input,
  com.raytheon.viz.ui.panes,
  com.vividsolutions.jts.geom,
- gov.noaa.nws.ncep.common.dataplugin.ncscat,
- gov.noaa.nws.ncep.gempak.parameters.colorbar,
- gov.noaa.nws.ncep.ui.pgen.display,
- gov.noaa.nws.ncep.ui.pgen.elements,
- gov.noaa.nws.ncep.viz.common.ui
+ gov.noaa.nws.ncep.viz.rsc.satellite.rsc

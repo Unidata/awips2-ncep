@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,13 +37,14 @@ import com.vividsolutions.jts.geom.LineString;
  *   11/04/13    #880        Xiaochuan   set one wireframeShape for one lat or Lon lines.
  *                                       Set spatialChopFlag to be false.
  *   05/23/2014  #970        P.Swamy     Lat/lon label sizes need to be larger
- *   07/28/2014  #3397       vbclement   switched to non deprecated version of createWireframeShape()
- *                                          removed unneeded clearCoodrinatePointArrayList() method
- *   11/05/2015  #5070       randerso    Adjust font sizes for dpi scaling
  *   Jul 28, 2014 3397       bclement    switched to non deprecated version of createWireframeShape()
  *                                          removed unneeded clearCoordinatePointArrayList() method
  *   Nov 05, 2015 10436      njensen     Major cleanup and optimization
+ *   02/17/16    #13554      dgilling    Implement IStaticDataNatlCntrsResource.
  * 
+ *   07/28/2014  #3397       vbclement   switched to non deprecated version of createWireframeShape()
+ *                                          removed unneeded clearCoodrinatePointArrayList() method
+ *   11/05/2015  #5070       randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author mgao
@@ -51,7 +52,7 @@ import com.vividsolutions.jts.geom.LineString;
  */
 public class LatLonOverlayResource extends
         AbstractVizResource<LatLonOverlayResourceData, IMapDescriptor>
-        implements INatlCntrsResource {
+        implements IStaticDataNatlCntrsResource {
 
     private static final GeometryFactory GEOM_FACTORY = new GeometryFactory();
 

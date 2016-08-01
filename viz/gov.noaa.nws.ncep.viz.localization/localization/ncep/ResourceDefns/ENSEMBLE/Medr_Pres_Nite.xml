@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <resourceDefnName>Medr_Pres_Nite</resourceDefnName>
+    <resourceCategory>ENSEMBLE</resourceCategory>
+    <resourceParameters>
+primaryModel=gfs
+availableModels=cmc;ecmwf;ece;gefs;gfs;GFS230;wpc;naefsbc_m;nogaps;UkmetHR-NorthernHemisphere
+pluginName=grid
+GDFILE={gfs|C2,gfs|C3,cmc|C2,ecmwf|C2,ecmwf|C3,ece|C2,gefs|C2,GFS230|C2,wpc|C2,naefsbc_m|C2,nogaps|C2,UkmetHR-NorthernHemisphere|C2}
+    </resourceParameters>
+    <rscImplementation>EnsembleFcstGridContours</rscImplementation>
+    <subTypeGenerator></subTypeGenerator>
+    <rscTypeGenerator></rscTypeGenerator>
+    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <frameSpan>720</frameSpan>
+    <timelineGenMethod>DETERMINE_FROM_RSC_IMPLEMENTATION</timelineGenMethod>
+    <dfltTimeRange>192</dfltTimeRange>
+    <dfltGraphRange>192</dfltGraphRange>
+    <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <dfltFrameTimes>f84-f192-12</dfltFrameTimes>
+    <cycleReference>00</cycleReference>
+    <dayReference>TODAY</dayReference>
+</ResourceDefinition>

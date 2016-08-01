@@ -46,7 +46,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  */
 public class BadFrameAction  extends AbstractTool {
 	
-	private final static Logger THE_LOG = Logger.getLogger(BadFrameAction.class);
+	//private final static Logger THE_LOG = Logger.getLogger(BadFrameAction.class);
 	
 	private final static String ERROR_MESSAGE = "The editor or frame is invalid! ";
 	
@@ -127,7 +127,7 @@ public class BadFrameAction  extends AbstractTool {
 					fi = new FramesInfo(fi.getFrameTimes(), nxtIdx);
 				}catch(Throwable t){
 					
-					THE_LOG.info(ERROR_MESSAGE);				
+					//THE_LOG.info(ERROR_MESSAGE);				
 					
 					return null;
 				}					

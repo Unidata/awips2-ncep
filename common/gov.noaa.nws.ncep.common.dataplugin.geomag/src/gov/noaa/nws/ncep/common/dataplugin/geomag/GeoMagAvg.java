@@ -34,6 +34,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 12/23/2014   R5412      sgurung            Change float to double
  * 01/26/2015   R7615      sgurung            Change sequence name
  * 01/05/2016   R14697     sgurung,jtravis    Add unique constraint on avgTime, add column lastMinuteUsed
+ * 05/19/2016   R18351     sgurung            Add composite unique constraint consisting of "avgTime" and "stationCode" 
  * 
  * </pre>
  * 
@@ -43,7 +44,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "geomagavgseq")
-@Table(name = "geomag_houravg", uniqueConstraints = { @UniqueConstraint(columnNames = { "avgTime" }) })
+@Table(name = "geomag_houravg", uniqueConstraints = { @UniqueConstraint(columnNames = { "avgTime", "stationCode" }) })
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize

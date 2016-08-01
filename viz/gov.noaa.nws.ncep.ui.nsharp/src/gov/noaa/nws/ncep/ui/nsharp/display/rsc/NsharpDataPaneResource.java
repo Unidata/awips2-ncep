@@ -58,20 +58,6 @@ import com.raytheon.viz.core.graphing.WindBarbFactory;
 import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
 
-/**
- * TODO Add Description
- * 
- * <pre>
- * 
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Nov 05, 2015 5070      randerso     Adjust font sizes for dpi scaling
- * 
- * </pre>
- * 
- */
 public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(NsharpDataPaneResource.class);
@@ -82,7 +68,6 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     private int[] pageDisplayOrderNumberArray;
 
     private static final String NO_DATA = "NO VALID DATA AVAILABLE FOR THIS PAGE";
-
     private static final String INSUFFICIENT_DATA = "INSUFFICIENT DATA FOR PARAMETERS COMPUTATION";
     private static final String DUMMY_STRING = "ABCDE=";
     private double curY;
@@ -173,9 +158,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         if (numberPagePerDisplay == 2) {
             dataPanel2Background.paint(target, paintProps);
         }
-        if (rscHandler == null) {
+        if (rscHandler == null)
             return;
-        }
 
         if (!resizedone) {
             resizedone = true;
@@ -298,6 +282,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 displayPageNumber = i; // array index is the page number and
                                        // value is the order number
             }
+
         }
         switch (displayPageNumber) {
         case NsharpConstants.PAGE_SUMMARY1:
@@ -485,14 +470,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             // draw CAPE
             if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0f", pcl.bplus),
-                        firstToken, curY, 0.0, TextStyle.NORMAL,
+
+                firstToken, curY, 0.0, TextStyle.NORMAL,
                         NsharpConstants.color_white, HorizontalAlignment.LEFT,
                         VerticalAlignment.TOP, null);
-            } else {
+            } else
                 target.drawString(myfont, "M", firstToken, curY, 0.0,
                         TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            }
             // draw CINH
             if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
                 target.drawString(myfont, String.format("%.0f", pcl.bminus),
@@ -1006,9 +991,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         float ship = nsharpNative.nsharpLib.cave_ship();
         if (nsharpNative.nsharpLib.qc(ship) == 1) {
             textStr = String.format("%.1f", ship);
-        } else {
+        } else
             textStr = " M";
-        }
         str.setText("SHIP=", NsharpConstants.color_red);
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_red);
@@ -2647,8 +2631,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 NsharpConstants.color_white, 1);
 
         // calculate helicity for sfc-2 km
-        totHeli = nsharpNative.nsharpLib.helicity(0, 2000, smdir.getValue(),
-                smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 2000,
+                smdir.getValue(), smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_SFC2KM_LINE;
@@ -2668,8 +2652,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         curY = curY + charHeight;
         // calculate helicity for sfc-3 km
-        totHeli = nsharpNative.nsharpLib.helicity(0, 3000, smdir.getValue(),
-                smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 3000,
+                smdir.getValue(), smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_SFC3KM_LINE;
@@ -2688,8 +2672,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         curY = curY + charHeight;
         // calculate helicity for LPL - LFC
-        totHeli = nsharpNative.nsharpLib.helicity(-1, -1, smdir.getValue(),
-                smspd.getValue(), phel, nhel);
+        totHeli = nsharpNative.nsharpLib.helicity((float) -1, (float) -1,
+                smdir.getValue(), smspd.getValue(), phel, nhel);
         if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
                 && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
             textStr = NsharpNativeConstants.STORM_LPL_LFC_LINE;
@@ -3339,9 +3323,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
             if (nsharpNative.nsharpLib.qc(aglft) == 1) {
                 textStr = NsharpNativeConstants.PRECIPITATION_MELTING_LINE;
                 textStr = String.format(textStr, aglft, web);
-            } else {
+            } else
                 textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
-            }
         } else {
             textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
         }

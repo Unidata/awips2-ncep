@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.tools;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
@@ -40,24 +41,28 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/09        #167		J. Wu  		Initial creation
- * 12/09		?			B. Yin		check if the attrDlg is 
- * 										the contours dialog
- * 12/09        #167		J. Wu  		Allow editing line and label attributes.
- * 06/10		#215		J. Wu		Added support for Contours Min/Max
- * 11/10		#345		J. Wu		Added support for Contours Circle
- * 02/11					J. Wu		Preserve auto/hide flags for text
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 11/11		#?			J. Wu		Add check for the existing Contours of
- * 										the same type.
- * 03/13		#927		B. Yin		Added right mouse click context menu
- * 08/13		TTR778		J. Wu		Move loading libg2g to GraphToGridParamDialog.
+ * Date         Ticket#     Engineer    Description
+ * ----------------------------------------------------------------------------
+ * 10/09        #167        J. Wu       Initial creation
+ * 12/09         ?          B. Yin      check if the attrDlg is the contours dialog
+ * 12/09        #167        J. Wu       Allow editing line and label attributes.
+ * 06/10        #215        J. Wu       Added support for Contours Min/Max
+ * 11/10        #345        J. Wu       Added support for Contours Circle
+ * 02/11                    J. Wu       Preserve auto/hide flags for text
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 11/11        #?          J. Wu       Add check for the existing Contours of the same type.
+ * 03/13        #927        B. Yin       Added right mouse click context menu
+ * 08/13        TTR778      J. Wu       Move loading libg2g to GraphToGridParamDialog.
  * 04/14        #1117       J. Wu       Set focus to label/use line color for label.
  * 05/14        TTR1008     J. Wu       Remove confirmation dialog when adding to an existing contour.
  * 01/15        R5200/T1059 J. Wu       Use setSettings(de) to save last-used attributes.
  * 01/14/2016   R13168      J. Wu       Add "One Contours per Layer" rule.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 04/11/2016   R17056      J. Wu       Match contour line/symbol color with settings.
+ * 05/25/2016   R17940      J. Wu       Re-work on mouseDown & mouseUp actions.
+ * 06/01/2016   R18387      B. Yin      Open line dialog in activateTool().
+ * 06/13/2016   R10233      J. Wu       Retain flags from previous PgenSelectHandler.
+ * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 
  * </pre>
  * 
@@ -108,7 +113,6 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
     protected void activateTool() {
 
         super.activateTool();
-        // LibraryLoader.load("g2g");
 
         /*
          * if the ExecutionEvent's trigger has been set, it should be something
@@ -117,16 +121,28 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          */
         Object de = event.getTrigger();
 
-        // The same tool could be activated again (for instance, click on PGEN
-        // palette and then click in the editor).
-        // However the trigger of the event may not be the current contour if
-        // the contour is modified.
+        /*
+         * The same tool could be activated again (for instance, click on PGEN
+         * palette and then click in the editor). However the trigger of the
+         * event may not be the current contour if the contour is modified.
+         */
         if (event != lastEvent) {
             if (de instanceof Contours) {
                 elem = (Contours) de;
                 this.setPgenSelectHandler();
+
+                // Retain flags from previous PgenSelectHandler.
+                if (event.getApplicationContext() instanceof PgenSelectHandler) {
+                    ((PgenSelectHandler) this.getMouseHandler())
+                            .setPreempt(((PgenSelectHandler) event
+                                    .getApplicationContext()).isPreempt());
+                    ((PgenSelectHandler) this.getMouseHandler())
+                            .setDontMove(((PgenSelectHandler) event
+                                    .getApplicationContext()).isDontMove());
+                }
+
                 PgenSession.getInstance().getPgenPalette()
-                        .setActiveIcon("Select");
+                        .setActiveIcon(PgenConstant.ACTION_SELECT);
             } else {
                 elem = null;
             }
@@ -140,6 +156,8 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             } else {
                 ((ContoursAttrDlg) attrDlg)
                         .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.DRAW_LINE);
+                ((ContoursAttrDlg) attrDlg).setLineTemplate(null);
+                ((ContoursAttrDlg) attrDlg).openLineAttrDlg();
             }
 
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
@@ -178,98 +196,95 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
          * int, int)
          */
         @Override
-        public boolean handleMouseUp(int anX, int aY, int button) {
-            if (!isResourceEditable())
+        public boolean handleMouseDown(int anX, int aY, int button) {
+
+            if (!isResourceEditable()) {
                 return false;
+            }
 
             // Check if mouse is in geographic extent
             Coordinate loc = mapEditor.translateClick(anX, aY);
-            if (loc == null || shiftDown)
+            if (loc == null || shiftDown) {
                 return false;
+            }
 
+            // Set focus on label input box.
             if (attrDlg != null) {
                 ((ContoursAttrDlg) attrDlg).setLabelFocus();
-            }
-
-            // Drawing Min/Max symbol
-            if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawSymbol()) {
-
-                if (button == 1) {
-                    drawContourMinmax(loc);
-                    ((ContoursAttrDlg) attrDlg).updateSymbolAttrOnGUI(loc);
-                } else if (button == 3) {
-
-                    points.clear();
-                    if (attrDlg != null) {
-                        ((ContoursAttrDlg) attrDlg)
-                                .setDrawingStatus(ContourDrawingStatus.SELECT);
-                    }
-                    drawingLayer.removeGhostLine();
-
-                    return true;
-                } else {
+                if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
                     return false;
                 }
+            } else {
+                return false;
             }
 
-            // Drawing Circle
-            if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawCircle()) {
+            /*
+             * Check drawing mode and draw either symbol, circle or save point
+             * to draw line later.
+             */
+            if (button == 1) {
 
-                if (button == 1) {
-
+                if (((ContoursAttrDlg) attrDlg).drawSymbol()) { // symbol
+                    drawContourMinmax(loc);
+                    ((ContoursAttrDlg) attrDlg).updateSymbolAttrOnGUI(loc);
+                } else if (((ContoursAttrDlg) attrDlg).drawCircle()) { // Circle
                     if (points.size() == 0) {
-
                         points.add(0, loc);
-
                     } else {
-
                         if (points.size() > 1)
                             points.remove(1);
 
                         points.add(1, loc);
                         drawContourCircle();
                     }
-
-                    return true;
-
-                } else if (button == 3) {
-
-                    points.clear();
-                    if (attrDlg != null) {
-                        ((ContoursAttrDlg) attrDlg)
-                                .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
-                    }
-                    drawingLayer.removeGhostLine();
-
-                    return true;
-                } else {
-                    return false;
-                }
-
-            }
-
-            // Drawing line
-            if (button == 1) {
-
-                if (attrDlg != null
-                        && !((ContoursAttrDlg) attrDlg).drawSymbol()
-                        && !((ContoursAttrDlg) attrDlg).drawCircle()) {
-
+                } else { // Line
                     points.add(loc);
                 }
 
                 return true;
             } else if (button == 3) {
-                if (points.size() == 0) {
-                    ((ContoursAttrDlg) attrDlg)
-                            .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
-                } else {
-                    setDrawingMode();
-                    drawContours();
-                }
                 return true;
             } else if (button == 2) {
                 return true;
+            } else {
+                return false;
+            }
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.raytheon.viz.ui.input.IInputHandler#handleMouseDown(int,
+         * int, int)
+         */
+        @Override
+        public boolean handleMouseUp(int anX, int aY, int button) {
+            if (!isResourceEditable() || shiftDown)
+                return false;
+
+            if (button == 3) {
+                // End drawing symbol or circle
+                if (((ContoursAttrDlg) attrDlg).drawSymbol()
+                        || ((ContoursAttrDlg) attrDlg).drawCircle()) {
+                    points.clear();
+                    ((ContoursAttrDlg) attrDlg)
+                            .setDrawingStatus(ContourDrawingStatus.SELECT);
+                    drawingLayer.removeGhostLine();
+                } else { // Handling line drawing
+                    if (points.size() == 0) {
+                        ((ContoursAttrDlg) attrDlg)
+                                .setDrawingStatus(ContoursAttrDlg.ContourDrawingStatus.SELECT);
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
+                    } else {
+                        setDrawingMode();
+                        drawContours();
+                    }
+
+                }
+
+                return true;
+
             } else {
                 return false;
             }
@@ -296,38 +311,54 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
             if (attrDlg != null) {
                 ((ContoursAttrDlg) attrDlg).setLabelFocus();
+                if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                    return false;
+                }
             }
 
             // Draw a ghost contour min/max
             if (attrDlg != null && ((ContoursAttrDlg) attrDlg).drawSymbol()) {
 
                 ContoursAttrDlg dlg = (ContoursAttrDlg) attrDlg;
-                ContourMinmax ghost = null;
-                ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
-                        dlg.getActiveSymbolObjType(),
-                        new String[] { dlg.getLabel() }, dlg.hideSymbolLabel());
+                String symbType = dlg.getActiveSymbolObjType();
+                String[] symbLabel = new String[] { dlg.getLabel() };
 
-                IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
-                        .getMinmaxTemplate();
-
-                if (mmTemp != null) {
-                    Symbol oneSymb = (Symbol) (ghost.getSymbol());
-                    oneSymb.update(mmTemp);
+                if (dlg.isMinmaxSymbolOnly()) {
+                    symbLabel = null;
                 }
 
-                IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
-                        .getLabelTemplate();
-                if (lblTemp != null) {
-                    Text lbl = ghost.getLabel();
-                    String[] oldText = lbl.getText();
-                    boolean hide = lbl.getHide();
-                    boolean auto = lbl.getAuto();
-                    lbl.update(lblTemp);
-                    lbl.setText(oldText);
-                    lbl.setHide(hide);
-                    lbl.setAuto(auto);
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(mmTemp.getColors());
+                if (dlg.isMinmaxLabelOnly()) {
+                    symbType = null;
+                }
+
+                ContourMinmax ghost = null;
+                ghost = new ContourMinmax(loc, dlg.getActiveSymbolClass(),
+                        symbType, symbLabel, dlg.hideSymbolLabel());
+
+                IAttribute mmTemp = dlg.getMinmaxTemplate();
+
+                if (ghost.getSymbol() != null) {
+                    if (mmTemp != null) {
+                        Symbol oneSymb = (Symbol) (ghost.getSymbol());
+                        oneSymb.update(mmTemp);
+                    }
+                }
+
+                if (ghost.getLabel() != null) {
+                    IAttribute lblTemp = dlg.getLabelTemplate();
+                    if (lblTemp != null) {
+                        Text lbl = ghost.getLabel();
+                        String[] oldText = lbl.getText();
+                        boolean hide = lbl.getHide();
+                        boolean auto = lbl.getAuto();
+                        lbl.update(lblTemp);
+                        lbl.setText(oldText);
+                        lbl.setHide(hide);
+                        lbl.setAuto(auto);
+                    }
+
+                    if (dlg.isUseMainColor() && mmTemp != null) {
+                        ghost.getLabel().setColors(mmTemp.getColors());
                     }
                 }
 
@@ -367,9 +398,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setText(oldText);
                         lbl.setHide(hide);
                         lbl.setAuto(auto);
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(circleTemp.getColors());
-                        }
+                    }
+
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && circleTemp != null) {
+                        ghost.getLabel().setColors(circleTemp.getColors());
                     }
 
                     drawingLayer.setGhostLine(ghost);
@@ -404,14 +437,15 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 }
 
                 String lblstr = ((ContoursAttrDlg) attrDlg).getLabel();
-                if (lblstr != null && lblstr.contains("9999")) {
+                if (lblstr != null
+                        && lblstr.contains(PgenConstant.G2G_BOUND_MARK)) {
                     cline.getLine().setSmoothFactor(0);
                 }
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
                         .getLabelTemplate();
-                if (lblTemp != null) {
-                    for (Text lbl : cline.getLabels()) {
+                for (Text lbl : cline.getLabels()) {
+                    if (lblTemp != null) {
                         String[] oldText = lbl.getText();
                         boolean hide = lbl.getHide();
                         boolean auto = lbl.getAuto();
@@ -419,14 +453,16 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setText(oldText);
                         lbl.setHide(hide);
                         lbl.setAuto(auto);
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(lineTemp.getColors());
-                        }
+                    }
+
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && lineTemp != null) {
+                        lbl.setColors(lineTemp.getColors());
                     }
                 }
 
                 Contours el = (Contours) (def.create(DrawableType.CONTOURS,
-                        null, "MET", "Contours", points,
+                        null, "MET", PgenConstant.CONTOURS, points,
                         drawingLayer.getActiveLayer()));
 
                 cline.setParent(el);
@@ -450,6 +486,14 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
             if (!isResourceEditable() || shiftDown) {
                 return false;
             } else {
+                if (attrDlg != null) {
+                    ((ContoursAttrDlg) attrDlg).setLabelFocus();
+                    if (((ContoursAttrDlg) attrDlg)
+                            .isShiftDownInContourDialog()) {
+                        return false;
+                    }
+                }
+
                 return true;
             }
         }
@@ -481,14 +525,15 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                 }
 
                 String lblstr = ((ContoursAttrDlg) attrDlg).getLabel();
-                if (lblstr != null && lblstr.contains("9999")) {
+                if (lblstr != null
+                        && lblstr.contains(PgenConstant.G2G_BOUND_MARK)) {
                     cline.getLine().setSmoothFactor(0);
                 }
 
                 IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
                         .getLabelTemplate();
-                if (lblTemp != null) {
-                    for (Text lbl : cline.getLabels()) {
+                for (Text lbl : cline.getLabels()) {
+                    if (lblTemp != null) {
                         String[] oldText = lbl.getText();
                         boolean hide = lbl.getHide();
                         boolean auto = lbl.getAuto();
@@ -498,10 +543,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                         lbl.setAuto(auto);
 
                         ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+                    }
 
-                        if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                            lbl.setColors(lineTemp.getColors());
-                        }
+                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                            && lineTemp != null) {
+                        lbl.setColors(lineTemp.getColors());
                     }
                 }
 
@@ -516,7 +562,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cline.setParent(elem);
@@ -565,41 +611,50 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
             if (loc != null) {
 
-                String cls = ((ContoursAttrDlg) attrDlg).getActiveSymbolClass();
-                String type = ((ContoursAttrDlg) attrDlg)
-                        .getActiveSymbolObjType();
-                ContourMinmax cmm = new ContourMinmax(
-                        loc,
-                        cls,
-                        type,
-                        new String[] { ((ContoursAttrDlg) attrDlg).getLabel() },
-                        ((ContoursAttrDlg) attrDlg).hideSymbolLabel());
+                ContoursAttrDlg contoursDlg = (ContoursAttrDlg) attrDlg;
 
-                IAttribute mmTemp = ((ContoursAttrDlg) attrDlg)
-                        .getMinmaxTemplate();
+                String cls = contoursDlg.getActiveSymbolClass();
+                String type = contoursDlg.getActiveSymbolObjType();
+                String[] symbLabel = new String[] { contoursDlg.getLabel() };
 
-                if (mmTemp != null) {
-                    Symbol oneSymb = (Symbol) (cmm.getSymbol());
-                    oneSymb.update(mmTemp);
-                    ((ContoursAttrDlg) attrDlg).setSettings(oneSymb.copy());
+                if (contoursDlg.isMinmaxSymbolOnly()) {
+                    symbLabel = null;
                 }
 
-                IAttribute lblTemp = ((ContoursAttrDlg) attrDlg)
-                        .getLabelTemplate();
-                if (lblTemp != null) {
-                    Text lbl = cmm.getLabel();
-                    String[] oldText = lbl.getText();
-                    boolean hide = lbl.getHide();
-                    boolean auto = lbl.getAuto();
-                    lbl.update(lblTemp);
-                    lbl.setText(oldText);
-                    lbl.setHide(hide);
-                    lbl.setAuto(auto);
+                if (contoursDlg.isMinmaxLabelOnly()) {
+                    type = null;
+                }
 
-                    ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
+                ContourMinmax cmm = new ContourMinmax(loc, cls, type,
+                        symbLabel, contoursDlg.hideSymbolLabel());
 
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(mmTemp.getColors());
+                IAttribute mmTemp = (contoursDlg).getMinmaxTemplate();
+                if (cmm.getSymbol() != null) {
+                    if (mmTemp != null) {
+                        Symbol oneSymb = (Symbol) (cmm.getSymbol());
+                        oneSymb.update(mmTemp);
+                        contoursDlg.setSettings(oneSymb.copy());
+                    }
+                }
+
+                if (cmm.getLabel() != null) {
+                    IAttribute lblTemp = contoursDlg.getLabelTemplate();
+
+                    if (lblTemp != null) {
+                        Text lbl = cmm.getLabel();
+                        String[] oldText = lbl.getText();
+                        boolean hide = lbl.getHide();
+                        boolean auto = lbl.getAuto();
+                        lbl.update(lblTemp);
+                        lbl.setText(oldText);
+                        lbl.setHide(hide);
+                        lbl.setAuto(auto);
+
+                        contoursDlg.setSettings(lbl.copy());
+                    }
+
+                    if (contoursDlg.isUseMainColor() && mmTemp != null) {
+                        cmm.getLabel().setColors(mmTemp.getColors());
                     }
                 }
 
@@ -613,7 +668,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cmm.setParent(elem);
@@ -634,7 +689,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                     cmm.setParent(newElem);
 
-                    newElem.update((ContoursAttrDlg) attrDlg);
+                    newElem.update(contoursDlg);
 
                     newElem.add(cmm);
 
@@ -645,7 +700,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
 
                 }
 
-                ((ContoursAttrDlg) attrDlg).setCurrentContours(elem);
+                contoursDlg.setCurrentContours(elem);
 
             }
 
@@ -727,9 +782,11 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                     lbl.setHide(hide);
                     lbl.setAuto(auto);
                     ((ContoursAttrDlg) attrDlg).setSettings(lbl.copy());
-                    if (((ContoursAttrDlg) attrDlg).isUseMainColor()) {
-                        lbl.setColors(circleTemp.getColors());
-                    }
+                }
+
+                if (((ContoursAttrDlg) attrDlg).isUseMainColor()
+                        && circleTemp != null) {
+                    cmm.getLabel().setColors(circleTemp.getColors());
                 }
 
                 // Check if we need to add to existing contours or create a new
@@ -742,7 +799,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
                      * dialog, and add it to the PGEN Resource
                      */
                     elem = (Contours) (def.create(DrawableType.CONTOURS, null,
-                            "MET", "Contours", points,
+                            "MET", PgenConstant.CONTOURS, points,
                             drawingLayer.getActiveLayer()));
 
                     cmm.setParent(elem);
@@ -870,6 +927,7 @@ public class PgenContoursTool extends AbstractPgenDrawingTool implements
      */
     public void clearSelected() {
         drawingLayer.removeSelected();
+        points.clear();
         mapEditor.refresh();
     }
 

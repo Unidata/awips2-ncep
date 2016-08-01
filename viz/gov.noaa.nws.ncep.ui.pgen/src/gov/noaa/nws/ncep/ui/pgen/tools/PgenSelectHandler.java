@@ -70,12 +70,12 @@ import com.vividsolutions.jts.geom.Point;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/13		#927		B. Yin   	Moved from the PgenSelectingTool class
- * 05/13		#994		J. Wu 		Removed "DEL" - make it same as "Ctrl+X"
- * 07/13		?			J. Wu 		Set the "otherTextLastUsed for GFA.
- * 09/13		?			J. Wu 		Call buildVortext for GFA when mouse is 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 04/13        #927        B. Yin      Moved from the PgenSelectingTool class
+ * 05/13        #994        J. Wu       Removed "DEL" - make it same as "Ctrl+X"
+ * 07/13        ?           J. Wu       Set the "otherTextLastUsed for GFA.
+ * 09/13        ?           J. Wu       Call buildVortext for GFA when mouse is 
  *                                      down since GFA converted from VGF does not 
  *                                      have vorText set.
  * 04/14        #1117       J. Wu       Set focus to label/update line type for Contours.
@@ -90,6 +90,14 @@ import com.vividsolutions.jts.geom.Point;
  * 01/15     R5201/TTR1060  J. Wu       Update settings when an element is selected.
  * 05/15     Redmine 7804   S. Russell  Updated handleMouseDownMove()
  * 07/15        R8352       J. Wu       update hide flag for contour symbol.
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only capability.
+ * 03/15/2016   R15959      E. Brown    Fixed issue where right click was launching the resource manager
+ *                                      while a PGEN attribute dialog was open and/or selecting/editing a 
+ *                                      PGEN object
+ * 06/01/2016   R18387      B. Yin      Open attribute dialog when a sub-object in contour is selected.
+ * 06/15/2016   R13559      bkowal      File cleanup. No longer simulate mouse clicks.
+ * 06/28/2016   R10233      J. Wu       Pass calling handler to PgenContoursTool.
+ * 07/01/2016   R17377      J. Wu       Return control to panning when "SHIFT" is down.
  * 
  * </pre>
  * 
@@ -159,8 +167,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
      */
     protected int inOut = 1;
 
-    protected boolean simulate = false;
-
     public PgenSelectHandler(AbstractPgenTool tool, AbstractEditor mapEditor,
             PgenResource resource, AttrDlg attrDlg) {
         this.mapEditor = mapEditor;
@@ -178,18 +184,21 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseDown(int anX, int aY, int button) {
 
-        if (!tool.isResourceEditable()) {
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
         // Check if mouse is in geographic extent
         Coordinate loc = mapEditor.translateClick(anX, aY);
-        if (loc == null || shiftDown || simulate) {
+        if (loc == null || shiftDown) {
             return false;
         }
         preempt = false;
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         if (button == 1) {
@@ -333,7 +342,16 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         && adc.getName().equalsIgnoreCase("Contours")) {
                     pgCategory = adc.getPgenCategory();
                     pgenType = adc.getPgenType();
-                    PgenUtil.loadContoursTool((Contours) adc);
+
+                    /*
+                     * set "dontMove" flag to be retrieved in contour tool.
+                     */
+                    if (elSelected != null) {
+                        dontMove = true;
+                    }
+
+                    PgenUtil.loadContoursTool((Contours) adc, this);
+
                 } else if (adc != null && elSelected instanceof Line
                         && adc instanceof Outlook) {
                     pgenType = "Outlook";
@@ -393,6 +411,17 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         // Update the settings.
                         ((ContoursAttrDlg) attrDlg).setSettings(elSelected
                                 .copy());
+
+                        if (elSelected instanceof Arc) {
+                            ((ContoursAttrDlg) attrDlg).openCircleAttrDlg();
+                        } else if (elSelected instanceof Line) {
+                            ((ContoursAttrDlg) attrDlg).openLineAttrDlg();
+                        } else if (elSelected instanceof Symbol) {
+                            ((ContoursAttrDlg) attrDlg).openSymbolAttrDlg();
+                        } else if (elSelected instanceof Text) {
+                            ((ContoursAttrDlg) attrDlg).openLabelAttrDlg();
+                        }
+
                     }
 
                 } else {
@@ -488,9 +517,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
             return preempt;
 
-        }
-
-        else {
+        } else {
+            // Mousedown that's not button 1
 
             return false;
 
@@ -507,7 +535,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseDownMove(int x, int y, int button) {
 
-        if (!tool.isResourceEditable()) {
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
 
@@ -520,6 +548,9 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Check if mouse is in geographic extent
@@ -571,16 +602,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 inOut = 0;
             }
 
-            if (tmpEl == null) { // make sure if no DE is selected, no moving
-                                 // the DE for pan
-                return false;
-            } else {
-                simulate = true;
-                PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-                simulate = false;
-
-                return true; // for DE
-            }
+            return (tmpEl != null);
         }
 
         if (tmpEl != null) {
@@ -665,14 +687,6 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     ((SinglePointElement) tmpEl).setLocationOnly(loc);
                 }
 
-                // don't update location (AWC requirement)
-                // if ( attrDlg instanceof SymbolAttrDlg ){
-
-                // ((SymbolAttrDlg)attrDlg).setLatitude(loc.y);
-                // ((SymbolAttrDlg)attrDlg).setLongitude(loc.x);
-
-                // }
-
                 pgenrsc.resetElement(tmpEl); // reset display of this element
 
                 mapEditor.refresh();
@@ -753,18 +767,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
                 }
 
-                simulate = true;
-                PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-                simulate = false;
                 return true;
             }
         }
 
-        if (preempt) {
-            simulate = true;
-            PgenUtil.simulateMouseDown(x, y, button, mapEditor);
-            simulate = false;
-        }
         return preempt;
 
     }
@@ -777,12 +783,24 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
     @Override
     public boolean handleMouseUp(int x, int y, int button) {
         firstDown = null;
-        if (!tool.isResourceEditable()) {
+
+        // This variable, returnValue, is used to make sure that the right mouse
+        // button event stops in this handler instead of continuing on to
+        // NCPerspective's handleMouseUp and opening the resource manager. Near
+        // the bottom of the this method, if the attribute dialog is being
+        // closed by the right mouse button click returnValue is set to true so
+        // that the mouse button click never reaches the NCPer handler
+        boolean preempt = false;
+
+        if (!tool.isResourceEditable() || !tool.isResourceVisible()) {
             return false;
         }
 
         if (attrDlg != null && attrDlg instanceof ContoursAttrDlg) {
             ((ContoursAttrDlg) attrDlg).setLabelFocus();
+            if (((ContoursAttrDlg) attrDlg).isShiftDownInContourDialog()) {
+                return false;
+            }
         }
 
         // Finish the editing
@@ -875,8 +893,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                                 }
 
                                 pgenrsc.replaceElement(oldContours, newContours);
-                                ((PgenContoursTool) tool)
-                                        .setCurrentContour(newContours);
+
+                                if (tool instanceof PgenContoursTool) {
+                                    ((PgenContoursTool) tool)
+                                            .setCurrentContour(newContours);
+                                }
 
                                 Iterator<DrawableElement> it = oldAdc
                                         .createDEIterator();
@@ -1017,7 +1038,7 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 }
 
                 mapEditor.refresh();
-
+                return true;
             }
         } else if (button == 3) {
 
@@ -1029,6 +1050,8 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                         closeAttrDlg(attrDlg, pgenType);
                         attrDlg = null;
                         PgenUtil.setSelectingMode();
+                    } else {
+                        ((ContoursAttrDlg) attrDlg).closeAttrEditDialogs();
                     }
                 } else {
                     closeAttrDlg(attrDlg, pgenType);
@@ -1038,6 +1061,11 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                     }
                     attrDlg = null;
                 }
+
+                // Mouseup event on button 3, the attribute dialog just got
+                // closed, and the PGEN object was just deselected, so
+                // preempt the event so the resource manager doesn't open
+                preempt = true;
             }
 
             if (trackExtrapPointInfoDlg != null) {
@@ -1052,8 +1080,10 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
         }
 
-        return false;
-
+        // Use returnValue to either preempt the event or not. If this button 3
+        // up event just closed the attribute dialog and/or deselected the PGEN
+        // object, the returnValue will be true, preempting the event
+        return preempt;
     }
 
     private void setGhostLineColorForTrack(MultiPointElement multiPointElement,
@@ -1320,11 +1350,15 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 cdlg.setActiveLine(elSelected);
             } else if (elSelected instanceof Symbol) {
                 Text lbl = ((ContourMinmax) pele).getLabel();
+                cdlg.setMinmaxLabelOnly(false);
                 if (lbl != null) {
                     cdlg.setLabel(lbl.getText()[0]);
                     cdlg.setNumOfLabels(1);
                     cdlg.setActiveSymbol(elSelected);
                     cdlg.setHideSymbolLabel(lbl.getHide());
+                    cdlg.setMinmaxSymbolOnly(false);
+                } else {
+                    cdlg.setMinmaxSymbolOnly(true);
                 }
             } else if (elSelected instanceof Text) {
                 cdlg.setLabel(((Text) elSelected).getText()[0]);
@@ -1337,7 +1371,13 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
                 } else if (pele instanceof ContourMinmax) {
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideSymbolLabel(((Text) elSelected).getHide());
-                    cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
+                    cdlg.setMinmaxSymbolOnly(false);
+                    if (((ContourMinmax) pele).getSymbol() != null) {
+                        cdlg.setActiveSymbol(((ContourMinmax) pele).getSymbol());
+                        cdlg.setMinmaxLabelOnly(false);
+                    } else {
+                        cdlg.setMinmaxLabelOnly(true);
+                    }
                 } else if (pele instanceof ContourCircle) {
                     cdlg.setNumOfLabels(1);
                     cdlg.setHideCircleLabel(((Text) elSelected).getHide());
@@ -1352,5 +1392,35 @@ public class PgenSelectHandler extends InputHandlerDefaultImpl {
 
     public PgenResource getPgenrsc() {
         return pgenrsc;
+    }
+
+    /**
+     * @return the preempt
+     */
+    public boolean isPreempt() {
+        return preempt;
+    }
+
+    /**
+     * @param preempt
+     *            the preempt to set
+     */
+    public void setPreempt(boolean preempt) {
+        this.preempt = preempt;
+    }
+
+    /**
+     * @return the dontMove
+     */
+    public boolean isDontMove() {
+        return dontMove;
+    }
+
+    /**
+     * @param dontMove
+     *            the dontMove to set
+     */
+    public void setDontMove(boolean dontMove) {
+        this.dontMove = dontMove;
     }
 }

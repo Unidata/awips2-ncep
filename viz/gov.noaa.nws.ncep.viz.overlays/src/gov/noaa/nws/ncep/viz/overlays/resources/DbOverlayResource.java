@@ -1,7 +1,7 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
 import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -56,8 +56,6 @@ import com.vividsolutions.jts.io.WKBReader;
 
 /**
  * <pre>
- * (non-Javadoc)
- * 
  * This class is copied over from com.raytheon.viz.core.rsc.DbMapResource. It is
  * the NCEP resource implementation for overlays drawn using data in database
  * tables.
@@ -72,21 +70,21 @@ import com.vividsolutions.jts.io.WKBReader;
  * Sep 12, 2014            sgilbert    Add world wrap check (needed for 14.3.1).
  *                                     Corrected deprecated calls.
  * Jul 27, 2015  4500      rjpeter     Removed duplicate columns in requests.
+ * 12/01/2015    R9407     pchowdhuri  Maps/overlays need to be able to reference the
+ *                                     Localization Cave>Bundles>Maps XML files 
+ *                                     Corrected deprecated calls.
+ * Feb 17, 2016  #13554    dgilling    Implement IStaticDataNatlCntrsResource.
  * Nov 05, 2015  5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
- * 12/01/2015    R9407     pchowdhuri  Maps/overlays need to be able to reference the 
- *                                     Localization Cave>Bundles>Maps XML files Corrected deprecated calls.
- * 
  * 
  * 
  * @author mgao
  * @version 1.0
- * </pre>
  */
 
 public class DbOverlayResource extends
         AbstractVizResource<DbOverlayResourceData, MapDescriptor> implements
-        INatlCntrsResource {
+        IStaticDataNatlCntrsResource {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(DbOverlayResource.class);
 

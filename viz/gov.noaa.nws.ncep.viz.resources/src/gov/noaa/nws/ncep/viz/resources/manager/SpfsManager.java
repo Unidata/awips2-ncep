@@ -23,6 +23,9 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
@@ -62,6 +65,11 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  *                                       as key resourceName after modification.
  * 12/09/15        4834     njensen      Updated for LocalizationFile.delete() signature
  * 
+ * 06/23/15       R6821     J. Bernier   Added overloaded getRbdsFromSpf method
+ *                                       to allow passing rbd name for blender.
+ * 03/01/16       R6821     K.Bugenhagen Cleanup: mostly changed sysout statements to IUFStatusHandler
+ * 06/28/2016     R17025    S.Russell    Removed else clause for updates in 
+ *                                       fileUpdated() method.
  * </pre>
  * 
  * @author
@@ -69,14 +77,14 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  */
 public class SpfsManager implements ILocalizationFileObserver {
 
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(SpfsManager.class);
+
     private static SpfsManager instance = null;
 
-    private static long rbdCount = 0; // Might not want to rely on these counts
-                                      // for anything critical.
+    // Might not want to rely on these counts for anything critical.
 
-    private static long spfCount = 0;
-
-    private static long spfGrpCount = 0;
+    private static long rbdCount = 0;
 
     // TODO : do we want to store the NcMapRBD or just the LocalizationFile
     // (Store the NcMapRBD but don't give it out unless we are making a copy
@@ -96,9 +104,8 @@ public class SpfsManager implements ILocalizationFileObserver {
     }
 
     private void findAvailSpfs() {
-        long t0 = System.currentTimeMillis();
 
-        spfsMap = new TreeMap<String, Map<String, Map<String, AbstractRBD<?>>>>();
+        spfsMap = new TreeMap<>();
 
         // This will find all the directories for SPFs and SPF groups as well
         // as the RBDs
@@ -106,49 +113,36 @@ public class SpfsManager implements ILocalizationFileObserver {
                 .getInstance().listFiles(NcPathConstants.SPFS_DIR, null, true,
                         false);
 
-        // loop thru the LocalizationFiles and save to
+        // Loop thru the LocalizationFiles and save to
         for (LocalizationFile lFile : spfsLFileMap.values()) {
 
             lFile.addFileUpdatedObserver(this);
 
             String[] dirs = lFile.getName().split(File.separator);
 
-            // if this is a SPF Group or SPF directory
+            // If this is a SPF Group or SPF directory
             // NOTE: Wait to add the Group/SPF so that only directories
             // that have RBDs in them get added to the map.
             if (lFile.getFile().isDirectory()) {
                 // if an SPF Group
-                if (dirs.length < 3) {
-                    // the NcPathConstants.SPFS_DIR
-                } else if (dirs.length == 3) {
-                    // @formatter:off
-                    // this will be redundant if there are actually SPFs in the
-                    // SPF group since the SPF directory will create the group
-                    // too.
-                    // addSpfGroup( dirs[2] ); // , lFile );
-                    // don't know if we need the lFile here or not
-                    // @formatter:on
-                } else if (dirs.length == 4) {
-                    // @formatter:off
-                    // addSpfGroup( dirs[2] ); 
-                    // don't know if we need the lFile here or not
-                    // addSpf( dirs[2], dirs[3] ); //, lFile );
-                    // store the lFile?
-                    // spfsMap.put( dirs[3], lFile );
-                    // @formatter:on
-                } else {
-                    System.out
-                            .println("Found dir under SPFs with more than 3 paths???:"
+                if (dirs.length > 4) {
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Found dir under SPFs with more than 3 paths:"
                                     + lFile.getName());
                 }
-            } else { // if this is an RBD, check for .xml and in an SPF
-                     // directory
+                // if this is an RBD, check for .xml and in an SPF directory
+            } else {
                 if (!lFile.getName().endsWith(".xml")) {
-                    System.out.println("Non-xmlfile found under SPFs dir???:"
-                            + lFile.getName());
+                    statusHandler.handle(
+                            Priority.PROBLEM,
+                            "Non-xmlfile found under SPFs dir:"
+                                    + lFile.getName());
+
                 } else if (dirs.length != 5) {
-                    System.out.println("xml file found in non-SPF directory? "
-                            + lFile.getName());
+                    statusHandler.handle(
+                            Priority.PROBLEM,
+                            "xml file found in non-SPF directory? "
+                                    + lFile.getName());
                 } else {
                     try {
                         AbstractRBD<?> rbd = NcMapRBD.getRbd(lFile.getFile());
@@ -156,28 +150,22 @@ public class SpfsManager implements ILocalizationFileObserver {
                         rbd.setLocalizationFile(lFile);
                         addRbd(dirs[2], dirs[3], rbd);
                     } catch (VizException e) {
-                        // log error
-                        System.out.println("Error unmarshalling rbd: "
-                                + lFile.getName() + "\n" + e.getMessage());
+                        statusHandler.handle(Priority.PROBLEM,
+                                "Error unmarshalling rbd: " + lFile.getName()
+                                        + "\n" + e.getMessage());
                     }
                 }
             }
         }
-
-        System.out.println("Time to Read " + rbdCount + " RBDs: "
-                + (System.currentTimeMillis() - t0) + " msecs.");
-
     }
 
-    // ? it may be possible to have groups in 2 different contexts. I don't
-    // think we will need to store the context for each group though.??
-    //
-    public void addSpfGroup(String grpName) { // , LocalizationFile lFile ) {
+    // It may be possible to have groups in 2 different contexts. I don't
+    // think we will need to store the context for each group though.
+    public void addSpfGroup(String grpName) {
         synchronized (spfsMap) {
             if (!spfsMap.containsKey(grpName)) {
                 spfsMap.put(grpName,
                         new TreeMap<String, Map<String, AbstractRBD<?>>>());
-                spfGrpCount++;
             }
         }
     }
@@ -192,18 +180,11 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             if (!grpMap.containsKey(spfName)) {
                 grpMap.put(spfName, new TreeMap<String, AbstractRBD<?>>());
-                spfCount++;
             }
         }
     }
 
     public void addRbd(String grpName, String spfName, AbstractRBD<?> rbd) {
-        // can we allow an RBD at this point without a LocalizationFile?
-        //
-        if (rbd.getLocalizationFile() == null) {
-
-        }
-
         synchronized (spfsMap) {
             addSpfGroup(grpName);
             addSpf(grpName, spfName);
@@ -219,15 +200,14 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
     }
 
-    // return an array of all the sub directories in the spf groups dir.
+    // Return an array of all the sub directories in the spf groups dir.
     public String[] getAvailSPFGroups() {
         String[] avail_groups = spfsMap.keySet().toArray(new String[0]);
         Arrays.sort(avail_groups);
         return avail_groups;
     }
 
-    // return an array of all the spf (.xml) files in the given spf group dir.
-    //
+    // Return an array of all the spf (.xml) files in the given spf group dir.
     public String[] getSpfNamesForGroup(String grpName) {
 
         Map<String, Map<String, AbstractRBD<?>>> grpMap = spfsMap.get(grpName);
@@ -256,8 +236,6 @@ public class SpfsManager implements ILocalizationFileObserver {
             return new String[] {};
         }
 
-        // String[] rbdNames = sMap.keySet().toArray( new String[0] );
-        // Arrays.sort( rbdNames );
         // Sort according to the sequence number in the RBD.
         AbstractRBD<?>[] rbds = sMap.values().toArray(new AbstractRBD<?>[0]);
         Arrays.sort(rbds);
@@ -269,9 +247,16 @@ public class SpfsManager implements ILocalizationFileObserver {
         return rbdNames;
     }
 
-    // return a copy of the Rbds in the given SPF.
+    // Return a copy of the Rbds in the given SPF.
     public List<AbstractRBD<?>> getRbdsFromSpf(String grpName, String spfName,
             boolean resolveLatestCycleTimes) throws VizException {
+        return getRbdsFromSpf(grpName, spfName, null, resolveLatestCycleTimes);
+    }
+
+    // Return a copy of the Rbds in the given SPF.
+    public List<AbstractRBD<?>> getRbdsFromSpf(String grpName, String spfName,
+            String rbdName, boolean resolveLatestCycleTimes)
+            throws VizException {
 
         if (grpName == null || spfName == null) {
             throw new VizException("spf group or spf name is null");
@@ -287,9 +272,7 @@ public class SpfsManager implements ILocalizationFileObserver {
             throw new VizException("SPF " + spfName + " doesn't exist.");
         }
 
-        List<AbstractRBD<?>> clonedRbsList = new ArrayList<AbstractRBD<?>>();
-
-        int r = 0;
+        List<AbstractRBD<?>> clonedRbsList = new ArrayList<>();
 
         for (AbstractRBD<?> rbd : sMap.values()) {
 
@@ -300,15 +283,15 @@ public class SpfsManager implements ILocalizationFileObserver {
                 if (resolveLatestCycleTimes) {
                     clonedRBD.resolveLatestCycleTimes();
 
-                    // if unable to resolve the cycle time then leave as Latest
-                    // and resources will have to gracefully handle NoData.
+                    // If unable to resolve the cycle time then leave as
+                    // latest and resources will have to gracefully handle
+                    // NoData.
                 }
                 clonedRbsList.add(clonedRBD);
-                r++;
             } catch (VizException ve) {
-                // print a msg but still return other good rbds in the spf
-                System.out.println("Error cloning RBD: " + rbd.rbdName + ".\n"
-                        + ve.getMessage());
+                // Print a msg but still return other good rbds in the spf
+                statusHandler.handle(Priority.PROBLEM, "Error cloning RBD: "
+                        + rbd.rbdName + ".\n" + ve.getMessage());
             }
         }
 
@@ -316,8 +299,8 @@ public class SpfsManager implements ILocalizationFileObserver {
         rbdsList = clonedRbsList.toArray(new AbstractRBD<?>[0]);
         Arrays.sort(rbdsList);
 
-        // make a copy to allow the user to modify the list.
-        return new ArrayList<AbstractRBD<?>>(Arrays.asList(rbdsList));
+        // Make a copy to allow the user to modify the list.
+        return new ArrayList<>(Arrays.asList(rbdsList));
     }
 
     // TODO : decide what is/isn't a valid rbd name ...
@@ -333,17 +316,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         return false;
     }
 
-    //
-    //
-    // private Map<String,AbstractRBD<?>> getRbdList( String grpName, String
-    // spfName, AbstractRBD<?> rbd ) {
-    // addSpfGroup( grpName );
-    //
-    // addSpf( grpName, spfName );
-    //
-    // }
-
-    // create a new SPF with the given rbds. The rbdsList should be in order and
+    // Create a new SPF with the given rbds. The rbdsList should be in order and
     // the SPF should not exist yet.
     //
     public void createSpf(String grpName, String spfName,
@@ -379,7 +352,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
     }
 
-    // the SPF should already exist. This will delete any existing Rbds that
+    // The SPF should already exist. This will delete any existing Rbds that
     // aren't in the given list.
     //
     public void saveSpf(String grpName, String spfName,
@@ -391,8 +364,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                     "Error saving SPF. Null spf name or no rbds are selected.");
         }
 
-        // get the current Rbds so we can delete those that have been removed.
-        //
+        // Get the current Rbds so we can delete those that have been removed.
         List<AbstractRBD<?>> existingRbds = getRbdsFromSpf(grpName, spfName,
                 false);
 
@@ -435,7 +407,6 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         // The localization code will handle creating the group and spf
         // directories if needed
-        //
         String rbdLclName = NcPathConstants.SPFS_DIR + File.separator + grpName
                 + File.separator + spfName + File.separator + rbd.getRbdName()
                 + ".xml";
@@ -451,9 +422,8 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
         File rbdFile = lFile.getFile();
 
-        // if the user elects not to save out the refTime then don't marshal it
+        // If the user elects not to save out the refTime then don't marshal it
         // out.
-        //
         DataTime savedRefTime = rbd.getTimeMatcher().getRefTime();
 
         if (!saveRefTime) {
@@ -467,7 +437,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         //
         // TODO : do we still have to do this now that we can clone the RBDs?
         //
-        Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<String, DataTime>();
+        Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<>();
         if (!saveCycleTime) {
             for (AbstractRenderableDisplay display : rbd.getDisplays()) {
                 for (ResourcePair rp : display.getDescriptor()
@@ -495,9 +465,9 @@ public class SpfsManager implements ILocalizationFileObserver {
                         savedCycleTime);
             }
         }
-        // marshal out the rbd to the file on disk, set the localizationFile for
+        // Marshal out the rbd to the file on disk, set the localizationFile for
         // the rbd, save the localization file and update the spfsMap with the
-        // rbd and possible new group and spf
+        // rbd and possible new group and spf.
         //
         try {
             AbstractRBD.getJaxbManager().marshalToXmlFile(rbd,
@@ -570,25 +540,23 @@ public class SpfsManager implements ILocalizationFileObserver {
             throw new VizException("Can not delete a non-user defined SPF.");
         } else if (getSpfNamesForGroup(delGroup).length > 0) {
             throw new VizException("Can't delete non-empty SPF:\n" + delGroup);
-        } else if (!groupLocDir.isDirectory()) { // sanity check
+        } else if (!groupLocDir.isDirectory()) {
             throw new VizException(
                     "Localization File for SPF is not a directory:\n"
                             + delGroup);
         }
 
         // Note that this will trigger the fileUpdated which will remove the
-        // group from the map
+        // group from the map.
         try {
             groupLocDir.delete();
         } catch (LocalizationException e) {
-            throw new VizException("Error deleting file:"
-                    + groupLocDir.getPath());
+            throw new VizException(e);
         }
     }
 
-    // use this to check to see if the given User-level SPF has a superceding
+    // Use this to check to see if the given User-level SPF has a superceding
     // SPF.
-    //
     public LocalizationContext getSpfContext(String spfGroup, String spfName)
             throws VizException {
         LocalizationFile spfLocDir = NcPathManager.getInstance()
@@ -603,15 +571,13 @@ public class SpfsManager implements ILocalizationFileObserver {
     // Localization perspective to be used to create USER level SPFs with SITE
     // or DESK level RBDs. This method will return false if the SPF dir or any
     // of its RBDs have a non USER level file.
-    //
+
     public Boolean isUserLevelSpf(String spfGroup, String spfName) {
         try {
-            LocalizationContext spfCntx = getSpfContext(spfGroup, spfName);
 
             for (AbstractRBD<?> rbd : getRbdsFromSpf(spfGroup, spfName, false)) {
                 // TODO : should we look for the File if the LocalizationFile is
-                // not set?
-                // Just assume that the RBD hasn't been created yet....
+                // not set? Just assume that the RBD hasn't been created yet....
                 if (rbd.getLocalizationFile() != null) {
 
                     if (rbd.getLocalizationFile().getContext()
@@ -621,20 +587,19 @@ public class SpfsManager implements ILocalizationFileObserver {
                 }
             }
         } catch (VizException e) {
-            System.out.println("error getting Spf Localization Dir.???");
-            // assume it hasn't been created yet
+            statusHandler.handle(Priority.PROBLEM,
+                    "Error getting Spf Localization Dir");
+            // Assume it hasn't been created yet.
         }
 
         return true;
     }
 
     // This assumes that all the RBDs and the SPF all are in the USER's
-    // Localization.
+    // Localization. This will delete all the user-level RBDs in the SPF as well
+    // as the SPF. If there are SITE, or Base level files in the SPF then we
+    // will 'revert' back to.
 
-    // This will delete all the user-level RBDs in the SPF as well as the SPF.
-    // If there are SITE, or Base level files in the SPF then we will 'revert'
-    // back to
-    //
     public void deleteSpf(String spfGroup, String delSpfName)
             throws VizException {
 
@@ -657,17 +622,11 @@ public class SpfsManager implements ILocalizationFileObserver {
                             + spfGroup + File.separator + delSpfName);
         }
 
-        // get a list of the RBDs in this spf and delete them
+        // Get a list of the RBDs in this spf and delete them.
         List<AbstractRBD<?>> existingRbds = getRbdsFromSpf(spfGroup,
                 delSpfName, false);
 
         for (AbstractRBD<?> delRbd : existingRbds) {
-            // check to see if this RBD supercedes a SITE or DESK level RBD
-            // LocalizationFile rbdLocFiles[] =
-            // NcPathManager.getInstance().getTieredLocalizationFile(
-            // NcPathConstants.SPFS_DIR + File.separator + spfGroup +
-            // File.separator + delSpfName+File.separator+rbd.getR );
-
             deleteRbd(delRbd);
         }
 
@@ -699,8 +658,8 @@ public class SpfsManager implements ILocalizationFileObserver {
                     + rbd.getRbdName());
         }
 
-        // this will trigger the fileUpdated method which will
-        // remove the Rbd from the map
+        // This will trigger the fileUpdated method which will
+        // remove the Rbd from the map.
         try {
             lFile.delete();
         } catch (LocalizationException e) {
@@ -712,14 +671,15 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     public void removeEntryByFile(LocalizationFile lFile) {
 
-        //
         Map<LocalizationLevel, LocalizationFile> superFiles = NcPathManager
                 .getInstance().getTieredLocalizationFile(lFile.getName());
         superFiles.remove(LocalizationLevel.USER);
 
         if (!superFiles.isEmpty()) {
-            System.out.println("Removing FIle " + lFile.getName()
-                    + " that has a lower level File. Need to Revert.");
+            statusHandler.handle(Priority.PROBLEM,
+                    "Removing File " + lFile.getName()
+                            + " that has a lower level File. Need to Revert.");
+
         }
 
         String spfPaths[] = lFile.getName().split(File.separator);
@@ -731,19 +691,19 @@ public class SpfsManager implements ILocalizationFileObserver {
         Map<String, Map<String, AbstractRBD<?>>> grpMap = spfsMap.get(spfGroup);
 
         if (grpMap == null) {
-            System.out.println("Could not find Group " + spfGroup + " for RBD "
-                    + lFile.getName());
+            statusHandler.handle(Priority.PROBLEM, "Could not find Group "
+                    + spfGroup + " for RBD " + lFile.getName());
             return;
         }
 
-        // if this is an Spf Group then remove it and return
+        // If this is an Spf Group then remove it and return
         if (pathCount == 1) {
             // sanity check that the group is empty
             //
             if (spfsMap.containsKey(spfGroup)) {
                 if (!spfsMap.get(spfGroup).isEmpty()) {
-                    System.out.println("???deleting non-empty SPF Group: "
-                            + spfGroup);
+                    statusHandler.handle(Priority.PROBLEM,
+                            "deleting non-empty SPF Group: " + spfGroup);
                 }
             }
 
@@ -757,17 +717,17 @@ public class SpfsManager implements ILocalizationFileObserver {
         Map<String, AbstractRBD<?>> sMap = grpMap.get(spfName);
 
         if (sMap == null) {
-            System.out.println("Could not find SPF " + spfName + " for RBD "
-                    + lFile.getName());
+            statusHandler.handle(Priority.PROBLEM, "Could not find SPF "
+                    + spfName + " for RBD " + lFile.getName());
             return;
         }
 
-        // if this is an Spf then remove it and return
+        // If this is an Spf then remove it and return
         if (pathCount == 2) {
             if (grpMap.containsKey(spfName)) {
                 if (!grpMap.get(spfName).isEmpty()) {
-                    System.out
-                            .println("???deleting non-empty SPF : " + spfName);
+                    statusHandler.handle(Priority.PROBLEM,
+                            "deleting non-empty SPF : " + spfName);
                 }
             }
 
@@ -781,8 +741,6 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         long saveRbdCount = rbdCount;
 
-        String rbdFileName = spfPaths[i + 3];
-
         for (String rbdName : sMap.keySet()) {
             LocalizationFile lf = sMap.get(rbdName).getLocalizationFile();
             if (lf != null && lf.getName().equals(lFile.getName())) {
@@ -795,8 +753,9 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
 
         if (saveRbdCount == rbdCount) {
-            System.out.println("Could not find rbd to remove for File:"
-                    + lFile.getName());
+            statusHandler.handle(Priority.PROBLEM,
+                    "Could not find rbd to remove for File:" + lFile.getName());
+
         }
     }
 
@@ -806,40 +765,38 @@ public class SpfsManager implements ILocalizationFileObserver {
         FileChangeType chgType = message.getChangeType();
         LocalizationContext chgContext = message.getContext();
 
-        // TODO : need to handle the UPDATED cases
-        //
         LocalizationFile lFile = NcPathManager.getInstance()
                 .getLocalizationFile(chgContext, chgFile);
         String[] dirsf = chgFile.split(File.separator);
 
+        // The actual adding and updating of data to the files takes place
+        // in raytheon...localization.LocalizationManager.upload()
+        // there is no need here to process FileUpdatedMessage for updates.
+        // That processing/this method also belongs to a deprecated interface.
+
         try {
+            // File Added
             if (chgType == FileChangeType.ADDED) {
-                //
+
                 if (!chgFile.endsWith(".xml")) {
-                    System.out.println("Non-xmlfile found under SPFs dir???:"
-                            + chgFile);
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Non-xmlfile found under SPFs dir:" + chgFile);
                 } else if (dirsf.length != 5) {
-                    System.out.println("xml file found in non-SPF directory? "
-                            + chgFile);
+                    statusHandler.handle(Priority.PROBLEM,
+                            "xml file found in non-SPF directory? " + chgFile);
                 } else {
                     AbstractRBD<?> rbd = NcMapRBD.getRbd(lFile.getFile());
-                    // System.out.println("Add Rbd name is " + rbd.rbdName );
                     rbd.setLocalizationFile(lFile);
                     addRbd(dirsf[2], dirsf[3], rbd);
                 }
-            } else if (chgType == FileChangeType.DELETED) {
-
+            } // File Deleted
+            else if (chgType == FileChangeType.DELETED) {
                 removeEntryByFile(lFile);
             }
-            // TODO
-            else if (chgType == FileChangeType.UPDATED) {
-                System.out
-                        .println("SpfsManager recieved FileUpdated msg but not handleing");
-            }
+
         } catch (VizException e) {
-            // log error
-            System.out.println("Error unmarshalling rbd: " + chgFile + "\n"
-                    + e.getMessage());
+            statusHandler.handle(Priority.PROBLEM, "Error unmarshalling rbd: "
+                    + chgFile + "\n" + e.getMessage());
         }
     }
 }

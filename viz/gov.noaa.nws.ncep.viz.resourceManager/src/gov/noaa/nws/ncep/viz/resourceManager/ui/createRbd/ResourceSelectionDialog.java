@@ -199,11 +199,6 @@ public class ResourceSelectionDialog extends Dialog {
         sel_rsc_cntrl.setMultiPaneEnabled(multPaneEnable);
     }
 
-    public void setReplaceEnabled(Boolean replaceEnabled) {
-        if (sel_rsc_cntrl != null)
-            sel_rsc_cntrl.setReplaceEnabled(replaceEnabled);
-    }
-
     public ResourceName getPrevSelectedResource() {
 
         return (sel_rsc_cntrl != null ? sel_rsc_cntrl.getPrevSelectedResource()

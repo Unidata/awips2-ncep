@@ -185,10 +185,6 @@
           name="Bad Frame">
       </command>
       <command
-          id="gov.noaa.nws.ncep.viz.ui.ncInventoryControl"
-          name="NcInventoryControl">
-      </command>
-      <command
           description="Auto Update"
           id="gov.noaa.nws.ncep.viz.ui.autoUpdate"
           name="Auto Update">
@@ -198,11 +194,6 @@
       
    <extension
          point="org.eclipse.ui.handlers">
-      <handler
-            class="gov.noaa.nws.ncep.viz.tools.ncInventoryControl.NcInventoryControlAction"
-            commandId="gov.noaa.nws.ncep.viz.ui.ncInventoryControl">
-      </handler>
-         
       <handler
             class="gov.noaa.nws.ncep.viz.tools.autoUpdate.AutoUpdateAction"
             commandId="gov.noaa.nws.ncep.viz.ui.autoUpdate">
@@ -576,14 +567,6 @@
                 schemeId="com.raytheon.viz.ui.awips.scheme"
                 sequence="A">
          </key>
-         <!-- its easter egg time --> 
-         <key
-                commandId="gov.noaa.nws.ncep.viz.ui.ncInventoryControl"
-                contextId="gov.noaa.nws.ncep.viz.ui.perspectives.NCPerspectiveContext"
-                schemeId="com.raytheon.viz.ui.awips.scheme"
-                sequence="ALT+I">
-         </key> 
-         
    </extension>
    
       <extension

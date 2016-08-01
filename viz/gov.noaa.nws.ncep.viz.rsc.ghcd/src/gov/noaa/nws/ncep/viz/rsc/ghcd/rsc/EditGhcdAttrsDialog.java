@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
@@ -55,6 +56,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- --------------------------
  * Oct 16, 2014   R5097     sgurung     Initial creation
+ * 04/05/2016     R15715    dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -149,8 +151,8 @@ public class EditGhcdAttrsDialog extends
             LineStyle.DASHED_LARGE, LineStyle.DOTTED, LineStyle.DASH_DOTTED };
 
     public EditGhcdAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
-            Boolean apply) {
-        super(parentShell, r, apply);
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
 
     @Override
@@ -186,50 +188,63 @@ public class EditGhcdAttrsDialog extends
         titleStyleAttr = editedRscAttrSet.getRscAttr("titleStyle");
 
         if (yScaletypeAttr == null
-                || ((String) yScaletypeAttr.getAttrValue()).trim().length() <= 0)
-            yScaletypeAttr.setAttrValue((String) "");
+                || ((String) yScaletypeAttr.getAttrValue()).trim().length() <= 0) {
+            yScaletypeAttr.setAttrValue("");
+        }
 
         if (yTitlePosAttr == null
-                || ((String) yTitlePosAttr.getAttrValue()).trim().length() <= 0)
-            yTitlePosAttr.setAttrValue((String) "");
+                || ((String) yTitlePosAttr.getAttrValue()).trim().length() <= 0) {
+            yTitlePosAttr.setAttrValue("");
+        }
 
         if (yUnitsPosAttr == null
-                || ((String) yUnitsPosAttr.getAttrValue()).trim().length() <= 0)
-            yUnitsPosAttr.setAttrValue((String) "");
+                || ((String) yUnitsPosAttr.getAttrValue()).trim().length() <= 0) {
+            yUnitsPosAttr.setAttrValue("");
+        }
 
         if (yDataAttr == null
-                || ((String) yDataAttr.getAttrValue()).trim().length() <= 0)
-            yDataAttr.setAttrValue((String) "");
+                || ((String) yDataAttr.getAttrValue()).trim().length() <= 0) {
+            yDataAttr.setAttrValue("");
+        }
 
         if (graphKeyAttr == null
-                || ((String) graphKeyAttr.getAttrValue()).trim().length() <= 0)
-            graphKeyAttr.setAttrValue((String) "");
+                || ((String) graphKeyAttr.getAttrValue()).trim().length() <= 0) {
+            graphKeyAttr.setAttrValue("");
+        }
 
-        if (yScaleMinAttr == null)
+        if (yScaleMinAttr == null) {
             yScaleMinAttr.setAttrValue(-1.0);
+        }
 
-        if (yScaleMaxAttr == null)
+        if (yScaleMaxAttr == null) {
             yScaleMaxAttr.setAttrValue(-1.0);
+        }
 
-        if (yIntervalAttr == null)
+        if (yIntervalAttr == null) {
             yIntervalAttr.setAttrValue(-1.0);
+        }
 
-        if (yNumTicksAttr == null)
+        if (yNumTicksAttr == null) {
             yNumTicksAttr.setAttrValue(-1);
+        }
 
-        if (plotColorAttr == null)
-            plotColorAttr.setAttrValue((RGB) new RGB(255, 255, 255));
+        if (plotColorAttr == null) {
+            plotColorAttr.setAttrValue(new RGB(255, 255, 255));
+        }
 
         if (yTitleAttr == null
-                || ((String) yTitleAttr.getAttrValue()).trim().length() <= 0)
-            yTitleAttr.setAttrValue((String) "");
+                || ((String) yTitleAttr.getAttrValue()).trim().length() <= 0) {
+            yTitleAttr.setAttrValue("");
+        }
 
         if (xTitleAttr == null
-                || ((String) xTitleAttr.getAttrValue()).trim().length() <= 0)
-            xTitleAttr.setAttrValue((String) "");
+                || ((String) xTitleAttr.getAttrValue()).trim().length() <= 0) {
+            xTitleAttr.setAttrValue("");
+        }
 
-        if (displayxLabelsAttr == null)
-            displayxLabelsAttr.setAttrValue((Boolean) true);
+        if (displayxLabelsAttr == null) {
+            displayxLabelsAttr.setAttrValue(true);
+        }
 
         if (xAxisScaleAttr == null
                 || xAxisScaleAttr.getAttrClass() != XAxisScale.class) {
@@ -251,28 +266,34 @@ public class EditGhcdAttrsDialog extends
         }
 
         if (unitsFontAttr == null
-                || ((String) unitsFontAttr.getAttrValue()).trim().length() <= 0)
-            unitsFontAttr.setAttrValue((String) "");
+                || ((String) unitsFontAttr.getAttrValue()).trim().length() <= 0) {
+            unitsFontAttr.setAttrValue("");
+        }
 
         if (unitsFontSizeAttr == null
-                || ((String) unitsFontSizeAttr.getAttrValue()).trim().length() <= 0)
-            unitsFontSizeAttr.setAttrValue((String) "");
+                || ((String) unitsFontSizeAttr.getAttrValue()).trim().length() <= 0) {
+            unitsFontSizeAttr.setAttrValue("");
+        }
 
         if (unitsStyleAttr == null
-                || ((String) unitsStyleAttr.getAttrValue()).trim().length() <= 0)
-            unitsStyleAttr.setAttrValue((String) "");
+                || ((String) unitsStyleAttr.getAttrValue()).trim().length() <= 0) {
+            unitsStyleAttr.setAttrValue("");
+        }
 
         if (titleFontAttr == null
-                || ((String) titleFontAttr.getAttrValue()).trim().length() <= 0)
-            titleFontAttr.setAttrValue((String) "");
+                || ((String) titleFontAttr.getAttrValue()).trim().length() <= 0) {
+            titleFontAttr.setAttrValue("");
+        }
 
         if (titleFontSizeAttr == null
-                || ((String) titleFontSizeAttr.getAttrValue()).trim().length() <= 0)
-            titleFontSizeAttr.setAttrValue((String) "");
+                || ((String) titleFontSizeAttr.getAttrValue()).trim().length() <= 0) {
+            titleFontSizeAttr.setAttrValue("");
+        }
 
         if (titleStyleAttr == null
-                || ((String) titleStyleAttr.getAttrValue()).trim().length() <= 0)
-            titleStyleAttr.setAttrValue((String) "");
+                || ((String) titleStyleAttr.getAttrValue()).trim().length() <= 0) {
+            titleStyleAttr.setAttrValue("");
+        }
 
         copyRscAttrValuesToGraphAttrs();
 
@@ -299,8 +320,9 @@ public class EditGhcdAttrsDialog extends
         yDataText.setLayoutData(new GridData(230, SWT.DEFAULT));
         yDataText.setText((String) yDataAttr.getAttrValue());
         yDataText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                yDataAttr.setAttrValue((String) yDataText.getText().trim());
+                yDataAttr.setAttrValue(yDataText.getText().trim());
             }
 
         });
@@ -311,8 +333,9 @@ public class EditGhcdAttrsDialog extends
         plotColorCms = new ColorButtonSelector(comp, 85, 25);
         plotColorCms.setColorValue((RGB) plotColorAttr.getAttrValue());
         plotColorCms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
-                plotColorAttr.setAttrValue((RGB) plotColorCms.getColorValue());
+                plotColorAttr.setAttrValue(plotColorCms.getColorValue());
             }
         });
 
@@ -323,8 +346,9 @@ public class EditGhcdAttrsDialog extends
         yTitleText.setLayoutData(new GridData(230, SWT.DEFAULT));
         yTitleText.setText((String) yTitleAttr.getAttrValue());
         yTitleText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                yTitleAttr.setAttrValue((String) yTitleText.getText().trim());
+                yTitleAttr.setAttrValue(yTitleText.getText().trim());
             }
         });
 
@@ -335,8 +359,9 @@ public class EditGhcdAttrsDialog extends
         yUnitsText.setLayoutData(new GridData(230, SWT.DEFAULT));
         yUnitsText.setText((String) yUnitsAttr.getAttrValue());
         yUnitsText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                yUnitsAttr.setAttrValue((String) yUnitsText.getText().trim());
+                yUnitsAttr.setAttrValue(yUnitsText.getText().trim());
             }
         });
 
@@ -346,6 +371,7 @@ public class EditGhcdAttrsDialog extends
         yTitlePosCombo = new Combo(comp, SWT.DROP_DOWN);
         yTitlePosCombo.setLayoutData(new GridData(75, SWT.DEFAULT));
         yTitlePosCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 yTitlePosAttr.setAttrValue(yTitlePosCombo.getText());
             }
@@ -357,6 +383,7 @@ public class EditGhcdAttrsDialog extends
         yUnitsPosCombo = new Combo(comp, SWT.DROP_DOWN);
         yUnitsPosCombo.setLayoutData(new GridData(75, SWT.DEFAULT));
         yUnitsPosCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 yUnitsPosAttr.setAttrValue(yUnitsPosCombo.getText());
             }
@@ -368,6 +395,7 @@ public class EditGhcdAttrsDialog extends
         lineStyleCombo = new Combo(comp, SWT.DROP_DOWN);
         lineStyleCombo.setLayoutData(new GridData(150, SWT.DEFAULT));
         lineStyleCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if ("DEFAULT".equals(lineStyleCombo.getText())) {
                     lineStyleAttr.setAttrValue(LineStyle.DEFAULT);
@@ -391,6 +419,7 @@ public class EditGhcdAttrsDialog extends
         lineWidthCombo = new Combo(comp, SWT.DROP_DOWN);
         lineWidthCombo.setLayoutData(new GridData(75, SWT.DEFAULT));
         lineWidthCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 lineWidthAttr.setAttrValue(Integer.parseInt(lineWidthCombo
                         .getText()));
@@ -405,9 +434,9 @@ public class EditGhcdAttrsDialog extends
         graphKeyText.setLayoutData(new GridData(200, SWT.DEFAULT));
         graphKeyText.setText((String) graphKeyAttr.getAttrValue());
         graphKeyText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
-                graphKeyAttr.setAttrValue((String) graphKeyText.getText()
-                        .trim());
+                graphKeyAttr.setAttrValue(graphKeyText.getText().trim());
             }
 
         });
@@ -424,6 +453,7 @@ public class EditGhcdAttrsDialog extends
                     .setToolTipText("Graph attributes can be modified by using the 'Edit Attributes' option from the right-click legend menu.");
         }
         graphAttrsBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 EditGhcdGraphAttrsDialog pd = new EditGhcdGraphAttrsDialog(
                         shell, "Edit Graph Attributes for  '"
@@ -497,7 +527,7 @@ public class EditGhcdAttrsDialog extends
 
         lineWidthCombo.setItems(lineWidthOptions);
         for (int i = 0; i < lineWidthOptions.length; i++) {
-            String position = "" + (Integer) lineWidthAttr.getAttrValue();
+            String position = "" + lineWidthAttr.getAttrValue();
             if (lineWidthOptions[i].equalsIgnoreCase(position)) {
                 lineWidthCombo.select(i);
             }
@@ -528,6 +558,7 @@ public class EditGhcdAttrsDialog extends
         graphAttrs.setxAxisScale((XAxisScale) xAxisScaleAttr.getAttrValue());
     }
 
+    @Override
     public Object open() {
         Display display = getParent().getDisplay();
 
@@ -564,8 +595,7 @@ public class EditGhcdAttrsDialog extends
                     .getResourcesByTypeAsType(GhcdResource.class);
 
             for (GhcdResource rsc : ghcdRscs) {
-                GhcdResourceData rscData = (GhcdResourceData) rsc
-                        .getResourceData();
+                GhcdResourceData rscData = rsc.getResourceData();
                 String graphKey = rscData.getGraphKey();
 
                 if (graphAttrs.getGraphKey().equals(graphKey)) {

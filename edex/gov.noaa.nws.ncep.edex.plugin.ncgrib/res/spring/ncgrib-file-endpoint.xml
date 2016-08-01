@@ -4,12 +4,7 @@
     http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
     <bean id="ncgribFilenameProcessor" class="gov.noaa.nws.ncep.edex.plugin.ncgrib.NcgribFileNameProcessor"/>
-	
-	<bean id="ncgribGridPointLock" class="com.raytheon.edex.plugin.grib.GribGridPointLock">
-		<constructor-arg value="${ncgrib-decode.count.gridpoints}"/>
-		<constructor-arg value="${ncgrib-decode.count.threads}"/>
-	</bean>
-	
+
     <camelContext id="ncgrib-file-endpoint" xmlns="http://camel.apache.org/schema/spring"
         errorHandlerRef="errorHandler">
 
@@ -30,7 +25,7 @@
         errorHandlerRef="errorHandler"
         autoStartup="false">
 
-        <endpoint id="ncgribJmsEndpoint" uri="jms-durable:queue:Ingest.ncGrib?concurrentConsumers=${ncgrib-decode.count.threads}"/>
+        <endpoint id="ncgribJmsEndpoint" uri="jms-durable:queue:Ingest.ncGrib?concurrentConsumers=${GRIB_SPLIT_THREADS}"/>
 
         <route id="ncgribFileNameConsumerRoute">
             <from ref="ncgribJmsEndpoint"/>
@@ -43,21 +38,7 @@
                     <bean ref="stringToFile"/>
                     <split streaming="true">
                         <method bean="gribSplitter" method="split"/>
-                        <doTry>
-                            <pipeline>
-                                <bean ref="ncgribGridPointLock" method="reserve"/>
-                                <bean ref="gribDecoder"/>
-                                <bean ref="gribPostProcessor" method="process"/>
-                                <to uri="direct-vm:persistIndexAlert"/>
-                            </pipeline>
-                            <doCatch>
-                                <exception>java.lang.Throwable</exception>
-                                <to uri="log:ncgrib?level=ERROR"/>
-                            </doCatch>
-                            <doFinally>
-                                <bean ref="ncgribGridPointLock" method="release"/>
-                            </doFinally>
-                        </doTry>
+                        <to uri="jms-durable:queue:Ingest.GribDecode" />
                     </split>
                 </pipeline>
                 <doCatch>

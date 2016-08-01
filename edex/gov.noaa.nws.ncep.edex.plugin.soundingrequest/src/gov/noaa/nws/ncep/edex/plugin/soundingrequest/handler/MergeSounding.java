@@ -1739,7 +1739,7 @@ public class MergeSounding {
      * This design choice is based on the observation from database that
      * RH is most common provided by most grid models. 
      * Only few models use SH, e.g NAM at x25 and x75 levels, and 
-     * DpD, e.g RUC130 at surface level.
+     * DpD, e.g RAP13 at surface level.
      * @param List<NcSoundingLayer>  : list of sounding data 
      * @return List<NcSoundingLayer> :list of dew point converted sounding data
      * @author cchen, created 05/01/2015

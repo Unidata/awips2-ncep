@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * The grid contour attribute editing dialog.
  * 
@@ -31,16 +33,17 @@ import org.eclipse.swt.widgets.Text;
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * March 2010	164		     M. Li		
- * July	 2010	164		     M. Li		Re-build the GUI using GEMPAK style
- * Sept  2010   164			 M. Li		Add fint, fline and title
- * Nove  2010	             M. Li		Add wind
- * Nov,22 2010  352			 X. Guo     Add HILO, HLSYM and move all help functions
+ * March 2010   164          M. Li  
+ * July  2010   164          M. Li      Re-build the GUI using GEMPAK style
+ * Sept  2010   164          M. Li      Add fint, fline and title
+ * Nove  2010                M. Li      Add wind
+ * Nov,22 2010  352          X. Guo     Add HILO, HLSYM and move all help functions
  *                                      into NcgridAttributesHelp.java
  * Feb 06, 2012  #538        Q. Zhou    Added skip and filter areas and implements. 
- * Sep 07, 2012  #743        Archana      Added CLRBAR
+ * Sep 07, 2012  #743        Archana    Added CLRBAR
  * Sep 11, 2013  #1036       S. Gurung  Added TEXT attribute
- * Jul 07, 2015	 ---         M. James   Modified compoisite to use single form text editor for attributes
+ * Jul 07, 2015	 ---         mjames     Modified compoisite to use single form text editor for attributes
+ * 04/05/2016   R15715       dgilling   Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * @author mli
  * @version 1
@@ -96,63 +99,78 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
      * @param parentShell
      * @param dialogTitle
      */
-    public EditGridAttributesDialog(Shell parentShell, INatlCntrsResourceData rd, Boolean apply ) {
-        super(parentShell, rd, apply);
+    public EditGridAttributesDialog(Shell parentShell,
+            INatlCntrsResourceData rd, Capabilities capabilities, Boolean apply) {
+        super(parentShell, rd, capabilities, apply);
     }
 
     @Override
     public Composite createDialog(Composite composite) {
-    	
-    	lineAttr   = editedRscAttrSet.getRscAttr("lineAttributes");
-    	cintString = editedRscAttrSet.getRscAttr("cint");
-    	glevel     = editedRscAttrSet.getRscAttr("glevel");
-    	gvcord     = editedRscAttrSet.getRscAttr("gvcord");
-    	skip       = editedRscAttrSet.getRscAttr("skip");
-    	filter     = editedRscAttrSet.getRscAttr("filter");
-    	scale      = editedRscAttrSet.getRscAttr("scale");
-    	gdpfun     = editedRscAttrSet.getRscAttr("gdpfun");
-    	type       = editedRscAttrSet.getRscAttr("type");
-    	fint       = editedRscAttrSet.getRscAttr("fint");
-    	fline      = editedRscAttrSet.getRscAttr("fline");
-    	hilo 	   = editedRscAttrSet.getRscAttr("hilo");
-    	hlsym 	   = editedRscAttrSet.getRscAttr("hlsym");
-    	wind       = editedRscAttrSet.getRscAttr("wind");
-    	title      = editedRscAttrSet.getRscAttr("title");
-    	colors     = editedRscAttrSet.getRscAttr("colors");
-    	marker     = editedRscAttrSet.getRscAttr("marker");
-    	grdlbl     = editedRscAttrSet.getRscAttr("grdlbl");
-    	clrbar     = editedRscAttrSet.getRscAttr("clrbar");
-    	text 	   = editedRscAttrSet.getRscAttr("text");
-    	
-    	// confirm the classes of the attributes..
-    	if(clrbar.getAttrClass() != String.class ) {
-    		System.out.println( "line is not of expected class? "+clrbar.getAttrClass().toString() );
-    	}
-    	if( lineAttr.getAttrClass() != String.class ) {
-    		System.out.println( "line is not of expected class? "+ lineAttr.getAttrClass().toString() );
-    	}
-    	if (cintString.getAttrClass() != String.class ){
-    		System.out.println( "cint is not of expected class? "+ cintString.getAttrClass().toString() );
-    	}
-    	if (cintString == null 
-    			|| ((String)cintString.getAttrValue()).trim().length() <= 0)
-    		cintString.setAttrValue((String)"");
-    	if ( hilo != null  
-    		    && ((String)hilo.getAttrValue()).trim().length() <= 0) {
-    		hilo.setAttrValue((String)"");
-    	}
-    	if ( hlsym != null 
-    			&& ((String)hlsym.getAttrValue()).trim().length() <= 0)
-    		hlsym.setAttrValue((String)"");
-    	if ( text != null 
-    			&& ((String)text.getAttrValue()).trim().length() <= 0)
-    		text.setAttrValue((String)"");
-    	
+        lineAttr = editedRscAttrSet.getRscAttr("lineAttributes");
+        cintString = editedRscAttrSet.getRscAttr("cint");
+        glevel = editedRscAttrSet.getRscAttr("glevel");
+        gvcord = editedRscAttrSet.getRscAttr("gvcord");
+        skip = editedRscAttrSet.getRscAttr("skip");
+        filter = editedRscAttrSet.getRscAttr("filter");
+        scale = editedRscAttrSet.getRscAttr("scale");
+        gdpfun = editedRscAttrSet.getRscAttr("gdpfun");
+        type = editedRscAttrSet.getRscAttr("type");
+        fint = editedRscAttrSet.getRscAttr("fint");
+        fline = editedRscAttrSet.getRscAttr("fline");
+        hilo = editedRscAttrSet.getRscAttr("hilo");
+        hlsym = editedRscAttrSet.getRscAttr("hlsym");
+        wind = editedRscAttrSet.getRscAttr("wind");
+        title = editedRscAttrSet.getRscAttr("title");
+        colors = editedRscAttrSet.getRscAttr("colors");
+        marker = editedRscAttrSet.getRscAttr("marker");
+        grdlbl = editedRscAttrSet.getRscAttr("grdlbl");
+        clrbar = editedRscAttrSet.getRscAttr("clrbar");
+        text = editedRscAttrSet.getRscAttr("text");
+
+//        if (!editedRscAttrSet.hasAttrName("gdfile")) {
+//            editedRscAttrSet.setAttrValue("gdfile", "{}");
+//        }
+//        gdfile = editedRscAttrSet.getRscAttr("gdfile");
+
+        // confirm the classes of the attributes..
+        if (clrbar.getAttrClass() != String.class) {
+            System.out.println("line is not of expected class? "
+                    + clrbar.getAttrClass().toString());
+        }
+
+        if (lineAttr.getAttrClass() != String.class) {
+            System.out.println("line is not of expected class? "
+                    + lineAttr.getAttrClass().toString());
+        }
+
+        if (cintString.getAttrClass() != String.class) {
+            System.out.println("cint is not of expected class? "
+                    + cintString.getAttrClass().toString());
+        }
+
+        if (cintString == null
+                || ((String) cintString.getAttrValue()).trim().length() <= 0) {
+            cintString.setAttrValue("");
+        }
+
+        if (hilo != null && ((String) hilo.getAttrValue()).trim().length() <= 0) {
+            hilo.setAttrValue("");
+        }
+
+        if (hlsym != null
+                && ((String) hlsym.getAttrValue()).trim().length() <= 0) {
+            hlsym.setAttrValue("");
+        }
+
+        if (text != null && ((String) text.getAttrValue()).trim().length() <= 0) {
+            text.setAttrValue("");
+        }
+
         GridLayout contourIntervalsGridLayout = new GridLayout();
         contourIntervalsGridLayout.numColumns = 2;
-        composite.setLayout(contourIntervalsGridLayout); 
-        
-        // Single form text editor. Must acccount for "lineAttribute" instead of "LINE"
+
+	composite.setLayout(contourIntervalsGridLayout); 
+
         String gempakEditable = "";
         String gempakLabel = null;
         for (String gempakCommand : editedRscAttrSet.getAttrNames()) {
@@ -165,8 +183,6 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
     					editedRscAttrSet.getRscAttr(gempakCommand).getAttrValue().toString() 
     					+ "\n";
         }
-        //Font mono = new Font(composite.getDisplay(), "Lucida Sans Typewriter", 7, SWT.NORMAL);
-        //mono.getFontData()[0].setHeight(6);
         gempakText = new StyledText(composite,SWT.MULTI | SWT.H_SCROLL );
         gempakText.setLayoutData(new GridData(560, 460));
         gempakText.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));

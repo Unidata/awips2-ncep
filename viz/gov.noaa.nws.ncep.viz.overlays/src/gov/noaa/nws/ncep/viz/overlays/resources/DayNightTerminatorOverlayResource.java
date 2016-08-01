@@ -6,7 +6,7 @@ import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
 import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
 import gov.noaa.nws.ncep.ui.pgen.elements.Symbol;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -41,6 +41,7 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -55,6 +56,8 @@ import com.vividsolutions.jts.geom.LineString;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 04/24/14     1130       S. Gurung	Initial Creation
+ * 02/17/16     #13554     dgilling     Implement IStaticDataNatlCntrsResource.
+ * 06/26/16                mjames@ucar  Allow D2D display with EditorUtil.
  * 
  * </pre>
  * 
@@ -64,7 +67,7 @@ import com.vividsolutions.jts.geom.LineString;
 public class DayNightTerminatorOverlayResource
         extends
         AbstractVizResource<DayNightTerminatorOverlayResourceData, IMapDescriptor>
-        implements INatlCntrsResource {
+        implements IStaticDataNatlCntrsResource {
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(DayNightTerminatorOverlayResource.class);
@@ -94,6 +97,8 @@ public class DayNightTerminatorOverlayResource
     private double sun_long_gse;
 
     private Coordinate sunPosCoord;
+    
+    private AbstractEditor editor;
 
     protected DayNightTerminatorOverlayResource(
             DayNightTerminatorOverlayResourceData llRscData,
@@ -114,6 +119,7 @@ public class DayNightTerminatorOverlayResource
      * 
      * @see com.raytheon.viz.core.rsc.IVizResource#dispose()
      */
+    @Override
     public void disposeInternal() {
         clearWireFrameShapesArray(wireframeShapesMap);
     }
@@ -569,11 +575,13 @@ public class DayNightTerminatorOverlayResource
     protected void initInternal(IGraphicsTarget target) throws VizException {
 
         // get frame times from the current active editor
-        AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
+        editor = NcDisplayMngr.getActiveNatlCntrsEditor();
 
         if (editor == null
                 || NcEditorUtil.getNcDisplayType(editor) != NcDisplayType.NMAP_DISPLAY) {
-            throw new VizException("The active editor is not an NMAP display.");
+            //throw new VizException("The active editor is not an NMAP display.");
+            editor = (AbstractEditor) EditorUtil.getActiveEditor();
+
         }
 
         IDisplayPane activePane = editor.getActiveDisplayPane();
@@ -1120,7 +1128,6 @@ public class DayNightTerminatorOverlayResource
      */
     public Date getCurrentFrameTime() {
 
-        AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
         IDisplayPane activePane = editor.getActiveDisplayPane();
 
         FramesInfo info = activePane.getDescriptor().getFramesInfo();

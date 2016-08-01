@@ -1,4 +1,4 @@
-colorMapName=EET
+colorMapName=Radar/Enhanced Echo Tops
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=EET

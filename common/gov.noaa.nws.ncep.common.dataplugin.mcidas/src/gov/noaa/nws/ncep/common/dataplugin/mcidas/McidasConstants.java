@@ -31,6 +31,7 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
  * Nov 10, 2015  10436     njensen     Initial creation
  * 12/04/2015    R12953    R Reynolds  Added projection and resolution
  * 01/25/2016    R14142    R Reynolds  added CUSTOM_NAME
+ * 06/06/2016    R15945    R Reynolds  Added constants
  * </pre>
  * 
  * @author njensen
@@ -38,6 +39,21 @@ package gov.noaa.nws.ncep.common.dataplugin.mcidas;
  */
 
 public class McidasConstants {
+	
+	
+    public static final String SATELLLITE = "satellite";
+
+    public static final String AREA = "area";
+
+    public static final String RESOLUTION = "resolution";
+
+    public static final String CHANNEL = "channel";
+
+    public static final String RESOURCE_DEFINITION = "RD";
+
+    public static final String ATTRIBUTE_SET_ALIAS = "AS";
+	
+	
 
     public static final String PLUGIN_NAME = "mcidas";
 
@@ -45,7 +61,6 @@ public class McidasConstants {
 
     public static final String AREA_ID = "areaId";
 
-    public static final String RESOLUTION = "resolution";
 
     public static final String PROJECTION = "projection";
 

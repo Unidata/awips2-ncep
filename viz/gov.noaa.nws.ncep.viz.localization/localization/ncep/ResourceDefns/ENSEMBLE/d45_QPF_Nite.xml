@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <resourceDefnName>d45_QPF_Nite</resourceDefnName>
+    <resourceCategory>ENSEMBLE</resourceCategory>
+    <resourceParameters>
+primaryModel=gfs
+availableModels=cmc;DGEX185;ecmwf;ece;ensqpf;gefs;gfs;GFS230;nogaps;UkmetHR-NorthernHemisphere
+pluginName=grid
+GDFILE={gfs,cmc,DGEX185,ecmwf,ece,ensqpf,gefs,GFS230,nogaps,UkmetHR-NorthernHemisphere}
+    </resourceParameters>
+    <rscImplementation>EnsembleFcstGridContours</rscImplementation>
+    <subTypeGenerator></subTypeGenerator>
+    <rscTypeGenerator></rscTypeGenerator>
+    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <frameSpan>360</frameSpan>
+    <timelineGenMethod>DETERMINE_FROM_RSC_IMPLEMENTATION</timelineGenMethod>
+	<dfltTimeRange>132</dfltTimeRange>
+    <dfltGraphRange>132</dfltGraphRange>
+    <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <dfltFrameTimes>f132</dfltFrameTimes>
+    <cycleReference>00</cycleReference>
+    <dayReference>TODAY</dayReference>
+</ResourceDefinition>

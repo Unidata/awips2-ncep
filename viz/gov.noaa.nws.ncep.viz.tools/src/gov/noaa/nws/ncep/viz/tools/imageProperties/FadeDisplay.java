@@ -1,11 +1,13 @@
 package gov.noaa.nws.ncep.viz.tools.imageProperties;
 
+import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.StatusLineLayoutData;
@@ -25,6 +27,7 @@ import org.eclipse.swt.widgets.Scale;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
+import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -57,6 +60,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *                                      to get rid of alert window for 
  *                                      non-AbstractNatlCntrsResource resources
  *                                      (like GeoTiffResource's).
+ * 05/26/2016   R17960     bsteffen     Search within IPowerLegend resources to find image resources.
  * 
  * </pre>
  * 
@@ -207,17 +211,7 @@ public class FadeDisplay extends ContributionItem {
         for (IDisplayPane pane : seldPanes) {
             ResourceList rscList = pane.getDescriptor().getResourceList();
 
-            for (ResourcePair rp : rscList) {
-                if (!rp.getProperties().isSystemResource()
-                        && rp.getResource().getCapabilities()
-                                .hasCapability(ImagingCapability.class)) {
-                    if (rp.getResource() instanceof AbstractNatlCntrsResource<?, ?>) {
-                        imageResources.add((AbstractNatlCntrsResource<?, ?>) rp
-                                .getResource());
-                    }
-
-                }
-            }
+            imageResources.addAll(getImageResources(rscList));
         }
 
         int brightness = -1;
@@ -257,6 +251,28 @@ public class FadeDisplay extends ContributionItem {
         } else {
             scale.setSelection(0);
         }
+    }
+
+    private static List<AbstractNatlCntrsResource<?, ?>> getImageResources(
+            ResourceList list) {
+        List<AbstractNatlCntrsResource<?, ?>> imageResources = new ArrayList<>();
+        for (ResourcePair rp : list) {
+            if (rp.getProperties().isSystemResource()) {
+                continue;
+            }
+            AbstractVizResource<?, ?> resource = rp.getResource();
+            if (resource instanceof AbstractNatlCntrsResource<?, ?>) {
+                if (resource.hasCapability(ImagingCapability.class)) {
+                    imageResources
+                            .add((AbstractNatlCntrsResource<?, ?>) resource);
+                }
+            } else if (resource instanceof IPowerLegend) {
+                imageResources
+                        .addAll(getImageResources(((IPowerLegend) resource)
+                                .getResourceList()));
+            }
+        }
+        return imageResources;
     }
 
     @Override

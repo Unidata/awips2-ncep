@@ -12,7 +12,7 @@ legendColor=RGB {255,255,102}
     </resourceParameters>
     <rscImplementation>McidasSatellite</rscImplementation>
     
-       <subTypeGenerator>resolution,areaId,projection,satelliteId</subTypeGenerator>
+       <subTypeGenerator>resolution,areaId,projection</subTypeGenerator>
        
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>

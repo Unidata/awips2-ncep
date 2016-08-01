@@ -77,6 +77,7 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 import com.raytheon.uf.common.geospatial.util.WorldWrapCorrector;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -120,48 +121,58 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 03/10		#223		M.Laryukhin	Gfa added. 
- * 11/10		?			B. Yin		Added an option to draw one column mid-level cloud text
- * 11/10		#345		J. Wu		Added an option to not drawing a Text element
- * 12/10		#321		J. Wu		Auto-adjust label positions for Contours.
- * 01/11		#235D		B. Hebbard	Added grouping Vectors in few display elements for faster performance
- * 02/11		?			B. Yin		Combine WatchBox counties to fill the area
- * 04/11		?			B. Yin		Use Geometry instead of MultiPolygon for county shapes
- * 04/11		#?			B. Yin		Re-factor IAttribute, changed ISinglePoint to ISymbol
- * 07/11		#?			J. Wu		Allow more than 1 labels for closed contour lines.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 03/10        #223        M.Laryukhin Gfa added. 
+ * 11/10        ?           B. Yin      Added an option to draw one column mid-level cloud text
+ * 11/10        #345        J. Wu       Added an option to not drawing a Text element
+ * 12/10        #321        J. Wu       Auto-adjust label positions for Contours.
+ * 01/11        #235D       B. Hebbard  Added grouping Vectors in few display elements for faster performance
+ * 02/11        ?           B. Yin      Combine WatchBox counties to fill the area
+ * 04/11        ?           B. Yin      Use Geometry instead of MultiPolygon for county shapes
+ * 04/11        #?          B. Yin      Re-factor IAttribute, changed ISinglePoint to ISymbol
+ * 07/11        #?          J. Wu       Allow more than 1 labels for closed contour lines.
  * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
  * 03/12        #697        Q. Zhou     Fixed line arrow head size for line & gfa  
  * 07/12        #834        J. Wu       Fixed fuzzy text display. 
- * 08/12		#760		B. Yin		Modify line factory to apply world wrap.
- * 09/12					B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
- * 11/12		#901/917  	J. Wu		Set the symbol in GFA text box in proper location/size
+ * 08/12        #760        B. Yin      Modify line factory to apply world wrap.
+ * 09/12                    B. Hebbard  Merge out RTS changes from OB12.9.1 - adds reset()
+ * 11/12        #901/917    J. Wu       Set the symbol in GFA text box in proper location/size
  * 05/13                    Chin Chen   use IDescriptor instead of IMapDescriptor for used by Nsharp wind barb drawing
- * 07/13        #988        Archana 	added createDisplayElements() to add all symbols in the same color to a single wire-frame.
+ * 07/13        #988        Archana     added createDisplayElements() to add all symbols in the same color to a single wire-frame.
  * 09/23/13                 Chin Chen   changed several private variables/methods to protected, for NsharpDisplayElementFactory now extend from
- * 										this class
+ *                                      this class
  * 11/13        TTR 752     J. Wu       added methods to compute an element's range record.
- * 12/13		#1089		B. Yin		Modify watch to display county list
+ * 12/13        #1089       B. Yin      Modify watch to display county list
  * 02/14        #2819       R. Anderson Removed unnecessary .clone() call
  * 05/14        TTR 995     J. Wu       Make contour label auto-placement an option.
  * 07/14        ?           B. Yin      Added support for dashed-line circle for TCM 12 feet sea.
- * 08/14		?			B. Yin		Fixed world wrap for TCM track and zero circle issues.
+ * 08/14        ?           B. Yin      Fixed world wrap for TCM track and zero circle issues.
  * 08/14        TTR972      J. Wu       Draw filled object as filled only if either its layer's "filled" flag
  *                                      "true" or they are on the active layer,  .
  * 09/14        TTR750      J. Wu       Draw track label with specified font styles.
- * 12/14		R5413		B. Yin		Dispose image and font in find*Ranges methods
+ * 12/14        R5413       B. Yin      Dispose image and font in find*Ranges methods
  * 03/15        R4862       M. Kean     changes related to new point reduced data
  * 04/15        R6520       J. Wu       Adjust front's width/pattern size to match NMAP2.
  * 08/15        R7757       B. Hebbard  Upgrade createDisplayElements(List<IVector>,--) to handle heterogeneous
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
- * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
+ * Apr 28, 2016 5542       tgurney      Performance improvement in createDisplayElements(ILine, ...)
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
+ * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.  
+ *                                      Moved world wrap code and smoothing code to its own function.
+ * 04/05/2016   R17006      J. Wu       Correct the drawing of five-knot wind barb.
  * </pre>
  * 
  * @author sgilbert
  * 
+ */
+
+/*
+ * TODO This class is too large consider moving some of the business logic out
+ * or create new classes/methods when changing this code
  */
 public class DisplayElementFactory {
 
@@ -219,6 +230,7 @@ public class DisplayElementFactory {
 
     // Default spacing between a Contour symbol and its label.
     private static int contourSymbolXOffset = 0;
+
     private static int contourSymbolYOffset = 5;
 
     /*
@@ -294,9 +306,10 @@ public class DisplayElementFactory {
     }
 
     /**
-     * Creates a list of IDisplayable Objects from an IMultiPoint object
+     * Creates a list of IDisplayable Objects from an IMultiPoint object and
+     * applies world wrap if applicable
      * 
-     * @param de
+     * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param paintProps
      *            The paint properties associated with the target
@@ -304,83 +317,121 @@ public class DisplayElementFactory {
      *            The flag to apply world wrap for lines
      * @return A list of IDisplayable elements
      */
-    public ArrayList<IDisplayable> createDisplayElements(ILine de,
+    public ArrayList<IDisplayable> createDisplayElements(ILine drawableElement,
             PaintProperties paintProps, boolean worldWrap) {
 
         if (worldWrap) {
-            elem = de;
-            ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+            return createWorldWrappedDisplayElements(drawableElement,
+                    paintProps);
+        }
 
-            WorldWrapCorrector corrector = new WorldWrapCorrector(
-                    iDescriptor.getGridGeometry());
+        return createDisplayElements(drawableElement, paintProps);
 
-            // put line points in a coordinate array
-            Coordinate[] coord;
-            if (de.isClosedLine()) {
-                coord = new Coordinate[de.getLinePoints().length + 1];
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
-                }
-                coord[de.getLinePoints().length] = new Coordinate(
-                        de.getLinePoints()[0].x, de.getLinePoints()[0].y);
-            } else {
-                coord = new Coordinate[de.getLinePoints().length];
+    }
 
-                for (int ii = 0; ii < de.getLinePoints().length; ii++) {
-                    coord[ii] = new Coordinate(de.getLinePoints()[ii].x,
-                            de.getLinePoints()[ii].y);
-                }
+    /**
+     * Applies the World Wrap function to LatLon coordinates
+     * 
+     * @param drawableElement
+     *            A PGEN Drawable Element of a multipoint object
+     * @param paintProps
+     *            The paint properties associated with the target
+     */
+    private ArrayList<IDisplayable> createWorldWrappedDisplayElements(
+            ILine drawableElement, PaintProperties paintProps) {
 
+        ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
+        WorldWrapCorrector corrector = new WorldWrapCorrector(
+                iDescriptor.getGridGeometry());
+        elem = drawableElement;
+
+        // put line points in a coordinate array
+        Coordinate[] coord;
+
+        if (drawableElement.isClosedLine()) {
+            coord = new Coordinate[drawableElement.getLinePoints().length + 1];
+            for (int ii = 0; ii < drawableElement.getLinePoints().length; ii++) {
+                coord[ii] = new Coordinate(
+                        drawableElement.getLinePoints()[ii].x,
+                        drawableElement.getLinePoints()[ii].y);
             }
+            coord[drawableElement.getLinePoints().length] = new Coordinate(
+                    drawableElement.getLinePoints()[0].x,
+                    drawableElement.getLinePoints()[0].y);
+        } else {
+            coord = new Coordinate[drawableElement.getLinePoints().length];
 
-            // apply world wrap.
-            // pointsToLineString is in GfaClip. It should be put in a common
-            // place
-            Geometry geo = null;
-            try {
-                geo = corrector.correct(GfaClip.getInstance()
-                        .pointsToLineString(coord));
-            } catch (Exception e) {
-                handler.error("World wrap error: ", e.getMessage());
-                return list;
-            }
-
-            if (geo != null && geo.getNumGeometries() > 1) {
-                for (int ii = 0; ii < geo.getNumGeometries(); ii++) {
-                    Geometry geo1 = geo.getGeometryN(ii);
-                    double[][] pixels = PgenUtil
-                            .latlonToPixel(geo1.getCoordinates(),
-                                    (IMapDescriptor) iDescriptor);
-                    double[][] smoothpts;
-                    float density;
-
-                    // Apply parametric smoothing on pixel coordinates, if
-                    // required
-                    if (de.getSmoothFactor() > 0) {
-                        float devScale = 50.0f;
-                        if (de.getSmoothFactor() == 1)
-                            density = devScale / 1.0f;
-                        else
-                            density = devScale / 5.0f;
-                        smoothpts = CurveFitter.fitParametricCurve(pixels,
-                                density);
-                    } else {
-                        smoothpts = pixels;
-                    }
-
-                    list.addAll(createDisplayElementsForLines(de, smoothpts,
-                            paintProps));
-
-                }
-
-                return list;
+            for (int ii = 0; ii < drawableElement.getLinePoints().length; ii++) {
+                coord[ii] = new Coordinate(
+                        drawableElement.getLinePoints()[ii].x,
+                        drawableElement.getLinePoints()[ii].y);
             }
 
         }
 
-        return createDisplayElements(de, paintProps);
+        // apply world wrap
+        // pointsToLineString is in GfaClip. It should be put in a common
+        // place ex PgenUtil
+        Geometry geo = null;
+        try {
+            geo = corrector.correct(GfaClip.getInstance().pointsToLineString(
+                    coord));
+        } catch (Exception e) {
+            handler.error("World wrap error: ", e.getMessage());
+            return list;
+        }
+        if (geo == null) {
+            handler.handle(Priority.PROBLEM,
+                    "Error: World wrap Geometry is null");
+            return list;
+        }
 
+        for (int ii = 0; ii < geo.getNumGeometries(); ii++) {
+            Geometry geo1 = geo.getGeometryN(ii);
+            double[][] pixelsCordinates = PgenUtil.latlonToPixel(
+                    geo1.getCoordinates(), (IMapDescriptor) iDescriptor);
+            double[][] smoothedCoordinates;
+
+            // Apply parametric smoothing
+            smoothedCoordinates = applyParametricSmoothing(drawableElement,
+                    pixelsCordinates);
+
+            list.addAll(createDisplayElementsForLines(drawableElement,
+                    smoothedCoordinates, paintProps));
+
+        }
+
+        return list;
+
+    }
+
+    /**
+     * Applies parametric smoothing on pixel coordinates, if required
+     * 
+     * @param drawableElement
+     *            A PGEN Drawable Element of a multipoint object
+     * 
+     * @param pixelsCordinates
+     *            The screen coordinates associated with the target
+     * 
+     * @return The smoothed screen coordinates associated with the target
+     * 
+     */
+    private double[][] applyParametricSmoothing(ILine drawableElement,
+            double[][] pixelsCordinates) {
+
+        float density;
+        if (drawableElement.getSmoothFactor() > 0) {
+            float devScale = 50.0f;
+            if (drawableElement.getSmoothFactor() == 1) {
+                density = devScale / 1.0f;
+            } else {
+                density = devScale / 5.0f;
+            }
+            return CurveFitter.fitParametricCurve(pixelsCordinates, density);
+        } else {
+            return pixelsCordinates;
+        }
     }
 
     /**
@@ -389,7 +440,7 @@ public class DisplayElementFactory {
      * attributes on the smoothed(if needed) points to create a list of
      * displayable.
      * 
-     * @param de
+     * @param drawableElement
      *            A PGEN Drawable Element of a multipoint object
      * @param smoothpts
      *            points of the multipoint object
@@ -398,8 +449,11 @@ public class DisplayElementFactory {
      * @return
      */
 
-    private ArrayList<IDisplayable> createDisplayElementsForLines(ILine de,
-            double[][] smoothpts, PaintProperties paintProps) {
+    private ArrayList<IDisplayable> createDisplayElementsForLines(
+            ILine drawableElement, double[][] smoothpts,
+            PaintProperties paintProps) {
+
+        setScales(paintProps);
 
         /*
          * R6520 - Adjust line width/pattern size for fronts.
@@ -411,10 +465,11 @@ public class DisplayElementFactory {
          * 
          * Also, the pip size (sizeScale) needs to be adjusted to match NMAP2.
          */
-        float drawLineWidth = de.getLineWidth();
-        double drawSizeScale = de.getSizeScale();
-        if (de instanceof Line
-                && ((Line) de).getPgenCategory().equalsIgnoreCase("Front")) {
+        float drawLineWidth = drawableElement.getLineWidth();
+        double drawSizeScale = drawableElement.getSizeScale();
+        if (drawableElement instanceof Line
+                && ((Line) drawableElement).getPgenCategory().equalsIgnoreCase(
+                        "Front")) {
             if (drawLineWidth <= 3.0) {
                 drawLineWidth = 1.0f;
             } else if (drawLineWidth > 6.0) {
@@ -429,7 +484,7 @@ public class DisplayElementFactory {
         /*
          * Get color for creating displayables.
          */
-        Color[] dspClr = getDisplayColors(elem.getColors());
+        Color[] displayColor = getDisplayColors(elem.getColors());
 
         /*
          * Find Line Pattern associated with this element, if "Solid Line" was
@@ -438,7 +493,7 @@ public class DisplayElementFactory {
         LinePattern pattern = null;
         LinePatternManager lpl = LinePatternManager.getInstance();
         try {
-            pattern = lpl.getLinePattern(de.getPatternName());
+            pattern = lpl.getLinePattern(drawableElement.getPatternName());
         } catch (LinePatternException lpe) {
             /*
              * could not find desired line pattern. Used solid line as default.
@@ -481,7 +536,7 @@ public class DisplayElementFactory {
         }
 
         boolean isCCFP = false;
-        AbstractDrawableComponent adc = ((Line) de).getParent();
+        AbstractDrawableComponent adc = ((Line) drawableElement).getParent();
         isCCFP = (adc != null && ("CCFP_SIGMET".equals(adc.getPgenType())));
         DECollection ccfp = null;
         if (isCCFP) {
@@ -490,8 +545,9 @@ public class DisplayElementFactory {
 
         ArrayList<IDisplayable> list = new ArrayList<IDisplayable>();
 
-        list.addAll(createDisplayElementsFromPts(smoothpts, dspClr, pattern,
-                scaleType, getDisplayFillMode(de.isFilled()), drawLineWidth,
+        list.addAll(createDisplayElementsFromPts(smoothpts, displayColor,
+                pattern, scaleType,
+                getDisplayFillMode(drawableElement.isFilled()), drawLineWidth,
                 isCCFP, ccfp, paintProps));
 
         /*
@@ -670,20 +726,8 @@ public class DisplayElementFactory {
         if (de.isClosedLine()) {
             pixels = ensureClosed(pixels);
         }
-
-        /*
-         * Apply parametric smoothing on pixel coordinates, if required
-         */
-        if (de.getSmoothFactor() > 0) {
-            float devScale = 50.0f;
-            if (de.getSmoothFactor() == 1)
-                density = devScale / 1.0f;
-            else
-                density = devScale / 5.0f;
-            smoothpts = CurveFitter.fitParametricCurve(pixels, density);
-        } else {
-            smoothpts = pixels;
-        }
+        // Apply parametric smoothing
+        smoothpts = applyParametricSmoothing(de, pixels);
 
         list.addAll(createDisplayElementsForLines(de, smoothpts, paintProps));
 
@@ -1435,8 +1479,9 @@ public class DisplayElementFactory {
                 return slist;
             } else if (tparent instanceof ContourMinmax) {
                 boolean forceAuto = PgenUtil.getContourLabelAutoPlacement();
-                if (((Text) txt).getAuto() != null && ((Text) txt).getAuto()
-                        || forceAuto) {
+                if (((Text) txt).getAuto() != null
+                        && ((Text) txt).getAuto()
+                        || (forceAuto && ((ContourMinmax) tparent).getSymbol() != null)) {
                     Coordinate loc = ((ISinglePoint) ((ContourMinmax) tparent)
                             .getSymbol()).getLocation();
                     double[] pixel = iDescriptor.worldToPixel(new double[] {
@@ -4502,7 +4547,14 @@ public class DisplayElementFactory {
 
         /*
          * Process half barbs
+         * 
+         * Note - for a five-knot wind barb, drawn it at the end of the second
+         * segment (counting from the end of the wind barb).
          */
+        if (numflags == 0 && numbarbs == 0 && halfbarbs == 1) {
+            currentLoc -= segmentSpacing;
+        }
+
         for (int j = 0; j < halfbarbs; j++) {
             Coordinate coords[] = new Coordinate[2];
             coords[0] = lil.extractPoint(currentLoc);

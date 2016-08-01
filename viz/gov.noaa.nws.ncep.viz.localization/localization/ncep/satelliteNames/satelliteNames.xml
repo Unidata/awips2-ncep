@@ -2,24 +2,33 @@
 <satelliteNameList>
 
 	<satelliteName>
-		<ID>180</ID>
-		<alias>GOES-Thirteen</alias>
+		<ID>3</ID>
+		<alias>Windsat</alias>
 	</satelliteName>
-
+	<satelliteName>
+		<ID>9</ID>
+		<alias>SSMI</alias>
+	</satelliteName>
+	<satelliteName>
+		<ID>53</ID>
+		<alias>Meteosat10</alias>
+	</satelliteName>
+	<satelliteName>
+		<ID>58</ID>
+		<alias>Meteosat7</alias>
+	</satelliteName>			
+	<satelliteName>
+		<ID>180</ID>
+		<alias>GOES-13</alias>
+	</satelliteName>
 	<satelliteName>
 		<ID>184</ID>
 		<alias>GOES-15</alias>
 	</satelliteName>
-	
 	<satelliteName>
 		<ID>185</ID>
-		<alias>DPD Alias</alias>
+		<alias>DPD</alias>
 	</satelliteName>
-	
-	   <satelliteName>
-        <ID>84</ID>
-        <alias>MTS Alias</alias>
-    </satelliteName>
 	
 
 

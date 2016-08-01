@@ -2,7 +2,6 @@
 <ResourceDefinition xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resourceDefnName>GOES-13</resourceDefnName>
     <resourceCategory>TIMESERIES</resourceCategory>
-    <inventoryEnabled>false</inventoryEnabled> 
     <rscImplementation>GHCD</rscImplementation>
     <subTypeGenerator>typeInfo.instrument,dataResolVal,dataResolUnits</subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>

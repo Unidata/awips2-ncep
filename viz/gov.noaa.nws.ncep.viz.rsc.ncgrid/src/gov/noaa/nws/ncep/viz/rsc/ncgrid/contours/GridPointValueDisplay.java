@@ -19,6 +19,8 @@
  ******************************************************************************************/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.contours;
 
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +55,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Apr, 2013                B. Yin      Don't plot missing values
  * 02/04/2014   936         T. Lee      Implemented textSize 
  * Nov 17, 2015  12855      bsteffen    Rewrite to extend AbstractGriddedDisplay
+ * Apr 18, 2016  16116      bsteffen    Don't plot missing values
  * 
  * </pre>
  * 
@@ -137,7 +140,8 @@ public class GridPointValueDisplay extends
         int idx = (x + (y * this.gridDims[0]));
         float value = this.displayValues.get(idx);
 
-        if (Float.isNaN(value)) {
+        if (Float.isNaN(value) || value == IDecoderConstantsN.GRID_MISSING
+                || value == Math.abs(IDecoderConstantsN.GRID_MISSING)) {
             return null;
         }
 

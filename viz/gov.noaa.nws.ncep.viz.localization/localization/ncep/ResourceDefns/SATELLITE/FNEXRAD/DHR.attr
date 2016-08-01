@@ -1,4 +1,4 @@
-colorMapName=DHR
+colorMapName=Radar/DHR
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=DHR

@@ -1,6 +1,8 @@
 package gov.noaa.nws.ncep.viz.tools.hideLoop;
 
+import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.tools.Activator;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
@@ -37,34 +39,28 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 02/11/13     #972        G. Hull        AbstractEditor instead of NCMapEditor
  * 11/06/2015   R9398       Edwin Brown    Modified execute to toggle visibility of children if a power 
  *                                         legend is being toggled
+ * 02/17/16     #13554      dgilling       Added check for IStaticDataNatlCntrsResource,
+ *                                         code cleanup.
  * 
  * </pre>
  * 
  * @author Q. Zhou
  */
-public class HideLoopAction extends AbstractHandler implements IElementUpdater { // AbstractTool
-                                                                                 // {
+public class HideLoopAction extends AbstractHandler implements IElementUpdater {
 
-    private ImageDescriptor loopShow = null;
+    private static final ImageDescriptor LOOP_SHOW = AbstractUIPlugin
+            .imageDescriptorFromPlugin(Activator.PLUGIN_ID,
+                    "icons/show_loop.gif");;
 
-    private ImageDescriptor loopHide = null;
+    private static final ImageDescriptor LOOP_HIDE = AbstractUIPlugin
+            .imageDescriptorFromPlugin(Activator.PLUGIN_ID,
+                    "icons/hide_loop.gif");;
 
     public HideLoopAction() {
-        loopShow = AbstractUIPlugin.imageDescriptorFromPlugin(
-        		Activator.PLUGIN_ID, "icons/eye-slash.png"); //Show btn displayed
-                                                             // displayed
-        loopHide = AbstractUIPlugin.imageDescriptorFromPlugin(
-        		Activator.PLUGIN_ID, "icons/eye.png"); //Hide btn displayed
-                                                             // displayed
+        super();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands
-     * .ExecutionEvent)
-     */
+    @Override
     public Object execute(ExecutionEvent arg0) throws ExecutionException {
         /*
          * Hide all, but overlays and the basic map; based on NmapUiUtil's
@@ -82,20 +78,24 @@ public class HideLoopAction extends AbstractHandler implements IElementUpdater {
                 if (resourcePair != null
                         && !resourcePair.getProperties().isSystemResource()
                         && !resourcePair.getProperties().isMapLayer()
-                        && resourcePair.getResource().getClass().getSimpleName()
-                                .compareTo("PgenResource") != 0) {
+                        && (!(resourcePair.getResource() instanceof PgenResource))
+                        && (!(resourcePair.getResource() instanceof IStaticDataNatlCntrsResource))) {
 
                     resourcePair.getProperties().setVisible(
                             !NcEditorUtil.getHideShow(editor));
 
-                    // Figure out whether resPair is a group, and if it is
-                    // toggle visibility for children, which includes the color
-                    // bars
+                    /*
+                     * Figure out whether resPair is a group, and if it is
+                     * toggle visibility for children, which includes the color
+                     * bars
+                     */
                     if (resourcePair.getResource() instanceof IPowerLegend) {
                         IPowerLegend groupResource = (IPowerLegend) resourcePair
                                 .getResource();
-                        // Set visibility for all children (resources) of the
-                        // group resource
+                        /*
+                         * Set visibility for all children (resources) of the
+                         * group resource
+                         */
                         groupResource.setVisibleForAllResources(resourcePair
                                 .getProperties().isVisible());
                     }
@@ -116,9 +116,9 @@ public class HideLoopAction extends AbstractHandler implements IElementUpdater {
 
         if (editor != null) {
             if (NcEditorUtil.getHideShow(editor)) {
-                element.setIcon(loopShow);
+                element.setIcon(LOOP_SHOW);
             } else {
-                element.setIcon(loopHide);
+                element.setIcon(LOOP_HIDE);
             }
         }
     }

@@ -34,7 +34,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *  04/23/2015   R6281      B. Hebbard   Support both WaveSat and WaveSatV
  *  06/01/2015   R6281      B. Hebbard   Add Jason-3; update satelliteId for CryoSat-2
  *  06/16/2015   R6281      B. Hebbard   Update per code review comments
- *  11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
  *  12/03/2015   R11819     S. Russell   Added the getDataLoader() funciton.
  *                                       Modified constructResource() to
  *                                       compensate for the deletion of
@@ -42,6 +41,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                       as well as the renaming of
  *                                       AbstractWaveSatResource to just
  *                                       WaveSatResource
+ *  11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 

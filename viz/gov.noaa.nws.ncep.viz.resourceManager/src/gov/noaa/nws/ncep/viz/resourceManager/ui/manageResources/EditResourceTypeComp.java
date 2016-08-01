@@ -794,7 +794,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
 
     @Override
     public String getTitle() {
-        return "";
+        return "Edit Resource Type";
     }
 
     protected void createResourceDefinition() {

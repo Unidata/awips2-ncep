@@ -7,6 +7,8 @@ import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.action.PgenAction;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrDlg;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.ContoursAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourLine;
 import gov.noaa.nws.ncep.ui.pgen.contours.ContourMinmax;
 import gov.noaa.nws.ncep.ui.pgen.contours.Contours;
@@ -50,7 +52,9 @@ import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductManageDialog;
 import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
 import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
 import gov.noaa.nws.ncep.ui.pgen.tca.TropicalCycloneAdvisory;
+import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenDrawingTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenTool;
+import gov.noaa.nws.ncep.ui.pgen.tools.PgenContoursTool;
 import gov.noaa.nws.ncep.ui.pgen.tools.PgenSnapJet;
 
 import java.awt.Color;
@@ -122,7 +126,7 @@ import com.vividsolutions.jts.geom.Point;
  * 07/09        #141        J. Wu       Added "replaceElements"
  * 08/09        #142        S. Gilbert  
  * 09/09        #151        J. Wu       Added product management dialog
- * 09/30/09     #169         Greg Hull  NCMapEditor
+ * 09/30/09     #169        Greg Hull  NCMapEditor
  * 12/09        #167        J. Wu       Made getNearestElement work for a given DECollection
  * 12/09        #267        B. Yin      Fixed the delObj bug
  * 03/10        #223        M.Laryukhin Added Gfa
@@ -158,7 +162,7 @@ import com.vividsolutions.jts.geom.Point;
  * 12/14     R5198/TTR1057  J. Wu       Adding a method to select label over a line for Contours.
  * 06/15        R8199       S. Russell  Alter fillContextMenu() to NOT add a 
  *                                      "Delete Label" option where not appropriate
- *                                      
+ * 
  * 07/13/2015   R8198       S. Russell  Altered fillContextMenu(),  added an
  *                                      argument to getActionList(). Moved
  *                                      several methods for 8199 into a the
@@ -174,6 +178,7 @@ import com.vividsolutions.jts.geom.Point;
  *                                      variable paneImage ( the screen shot )
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
  * 07/11/2016   R17943      J. Wu       Display all objects in a non-active activity if its display flag is on.
+ * 07/21/2016   R16077      J. Wu       Add context menu for contour lines to remove labels.
  * 
  * </pre>
  * 
@@ -2109,6 +2114,16 @@ public class PgenResource extends
             if (adc instanceof Text && adc.getParent() instanceof Layer) {
                 generateLabelSubMenu(menuManager, (Text) adc);
             }
+
+            /*
+             * Add two menu items for contour lines: (1) "Remove One Label" (if
+             * there is at least one label); (2) "Remove All Labels" (if there
+             * is at least one label)
+             */
+            if (adc instanceof Line && adc.getParent() instanceof ContourLine) {
+                generateSubMenuForContourLine(menuManager,
+                        (ContourLine) adc.getParent());
+            }
         }
     }
 
@@ -2186,8 +2201,8 @@ public class PgenResource extends
         Text lbl = new Text(null, "Courier", 14.0f, TextJustification.CENTER,
                 line.getPoints().get(0), 0.0, TextRotation.SCREEN_RELATIVE,
                 new String[] { label }, FontStyle.REGULAR, Color.RED, 0, 0,
-                true, DisplayType.NORMAL, "Text", "General Text");
-        ;
+                true, DisplayType.NORMAL, PgenConstant.CATEGORY_TEXT,
+                PgenConstant.TYPE_GENERAL_TEXT);
 
         // set line and label attributes
         if (!contours.getContourLines().isEmpty()) {
@@ -2290,6 +2305,106 @@ public class PgenResource extends
         // Replace and allow undo/redo.
         PgenResource.this.replaceElements(oldObjects, newObjects);
 
+    }
+
+    /*
+     * Add two menu items "Remove One Label" and "Remove All Labels" for contour
+     * lines if there is at least one label.
+     * 
+     * @param menuManager - context menu manager
+     * 
+     * @param cline - contour line selected
+     */
+    private void generateSubMenuForContourLine(IMenuManager menuManager,
+            final ContourLine cline) {
+
+        final int nlabels = cline.getNumOfLabels();
+
+        if (nlabels > 0) {
+            menuManager.add(new Action("Remove One Label") {
+                @Override
+                public void run() {
+                    removeContourLineLabel(false, cline);
+                }
+            });
+
+            menuManager.add(new Action("Remove All Labels") {
+                @Override
+                public void run() {
+                    removeContourLineLabel(true, cline);
+                }
+            });
+        }
+    }
+
+    /*
+     * Removes all label or one label from a ContourLine.
+     * 
+     * @param removeAll - flag to remove all labels. If false, remove only one.
+     * 
+     * @param cline - the ContourLine
+     */
+    private void removeContourLineLabel(boolean removeAll,
+            final ContourLine cline) {
+
+        // Make a copy of the ContourLine and update the labels.
+        int nlabels = cline.getNumOfLabels() - 1;
+        if (removeAll) {
+            nlabels = 0;
+        }
+
+        ContourLine newLine = cline.copy();
+        newLine.updateNumOfLabels(nlabels);
+
+        // Replace old ContourLine with a new ContourLine
+        replaceContourLine(cline, newLine);
+    }
+
+    /*
+     * Replaces an existing ContourLine with a new ContourLine in a Contour
+     * 
+     * @param oldLine - contour line to be replaced in contour
+     * 
+     * @param newLine - contour line to replace the old contour line
+     */
+    private void replaceContourLine(final ContourLine oldLine,
+            final ContourLine newLine) {
+
+        /*
+         * Make a copy of the Contour without old contour line and add the new
+         * ContourLine to the new Contour
+         */
+        Contours newContour = ((Contours) oldLine.getParent())
+                .copyWithExclusion(oldLine);
+        newContour.add(newLine);
+
+        // Replace the old Contour and allow undo/redo.
+        List<AbstractDrawableComponent> oldObjects = new ArrayList<>();
+        oldObjects.add(oldLine.getParent());
+
+        List<AbstractDrawableComponent> newObjects = new ArrayList<>();
+        newObjects.add(newContour);
+
+        PgenResource.this.replaceElements(oldObjects, newObjects);
+
+        // Update tool and dialog & ready for select.
+        AbstractPgenTool thisTool = PgenSession.getInstance().getPgenTool();
+        if (thisTool instanceof AbstractPgenDrawingTool) {
+            AttrDlg thisDlg = ((AbstractPgenDrawingTool) thisTool).getAttrDlg();
+            if (thisDlg instanceof ContoursAttrDlg) {
+                PgenContoursTool pgenTool = (PgenContoursTool) thisTool;
+                ContoursAttrDlg pgenDlg = (ContoursAttrDlg) thisDlg;
+
+                pgenTool.setCurrentContour(newContour);
+                pgenDlg.setDrawableElement(newContour);
+                pgenDlg.setLabel(newLine.getLabelString()[0]);
+                pgenDlg.setNumOfLabels(newLine.getNumOfLabels());
+
+                PgenResource.this
+                        .setSelected((AbstractDrawableComponent) newLine
+                                .getLine());
+            }
+        }
     }
 
     /**

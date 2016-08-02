@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.contours;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
 import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
@@ -36,6 +37,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/13        TTR765      J. Wu        DEL_PART between vertexes.
  * 05/14        TTR1008     J. Wu        Added getKey() method.
  * 03/30/2016   R16622      J. Wu        Use current date/time as default.
+ * 07/21/2016   R16077      J. Wu        Add copyWithExclusion().
  * 
  * </pre>
  * 
@@ -61,9 +63,9 @@ public class Contours extends DECollection implements IContours {
      */
     public Contours() {
 
-        super("Contours");
-        setPgenCategory("MET");
-        setPgenType("Contours");
+        super(PgenConstant.CONTOURS);
+        setPgenCategory(PgenConstant.CATEGORY_MET);
+        setPgenType(PgenConstant.CONTOURS);
 
         this.setParm("");
         this.setLevel("");
@@ -80,9 +82,9 @@ public class Contours extends DECollection implements IContours {
 
     public Contours(IAttribute attr, ArrayList<Coordinate> points) {
 
-        super("Contours");
-        setPgenCategory("MET");
-        setPgenType("Contours");
+        super(PgenConstant.CONTOURS);
+        setPgenCategory(PgenConstant.CATEGORY_MET);
+        setPgenType(PgenConstant.CONTOURS);
 
     }
 
@@ -191,6 +193,36 @@ public class Contours extends DECollection implements IContours {
             AbstractDrawableComponent adc = iterator.next().copy();
             adc.setParent(newContours);
             newContours.add(adc);
+        }
+
+        newContours.update(this);
+
+        return newContours;
+
+    }
+
+    /**
+     * Make a deep copy of the Contours, excluding the specified component.
+     * 
+     * @param exclude
+     *            the AbstractDrawableComponent to be excluded
+     * @return a new contour without the excluded ADC
+     * 
+     */
+    public Contours copyWithExclusion(AbstractDrawableComponent exclude) {
+
+        Contours newContours = new Contours();
+
+        Iterator<AbstractDrawableComponent> iterator = this
+                .getComponentIterator();
+
+        while (iterator.hasNext()) {
+            AbstractDrawableComponent nextAdc = iterator.next();
+            if (nextAdc != exclude) {
+                AbstractDrawableComponent adc = nextAdc.copy();
+                adc.setParent(newContours);
+                newContours.add(adc);
+            }
         }
 
         newContours.update(this);

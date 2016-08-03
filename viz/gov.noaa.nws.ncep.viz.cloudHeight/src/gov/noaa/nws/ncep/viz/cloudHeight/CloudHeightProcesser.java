@@ -62,7 +62,6 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
 import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.inventory.exception.DataCubeException;
 import com.raytheon.uf.common.numeric.buffer.ByteBufferWrapper;
@@ -119,6 +118,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 03/07/2014   2791        bsteffen        Move Data Source/Destination to numeric plugin.
  * 07/14/2015   RM#9173     Chin Chen       Use NcSoundingQuery to query ncuair sounding data
  * 06/09/2016   R18511      K. Bugenhagen   Change due to refactoring. Cleanup: removed system.outs, stacktrace prints, commented code.
+ * 07/26/2016   R19277      bsteffen        Move redundant code into McidasRecord.getGridGeometry()
  * 
  * 
  * @version 1
@@ -1105,17 +1105,8 @@ public class CloudHeightProcesser {
     private GridGeometry2D getGridGeometry(PluginDataObject pdo,
             ICloudHeightCapable satRsc) {
         GridGeometry2D mcidasGeom = null;
-        if (pdo instanceof McidasRecord && satRsc instanceof McidasSatResource) {
-            String projection = ((McidasRecord) pdo).getProjection();
-            if (projection.equalsIgnoreCase("STR")
-                    || projection.equalsIgnoreCase("MER")
-                    || projection.equalsIgnoreCase("LCC")) {
-                mcidasGeom = MapUtil.getGridGeometry(((ISpatialEnabled) pdo)
-                        .getSpatialObject());
-            } else {
-                mcidasGeom = ((McidasSatResource) satRsc)
-                        .createNativeGeometry(pdo);
-            }
+        if (pdo instanceof McidasRecord) {
+            mcidasGeom = ((McidasRecord) pdo).getGridGeometry();
         }
         return mcidasGeom;
     }

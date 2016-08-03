@@ -33,9 +33,7 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 
-import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -51,8 +49,6 @@ import com.raytheon.uf.common.dataplugin.satellite.units.water.BlendedTPWPixel;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.derivparam.library.DerivedParameterRequest;
-import com.raytheon.uf.common.geospatial.ISpatialObject;
-import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
 import com.raytheon.uf.common.style.ParamLevelMatchCriteria;
@@ -94,6 +90,8 @@ import com.raytheon.viz.satellite.SatelliteConstants;
  *  06/01/2016    R18511     kbugenhagen  Refactored to use NcSatelliteResource
  *                                        instead of AbstractSatelliteResource
  *                                        in order to use TileSetRenderable.
+ *  07/26/2016    R19277     bsteffen     Move redundant code into McidasRecord.getGridGeometry()
+ * 
  * </pre>
  * 
  * @author ghull
@@ -330,23 +328,11 @@ public class McidasSatResource extends NcSatelliteResource {
 
             synchronized (tileMap) {
                 McidasRecord satRecord = (McidasRecord) record;
-                ISpatialObject spatialObj = (ISpatialObject) satRecord
-                        .getSpatialObject();
-                GridGeometry2D gridGeom = MapUtil.getGridGeometry(spatialObj);
-                if (tileSet == null) {
-                    String projection = getProjectionFromRecord(satRecord);
-                    if (!projection.equalsIgnoreCase("STR")
-                            && !projection.equalsIgnoreCase("MER")
-                            && !projection.equalsIgnoreCase("LCC")) {
-
-                        gridGeom = createNativeGeometry(satRecord);
-                    }
-                    tileSet = new RecordTileSetRenderable(
-                            McidasSatResource.this, satRecord, gridGeom,
-                            numLevels);
-                    tileSet.project(descriptor.getGridGeometry());
-                    tileMap.put(satRecord.getCoverage(), tileSet);
-                }
+                GridGeometry2D gridGeom = satRecord.getGridGeometry();
+                tileSet = new RecordTileSetRenderable(McidasSatResource.this,
+                        satRecord, gridGeom, numLevels);
+                tileSet.project(descriptor.getGridGeometry());
+                tileMap.put(satRecord.getCoverage(), tileSet);
             }
         }
     }
@@ -642,41 +628,6 @@ public class McidasSatResource extends NcSatelliteResource {
 
     }
 
-    /**
-     * Create grid geometry for the data record.
-     * 
-     * @param pdo
-     *            data record
-     * @return geometry
-     */
-    public GridGeometry2D createNativeGeometry(PluginDataObject pdo) {
-
-        if (!(pdo instanceof McidasRecord))
-            return null;
-
-        McidasRecord satRec = (McidasRecord) pdo;
-        McidasMapCoverage coverage = satRec.getCoverage();
-
-        GeneralEnvelope env = new GeneralEnvelope(2);
-        env.setCoordinateReferenceSystem(satRec.getCoverage().getCrs());
-
-        int minX = coverage.getUpperLeftElement();
-        int maxX = coverage.getUpperLeftElement()
-                + (coverage.getNx() * coverage.getElementRes());
-        int minY = coverage.getUpperLeftLine()
-                + (coverage.getNy() * coverage.getLineRes());
-        minY = -minY;
-        int maxY = -1 * coverage.getUpperLeftLine();
-        env.setRange(0, minX, maxX);
-        env.setRange(1, minY, maxY);
-
-        GridGeometry2D mapGeom = new GridGeometry2D(new GeneralGridEnvelope(
-                new int[] { 0, 0 }, new int[] { coverage.getNx(),
-                        coverage.getNy() }, false), env);
-
-        return mapGeom;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -742,10 +693,6 @@ public class McidasSatResource extends NcSatelliteResource {
         List<String> paramList = new ArrayList<>(0);
         paramList.add(paramStr);
         return paramList;
-    }
-
-    String getProjectionFromRecord(PluginDataObject pdo) {
-        return ((McidasRecord) pdo).getProjection();
     }
 
     /*

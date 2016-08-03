@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>UKMET</resourceDefnName>
+    <resourceDefnName>NAM12</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=UKMET-Global
+GDFILE=NAM12
 pluginName=grid
+inventoryParam=P
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
@@ -13,6 +14,6 @@ pluginName=grid
     <frameSpan>60</frameSpan>
     <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>
-    <dfltTimeRange>48</dfltTimeRange>
+    <dfltTimeRange>96</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
 </ResourceDefinition>

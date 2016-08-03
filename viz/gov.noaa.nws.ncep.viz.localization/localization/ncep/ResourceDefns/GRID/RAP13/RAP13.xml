@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>UKMET</resourceDefnName>
+<ResourceDefinition xmlns:ns2="http://www.example.org/productType">
+    <resourceDefnName>RAP13</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
-    <resourceParameters>
-GDFILE=UKMET-Global
-pluginName=grid
-    </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
@@ -15,4 +11,10 @@ pluginName=grid
     <dfltFrameCount>999</dfltFrameCount>
     <dfltTimeRange>48</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <resourceParameters>
+pluginName=grid
+GDFILE=RAP13
+inventoryParam=P
+
+</resourceParameters>
 </ResourceDefinition>

@@ -13,7 +13,7 @@
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
     <resourceParameters>
 pluginName=grid
-GDFILE=NAM227
+GDFILE=NAM5
 inventoryParam=P
 </resourceParameters>
 </ResourceDefinition>

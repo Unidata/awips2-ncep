@@ -3,7 +3,7 @@
     <resourceDefnName>ECMWF</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=ecmwf
+GDFILE=ECMF-Global
 pluginName=grid
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>

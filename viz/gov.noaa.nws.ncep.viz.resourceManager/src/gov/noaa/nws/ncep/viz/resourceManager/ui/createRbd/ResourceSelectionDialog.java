@@ -73,7 +73,7 @@ public class ResourceSelectionDialog extends Dialog {
         initRscName = initRsc;
 
         String title = (replaceBtnVisible ? "Replace Resource" : "Add Resource");
-        title = "Select New Resource";
+        title = "Add Resource";
 
         Shell parent = getParent();
         Display display = parent.getDisplay();
@@ -88,7 +88,6 @@ public class ResourceSelectionDialog extends Dialog {
         shell.setLayout(mainLayout);
 
         Group sel_rscs_grp = new Group(shell, SWT.SHADOW_NONE);
-        sel_rscs_grp.setText("Select Resources");
         sel_rscs_grp.setLayout(new GridLayout(1, true));
 
         GridData gd = new GridData();

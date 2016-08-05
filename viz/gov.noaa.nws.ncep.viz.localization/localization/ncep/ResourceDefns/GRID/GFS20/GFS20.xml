@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>GFS80</resourceDefnName>
+    <resourceDefnName>GFS20</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=GFS80
+GDFILE=GFS20
 pluginName=grid
 inventoryParam=P
     </resourceParameters>

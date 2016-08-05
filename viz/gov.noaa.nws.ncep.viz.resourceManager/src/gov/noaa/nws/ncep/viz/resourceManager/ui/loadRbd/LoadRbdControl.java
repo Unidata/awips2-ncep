@@ -826,7 +826,7 @@ public class LoadRbdControl extends Composite {
 
                 if (panes == null || panes.length == 0) {
                     throw new VizException(
-                            "No Panes are defined for this RBD???.");
+                            "No Panes are defined for this bundle???.");
                 }
 
                 Integer paneCount = panes.length;
@@ -864,7 +864,7 @@ public class LoadRbdControl extends Composite {
 
                 if (newEditor == null) {
                     throw new VizException(
-                            "Unable to find or create an Editor for RBD "
+                            "Unable to find or create an Editor for "
                                     + rbdName);
                 }
 
@@ -879,14 +879,13 @@ public class LoadRbdControl extends Composite {
 
             } catch (VizException e) {
                 MessageBox mb = new MessageBox(shell, SWT.OK);
-                mb.setText("Error Loading RBD " + rbdName);
-                mb.setMessage("Error Loading RBD " + rbdName + ".\n\n"
+                mb.setText("Error Loading " + rbdName);
+                mb.setMessage("Error Loading " + rbdName + ".\n\n"
                         + e.getMessage());
                 mb.open();
             }
         }
         // In the loadRBD method, before start the rbdLoader, call
-        updateImportCombo();
         VizApp.runSync(rbdLoader);
 
         // They aren't going to like this if there is an error loading....
@@ -895,21 +894,6 @@ public class LoadRbdControl extends Composite {
         }
 
         return true;
-    }
-
-    // If the active editor is changed, we need to update the “Import” menu when
-    // an SPF is loaded.
-    private void updateImportCombo() {
-
-        if (getParent() instanceof TabFolder) {
-            TabFolder tf = (TabFolder) getParent();
-            for (TabItem ti : tf.getItems()) {
-                if (ti.getControl() instanceof CreateRbdControl) {
-                    ((CreateRbdControl) ti.getControl()).updateImportCombo();
-                    break;
-                }
-            }
-        }
     }
 
     private void editRbd() {

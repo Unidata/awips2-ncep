@@ -303,12 +303,10 @@ public class ResourceSelectionControl extends Composite {
                 | SWT.V_SCROLL | SWT.H_SCROLL);
         FormData fd = new FormData();
         fd.height = RSC_LIST_VIEWER_HEIGHT;
-        fd.top = new FormAttachment(0, 75);
+        fd.top = new FormAttachment(0, 20);
         fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(0, 110);
-
-        // This allows a resize to change the size of the lists.
-        fd.bottom = new FormAttachment(100, -125);
+        fd.right = new FormAttachment(15, 0);
+        fd.bottom = new FormAttachment( 100, -75 );
         rscCatLViewer.getList().setLayoutData(fd);
 
         Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -325,7 +323,7 @@ public class ResourceSelectionControl extends Composite {
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(37, 0);
+        fd.right = new FormAttachment(42, 0);
 
         fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0, SWT.BOTTOM);
         rscTypeLViewer.getList().setLayoutData(fd);
@@ -359,16 +357,16 @@ public class ResourceSelectionControl extends Composite {
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(62, 0);
+        fd.width = 180;
 
         fd.bottom = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.BOTTOM);
         rscGroupLViewer.getList().setLayoutData(fd);
 
         rscTypeGroupLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscTypeGroupLbl.setText("Resource Group");
+        rscTypeGroupLbl.setText("Group");
         fd = new FormData();
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -3, SWT.TOP);
+        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), -2, SWT.TOP);
         rscTypeGroupLbl.setLayoutData(fd);
 
         rscAttrSetLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE
@@ -382,7 +380,7 @@ public class ResourceSelectionControl extends Composite {
         rscAttrSetLViewer.getList().setLayoutData(fd);
 
         Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
-        rscAttrsLbl.setText("Resource Attributes");
+        rscAttrsLbl.setText("Attributes");
         fd = new FormData();
         fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
         fd.bottom = new FormAttachment(rscAttrSetLViewer.getList(), -3, SWT.TOP);
@@ -398,18 +396,10 @@ public class ResourceSelectionControl extends Composite {
 
         seldRscNameTxt = new Text(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
                 | SWT.READ_ONLY);
-        fd = new FormData();
+        fd = new FormData(400,20);
         fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.right = new FormAttachment(75, 0);
+        fd.left = new FormAttachment(filterCombo, 10, SWT.RIGHT);
         seldRscNameTxt.setLayoutData(fd);
-
-        Label seld_rsc_name_lbl = new Label(sel_rsc_comp, SWT.None);
-        seld_rsc_name_lbl.setText("Selected Resource Name");
-        fd = new FormData();
-        fd.left = new FormAttachment(seldRscNameTxt, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(seldRscNameTxt, -3, SWT.TOP);
-        seld_rsc_name_lbl.setLayoutData(fd);
 
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
 
@@ -423,14 +413,14 @@ public class ResourceSelectionControl extends Composite {
             fd.left = new FormAttachment(50, 20);
         }
         addResourceBtn.setLayoutData(fd);
-        addResourceBtn.setText("  Add Resource "); // Add To RBD
+        addResourceBtn.setText("  Add  "); // Add To RBD
 
         replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
         fd = new FormData();
         fd.left = new FormAttachment(50, 20);
         fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
         replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace Resource ");
+        replaceResourceBtn.setText(" Replace  ");
 
         // both for now unless we change it to be one or the other
         replaceResourceBtn.setVisible(replaceBtnVisible);
@@ -440,7 +430,7 @@ public class ResourceSelectionControl extends Composite {
         fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
         fd.top = new FormAttachment(replaceResourceBtn, 0, SWT.TOP);
         addToAllPanesBtn.setLayoutData(fd);
-        addToAllPanesBtn.setText("Add To All Panes");
+        addToAllPanesBtn.setText("Add to All Panes");
 
         addToAllPanesBtn.setVisible(multiPane);
 

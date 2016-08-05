@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>NAVGEM</resourceDefnName>
+<ResourceDefinition xmlns:ns2="http://www.example.org/productType">
+    <resourceDefnName>WaveWatch</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
-    <resourceParameters>
-GDFILE=NAVGEM
-pluginName=grid
-    </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
-    <frameSpan>60</frameSpan>
+    <frameSpan>180</frameSpan>
     <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>
-    <dfltTimeRange>240</dfltTimeRange>
+    <dfltTimeRange>384</dfltTimeRange>
+    <isEnabled>false</isEnabled> 
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <resourceParameters>
+pluginName=grid
+GDFILE=WaveWatch
+
+</resourceParameters>
 </ResourceDefinition>

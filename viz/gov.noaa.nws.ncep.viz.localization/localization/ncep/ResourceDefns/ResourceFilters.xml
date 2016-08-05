@@ -786,636 +786,408 @@
 <ResourceDefinitionFilter rscDefnName="USAK">
 <filters></filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_E">
-<filters>Forecast,NSBN</filters>
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+Unidata models
+CMC
+DGEX
+ECMWF
+GFS
+GFS 20km
+HRRR
+NAM 12km
+NAM 40km
+NamDNG 2.5km
+NAVGEM
+RAP 13km
+RAP 40km
+UKMET Global
+RTMA
+URMA
+FNMOC WW3
+NOAA WW3
+NCEP WW3
+ESTOFS
+ETSS Storm Surge
+-->
+
+<ResourceDefinitionFilter rscDefnName="AUTOSPE">
+<filters>Analysis</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFT">
+<ResourceDefinitionFilter rscDefnName="CCPA">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN80PAC">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="CMC">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NOHRSC_SNOW">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="CPCOUTLK80US">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="DGEX">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="ECMWF">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="ECMWF_HR">
+<filters>Forecast,NSBN</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="ESTOFS">
+<filters>Forecast,Ocean</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="ETSS">
+<filters>Forecast,Ocean</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FIREWX">
+<filters>Forecast,Regional,NSBN</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FNMOCWAVE">
+<filters>Forecast,Ocean</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FFG_TIR_HIRES">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FFG_ALR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GDAS">
+<filters>Forecast,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GEFS">
+<filters>Forecast,Ensemble,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GFS">
+<filters>Forecast,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GFS20">
+<filters>Forecast,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GFS80">
+<filters>Forecast,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GFSGUIDE">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GFSLAMPTSTORM">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GHM">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GHMNEST">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GLERL">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="GWW">
+<filters>Forecast,Global,Ocean</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_US">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HPCQPF">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HPCQPFNDFD">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HRRR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="HRRRX">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="HYSPLIT">
 <filters>Forecast,NSBN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM40">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM5">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM40_SFC">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HRRR">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP32">
-<filters>Forecast,Regional</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS40US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DGEX_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCWAVE12_ATL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ORN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWW">
+<ResourceDefinitionFilter rscDefnName="ICEP5">
 <filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_WPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RCM">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OFSGMEX">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE15ENP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR15ENP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTGSST">
-<filters>Analysis,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GEFS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCQPF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GHMNEST">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GRLKWAVE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NWW3">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MOS">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_SJU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GDAS">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM12_CNTRL_US">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_BC">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFG">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_MSR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_AUTO_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICE12TH">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS95US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RSA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFG_TIR_HIRES">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF190PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_W">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SAF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_RHA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="TPC_WIND_PROB">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCQPFNDFD">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_FWR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_STR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="OPCWAVE12_SPAC">
-<filters>Forecast,SBN</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="ICE12SH">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSGUIDE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM95AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWWP5">
+<ResourceDefinitionFilter rscDefnName="ICE12TH">
 <filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MOS_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AUTOSPE">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_NA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TIR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_CPAC">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_HR">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF0P25">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RAP40">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_HI">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM11">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_AK">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_AK_HR">
-<filters>Analysis,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS0P5">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_NA">
-<filters>Forecast,Ensemble</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_PR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_ATL">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_PTR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_ATL_EQ">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CPCOUTLK80US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_PR">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_RFC_RSA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_AU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE15WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR15WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_HI">
-<filters>Analysis,SBN</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="ICE25SH">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM45AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF40">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CMCE_ENS">
-<filters>Forecast,Ensemble,Global</filters>
-</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="ICE12NH">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_GU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_US">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_US">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_W">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN80US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_FWR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_GU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_SA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_ASIA">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWFWAVE">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="ICE25NH">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_AK">
+<ResourceDefinitionFilter rscDefnName="MOS">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MOS_AK">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_MSR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RSA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TAR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_TUA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ALR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_STR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ALR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_MSR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_TAR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_FWR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_SJU">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_RHA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ORN">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_SJU">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_FWR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ORN">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RHA">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="NAEFSALL">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TUA">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FNMOCWAVE">
+<ResourceDefinitionFilter rscDefnName="NAEFS_AK">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ESTOFS_PR">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ESTOFS_US">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_SJU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4WC">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA2P5">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFSLAMPTSTORM">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN190AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM80">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10EP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10EP">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4WNA">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE30MGLOBAL">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF160HI">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ALR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_EU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMNEST_HI">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NOGAPS">
+<ResourceDefinitionFilter rscDefnName="NAEFS_BC">
 <filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAVGEM">
-<filters>Forecast,Global,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_SJU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTGSSTHR">
-<filters>Analysis,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKENS_NH">
-<filters>Forecast,Ensemble,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_GU">
-<filters>Analysis,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF_NH">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOESGFS">
+<ResourceDefinitionFilter rscDefnName="NAEFS_US">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="NAM">
 <filters>Forecast,Regional</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FIREWX">
-<filters>Forecast,Regional,NSBN</filters>
+<ResourceDefinitionFilter rscDefnName="NAM11">
+<filters>Forecast,Regional</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_ASIA">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="NAM12_CNTRL_US">
+<filters>Forecast,Regional</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_E">
-<filters>Forecast,NSBN</filters>
+<ResourceDefinitionFilter rscDefnName="NAM40">
+<filters>Forecast,Regional</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPCGUIDE_AK">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="NAM40_SFC">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAM5">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAM40">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAM90">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAMDNG">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAMNEST_HI">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NAVGEM">
+<filters>Forecast,Global,NSBN</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NOHRSC_SNOW">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="NWW3">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="OFSGMEX">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="OFSWATL">
-<filters>Forecast</filters>
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_RHA">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="OPCWAVE12_ATL">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE2AK">
-<filters>Forecast</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM20">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_STR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ICEP5">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_HI">
-<filters>Forecast,NSBN</filters>
+<ResourceDefinitionFilter rscDefnName="OPCWAVE12_SPAC">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="OPCWAVE12_NPAC">
-<filters>Forecast,SBN</filters>
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM22AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM11AK">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EPAC_EQ">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="PROB3HR">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="QPE_XNAV_TAR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_WPAC_EQ">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_PAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MRF190AK">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GWW233">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32">
-<filters>Forecast,Regional,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32E">
-<filters>Forecast,Regional,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAM32PR">
-<filters>Forecast,Regional,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF45">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA_US">
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_KRF">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="CCPA">
-<filters>Forecast,Global</filters>
+<ResourceDefinitionFilter rscDefnName="QPE_AUTO_TUA">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVIATION">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="QPE_RFC_PTR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_RFC_RSA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_RFC_STR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ALR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_FWR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_MSR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_ORN">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_RHA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TIR">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_TUA">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="QPE_XNAV_SJU">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RAP13">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RAP40">
+<filters>Forecast,Regional</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RFCQPF">
+<filters>Forecast</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RTGSST">
+<filters>Analysis,Global</filters>
+</ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="RTGSSTHR">
+<filters>Analysis,Global</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="RTMA">
 <filters>Analysis,NSBN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RTMA_HR">
+<ResourceDefinitionFilter rscDefnName="RTMA_AK">
 <filters>Analysis,NSBN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="AVN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="QPE_XNAV_KRF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="UKMET_CPAC">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR30GLOBAL">
-<filters>Forecast,Global</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_AK">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="PROB3HR">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAMDNG5_HI">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="RCM">
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="SPCGUIDE">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="SREF2P5">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE4AK">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR4AK">
+<ResourceDefinitionFilter rscDefnName="SREF40">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_ORN">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_US">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GFS_GU">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_NMM_SJU">
-<filters>Forecast,NSBN</filters>
-</ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE10WNA">
+<ResourceDefinitionFilter rscDefnName="TPC_WIND_PROB">
 <filters>Forecast</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVEHURR10WNA">
-<filters>Forecast</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="DGEX_AK">
-<filters>Forecast</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch-AK">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_SJU">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch-ENP">
+<filters>Forecast,Global,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="FFG_ALR">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch-ENP-Hurr">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="NAEFS_US">
-<filters>Forecast</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch-WNA">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_FWR">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="WaveWatch-WNA-Hurr">
+<filters>Forecast,Ocean</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_EPAC">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="UKENS_ASIA">
+<filters>Forecast,Ensemble</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="WAVE30MAO">
-<filters>Forecast</filters>
+<ResourceDefinitionFilter rscDefnName="UKENS_CPAC">
+<filters>Forecast,Ensemble</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_MOSAIC_ORN">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="UKENS_NA">
+<filters>Forecast,Ensemble</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="HIRESW_ARW_AK">
-<filters>Forecast,NSBN</filters>
+<ResourceDefinitionFilter rscDefnName="UKENS_NH">
+<filters>Forecast,Ensemble</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="MPE_LOCAL_RHA">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="UKMET">
+<filters>Forecast,Global</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="ECMWF_AF">
-<filters>Forecast,SBN</filters>
+<ResourceDefinitionFilter rscDefnName="URMA">
+<filters>Analysis,NSBN</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="RFCQPF">
-<filters>Forecast,SBN</filters>
-</ResourceDefinitionFilter>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <ResourceDefinitionFilter rscDefnName="LocalRadar">
 <filters>LocalRadar</filters>
 </ResourceDefinitionFilter>
@@ -1624,7 +1396,7 @@
 <filters>GINI</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="TAF">
-<filters>Forecast,SBN</filters>
+<filters>Forecast</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="UKMET_SPAC_HR">
 <filters>Forecast,NSBN</filters>
@@ -1717,6 +1489,6 @@
 <filters>HighCadence,SWPC</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="NCOM">
-<filters>Analysis,SBN</filters>
+<filters>Analysis</filters>
 </ResourceDefinitionFilter>
 </ResourceDefinitionFilters>

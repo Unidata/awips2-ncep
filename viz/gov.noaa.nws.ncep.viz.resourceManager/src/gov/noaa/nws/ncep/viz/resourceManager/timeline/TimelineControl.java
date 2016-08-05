@@ -253,7 +253,7 @@ public class TimelineControl extends Composite {
 
         dom_rsc_combo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         FormData fd = new FormData();
-        fd.width = 330;
+        fd.width = 400;
         fd.top = new FormAttachment(0, 0);
         fd.left = new FormAttachment(30, 0);
         dom_rsc_combo.setLayoutData(fd);
@@ -1227,56 +1227,56 @@ public class TimelineControl extends Composite {
      */
     private void createControlWidgets(Composite top_form) {
 
-        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+    	Label numFramesLbl = new Label(top_form, SWT.NONE);
+        numFramesLbl.setText("Frames");
         FormData fd = new FormData();
+        fd.top = new FormAttachment(dom_rsc_combo, 30, SWT.BOTTOM);
+        fd.left = new FormAttachment(1, 0);
+        //fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
+        //fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
+        numFramesLbl.setLayoutData(fd);
+        
+        numFramesSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
+        fd = new FormData();
         fd.width = 20;
-        fd.top = new FormAttachment(dom_rsc_combo, 50, SWT.BOTTOM);
-        fd.left = new FormAttachment(5, 0);
-        // fd.right = new FormAttachment( 5, 40 );
+        fd.top = new FormAttachment(numFramesLbl, -5, SWT.TOP);
+        fd.left = new FormAttachment(numFramesLbl, 5, SWT.RIGHT);
         numFramesSpnr.setLayoutData(fd);
 
         numFramesSpnr.setMinimum(1);
         numFramesSpnr.setDigits(0);
         numFramesSpnr.setTextLimit(3);
 
-        Label numFramesLbl = new Label(top_form, SWT.NONE);
-        numFramesLbl.setText("Num\nFrames");
+        Label skipLbl = new Label(top_form, SWT.NONE);
+        skipLbl.setText("Skip");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
-        numFramesLbl.setLayoutData(fd);
-
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(numFramesSpnr, 20, SWT.RIGHT);
+        skipLbl.setLayoutData(fd);
+        
         numSkipSpnr = new Spinner(top_form, SWT.BORDER | SWT.READ_ONLY);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
         fd.left = new FormAttachment(20, 0);
         fd.right = new FormAttachment(20, 40);
         numSkipSpnr.setLayoutData(fd);
-
         numSkipSpnr.setMinimum(0);
         numSkipSpnr.setDigits(0);
         numSkipSpnr.setTextLimit(2);
 
-        Label skipLbl = new Label(top_form, SWT.NONE);
-        skipLbl.setText("Skip\nFrames");
+        Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
+        dfltTimeRangeLbl.setText("Time)");
         fd = new FormData();
-        fd.bottom = new FormAttachment(numSkipSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(numSkipSpnr, 0, SWT.LEFT);
-        skipLbl.setLayoutData(fd);
-
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(numSkipSpnr, 10, SWT.RIGHT);
+        dfltTimeRangeLbl.setLayoutData(fd);
+        
         timeRangeDaysSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(36, 0);
+        fd.left = new FormAttachment(dfltTimeRangeLbl, 10, SWT.RIGHT);
+
         timeRangeDaysSpnr.setLayoutData(fd);
-
-        Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
-        dfltTimeRangeLbl.setText("Time Range\n(Days / Hours)");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(timeRangeDaysSpnr, -3, SWT.TOP);
-        fd.left = new FormAttachment(timeRangeDaysSpnr, 0, SWT.LEFT);
-        dfltTimeRangeLbl.setLayoutData(fd);
-
         timeRangeDaysSpnr.setMinimum(0);
         timeRangeDaysSpnr.setMaximum(999);
         timeRangeDaysSpnr.setDigits(0);
@@ -1288,36 +1288,27 @@ public class TimelineControl extends Composite {
         fd = new FormData();
         fd.top = new FormAttachment(timeRangeDaysSpnr, 0, SWT.TOP);
         fd.left = new FormAttachment(timeRangeDaysSpnr, 8, SWT.RIGHT);
+        
         timeRangeHrsSpnr.setLayoutData(fd);
-
         timeRangeHrsSpnr.setMinimum(0);
         timeRangeHrsSpnr.setMaximum(23);
         timeRangeHrsSpnr.setDigits(0);
         timeRangeHrsSpnr.setIncrement(1);
         timeRangeHrsSpnr.setTextLimit(2);
 
+        Label frameIntLbl = new Label(top_form, SWT.NONE);
+        frameIntLbl.setText("Interval");
+        fd = new FormData();
+        fd.top = new FormAttachment(numFramesLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(timeRangeHrsSpnr, 10, SWT.RIGHT);
+        frameIntLbl.setLayoutData(fd);
+        
         frameIntervalCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(59, 0);
+        fd.left = new FormAttachment(frameIntLbl, 10, SWT.RIGHT);
         frameIntervalCombo.setLayoutData(fd);
-
         frameIntervalCombo.setItems(availFrameIntervalStrings);
-
-        Label frameIntLbl = new Label(top_form, SWT.NONE);
-        frameIntLbl.setText("Frame\nInterval");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(frameIntervalCombo, -3, SWT.TOP);
-        fd.left = new FormAttachment(frameIntervalCombo, 0, SWT.LEFT);
-        frameIntLbl.setLayoutData(fd);
-
-        refTimeCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fd = new FormData();
-        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
-        fd.left = new FormAttachment(80, 0);
-        refTimeCombo.setLayoutData(fd);
-
-        refTimeCombo.setItems(refTimeSelectionOptions);
 
         refTimeLbl = new Label(top_form, SWT.NONE);
         refTimeLbl.setText("Ref. Time");
@@ -1325,6 +1316,14 @@ public class TimelineControl extends Composite {
         fd.bottom = new FormAttachment(refTimeCombo, -3, SWT.TOP);
         fd.left = new FormAttachment(refTimeCombo, 0, SWT.LEFT);
         refTimeLbl.setLayoutData(fd);
+        
+        refTimeCombo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
+        fd = new FormData();
+        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
+        fd.left = new FormAttachment(80, 0);
+        refTimeCombo.setLayoutData(fd);
+        refTimeCombo.setItems(refTimeSelectionOptions);
+        
     }
 
     /*

@@ -9,6 +9,7 @@
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VaaCloudDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VolcanoVaaAttrDlg;
@@ -69,11 +70,9 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 04/13        TTR399      J. Wu       Make the dialog compact
  * 12/14        R5413       B. Yin      Refresh editor after dialog close
  * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
- * <<<<<<< HEAD
  * 05/16/2016   R18388      J. Wu       Use contants in PgenConstant.
- * =======
  * 06/16/2016   R18370      B. Yin      Set focus back to map editor when multi-selecting
- * >>>>>>> eec9049... VLab Issue #17380 - Pgen multi-select panning; fixes #17380
+ * 08/05/2016   R17973      B. Yin      Don't create button bar in drawing mode.
  * 
  * </pre>
  * 
@@ -162,13 +161,25 @@ public abstract class AttrDlg extends Dialog implements IAttribute {
     @Override
     public Control createButtonBar(Composite parent) {
 
-        Control bar = super.createButtonBar(parent);
-        GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
-        gd.heightHint = ctrlBtnHeight + 5;
+        String currentAction = PgenSession.getInstance().getPgenPalette()
+                .getCurrentAction();
+        if (currentAction.equalsIgnoreCase(PgenConstant.ACTION_SELECT)
+                || currentAction
+                        .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)
+                || PgenSession.getInstance().getPgenPalette()
+                        .getCurrentCategory()
+                        .equalsIgnoreCase(PgenConstant.CATEGORY_MET)
+                || this instanceof CycleDlg) {
 
-        bar.setLayoutData(gd);
-        return bar;
+            Control bar = super.createButtonBar(parent);
+            GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
+            gd.heightHint = ctrlBtnHeight + 5;
 
+            bar.setLayoutData(gd);
+            return bar;
+        } else {
+            return null;
+        }
     }
 
     /*

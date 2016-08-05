@@ -144,6 +144,7 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 06/29/2016   R18611      S. Russell  updated method isDirty() to avoid a
  *                                      possible null pointer situation
  * 06/30/2016   R17964      J. Wu       Update filter after setting category.
+ * 08/05/2016   R17973      B. Yin      Added setCurrentAction method.
  * 
  * </pre>
  * 
@@ -1156,6 +1157,13 @@ public class PgenPaletteWindow extends ViewPart implements SelectionListener,
             } else
                 return null;
         }
+    }
+
+    /**
+     * Sets current action string.
+     */
+    public void setCurrentAction(String action) {
+        currentAction = action;
     }
 
     public String getCurrentAction() {

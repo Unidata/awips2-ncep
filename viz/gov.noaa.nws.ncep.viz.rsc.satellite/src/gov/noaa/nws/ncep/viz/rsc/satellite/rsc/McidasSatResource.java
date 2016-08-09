@@ -12,7 +12,6 @@ import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
@@ -26,8 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -91,6 +88,7 @@ import com.raytheon.viz.satellite.SatelliteConstants;
  *                                        instead of AbstractSatelliteResource
  *                                        in order to use TileSetRenderable.
  *  07/26/2016    R19277     bsteffen     Move redundant code into McidasRecord.getGridGeometry()
+ *  07/29/2016    R17936     mkean       null in legendString for unaliased satellite.
  * 
  * </pre>
  * 
@@ -108,7 +106,6 @@ public class McidasSatResource extends NcSatelliteResource {
         /**
          * Get configuredLegendString (with aliases) from resourceDefinition. If
          * empty string is returned then get regular aliased legend.
-         * 
          */
         legendStr = createLegendString();
     }
@@ -120,10 +117,9 @@ public class McidasSatResource extends NcSatelliteResource {
      */
     private String createLegendString() {
 
-        StringBuffer sb = new StringBuffer("");
         char x;
         ResourceName rscName = resourceData.getResourceName();
-        String legendStr = "";
+        String legendString = "";
 
         try {
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
@@ -133,19 +129,22 @@ public class McidasSatResource extends NcSatelliteResource {
             rscDefn.setAttributeSet(attributeSet);
             HashMap<String, String> attributes = attributeSet.getAttributes();
             Map<String, String> variables = new HashMap<>();
+
+            // legendString can be assigned by the user in the attribute set,
+            // if it does not exist.. legendStringAttribute will be null
             String legendStringAttribute = attributes.get("legendString");
+
             String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
             for (int k = 0; k < subtypeParam.length; k++) {
-                legendStr += resourceData.getMetadataMap()
+                legendString += resourceData.getMetadataMap()
                         .get(subtypeParam[k].toString()).getConstraintValue()
                         .toString()
                         + "_";
             }
-            legendStr = rscDefn.getRscGroupDisplayName(legendStr) + " ";
+            legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
             // what's in subType generators
             String[] keysValues = rscDefn.getMcidasAliasedValues().split(",");
 
-            //
             /**
              * These are the keywords found in the legendString (built from
              * subType generator content)
@@ -170,72 +169,38 @@ public class McidasSatResource extends NcSatelliteResource {
             // add in these last two.
 
             value = rscDefn.getResourceDefnName();
-            if (value != null && !value.isEmpty())
+            if (value != null && !value.isEmpty()) {
                 variables.put(McidasConstants.RESOURCE_DEFINITION,
                         rscDefn.getResourceDefnName());
-
+            }
             value = rscDefnsMngr.getAttrSet(rscName).getName();
-            if (value != null && !value.isEmpty())
+
+            if (value != null && !value.isEmpty()) {
                 variables.put(McidasConstants.CHANNEL,
                         rscDefnsMngr.getAttrSet(rscName).getName());
-
-            if (legendStringAttribute == null) {
-                return legendStr;
             }
 
-            /*
-             * "variables map" now contains keywords/values available for
-             * building the custom legend string. Examine marked-up legend
-             * string looking for {keyword} that matches in "variables". If it
-             * doesn't then remove it from legendString.
-             */
-            Pattern p = Pattern.compile("\\{(.*?)\\}");
-            Matcher m = p.matcher(legendStringAttribute.toString());
-            while (m.find()) {
-                value = variables.get(m.group(1));
-                if (value == null || value.isEmpty()) {
-                    legendStringAttribute = legendStringAttribute.replace("{"
-                            + m.group(1) + "}", "");
-                }
+            // process legendStringAttribute if assignment exist
+            if (legendStringAttribute != null) {
+
+                String customizedlegendString = constructCustomLegendString(
+                        variables, legendStringAttribute);
+
+                legendString = (customizedlegendString.isEmpty()) ? legendString
+                        : customizedlegendString;
             }
 
-            /*
-             * change all occurrences of '{' to "${" because that's what
-             * VariableSubstituterNCEP expects
-             */
-            for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
-                x = legendStringAttribute.charAt(ipos);
-                sb.append(x == '{' ? "${" : x);
-            }
-
-            String customizedlegendString = VariableSubstitutorNCEP
-                    .processVariables(sb.toString(), variables);
-
-            /*
-             * If user coded legendString properly there shouldn't be any "${"
-             * present, but if there are then change them back to "{"
-             */
-            sb.setLength(0);
-            for (int ipos = 0; ipos < customizedlegendString.length(); ipos++) {
-                x = customizedlegendString.charAt(ipos);
-                sb.append(x == '$' ? "{" : x);
-            }
-            customizedlegendString = sb.toString();
-            legendStr += rscDefn.getRscAttributeDisplayName("");
-            legendStr = (customizedlegendString.isEmpty()) ? legendStr
-                    : customizedlegendString;
-            legendStr = legendStr.substring(0, legendStr.length() - 1);
-            legendStr = rscDefn.getRscGroupDisplayName(legendStr) + " ";
+            legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
             AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
             rscDefn.setAttributeSet(attSet);
-            legendStr += rscDefn.getRscAttributeDisplayName("");
-            legendStr.trim();
+            legendString += rscDefn.getRscAttributeDisplayName("");
+            legendString.trim();
+
         } catch (Exception ex) {
             statusHandler.error("Error building legend string ", ex);
         }
 
-        return legendStr;
-
+        return legendString;
     }
 
     protected class FrameData extends NcSatelliteResource.FrameData {

@@ -49,17 +49,18 @@ import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/10		#215		J. Wu   	Initial Creation.
- * 06/10		#215		J. Wu   	Added support for Min/Max.
- * 07/10		#215		J. Wu   	Added support for Outlook.
- * 07/10		#215		J. Wu   	Added support for writing grid to
- * 											a GEMPAK grid file
- * 09/10		#215		J. Wu   	Checked working directory and PATH.
- * 11/10		#345		J. Wu   	Added support for circle.
+ * Date         Ticket#     Engineer    Description
+ * -------------------------------------------------------------------
+ * 01/10        #215        J. Wu       Initial Creation.
+ * 06/10        #215        J. Wu       Added support for Min/Max.
+ * 07/10        #215        J. Wu       Added support for Outlook.
+ * 07/10        #215        J. Wu       Added support for writing grid to
+ *                                         a GEMPAK grid file
+ * 09/10        #215        J. Wu       Checked working directory and PATH.
+ * 11/10        #345        J. Wu       Added support for circle.
  * 05/14        TTR989      J. Wu       Allow environmental variable in PATH.
  * 01/27/2016   R13166      J. Wu       Allow symbol only & label only Minmax.
+ * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 
  * </pre>
  * 
@@ -181,6 +182,17 @@ public class ContoursToGrid extends GraphToGrid {
                 ContourLine ncl = new ContourLine(pts, true,
                         cc.getLabelString(), 1);
                 extContours.add(ncl);
+            }
+        }
+
+        /*
+         * A contour-line should have at least one label, even if the label is
+         * hidden from display. But we do a sanity check here to exclude real
+         * label-less lines from G2G calculation.
+         */
+        for (ContourLine cl : extContours.getContourLines()) {
+            if (cl.getLabels().size() < 1) {
+                extContours.removeElement(cl);
             }
         }
 

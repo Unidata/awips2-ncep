@@ -153,6 +153,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/16/2016   R18388      J. Wu       Use some contants in PgenConstant.
  * 06/01/2016   R18387      B. Yin      Removed "Edit" and "All" buttons.
  * 07/01/2016   R17377      J. Wu       Add "shiftDownInContourDialog" flag.
+ * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 
  * </pre>
  * 
@@ -951,7 +952,7 @@ public class ContoursAttrDlg extends AttrDlg implements IContours,
         });
 
         labelNumSpinner = new Spinner(textValueComp, SWT.BORDER);
-        labelNumSpinner.setMinimum(1);
+        labelNumSpinner.setMinimum(0);
         labelNumSpinner.setMaximum(10);
         labelNumSpinner.setSelection(1);
         labelNumSpinner.setIncrement(1);

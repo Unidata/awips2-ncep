@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
-    <resource>GHMNEST</resource>
-    <attrSetGroupName>precip</attrSetGroupName>
-    
+    <resource>GHM0P05</resource>
+    <attrSetGroupName>precipitation</attrSetGroupName>
     <attrSetLabels>
          <attrSetLabel>
-              <name>precip_24hr</name>
+              <name>precip_12hr_hurricane</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>precip_12hr</name>
+              <name>precip_24hr_hurricane</name>
               <alias></alias>
-         </attrSetLabel>
+         </attrSetLabel>  
     </attrSetLabels>
-
 </AttributeSetGroup>
 

@@ -3,13 +3,13 @@
 !
 ! Log:
 ! S. Jacobs/NCEP	 6/01	Created
-! S Russell     07/27/2016  R8514     Update CINT, FINT
+! S Russell     07/27/2016  R8514     Update SCALE,CINT, FINT
 !
 GLEVEL=850
 GVCORD=pres
 SKIP=
 FILTER=y
-SCALE=5                  !5             !-1
+SCALE=4                  !4             !-1
 GDPFUN=abs(avor(wnd))  !abs(avor(wnd))             !kntv(wnd)
 TYPE=c/f                !c             !b
 CINT=2/10            !2/4/8

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <resourceDefnName>GHM</resourceDefnName>
+    <resourceDefnName>GHM0P16</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=ghm
+GDFILE=ghm0p16
 pluginName=grid
 eventName=%
 inventoryParam=PMSL

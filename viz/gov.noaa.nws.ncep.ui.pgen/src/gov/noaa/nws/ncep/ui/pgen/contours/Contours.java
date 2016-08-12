@@ -38,6 +38,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 05/14        TTR1008     J. Wu        Added getKey() method.
  * 03/30/2016   R16622      J. Wu        Use current date/time as default.
  * 07/21/2016   R16077      J. Wu        Add copyWithExclusion().
+ * 08/10/2016   R18805      J. Wu        Pad single-digit month/day with 0
  * 
  * </pre>
  * 
@@ -494,29 +495,26 @@ public class Contours extends DECollection implements IContours {
      */
     public static String getKey(IContours ctr) {
 
-        String hr = "";
-        if (ctr.getTime1().get(Calendar.HOUR_OF_DAY) < 10) {
-            hr = "0";
-        }
-        hr += ctr.getTime1().get(Calendar.HOUR_OF_DAY);
+        Calendar ctrTime = ctr.getTime1();
+        String hr = String.format("%02d", ctrTime.get(Calendar.HOUR_OF_DAY));
 
         String mt = "";
-        int minute = ctr.getTime1().get(Calendar.MINUTE);
+        int minute = ctrTime.get(Calendar.MINUTE);
         if (minute > 0) {
-            mt += ":";
-            if (minute < 10) {
-                mt += "0";
-            }
-
-            mt += minute;
+            mt = String.format(":%02d", minute);
         }
 
+        /*
+         * Padding single-digit months and days string with a leading 0. Note
+         * that in Calendar, for the month, 0 - January.
+         */
+        String month = String.format("%02d", ctrTime.get(Calendar.MONTH) + 1);
+        String day = String.format("%02d", ctrTime.get(Calendar.DAY_OF_MONTH));
+
         String key = ctr.getParm() + "," + ctr.getLevel() + ","
-                + ctr.getForecastHour() + "|"
-                + ctr.getTime1().get(Calendar.YEAR) + "-"
-                + (ctr.getTime1().get(Calendar.MONTH) + 1) + "-"
-                + ctr.getTime1().get(Calendar.DAY_OF_MONTH) + "," + hr + mt
-                + "Z";
+                + ctr.getForecastHour() + "|" + ctrTime.get(Calendar.YEAR)
+                + "-" + month + "-" + day + "," + hr + mt + "Z";
+
         return key;
     }
 

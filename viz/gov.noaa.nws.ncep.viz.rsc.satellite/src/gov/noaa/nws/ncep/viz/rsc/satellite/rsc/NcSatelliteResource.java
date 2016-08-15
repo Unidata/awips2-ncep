@@ -125,6 +125,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      different satellite resources to use
  *                                      different methods for getting the colormap 
  *                                      name (i.e. via stylerules or attribute files.
+ *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
  * 
  * </pre>
  * 
@@ -491,14 +492,12 @@ public class NcSatelliteResource extends
      */
     private String createLegendString() {
 
-        String legendStr = "";
+        String legendString = "";
         String area = "";
         String satellite = "";
         String channel = "";
         String rd = "";
         String customizedLegendString = "";
-        StringBuffer sb = new StringBuffer("");
-        char x;
 
         try {
 
@@ -509,7 +508,11 @@ public class NcSatelliteResource extends
                     .getResourceDefinition(rscName.getRscType());
             HashMap<String, String> attributes = rscDefnsMngr.getAttrSet(
                     rscName).getAttributes();
+
+            // legendString can be assigned by the user in the attribute set,
+            // if it does not exist.. legendStringAttribute will be null
             String legendStringAttribute = attributes.get("legendString");
+
             channel = resourceData.getRscAttrSet().getRscAttrSetName();
             rd = rscDefn.getResourceDefnName();
             final boolean gotEntity = resourceData.getMetadataMap()
@@ -538,59 +541,80 @@ public class NcSatelliteResource extends
                 variables.put(McidasConstants.CHANNEL, channel);
             }
 
-            /*
-             * "variables map" now contains keywords/values available for
-             * building the custom legend string. Examine marked-up legend
-             * string looking for {keyword} that matches in "variables". If it
-             * doesn't then remove it from legendString.
-             */
-            Pattern p = Pattern.compile("\\{(.*?)\\}");
-            Matcher m = p.matcher(legendStringAttribute.toString());
-            String value = "";
-            while (m.find()) {
-                value = variables.get(m.group(1));
-                if (value == null || value.isEmpty()) {
-                    legendStringAttribute = legendStringAttribute.replace("{"
-                            + m.group(1) + "}", "");
-                }
+            // process legendStringAttribute if assignment exist
+            if (legendStringAttribute != null) {
+
+                customizedLegendString = constructCustomLegendString(variables,
+                        legendStringAttribute);
             }
 
-            /*
-             * change all occurrences of '{' to "${" because thats what
-             * VariableSubstituterNCEP expects
-             */
-            for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
-                x = legendStringAttribute.charAt(ipos);
-                sb.append(x == '{' ? "${" : x);
-            }
-            customizedLegendString = VariableSubstitutorNCEP.processVariables(
-                    sb.toString(), variables);
-            /*
-             * If user coded legendString properly there shoulden't be any "${"
-             * present, but if there are then change them back to "{"
-             */
-            sb.setLength(0);
-            for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
-                x = customizedLegendString.charAt(ipos);
-                sb.append(x == '$' ? "{" : x);
-            }
-            customizedLegendString = sb.toString();
             /*
              * standard, original legend string
              */
             if (gotEntity && gotSector) {
-                legendStr = satellite + " " + area + " " + channel;
-                legendStr = legendStr.replace('%', ' ');
+                legendString = satellite + " " + area + " " + channel;
+                legendString = legendString.replace('%', ' ');
             }
-            legendStr = (customizedLegendString.isEmpty()) ? legendStr
+            legendString = (customizedLegendString.isEmpty()) ? legendString
                     : customizedLegendString;
 
         } catch (Exception ex) {
             statusHandler.error("Error creating legend string", ex);
         }
 
-        return legendStr;
+        return legendString;
+    }
 
+    /**
+     * This method will construct the custom legend string. The variable maps in
+     * the legendStringAttribute will be processed.
+     */
+    public String constructCustomLegendString(Map<String, String> variables,
+            String legendStringAttribute) throws VizException {
+
+        StringBuffer sb = new StringBuffer("");
+        String customizedLegendString;
+        String value = "";
+        char x;
+
+        /*
+         * "variables map" now contains keywords/values available for building
+         * the custom legend string. Examine marked-up legend string looking for
+         * {keyword} that matches in "variables". If it doesn't then remove it
+         * from legendString.
+         */
+        Pattern p = Pattern.compile("\\{(.*?)\\}");
+        Matcher m = p.matcher(legendStringAttribute.toString());
+        while (m.find()) {
+            value = variables.get(m.group(1));
+            if (value == null || value.isEmpty()) {
+                legendStringAttribute = legendStringAttribute.replace(
+                        "{" + m.group(1) + "}", "");
+            }
+        }
+
+        /*
+         * change all occurrences of '{' to "${" because thats what
+         * VariableSubstituterNCEP expects
+         */
+        for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+            x = legendStringAttribute.charAt(ipos);
+            sb.append(x == '{' ? "${" : x);
+        }
+        customizedLegendString = VariableSubstitutorNCEP.processVariables(
+                sb.toString(), variables);
+
+        /*
+         * If user coded legendString properly there shoulden't be any "${"
+         * present, but if there are then change them back to "{"
+         */
+        sb.setLength(0);
+        for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
+            x = customizedLegendString.charAt(ipos);
+            sb.append(x == '$' ? "{" : x);
+        }
+        customizedLegendString = sb.toString();
+        return customizedLegendString;
     }
 
     /**

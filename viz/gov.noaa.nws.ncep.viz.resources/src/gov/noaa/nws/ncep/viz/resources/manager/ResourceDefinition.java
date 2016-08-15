@@ -43,7 +43,6 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 
 /**
  * 
- * 
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -90,6 +89,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *  04/12/2016    R15945     R. Reynolds  Added code to build initial custom Mcidas legend string
  *  06/02/2016    RM18743    rjpeter      Fix Radar generatedTypes.
  *  06/06/2016    R15945     RCReynolds   Using McidasConstants instead of SatelliteConstants
+ *  07/29/2016    R17936     mkean        null in legendString for unaliased satellite.
  * </pre>
  * 
  * @author ghull
@@ -159,6 +159,19 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     private static final int DEFAULT_TIME_RANGE = 24; // in hours
 
+    // define constant strings
+    private static final String DELIMITER_COMMA = ",";
+
+    private static final String DELIMITER_UNDERSCORE = "_";
+
+    private static final String DELIMITER_COLON = ":";
+
+    private static final String KILOMETER_UNIT = "km";
+
+    private static final String BLANK_SPACE = " ";
+
+    private static final String EMPTY_STRING = "";
+
     @XmlElement
     private int dfltFrameCount;
 
@@ -191,8 +204,6 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     // where/how are the attribute sets located/organized
     //
-
-    private String areaName = "";
 
     public static enum AttrSetsOrganization {
         // GRIDS, RADAR... use ATTR SET GROUP
@@ -256,13 +267,13 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     @XmlElement
     private Boolean addToURICatalog = false;
 
-    private String mcidasAliasedValues = "";
+    private String mcidasAliasedValues = EMPTY_STRING;
 
     public ResourceDefinition() {
-        resourceDefnName = "";
+        resourceDefnName = EMPTY_STRING;
         resourceCategory = ResourceCategory.NullCategory;
-        subTypeGenerator = "";
-        rscTypeGenerator = "";
+        subTypeGenerator = EMPTY_STRING;
+        rscTypeGenerator = EMPTY_STRING;
         resourceParameters = new HashMap<>();
         resourceParametersModified = false;
         frameSpan = 0;
@@ -270,7 +281,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         dfltTimeRange = DEFAULT_TIME_RANGE;
         dfltGraphRange = DEFAULT_GRAPH_RANGE;
         dfltHourSnap = DEFAULT_HOUR_SNAP;
-        dfltGeogArea = "";
+        dfltGeogArea = EMPTY_STRING;
         timeMatchMethod = TimeMatchMethod.CLOSEST_BEFORE_OR_AFTER;
         timelineGenMethod = TimelineGenMethod.USE_DATA_TIMES;
         isEnabled = true;
@@ -329,7 +340,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             setLocalizationName(lFile.getName());
 
         } else {
-            localizationName = "";
+            localizationName = EMPTY_STRING;
         }
     }
 
@@ -346,7 +357,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         if ((subTypeGenerator == null) || subTypeGenerator.trim().isEmpty()) {
             return new String[0];
         }
-        String prmsList[] = subTypeGenerator.split(",");
+        String prmsList[] = subTypeGenerator.split(DELIMITER_COMMA);
         for (int i = 0; i < prmsList.length; i++) {
             prmsList[i] = prmsList[i].trim();
         }
@@ -358,7 +369,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     // or sub type must be the same name as the request constraint.
 
     public String getRscTypeGenerator() {
-        return (rscTypeGenerator == null ? "" : rscTypeGenerator);
+        return (rscTypeGenerator == null ? EMPTY_STRING : rscTypeGenerator);
     }
 
     public void setRscTypeGenerator(String rscTypeGenerator) {
@@ -425,7 +436,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     // attribute sets.
     public String getResourceParametersAsString() {
         if (resourceParameters.isEmpty()) {
-            return "";
+            return EMPTY_STRING;
         }
 
         StringBuffer strBuf = new StringBuffer();
@@ -750,7 +761,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         if (paramVal == null) {
             statusHandler.handle(Priority.INFO, "BAD paramVal");
 
-            paramVal = " ";
+            paramVal = BLANK_SPACE;
             return null;
         }
 
@@ -758,7 +769,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             return RequestConstraint.WILDCARD;
         } else if (paramVal.indexOf("%") != -1) {
             return new RequestConstraint(paramVal, ConstraintType.LIKE);
-        } else if (paramVal.indexOf(",") == -1) {
+        } else if (paramVal.indexOf(DELIMITER_COMMA) == -1) {
             return new RequestConstraint(paramVal, ConstraintType.EQUALS);
         } else {
             return new RequestConstraint(paramVal, ConstraintType.IN);
@@ -1051,7 +1062,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         requestConstraints);
 
                 for (String genType : genTypesRslts) {
-                    genType = getResourceDefnName() + ":" + genType;
+                    genType = getResourceDefnName() + DELIMITER_COLON + genType;
 
                     if (!generatedTypesList.contains(genType)) {
                         generatedTypesList.add(genType);
@@ -1059,10 +1070,10 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 }
             } else if (getSubTypeGenParamsList().length > 0) {
                 String[] subParams = getSubTypeGenParamsList();
-                String areaId = "";
+                String areaId = EMPTY_STRING;
                 Integer resolution = 0;
-                String projection = "";
-                String satelliteId = "";
+                String projection = EMPTY_STRING;
+                String satelliteId = EMPTY_STRING;
 
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
 
@@ -1337,70 +1348,23 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
         if (getRscImplementation().equals(McidasConstants.MCIDAS_SATELLITE)) {
 
-            mcidasAliasedValues = "";
+            mcidasAliasedValues = EMPTY_STRING;
 
-            String[] subParams = getSubTypeGenerator().split(",");
-            String[] str;
-
-            displayName = "";
-            str = originalDisplayName.split("_");
+            String[] subParams = getSubTypeGenerator().split(DELIMITER_COMMA);
+            String[] str = originalDisplayName.split(DELIMITER_UNDERSCORE);
 
             try {
 
-                for (int k = 0; k < subParams.length; k++) {
-
-                    if (subParams[k].toString().equalsIgnoreCase(
-                            McidasConstants.RESOLUTION)) {
-
-                        if (!subParams[k].contains("km")) {
-                            str[k] += "km";
-                        }
-                        displayName = displayName + " " + str[k];
-                        mcidasAliasedValues = mcidasAliasedValues
-                                + McidasConstants.RESOLUTION + ":" + str[k]
-                                + ",";
-
-                    } else if (subParams[k].toString().equalsIgnoreCase(
-                            McidasConstants.PROJECTION)) {
-
-                        displayName = displayName + " " + str[k];
-
-                    } else if (subParams[k].toString().equalsIgnoreCase(
-                            McidasConstants.AREA_ID)) {
-
-                        SatelliteAreaManager satAreaMgr = SatelliteAreaManager
-                                .getInstance();
-
-                        String areaIdName = satAreaMgr
-                                .getDisplayedName(SatelliteAreaManager.ResourceDefnName
-                                        + SatelliteAreaManager.delimiter
-                                        + str[k].toString());
-
-                        if (areaIdName == null) {
-                            areaIdName = str[k].toString();
-                        }
-
-                        displayName = displayName + " " + areaIdName;
-                        mcidasAliasedValues = mcidasAliasedValues
-                                + McidasConstants.AREA + ":" + areaIdName + ",";
-
-                    } else if (subParams[k].toString().equalsIgnoreCase(
-                            McidasConstants.SATELLITE_ID)) {
-                        String value = SatelliteNameManager.getInstance()
-                                .getDisplayedNameByID(str[k]);
-
-                        displayName = displayName + " " + value;
-                        mcidasAliasedValues = mcidasAliasedValues
-                                + McidasConstants.SATELLLITE + ":" + value
-                                + ",";
-
-                    }
+                /*
+                 * iterate through corresponding subTypes, only if the number of
+                 * given values are equal
+                 */
+                if (subParams.length == str.length) {
+                    displayName = iterateSubTypes(subParams, str);
                 }
 
-                mcidasAliasedValues = mcidasAliasedValues.substring(0,
-                        mcidasAliasedValues.length() - 1);
-
             } catch (Exception ex) {
+
                 /**
                  * TODO: Temporary DEBUG for error that only happens on NTBN
                  * Remove System.out.println's if this error goes away and
@@ -1420,10 +1384,83 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 }
                 displayName = originalDisplayName;
             }
-
         }
 
         return displayName.trim();
+    }
+
+    /**
+     * This is a MciDAS specific method to construct a subType String from the
+     * given parameter array and subType value array.
+     */
+    public String iterateSubTypes(String[] subParams, String[] str) {
+
+        String displayName = EMPTY_STRING;
+        for (int k = 0; k < subParams.length; k++) {
+
+            if (subParams[k].toString().equalsIgnoreCase(
+                    McidasConstants.RESOLUTION)) {
+
+                if (!subParams[k].contains(KILOMETER_UNIT)) {
+                    str[k] += KILOMETER_UNIT;
+                }
+                displayName = displayName + BLANK_SPACE + str[k];
+                mcidasAliasedValues = mcidasAliasedValues
+                        + McidasConstants.RESOLUTION + DELIMITER_COLON + str[k]
+                        + DELIMITER_COMMA;
+
+            } else if (subParams[k].toString().equalsIgnoreCase(
+                    McidasConstants.PROJECTION)) {
+
+                displayName = displayName + BLANK_SPACE + str[k];
+
+            } else if (subParams[k].toString().equalsIgnoreCase(
+                    McidasConstants.AREA_ID)) {
+
+                SatelliteAreaManager satAreaMgr = SatelliteAreaManager
+                        .getInstance();
+
+                String areaIdName = satAreaMgr
+                        .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                                + SatelliteAreaManager.delimiter
+                                + str[k].toString());
+
+                if (areaIdName == null) {
+                    areaIdName = str[k].toString();
+                }
+
+                displayName = displayName + BLANK_SPACE + areaIdName;
+                mcidasAliasedValues = mcidasAliasedValues
+                        + McidasConstants.AREA + DELIMITER_COLON + areaIdName
+                        + DELIMITER_COMMA;
+
+            } else if (subParams[k].toString().equalsIgnoreCase(
+                    McidasConstants.SATELLITE_ID)) {
+
+                String value = SatelliteNameManager.getInstance()
+                        .getDisplayedNameByID(str[k]);
+
+                // prevent nulls in legend string
+                if (value == null) {
+
+                    // alias mapping missing
+                    value = "unknown";
+
+                    statusHandler.handle(Priority.INFO,
+                            "subType value for SatelliteName is null");
+                }
+                displayName += BLANK_SPACE + value;
+
+                mcidasAliasedValues = mcidasAliasedValues
+                        + McidasConstants.SATELLLITE + DELIMITER_COLON + value
+                        + DELIMITER_COMMA;
+            }
+        }
+
+        mcidasAliasedValues = mcidasAliasedValues.substring(0,
+                mcidasAliasedValues.length() - 1);
+
+        return displayName;
     }
 
     /**
@@ -1440,7 +1477,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         if (getRscImplementation().equals(McidasConstants.MCIDAS_SATELLITE)) {
 
             String satName = attributeSet.getApplicableResource();
-            String satId = "";
+            String satId = EMPTY_STRING;
 
             HashMap<String, String> resParm = getResourceParameters(true);
 
@@ -1475,7 +1512,7 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
                     + McidasConstants.CUSTOM_NAME);
 
-            satImMan.setAttributeNamesAndAliases(satId + ":"
+            satImMan.setAttributeNamesAndAliases(satId + DELIMITER_COLON
                     + attributeSet.getName().toString(), attrSetName);
 
         }

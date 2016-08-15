@@ -1,120 +1,134 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
+
+import javax.measure.unit.SI;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
-import 
-gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-
-import gov.noaa.nws.ncep.edex.common.metparameters.DewPointTemp;
-import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
-//import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidRangeException; 
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary.InvalidValueException;
-
 /**
- * Maps to the GEMPAK parameter PMSL
+ * <pre>
+ * 
+ *  Maps to the GEMPAK parameter PMSL
+ * 
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 07/20/2016    R15950     J. Huber    Code cleanup and fixed incorrect RMSL/SMSL 
+ *                                      format strings
+ * 
+ * 
+ * </pre>
  */
+
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
+public class MeanSeaLevelPres extends AbstractMetParameter implements
+        javax.measure.quantity.Pressure {
 
-public class MeanSeaLevelPres extends AbstractMetParameter implements 
-							javax.measure.quantity.Pressure, ISerializableObject {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5651047733149575606L;
+    private final static String PMSL = "PMSL";
 
-	public MeanSeaLevelPres() {
-		 super( UNIT );
-	}
+    private final static String RMSL = "RMSL";
 
-	@DeriveMethod		
-	public MeanSeaLevelPres derive( PressureLevel prs, AirTemperature t, 
-						DewPointTemp dpt, HeightAboveSeaLevel hght ) throws InvalidValueException, NullPointerException  {
-		if( prs.hasValidValue() && t.hasValidValue() && dpt.hasValidValue() &&
-				hght.hasValidValue() ) {
-			Amount pmsl = PRLibrary.prPmsl ( prs, t, dpt, hght );
-			if( pmsl.hasValidValue() ) {
-				setValue( pmsl );
-			}
-		}
-		else { 
-			setValueToMissing();
-		}
-		
-		return this;
-	}
- 	
-	@Override
-	public String getFormattedString( String formatStr ) {
-		if( formatStr == null || formatStr.isEmpty() ||
-			formatStr.startsWith("%" ) ) {
-			return super.getFormattedString( formatStr );
-		}
-		else if ( ( formatStr.compareToIgnoreCase("RMSL") == 0 ) 
-			     || (formatStr.compareToIgnoreCase("SMSL") == 0 )){
-		              double  newPresValInMb = Double.NaN;
-		              if ( ( this.getUnit().toString().compareTo("mb") != 0
-		            		  && this.getUnit().toString().compareTo("hPa") != 0) ){
-				                  double  oldPresVal     = getValue().doubleValue();
-				                  newPresValInMb = this.getUnit()
-				                                           .getConverterTo( NcUnits.MILLIBAR )
-				                                           .convert( oldPresVal ) ;
-				       }
-		              else
-		                 newPresValInMb = getValue().doubleValue();
-				         int multiplier = 10;
-		                 if( newPresValInMb / 1000 < 1 )
-		                	 multiplier = 1000;
-		                 double temp = newPresValInMb * multiplier;
-		                 
-						 double abbrevPressVal    = temp % 1000; 
-						 abbrevPressVal = Math.abs(abbrevPressVal);
-						 Integer abbrevpressValAsInt = new Integer ( (int) Math.round (abbrevPressVal) );
-						 String abbrevPressureString = abbrevpressValAsInt.toString();
-						 if (  abbrevPressureString.length() == 1 ){
-		                	 abbrevPressureString = new String ( "00" + abbrevPressureString);
-		                 }
-		                 if (  abbrevPressureString.length() == 2 ){
-		                	 abbrevPressureString = new String ( "0" + abbrevPressureString);
-		                 } 		
-						 return abbrevPressureString;
+    private final static String SMSL = "SMSL";
 
-		}
-		else if( formatStr.compareToIgnoreCase("PMSL") == 0 ){
-            double  newPresValInMb = Double.NaN;
-            if ( ( this.getUnit().toString().compareTo("mb") != 0
-          		  && this.getUnit().toString().compareTo("hPa") != 0) ){
-		                  double  oldPresVal     = getValue().doubleValue();
-		                  newPresValInMb = (this.getUnit()
-		                                           .getConverterTo( NcUnits.MILLIBAR )
-		                                           .convert( oldPresVal ) );
-		       }
-		else  
-               newPresValInMb = getValue().doubleValue();
-               
-               if( newPresValInMb < 100){
-            	   newPresValInMb *= 100;
-               }
-               else if(newPresValInMb > 10000){
-            	   newPresValInMb /= 10;
-	}
+    private final static String MILLIBARS = "mb";
 
-               int t = (int) Math.round(newPresValInMb);
-	
-               return String.valueOf(t);
- 	
-		}
-		else  
-			return super.getFormattedString( formatStr );
- 	
-	}
- 	
+    public MeanSeaLevelPres() {
+        super(UNIT);
+    }
+
+    @DeriveMethod
+    public MeanSeaLevelPres derive(PressureLevel prs, AirTemperature t,
+            DewPointTemp dpt, HeightAboveSeaLevel hght)
+            throws InvalidValueException, NullPointerException {
+        if (prs.hasValidValue() && t.hasValidValue() && dpt.hasValidValue()
+                && hght.hasValidValue()) {
+            Amount pmsl = PRLibrary.prPmsl(prs, t, dpt, hght);
+            if (pmsl.hasValidValue()) {
+                setValue(pmsl);
+            }
+        } else {
+            setValueToMissing();
+        }
+
+        return this;
+    }
+
+    @Override
+    public String getFormattedString(String formatStr) {
+
+        double presValInMb = getValue().doubleValue();
+
+        /*
+         * Since all three pressures are suppose to be in millibars we convert
+         * value to millibars first if it comes in as something else.
+         */
+        if ((!this.getUnit().toString().equals(SI.HECTO(SI.PASCAL).toString()) && !this
+                .getUnit().toString().equals(MILLIBARS))) {
+            presValInMb = this.getUnit().getConverterTo(NcUnits.MILLIBAR)
+                    .convert(presValInMb);
+        }
+
+        /*
+         * There is currently a bug in the METAR Decoder which decodes values in
+         * hPa but labels the data as in Pa. Multiply the value by 100 to adjust
+         * the value to what it should be
+         */
+        if (presValInMb < 100) {
+            presValInMb *= 100;
+        }
+
+        if (formatStr == null || formatStr.isEmpty()
+                || formatStr.startsWith("%")) {
+            return super.getFormattedString(formatStr);
+
+        } else if ((formatStr.equals(RMSL)) || (formatStr.equals(SMSL))) {
+
+            /*
+             * RMSL: tens, ones, tenths place of pressure not 0-padded SMSL:
+             * same as RMSL but 0-padded.
+             * 
+             * Example pressures: 1007.6
+             * 
+             * RMSL: 76 SMSL: 076
+             * 
+             * 983.6 RMSL and SMSL: 836
+             */
+            double temp = presValInMb * 10;
+            double abbrevPressVal = temp % 1000;
+            abbrevPressVal = Math.abs(abbrevPressVal);
+            Integer abbrevpressValAsInt = new Integer(
+                    (int) Math.round(abbrevPressVal));
+            String abbrevPressureString = abbrevpressValAsInt.toString();
+
+            /*
+             * Create zero-padding for SMSL
+             */
+            if (formatStr.equals(SMSL) && abbrevPressureString.length() < 3) {
+
+                abbrevPressureString = String.format("%03d",
+                        Integer.parseInt(abbrevPressureString));
+
+            }
+            return abbrevPressureString;
+
+        } else if (formatStr.equals(PMSL)) {
+            /*
+             * This is the same as format %4.0f
+             */
+            int t = (int) Math.round(presValInMb);
+            return String.valueOf(t);
+        } else {
+            return super.getFormattedString(formatStr);
+        }
+    }
 
 }

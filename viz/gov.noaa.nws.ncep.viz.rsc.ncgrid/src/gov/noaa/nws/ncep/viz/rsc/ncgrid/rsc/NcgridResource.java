@@ -38,7 +38,6 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 import java.io.FileNotFoundException;
 import java.nio.FloatBuffer;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +62,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.raytheon.uf.common.dataplugin.grid.GridInfoRecord;
 import com.raytheon.uf.common.dataplugin.grid.GridRecord;
 import com.raytheon.uf.common.dataplugin.level.Level;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
@@ -173,6 +173,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                          Remove unnecessary issueRefresh call in
  *                                          paintFrame. Removed getFileName method 
  *                                          (not used anywhere). Use slf4j logger.
+ * 08/16/2016   R17603      K.Bugenhagen    Added isDuplicateDatasetId method.
+ *                                          Also, cleanup.
+ * 
  * </pre>
  * 
  * @author mli
@@ -190,12 +193,7 @@ public class NcgridResource extends
     private static SimpleDateFormat QUERY_DATE_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
 
-    private static final DecimalFormat forecastHourFormat = new DecimalFormat(
-            "000");
-
-    private final String PLUGIN_NAME = "pluginName";
-
-    private final String GRID_KEY = "grid";
+    private final static String DATA_SET_ID_TAG = "datasetId";
 
     // For Ensembles this will be the NcEnsembleResourceData
     protected NcgridResourceData gridRscData;
@@ -542,6 +540,7 @@ public class NcgridResource extends
             gdPrxy = proxy;
         }
 
+        @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof NcGridDataProxy)) {
                 statusHandler
@@ -606,7 +605,6 @@ public class NcgridResource extends
                     String modelName = modelListInfo.getModelList().get(0)
                             .getModelName();
                     String perturbationNum = null;
-                    // String eventName = null;
 
                     if (modelName.contains(":")) {
                         String[] gdfileArrs = modelName.split(":");
@@ -1168,7 +1166,6 @@ public class NcgridResource extends
                 return false;
             }
 
-            // synchronized (ContourRenderable.class){
             long t1 = System.currentTimeMillis();
             int cnt = contourRenderable.length;
             for (int i = 0; i < cnt; i++) {
@@ -1254,6 +1251,7 @@ public class NcgridResource extends
             isAttrModified = mod;
         }
 
+        @Override
         public void dispose() {
 
             if (genContrs != null) {
@@ -1511,6 +1509,7 @@ public class NcgridResource extends
         frameDataMap.clear();
     }
 
+    @Override
     public void initResource(IGraphicsTarget target) throws VizException {
         synchronized (this) {
             long t0 = 0;
@@ -1540,6 +1539,7 @@ public class NcgridResource extends
 
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frmData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -2497,6 +2497,7 @@ public class NcgridResource extends
      *      processNewRscDataList()
      */
 
+    @Override
     protected synchronized boolean processNewRscDataList() {
         TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
 
@@ -2604,26 +2605,22 @@ public class NcgridResource extends
             return false;
         }
 
-        // Get all datasetIds (model names) in database
-        List<String> datasetIds = null;
-        try {
-            datasetIds = queryDatasetIds();
-        } catch (VizException e1) {
-            statusHandler.handle(UFStatus.Priority.CRITICAL,
-                    "Error getting dataset ids" + e1.getLocalizedMessage(), e1);
-        }
-
         String gdfile = userSaveInput.getGdfile();
         String modelName = userSaveInput.getModelName();
 
         // Don't allow saving grid that would overwrite an existing grid
-        for (String id : datasetIds) {
-            if (id.equals(modelName)) {
+        try {
+            if (isDuplicateDatasetId(modelName)) {
                 statusHandler.handle(UFStatus.Priority.CRITICAL,
                         "Can not overwrite existing operational grid model "
                                 + modelName);
                 return false;
             }
+        } catch (VizException e) {
+            statusHandler.handle(
+                    UFStatus.Priority.CRITICAL,
+                    "Error querying for duplicate dataset id"
+                            + e.getLocalizedMessage(), e);
         }
 
         Level level = userSaveInput.getLevel();
@@ -2680,34 +2677,28 @@ public class NcgridResource extends
     }
 
     /**
-     * Queries database for all grid dataset ids
+     * Checks if datasetid exists in database
      * 
-     * @return list of dataset ids
+     * @param id
+     *            datasetid to check
+     * @return true, if it exists
      * @throws VizException
      */
-    public List<String> queryDatasetIds() throws VizException {
+    public boolean isDuplicateDatasetId(String id) throws VizException {
 
-        HashMap<String, RequestConstraint> constraints = new HashMap<>();
-        constraints.put(PLUGIN_NAME, new RequestConstraint(GRID_KEY));
         DbQueryRequest request = new DbQueryRequest();
+        HashMap<String, RequestConstraint> constraints = new HashMap<>();
+        constraints.put(DATA_SET_ID_TAG, new RequestConstraint(id));
+        request.setEntityClass(GridInfoRecord.class);
         request.setConstraints(constraints);
+        request.addRequestField(DATA_SET_ID_TAG);
+        request.setDistinct(true);
         DbQueryResponse response = (DbQueryResponse) ThriftClient
                 .sendRequest(request);
-        List<String> datasetIds = new ArrayList<>();
-
-        for (Map<String, Object> result : response.getResults()) {
-            for (Object pdo : result.values()) {
-                for (IRscDataObject dataObject : processRecord(pdo)) {
-                    GridRecord rec = (GridRecord) pdo;
-                    String id = rec.getInfo().getDatasetId();
-                    if (!datasetIds.contains(id)) {
-                        datasetIds.add(id);
-                    }
-                }
-            }
+        if (response.getNumResults() > 0) {
+            return true;
         }
-
-        return datasetIds;
+        return false;
     }
 
     private float[] getUnScaledGrid(float[] gridData, int scale) {

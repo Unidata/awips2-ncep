@@ -33,9 +33,14 @@ import com.raytheon.uf.common.util.StringUtil;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * 06/23/10		283		    F. J. Yen	Initial creation
- * 6/2014                   T. Lee      Batch processing to improve performance
+ * Date         Ticket#     Engineer    Description
+ * 06/23/2010   283         F. J. Yen   Initial creation
+ * 06/  /2014               T. Lee      Batch processing to improve performance
+ * 07/25/2016   R19869      B. Hebbard  Change BULLETINSEPARATOR regex to allow null value
+ *                                      (common in B-deck) in column 4 TECHNUM/MIN
+ * 08/10/2016   R19869      B. Hebbard  Per code review, use shared regex AtcfDecoder.ATCF_DATA
+ *                                      instead of formerly separate (but duplicated) BULLETINSEPARATOR;
+ *                                      clean comments.
  * 
  * </pre>
  * 
@@ -47,10 +52,7 @@ public class AtcfSeparator extends AbstractRecordSeparator {
 
     private final Log theLogger = LogFactory.getLog(getClass());
 
-    /** Regex used for separating multi-record file */
-    private static final String BULLETINSEPARATOR = "(WP|IO|SH|CP|EP|AL), +\\d{1,2}, +\\d{10}, +\\d{1,2}, +\\w{1,4}, +(-|\\d)\\d{0,2}, +\\d{1,3}(N|S), +\\d{1,4}(E|W), +.*?\\x0a";
-
-    /** Regex matcher */
+    /** Regex matcher for separating multi-record file */
     private Matcher matcher;
 
     /** Pattern object for regex search */
@@ -137,7 +139,7 @@ public class AtcfSeparator extends AbstractRecordSeparator {
      */
     private void doSeparate(String message) {
         try {
-            pattern = Pattern.compile(BULLETINSEPARATOR);
+            pattern = Pattern.compile(AtcfDecoder.ATCF_DATA);
             matcher = pattern.matcher(message);
             while (matcher.find()) {
                 if (!records.contains(matcher.group())) {
@@ -153,7 +155,7 @@ public class AtcfSeparator extends AbstractRecordSeparator {
 
     private void doBatchSeparate(byte[] message) {
         try {
-            pattern = Pattern.compile(BULLETINSEPARATOR);
+            pattern = Pattern.compile(AtcfDecoder.ATCF_DATA);
             matcher = pattern.matcher(new String(message));
             Integer counter;
             String dataStream;

@@ -124,6 +124,8 @@ import com.sun.jna.ptr.IntByReference;
  * 01/26/2016    9817       dgilling        Ensure primary models' coverage is used for ensemble
  *                                          calculations.
  * 04/26/2016    R17741     S. Gilbert      Change to use FloatGridData, and replace NcepLogger
+ * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
+ *                                          since they are no longer static.
  * </pre>
  * 
  * @author tlee
@@ -234,8 +236,9 @@ public class Dgdriv {
 
     public void setGdfile(String gdfile) {
         if (gridRscData.isEnsemble()) {
-            gdfile = NcEnsembleResourceData.convertGdfileToCycleTimeString(
-                    gdfile, gridRscData.getResourceName().getCycleTime());
+            gdfile = ((NcEnsembleResourceData) gridRscData)
+                    .convertGdfileToCycleTimeString(gdfile, gridRscData
+                            .getResourceName().getCycleTime());
         }
         this.gdfile = gdfile;
         this.gdfileOriginal = gdfile;

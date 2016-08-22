@@ -176,6 +176,8 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 08/16/2016   R17603      K.Bugenhagen    Added isDuplicateDatasetId method.
  *                                          Also, cleanup.
  * 
+ * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
+ *                                          since they are no longer static. Also, cleanup.
  * </pre>
  * 
  * @author mli
@@ -592,14 +594,16 @@ public class NcgridResource extends
                         gridRscData.getMetadataMap());
 
                 if (gridRscData.isEnsemble()) {
-                    String gdfileWithTimeCycles = NcEnsembleResourceData
+                    String gdfileWithTimeCycles = ((NcEnsembleResourceData) gridRscData)
                             .convertGdfileToCycleTimeString(gridRscData
                                     .getGdfile(), gridRscData.getResourceName()
                                     .getCycleTime());
-                    gridRscData.setGdfile(NcEnsembleResourceData
-                            .convertGdfileToWildcardString(
-                                    gdfileWithTimeCycles, gridRscData
-                                            .getResourceName().getCycleTime()));
+                    gridRscData
+                            .setGdfile(((NcEnsembleResourceData) gridRscData)
+                                    .convertGdfileToWildcardString(
+                                            gdfileWithTimeCycles, gridRscData
+                                                    .getResourceName()
+                                                    .getCycleTime()));
                     ModelListInfo modelListInfo = new ModelListInfo(
                             gdfileWithTimeCycles);
                     String modelName = modelListInfo.getModelList().get(0)
@@ -2323,7 +2327,7 @@ public class NcgridResource extends
 
         String modelname = gridRscData.getResourceName().getRscType();
         if (gridRscData.isEnsemble()) {
-            String gdfile = NcEnsembleResourceData
+            String gdfile = ((NcEnsembleResourceData) gridRscData)
                     .convertGdfileToCycleTimeString(gridRscData.getGdfile(),
                             gridRscData.getResourceName().getCycleTime());
             modelname = modelname + " " + gdfile.toUpperCase();

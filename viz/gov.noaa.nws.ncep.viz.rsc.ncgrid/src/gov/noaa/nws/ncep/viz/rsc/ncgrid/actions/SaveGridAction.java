@@ -28,10 +28,12 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    Engineer     Description
- * ------------ ---------- -----------  --------------------------
- * 03/01/2016   R6821      kbugenhagen  Initial creation
- * 04/05/2016   R15715     dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Date         Ticket#    Engineer      Description
+ * ------------ ---------- -----------   --------------------------
+ * 03/01/2016   R6821      kbugenhagen   Initial creation
+ * 04/05/2016   R15715     dgilling      Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * 08/18/2016   R17569     K Bugenhagen  Modified calls to NcEnsembleResourceData methods 
+ *                                       since they are no longer static.
  * 
  * </pre>
  * 
@@ -68,11 +70,9 @@ public class SaveGridAction extends AbstractRightClickAction {
         NcgridResourceData gridRscData = gridRsc.getResourceData();
         Map<String, String> attributes = mgr.getAttrSet(
                 gridRscData.getResourceName()).getAttributes();
-
-        String gdfileWithTimeCycles = NcEnsembleResourceData
+        String gdfileWithTimeCycles = ((NcEnsembleResourceData) gridRscData)
                 .convertGdfileToCycleTimeString(gridRscData.getGdfile(),
                         gridRscData.getResourceName().getCycleTime());
-
         SaveGridInput defaultSaveInput = new SaveGridInput(
                 gdfileWithTimeCycles, attributes);
         defaultSaveInput.setGdattim(CommonDateFormatUtil.dbtimeToDattim(gridRsc

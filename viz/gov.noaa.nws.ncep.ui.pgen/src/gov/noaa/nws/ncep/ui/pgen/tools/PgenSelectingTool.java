@@ -78,6 +78,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 11/13          #1063     B. Yin      Modified getMouseHandler to handle non-PgenSelectingMouseHandler
  * 11/13          #1081     B. Yin      Removed prevDe and added getSelectedDE method.
  * 06/15/2016     R13559    bkowal      File cleanup. No longer simulate mouse clicks.
+ * 08/05/2016     R17973    B. Yin      Set Palette action to empty when de-activating.
+
  * </pre>
  * 
  * @author B. Yin
@@ -157,6 +159,7 @@ public class PgenSelectingTool extends AbstractPgenDrawingTool implements
     public void deactivateTool() {
 
         super.deactivateTool();
+        PgenSession.getInstance().getPgenPalette().setCurrentAction("");
         if (mouseHandler != null && mouseHandler instanceof PgenSelectHandler) {
             ((PgenSelectHandler) mouseHandler).closeDlg();
         }

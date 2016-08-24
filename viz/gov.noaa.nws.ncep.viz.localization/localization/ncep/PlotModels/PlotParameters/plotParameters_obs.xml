@@ -27,10 +27,23 @@
   <PlotParameterDefn plotParamName="BRGK"
     metParamName="WindDirection,WindGust" plotMode="barb" symbolFont="WindSymbolFont"
     plotUnit="kts" />
-
+    
+  <PlotParameterDefn plotParamName="CBS1"
+    metParamName="CloudLayerBase" dbParamName="skyLayerBase" plotUnit="ft"
+    plotFormat="%3.0f" />
+    
   <PlotParameterDefn plotParamName="CEIL"
     metParamName="CeilingFromSurface" deriveParams="all" plotUnit="ft"
     plotFormat="%3.0f" />
+    
+  <PlotParameterDefn plotParamName="CLDB"
+    metParamName="CeilingOrLowestLayer" deriveParams="CeilingFromSurface,SkyCoverage,CloudLayerBase" />
+
+  <PlotParameterDefn plotParamName="CLDS"
+    metParamName="CombinedCloud" deriveParams="SkyCoverage,CloudLayerBase" />
+
+  <PlotParameterDefn plotParamName="CLDT"
+    metParamName="CombinedCloudMaxCoverage" deriveParams="SkyCoverage,CloudLayerBase" />
 
   <PlotParameterDefn plotParamName="DPDC"
     metParamName="DewPointDepression" deriveParams="AirTemperature,DewPointTemp"
@@ -311,6 +324,10 @@
   <PlotParameterDefn plotParamName="WSYM"
     metParamName="PresentWeather" dbParamName="presWeather" plotMode="table"
     prioritySelectTable="wx_sym_select.txt" plotLookupTable="pgen_wsym.txt" />
+
+  <PlotParameterDefn plotParamName="XVFR"
+    metParamName="FlightRulesID" plotMode="text" deriveParams="all"
+    plotFormat="%3.0f" />
 
   <PlotParameterDefn plotParamName="VSBY"
     metParamName="Visibility" dbParamName="visibility" plotUnit="mi"

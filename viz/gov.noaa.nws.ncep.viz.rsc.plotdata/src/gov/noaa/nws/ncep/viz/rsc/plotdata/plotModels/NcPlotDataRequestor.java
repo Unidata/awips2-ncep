@@ -88,8 +88,8 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 11/17/2015   R9579        B. Hebbard   Fix synchronization problem (affecting conditional coloring) in requestSurfaceData; various cleanups
  * 12/17/2015   R9579        B. Hebbard   Guard against ConcurrentModificationException (parametersToPlot map) and NullPointerException (stationsWithData)
  * 07/20/2016   R15950       J. Huber     Add support for temp and dewpoint reported with tenths.
+ * 08/24/2016   R18194       RReynolds    Set Met parameter array values
  * 09/15/2016   R4151        jeff beck    Get pressureLevel from the sounding layer, and put it into a field in HeightAboveSeaLevel
- * 
  */
 
 public class NcPlotDataRequestor {
@@ -1986,6 +1986,8 @@ public class NcPlotDataRequestor {
                 if (metPrm.hasStringValue()) {
                     String dbVals[] = pdv.getStringAllLevels(dbParam);
 
+                    metPrm.setDbValsString(dbVals);
+
                     String rankedValue = pltPrmDefn.getPrioritySelector()
                             .getRankedField(dbVals);
 
@@ -2006,6 +2008,8 @@ public class NcPlotDataRequestor {
             if (pType == Type.STRING) {
                 String dbVals[] = pdv.getStringAllLevels(dbParam);
 
+                metPrm.setDbValsString(dbVals);
+
                 if (arrayIndex >= dbVals.length) {
                     metPrm.setValueToMissing();
                     return;
@@ -2019,6 +2023,8 @@ public class NcPlotDataRequestor {
                 }
             } else {
                 Number dbVals[] = pdv.getNumberAllLevels(dbParam);
+
+                metPrm.setDbValsNumber(dbVals);
 
                 if (arrayIndex >= dbVals.length) {
                     metPrm.setValueToMissing();

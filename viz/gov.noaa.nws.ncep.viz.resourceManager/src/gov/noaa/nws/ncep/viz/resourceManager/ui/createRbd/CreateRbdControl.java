@@ -189,6 +189,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 06/20/2016     R8878     J. Lopez     Changed createAvailAreaMenuItems() to use AreaMenuTree 
  *                                       Auto selects the new group when creating a new resource group
  *                                       Renamed variables to be CamelCase
+ * 08/25/2016     R15518    Jeff Beck    Added check for isDisposed() before calling refresh() in editResourceData()
+ * 
  * </pre>
  * 
  * @author ghull
@@ -2696,9 +2698,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             rbdMngr.setRbdModified(true);
         }
 
-        // display modified (ie edited*) name
-
-        selectedResourceViewer.refresh(true);
+        // display modified (edited) name
+        if (!selectedResourceViewer.getControl().isDisposed()) {
+            selectedResourceViewer.refresh(true);
+        }
     }
 
     public void clearSeldResources() {

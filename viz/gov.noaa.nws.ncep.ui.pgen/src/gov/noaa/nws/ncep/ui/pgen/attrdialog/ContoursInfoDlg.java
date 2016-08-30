@@ -10,8 +10,8 @@ package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
 import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourDefault;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourDefault;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourFiles;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLabel;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.contoursinfo.ContourLevel;
@@ -34,8 +34,6 @@ import java.util.TimeZone;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.dom4j.Document;
-import org.dom4j.io.SAXReader;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -69,9 +67,9 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	  Description
- * ------------	----------	-----------	  ---------------------------
- * 10/09		#167		J. Wu   	  Initial Creation.
+ * Date         Ticket#      Engineer     Description
+ * -------------------------------------------------------------------
+ * 10/09        #167        J. Wu         Initial Creation.
  * 07/11        #450        G. Hull       NcPathManager
  * 12/13        1084        J. Wu         Add table-control for Cint in contoursInfo.xml
  * 08/01/2015   8213        P.            CAVE>PGEN 
@@ -79,6 +77,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 09/29/2015   R8163       J. Wu         Prevent exception when contour type changes.
  * 11/18/2015   R12829      J. Wu         Link "Contours Parameter" to the one defined on layer.
  * 04/14/2016   R13245      B. Yin        Changed time fields to 24 hour format.
+ * 08/23/2016   R11434      J. Wu         All each parameter has its own list of level/fcsthr
  * 
  * </pre>
  * 
@@ -101,9 +100,13 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
     private static List<String> contoursInfoParamFilelist;
 
     // Contours information
-    private static HashMap<String, ContoursInfo> contoursInfoTbl;
-
     private static HashMap<String, ContoursInfo> contoursInfoTables;
+
+    private static List<String> contourParameters;
+
+    private static HashMap<String, List<String>> contourLevels;
+
+    private static HashMap<String, List<String>> contourFcstHours;
 
     // The JAXB Manager
     private static SingleTypeJAXBManager<ContourRoot> cntrInfoManager;
@@ -208,15 +211,16 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         parmComp.setLayout(layout1);
 
         parmCombo = new Combo(parmComp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for (String st : getContourParms("Parm")) {
+        for (String st : getContourParms()) {
             parmCombo.add(st);
         }
-        parmCombo.add("Other");
+        parmCombo.add(PgenConstant.EVENT_OTHER);
         parmCombo.select(0);
 
         parmCombo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
                 updateComboText(parmCombo, parmTxt, parmCombo.getText());
+                updateLevelAndFcstHr();
                 updateCintText();
             }
         });
@@ -234,10 +238,12 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         lvl1Comp.setLayout(layout1);
 
         levelCombo1 = new Combo(lvl1Comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for (String st : getContourParms("Level")) {
+
+        List<String> levels = getContourLevels(getParm());
+        for (String st : levels) {
             levelCombo1.add(st);
         }
-        levelCombo1.add("Other");
+        levelCombo1.add(PgenConstant.EVENT_OTHER);
         levelCombo1.select(0);
         levelCombo1.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
@@ -260,11 +266,11 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         lvl2Comp.setLayout(layout1);
 
         levelCombo2 = new Combo(lvl2Comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for (String st : getContourParms("Level")) {
+        for (String st : levels) {
             levelCombo2.add(st);
         }
+        levelCombo2.add(PgenConstant.EVENT_OTHER);
         levelCombo2.select(0);
-        levelCombo2.add("Other");
         levelCombo2.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
                 updateComboText(levelCombo2, levelValueTxt2,
@@ -284,11 +290,12 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         Composite fhrComp = new Composite(comp, SWT.NONE);
         fhrComp.setLayout(layout1);
 
+        List<String> fhrs = getContourFcstHrs(getParm());
         fcsthrCombo = new Combo(fhrComp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for (String st : getContourParms("ForecastHour")) {
+        for (String st : fhrs) {
             fcsthrCombo.add(st);
         }
-        fcsthrCombo.add("Other");
+        fcsthrCombo.add(PgenConstant.EVENT_OTHER);
         fcsthrCombo.select(0);
 
         fcsthrCombo.addSelectionListener(new SelectionAdapter() {
@@ -556,7 +563,11 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
      */
     private void updateContourInfoSelection(IContours attr) {
 
+        String prevParm = getParm();
         updateComboText(parmCombo, parmTxt, attr.getParm());
+        if (!prevParm.equals(attr.getParm())) {
+            updateLevelAndFcstHr();
+        }
 
         String lvl = attr.getLevel();
         int spi = lvl.indexOf(":");
@@ -789,104 +800,8 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
         } // contoursInfoTables end .
 
         cntrInfoManager = null;
-        
+
         return contoursInfoTables;
-
-    }
-
-    /**
-     * Read contours information document
-     * 
-     * @return - contours info document
-     */
-    public static Document readInfoTbl1() {
-
-        Document dm = null;
-        try {
-            SAXReader reader = new SAXReader();
-            dm = reader.read("/usr1/jwu/r1g1-6/eclipse/AAA.xml");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return dm;
-    }
-
-    /**
-     * Get inputs for Contours info - such as parm, level, forecaster hour
-     * 
-     * @param type
-     *            - name for the info
-     * @return
-     * 
-     */
-    private static List<String> getContourParms(String parm) {
-
-        List<String> retList = new ArrayList<String>();
-
-        // Read the contours info xml files
-        contoursInfoTbl = ContoursInfoDlg.readInfoTbl();
-
-        if (parm.equals(PgenConstant.PARM)) {
-
-            Set<String> contoursInfoTblKeys = contoursInfoTbl.keySet();
-
-            String[] keySetArray = contoursInfoTblKeys.toArray(new String[0]);
-
-            List<String> keySetArrList = Arrays.asList(keySetArray);
-
-            Collections.reverse(keySetArrList);
-
-            retList.addAll(keySetArrList);
-
-        } // "Parm"
-
-        if (parm.equals(PgenConstant.LEVEL)) {
-
-            String param = "";
-
-            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
-
-            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
-                if (retList.isEmpty() || !retList.contains(param)) {
-                    if (cntrsInfo.getLevels() != null) {
-                        List<ContourLevel> levls = cntrsInfo.getLevels();
-                        for (ContourLevel lv : levls) {
-                            param = lv.getValue();
-                            if (null != param && !param.isEmpty()) {
-                                retList.add(param);
-                            }
-                        }
-                    }
-                }
-            }
-
-        } // "Level"
-
-        if (parm.equals(PgenConstant.FORECAST_HOUR)) {
-
-            String text = "";
-
-            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTbl.values();
-
-            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
-                if (retList.isEmpty() || !retList.contains(text)) {
-                    if (cntrsInfo.getFhrs() != null) {
-                        FcstHrs fcsthrs = cntrsInfo.getFhrs();
-                        List<ContourLabel> labels = fcsthrs.getClabels();
-                        for (ContourLabel lbl : labels) {
-                            text = lbl.getText();
-                            if (null != text && !text.isEmpty()) {
-                                retList.add(text);
-                            }
-                        } // labelnodes
-                    }
-                }
-            }
-
-        } // "Fhr"
-
-        return retList;
 
     }
 
@@ -917,7 +832,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         if (found) {
             cmb.select(index + 1);
-            if (sel.equalsIgnoreCase("Other")) {
+            if (sel.equalsIgnoreCase(PgenConstant.EVENT_OTHER)) {
                 txt.setText("");
                 txt.setEnabled(true);
             } else {
@@ -940,7 +855,7 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
 
         LinkedHashMap<String, String> cInts = new LinkedHashMap<String, String>();
 
-        ContoursInfoDlg.readInfoTbl();
+        readInfoTbl();
 
         Collection<ContoursInfo> cntrsInfoObjects = contoursInfoTables.values();
 
@@ -1010,27 +925,119 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
      * 
      */
     public static List<String> getContourParms() {
-        return getContourParms(PgenConstant.PARM);
+
+        // Load "contourParameters" list from the contours info.
+        readInfoTbl();
+
+        if (contourParameters == null) {
+
+            contourParameters = new ArrayList<String>();
+
+            Set<String> contoursInfoTblKeys = contoursInfoTables.keySet();
+
+            String[] keySetArray = contoursInfoTblKeys.toArray(new String[0]);
+
+            List<String> keySetArrList = Arrays.asList(keySetArray);
+
+            Collections.reverse(keySetArrList);
+
+            contourParameters.addAll(keySetArrList);
+        }
+
+        return contourParameters;
     }
 
-    /**
-     * Get the list of contour levels.
+    /*
+     * Get the list of contour levels for a contour parameter.
      * 
-     * @return
+     * @param parm - name for contour parameter
      * 
+     * @return - a list of levels
      */
-    public static List<String> getContourLevels() {
-        return getContourParms(PgenConstant.LEVEL);
+    private static List<String> getContourLevels(String parm) {
+
+        // Load "contourLevels" HashMap from all ContoursInfo.
+        if (contourLevels == null) {
+
+            contourLevels = new HashMap<String, List<String>>();
+
+            readInfoTbl();
+
+            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTables
+                    .values();
+
+            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
+                List<String> retList = new ArrayList<String>();
+                String level = "";
+                if (cntrsInfo.getLevels() != null) {
+                    List<ContourLevel> levels = cntrsInfo.getLevels();
+                    for (ContourLevel lv : levels) {
+                        level = lv.getValue();
+                        if (level != null && !level.isEmpty()) {
+                            retList.add(level);
+                        }
+                    }
+                }
+
+                contourLevels.put(cntrsInfo.getParm(), retList);
+            }
+        }
+
+        // Return levels associated with the "parm", or an empty list.
+        List<String> levels = contourLevels.get(parm);
+        if (levels == null) {
+            levels = new ArrayList<String>();
+        }
+
+        return levels;
+
     }
 
-    /**
-     * Get the list of contour forecast hours.
+    /*
+     * Get the list of forecast hours for a contour parameter.
      * 
-     * @return
+     * @param parm - name for contour parameter
      * 
+     * @return - a list of forecast hours
      */
-    public static List<String> getContourFcstHrs() {
-        return getContourParms(PgenConstant.FORECAST_HOUR);
+    private static List<String> getContourFcstHrs(String parm) {
+
+        // Load "contourFcstHours" HashMap from all ContoursInfo.
+        if (contourFcstHours == null) {
+
+            contourFcstHours = new HashMap<String, List<String>>();
+
+            readInfoTbl();
+
+            Collection<ContoursInfo> cntrsInfoValues = contoursInfoTables
+                    .values();
+
+            for (ContoursInfo cntrsInfo : cntrsInfoValues) {
+                List<String> retList = new ArrayList<String>();
+                String text = "";
+                if (cntrsInfo.getFhrs() != null) {
+                    FcstHrs fcsthrs = cntrsInfo.getFhrs();
+                    List<ContourLabel> labels = fcsthrs.getClabels();
+                    for (ContourLabel lbl : labels) {
+                        text = lbl.getText();
+                        if (text != null && !text.isEmpty()) {
+                            retList.add(text);
+                        }
+                    }
+                }
+
+                contourFcstHours.put(cntrsInfo.getParm(), retList);
+            }
+        }
+
+        // Return hours associated with the "parm" or an empty list.
+        List<String> fcsthrs = contourFcstHours.get(parm);
+        if (fcsthrs == null) {
+            fcsthrs = new ArrayList<String>();
+        }
+
+        return fcsthrs;
+
     }
 
     /**
@@ -1043,16 +1050,51 @@ public class ContoursInfoDlg extends CaveJFACEDialog implements IContours {
      */
     public static ContourDefault getContourMetaDefault(String parm) {
         // Read the contours info xml files if needed.
-        contoursInfoTbl = ContoursInfoDlg.readInfoTbl();
+        readInfoTbl();
 
         ContourDefault def = null;
-        for (String parmKey : contoursInfoTbl.keySet()) {
+        for (String parmKey : contoursInfoTables.keySet()) {
             if (parmKey.equals(parm)
-                    && contoursInfoTbl.get(parmKey).getDefaults() != null) {
-                def = contoursInfoTbl.get(parmKey).getDefaults();
+                    && contoursInfoTables.get(parmKey).getDefaults() != null) {
+                def = contoursInfoTables.get(parmKey).getDefaults();
             }
         }
 
         return def;
+    }
+
+    /*
+     * Updates contour levels & forecast hours for a contour parameter.
+     */
+    private void updateLevelAndFcstHr() {
+
+        String parm = getParm();
+
+        // Levels
+        List<String> levels = getContourLevels(parm);
+        levelCombo1.removeAll();
+        levelCombo2.removeAll();
+
+        for (String lvl : levels) {
+            levelCombo1.add(lvl);
+            levelCombo2.add(lvl);
+        }
+
+        levelCombo1.add(PgenConstant.EVENT_OTHER);
+        levelCombo2.add(PgenConstant.EVENT_OTHER);
+        updateComboText(levelCombo1, levelValueTxt1, levelValueTxt1.getText());
+        updateComboText(levelCombo2, levelValueTxt2, levelValueTxt2.getText());
+
+        // Forecast hours
+        List<String> fcsthrs = getContourFcstHrs(parm);
+        fcsthrCombo.removeAll();
+
+        for (String fhrs : fcsthrs) {
+            fcsthrCombo.add(fhrs);
+        }
+
+        fcsthrCombo.add(PgenConstant.EVENT_OTHER);
+        updateComboText(fcsthrCombo, fcsthrTxt, fcsthrTxt.getText());
+
     }
 }

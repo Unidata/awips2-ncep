@@ -68,7 +68,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 /**
  * Contains all the PGEN Products, layers, and Elements behind the PgenResource.
  * Also holds the command manager to undo/redo changes to the data in the
- * productlist
+ * product list.
  * 
  * <pre>
  * SOFTWARE HISTORY
@@ -81,6 +81,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      ISaveablePart2 code.  Also modified it
  *                                      to return the return code of the dialog
  * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
+ * 08/15/2016   R21066      J. Wu       Add switchLayer() for hot key handler.
  * 
  * </pre>
  * 
@@ -1384,6 +1385,21 @@ public class PgenResourceData extends AbstractResourceData implements
 
         return remove;
 
+    }
+
+    /**
+     * Switch the active layer to a given layer & update GUI.
+     * 
+     * @param layerName
+     *            layer to switch on
+     * @return
+     */
+    public void switchLayer(String layerName) {
+        if (productManageDlg != null && productManageDlg.isOpen()) {
+            productManageDlg.switchLayer(layerName);
+        } else if (layeringControlDlg != null && layeringControlDlg.isOpen()) {
+            layeringControlDlg.switchLayer(layerName);
+        }
     }
 
 }

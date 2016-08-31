@@ -33,11 +33,21 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 /**
  * Resource data for Ensemble grids
  * 
- * SOFTWARE HISTORY Date Ticket# Engineer Description ------------ ----------
- * ----------- -------------------------- 12/13/2011 G Hull Created. 04/02/2012
- * #606 G Hull added primaryModel for Ensem 09/11/2012 #743 Archana Added CLRBAR
- * 03/15/2012 G Hull added getComponentModels to support Ensemble component
- * cycle time query </pre>
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 
+ * 12/13/2011               G Hull        Created. 
+ * 04/02/2012    #606       G Hull        added primaryModel for Ensem 
+ * 09/11/2012    #743       Archana       Added CLRBAR
+ * 03/15/2012               G Hull        added getComponentModels to support Ensemble component
+ *                                        cycle time query 
+ * 08/18/2016   R17569      K Bugenhagen  Added availableCycles attribute
+ *                                        to avoid unnecessary and expensive 
+ *                                        db queries for cycle times.  Changed
+ *                                        static methods to instance methods.
  * 
  * @author ghull
  * @version 1.0
@@ -48,6 +58,11 @@ public class NcEnsembleResourceData extends NcgridResourceData {
 
     private static final IUFStatusHandler statusHandler = UFStatus.getHandler(
             NcConnector.class, "DEFAULT");
+
+    /**
+     * Latest available cycle times for ensemble
+     */
+    private Date[] availableCycles;
 
     /**
      * Enum to map the cycle wild card strings in ensemble gdfile string with
@@ -130,7 +145,7 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      *            <code>gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil.dateToDbtimeQuery</code>
      * @return
      */
-    public static Date[] queryLatestAvailCycleTimes(String modelName,
+    public Date[] queryLatestAvailCycleTimes(String modelName,
             DataTime queryRefDataTime) {
         return queryLatestAvailCycleTimes(modelName,
                 CommonDateFormatUtil.dateToDbtimeQuery(queryRefDataTime
@@ -151,9 +166,10 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      *            - resulting array limit. 0 and less will be unlimited
      * @return
      */
-    public static Date[] queryLatestAvailCycleTimes(String modelName,
+    public Date[] queryLatestAvailCycleTimes(String modelName,
             String queryRefDateTime, int queryLimit) {
-        Date[] availableCycles = new Date[0];
+
+        availableCycles = new Date[0];
         String[] modelMember = modelName.split(":");
         HashMap<String, RequestConstraint> rcMap = new HashMap<String, RequestConstraint>();
         rcMap.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
@@ -191,8 +207,9 @@ public class NcEnsembleResourceData extends NcgridResourceData {
                 }
             }
         } catch (VizException e) {
-            // TODO Auto-generated catch block. Please revise as appropriate.
+            statusHandler.error("Error querying for cycle times", e);
         }
+
         return availableCycles;
     }
 
@@ -200,8 +217,8 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      * Method to write out gdfile to xml and replace cycle strings with
      * respective wild cards.
      */
-    public static String convertGdfileToWildcardString(
-            String gdfileWithCycleStrings, DataTime queryRefDateTime) {
+    public String convertGdfileToWildcardString(String gdfileWithCycleStrings,
+            DataTime queryRefDateTime) {
         StringBuilder gdFileBuilder = new StringBuilder(
                 gdfileWithCycleStrings.length() * 2);
         String[] modelBlocks = gdfileWithCycleStrings.substring(
@@ -213,9 +230,11 @@ public class NcEnsembleResourceData extends NcgridResourceData {
                         modelBlocks[i].indexOf("%") + 1);
                 String[] modelCycleTime = modelBlocks[i].substring(
                         modelBlocks[i].indexOf("%") + 1).split("\\|");
-
-                Date[] latestAvailCycles = queryLatestAvailCycleTimes(
-                        modelCycleTime[0], queryRefDateTime);
+                Date[] latestAvailCycles = getAvailableCycles();
+                if (latestAvailCycles == null) {
+                    latestAvailCycles = queryLatestAvailCycleTimes(
+                            modelCycleTime[0], queryRefDateTime);
+                }
                 int cycleIndex = getLatestAvailCycleIndex(modelCycleTime[1],
                         latestAvailCycles);
 
@@ -259,7 +278,7 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      * Method to read in gdfile from xml and replace cycle wild cards with
      * available cycle dates.
      */
-    public static String convertGdfileToCycleTimeString(String gdfile,
+    public String convertGdfileToCycleTimeString(String gdfile,
             DataTime queryRefDateTime) {
         StringBuilder gdFileBuilder = new StringBuilder(gdfile.length() * 2);
         String[] modelBlocks = gdfile.substring(gdfile.indexOf("{") + 1,
@@ -269,9 +288,11 @@ public class NcEnsembleResourceData extends NcgridResourceData {
                     modelBlocks[i].indexOf("%") + 1);
             String[] modelCycleTime = modelBlocks[i].substring(
                     modelBlocks[i].indexOf("%") + 1).split("\\|");
-            Date[] latestAvailCycles = queryLatestAvailCycleTimes(
-                    modelCycleTime[0], queryRefDateTime);
-
+            Date[] latestAvailCycles = getAvailableCycles();
+            if (latestAvailCycles == null) {
+                latestAvailCycles = queryLatestAvailCycleTimes(
+                        modelCycleTime[0], queryRefDateTime);
+            }
             if (CyclePlaceholder.containsCyclePlaceholders(modelBlocks[i])) {
 
                 int cycleIndex = CyclePlaceholder
@@ -491,6 +512,10 @@ public class NcEnsembleResourceData extends NcgridResourceData {
 
     public void setClrbar(String clrbar) {
         super.setClrbar(clrbar);
+    }
+
+    public Date[] getAvailableCycles() {
+        return availableCycles;
     }
 
     @Override

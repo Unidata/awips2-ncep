@@ -38,14 +38,16 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 05/2010      277         M. Li       Initial creation 
- * 12/2011      578         G. Hull     Change to Composite on the Edit Attrs Dlg
- * 12/2011      578         G. Hull     create from seld cycle time.
- * 01/10/12                 X. Guo      Updated Attrs Dlg editor
- * 09/05/13     #1031       G. Hull     replace EnsembleComponentInventoryMngr with 
- *                                      query using NcGridInventory.
- * 03/22/2016   R10366      bkowal      Cleanup. No longer refresh the GD File name
- *                                      after every GUI action.
+ * 05/2010      277         M. Li         Initial creation 
+ * 12/2011      578         G. Hull       Change to Composite on the Edit Attrs Dlg
+ * 12/2011      578         G. Hull       create from seld cycle time.
+ * 01/10/12                 X. Guo        Updated Attrs Dlg editor
+ * 09/05/13     #1031       G. Hull       replace EnsembleComponentInventoryMngr with 
+ *                                        query using NcGridInventory.
+ * 03/22/2016   R10366      bkowal        Cleanup. No longer refresh the GD File name
+ *                                        after every GUI action.
+ * 08/18/2016   R17569      K Bugenhagen  Modified calls to NcEnsembleResourceData methods 
+ *                                        since they are no longer static.
  * 
  * </pre>
  * 
@@ -219,8 +221,8 @@ public class EnsembleSelectComposite extends Composite {
                 label.setText("       ");
             }
             String modelKey = ensCompModel + "|";
-            Date[] cycles = NcEnsembleResourceData.queryLatestAvailCycleTimes(
-                    ensCompModel, rscData.getResourceName().getCycleTime());
+            Date[] cycles = rscData.queryLatestAvailCycleTimes(ensCompModel,
+                    rscData.getResourceName().getCycleTime());
             modelCycleDates.put(modelKey, cycles);
 
             boolean modelHasData = false;
@@ -452,17 +454,16 @@ public class EnsembleSelectComposite extends Composite {
              * 2s) before the dialog will close. However, that is what DR 10435
              * has been created to address.
              */
-            final String gdFile = NcEnsembleResourceData
-                    .convertGdfileToWildcardString(selectedModelText.getText(),
-                            rscData.getResourceName().getCycleTime());
+            final String gdFile = rscData.convertGdfileToWildcardString(
+                    selectedModelText.getText(), rscData.getResourceName()
+                            .getCycleTime());
             this.rscData.setGdfile(gdFile);
         }
     }
 
     private void populateGdfile(String gdfile) {
-        gdfile = NcEnsembleResourceData.convertGdfileToCycleTimeString(gdfile,
-                rscData.getResourceName().getCycleTime());
-
+        gdfile = rscData.convertGdfileToCycleTimeString(gdfile, rscData
+                .getResourceName().getCycleTime());
         selectedModelText.setText(gdfile);
         gdfile = gdfile.substring(1, gdfile.length() - 1);
         String[] modelBlocks = gdfile.split(",");

@@ -1359,6 +1359,9 @@ ETSS Storm Surge
 <ResourceDefinitionFilter rscDefnName="WINDSAT">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="FNEXRAD">
+<filters>Radar</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="SIMGOESR">
 <filters>SIMGOESR</filters>
 </ResourceDefinitionFilter>

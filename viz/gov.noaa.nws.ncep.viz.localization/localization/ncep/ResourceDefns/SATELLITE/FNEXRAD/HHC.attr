@@ -1,4 +1,4 @@
-colorMapName=HHC NEXRCOMP
+colorMapName=HHC
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=HHC
@@ -6,3 +6,4 @@ displayUnitStr=IRPixel
 alpha=1.0
 brightness=1.0
 contrast=1.0
+legendString=FNEXRAD HHC Composite

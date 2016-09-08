@@ -4,7 +4,7 @@
     <resourceCategory>NTRANS</resourceCategory>
 	<resourceParameters>
 pluginName=ntrans
-modelName=gefs
+modelName=GEFS
 	</resourceParameters>
     <rscImplementation>NTRANS</rscImplementation>
     <subTypeGenerator>metafileName,productName</subTypeGenerator>

@@ -24,6 +24,5 @@ satelliteId=58
 ! This must match the value in the
 
 </resourceParameters>
-    <inventoryEnabled>false</inventoryEnabled>
     <addToURICatalog>false</addToURICatalog>
 </ResourceDefinition>

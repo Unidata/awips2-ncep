@@ -101,7 +101,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *  04/22/2016    R15718     J. Beck      Made empty attribute sets trigger a Priority.DEBUG message, and changed the descriptive text.
  *                                        On startup empty attribute set messages are no longer sent to the AlertViz pop-up: sent to System Log instead.
  *                                        Buoy error messages have been fixed: they were due to incorrect spelling.
- * 
+ *  09/08/2016    ----       M. James     AttributeSetGroups have sub-directories for .attr files.
  * </pre>
  * 
  * @author ghull
@@ -613,7 +613,7 @@ public class ResourceDefnsMngr {
         // the sub-dirs under attrSetGroups must match a resourceImplClass
         for (LocalizationFile asLclFile : attrSetLclFiles.values()) {
 
-            String rscImpl = asLclFile.getFile().getParentFile().getName();
+            String rscImpl = asLclFile.getFile().getParentFile().getParentFile().getName();
 
             if (!attrSetMap.containsKey(rscImpl)) {
                 attrSetMap.put(rscImpl, new HashMap<String, AttributeSet>());

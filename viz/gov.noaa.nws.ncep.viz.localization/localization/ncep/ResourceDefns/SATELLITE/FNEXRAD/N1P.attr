@@ -2,7 +2,8 @@ colorMapName=8-bit STP
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=N1P
-displayUnitStr=IRPixel
+displayUnitStr=in
 alpha=1.0
 brightness=1.0
 contrast=1.0
+legendString=FNEXRAD N1P Composite

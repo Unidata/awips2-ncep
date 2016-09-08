@@ -13,248 +13,46 @@
     GEMPAK_SFC_STN_NAME (not implemented)
     MCIDAS_AREA_NAME : areaName is the name of an entry in the mcidas areaNames db table.
     GINI_SECTOR_ID : areaName is the name of an entry in the satellite sector_ids table. 
-    METAR_STATION_ID : areaName is the name of a 'stationId' in the common_obs_spatial db (where catalogtype=1)
-    SYNOP_STATION_ID : 'stationId' in common_obs_spatial where catalogtype=20
- 	UAIR_STATION_ID  : 'stationId' in common_obs_spatial where catalogtype=22
-    FIXED_BOUY_ID    : 'stationId' in common_obs_spatial where catalogtype=32
-    CMAN_STATION_ID  : 'stationId' in common_obs_spatial where catalogtype=33
     The menuName is optional and can be set to change the menu name from the areaName. If subMenuName is
     set then the menu will appear as a cascading sub menu.    
  
     !Note - for sub-menu items under "GEMPAK", make sure they are also activated (uncommented) in geog.xml.
 -->
-    <AreaMenuItem subMenuName="" menuName="BasicWX_US">
+    <AreaMenuItem subMenuName="" menuName="CONUS">
         <source>PREDEFINED_AREA</source>
         <areaName>BasicWX_US</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="">
         <source>PREDEFINED_AREA</source>
-        <areaName>US</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>North_America</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
         <areaName>Alaska</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Hawaii</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Caribbean</areaName>
-    </AreaMenuItem>
-        <AreaMenuItem subMenuName="" menuName="">
+    <AreaMenuItem subMenuName="" menuName="Alberts Equal Area">
         <source>PREDEFINED_AREA</source>
         <areaName>AlbersEqualArea</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="">
         <source>PREDEFINED_AREA</source>
-        <areaName>Lake_Erie</areaName>
-    </AreaMenuItem>
-
-<!--  ICAO bounds for AWC -->    
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA A">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_A</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA B">
-        <source>PREDEFINED_AREA</source>
-        <areaName>ICAO-B</areaName>
-    </AreaMenuItem>
-     <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA B1">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_B1</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA C">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_C</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA D">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_D</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA E">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_E</areaName>
-    </AreaMenuItem>
-     <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA F">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_F</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA G">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_G</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA H">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_H</areaName>
-    </AreaMenuItem>        
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA I">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_I</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA J">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_J</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA K">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_K</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA M">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_M</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA EU">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_EU</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA ME">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_ME</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO MERC AREA AS">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_AS</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="ICAO" menuName="ICAO P.S. AREA NAT">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>ICAO_NA</areaName>
-    </AreaMenuItem>
-<!-- End of ICAO submenu -->    
-
-    <AreaMenuItem subMenuName="Atlantic" menuName="ICAO-B">
-        <source>PREDEFINED_AREA</source>
-        <areaName>ICAO-B</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="Western">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-Western</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="North">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-North</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="Tropical">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-Tropical</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Atlantic" menuName="FullBasin">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Atlantic-FullBasin</areaName>
-    </AreaMenuItem>
-    
-    <AreaMenuItem subMenuName="Pacific" menuName="Eastern">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-Eastern</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="North">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-North</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="Tropical">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-Tropical</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Pacific" menuName="FullBasin">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Pacific-FullBasin</areaName>
-    </AreaMenuItem>
-
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Canada</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Other" menuName="">
-        <source>PREDEFINED_AREA</source>
         <areaName>Europe</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="Other" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Africa</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="DownUnder" menuName="">
+    <AreaMenuItem subMenuName="" menuName="South America">
         <source>PREDEFINED_AREA</source>
         <areaName>South_America</areaName>
     </AreaMenuItem>
     <!-- created from geog.xml SOUTHERN_HEMISPHERE -->
-    <AreaMenuItem subMenuName="DownUnder" menuName="S_Hemisphere">
-        <source>PREDEFINED_AREA</source>
-        <areaName>S_Hemisphere</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="World" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>World</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="World" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>World0</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="World" menuName="">
+    <AreaMenuItem subMenuName="" menuName="North Hemisphere">
         <source>PREDEFINED_AREA</source>
         <areaName>N_Hemisphere</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="World" menuName="">
+    <AreaMenuItem subMenuName="" menuName="South Hemisphere">
         <source>PREDEFINED_AREA</source>
         <areaName>S_Hemisphere</areaName>
-    </AreaMenuItem>   
-    <AreaMenuItem subMenuName="GEMPAK" menuName="">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>TROPSFC</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="GEMPAK" menuName="ATLC HIGH SEAS">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>AHSF</areaName>
+    <AreaMenuItem subMenuName="" menuName="World">
+        <source>PREDEFINED_AREA</source>
+        <areaName>World</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="GEMPAK" menuName="EPAC HIGH SEAS">
-        <source>GEMPAK_GEOG_AREA_CODE</source>
-        <areaName>EHSF</areaName>
-    </AreaMenuItem> 
-        <AreaMenuItem subMenuName="GEMPAK" menuName="SPAC HIGH SEAS">
-        <source>GEMPAK_GEOG_AREA_NAME</source>
-        <areaName>SPAC HIGH SEAS</areaName>
+    <AreaMenuItem subMenuName="" menuName="World (alt)">
+        <source>PREDEFINED_AREA</source>
+        <areaName>World0</areaName>
     </AreaMenuItem>
-    
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="synop">
-        <source>SYNOP_STATION_ID</source>
-        <areaName>72403</areaName>
-<!--  TODO : add one or more elements that can override the projection and/or extents for a location-bases area. -->
-<!--     <recenterOnly>true</recenterOnly>  not implemented-->  
-<!--    <changeAreaMethod>RecenterAndReproject</changeAreaMethod>  --> 
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="metar">
-        <source>METAR_STATION_ID</source>
-        <areaName>KIAD</areaName>
-    </AreaMenuItem>
-    <!-- UAIR doesn't have the geom set in the db???
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="upper-air">
-        <source>UAIR_STATION_ID</source>
-        <areaName>72403</areaName>
-    </AreaMenuItem>   -->
-    
-    <AreaMenuItem subMenuName="Stations" menuName="DYESS_AFB,ABILENE(DYS)">
-        <source>GEMPAK_SFC_STN_ID</source>
-        <areaName>DYS</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="METAR-KRZL">
-        <source>METAR_STATION_ID</source>
-        <areaName>KRZL</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="UAIR-21824">
-        <source>UAIR_STATION_ID</source>
-        <areaName>21824</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="BOUY-CapeHatt">
-        <source>FIXED_BOUY_ID</source>
-        <areaName>41001</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="CMAN-AtlCity">
-        <source>CMAN_STATION_ID</source>
-        <areaName>ACMN4</areaName>
-    </AreaMenuItem>
-           
 </areaMenus>

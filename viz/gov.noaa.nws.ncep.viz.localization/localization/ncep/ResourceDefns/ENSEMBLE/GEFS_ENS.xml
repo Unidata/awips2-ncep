@@ -4,7 +4,7 @@
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
 primaryModel=GEFS
-availableModels=GEFS:01,02;gfs;NAM12;GFS230
+availableModels=GEFS:01,02;GFS;NAM12
 pluginName=grid
 GDFILE=
     </resourceParameters>

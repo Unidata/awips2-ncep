@@ -3,10 +3,10 @@
     <resourceDefnName>Medr_Pres_Day</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=cmc;ecmwf;ece;gefs;gfs;GFS230;wpc;naefsbc_m;nogaps;UkmetHR-NorthernHemisphere
+primaryModel=GFS
+availableModels=CMC;ECMWF-Global;GEFS;GFS;wpc;NAVGEM;UKMET-Global
 pluginName=grid
-GDFILE={gfs,gfs,cmc,ecmwf,ecmwf,ece|C2,gefs,GFS230,wpc,naefsbc_m,nogaps,UkmetHR-NorthernHemisphere}
+GDFILE={GFS,GFS,CMC,ECMWF-Global,ECMWF-Global|C2,GEFS,wpc,NAVGEM,UKMET-Global}
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

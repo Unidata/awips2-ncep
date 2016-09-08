@@ -3,10 +3,10 @@
     <resourceDefnName>d67_QPF_Day</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=cmc;DGEX185;ecmwf;ece;ensqpf;gefs;gfs;GFS230
+primaryModel=GFS
+availableModels=CMC;DGEX185;ECMWF-Global;ensqpf;GEFS;GFS
 pluginName=grid
-GDFILE={gfs,cmc,DGEX185,ecmwf,ece,ensqpf,gefs,GFS230}
+GDFILE={GFS,CMC,DGEX185,ECMWF-Global,ensqpf,GEFS}
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

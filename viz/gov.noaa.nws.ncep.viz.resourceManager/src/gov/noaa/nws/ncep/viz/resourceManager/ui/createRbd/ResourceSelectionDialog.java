@@ -48,8 +48,6 @@ public class ResourceSelectionDialog extends Dialog {
 
     private Point dlgLocation = null;
 
-    private boolean replaceEnabled = false;
-
     private ResourceSelectionControl sel_rsc_cntrl = null;
 
     private Set<IResourceSelectedListener> rscSelListeners = new HashSet<IResourceSelectedListener>();
@@ -58,21 +56,15 @@ public class ResourceSelectionDialog extends Dialog {
         super(parShell);
     }
 
-    Boolean replaceBtnVisible;
-
-    Boolean replaceBtnEnabled;
-
     ResourceName initRscName;
 
     public Object open(Boolean replaceVisible, Boolean replaceEnabled,
             ResourceName initRsc, Boolean multiPane, NcDisplayType dispType,
             int style) {
 
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
         initRscName = initRsc;
 
-        String title = (replaceBtnVisible ? "Replace Resource" : "Add Resource");
+        String title = "Add Resource";
         title = "Add Resource";
 
         Shell parent = getParent();
@@ -100,11 +92,11 @@ public class ResourceSelectionDialog extends Dialog {
         try {
             if (dispType == NcDisplayType.NTRANS_DISPLAY) {
                 sel_rsc_cntrl = new NtransSelectionControl(sel_rscs_grp,
-                        replaceBtnVisible, replaceBtnEnabled, initRscName,
+                        false, false, initRscName,
                         multiPane, dispType);
             } else {
                 sel_rsc_cntrl = new ResourceSelectionControl(sel_rscs_grp,
-                        replaceBtnVisible, replaceBtnEnabled, initRscName,
+                		false, false, initRscName,
                         multiPane, dispType);
             }
         } catch (VizException e) {
@@ -176,14 +168,6 @@ public class ResourceSelectionDialog extends Dialog {
         rscSelListeners.add(lstnr);
     }
 
-    // this isn't necessary if we remove the 'Replace' (Modify) button from
-    // Create Rbd
-    // and have it on the Select Resource instead.
-    //
-    public boolean replaceOptionEnabled() {
-        return replaceEnabled;
-    }
-
     public boolean isOpen() {
         return shell != null && !shell.isDisposed();
     }
@@ -195,11 +179,6 @@ public class ResourceSelectionDialog extends Dialog {
 
     public void setMultiPaneEnabled(Boolean multPaneEnable) {
         sel_rsc_cntrl.setMultiPaneEnabled(multPaneEnable);
-    }
-
-    public void setReplaceEnabled(Boolean replaceEnabled) {
-        if (sel_rsc_cntrl != null)
-            sel_rsc_cntrl.setReplaceEnabled(replaceEnabled);
     }
 
     public ResourceName getPrevSelectedResource() {

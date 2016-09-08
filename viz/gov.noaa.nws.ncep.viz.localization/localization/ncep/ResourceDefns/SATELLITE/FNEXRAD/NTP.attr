@@ -2,7 +2,8 @@ colorMapName=OHA
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=NTP
-displayUnitStr=IRPixel
+displayUnitStr=in
 alpha=1.0
 brightness=1.0
 contrast=1.0
+legendString=FNEXRAD NTP Composite

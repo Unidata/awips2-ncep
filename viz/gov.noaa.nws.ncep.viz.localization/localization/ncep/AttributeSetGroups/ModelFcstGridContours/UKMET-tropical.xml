@@ -5,6 +5,18 @@
     
     <attrSetLabels>
          <attrSetLabel>
+              <name>250mb_hght_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_absv</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_wind_and_rel_vort</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
               <name>500mb_hght_absv</name>
               <alias></alias>
          </attrSetLabel>

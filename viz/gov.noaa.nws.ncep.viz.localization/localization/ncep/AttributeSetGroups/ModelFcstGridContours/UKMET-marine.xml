@@ -5,6 +5,30 @@
     
     <attrSetLabels>
          <attrSetLabel>
+              <name>1000-850thk_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500_vort_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-850thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-500thk</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_winds_only_ukmet</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_only</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
               <name>1000mb_hght_absv</name>
               <alias></alias>
          </attrSetLabel>

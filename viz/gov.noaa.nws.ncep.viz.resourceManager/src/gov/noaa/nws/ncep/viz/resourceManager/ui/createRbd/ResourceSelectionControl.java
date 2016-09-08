@@ -187,12 +187,6 @@ public class ResourceSelectionControl extends Composite {
     // allow both later (and remove the Modify button from the Create RBD tab)
     protected Button addResourceBtn = null;
 
-    protected Button replaceResourceBtn = null;
-
-    protected Boolean replaceBtnVisible;
-
-    protected Boolean replaceBtnEnabled;
-
     protected Button addToAllPanesBtn = null;
 
     protected Label rscTypeLbl = null;
@@ -240,9 +234,6 @@ public class ResourceSelectionControl extends Composite {
         onlyShowResourcesWithData = false;
 
         rscDefnsMngr = ResourceDefnsMngr.getInstance();
-
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
 
         sel_rsc_comp = this;
 
@@ -303,10 +294,10 @@ public class ResourceSelectionControl extends Composite {
                 | SWT.V_SCROLL | SWT.H_SCROLL);
         FormData fd = new FormData();
         fd.height = RSC_LIST_VIEWER_HEIGHT;
-        fd.top = new FormAttachment(0, 20);
-        fd.left = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(0, 0);
+        fd.left = new FormAttachment(0, 0);
         fd.right = new FormAttachment(15, 0);
-        fd.bottom = new FormAttachment( 100, -75 );
+        fd.bottom = new FormAttachment( 100, -100 );
         rscCatLViewer.getList().setLayoutData(fd);
 
         Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -394,53 +385,38 @@ public class ResourceSelectionControl extends Composite {
         fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
 
-        seldRscNameTxt = new Text(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
-                | SWT.READ_ONLY);
-        fd = new FormData(400,20);
-        fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
-        fd.left = new FormAttachment(filterCombo, 10, SWT.RIGHT);
-        seldRscNameTxt.setLayoutData(fd);
-
+        
+        
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
-
         fd = new FormData();
-
-        if (replaceBtnVisible) {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.right = new FormAttachment(50, -20);
-        } else {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.left = new FormAttachment(50, 20);
-        }
+        fd.bottom = new FormAttachment(100, 0);
+        fd.right = new FormAttachment(100, 0);
         addResourceBtn.setLayoutData(fd);
-        addResourceBtn.setText("  Add  "); // Add To RBD
+        addResourceBtn.setText("     Add     ");
 
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
+        seldRscNameTxt = new Text(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
+                | SWT.READ_ONLY );
+        fd = new FormData(685,20);
         fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace  ");
+        fd.right = new FormAttachment(addResourceBtn, -10, SWT.LEFT);
+        seldRscNameTxt.setLayoutData(fd);
+        seldRscNameTxt.setEnabled(false);
 
-        // both for now unless we change it to be one or the other
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-
+        
         addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
         fd = new FormData();
-        fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
-        fd.top = new FormAttachment(replaceResourceBtn, 0, SWT.TOP);
+        fd.bottom = new FormAttachment(100, -30);
+        fd.right = new FormAttachment(100, 0);
         addToAllPanesBtn.setLayoutData(fd);
         addToAllPanesBtn.setText("Add to All Panes");
-
         addToAllPanesBtn.setVisible(multiPane);
 
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment(80, 0);
-        fd.right = new FormAttachment(100, -20);
-        fd.top = new FormAttachment(seldRscNameTxt, 0, SWT.TOP);
-
+        fd.width = 150;
+        fd.right = new FormAttachment(100, 0);
+        fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 20, SWT.BOTTOM);
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
@@ -450,8 +426,8 @@ public class ResourceSelectionControl extends Composite {
         // listener
         cycleTimeLbl.setText("Available Times");
         fd = new FormData();
-        fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
+        fd.right = new FormAttachment(cycleTimeCombo, -10, SWT.LEFT);
+        fd.top = new FormAttachment(cycleTimeCombo, 4, SWT.TOP);
         cycleTimeLbl.setLayoutData(fd);
     }
 
@@ -979,13 +955,6 @@ public class ResourceSelectionControl extends Composite {
             }
         });
 
-        replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                selectResource(true, false);
-            }
-        });
-
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
@@ -1306,7 +1275,6 @@ public class ResourceSelectionControl extends Composite {
 
         if (enableSelections) {
             addResourceBtn.setEnabled(true);
-            replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
             // combo box will now be enabled for PGEN Available times
             if (usingCycleTimes(rscDefn)) {
@@ -1332,7 +1300,6 @@ public class ResourceSelectionControl extends Composite {
             // For now, don't let the user select 'Latest'
             if (selectedRscName.isLatestCycleTime()) {
                 addResourceBtn.setEnabled(false);
-                replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
             } else {
                 seldRscNameTxt.setText(selectedRscName.toString());
@@ -1340,7 +1307,6 @@ public class ResourceSelectionControl extends Composite {
         } else {
             seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
-            replaceResourceBtn.setEnabled(false);
 
             availDataTimeLbl.setVisible(true);
             availDataTimeLbl.setText(availMsg);
@@ -1526,14 +1492,6 @@ public class ResourceSelectionControl extends Composite {
 
     public void setMultiPaneEnabled(Boolean multPaneEnable) {
         addToAllPanesBtn.setVisible(multPaneEnable);
-    }
-
-    public void setReplaceEnabled(Boolean rplEnbld) {
-        replaceBtnEnabled = rplEnbld;
-
-        if (!isDisposed()) {
-            updateSelectedResource();
-        }
     }
 
     public ResourceName getPrevSelectedResource() {

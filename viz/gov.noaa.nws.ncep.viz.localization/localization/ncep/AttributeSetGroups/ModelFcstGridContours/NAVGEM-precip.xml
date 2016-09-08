@@ -12,6 +12,14 @@
               <name>precip_12hr_mm_nogaps</name>
               <alias></alias>
          </attrSetLabel>
+         <attrSetLabel>
+              <name>24-hr_obs_pcpn_al</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>24-hr_obs_pcpn_spc_al</name>
+              <alias></alias>
+         </attrSetLabel>
     </attrSetLabels>
 
 </AttributeSetGroup>

@@ -1150,7 +1150,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         rscSelDlg.addResourceSelectionListener(new IResourceSelectedListener() {
             @Override
             public void resourceSelected(ResourceName rscName, boolean replace,
-                    boolean addAllPanes, boolean done) {
+                    boolean addAllPanes) {
 
                 try {
                     ResourceSelection rbt = ResourceFactory
@@ -1189,17 +1189,13 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     	
                         if (addAllPanes) {
                             if (!rbdMngr.addSelectedResourceToAllPanes(rbt)) {
-                                if (done) {
-                                    rscSelDlg.close();
-                                }
+                                rscSelDlg.close();
                                 return;
                             }
                         } else {
 
                             if (!rbdMngr.addSelectedResource(rbt, rscSel)) {
-                                if (done) {
-                                    rscSelDlg.close();
-                                }
+                                rscSelDlg.close();
                                 return;
                             }
                         }
@@ -1234,9 +1230,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
                 updateSelectedResourcesView(true);
 
-                if (done) {
-                    rscSelDlg.close();
-                }
+                rscSelDlg.close();
             }
         });
 

@@ -214,7 +214,7 @@ public class ResourceSelectionControl extends Composite {
 
     public interface IResourceSelectedListener {
         public void resourceSelected(ResourceName rscName, boolean replace,
-                boolean addAllPanes, boolean done);
+                boolean addAllPanes);
     }
 
     private final Set<IResourceSelectedListener> rscSelListeners = new HashSet<>();
@@ -1336,7 +1336,7 @@ public class ResourceSelectionControl extends Composite {
 
             for (IResourceSelectedListener lstnr : rscSelListeners) {
                 lstnr.resourceSelected(selectedRscName, replaceRsc,
-                        addToAllPanes, done);
+                        addToAllPanes);
             }
         }
     }

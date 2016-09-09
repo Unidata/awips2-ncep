@@ -344,7 +344,7 @@
 	<ResourceDefinitionFilter rscDefnName="NAEFS_NT">
 	<filters>Forecast,NTRANS</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="NAM20_NT">
+	<ResourceDefinitionFilter rscDefnName="NAM12_NT">
 	<filters>Forecast,NTRANS</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="NAM44_NT">

@@ -1,0 +1,1073 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="Models">
+    <displayType>NMAP_DISPLAY</displayType>
+    <paneLayout numRows="1" numColumns="1"/>
+    <selectedPaneId row="0" col="0"/>
+    <geoSyncedPanes>true</geoSyncedPanes>
+    <autoUpdate>false</autoUpdate>
+    <rbdSequence>0</rbdSequence>
+    <timeMatcher dominantResourceName="GRID/ECMWF/compare_height/pmsl_green_hi-hilo_04-mb(LATEST)" numFrames="9" graphRange="12" hourSnap="3" skipValue="0" timeRange="72" frameInterval="360"/>
+    <displayList>
+        <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="NC-MapRenderableDisplay" mapCenter="-44.945787189948824 49.606986126573254 0.0" zoomLevel="0.37118005752563477">
+            <descriptor xsi:type="NCMapDescriptor">
+                <resource>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <groupName>Global_Comp</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/ECMWF/compare_height/pmsl_green_hi-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="ECMWF"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>ECMWF</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>pmsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>3/-1/?~^  Mean Sea Level Pressure (pmsl) - hi-hilo - 4 mb</title>
+<lineAttributes>3/1/2/1</lineAttributes>
+<colors>3</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>3;3/H#;L#//20/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/compare_height/emsl_purple_med-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>GFS</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>emsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>28/-1/?~^  Mean Sea Level Pressure (emsl) - med-hilo - 4 mb</title>
+<lineAttributes>28/1/2/1</lineAttributes>
+<colors>28</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>28;28/H#;L#//5/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 0}</legendColor>
+                        <groupName>NAM_IceAccr</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/NAM12/compare_height/pmsl_blue_hi-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="NAM12"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>96</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>NAM12</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>pmsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>6/-1/?~^  Mean Sea Level Pressure (pmsl) - hi-hilo - 4 mb</title>
+<lineAttributes>6/1/2/1</lineAttributes>
+<colors>6</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>6;6/H#;L#//20/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/NAM12/compare_height/pmsl_red_hi-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="NAM12"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>96</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>NAM12</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>pmsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>2/-1/?~^  Mean Sea Level Pressure (pmsl) - hi-hilo - 4 mb</title>
+<lineAttributes>2/1/2/1</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>2;2/H#;L#//20/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/oceanic/ice_accretion(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>384</dfltTimeRange>
+<type>p</type>
+<cint>0</cint>
+<gdfile>GFS</gdfile>
+<gvcord>HGHT</gvcord>
+<glevel>10</glevel>
+<gdpfun>sbtw(mask(mul(iceg,425196.85),sea),0.1,.85) ! sbtw(mask(mul(iceg,425196.85),sea),.85,2.45) ! sgt(mask(mul(iceg,425196.85),sea),2.45)</gdpfun>
+<skip></skip>
+<filter>n</filter>
+<scale>1</scale>
+<wind></wind>
+<title>31/-4/?~^  AVN Icing Rate (tenths in/3hrs) LGT=cyan MDT=skyblue HVY=red</title>
+<lineAttributes></lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PgenResourceData" isEdited="false" resourceName="PGEN/Ice_Edge/F000/full_color(LATEST)" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="site">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="pgen"/>
+    </mapping>
+    <mapping key="activityLabel">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="forecaster">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="activitySubtype">
+        <constraint constraintType="EQUALS" constraintValue="F000"/>
+    </mapping>
+    <mapping key="desk">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="dataTime">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="activityType">
+        <constraint constraintType="EQUALS" constraintValue="Ice_Edge"/>
+    </mapping>
+    <mapping key="activityName">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="operatingMode">
+        <constraint constraintType="EQUALS" constraintValue="OPERATIONAL"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {155, 155, 155}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>2147483647</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
+<dfltNumFrames>1</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<monoColorEnable>false</monoColorEnable>
+<monoColor>RGB {0, 255, 0}</monoColor>
+<fillModeEnable>true</fillModeEnable>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 0}</legendColor>
+                        <groupName>GFS_EMSL_Wind</groupName>
+                        <funcKeyNum>2</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="true" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters>
+            <persisted/>
+            <jaxbColorMap xsi:type="colorMap">
+                <color a="0.5" b="0.8627451" g="0.89411765" r="1.0"/>
+                <color a="0.5" b="0.8627451" g="0.89411765" r="1.0"/>
+                <color a="0.5" b="1.0" g="1.0" r="0.0"/>
+                <color a="0.5" b="0.93333334" g="0.69803923" r="0.0"/>
+                <color a="0.5" b="0.54509807" g="0.30588236" r="0.0627451"/>
+                <color a="0.5" b="0.0" g="1.0" r="0.49803922"/>
+                <color a="0.5" b="0.0" g="0.54509807" r="0.0"/>
+                <color a="0.5" b="0.0" g="1.0" r="1.0"/>
+                <color a="0.5" b="0.0" g="0.49803922" r="1.0"/>
+                <color a="0.5" b="0.14901961" g="0.2784314" r="0.54509807"/>
+                <color a="0.5" b="0.0" g="0.0" r="0.54509807"/>
+                <color a="0.5" b="0.0" g="0.0" r="1.0"/>
+            </jaxbColorMap>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/winds_10m/10m_winds_scat_color_filled(LATEST_1200)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c/f</type>
+<cint>0;5;10;15;20;25;30;34;40;48;56;64</cint>
+<gdfile>GFS</gdfile>
+<gvcord>HGHT</gvcord>
+<glevel>10</glevel>
+<gdpfun>mag(kntv(wnd))</gdpfun>
+<skip>0</skip>
+<filter>yes</filter>
+<scale>0</scale>
+<wind></wind>
+<title>1/-1/?~^  @ winds (kts) - color filled</title>
+<lineAttributes>32/1/2/2</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint>0;6;12;17;23;27;34;40;48;56;64</fint>
+<fline>1;1;6;26;24;21;23;5;17;8;14;2</fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar>1</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/compare_height/emsl_white_med-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>GFS</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>emsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>31/-1/?~^  Mean Sea Level Pressure (emsl) - med-hilo - 4 mb</title>
+<lineAttributes>31/1/2/1</lineAttributes>
+<colors>31</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>31;31/H#;L#//5/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 255, 0}</legendColor>
+                        <groupName>EC_Fronts</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/ECMWF/925mb/925mb_tmp_adv(LATEST23_0000)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="ECMWF"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c/f</type>
+<cint>2/-20/-12</cint>
+<gdfile>ECMWF</gdfile>
+<gvcord>pres</gvcord>
+<glevel>925</glevel>
+<gdpfun>adv(tmpc,wnd)</gdpfun>
+<skip>0</skip>
+<filter>yes</filter>
+<scale>4</scale>
+<wind></wind>
+<title>1/-1/?~^  @ TMP ADV (deg K/s)</title>
+<lineAttributes>32/1;2//40</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint>-10;-9;-8;-7;-6;-5;-4;-3;-2;-1;0;1;2;3;4;5;6;7;8;9;10</fint>
+<fline>1;7;30;29;28;24;25;26;27;6;0;0;11;12;13;14;15;16;17;18;9;8</fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar>31/v/lr/.97;.1//1|.8/21/1/121///hw</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/ECMWF/layer_1000-850/1000-850mb_thkn(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="ECMWF"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>1</cint>
+<gdfile>ECMWF</gdfile>
+<gvcord>pres</gvcord>
+<glevel>850:1000</glevel>
+<gdpfun>(sub(hght@850,hght@1000))</gdpfun>
+<skip>0/1;-1</skip>
+<filter>yes</filter>
+<scale>-1</scale>
+<wind>0</wind>
+<title>1/-1/?~^  1000-850mb THKN !0</title>
+<lineAttributes>3/5/2/1</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>0</hilo>
+<hlsym>0</hlsym>
+<clrbar>0</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 0, 255}</legendColor>
+                        <groupName>EC_Marine_Fronts</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/ECMWF/surface/marine_fronts_ecmwf(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="ECMWF"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>f                               ! c                        ! b</type>
+<cint>! 1</cint>
+<gdfile>ECMWF</gdfile>
+<gvcord>pres                            ! pres       ! none</gvcord>
+<glevel>1000                            ! 850:1000 ! 0</glevel>
+<gdpfun>sdiv(mixr(dwpc,pres),wnd)       ! ldf(hght) ! kntv(wnd)</gdpfun>
+<skip></skip>
+<filter>yes</filter>
+<scale>7                               ! -1</scale>
+<wind>9/1.0/1.5/112</wind>
+<title>1/-1/?~^  1000-850mb THK, BL MOISTURE CONVERGENCE &amp; 10M WIND (KT)!0</title>
+<lineAttributes>! 6/5/1/1</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint>-9;-7;-5;-3;-1                  !</fint>
+<fline>2;15;21;22;23;0                 !</fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar>0</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 255, 0}</legendColor>
+                        <groupName>GFS_Fronts</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/925mb/925mb_rel_vort(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>f</type>
+<cint>2</cint>
+<gdfile>GFS</gdfile>
+<gvcord>pres</gvcord>
+<glevel>925</glevel>
+<gdpfun>(vor(wnd))            !(vor(wnd))</gdpfun>
+<skip>0/1</skip>
+<filter>yes</filter>
+<scale>5</scale>
+<wind></wind>
+<title>1/-1/?~^  @ RELATIVE VORTICITY!0</title>
+<lineAttributes>8/1/2</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint>4;6;8;10;12;14;16;18;20;22;24;26;28;30;32;34;36;38;40;42;44;46;48;50;55</fint>
+<fline>0;23;22;21;5;19;18;17;16;15;2;14-11;1;10-8;28;27-24;7;30</fline>
+<hilo></hilo>
+<hlsym>0</hlsym>
+<clrbar>0</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS/925mb/925mb_theta_gradient(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="GFS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>1/1/30</cint>
+<gdfile>GFS</gdfile>
+<gvcord>pres</gvcord>
+<glevel>925</glevel>
+<gdpfun>mag(grad(thta(tmpc,pres@0%none)))</gdpfun>
+<skip></skip>
+<filter>yes</filter>
+<scale>5</scale>
+<wind></wind>
+<title>1/-1/?~^  @ Theta Gradient!0</title>
+<lineAttributes>13/1/1/2</lineAttributes>
+<colors></colors>
+<marker></marker>
+<grdlbl>0</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar></clrbar>
+<text>1/21/1/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-LatLonOverlayResourceData" isEdited="true" resourceName="OVERLAY/LatLon/default">
+                        <legendColor>RGB {255, 165, 79}</legendColor>
+                        <color>RGB {255, 165, 79}</color>
+                        <lineWidth>1</lineWidth>
+                        <latitudeInterval>10</latitudeInterval>
+                        <longitudeInterval>10</longitudeInterval>
+                        <lineStyle>SHORT_DASHED</lineStyle>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" isEdited="false" resourceName="OVERLAY/Locator/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                        <color>RGB {255, 255, 255}</color>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-OverlayResourceGroupData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>World</mapName>
+<dbName>maps</dbName>
+<table>mapdata.world</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>State Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.states</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Canada</mapName>
+<dbName>maps</dbName>
+<table>mapdata.canada</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Mexico</mapName>
+<dbName>maps</dbName>
+<table>mapdata.mexico</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>County Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.county</table>
+<geomField>the_geom</geomField>
+<labelField>countyname</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <mapName>Geo-Political</mapName>
+                        <color>RGB {255, 228, 220}</color>
+                        <lineWidth>1</lineWidth>
+                        <lineStyle>SOLID</lineStyle>
+                    </resourceData>
+                </resource>
+                <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+                <gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+                <timeMatcher xsi:type="ncTimeMatcher" dominantResourceName="GRID/ECMWF/compare_height/pmsl_green_hi-hilo_04-mb(LATEST)" numFrames="9" graphRange="12" hourSnap="3" skipValue="0" timeRange="72" frameInterval="360"/>
+                <autoUpdate>false</autoUpdate>
+                <suspendZoom>false</suspendZoom>
+            </descriptor>
+            <paneId row="0" col="0"/>
+            <initialArea areaName="Atlantic-North" mapCenter="-44.945787189948824 49.606986126573254 0.0">
+                <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+                <areaSource>PREDEFINED_AREA</areaSource>
+                <zoomLevel>0.37118005752563477</zoomLevel>
+                <zoomDisable>false</zoomDisable>
+                <description>N/A</description>
+                <gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+            </initialArea>
+        </displays>
+    </displayList>
+    <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

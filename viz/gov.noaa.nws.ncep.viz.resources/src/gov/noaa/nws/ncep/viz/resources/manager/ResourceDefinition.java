@@ -90,6 +90,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *  04/12/2016    R15945     R. Reynolds  Added code to build initial custom Mcidas legend string
  *  06/02/2016    RM18743    rjpeter      Fix Radar generatedTypes.
  *  06/06/2016    R15945     RCReynolds   Using McidasConstants instead of SatelliteConstants
+ *  09/09/2016    ----       M. James     Add resourceMapName.
  * </pre>
  * 
  * @author ghull
@@ -104,6 +105,9 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     @XmlElement
     private String resourceDefnName;
+    
+    @XmlElement
+    private String resourceMapName;
 
     @XmlElement
     @XmlJavaTypeAdapter(ResourceCategory.ResourceCategoryAdapter.class)
@@ -382,6 +386,10 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     public String getResourceDefnName() {
         return resourceDefnName;
     }
+    
+    public String getMapName() {
+    	return resourceMapName;
+	}
 
     public Boolean getAddToURICatalog() {
         return addToURICatalog;

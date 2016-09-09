@@ -747,7 +747,7 @@
                name="overlayName"
                optional="false">
          </commandParameter>
-		 <commandParameter
+	 <commandParameter
                id="resourceMapName"
                name="resourceMapName"
                optional="false">

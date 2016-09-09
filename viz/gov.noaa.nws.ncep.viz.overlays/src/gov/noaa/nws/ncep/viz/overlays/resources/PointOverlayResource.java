@@ -47,6 +47,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 02/17/2016       #13554       dgilling        Implement IStaticDataNatlCntrsResource.
  * 07/03/13     #1010     ghull       Initial creation
  * 11/05/2015   #5070     randerso    Adjust font sizes for dpi scaling
+ * 09/09/2016   -----     mjames@ucar Simple name.
  *    
  * </pre>
  * 
@@ -102,22 +103,7 @@ public class PointOverlayResource extends
 
     @Override
     public String getName() {
-        //
-        String numPoints = null;
-        String mapName = ptOvrlyRscData.getMapName();
-        String strNumLabeledPoints = " of " + numLabeledPoints.toString();
-        //
-        if (numVisPoints == 0) {
-            if (labelStrings == null || labelStrings.isEmpty()) {
-                numPoints = "No Visible Points";
-                strNumLabeledPoints = " ...Zoom in and see...";
-            } else {
-                numPoints = Integer.toString(labelStrings.size());
-            }
-        } else {
-            numPoints = Integer.toString(numVisPoints);
-        }
-        return mapName + " (" + numPoints + strNumLabeledPoints + ")";
+        return ptOvrlyRscData.getMapName();
     }
 
     /*

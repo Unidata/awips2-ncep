@@ -26,13 +26,17 @@
         <source>PREDEFINED_AREA</source>
         <areaName>Alaska</areaName>
     </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="Alberts Equal Area">
+    <AreaMenuItem subMenuName="" menuName="">
         <source>PREDEFINED_AREA</source>
-        <areaName>AlbersEqualArea</areaName>
+        <areaName>Africa</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="">
         <source>PREDEFINED_AREA</source>
         <areaName>Europe</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="" menuName="">
+	<source>PREDEFINED_AREA</source>
+	<areaName>Hawaii</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="South America">
         <source>PREDEFINED_AREA</source>
@@ -54,5 +58,9 @@
     <AreaMenuItem subMenuName="" menuName="World (alt)">
         <source>PREDEFINED_AREA</source>
         <areaName>World0</areaName>
+    </AreaMenuItem>
+    <AreaMenuItem subMenuName="" menuName="Alberts Equal Area">
+        <source>PREDEFINED_AREA</source>
+        <areaName>AlbersEqualArea</areaName>
     </AreaMenuItem>
 </areaMenus>

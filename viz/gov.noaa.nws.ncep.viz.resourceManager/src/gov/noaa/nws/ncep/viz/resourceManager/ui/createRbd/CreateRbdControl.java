@@ -10,8 +10,6 @@ import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
 import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
@@ -34,7 +32,6 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
-import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
@@ -42,8 +39,6 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -55,34 +50,17 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.ICellModifier;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerEditor;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Device;
@@ -106,7 +84,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -118,10 +95,8 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.VizApp;
-import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 import com.raytheon.viz.ui.UiPlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -209,11 +184,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private String rbdNameText = null;
 
-    private Label rbdNameLabel = null;
-
     private Combo dispTypeCombo = null;
-
-    private Label dispTypeLabel = null;
 
     private Button selectResourceButton = null;
 
@@ -226,8 +197,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     private Group selectedResourceGroup = null;
     
     private ListViewer selectedResourceViewer = null;
-
-    //private Button replaceResourceButton = null;
 
     private Button editResourceButton = null;
 
@@ -312,7 +281,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private String savedSpfName = null;
 
-    private Point initDlgSize = new Point(850, 860);
+    private Point initDlgSize = new Point(1050, 860);
 
     private int multiPaneDlgWidth = 1050;
 
@@ -320,15 +289,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private Group timelineGroup;
 
-    private int grpColor = 1;
-
-    // NCP group rendering order
-    static private int NCP_GROUP_RENDERING_ORDER = 500;
-
     private static Map<String, String> gempakProjMap = GempakProjectionValuesUtil
             .initializeProjectionNameMap();
-
-    private static String ungrpStr = "Static";
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(CreateRbdControl.class);
@@ -365,7 +327,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         gd.verticalAlignment = SWT.FILL;
 
         rbdGroup.setLayoutData(gd);
-
         rbdGroup.setLayout(new FormLayout());
 
         createRBDGroup();
@@ -1458,7 +1419,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     // remove widgets that don't apply. (ie, import, Save, and Load)
 
     public void configureForEditRbd() {
-        importLabel.setVisible(false);
+        //importLabel.setVisible(false);
         importRbdButton.setVisible(false);
         clearRbdButton.setVisible(false);
         saveRbdButton.setVisible(false);
@@ -2500,7 +2461,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 //            fd.top = new FormAttachment(autoUpdateButton, 5, SWT.BOTTOM);
 //            fd.right = new FormAttachment(100, -10);
 //            fd.bottom = new FormAttachment(geoAreaGroup, 0, SWT.BOTTOM);
-            shell.setSize(new Point(multiPaneDlgWidth - 10, shell.getSize().y));
+            shell.setSize(new Point(multiPaneDlgWidth - 1, shell.getSize().y));
         }
 
         // the area name may be truncated based on a shorter toolbar widget
@@ -2549,10 +2510,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 @Override
                 public void run() {
                     String msg = null;
-                    msg = new String("Resource Bundle Display "
-                            + rbdNameText + " Saved to Group "
-                            + savedSpfGroup + File.separator + savedSpfName
-                            + ".");
+                    msg = new String("Bundle "
+                            + rbdNameText + " saved to group " + savedSpfName);
                     MessageBox mb = new MessageBox(shell, SWT.OK);
                     mb.setText("Bundle Saved");
                     mb.setMessage(msg);

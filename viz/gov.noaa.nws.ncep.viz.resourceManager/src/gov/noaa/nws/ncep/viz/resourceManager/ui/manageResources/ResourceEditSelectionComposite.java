@@ -522,8 +522,7 @@ public class ResourceEditSelectionComposite extends Composite {
                         if (rd != null) {
                             if (rd.getSubTypeGenParamsList().length > 0) {
                                 rscTypeGroupLbl
-                                        .setText("Sub-Types Generated from\n"
-                                                + rd.getSubTypeGenerator());
+                                        .setText("Sub-Type");
                             } else {
                                 rscTypeGroupLbl.setText("N/A");
                             }

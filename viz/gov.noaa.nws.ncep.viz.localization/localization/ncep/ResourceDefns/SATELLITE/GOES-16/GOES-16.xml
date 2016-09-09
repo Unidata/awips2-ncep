@@ -6,7 +6,7 @@
 ! This must match the "creatingEntity" in the
 ! satellite DB table valid values are 
 pluginName=satellite
-satelliteName=GOES-17
+satelliteName=GOES-16
 legendColor=RGB {200, 200, 200}
     </resourceParameters>
     <rscImplementation>SimgoesrSatellite</rscImplementation>

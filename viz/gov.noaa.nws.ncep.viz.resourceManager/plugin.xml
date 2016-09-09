@@ -35,7 +35,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="SPFs"
+             name="Bundle Groups"
              recursive="true"
              value="ncep/SPFs"
 	         extensionFilter=".xml">
@@ -82,7 +82,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="Default RBDs"
+             name="Default Bundles"
              recursive="true"
              value="ncep/DefaultRBDs"
 	         extensionFilter=".xml">
@@ -101,17 +101,6 @@
        </path>
     </extension>
     
-            <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Satellite Names"
-             recursive="false"
-             value="ncep/satelliteNames"
-             extensionFilter=".xml">
-       </path>
-    </extension>
     
             <extension
           point="com.raytheon.uf.viz.localization.perspective.localizationpath">

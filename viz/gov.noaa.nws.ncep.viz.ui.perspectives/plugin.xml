@@ -783,6 +783,11 @@
                name="overlayName"
                optional="false">
          </commandParameter>
+	 <commandParameter
+               id="resourceMapName"
+               name="resourceMapName"
+               optional="false">
+         </commandParameter>
       </command>
       <command
             id="sync.file.tool.command"

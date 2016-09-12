@@ -123,37 +123,37 @@ public class McidasDecoder extends AbstractDecoder {
             cal.set(Calendar.MILLISECOND, 0);
             record.setDataTime(new DataTime(cal));
 
-            /*
-             * Upper-left line in satellite coordinates
+            /* W6
+             * Upper-left line in satellite coordinates 
              */
             int ulline = byteArrayToInt(area, 20, endian);
 
-            /*
+            /* W7
              * Upper-left element in satellite coordinates
              */
             int ulelem = byteArrayToInt(area, 24, endian);
 
-            /*
+            /* W9
              * Number of lines in y-axis
              */
             Integer ny = byteArrayToInt(area, 32, endian);
 
-            /*
+            /* W10
              * Number of pixels in x-axis
              */
             Integer nx = byteArrayToInt(area, 36, endian);
 
-            /*
+            /* W11
              * Number of bytes each element (1, 2 or 4) int zdim =
              * byteArrayToInt (area, 40, endian);
              */
 
-            /*
+            /* W12
              * Line resolution
              */
             int yres = byteArrayToInt(area, 44, endian);
 
-            /*
+            /* W13
              * Element (pixel) resolution
              */
             int xres = byteArrayToInt(area, 48, endian);

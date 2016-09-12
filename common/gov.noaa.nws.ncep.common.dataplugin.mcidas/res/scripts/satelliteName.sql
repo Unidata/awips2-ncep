@@ -1,3 +1,4 @@
+INSERT INTO awips.mcidas_satellite_names VALUES (3,'COMP');
 INSERT INTO awips.mcidas_satellite_names VALUES (9,'Global');
 INSERT INTO awips.mcidas_satellite_names VALUES (10,'SOUNDER');
 INSERT INTO awips.mcidas_satellite_names VALUES (12,'GMS');

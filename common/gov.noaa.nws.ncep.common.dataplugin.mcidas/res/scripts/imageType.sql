@@ -153,3 +153,4 @@ INSERT INTO awips.mcidas_image_type VALUES (191, 'LI', 268435456, 185);
 INSERT INTO awips.mcidas_image_type VALUES (192, 'CAPE', 536870912, 185);
 INSERT INTO awips.mcidas_image_type VALUES (193, 'OZONE', 1073741824, 185);
 INSERT INTO awips.mcidas_image_type VALUES (194, 'SST', 1073741824, 10);
+INSERT INTO awips.mcidas_image_type VALUES (195, 'BT', 1, 3);

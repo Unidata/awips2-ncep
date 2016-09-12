@@ -113,6 +113,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 06/16/2016     R17949    Jeff Beck    Add the capability to select PGEN resources from available times,
  *                                       using a comboBox and using the same UI layout familiar to users when selecting "Cycle Times".
  *                                       Previous PGEN data in the UI will be labeled "Available Times" not "Cycle Times".
+ * 08/15/2016     R17368    Jeff Beck    If a resource in the parent window (Create RBD) is selected, display it
+ *                                       when opening this Resource Selection Control. Include cycle times. 
+ *                                       If there's unselected resource(s), display the most previous one, with cycle times.
  * </pre>
  * 
  * @author ghull
@@ -182,6 +185,8 @@ public class ResourceSelectionControl extends Composite {
     protected Label cycleTimeLbl = null;
 
     protected Combo cycleTimeCombo = null;
+
+    private boolean openingDialogWithResources = false;
 
     // For now only one of following two will be visible but we may want to
     // allow both later (and remove the Modify button from the Create RBD tab)
@@ -979,12 +984,10 @@ public class ResourceSelectionControl extends Composite {
                     }
                 });
 
-        // get the selected rsc and add to the list.
-        // ignoring the cycle time for now.
-        // This is true and makes the UI "clumsy"" and misleading
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
+                prevSelectedRscName = selectedRscName;
                 selectResource(false, false);
             }
         });
@@ -992,6 +995,7 @@ public class ResourceSelectionControl extends Composite {
         replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
+                prevSelectedRscName = selectedRscName;
                 selectResource(true, false);
             }
         });
@@ -1017,15 +1021,31 @@ public class ResourceSelectionControl extends Composite {
         });
     }
 
-    /*
-     * set the initial values of the widgets.
+    /**
+     * Set the initial values of the widgets
+     * 
+     * @param initRscName
+     *            the selected ResourceName in the parent resource list
      */
     protected void initWidgets(ResourceName initRscName) {
 
-        if ((prevSelectedRscName != null) && prevSelectedRscName.isValid()) {
-            selectedRscName = new ResourceName(prevSelectedRscName);
-        } else {
+        if ((initRscName != null) && initRscName.isValid()) {
+            // We do have a selected resource in the create RBD resource list
+            openingDialogWithResources = true;
+
+            // Use the selected resource from the create RBD resource list
             selectedRscName = new ResourceName(initRscName);
+
+        } else if ((prevSelectedRscName != null)
+                && prevSelectedRscName.isValid()) {
+
+            // We have resources (but none are selected) in the create RBD
+            // resource list
+            openingDialogWithResources = true;
+
+            // Use the previous ResourceName
+            selectedRscName = new ResourceName(prevSelectedRscName);
+
         }
 
         if (selectedRscName != null) {
@@ -1063,6 +1083,11 @@ public class ResourceSelectionControl extends Composite {
 
         updateResourceFilters();
         updateResourceTypes();
+
+        // We are finished with work of opening this dialog.
+        // Now we must set this flag to false, so other functionalities that
+        // happen in the program will know this.
+        openingDialogWithResources = false;
     }
 
     /*
@@ -1267,10 +1292,7 @@ public class ResourceSelectionControl extends Composite {
     }
 
     /*
-     * when an attrSetName is selected and resource name, with possible cycle
-     * time, is ready for selection
-     * 
-     * The "selectedResource" is basically the 2nd column...
+     * Keeps the selected resource updated
      */
     public void updateSelectedResource() {
 
@@ -1325,9 +1347,19 @@ public class ResourceSelectionControl extends Composite {
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
-                String cycleTime = cycleTimeCombo.getText();
-                DataTime refTime = (DataTime) cycleTimeCombo.getData(cycleTime);
-                selectedRscName.setCycleTime(refTime);
+                if (!openingDialogWithResources) {
+
+                    String cycleTime = cycleTimeCombo.getText();
+                    DataTime refTime = (DataTime) cycleTimeCombo
+                            .getData(cycleTime);
+                    selectedRscName.setCycleTime(refTime);
+
+                } else {
+
+                    int i = getSelectedCycleTimeIndex(selectedRscName,
+                            cycleTimeCombo);
+                    cycleTimeCombo.select(i);
+                }
 
                 availDataTimeLbl.setVisible(false);
             } else {
@@ -1363,7 +1395,6 @@ public class ResourceSelectionControl extends Composite {
                 selectedRscName));
         prevCat2SelectedRscName.put(selectedRscName.getRscCategory(),
                 new ResourceName(selectedRscName));
-        prevSelectedRscName = selectedRscName;
     }
 
     /*
@@ -1472,6 +1503,7 @@ public class ResourceSelectionControl extends Composite {
                 }
             } else {
 
+                // create the List of available times from the ResourceName
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
 
             }
@@ -1593,6 +1625,35 @@ public class ResourceSelectionControl extends Composite {
 
     protected void stopWaitCursor() {
         setCursor(null);
+    }
+
+    /**
+     * 
+     * Get the cycle time from a ResourceName and look for a match in the
+     * cycleTimeCombo widget
+     * 
+     * @param selectedRscName
+     *            the selected ResourceName
+     * @param cycleTimeCombo
+     *            the Combo widget that shows Cycle Times
+     * @return the index of the cycleTimeCombo that matches the cycle time
+     *         stored in the ResourceName
+     */
+    public int getSelectedCycleTimeIndex(ResourceName selectedRscName,
+            Combo cycleTimeCombo) {
+
+        String cycleTimeString = selectedRscName.getCycleTimeString();
+        String[] items = cycleTimeCombo.getItems();
+        int totalItems = items.length;
+        int i;
+
+        for (i = 0; i < totalItems; i++) {
+
+            if (items[i].equals(cycleTimeString)) {
+                break;
+            }
+        }
+        return i;
     }
 
     @Override

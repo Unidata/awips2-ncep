@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory;
@@ -84,7 +85,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 08/31/2015   R7757        B. Hebbard   Refactor so imageCreator belongs to resource (instead of this class) for better frame status tracking; other cleanups.
  * 11/17/2015   R9579        B. Hebbard   Fix synchronization problem (affecting conditional coloring) in requestSurfaceData; various cleanups
  * 12/17/2015   R9579        B. Hebbard   Guard against ConcurrentModificationException (parametersToPlot map) and NullPointerException (stationsWithData)
- * 
+ * 07/20/2016   R15950       J. Huber     Add support for temp and dewpoint reported with tenths.
  */
 
 public class NcPlotDataRequestor {
@@ -840,6 +841,24 @@ public class NcPlotDataRequestor {
                 if (inputPrms != null && !inputPrms.isEmpty()) {
                     for (String metPrmName : inputPrms) {
                         dbParamNamesForQuery.add(metPrmName);
+
+                        /*
+                         * Add temp and dewpoint from tenths if it is not in the
+                         * map because temperature and dewpoint are not
+                         * requested specifically but are needed to derived a
+                         * parameter.
+                         */
+
+                        if (metPrmName.equals("temperature")
+                                && !dbParamNamesForQuery
+                                        .contains("tempFromTenths")) {
+                            dbParamNamesForQuery.add("tempFromTenths");
+                        } else if (metPrmName.equals("dewpoint")
+                                && !dbParamNamesForQuery
+                                        .contains("dpFromTenths")) {
+                            dbParamNamesForQuery.add("dpFromTenths");
+                        }
+
                     }
                 }
             }
@@ -864,6 +883,15 @@ public class NcPlotDataRequestor {
                         .getSimpleName());
                 if (dbName != null) {
                     dbParamNamesForQuery.add(dbName);
+                    /*
+                     * Add temp and dewpoint from tenths to list of paramters to
+                     * request from the hdf5.
+                     */
+                    if (dbName.equals("temperature")) {
+                        dbParamNamesForQuery.add("tempFromTenths");
+                    } else if (dbName.equals("dewpoint")) {
+                        dbParamNamesForQuery.add("dpFromTenths");
+                    }
                 }
             }
         }
@@ -1684,6 +1712,39 @@ public class NcPlotDataRequestor {
                     //
 
                     List<AbstractMetParameter> metParamsToDisplay;
+
+                    /*
+                     * If the raw report contains temperature or dewpoint in
+                     * tenths (seperate field in hdf5) change the value of the
+                     * temperature and/or dewpoint met parameters to contain the
+                     * value in tenths instead of less granular integer value
+                     * given.
+                     */
+
+                    Double dptt = dbParamToMetParamMap.get("dpFromTenths")
+                            .getValue().doubleValue();
+                    Double att = dbParamToMetParamMap.get("tempFromTenths")
+                            .getValue().doubleValue();
+                    if (dbParamToMetParamMap.get("dpFromTenths") != null
+                            && dptt != IDecoderConstantsN.NEGATIVE_FLOAT_MISSING
+                                    .doubleValue()) {
+
+                        AbstractMetParameter dp = dbParamToMetParamMap
+                                .get("dewpoint");
+                        dp.setValue(dptt);
+                        dbParamToMetParamMap.put("dewpoint", dp);
+                    }
+
+                    if (dbParamToMetParamMap.get("tempFromTenths") != null
+                            && att != IDecoderConstantsN.NEGATIVE_FLOAT_MISSING
+                                    .doubleValue()) {
+
+                        AbstractMetParameter at = dbParamToMetParamMap
+                                .get("temperature");
+                        at.setValue(att);
+                        dbParamToMetParamMap.put("temperature", at);
+                    }
+
                     Collection<AbstractMetParameter> collectionOfMetParamsWithDBValues = dbParamToMetParamMap
                             .values();
 

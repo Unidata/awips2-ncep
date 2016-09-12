@@ -1,11 +1,3 @@
-/*
- * 
- * PRLibrary
- * 
- * Date created 04 May 2011
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system. 
- */
 package gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
@@ -20,9 +12,28 @@ import javax.measure.unit.Unit;
 
 import org.opengis.coverage.grid.InvalidRangeException;
 
-//import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
+
+/**
+ * <pre>
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 05/04/2011   ?????       ??????      Initial Creation
+ * 07/20/2016   R15950      J.Huber     Cleaned up code, changed logic in 
+ *                                      checkNullOrInvalidValue, changed
+ *                                      units on prTmwb, and modified prIgro
+ *                                      to convert to Celsius if the units are
+ *                                      not Celsius.
+ * </pre>
+ */
 
 public final class PRLibrary {
+
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(PRLibrary.class);
 
     /**
      * No-arguments constructor
@@ -44,9 +55,6 @@ public final class PRLibrary {
      */
     public static final Amount prAltp(Amount pres, Amount selv)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prAltp:");
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println(" selv = " + selv.doubleValue());
 
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(selv))
             return new Amount(NonSI.INCH_OF_MERCURY);
@@ -58,10 +66,6 @@ public final class PRLibrary {
                 .convert(selv.doubleValue());
         double exponent = -(GempakConstants.GRAVTY
                 / (GempakConstants.GAMUSD * GempakConstants.RDGAS) * 1000);
-        // double base = pres * ( 1.0f - ( hgtk * GempakConstants.GAMUSD /
-        // seaLevelTempInKelvin ) );
-        // float altm = (float) Math.pow( base, Math.exp( exponent ) );
-        // return prAlti( pres * altm );
         double base = (1.0 - (hgtk * GempakConstants.GAMUSD / seaLevelTempInKelvin));
         double altm = Math.pow(base, exponent);
         double altp = pres.doubleValue() * altm;
@@ -81,12 +85,6 @@ public final class PRLibrary {
      */
     public static final Amount prCmsl(Amount ceil, Amount selv)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prCmsl:");
-        // System.out.println(" ceil = " + ceil.doubleValue());
-        // System.out.println(" selv = " + selv.doubleValue());
-        /* Sanity check */
-        // checkNullOrInvalidValue( ceil );
-        // checkNullOrInvalidValue( selv );
         if (!checkNullOrInvalidValue(ceil) || !checkNullOrInvalidValue(selv))
             return new Amount(NcUnits.HUNDREDS_OF_FEET);
 
@@ -113,12 +111,6 @@ public final class PRLibrary {
      */
     public static final Amount prDrct(Amount uX, Amount vX)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDrct:");
-        // System.out.println(" uX = " + uX.doubleValue());
-        // System.out.println(" vX = " + vX.doubleValue());
-
-        // checkNullOrInvalidValue(uX);
-        // checkNullOrInvalidValue(vX);
         if (!checkNullOrInvalidValue(uX) || !checkNullOrInvalidValue(vX))
             return new Amount(NonSI.DEGREE_ANGLE);
 
@@ -157,14 +149,8 @@ public final class PRLibrary {
      */
     public static final Amount prDden(Amount pres, Amount tmpc)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDden:");
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
 
         double prdden = GempakConstants.RMISSD;
-        /* Check for bad data */
-        // checkNullOrInvalidValue(pres);
-        // checkNullOrInvalidValue(tmpc);
 
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(tmpc))
             return new Amount(VolumetricDensity.UNIT);
@@ -174,11 +160,10 @@ public final class PRLibrary {
 
         double tmpcVal = tmpc.doubleValue();
         if (tmpcVal < -GempakConstants.TMCK) {
-            System.out
-                    .println("From prDden: temperature must be greater than or equal to -273.15 ");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prDden: temperature must be greater than or equal to -273.15 ");
             return new Amount(VolumetricDensity.UNIT);
-            // throw new
-            // InvalidRangeException("From prDden: temperature must be greater than or equal to -273.15 ");
         }
         /* Convert temperature and compute */
         double tmpk = tmpc.getUnit().getConverterTo(SI.KELVIN).convert(tmpcVal);
@@ -201,11 +186,7 @@ public final class PRLibrary {
 
     public static final Amount prDdep(Amount tmpx, Amount dwpx)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDdep:");
-        // System.out.println(" tmpx = " + tmpx.doubleValue());
-        // System.out.println(" dwpx = " + dwpx.doubleValue());
-        // checkNullOrInvalidValue(tmpx);
-        // checkNullOrInvalidValue(dwpx);
+
         if (!checkNullOrInvalidValue(tmpx) || !checkNullOrInvalidValue(dwpx))
             return new Amount(tmpx.getUnit());
 
@@ -236,13 +217,6 @@ public final class PRLibrary {
      */
     public static final Amount prDmax(Amount t00x, Amount t06x, Amount tdxc)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDmax:");
-        // System.out.println(" t00x = " + t00x.doubleValue());
-        // System.out.println(" t06x = " + t06x.doubleValue());
-        // System.out.println(" tdxc= " + tdxc.doubleValue());
-
-        // checkNullOrInvalidValue(t00x);
-        // checkNullOrInvalidValue(t06x);
 
         if (!checkNullOrInvalidValue(t00x) || !checkNullOrInvalidValue(t06x))
             return new Amount(NonSI.FAHRENHEIT);
@@ -290,11 +264,7 @@ public final class PRLibrary {
      */
     public static final Amount prDmin(Amount t12n, Amount t18n)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDmin:");
-        // System.out.println(" t12n = " + t12n.doubleValue());
-        // System.out.println(" t18n = " + t18n.doubleValue());
-        // checkNullOrInvalidValue( t12n );
-        // checkNullOrInvalidValue( t18n );
+
         if (!checkNullOrInvalidValue(t12n) || !checkNullOrInvalidValue(t18n))
             return new Amount(NonSI.FAHRENHEIT);
 
@@ -323,16 +293,9 @@ public final class PRLibrary {
      */
     public static final Amount prDwdp(Amount tmpx, Amount dpdx)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDwdp:");
-        // System.out.println(" tmpx = " + tmpx.doubleValue());
-        // System.out.println(" dpdx = " + dpdx.doubleValue());
-
-        // checkNullOrInvalidValue(tmpx);
-        // checkNullOrInvalidValue(dpdx);
 
         if (!checkNullOrInvalidValue(tmpx) || !checkNullOrInvalidValue(dpdx))
             return new Amount(tmpx.getUnit());
-
         Unit<Temperature> tempUnits = (Unit<Temperature>) tmpx.getUnit();
         Unit<Temperature> dewpointDepUnits = (Unit<Temperature>) dpdx.getUnit();
         if (!tempUnits.equals(dewpointDepUnits)
@@ -362,12 +325,8 @@ public final class PRLibrary {
      */
     public static final Amount prDwpt(Amount rmix, Amount pres)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prDwpt:");
-        // System.out.println(" rmix = " + rmix.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
+
         Amount prDwpt = null;
-        // checkNullOrInvalidValue( rmix );
-        // checkNullOrInvalidValue( pres );
         if (!checkNullOrInvalidValue(rmix) || !checkNullOrInvalidValue(pres))
             return new Amount(SI.CELSIUS);
 
@@ -376,17 +335,14 @@ public final class PRLibrary {
         double mixingRatioValue = rmix.doubleValue();
         double pressureValue = pres.doubleValue();
         if (mixingRatioValue <= 0) {
-            System.out
-                    .println("From prDwpt() - mixing ratio must be greater than 0");
+            statusHandler.handle(Priority.INFO,
+                    "From prDwpt() - mixing ratio must be greater than 0");
             return new Amount(SI.CELSIUS);
-            // throw new
-            // InvalidRangeException("From prDwpt() - mixing ratio must be greater than 0");
         }
         if (pressureValue <= 0) {
-            System.out.println("From prDwpt() - pres must be greater than 0");
+            statusHandler.handle(Priority.INFO,
+                    "From prDwpt() - pres must be greater than 0");
             return new Amount(SI.CELSIUS);
-            // throw new
-            // InvalidRangeException("From prDwpt() - pres must be greater than 0");
         }
         /* Convert gram/kilogram to gram/gram */
         double ratio = mixingRatioValue / 1000;
@@ -421,13 +377,7 @@ public final class PRLibrary {
      */
     public static final Amount prFosb(Amount tmpc, Amount relh, Amount sped)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prFosb:");
-        // System.out.println("Temperature ( in K ) is: " + tmpc.doubleValue());
-        // System.out.println("Relative Humidity is: " + relh.doubleValue());
-        // System.out.println("Wind Speed is: " + sped.doubleValue());
-        // checkNullOrInvalidValue( tmpc );
-        // checkNullOrInvalidValue( relh );
-        // checkNullOrInvalidValue( sped );
+
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(relh)
                 || !checkNullOrInvalidValue(sped))
             return new Amount(Unit.ONE);
@@ -456,9 +406,6 @@ public final class PRLibrary {
         double P = 0.00035;
         double Q = 0.483199;
         double R = 0.3002;
-        // float T = 9.0f/5.0f;
-        // float U = 1.9425f;
-        // float V = 0.868976f;
         double fw = GempakConstants.RMISSD;
         double relhVal = relh.doubleValue();
         if (relhVal <= 10) {
@@ -512,13 +459,8 @@ public final class PRLibrary {
      */
     public static final Amount prHeat(Amount tmpf, Amount relh)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prHeat:");
-        // System.out.println(" tmpf = " + tmpf.doubleValue());
-        // System.out.println(" relh = " + relh.doubleValue());
 
         double prheat = GempakConstants.RMISSD;
-        // checkNullOrInvalidValue( tmpf );
-        // checkNullOrInvalidValue( relh );
         if (!checkNullOrInvalidValue(tmpf) || !checkNullOrInvalidValue(relh))
             return new Amount(Unit.ONE);
 
@@ -592,9 +534,6 @@ public final class PRLibrary {
      */
     public static final Amount prHmtr(Amount tmpf, Amount dwpf)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prHmtr:");
-        // System.out.println(" tmpf = " + tmpf.doubleValue());
-        // System.out.println(" dwpf = " + dwpf.doubleValue());
 
         double prhmtr = GempakConstants.RMISSD;
         if (!checkNullOrInvalidValue(tmpf) || !checkNullOrInvalidValue(dwpf))
@@ -627,7 +566,7 @@ public final class PRLibrary {
      * @param sstc
      *            - the observed surface sea temperature in Celsius
      * @param sped
-     *            - the observed wind speed
+     *            - the observed wind speed in m/s.
      * @return the rate of ice growth if all the input values are valid and lie
      *         between specific limits and if the rate of ice growth that is
      *         computed is greater than or equal to 0,
@@ -637,22 +576,19 @@ public final class PRLibrary {
      */
     public static final Amount prIgro(Amount tmpc, Amount sstc, Amount sped)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prIgro:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" sstc = " + sstc.doubleValue());
-        // System.out.println(" sped = " + sped.doubleValue());
 
         double prigro = GempakConstants.RMISSD;
-        // checkNullOrInvalidValue( tmpc ) ;
-        // checkNullOrInvalidValue( sstc ) ;
-        // checkNullOrInvalidValue( sped ) ;
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(sstc)
                 || !checkNullOrInvalidValue(sped))
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
 
-        checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
-        checkAndConvertInputAmountToExpectedUnits(sstc, SI.CELSIUS);
+        /*
+         * obs decoded by sfcobs plugin store temperatures in Kelvin. Need to
+         * convert to Celsius and write back to the value passed in.
+         */
+        tmpc = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
+        sstc = checkAndConvertInputAmountToExpectedUnits(sstc, SI.CELSIUS);
 
         // TODO: verify that wind speed can have any unit
         double tmpcVal = tmpc.doubleValue();
@@ -662,22 +598,22 @@ public final class PRLibrary {
         /* Check that these values are within the valid range */
 
         if (spedVal < 0 || spedVal > 50) {
-            // throw new
-            // InvalidRangeException("The wind speed must lie between 0 and 50. Both limits inclusive");
-            System.out
-                    .println("The wind speed must lie between 0 and 50. Both limits inclusive");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prIgro: The wind speed must lie between 0 and 50. Both limits inclusive");
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         if (tmpcVal < -20 || tmpcVal > 0) {
-            // throw new
-            // InvalidRangeException("The observed surface air temperature must lie between -20 and 0. Both limits inclusive");
-            System.out
-                    .println("The observed surface air temperature must lie between -20 and 0. Both limits inclusive");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prIgro: The observed surface air temperature must lie between -20 and 0. Both limits inclusive");
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         if (sstcVal < -1.7f || sstcVal > 12) {
-            // throw new
-            // InvalidRangeException("The observed surface sea temperature must lie between -1.7 and 12. Both limits inclusive");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prIgro: The observed sea surface temperature must lie between -1.7 and 12. Both limits inclusive");
+            return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         double A = 0.0273f;
         double B = 0.000291f;
@@ -690,10 +626,9 @@ public final class PRLibrary {
         double pr2 = pr * pr;
         prigro = (A * pr + B * pr2 + C * pr * pr2) * cvfac;
         if (prigro < 0) {
-            // throw new
-            // InvalidRangeException("The rate of ice growth must be greater than or equal to 0");
-            System.out
-                    .println("The rate of ice growth must be greater than or equal to 0");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "The rate of ice growth must be greater than or equal to 0");
             return new Amount(NcUnits.INCHES_PER_THREE_HOURS);
         }
         return (new Amount(prigro, NcUnits.INCHES_PER_THREE_HOURS));
@@ -714,10 +649,6 @@ public final class PRLibrary {
     public static final Amount prLhvp(Amount tmpc)
             throws InvalidValueException, NullPointerException {
 
-        // System.out.println("From prLhvp:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-
-        // checkNullOrInvalidValue(tmpc);
         if (!checkNullOrInvalidValue(tmpc))
             return new Amount(NcUnits.JOULES_PER_KILOGRAM);
 
@@ -745,15 +676,8 @@ public final class PRLibrary {
      */
     public static final Amount prLtmp(Amount thta, Amount thte, Amount pres)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prLtmp:");
-        // System.out.println(" thta = " + thta.doubleValue());
-        // System.out.println(" thte = " + thte.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
 
         double prltmp = GempakConstants.RMISSD;
-        // checkNullOrInvalidValue(thta);
-        // checkNullOrInvalidValue(thte);
-        // checkNullOrInvalidValue(pres);
 
         if (!checkNullOrInvalidValue(thta) || !checkNullOrInvalidValue(thte)
                 || !checkNullOrInvalidValue(pres))
@@ -801,12 +725,6 @@ public final class PRLibrary {
      */
     public static final Amount prMobs(Amount cmsl, Amount otval)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prMobs:");
-        // System.out.println(" cmsl = " + cmsl.doubleValue());
-        // System.out.println(" otval = " + otval.doubleValue());
-
-        // checkNullOrInvalidValue( cmsl );
-        // checkNullOrInvalidValue( otval );
 
         if (!checkNullOrInvalidValue(cmsl) || !checkNullOrInvalidValue(otval))
             return new Amount(Unit.ONE);
@@ -837,14 +755,8 @@ public final class PRLibrary {
      * 
      */
     public static final Amount prMixr(Amount dwpc, Amount pres) {
-        // System.out.println("From prMixr:");
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
 
         Amount prmixr = new Amount(-9999.0, Unit.ONE);
-        // checkNullOrInvalidValue(pres);
-        // checkNullOrInvalidValue(dwpc);
-
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(dwpc))
             return new Amount(NcUnits.GRAMS_PER_KILOGRAM);
 
@@ -890,11 +802,8 @@ public final class PRLibrary {
     // TODO : remove it to make it a part of display options or let it stay?
     public static final Amount prP03c(Amount p03d)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prP03c:");
-        // System.out.println(" p03d = " + p03d.doubleValue());
 
         double prp03c = GempakConstants.RMISSD;
-        // checkNullOrInvalidValue( p03d );
         if (!checkNullOrInvalidValue(p03d))
             return new Amount(NcUnits.MILLIBAR);
 
@@ -910,7 +819,6 @@ public final class PRLibrary {
     }
 
     /**
-     * TTR 923
      * 
      * Uses Pressure Tendency ( PTSY ) to change P03C (pressureChange3Hr ) to
      * the appropriate sign ( +/- ) if needed.
@@ -959,10 +867,6 @@ public final class PRLibrary {
 
     }
 
-    /**
-     * Redmine 4318
-     * 
-     */
     public static final Amount prSGHT(Amount howw, Amount hosw)
             throws InvalidValueException, NullPointerException {
 
@@ -996,12 +900,6 @@ public final class PRLibrary {
      */
     public static final Amount prPalt(Amount altm, Amount selv)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPalt:");
-        // System.out.println(" altm = " + altm.doubleValue());
-        // System.out.println(" selv = " + selv.doubleValue());
-
-        // checkNullOrInvalidValue( altm );
-        // checkNullOrInvalidValue( selv );
 
         if (!checkNullOrInvalidValue(altm) || !checkNullOrInvalidValue(selv))
             return new Amount(NcUnits.MILLIBAR);
@@ -1042,14 +940,6 @@ public final class PRLibrary {
     public static final Amount prPlcl(Amount tmpc, Amount pres, Amount tlcl)
             throws InvalidValueException, NullPointerException {
         double prplcl = GempakConstants.RMISSD;
-        // System.out.println("From prPlcl:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println(" tlcl = " + tlcl.doubleValue());
-
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(pres);
-        // checkNullOrInvalidValue(tlcl);
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(pres)
                 || !checkNullOrInvalidValue(tlcl))
             return new Amount(NcUnits.MILLIBAR);
@@ -1090,15 +980,7 @@ public final class PRLibrary {
      */
     public static final Amount prPmsl(Amount pres, Amount tmpc, Amount dwpc,
             Amount selv) throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPmsl:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
-        // System.out.println(" selv = " + selv.doubleValue());
-        // checkNullOrInvalidValue( pres );
-        // checkNullOrInvalidValue( tmpc );
-        // checkNullOrInvalidValue( dwpc );
-        // checkNullOrInvalidValue( selv );
+
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(pres)
                 || !checkNullOrInvalidValue(dwpc)
                 || !checkNullOrInvalidValue(selv))
@@ -1142,11 +1024,7 @@ public final class PRLibrary {
 
     public static final Amount prPr6x(Amount p01, Amount p02, Amount p03,
             Amount p04) throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPr6x:");
-        // System.out.println(" p01 = " + p01.doubleValue());
-        // System.out.println(" p02 = " + p02.doubleValue());
-        // System.out.println(" p03 = " + p03.doubleValue());
-        // System.out.println(" p04 = " + p04.doubleValue());
+
         Amount[] tempArray = { p01, p02, p03, p04 };
         int index = 0;
         double[] tempDblArray = new double[4];
@@ -1187,16 +1065,6 @@ public final class PRLibrary {
      */
     public static final Amount prPr24(Amount p01, Amount p02, Amount p03,
             Amount p04) throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPr24:");
-        // System.out.println(" p01 = " + p01.doubleValue());
-        // System.out.println(" p02 = " + p02.doubleValue());
-        // System.out.println(" p03 = " + p03.doubleValue());
-        // System.out.println(" p04 = " + p04.doubleValue());
-
-        // checkNullOrInvalidValue( p01 );
-        // checkNullOrInvalidValue( p02 );
-        // checkNullOrInvalidValue( p03 );
-        // checkNullOrInvalidValue( p04 );
 
         if (!checkNullOrInvalidValue(p01) || !checkNullOrInvalidValue(p02)
                 || !checkNullOrInvalidValue(p03)
@@ -1230,10 +1098,9 @@ public final class PRLibrary {
         }
 
         if (p24Val < 0) {
-            // throw new
-            // InvalidRangeException("From prPr24: the total 24 hour precipitation amount cannot be less than 0 inches");
-            System.out
-                    .println("From prPr24: the total 24 hour precipitation amount cannot be less than 0 inches");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prPr24: the total 24 hour precipitation amount cannot be less than 0 inches");
             return new Amount(NonSI.INCH);
         }
         return (new Amount(p24Val, NonSI.INCH));
@@ -1255,12 +1122,6 @@ public final class PRLibrary {
      */
     public static final Amount prPres(Amount tmpc, Amount thta)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPres:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" thta = " + thta.doubleValue());
-
-        // checkNullOrInvalidValue( tmpc );
-        // checkNullOrInvalidValue( thta );
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(thta))
             return new Amount(NcUnits.MILLIBAR);
@@ -1270,17 +1131,15 @@ public final class PRLibrary {
         double tmpcVal = tmpc.doubleValue();
         double thtaVal = thta.doubleValue();
         if (tmpcVal <= -GempakConstants.TMCK) {
-            // throw new
-            // InvalidRangeException("From prPres: the temperature must be greater than -273.15");
-            System.out
-                    .println("From prPres: the temperature must be greater than -273.15");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prPres: the temperature must be greater than -273.15");
             return new Amount(NcUnits.MILLIBAR);
         }
         if (thtaVal <= 0) {
-            // throw new
-            // InvalidRangeException("From prPres: the potential temperature must be greater than 0");
-            System.out
-                    .println("From prPres: the potential temperature must be greater than 0");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prPres: the potential temperature must be greater than 0");
             return new Amount(NcUnits.MILLIBAR);
         }
         double tmpkVal = tmpc.getUnit().getConverterTo(SI.KELVIN)
@@ -1305,8 +1164,6 @@ public final class PRLibrary {
     // display options instead?
     public static final Amount prPtsy(Amount p03d)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prPtsy:");
-        // System.out.println(" p03d = " + p03d.doubleValue());
 
         if (!checkNullOrInvalidValue(p03d))
             return new Amount(Unit.ONE);
@@ -1336,13 +1193,8 @@ public final class PRLibrary {
      */
     public static final Amount prRelh(Amount tmpc, Amount dwpc)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prRelh:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
 
         double prrelh = GempakConstants.RMISSD;
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(dwpc);
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(dwpc))
             return new Amount(NonSI.PERCENT);
@@ -1386,12 +1238,6 @@ public final class PRLibrary {
      */
     public static final Amount prRhdp(Amount tmpc, Amount relh)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prRhdp:");
-        // System.out.println(" tmpc =" + tmpc.doubleValue());
-        // System.out.println(" relh = " + relh.doubleValue());
-
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(relh);
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(relh))
             return new Amount(SI.CELSIUS);
@@ -1424,8 +1270,8 @@ public final class PRLibrary {
              */
 
             if (prrhdp < -190) {
-                System.out
-                        .println(" From prRhdp: dewpoint is less than -190 C");
+                statusHandler.handle(Priority.INFO,
+                        "From prRhdp: dewpoint is less than -190 C");
                 return new Amount(SI.CELSIUS);
             }
         }
@@ -1433,37 +1279,27 @@ public final class PRLibrary {
         return dewpointAmount;
     }
 
-    public static class RZLL // implements ISerializableObject
-    {
-        // @DynamicSerializeElement
-        private static RZLL rzll;
+    public static class RZLL {
 
         /** Station latitude in degrees */
-        // @DynamicSerializeElement
         Amount stltdg = null;
 
         /** Station longitude in degrees */
-        // @DynamicSerializeElement
         Amount stlndg = null;
 
         /** Range in kilometers */
-        // @DynamicSerializeElement
         Amount range = null;
 
         /** Geographic azimuth in radians */
-        // @DynamicSerializeElement
         Amount azim = null;
 
         /** Height above the ground in kilometers */
-        // @DynamicSerializeElement
         Amount hght = null;
 
         /** Latitude in degrees */
-        // @DynamicSerializeElement
         Amount xlat = null;
 
         /** Longitude in degrees */
-        // @DynamicSerializeElement
         Amount xlon = null;
 
         /**
@@ -1478,13 +1314,6 @@ public final class PRLibrary {
          */
         public Amount getXlon() {
             return xlon;
-        }
-
-        private static RZLL getInstance() {
-            if (rzll == null) {
-                rzll = new RZLL();
-            }
-            return rzll;
         }
 
         /**
@@ -1508,18 +1337,6 @@ public final class PRLibrary {
         public void prRzll(Amount instltdg, Amount instlndg, Amount inrange,
                 Amount inazim, Amount inhght) throws InvalidValueException,
                 NullPointerException {
-            // System.out.println("From prRzll:");
-            // System.out.println(" instltdg = " + instltdg.doubleValue());
-            // System.out.println(" instlndg = " + instlndg.doubleValue());
-            // System.out.println(" inrange = " + inrange.doubleValue());
-            // System.out.println(" inazim = " + inazim.doubleValue());
-            // System.out.println(" inhght = " + inhght.doubleValue());
-
-            // checkNullOrInvalidValue( instltdg );
-            // checkNullOrInvalidValue( instlndg );
-            // checkNullOrInvalidValue(inrange);
-            // checkNullOrInvalidValue(inazim);
-            // checkNullOrInvalidValue(inhght);
 
             if (!checkNullOrInvalidValue(instltdg)
                     || !checkNullOrInvalidValue(instlndg)
@@ -1589,10 +1406,6 @@ public final class PRLibrary {
             cx = (double) (dist * Math.sin(azimVal));
             cy = (double) (dist * Math.cos(azimVal));
 
-            // mathFormula2 = ( float ) ( ( ( 2 * Math.pow( rad, 2 ) ) *
-            // Math.tan( stlat ) ));
-            // xlat = ( float ) ( stlat + ( cy / rad ) - ( Math.pow(cx, 2) /
-            // mathFormula2 ) );
             double stlatVal = stlat.doubleValue();
             mathFormula2 = (double) ((Math.pow(cx, 2) / (2 * Math.pow(rad, 2)) * Math
                     .tan(stlatVal)));
@@ -1625,12 +1438,7 @@ public final class PRLibrary {
      */
     public static final Amount prSped(Amount uWnd, Amount vWnd)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prSped:");
-        // System.out.println(" uWnd = " +uWnd.doubleValue());
-        // System.out.println(" vWnd = " + vWnd.doubleValue());
 
-        // checkNullOrInvalidValue( uWnd );
-        // checkNullOrInvalidValue( vWnd );
         if (!checkNullOrInvalidValue(uWnd) || !checkNullOrInvalidValue(vWnd))
             return new Amount(uWnd.getUnit());
 
@@ -1672,10 +1480,9 @@ public final class PRLibrary {
         pres = checkAndConvertInputAmountToExpectedUnits(pres, NcUnits.MILLIBAR);
         double pressureValue = pres.doubleValue();
         if (pressureValue <= 0) {
-            System.out.println("From prThta( ) - pressure must be > 0 ");
+            statusHandler.handle(Priority.INFO,
+                    "From prThta( ) - pressure must be > 0 ");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException("From prThta( ) - pressure must be > 0 ");
         }
 
         /* Change temperature in degrees Celsius to Kelvin. */
@@ -1697,7 +1504,8 @@ public final class PRLibrary {
      * .28 * .001 * MIXR ) ) Bolton.
      * 
      * @param pres
-     *            - the pressure ( in mb )
+     *            For non-surface levels this will be GEMPAK parameter PRES. For
+     *            the surface pressure this will be GEMPAK paramter PALT
      * @param tmpc
      *            - the temperature ( in Celsius )
      * @param dwpc
@@ -1709,24 +1517,15 @@ public final class PRLibrary {
      * @throws InvalidRangeException
      */
     public static final Amount prThte(Amount pres, Amount tmpc, Amount dwpc) {
-        // System.out.println("From prThte:");
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
 
-        // checkNullOrInvalidValue(pres);
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(dwpc);
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(pres)
                 || !checkNullOrInvalidValue(dwpc))
             return new Amount(SI.KELVIN);
 
         if (pres.doubleValue() <= 0) {
-            System.out
-                    .println("From prThte() - Input pressure must be greater than 0 ");
+            statusHandler.handle(Priority.INFO,
+                    "From prThte() - Input pressure must be greater than 0 ");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException("From prThte() - Input pressure must be greater than 0 ");
         }
 
         pres = checkAndConvertInputAmountToExpectedUnits(pres, NcUnits.MILLIBAR);
@@ -1741,12 +1540,13 @@ public final class PRLibrary {
         Amount tmpk = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.KELVIN);
 
         /* Calculate theta for moist air (thtam) */
+
         double mixingRatioVal = rmix.doubleValue();
         double pressureVal = pres.doubleValue();
         double tempVal = tmpk.doubleValue();
 
-        double e = (double) (GempakConstants.RKAPPA * (1 - (0.28 * 0.001 * mixingRatioVal)));
-        double thtam = (double) (tempVal * Math.pow(1000 / pressureVal, e));
+        double e = (GempakConstants.RKAPPA * (1 - (0.28 * 0.001 * mixingRatioVal)));
+        double thtam = (tempVal * Math.pow(1000 / pressureVal, e));
 
         /* Find the temperature at the lifted condensation level */
         Amount tlcl = prTlcl(tmpc, dwpc);
@@ -1757,7 +1557,7 @@ public final class PRLibrary {
         double lclTemp = tlcl.doubleValue();
         e = ((3.376f / lclTemp) - 0.00254f)
                 * (mixingRatioVal * (1 + 0.81f * 0.001f * mixingRatioVal));
-        double prthte = (double) (thtam * Math.exp(e));
+        double prthte = (thtam * Math.exp(e));
         Amount equivPotentialTempAmount = new Amount(prthte, SI.KELVIN);
         return equivPotentialTempAmount;
     }
@@ -1783,16 +1583,6 @@ public final class PRLibrary {
      */
     public static final Amount prThwc(Amount pres, Amount tmpc, Amount dwpc)
             throws InvalidValueException, NullPointerException {
-        // System.out.println(" PRLibrary/prThwc:");
-        // System.out.println(" PRLibrary/prThwc. press = " +
-        // pres.doubleValue());
-        // System.out.println(" PRLibrary/prThwc.tmpc = " + tmpc.doubleValue());
-        // System.out.println(" PRLibrary/prThwc.dwpc = " + dwpc.doubleValue());
-
-        /* Check for missing and invalid data */
-        // checkNullOrInvalidValue( pres );
-        // checkNullOrInvalidValue( tmpc );
-        // checkNullOrInvalidValue( dwpc );
 
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(pres)
                 || !checkNullOrInvalidValue(dwpc))
@@ -1802,28 +1592,15 @@ public final class PRLibrary {
         tmpc = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
         dwpc = checkAndConvertInputAmountToExpectedUnits(dwpc, SI.CELSIUS);
 
-        // System.out
-        // .println(" PRLibrary/prThwc. press 2 = " + pres.doubleValue());
-        // System.out.println(" PRLibrary/prThwc.tmpc 2 = " +
-        // tmpc.doubleValue());
-        // System.out.println(" PRLibrary/prThwc.dwpc 2 = " +
-        // dwpc.doubleValue());
-
         double presVal = pres.doubleValue();
-        // System.out
-        // .println(" PRLibrary/prThwc. press 3 = " + pres.doubleValue());
 
         if (presVal <= 0) {
-            System.out
-                    .println("From prThwc: Pressure must be greater than 0 mb");
+            statusHandler.handle(Priority.INFO,
+                    "From prThwc: Pressure must be greater than 0 mb");
             return new Amount(SI.CELSIUS);
-            // throw new
-            // InvalidRangeException("From prThwc: Pressure must be greater than 0 mb");
         }
         /* Compute the thte */
         Amount thte = prThte(pres, tmpc, dwpc);
-        // System.out.println(" PRLibrary/prThwc. thte 4 = " +
-        // thte.doubleValue());
 
         /* Check for missing 'thte' and compute wet bulb temperature. */
         if (!checkNullOrInvalidValue(thte))
@@ -1832,15 +1609,11 @@ public final class PRLibrary {
 
         Amount prthwc = prTmst(thte, new Amount(1000, NcUnits.MILLIBAR),
                 new Amount(0, SI.KELVIN));
-        // System.out.println(" PRLibrary/prThwc. prthwc (K) 5 = "
-        // + prthwc.doubleValue());
 
         if (!checkNullOrInvalidValue(prthwc))
             return new Amount(SI.CELSIUS);
         /* Convert the parcel temperature to Celsius */
         prthwc = checkAndConvertInputAmountToExpectedUnits(prthwc, SI.CELSIUS);
-        // System.out.println(" PRLibrary/prThwc. prthwc (C) 6 = "
-        // + prthwc.doubleValue());
         return prthwc;
     }
 
@@ -1862,19 +1635,15 @@ public final class PRLibrary {
      * @throws InvalidRangeException
      */
     public static final Amount prTlcl(Amount tmpc, Amount dwpc) {
-        // System.out.println("From prTlcl:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
 
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(dwpc);
         if (!checkNullOrInvalidValue(tmpc) || !checkNullOrInvalidValue(dwpc))
             return new Amount(SI.KELVIN);
 
         if (tmpc.doubleValue() < -GempakConstants.TMCK
                 || dwpc.doubleValue() < -GempakConstants.TMCK) {
-            System.out
-                    .println("From prTlcl: Input temperature cannot be less than -273.15");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prTlcl: Input temperature cannot be less than -273.15");
             return new Amount(SI.KELVIN);
         }
         Amount tmpk = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.KELVIN);
@@ -1904,9 +1673,6 @@ public final class PRLibrary {
      */
     public static final Amount prTmpk(Amount pres, Amount thta)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prTmpk:");
-        // System.out.println(" pres = " + pres.doubleValue());
-        // System.out.println("thta = " + thta.doubleValue());
 
         Amount prtmpk = new Amount(SI.KELVIN);
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(thta)) {
@@ -1923,11 +1689,9 @@ public final class PRLibrary {
             prtmpk = new Amount(temperature, SI.KELVIN);
             return prtmpk;
         } else {
-            System.out
-                    .println("From prTmpk() - pressure cannot be less than 0 mb");
+            statusHandler.handle(Priority.INFO,
+                    "From prTmpk() - pressure cannot be less than 0 mb");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException("From prTmpk() - pressure cannot be less than 0 mb");
         }
     }
 
@@ -1958,20 +1722,12 @@ public final class PRLibrary {
      */
     public static final Amount prTmst(Amount thte, Amount pres, Amount tguess) {
         double prtmst = GempakConstants.RMISSD;
-        // System.out.println(" PRLibrary/prTmst:");
-        // System.out.println(" PRLibrary/prTmst. thte = " +
-        // thte.doubleValue());
-        // System.out.println(" PRLibrary/prTmst. pres = " +
-        // pres.doubleValue());
-        // System.out.println(" PRLibrary/prTmst. tguess = "
-        // + tguess.doubleValue());
+
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(thte)
                 || !checkNullOrInvalidValue(tguess)) {
             return new Amount(SI.KELVIN);
         }
-        // checkNullOrInvalidValue( thte );
-        // checkNullOrInvalidValue( pres );
-        // checkNullOrInvalidValue( tguess );
+
         thte = checkAndConvertInputAmountToExpectedUnits(thte, SI.KELVIN);
         pres = checkAndConvertInputAmountToExpectedUnits(pres, NcUnits.MILLIBAR);
         tguess = checkAndConvertInputAmountToExpectedUnits(tguess, SI.KELVIN);
@@ -1980,29 +1736,21 @@ public final class PRLibrary {
         double tguessVal = tguess.doubleValue();
 
         if (thteVal <= 0) {
-            System.out
-                    .println(" From prTmst(): Potential temperature must be greater than 0");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prTmst(): Potential temperature must be greater than 0");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException(" From prTmst(): Potential temperature must be greater than 0");
         } else if (presVal <= 0) {
-            System.out
-                    .println(" From prTmst(): Pressure must be greater than 0");
+            statusHandler.handle(Priority.INFO,
+                    "From prTmst(): Pressure must be greater than 0");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException(" From prTmst(): Pressure must be greater than 0");
         } else if (tguessVal < 0) {
-            System.out
-                    .println(" From prTmst(): First guess temperature must be greater than or equal to 0");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prTmst(): First guess temperature must be greater than or equal to 0");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException(" From prTmst(): First guess temperature must be greater than 0");
         }
         double tg = tguess.doubleValue();
-        // System.out.println(" PRLibrary/prTmst. thteVal 2 = " + thteVal);
-        // System.out.println(" PRLibrary/prTmst. presVal 2 = " + presVal);
-        // System.out.println(" PRLibrary/prTmst. tguessVal 2 = " + tguessVal);
-        // System.out.println(" PRLibrary/prTmst. tg 2 = " + tg);
 
         /* If tguess is passed as 0. it is computed from an MIT scheme */
         if (tg == 0) {
@@ -2027,20 +1775,9 @@ public final class PRLibrary {
             Amount tgnupAmount = new Amount(tgnup, SI.CELSIUS);
             Amount tenu = prThte(pres, tgnuAmount, tgnuAmount);
             Amount tenup = prThte(pres, tgnupAmount, tgnupAmount);
-            // System.out.println(" PRLibrary/prTmst. tgnuAmount 5 = "
-            // + tgnuAmount.getValue().floatValue());
-            // System.out.println(" PRLibrary/prTmst. tgnupAmount 5 = "
-            // + tgnupAmount.getValue().floatValue());
-            // System.out.println(" PRLibrary/prTmst. tenu 5 = "
-            // + tenu.getValue().floatValue());
-            // System.out.println(" PRLibrary/prTmst. tgnup 5 = "
-            // + tenup.getValue().floatValue());
-            /* Check that the THTE's exist. */
 
             if ((!checkNullOrInvalidValue(tenu) || !checkNullOrInvalidValue(tenup))) {
                 return new Amount(SI.KELVIN);
-                // index++;
-                // continue;
             }
 
             /* Compute the correction */
@@ -2048,29 +1785,17 @@ public final class PRLibrary {
             double tenupVal = tenup.doubleValue();
             double cor = (thteVal - tenuVal) / (tenupVal - tenuVal);
             tgnu += cor;
-            // System.out.println(" PRLibrary/prTmst. tenuVal 6 = " + tenuVal);
-            // System.out.println(" PRLibrary/prTmst. tenupVal 6 = " +
-            // tenupVal);
-
-            // System.out.println(" PRLibrary/prTmst. cor 6 = " + cor);
-            // System.out.println(" PRLibrary/prTmst. tgnu 6 = " + tgnu);
 
             if ((cor < epsi) && (-cor < epsi)) {
 
                 /* return on convergence */
                 prtmst = tgnuAmount.getUnit().getConverterTo(SI.KELVIN)
                         .convert(tgnu);
-                // System.out.println(" PRLibrary/prTmst. prtmst 7 = " +
-                // prtmst);
-
                 break;
             }
 
             index++;
         }
-        // System.out.println(" PRLibrary/prTmst. prtmst 8 = "
-        // + new Amount(prtmst, SI.KELVIN).getValue().floatValue());
-
         return new Amount(prtmst, SI.KELVIN);
     }
 
@@ -2087,8 +1812,8 @@ public final class PRLibrary {
      *   vapor pressure are equations (2) and (10) from Bolton (MWR, 1980).
      * </pre>
      * 
-     * @param tmpk
-     *            - Temperature (K)
+     * @param tmpc
+     *            - Temperature (C)
      * @param rmix
      *            - Mixing ratio (g/kg)
      * @param pres
@@ -2097,41 +1822,30 @@ public final class PRLibrary {
      * @throws NullPointerException
      * 
      */
-    public static final Amount prTmwb(Amount tmpk, Amount rmix, Amount pres)
+    public static final Amount prTmwb(Amount tmpc, Amount rmix, Amount pres)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prTmwb:");
-        // System.out.println(" tmpk = " + tmpk.doubleValue());
-        // System.out.println(" rmix = " + rmix.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
 
         Amount prtmwb = null;
-        /* Check for missing and invalid data */
-        // checkNullOrInvalidValue( tmpk );
-        // checkNullOrInvalidValue( rmix );
-        // checkNullOrInvalidValue( pres );
-        if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(tmpk)
+
+        if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(tmpc)
                 || !checkNullOrInvalidValue(rmix)) {
-            return new Amount(SI.KELVIN);
+            return new Amount(SI.CELSIUS);
         }
-        tmpk = checkAndConvertInputAmountToExpectedUnits(tmpk, SI.KELVIN);
+        tmpc = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
         rmix = checkAndConvertInputAmountToExpectedUnits(rmix,
                 NcUnits.GRAMS_PER_KILOGRAM);
         pres = checkAndConvertInputAmountToExpectedUnits(pres, NcUnits.MILLIBAR);
         double presVal = pres.doubleValue();
         if (presVal <= 0) {
-            // System.out
-            // .println("From prTmwb - pressure value must be greater than 0 ");
-            return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException("From prTmwb - pressure value must be greater than 0 ");
+            return new Amount(SI.CELSIUS);
         }
         /* Change temperature to degrees Celsius. */
-        Amount tmp = checkAndConvertInputAmountToExpectedUnits(tmpk, SI.CELSIUS);
+        Amount tmp = checkAndConvertInputAmountToExpectedUnits(tmpc, SI.CELSIUS);
 
         /* Compute the latent heat of vaporization. */
         Amount lvap = prLhvp(tmp);
         if (!checkNullOrInvalidValue(lvap))
-            return new Amount(SI.KELVIN);
+            return new Amount(SI.CELSIUS);
         /* Compute the specific heat of moist air */
         double rmixVal = rmix.doubleValue() / 1000;
         double cp = (1005.7 * (1.0 + 0.887 * rmixVal));
@@ -2166,13 +1880,12 @@ public final class PRLibrary {
         }
 
         if (isConvrg) {
-            Amount twk = new Amount(twb, SI.KELVIN);
-            if (twk.doubleValue() > tmpk.doubleValue())
-                twk = new Amount(tmpk.doubleValue(), SI.KELVIN);
+            Amount twk = new Amount(twb, SI.CELSIUS);
+            if (twk.doubleValue() > tmpc.doubleValue())
+                twk = new Amount(tmpc.doubleValue(), SI.CELSIUS);
 
             prtmwb = twk;
         }
-        // }
         return prtmwb;
     }
 
@@ -2195,14 +1908,7 @@ public final class PRLibrary {
      */
     public static final Amount prTvrk(Amount tmpc, Amount dwpc, Amount pres)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prTvrk:");
-        // System.out.println(" tmpc = " + tmpc.doubleValue());
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
-
         Amount prtvrk = null;
-        // checkNullOrInvalidValue(tmpc);
-        // checkNullOrInvalidValue(pres);
 
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(tmpc)) {
             return new Amount(SI.KELVIN);
@@ -2250,9 +1956,7 @@ public final class PRLibrary {
      */
     public static final Amount prUwnd(Amount sped, Amount drct)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prUwnd:");
-        // System.out.println(" sped = " + sped.doubleValue());
-        // System.out.println(" drct = " + drct.doubleValue());
+
         if (!checkNullOrInvalidValue(drct) || !checkNullOrInvalidValue(sped)) {
             return new Amount(SI.METERS_PER_SECOND);
         }
@@ -2276,9 +1980,7 @@ public final class PRLibrary {
      */
     public static final Amount prVwnd(Amount sped, Amount drct)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prVwnd:");
-        // System.out.println(" sped = " + sped.doubleValue());
-        // System.out.println(" drct = " + drct.doubleValue());
+
         if (!checkNullOrInvalidValue(drct) || !checkNullOrInvalidValue(sped)) {
             return new Amount(SI.METERS_PER_SECOND);
         }
@@ -2302,8 +2004,6 @@ public final class PRLibrary {
      * 
      */
     public static final Amount prVapr(Amount dwpc) {
-        // System.out.println("From prVapr:");
-        // System.out.println(" dwpc = " + dwpc.doubleValue());
 
         if (!checkNullOrInvalidValue(dwpc))
             return new Amount(NcUnits.MILLIBAR);
@@ -2313,34 +2013,11 @@ public final class PRLibrary {
             return (new Amount((6.112 * (Math.exp((17.67 * dewpointValue)
                     / (dewpointValue + 243.5)))), NcUnits.MILLIBAR));
         else {
-            // throw new
-            // InvalidRangeException("Exception from prVapr() - dewpoint cannot be less than -240 ");
-            System.out
-                    .println("From prVapr() - dewpoint cannot be less than -240 ");
+            statusHandler.handle(Priority.INFO,
+                    "From prVapr() - dewpoint cannot be less than -240 ");
             return new Amount(NcUnits.MILLIBAR);
         }
     }
-
-    // /**
-    // * Computes the visibility ( in nautical miles ) from the input visibility
-    // ( in kilometers )
-    // * @param vsbk - visibility ( in kilometers )
-    // * @return visibility ( in nautical miles ) if the input is valid
-    // * @throws NullPointerException
-    // *
-    // */
-    // //TODO: remove this - since the getValueAs(Unit<?>) offers the same
-    // facility?
-    // public static final Amount prVskn ( Amount vsbk) throws
-    // InvalidValueException, NullPointerException {
-    // //System.out.println("From prVskn:");
-    // //System.out.println(" vsbk = " + vsbk.doubleValue());
-    //
-    // checkNullOrInvalidValue( vsbk );
-    // vsbk = checkAndConvertInputAmountToExpectedUnits( vsbk, SI.KILOMETER );
-    // return ( checkAndConvertInputAmountToExpectedUnits(vsbk,
-    // NonSI.NAUTICAL_MILE ) );
-    // }
 
     /**
      * Computes the wind chill equivalent temperature ( the temperature with
@@ -2358,9 +2035,6 @@ public final class PRLibrary {
      */
     public static final Amount prWceq(Amount tmpf, Amount sknt)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prWceq:");
-        // System.out.println(" tmpf = " + tmpf.doubleValue());
-        // System.out.println(" sknt = " + sknt.doubleValue());
 
         double prwceq = GempakConstants.RMISSD;
         if (!checkNullOrInvalidValue(tmpf) || !checkNullOrInvalidValue(sknt)) {
@@ -2400,44 +2074,6 @@ public final class PRLibrary {
         return (new Amount(prwceq, NonSI.FAHRENHEIT));
     }
 
-    // /**
-    // * Computes the numeric total cloud cover for the worst case aviation
-    // flight condition,
-    // * based on the categorical identification of flight rules for prevailing
-    // and temporary / probability conditions.
-    // * @param xvfr - Prevailing categorical id of flight rules
-    // * @param txvf - Temporary / Probability categorical id of flight rules
-    // * @param cfrt - Prevailing numeric total cloud cover
-    // * @param tcfr - Temporary / Probability numeric total cloud cover
-    // * @return Worst case numeric total cloud cover or RMISSD (-9999) if the
-    // computation does not fall through
-    // * @throws NullPointerException
-    // *
-    // */
-    // public static final Amount prWcfr ( Amount xvfr, Amount txvf, Amount
-    // cfrt, Amount tcfr) throws InvalidValueException, NullPointerException {
-    // double prwcfr = GempakConstants.RMISSD;
-    // checkNullOrInvalidValue( tcfr );
-    // checkNullOrInvalidValue( cfrt );
-    // double cfrtVal = cfrt.doubleValue();
-    // double tcfrVal = tcfr.doubleValue();
-    // if ( ( xvfr == null || xvfr.doubleValue() == GempakConstants.RMISSD )
-    // || ( txvf == null || txvf.doubleValue() == GempakConstants.RMISSD ))
-    // prwcfr = ( cfrtVal > tcfrVal ? cfrtVal : tcfrVal );
-    //
-    // else {
-    // double txvfVal = txvf.doubleValue();
-    // double xvfrVal = xvfr.doubleValue();
-    // if ( txvfVal < xvfrVal )
-    // prwcfr = tcfrVal;
-    // else if ( txvfVal == xvfrVal)
-    // prwcfr = ( cfrtVal > tcfrVal ? cfrtVal : tcfrVal );
-    // else
-    // prwcfr = cfrtVal;
-    // }
-    // return ( new Amount ( prwcfr ,Unit.ONE));
-    // }
-
     /**
      * Computes the wind chill temperature from the air temperature and the wind
      * speed
@@ -2453,9 +2089,6 @@ public final class PRLibrary {
      */
     public static final Amount prWcht(Amount tmpf, Amount sknt)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prWcht:");
-        // System.out.println(" tmpf = " + tmpf.doubleValue());
-        // System.out.println(" sknt = " + sknt.doubleValue());
         double prwrcht = GempakConstants.RMISSD;
         if (!checkNullOrInvalidValue(tmpf) || !checkNullOrInvalidValue(sknt)) {
             return new Amount(NonSI.FAHRENHEIT);
@@ -2464,6 +2097,8 @@ public final class PRLibrary {
         /* Convert the speed to miles per hour */
         Amount smph = checkAndConvertInputAmountToExpectedUnits(sknt,
                 NonSI.MILES_PER_HOUR);
+
+        tmpf = checkAndConvertInputAmountToExpectedUnits(tmpf, NonSI.FAHRENHEIT);
 
         /*
          * If the inputs are not missing , check if the wind speed is <= 3 miles
@@ -2504,14 +2139,7 @@ public final class PRLibrary {
      */
     public static final Amount prWcmp(Amount drct, Amount sped, Amount dcmp)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prWcmp:");
-        // System.out.println(" sped = " + sped.doubleValue());
-        // System.out.println(" drct = " + drct.doubleValue());
-        // System.out.println(" dcmp = " + dcmp.doubleValue());
-        /* Check for missing input parameters */
-        // checkNullOrInvalidValue( drct );
-        // checkNullOrInvalidValue( sped );
-        // checkNullOrInvalidValue( dcmp );
+
         if (!checkNullOrInvalidValue(drct) || !checkNullOrInvalidValue(sped)
                 || !checkNullOrInvalidValue(dcmp)) {
             return new Amount(SI.METERS_PER_SECOND);
@@ -2552,13 +2180,7 @@ public final class PRLibrary {
      */
     public static final Amount prWnml(Amount drct, Amount sped, Amount dcmp)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prWnml:");
-        // System.out.println(" sped = " + sped.doubleValue());
-        // System.out.println(" drct = " + drct.doubleValue());
-        // System.out.println(" dcmp = " + dcmp.doubleValue());
-        // checkNullOrInvalidValue(sped);
-        // checkNullOrInvalidValue(drct);
-        // checkNullOrInvalidValue(dcmp);
+
         if (!checkNullOrInvalidValue(drct) || !checkNullOrInvalidValue(sped)
                 || !checkNullOrInvalidValue(dcmp)) {
             return new Amount(SI.METERS_PER_SECOND);
@@ -2571,10 +2193,9 @@ public final class PRLibrary {
         sped = checkAndConvertInputAmountToExpectedUnits(sped,
                 SI.METERS_PER_SECOND);
         if ((dcmp.doubleValue() < 0) && (dcmp.doubleValue() > 360)) {
-            // throw new
-            // InvalidRangeException("From prWnml - the wind direction 'dcmp'  mus be greater than or equal to 0 and less than or equal to 360");
-            System.out
-                    .println("From prWnml - the wind direction 'dcmp'  mus be greater than or equal to 0 and less than or equal to 360");
+            statusHandler
+                    .handle(Priority.INFO,
+                            "From prWnml - the wind direction 'dcmp'  mus be greater than or equal to 0 and less than or equal to 360");
             return new Amount(SI.METERS_PER_SECOND);
         }
         /* Calculate wind speed 90 degrees to left of given direction. */
@@ -2583,31 +2204,6 @@ public final class PRLibrary {
                 * GempakConstants.DTR)));
         return (new Amount(prwnml, SI.METERS_PER_SECOND));
     }
-
-    // /**
-    // * Computes the packed wind speed and direction from the input wind speed
-    // and wind direction
-    // * @param drct - wind direction ( in degrees )
-    // * @param sped - wind speed ( in knots or m/s )
-    // * @return the packed speed and direction
-    // */
-    // public static final Amount prWind ( Amount drct, Amount sped ){
-    // float prwind = GempakConstants.RMISSD;
-    // // if ( !MissingValueTester.isDataValueMissing(drct)
-    // // && !MissingValueTester.isDataValueMissing(sped)){
-    // /*
-    // * (Non-Javadoc)
-    // * The packed wind speed and direction are of the form:
-    // * SSSDDD, where SSS - wind speed ( in knots or m/s ) and
-    // * DDD - wind direction in degrees
-    // *
-    // */
-    // int jdrct = (int ) Math.round( drct.doubleValue() );
-    // int jsped = (int) Math.round( sped.doubleValue() );
-    // prwind = jdrct + jsped * 1000;
-    // // }
-    // return prwind;
-    // }
 
     /**
      * Computes the worst case categorical identification of flight rules for
@@ -2623,9 +2219,6 @@ public final class PRLibrary {
      */
     public static final Amount prWxvf(Amount xvfr, Amount txvf)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prWxvf:");
-        // System.out.println(" xvfr = " + xvfr.doubleValue());
-        // System.out.println(" txvf = " + txvf.doubleValue());
 
         double prwxvf = GempakConstants.RMISSD;
         if (txvf != null && xvfr != null) {
@@ -2666,10 +2259,6 @@ public final class PRLibrary {
      */
     public static final Amount prXvfr(Amount ceil, Amount vsby)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prXvfr:");
-        // System.out.println(" ceil = " + ceil.doubleValue());
-        // System.out.println(" vsby = " + vsby.doubleValue());
-
         double prxvfr = GempakConstants.RMISSD;
         double vc = GempakConstants.RMISSD;
         double vs = GempakConstants.RMISSD;
@@ -2747,12 +2336,6 @@ public final class PRLibrary {
      */
     public static final Amount prZalt(Amount altm, Amount pres)
             throws InvalidValueException, NullPointerException {
-        // System.out.println("From prZalt:");
-        // System.out.println(" altm = " + altm.doubleValue());
-        // System.out.println(" pres = " + pres.doubleValue());
-
-        // checkNullOrInvalidValue( pres );
-        // checkNullOrInvalidValue( altm );
 
         if (!checkNullOrInvalidValue(pres) || !checkNullOrInvalidValue(altm)) {
             return new Amount(SI.METER);
@@ -2761,15 +2344,13 @@ public final class PRLibrary {
         pres = checkAndConvertInputAmountToExpectedUnits(pres, NcUnits.MILLIBAR);
         altm = checkAndConvertInputAmountToExpectedUnits(altm, NcUnits.MILLIBAR);
         if (altm.doubleValue() <= 0) {
-            // throw new
-            // InvalidRangeException("From prZalt:  altm must be greater than 0 mb");
-            System.out.println("From prZalt:  altm must be greater than 0 mb");
+            statusHandler.handle(Priority.INFO,
+                    "From prZalt:  altm must be greater than 0 mb");
             return new Amount(SI.METER);
         }
         if (pres.doubleValue() <= 0) {
-            // throw new
-            // InvalidRangeException("From prZalt:  pres must be greater than 0 mb");
-            System.out.println("From prZalt:  pres must be greater than 0 mb");
+            statusHandler.handle(Priority.INFO,
+                    "From prZalt:  pres must be greater than 0 mb");
             return new Amount(SI.METER);
         }
         double to = GempakConstants.TMCK + 15;
@@ -2810,29 +2391,10 @@ public final class PRLibrary {
                     .convert(amountIn.doubleValue());
             amountOut = new Amount(newValue, expectedUnit);
         } else
-            // throw new ConversionException("Unable to convert " +
-            // amountIn.getUnit().toString() + " to " + expectedUnit.toString()
-            // );
             amountOut = amountIn;
 
         return amountOut;
     }
-
-    // public static final void checkNullOrInvalidValue( Amount amountToCheck )
-    // throws InvalidValueException, NullPointerException{
-    // if (amountToCheck == null )
-    // throw new NullPointerException();
-    // else {
-    // double amountValue = amountToCheck.doubleValue();
-    // if ( amountValue == GempakConstants.RMISSD){
-    // throw new InvalidValueException( new String
-    // ("Input amount cannot be -9999"));
-    // }
-    // else if ( Double.isNaN(amountValue))
-    // throw new InvalidValueException( new String ("Input amount cannot be NaN"
-    // ));
-    // }
-    // }
 
     public static final boolean checkNullOrInvalidValue(Amount amountToCheck) {
         if (amountToCheck == null) {
@@ -2840,34 +2402,28 @@ public final class PRLibrary {
             // throw new NullPointerException();
         } else {
             double amountValue = amountToCheck.doubleValue();
+            StackTraceElement[] stackTraceElements = Thread.currentThread()
+                    .getStackTrace();
+            StackTraceElement findMethod = stackTraceElements[2];
+            String methodName = findMethod.getMethodName();
+
             if (amountValue == GempakConstants.RMISSD) {
-                System.out.println("Input amount cannot be -9999");
+                statusHandler.handle(Priority.INFO, "From " + methodName
+                        + ": Amount cannot be -9999");
                 return false;
                 // throw new InvalidValueException( new String
                 // ("Input amount cannot be -9999"));
             } else if (Double.isNaN(amountValue)) {
-                System.out.println("Input amount cannot be NaN");
+                statusHandler.handle(Priority.INFO, "From " + methodName
+                        + "Input amount cannot be NaN");
                 // throw new InvalidValueException( new String
                 // ("Input amount cannot be NaN" ));
                 return false;
-            } else
+            } else {
                 return true;
+            }
         }
     }
-
-    // public static final class InvalidRangeException extends Exception {
-    // /**
-    // *
-    // */
-    // private static final long serialVersionUID = -4962228676211688262L;
-    //
-    // /**
-    // *
-    // */
-    // public InvalidRangeException( String msg) {
-    // super( msg );
-    // }
-    // }
 
     public static final class InvalidValueException extends Exception {
         /**
@@ -2909,8 +2465,6 @@ public final class PRLibrary {
 
     public static Amount prPmst(Amount thte, Amount tmpk)
             throws InvalidValueException, NullPointerException {
-        // checkNullOrInvalidValue(thte);
-        // checkNullOrInvalidValue(tmpk);
 
         if (!checkNullOrInvalidValue(thte) || !checkNullOrInvalidValue(tmpk)) {
             return new Amount(SI.KELVIN);
@@ -2920,11 +2474,7 @@ public final class PRLibrary {
         tmpk = checkAndConvertInputAmountToExpectedUnits(tmpk, SI.KELVIN);
 
         if (thte.getValue().doubleValue() <= 0) {
-            // System.out
-            // .println("From prPmst(): The equivalent potential temperature must be greater than 0");
             return new Amount(SI.KELVIN);
-            // throw new
-            // InvalidRangeException("The equivalent potential temperature must be greater than 0");
         }
         Amount prpmst = new Amount(NcUnits.MILLIBAR);
         /* Set convergence and initial guess of pressure. */

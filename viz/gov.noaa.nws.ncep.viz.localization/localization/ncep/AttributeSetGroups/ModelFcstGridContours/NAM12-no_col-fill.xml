@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
+    <resource>NAM12</resource>
+    <attrSetGroupName>no_col-fill</attrSetGroupName>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>250mb_hght_wind_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>400mb_avg_rh_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_absv_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_absv_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_hght_rh_omega_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_tmp_wind_ncf</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_wind_pw</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_wind_pw_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bestcape_cin_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_h2o_conv_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>bl_thte_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>lifted_index_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pcpn_potential_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>precip_type_vv_ncf_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
+</AttributeSetGroup>
+

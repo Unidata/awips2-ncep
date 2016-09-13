@@ -9,11 +9,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
+import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
-import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.SerializationUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -215,9 +217,8 @@ public class ConditionalFilterMngr {
 			lFile.save();
 			
 			// update this ConditionalFilter in the map
-			conditionalFilters.put( condFilter.getPlugin()+condFilter.getName(), condFilter );		
-						
-		} catch (LocalizationOpFailedException e) {
+			conditionalFilters.put( condFilter.getPlugin()+condFilter.getName(), condFilter );					
+		} catch (LocalizationException e) {
 			throw new VizException( e );
 		} catch (SerializationException e) {
 			// TODO Auto-generated catch block
@@ -283,7 +284,7 @@ public class ConditionalFilterMngr {
 
 			// TODO : check if there is a base or site level file of the same name and 
 			// update with it....
-		} catch ( LocalizationOpFailedException e ) {
+		} catch ( LocalizationException e ) {
 			throw new VizException( "Error Deleting Conditional Filter, "+condFilterName+
 					", for plugin, "+pluginName +"\n"+e.getMessage() );
 		}				

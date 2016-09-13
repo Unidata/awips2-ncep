@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="http://www.example.org/productType">
+<<<<<<< HEAD
     <inventoryEnabled>true</inventoryEnabled>
+=======
+>>>>>>> origin/unidata_16.2.2-n
     <resourceDefnName>FNEXRAD</resourceDefnName>
     <resourceCategory>SATELLITE</resourceCategory>
     <resourceParameters>
@@ -16,7 +19,12 @@ satelliteName=NEXRCOMP
     <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
     <frameSpan>5</frameSpan>
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<<<<<<< HEAD
     <dfltFrameCount>20</dfltFrameCount>
     <dfltTimeRange>48</dfltTimeRange>
+=======
+    <dfltFrameCount>36</dfltFrameCount>
+    <dfltTimeRange>180</dfltTimeRange>
+>>>>>>> origin/unidata_16.2.2-n
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
 </ResourceDefinition>

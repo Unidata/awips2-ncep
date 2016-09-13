@@ -48,6 +48,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/05/11       n/a        B. Hebbard In preProcessFrameUpdate(), preserve newRscDataObjsQueue
  * 05/23/12       785        Q. Zhou    Added getName for legend.
  * 08/17/12       655        B. Hebbard Added paintProps as parameter to IDisplayable draw
+ * 11/05/2015    5070        randerso   Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author ghull 
@@ -141,7 +142,7 @@ public class AirmetResource extends AbstractNatlCntrsResource<AirmetResourceData
     private IFont font=null;
 	double charHeight = 10;
 	double charWidth = 3;
-	float  baseFontSize = 14;
+	float  baseFontSize = 11.8f;
 	IFont symbolFonts[];
     
     //  ------------------------------------------------------------
@@ -536,12 +537,12 @@ public class AirmetResource extends AbstractNatlCntrsResource<AirmetResourceData
     		symSize = symbolFonts.length-1;
     	}
 
- //   	final float symSizeMapping[] = { 1f, 8f, 14f, 15f, 16f, 17f, 18f, 19f, 20f, 21f, 22f };
+ //   	final float symSizeMapping[] = { 0.8f, 6.8f, 11.8f, 12.7f, 13.5f, 14.4f, 15.2f, 16.1f, 16.9f, 17.8f, 18.6f };
     	
     	if( symbolFonts[symSize] == null ) {
 //        	float fontSize = symSizeMapping[symSize];
-        	float fontSize = (symSize == 1 ? 8f : 
-        		               (symSize == 2 ? 15f : symSize + 14f ));
+        	float fontSize = (symSize == 1 ? 6.8f : 
+        		               (symSize == 2 ? 11.7f : symSize + 11.8f ));
 
         	symbolFonts[symSize] = grphTarget.initializeFont("Monospace", fontSize, new IFont.Style[] { IFont.Style.BOLD });
     	}

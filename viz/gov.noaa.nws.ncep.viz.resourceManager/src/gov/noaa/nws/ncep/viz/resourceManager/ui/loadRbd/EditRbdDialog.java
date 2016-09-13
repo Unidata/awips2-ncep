@@ -70,16 +70,12 @@ public class EditRbdDialog extends Dialog {
         gd.horizontalAlignment = SWT.FILL;
 
         createRbdCntr.setLayoutData(gd);
-
         shell.setMinimumSize(400, 320);
-
-        // shell.pack();
-
         createRbdCntr.updateDialog();
     }
 
     public boolean isOpen() {
-        return isOpen; // shell != null && !shell.isDisposed();
+        return isOpen;
     }
 
     public AbstractRBD<?> open() {
@@ -89,7 +85,6 @@ public class EditRbdDialog extends Dialog {
         shell.setSize(550, 500);
         shell.pack();
         shell.open();
-
         isOpen = true;
 
         // Don't let the user do anything else while the Edit Rbd Dialog is up.

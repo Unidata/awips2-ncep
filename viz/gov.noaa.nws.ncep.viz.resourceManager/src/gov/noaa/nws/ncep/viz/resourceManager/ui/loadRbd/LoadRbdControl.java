@@ -1,13 +1,12 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd;
 
-//import gov.noaa.nws.ncep.viz.common.EditorManager;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
 import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.GraphRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceBndlLoader;
@@ -41,7 +40,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
@@ -51,9 +49,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
-
 import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
@@ -104,6 +99,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 02/22/2013     #972      G. Hull         work with AbstractRBD
  * 05/07/2014   TTR991      D. Sushon       if a different NCP editor is selected, the CreateRDB tab should now adjust.
  * 07/28/2014     R4079     sgurung         Load graph RBDs.
+ * 03/10/2016     R16237    B. Yin          Get dominant resource within a group resource.
+ * 03/11/2016     R15244    bkowal          Cleanup. Eliminate warnings.
  * 
  * </pre>
  * 
@@ -122,7 +119,6 @@ public class LoadRbdControl extends Composite {
 
     private Group load_opts_grp = null;
 
-    //private Combo spf_group_combo = null;
     private ListViewer spf_name_lviewer = null;
 
     private ListViewer rbd_lviewer = null;
@@ -146,8 +142,6 @@ public class LoadRbdControl extends Composite {
 
     private Button geo_sync_panes = null;
 
-    private Button time_sync_panes = null;
-
     // this is the input for the rbd_lviewr content provider. It is
     // initially set with the rbds in an spf and is updated with edited rbds.
     //
@@ -161,7 +155,7 @@ public class LoadRbdControl extends Composite {
     // one.
     // private HashMap<String, AbstractRBD<?>> editedRbdMap = null;
 
-    private Point initDlgSize = new Point(850, 860);
+    private Point initDlgSize = new Point(1050, 860);
 
     private EditRbdDialog editRbdDlg = null;
 
@@ -171,7 +165,7 @@ public class LoadRbdControl extends Composite {
         super(parent, SWT.NONE);
         shell = parent.getShell();
 
-    	rbdLoader = new ResourceBndlLoader("Bundle Group Loader");
+        rbdLoader = new ResourceBndlLoader("SPF Loader");
 
         seldRbdsList = new ArrayList<AbstractRBD<?>>();
         availRbdsList = new ArrayList<AbstractRBD<?>>();
@@ -202,7 +196,6 @@ public class LoadRbdControl extends Composite {
         top_sash_form.setLayoutData(fd);
 
         sel_rbds_grp = new Group(top_sash_form, SWT.SHADOW_NONE);
-        sel_rbds_grp.setText("Select Display");
         sel_rbds_grp.setLayout(new FormLayout());
 
         fd = new FormData();
@@ -212,33 +205,13 @@ public class LoadRbdControl extends Composite {
         fd.bottom = new FormAttachment(100, -5);
         sel_rbds_grp.setLayoutData(fd);
 
-        /*
-        spf_group_combo = new Combo(sel_rbds_grp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fd = new FormData();
-        // fd.width = 190;
-        fd.top = new FormAttachment(0, 35);
-        fd.left = new FormAttachment(0, 20);
-        fd.right = new FormAttachment(30, -7 - 10);
-        spf_group_combo.setLayoutData(fd);
-
-        Label spf_grp_lbl = new Label(sel_rbds_grp, SWT.NONE);
-        spf_grp_lbl.setText("SPF Group");
-
-        fd = new FormData();
-        fd.bottom = new FormAttachment(spf_group_combo, -3, SWT.TOP);
-        fd.left = new FormAttachment(spf_group_combo, 0, SWT.LEFT);
-        spf_grp_lbl.setLayoutData(fd);
-        */
-
         spf_name_lviewer = new ListViewer(sel_rbds_grp, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
 
         fd = new FormData();
-        // fd.width = 130;
-        //fd.top = new FormAttachment( spf_group_combo, 40, SWT.BOTTOM );
-        //fd.left = new FormAttachment( spf_group_combo, 0, SWT.LEFT );
-        fd.top = new FormAttachment( 0, 35 );
-        fd.left  = new FormAttachment( 0, 20 );
+        fd.top = new FormAttachment(0, 35);
+        fd.left = new FormAttachment(0, 20);
+        fd.right = new FormAttachment(30, -7 - 10);
         // fd.left = new FormAttachment( 0, 10 );
         fd.bottom = new FormAttachment(100, -15);
         fd.right = new FormAttachment(30, -7);
@@ -257,8 +230,7 @@ public class LoadRbdControl extends Composite {
         fd = new FormData();
         fd.width = 222;
         fd.top = new FormAttachment(0, 30);
-        fd.left  = new FormAttachment( 30, 7 ); //spf_name_lviewer.getList(), 15, SWT.RIGHT );
-        // fd.bottom = new FormAttachment( spf_name_lviewer.getList(), 0, SWT.BOTTOM );
+        fd.left = new FormAttachment(30, 7);
         fd.bottom = new FormAttachment(100, -45);
         fd.right = new FormAttachment(66, -7);
         rbd_lviewer.getList().setLayoutData(fd);
@@ -322,7 +294,7 @@ public class LoadRbdControl extends Composite {
         fd.left = new FormAttachment(auto_update_btn, 0, SWT.LEFT);
         geo_sync_panes.setLayoutData(fd);
 
-        Group timeline_grp = new Group( sash_form, SWT.SHADOW_NONE );
+        timeline_grp = new Group(sash_form, SWT.SHADOW_NONE);
         timeline_grp.setText("Select Timeline");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
@@ -348,14 +320,14 @@ public class LoadRbdControl extends Composite {
         load_form.setLayoutData(gd);
 
         load_and_close_btn = new Button(load_form, SWT.PUSH);
-        load_and_close_btn.setText(" Load and Close ");
+        load_and_close_btn.setText("Load And Close");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
         fd.right = new FormAttachment(100, -10);
         load_and_close_btn.setLayoutData(fd);
 
         load_btn = new Button(load_form, SWT.PUSH);
-        load_btn.setText("  Load  ");
+        load_btn.setText("  Load Bundles  ");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
         fd.right = new FormAttachment(load_and_close_btn, -20, SWT.LEFT);
@@ -363,7 +335,7 @@ public class LoadRbdControl extends Composite {
 
         no_duplicate_displays_btn = new Button(load_form, SWT.CHECK);
         fd = new FormData();
-        no_duplicate_displays_btn.setText("Do not load duplicate RBDs");
+        no_duplicate_displays_btn.setText("Do not load duplicate bundles");
         fd.top = new FormAttachment(0, 5);
         fd.left = new FormAttachment(load_btn, -300, SWT.LEFT);
         no_duplicate_displays_btn.setLayoutData(fd);
@@ -377,17 +349,6 @@ public class LoadRbdControl extends Composite {
     // add the listeners and content providers
     //
     private void addListeners() {
-
-    	/*
-        spf_group_combo.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                String spfGroupName = spf_group_combo.getText();
-                spf_name_lviewer.setInput(spfGroupName);
-                // spf_name_lviewer.getList().select(0);
-                setSeldSpfName();
-            }
-        });
-        */
 
         spf_name_lviewer.setContentProvider(new IStructuredContentProvider() {
             @Override
@@ -441,7 +402,7 @@ public class LoadRbdControl extends Composite {
                         return rbd.getRbdName();
                     }
                 } else
-                    return "Error: bad Bundle element";
+                    return "Error: bad bundle element";
             }
         });
 
@@ -599,7 +560,7 @@ public class LoadRbdControl extends Composite {
                     for (AbstractRenderableDisplay rendDisp : panes) {
                         if (!(rendDisp instanceof INatlCntrsRenderableDisplay)) {
                             System.out
-                                    .println("Sanity check: we have a non-natlCntrs display in the RBD");
+                                    .println("Sanity check: we have a non-natlCntrs display in the bundle");
                         } else {
                             String area = ((INatlCntrsRenderableDisplay) rendDisp)
                                     .getInitialArea().getProviderName();
@@ -610,7 +571,7 @@ public class LoadRbdControl extends Composite {
                             if (!geoSyncArea.equals(area)) {
                                 MessageBox mb = new MessageBox(shell, SWT.OK);
                                 mb.setText("Info");
-                                mb.setMessage("The panes in the Bundle have different Predefined Areas,\n"
+                                mb.setMessage("The panes in the bundle have different Predefined Areas,\n"
                                         + "but you may change the area after loading.");
                                 mb.open();
                                 break;
@@ -642,12 +603,7 @@ public class LoadRbdControl extends Composite {
 
     private void initWidgets() throws VizException {
 
-    	/*
-        spf_group_combo.setItems( 
-        		SpfsManager.getInstance().getAvailSPFGroups() );
-        spf_group_combo.select(0);
-        */  	
-        spf_name_lviewer.setInput( "default" );
+        spf_name_lviewer.setInput("default");
         spf_name_lviewer.refresh();
 
         geo_sync_panes.setSelection(true);
@@ -661,10 +617,10 @@ public class LoadRbdControl extends Composite {
         StructuredSelection seldSpfs = (StructuredSelection) spf_name_lviewer
                 .getSelection();
 
-        // the directory that has all the RBDs for this SPF
+        // the directory that has all the bundles for this SPF
         String seldSpfName = (String) seldSpfs.getFirstElement();
 
-        // TODO: check to see if any of the RBDs were edited and prompt for
+        // TODO: check to see if any of the bundles were edited and prompt for
         // confirmation?
         availRbdsList.clear();
 
@@ -697,7 +653,7 @@ public class LoadRbdControl extends Composite {
     private void setSelectedRBDs() {
         StructuredSelection sel_rbds = (StructuredSelection) rbd_lviewer
                 .getSelection();
-        Iterator sel_iter = sel_rbds.iterator();
+        Iterator<?> sel_iter = sel_rbds.iterator();
         seldRbdsList.clear();
         AbstractRBD<?> rbdSel = null;
 
@@ -718,7 +674,7 @@ public class LoadRbdControl extends Composite {
 
         int numSeldRbds = seldRbdsList.size();
 
-        // if one multi-pane RBD is selected then load the Panes viewer.
+        // if one multi-pane bundle is selected then load the Panes viewer.
         //
         edit_rbd_btn.setEnabled((numSeldRbds == 1));
         load_btn.setEnabled((numSeldRbds > 0));
@@ -736,29 +692,18 @@ public class LoadRbdControl extends Composite {
                     && !(timelineControl instanceof GraphTimelineControl)) {
                 updateTimeLineControl(rbdSel);
             }
-            // else {
-            // timelineControl.dispose();
-            // timelineControl = new TimelineControl(timeline_grp);
-            // }
 
             NCTimeMatcher timeMatcher = rbdSel.getTimeMatcher();
 
             timelineControl.clearTimeline(); // removeAllAvailDomResources();
 
-            // add all of the resources in the RBD as available
+            // add all of the resources in the bundle as available
             // to be the dominant resource
             AbstractRenderableDisplay panes[] = seldRbdsList.get(0)
                     .getDisplays();
 
             for (AbstractRenderableDisplay pane : panes) {
-                ResourceList rscList = pane.getDescriptor().getResourceList();
-                for (ResourcePair rp : rscList) {
-                    if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        timelineControl
-                                .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) rp
-                                        .getResourceData());
-                    }
-                }
+                addDomResources( pane.getDescriptor().getResourceList() );
             }
 
             timelineControl.setTimeMatcher(timeMatcher);
@@ -791,32 +736,20 @@ public class LoadRbdControl extends Composite {
         geo_sync_panes.setEnabled(widgetsVisible);
     }
 
-    // update the avail spf groups, names and rbds after
-    // the user saves an rbd
+    // update the avail names and bundles after
+    // the user saves an bundle
     public void updateDialog() {
         // reset the size of the dialog
         shell.setSize(initDlgSize);
 
-    	/*
-        String saveSeldGroup = spf_group_combo.getText();
-        spf_group_combo.setItems(SpfsManager.getInstance().getAvailSPFGroups());
-
-        for (int i = 0; i < spf_group_combo.getItemCount(); i++) {
-            if (saveSeldGroup.equals(spf_group_combo.getItem(i))) {
-                spf_group_combo.select(i);
-                return;
-            }
-        }
-    	*/
-    	return;
     }
 
     private boolean loadRBD(boolean close) {
         // sanity check. this shouldn't happen.
         if (seldRbdsList.size() == 0) {
             MessageBox mb = new MessageBox(shell, SWT.OK);
-        	mb.setText("No Bundle Groups are Selected.");
-        	mb.setMessage("No Bundle Groups are Selected.");
+            mb.setText("No SPFs are Selected.");
+            mb.setMessage("No SPFs are Selected.");
             mb.open();
             return false;
         }
@@ -826,15 +759,11 @@ public class LoadRbdControl extends Composite {
 
         rbdLoader.removeAllSeldRBDs();
 
-        // timelineControl.updateTimeMatcher();
-
         boolean duplicatesRBDsAllowed = false;
         duplicatesRBDsAllowed = !no_duplicate_displays_btn.getSelection();
 
         for (AbstractRBD<?> rbdBndl : seldRbdsList) {
             String rbdName = rbdBndl.getRbdName();
-            // NCTimeMatcher timeMatcher = rbdBndl.getTimeMatcher();
-
             // Since rbdLoader uses the same resources in the AbstractRBD<?> to
             // load in the editor,
             // we will need to make a copy here so that future edits are not
@@ -844,55 +773,22 @@ public class LoadRbdControl extends Composite {
             try {
                 rbdBndl = AbstractRBD.clone(rbdBndl);
                 // // timeMatcher currently isn't marshalling completely.
-                // rbdBndl.setTimeMatcher( new NCTimeMatcher( timeMatcher ) );
 
                 AbstractRenderableDisplay panes[] = rbdBndl.getDisplays();
 
                 if (panes == null || panes.length == 0) {
                     throw new VizException(
-                            "No Panes are defined for this Bundle???.");
+                            "No Panes are defined for this bundle???.");
                 }
 
                 Integer paneCount = panes.length;
                 INcPaneLayout paneLayout = rbdBndl.getPaneLayout();
 
-                // if this is a multi-pane display
-                // if( panes.length > 1 ) {
-                // // Check that the user didn't change the pane layout and make
-                // // it so there aren't enough panes.
-                // if( paneLayout.getPaneCount() < paneCount ) {
-                // MessageDialog confirmDlg = new MessageDialog(
-                // PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                // "Confirm", null,
-                // "A "+ paneLayout.toString() +
-                // " Display doesn't have enough panes\n"+
-                // "for the "+paneCount+" defined in this RBD.\n\n"+
-                // "Do you wish to continue and create the necessary new panes?",
-                // MessageDialog.QUESTION, new String[]{"Continue", "Cancel"},
-                // 0);
-                // confirmDlg.open();
-                // if( confirmDlg.getReturnCode() == MessageDialog.CANCEL ) {
-                // return false;
-                // }
-                // }
-                //
-                // // if there are 'extra' panes then create default RBDs to
-                // // load into these panes
-                // // if( numRows*numCols > panes.length ) {
-                // // while(
-                // rbdLoader.getNumPaneRows()*rbdLoader.getNumPaneCols() >
-                // rbdBndls.length ) {
-                // // rbdLoader.addRBD( NmapCommon.getDefaultRBDFile() );
-                // // rbdBndls = rbdLoader.getSelectedRBDs();
-                // // }
-                // // }
-                // }
-
                 AbstractEditor newEditor = NcDisplayMngr
                         .findDisplayByNameAndType(rbdBndl.getDisplayType(),
                                 rbdName);
 
-                // if there is already a display with this RBD name then check
+                // if there is already a display with this bundle name then check
                 // whether duplicates have been allowed
                 boolean duplicateRBD = false;
                 if (newEditor != null
@@ -904,7 +800,7 @@ public class LoadRbdControl extends Composite {
                     }
                 }
 
-                // TODO : punt on putting multi-pane RBDs into empty displays
+                // TODO : punt on putting multi-pane bundles into empty displays
                 // not sure if this is hard or easy but don't have time to test
                 // it.
                 if (newEditor == null && paneCount == 1) {
@@ -920,17 +816,13 @@ public class LoadRbdControl extends Composite {
 
                 if (newEditor == null) {
                     throw new VizException(
-                            "Unable to find or create an Editor for Bundle "
+                            "Unable to find or create an Editor for "
                                     + rbdName);
                 }
 
                 if (panes.length > 1) {
                     NcEditorUtil.setGeoSyncPanesEnabled(newEditor,
                             rbdBndl.isGeoSyncedPanes());
-                    // newEditor.setTimeSyncPanesEnabled(
-                    // rbdLoader.arePanesTimeSynced() );
-                    // newEditor.selectPane( newEditor.getDisplayPanes()[0],
-                    // true );
                 }
 
                 if (!duplicateRBD || (duplicateRBD && duplicatesRBDsAllowed)) {
@@ -939,43 +831,22 @@ public class LoadRbdControl extends Composite {
 
             } catch (VizException e) {
                 MessageBox mb = new MessageBox(shell, SWT.OK);
-                mb.setText("Error Loading Bundle " + rbdName);
-                mb.setMessage("Error Loading Bundle " + rbdName + ".\n\n"
+                mb.setText("Error Loading " + rbdName);
+                mb.setMessage("Error Loading " + rbdName + ".\n\n"
                         + e.getMessage());
                 mb.open();
             }
         }
         // In the loadRBD method, before start the rbdLoader, call
-        //updateImportCombo();
         VizApp.runSync(rbdLoader);
 
         // They aren't going to like this if there is an error loading....
         if (close) {
-            // if( Thread.currentThread().wait() rbdLoader.
             shell.dispose();
         }
 
-        // rbdLoader.loadRBDs();
-        // rbdLoader.schedule();
         return true;
     }
-
-    // If the active editor is changed, we need to update the “Import” menu when
-    // an SPF is loaded.
-    /*
-    private void updateImportCombo() {
-
-        if (getParent() instanceof TabFolder) {
-            TabFolder tf = (TabFolder) getParent();
-            for (TabItem ti : tf.getItems()) {
-                if (ti.getControl() instanceof CreateRbdControl) {
-                    ((CreateRbdControl) ti.getControl()).updateImportCombo();
-                    break;
-                }
-            }
-        }
-    }
-    */
 
     private void editRbd() {
         int seldRbdIndx = rbd_lviewer.getList().getSelectionIndex();
@@ -991,7 +862,7 @@ public class LoadRbdControl extends Composite {
             return;
         }
 
-        // make a copy of this RBD so that edits made and then canceled are not
+        // make a copy of this bundle so that edits made and then canceled are not
         // saved to this object
         //
         try {
@@ -1044,8 +915,6 @@ public class LoadRbdControl extends Composite {
                             auto_update_btn.setEnabled(false);
                         } else if (newDomRsc.isAutoUpdateable()) {
                             auto_update_btn.setEnabled(true);
-                            // auto_update_btn.setSelection(
-                            // rbdMngr.isAutoUpdate() );
                             auto_update_btn.setSelection(true);
                         } else {
                             auto_update_btn.setSelection(false);
@@ -1062,5 +931,21 @@ public class LoadRbdControl extends Composite {
                         .getTimeMatcher().getDominantResource());
         shell.pack();
         shell.setSize(initDlgSize);
+    }
+    
+    /**
+     * Adds resources into the dominant resource combo in time line control 
+     * @param rscList - resource list that goes to the dominant list
+     */
+    private void addDomResources( ResourceList rscList ){
+        for ( ResourcePair rp : rscList ) {
+            if ( rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData ) {
+                timelineControl.addAvailDomResource((AbstractNatlCntrsRequestableResourceData)rp
+                .getResourceData());
+            }
+            else if ( rp.getResourceData() instanceof GroupResourceData ){
+                addDomResources( ((GroupResourceData)rp.getResourceData()).getResourceList() );
+            }
+        }
     }
 }

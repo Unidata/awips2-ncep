@@ -32,6 +32,8 @@ import org.eclipse.swt.graphics.RGB;
  * 10/18/2012   431         S. Gurung   Added support for ConditionalParameter and ConditionalColorBar     
  * 02/26/2013   936       A.Subramanian Changed the font defaults to match legacy
  * 11/17/2015 R9579         B. Hebbard  Add marker type and symbol width fields
+ * 02/26/2013   936       A.Subramanian Changed the font defaults to match legacy 
+ * 11/05/2015   5070        randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  */

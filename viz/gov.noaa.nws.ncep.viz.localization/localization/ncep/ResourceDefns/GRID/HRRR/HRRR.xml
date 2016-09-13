@@ -14,7 +14,10 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=HRRR
+<<<<<<< HEAD
+=======
+inventoryParam=P
+>>>>>>> origin/unidata_16.2.2-n
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

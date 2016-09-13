@@ -34,8 +34,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.hibernate.annotations.Index;
 
+import com.raytheon.uf.common.dataplugin.NullUtil;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
+import com.raytheon.uf.common.dataplugin.annotations.NullString;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.pointdata.IPointData;
@@ -76,6 +78,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * Jan 21, 2013 2724       rjpeter     Update getter/setter to use same Object as
  *                                     internal variable to prevent auto unboxing
  *                                     NPE on serialization.
+ * Jul 30, 2015 4360       rferrel     Unique constraints named. Made reportType and corIndicator non-nullable
  * </pre>
  * 
  * @author jkorman
@@ -83,7 +86,7 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "pirepseq")
-@Table(name = "pirep", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@Table(name = "pirep", uniqueConstraints = { @UniqueConstraint(name = "uk_pirep_datauri_fields", columnNames = { "dataURI" }) })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.
@@ -134,11 +137,12 @@ public class PirepRecord extends PersistablePluginDataObject implements
     private Calendar refHour;
 
     //
-    @Column(length = 8)
+    @Column(length = 8, nullable = false)
     @DataURI(position = 1)
+    @NullString
     @XmlAttribute
     @DynamicSerializeElement
-    private String reportType;
+    private String reportType = NullUtil.NULL_STRING;
 
     // Text of the WMO header
     @Transient
@@ -152,11 +156,12 @@ public class PirepRecord extends PersistablePluginDataObject implements
     private String suspectTimeFlag;
 
     // Correction indicator from wmo header
-    @Column(length = 8)
+    @Column(length = 8, nullable = false)
     @DataURI(position = 2)
+    @NullString
     @XmlElement
     @DynamicSerializeElement
-    private String corIndicator;
+    private String corIndicator = NullUtil.NULL_STRING;
 
     @Transient
     @XmlElement
@@ -271,7 +276,7 @@ public class PirepRecord extends PersistablePluginDataObject implements
      * @return The corIndicator
      */
     public String getCorIndicator() {
-        return corIndicator;
+        return NullUtil.convertNullStringToNull(this.corIndicator);
     }
 
     /**
@@ -281,7 +286,7 @@ public class PirepRecord extends PersistablePluginDataObject implements
      *            The corIndicator.
      */
     public void setCorIndicator(String corIndicator) {
-        this.corIndicator = corIndicator;
+        this.corIndicator = NullUtil.convertNullToNullString(corIndicator);
     }
 
     /**
@@ -365,7 +370,7 @@ public class PirepRecord extends PersistablePluginDataObject implements
      * @return the reportType
      */
     public String getReportType() {
-        return reportType;
+        return NullUtil.convertNullStringToNull(this.reportType);
     }
 
     /**
@@ -373,7 +378,7 @@ public class PirepRecord extends PersistablePluginDataObject implements
      *            the reportType to set
      */
     public void setReportType(String reportType) {
-        this.reportType = reportType;
+        this.reportType = NullUtil.convertNullToNullString(reportType);
     }
 
     /**

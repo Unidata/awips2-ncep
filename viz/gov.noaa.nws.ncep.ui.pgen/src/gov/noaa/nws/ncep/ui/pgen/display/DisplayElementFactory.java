@@ -158,9 +158,12 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
  *                                      collection of vector types (i.e., more than one of arrow/barb/hash)
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
  * 12/17/2015   R12990      J. Wu       Added user control for spacing between contour symbols & labels.
+ * Nov 05, 2015 5070       randerso     Adjust font sizes for dpi scaling
+ * Apr 28, 2016 5542       tgurney      Performance improvement in createDisplayElements(ILine, ...)
  * 01/27/2016   R13166      J. Wu       Add symbol only & label only for ContourMinmax.
  * 04/15/2016   R13556      J. Lopez    Fixed world wrap issue when an end point is on 180 longitude.  
  *                                      Moved world wrap code and smoothing code to its own function.
+ * 04/05/2016   R17006      J. Wu       Correct the drawing of five-knot wind barb.
  * </pre>
  * 
  * @author sgilbert
@@ -4544,7 +4547,14 @@ public class DisplayElementFactory {
 
         /*
          * Process half barbs
+         * 
+         * Note - for a five-knot wind barb, drawn it at the end of the second
+         * segment (counting from the end of the wind barb).
          */
+        if (numflags == 0 && numbarbs == 0 && halfbarbs == 1) {
+            currentLoc -= segmentSpacing;
+        }
+
         for (int j = 0; j < halfbarbs; j++) {
             Coordinate coords[] = new Coordinate[2];
             coords[0] = lil.extractPoint(currentLoc);
@@ -5212,7 +5222,7 @@ public class DisplayElementFactory {
                 /*
                  * get pixel size of text string with given font
                  */
-                IFont font = initializeFont("Courier", 14.f, FontStyle.REGULAR);
+                IFont font = initializeFont("Courier", 11.8f, FontStyle.REGULAR);
                 Rectangle2D bounds = target.getStringBounds(font, "Xy");
                 bounds = new Rectangle2D.Double(0.0, 0.0,
                         bounds.getWidth() / 2.0, bounds.getHeight());

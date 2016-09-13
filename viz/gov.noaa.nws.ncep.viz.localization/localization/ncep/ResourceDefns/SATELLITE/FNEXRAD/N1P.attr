@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 colorMapName=OHA
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
@@ -6,3 +7,14 @@ displayUnitStr=IRPixel
 alpha=1.0
 brightness=1.0
 contrast=1.0
+=======
+colorMapName=8-bit STP
+colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
+! The DB values have spaces but imageType must use " "s. 
+imageType=N1P
+displayUnitStr=in
+alpha=1.0
+brightness=1.0
+contrast=1.0
+legendString=FNEXRAD N1P Composite
+>>>>>>> origin/unidata_16.2.2-n

@@ -53,6 +53,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *                                     the overlay resource.
  * 09/12/12     #869       Greg Hull   call instantiateResources instead of construct().
  * 01/21/14                M. James    reconfigured overlay menu to toggle/unload.
+ * 09/09/16     ----       M. James    Update toggling of overlay menu with resourceMapName
  * </pre>
  * 
  * @author bhebbard
@@ -81,7 +82,8 @@ public class MapOverlayAction extends AbstractHandler implements IElementUpdater
 			@Override
             protected IStatus run(IProgressMonitor monitor) {
                 long t0 = System.currentTimeMillis();
-                String overlayName = arg0.getParameter("overlayName");  // LatLon
+                String overlayName = arg0.getParameter("overlayName");
+                String mapName = arg0.getParameter("resourceMapName");
                 
                 if (overlayName == null) {
                     return new Status(IStatus.ERROR, UiPlugin.PLUGIN_ID,
@@ -117,7 +119,7 @@ public class MapOverlayAction extends AbstractHandler implements IElementUpdater
                     	for (ResourcePair rpe : resourceList) {
                     		// If resource is already loaded
                             if (rpe.getResource() != null && rpe.getResource().getName() != null
-                                    && rpe.getResourceData().equals(ovrlyRscData)) {
+                                    && rpe.getResource().getName().equals(mapName) ){
                             		resourceList.remove( rpe ); 
                             		resourceList.remove( rp );
                             		break;
@@ -174,9 +176,9 @@ public class MapOverlayAction extends AbstractHandler implements IElementUpdater
 	        if (descriptor instanceof IMapDescriptor) {
 	        	for (ResourcePair rp : descriptor.getResourceList() ) {
 	        		if ( !rp.getProperties().isSystemResource() 
-	        				&& rp.getResource() != null 
+	        				&& rp.getResource() != null
 	        				&& rp.getResource().getName().equals( ResourceName )) {
-	    				element.setChecked( true );
+	                		element.setChecked( true );
 	    			}
 	        	}
 	        }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <resourceDefnName>nite_p3</resourceDefnName>
+    <resourceCategory>ENSEMBLE</resourceCategory>
+    <resourceParameters>
+primaryModel=GFS
+availableModels=CMC;DGEX185;ECMWF-Global;GEFS;GFS;wpc;NAM12;NAM12NestConus;NAVGEM;sref_m;UKMET-Global
+pluginName=grid
+GDFILE={GFS,CMC,DGEX185,ECMWF-Global,GEFS,wpc,NAM12,NAM12NestConus,NAVGEM,sref_m,UKMET-Global}
+    </resourceParameters>
+    <rscImplementation>EnsembleFcstGridContours</rscImplementation>
+    <subTypeGenerator></subTypeGenerator>
+    <rscTypeGenerator></rscTypeGenerator>
+    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <frameSpan>360</frameSpan>
+    <timelineGenMethod>DETERMINE_FROM_RSC_IMPLEMENTATION</timelineGenMethod>
+    <dfltTimeRange>48</dfltTimeRange>
+    <dfltGraphRange>48</dfltGraphRange>
+    <dfltGeogArea>BasicWX_US</dfltGeogArea>
+    <dfltFrameTimes>f30-f48-06</dfltFrameTimes>
+    <cycleReference>00</cycleReference>
+    <dayReference>TODAY</dayReference>
+</ResourceDefinition>

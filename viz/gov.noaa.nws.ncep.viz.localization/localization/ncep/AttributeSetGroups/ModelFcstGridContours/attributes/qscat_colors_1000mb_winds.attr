@@ -1,0 +1,41 @@
+!
+! Restore File : qscat_color_1000mb_winds
+!
+! Log:
+! D.W.Plummer/NCEP       2/97   Initial creation
+! J. Carr/HPC         5/19/97   Changed hilo ranges
+! D.W.Plummer/NCEP       8/97   Added FILTER parameter and changed TEXT value
+! J.M.Sienkiewicz/OPC    2/03   changed color contour scheme to qscat default
+! J.M.Sienkiewicz/OPC   11/04   changed to latest qscat color scheme
+!
+GLEVEL=  1000
+GVCORD=  pres
+PANEL=   0
+SKIP=    0/1;-1
+SCALE=   0
+GDPFUN=  mag(kntv(wnd))
+TYPE=    c/f
+CONTUR=  1
+CINT=    0;5;10;15;25;30;34;40;48;56;64
+LINE=    32/1/2/2!19//2
+FINT=    0;6;12;17;23;27;34;40;48;56;64
+FLINE=   1;1;6;26;24;21;23;5;17;8;14;2
+HILO=    0!
+HLSYM=   0!
+CLRBAR=  1/V/LL!0
+WIND=    9/0.7/2/112
+REFVEC=
+TITLE=   1/-1/~ ( 10m WIND ; KTS)
+TEXT=    1/22/2/hw
+CLEAR=   yes
+DEVICE=  xw
+STNPLT=
+SATFIL=
+RADFIL=
+STREAM=
+POSN=    4
+COLORS=  2
+MARKER=  2
+GRDLBL=  5
+LUTFIL=  none
+FILTER=  yes

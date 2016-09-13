@@ -66,7 +66,7 @@ public class PaintableImage {
         ImageBuilder ib = new ImageBuilder();
 
         if (this.font == null) { // TODO clean up font handling
-            this.font = target.initializeFont("Monospace", 12,
+            this.font = target.initializeFont("Monospace", 10,
                     new IFont.Style[] { Style.BOLD });
         }
 

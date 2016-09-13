@@ -67,6 +67,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Mar 5, 2014  1122       sgurung     Initial creation
+ * Nov 5, 2015  5070       randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -169,7 +170,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
     protected void paintUnits(IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
 
-        unitsFont = target.initializeFont((String) null, 14.0f,
+        unitsFont = target.initializeFont((String) null, 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         unitsFont.setSmoothing(false);
         unitsFont.setScaleFont(false);
@@ -335,7 +336,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
     protected void paintTitles(IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
-        titleFont = target.initializeFont((String) null, 14.0f,
+        titleFont = target.initializeFont((String) null, 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         titleFont.setSmoothing(false);
         titleFont.setScaleFont(false);
@@ -477,7 +478,7 @@ public class GeoMagRTKpGraph extends TimeSeriesGraph {
             PaintProperties paintProps, List<IGraphLabel<DataTime>> xLabels)
             throws VizException {
 
-        unitsFont = target.initializeFont((String) null, 14.0f,
+        unitsFont = target.initializeFont((String) null, 12,
                 new IFont.Style[] { IFont.Style.BOLD });
         unitsFont.setSmoothing(false);
         unitsFont.setScaleFont(false);

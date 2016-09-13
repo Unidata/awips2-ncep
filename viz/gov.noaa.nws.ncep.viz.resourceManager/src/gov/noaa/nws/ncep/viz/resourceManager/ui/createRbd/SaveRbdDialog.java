@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -129,121 +128,78 @@ public class SaveRbdDialog extends Dialog {
     	
     	shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS );
     	shell.setText(dlgTitle);
-    	shell.setSize( 540, 500 ); // pack later
+    	shell.setSize( 540, 500 ); 
 
     	shell.setLayout( new FormLayout() );
-
+    	
         FormData fd = new FormData( );
-
-        /*Composite display_by_grp = new Composite( shell, SWT.SHADOW_NONE );
-        display_by_grp.setLayout( new FormLayout() );
-        fd = new FormData();
-        fd.top = new FormAttachment( 0, 0 );
-        fd.left  = new FormAttachment( 0, 10 );
+    	
+		
+		
+		Label rbd_name_lbl = new Label(shell, SWT.NONE);
+		rbd_name_lbl.setText("Name");
+		fd = new FormData();
+		fd.top = new FormAttachment( 0, 10 );
+		fd.left  = new FormAttachment( 0, 10 );
         fd.right  = new FormAttachment( 100, -10 );
-        display_by_grp.setLayoutData( fd );    	
-        
-        display_by_name = new Button( display_by_grp, SWT.RADIO );
-        display_by_name.setText("Sort Alphabetically");
-        fd = new FormData();
-        fd.top = new FormAttachment( 0, 15 );
-        fd.left  = new FormAttachment( 10, 0);
-        display_by_name.setLayoutData( fd );
-        display_by_name.setSelection( true );
-        display_by_name.addSelectionListener(new SelectionAdapter() {
-       		public void widgetSelected( SelectionEvent ev ) {
-     		  spf_name_lviewer.refresh(true);
-       		}
-        });
-     
-        display_by_date = new Button( display_by_grp, SWT.RADIO );
-        display_by_date.setText("Sort By Date");
-        fd = new FormData();
-        fd.top = new FormAttachment( display_by_name, 5, SWT.BOTTOM );
-        fd.left  = new FormAttachment( display_by_name, 0,SWT.LEFT );
-      //  fd.bottom  = new FormAttachment( 100, -10 );        
+		rbd_name_lbl.setLayoutData( fd );
 
-        display_by_date.setLayoutData( fd );    	
+		rbd_name_combo = new Combo( shell, SWT.DROP_DOWN );
+		fd = new FormData();
+        fd.top  = new FormAttachment( rbd_name_lbl, 10, SWT.BOTTOM );
+		fd.left  = new FormAttachment( rbd_name_lbl, 0, SWT.LEFT );
+        fd.right  = new FormAttachment( 100, -10 );
+		rbd_name_combo.setLayoutData( fd );
         
-        
-        display_by_date.addSelectionListener(new SelectionAdapter() {
-       		public void widgetSelected( SelectionEvent ev ) {
-       		    spf_name_lviewer.refresh(true);
-       		 
-       		}
-        });*/
-        
-        /*
-        spf_group_combo = new Combo( shell, SWT.DROP_DOWN );
-        fd = new FormData();
-        fd.top = new FormAttachment( 5, 10 );
-        fd.left  = new FormAttachment( 9, 10 );
-        fd.right  = new FormAttachment( 85, 0 );
-        spf_group_combo.setLayoutData( fd );    	
-        
-        Label spf_grp_lbl = new Label( shell, SWT.NONE);
-        spf_grp_lbl.setText("SPF Group");
+		Label spf_name_lbl = new Label( shell, SWT.NONE);
+        spf_name_lbl.setText("Group");
        	fd = new FormData();
-        fd.bottom  = new FormAttachment( spf_group_combo, -3, SWT.TOP );
-        fd.left  = new FormAttachment( spf_group_combo, 0, SWT.LEFT );
-        spf_grp_lbl.setLayoutData( fd );
-        */
+        fd.top  = new FormAttachment( rbd_name_combo, 10, SWT.BOTTOM );
+        fd.left  = new FormAttachment( rbd_name_combo, 0, SWT.LEFT );
+        fd.right  = new FormAttachment( 100, -10 );
+        spf_name_lbl.setLayoutData( fd );
         
-        Group spf_name_grp = new Group( shell, SWT.SHADOW_NONE );
-        spf_name_grp.setText("Available Groups ");
-        spf_name_grp.setLayout( new FormLayout() );
-        fd = new FormData(260,300);
-        //fd.top = new FormAttachment( spf_group_combo, 20, SWT.BOTTOM );
-        fd.top = new FormAttachment( 5, 10 );
-        fd.left  = new FormAttachment( 0, 10 );
-        fd.right  = new FormAttachment( 100, -10 );
-        spf_name_grp.setLayoutData( fd );    	
-
-        spf_name_lviewer = new ListViewer(spf_name_grp, 
-        		SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL| SWT.H_SCROLL);
+        spf_name_txt = new Text( shell, SWT.SINGLE | SWT.BORDER );
         fd = new FormData();
-//        fd.height = 250;
-        fd.top = new FormAttachment( 0, 5 );
-        fd.left  = new FormAttachment( 0, 10 );
+        fd.top  = new FormAttachment( spf_name_lbl, 10, SWT.BOTTOM );
+        fd.left  = new FormAttachment( spf_name_lbl, 0, SWT.LEFT );
         fd.right  = new FormAttachment( 100, -10 );
-        fd.bottom = new FormAttachment( 100, -65 );
-        spf_name_lviewer.getList().setLayoutData( fd );  
-        //spf_name_lviewer.setInput( "default" );
-
-        spf_name_txt = new Text( spf_name_grp, SWT.SINGLE | SWT.BORDER );
-        fd = new FormData();
-        fd.top = new FormAttachment( spf_name_lviewer.getList(), 30, SWT.BOTTOM );
-        fd.left  = new FormAttachment( spf_name_lviewer.getList(), 0, SWT.LEFT );  
-        fd.right  = new FormAttachment( spf_name_lviewer.getList(), 0, SWT.RIGHT );  
         spf_name_txt.setLayoutData( fd );
         
-        Label spf_name_lbl = new Label( spf_name_grp, SWT.NONE);
-        spf_name_lbl.setText("Group Name");
+        
+        
+        Label sep = new Label( shell, SWT.SEPARATOR | SWT.HORIZONTAL );
+        fd = new FormData();
+        fd.top  = new FormAttachment( spf_name_txt, 10, SWT.BOTTOM );
+        fd.left  = new FormAttachment( 0, 0 );
+        fd.right  = new FormAttachment( 100,-5 );
+        sep.setLayoutData( fd );
+
+        
+        Label grp_name_lbl = new Label( shell, SWT.NONE);
+        grp_name_lbl.setText("Available Groups");
        	fd = new FormData();
-        fd.bottom  = new FormAttachment( spf_name_txt, -3, SWT.TOP );
-        fd.left  = new FormAttachment( spf_name_txt, 0, SWT.LEFT );
-        spf_name_lbl.setLayoutData( fd );
+        fd.top = new FormAttachment( sep, 10, SWT.BOTTOM );
+        fd.left  = new FormAttachment( 0, 10 );
+        grp_name_lbl.setLayoutData( fd );
+  	
 
-        rbd_name_combo = new Combo( shell, SWT.DROP_DOWN );
+        spf_name_lviewer = new ListViewer(shell, 
+        		SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL| SWT.H_SCROLL);
         fd = new FormData();
-        fd.top = new FormAttachment( spf_name_grp, 30, SWT.BOTTOM );
-        fd.left  = new FormAttachment( spf_name_grp, 0, SWT.LEFT );  
-        fd.right  = new FormAttachment( spf_name_grp, 0, SWT.RIGHT );  
-        rbd_name_combo.setLayoutData( fd );
+        fd.top  = new FormAttachment( grp_name_lbl, 10, SWT.BOTTOM );
+        fd.left  = new FormAttachment( spf_name_lbl, 0, SWT.LEFT );
+        fd.right  = new FormAttachment( 100, -10 );
+        spf_name_lviewer.getList().setLayoutData( fd );  
 
-        Label rbd_name_lbl = new Label(shell, SWT.NONE);
-        rbd_name_lbl.setText("Bundle Name");
-        fd = new FormData();
-        fd.bottom  = new FormAttachment( rbd_name_combo, -3, SWT.TOP );
-        fd.left  = new FormAttachment( rbd_name_combo, 0, SWT.LEFT );
-        rbd_name_lbl.setLayoutData( fd );
+       
+      
 
         Label sep0 = new Label( shell, SWT.SEPARATOR | SWT.HORIZONTAL );
         fd = new FormData();
-        fd.top  = new FormAttachment( rbd_name_combo, 15, SWT.BOTTOM );
+        fd.top  = new FormAttachment( spf_name_lviewer.getList(), 15, SWT.BOTTOM );
         fd.left  = new FormAttachment( 0, 5 );
         fd.right  = new FormAttachment( 100,-5 );
-//        fd.bottom = new FormAttachment( 100, -50 );
         sep0.setLayoutData( fd );
 
         Composite save_time_as_grp = new Composite( shell, SWT.SHADOW_NONE );
@@ -272,7 +228,6 @@ public class SaveRbdDialog extends Dialog {
         fd = new FormData();
         fd.top = new FormAttachment( sep0, 19, SWT.BOTTOM );
         fd.left = new FormAttachment( save_time_as_constant, 10, SWT.RIGHT );
-      //  fd.bottom  = new FormAttachment( 100, -10 );
         save_time_as_latest.setLayoutData( fd );
         save_time_as_latest.setSelection( !saveTimeAsConstant );
         save_time_as_latest.addSelectionListener(new SelectionAdapter() {
@@ -283,7 +238,7 @@ public class SaveRbdDialog extends Dialog {
         });
         
         Label save_time_as_lbl = new Label( save_time_as_grp, SWT.NONE);
-        save_time_as_lbl.setText("Save Source Timestamp As:");
+        save_time_as_lbl.setText("Timestamp:");
        	fd = new FormData();
         fd.bottom  = new FormAttachment( save_time_as_constant, -3, SWT.TOP );
         fd.left  = new FormAttachment( save_time_as_constant, -3, SWT.LEFT );
@@ -294,7 +249,6 @@ public class SaveRbdDialog extends Dialog {
         fd.top  = new FormAttachment( save_time_as_grp, 12, SWT.BOTTOM );
         fd.left  = new FormAttachment( 0, 5 );
         fd.right  = new FormAttachment( 100,-5 );
-//        fd.bottom = new FormAttachment( 100, -50 );
         sep1.setLayoutData( fd );
         
         save_ref_time_btn = new Button( shell, SWT.CHECK );
@@ -312,13 +266,6 @@ public class SaveRbdDialog extends Dialog {
        		}
         });
 
-//        Label save_reftime_lbl = new Label(shell, SWT.NONE);
-//        rbd_name_lbl.setText("Save Reference Time");
-//        fd = new FormData();
-//        fd.bottom  = new FormAttachment( save_ref_time_btn, -3, SWT.TOP );
-//        fd.left  = new FormAttachment( save_ref_time_btn, 0, SWT.LEFT );
-//        save_reftime_lbl.setLayoutData( fd );
-        
         Label sep2 = new Label( shell, SWT.SEPARATOR | SWT.HORIZONTAL );
         fd = new FormData();
         fd.top  = new FormAttachment( save_ref_time_btn, 15, SWT.BOTTOM );
@@ -384,7 +331,7 @@ public class SaveRbdDialog extends Dialog {
     	initWidgets();
     	
     	shell.setLocation( parent.getLocation().x+100, parent.getLocation().y+100);
-    	shell.setMinimumSize(100, 100);
+    	shell.setMinimumSize(350, 500);
 
     	shell.pack();
     	shell.open();
@@ -400,42 +347,12 @@ public class SaveRbdDialog extends Dialog {
 
     private void initWidgets() {
     	
-    	/*
-    	spf_group_combo.addSelectionListener(new SelectionListener() {
-   			public void widgetSelected(SelectionEvent e) {
-   				setSeldSpfGroup( spf_group_combo.getText() );
-   			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-   				setSeldSpfGroup( spf_group_combo.getText() );
-			} 
-   		});
-    	
-    	spf_group_combo.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-    			save_btn.setEnabled( 
-    					!rbd_name_combo.getText().isEmpty() &&
-    					!spf_name_txt.getText().isEmpty() && 
-    					!spf_group_combo.getText().isEmpty() ); 
-    			seldSpfGroup = spf_group_combo.getText();
-    			spf_name_lviewer.setInput(seldSpfGroup);
-    			newRbd = true;
-			}
-    	});
-    	*/
     	spf_name_txt.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
     			save_btn.setEnabled( 
     					!rbd_name_combo.getText().isEmpty() &&
     					!spf_name_txt.getText().isEmpty() );
-    			
-    			// if entering a new SPF name, don't show 
-    			// anything selected in the list
-    			//spf_name_lviewer.getList().deselectAll();
-    			
     			seldSpfName = spf_name_txt.getText();
     			newRbd = true;
 			}
@@ -475,10 +392,7 @@ public class SaveRbdDialog extends Dialog {
 
             	setSeldSpfName( (String)seldSpfs.getFirstElement() );
             }
-        });
-
-        //spf_group_combo.setItems( SpfsManager.getInstance().getAvailSPFGroups() );
-        
+        });        
         
     	rbd_name_combo.addSelectionListener(new SelectionListener() {
    			public void widgetSelected(SelectionEvent e) {
@@ -491,23 +405,6 @@ public class SaveRbdDialog extends Dialog {
 			} 
    		});
 
-        // if the user has pre selected a group then select it
-        //
-    	/*
-        if( seldSpfGroup != null ) {
-        	for( int g=0 ; g<spf_group_combo.getItemCount() ; g++ ) {
-        		if( seldSpfGroup.equals( spf_group_combo.getItem(g) ) ) {
-            		spf_group_combo.select(g);
-            		setSeldSpfGroup( seldSpfGroup );        			
-        		}
-        	}
-        }
-        else if( spf_group_combo.getItemCount() > 0 ) {
-    		spf_group_combo.select(0);
-    		setSeldSpfGroup( spf_group_combo.getText() );        			
-
-        }
-        */
         setSeldSpfGroup( "default" );
         
         if( seldSpfName != null ) {
@@ -529,11 +426,7 @@ public class SaveRbdDialog extends Dialog {
 		spf_name_lviewer.setInput( seldSpfGroup );    
 
     	spf_name_txt.clearSelection();
-//    	String spfNames[] = SpfsManager.getInstance().getSpfNamesForGroup( spf_group_combo.getText() );
 
-//    	spf_name_txt.setText( saveSpfName );    	
-    	
-//    	setSeldSpfName();
     }
     
 	private void setSeldSpfName( String spfName ) {

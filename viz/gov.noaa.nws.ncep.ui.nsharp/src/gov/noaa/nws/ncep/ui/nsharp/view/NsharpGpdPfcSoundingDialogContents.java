@@ -8,10 +8,10 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 01/2011	229			Chin Chen	Initial coding
- *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 01/2011  229         Chin Chen   Initial coding
+ * Aug 05, 2015 4486        rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author Chin Chen
@@ -28,11 +28,11 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 
-import java.sql.Timestamp;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -98,10 +98,10 @@ public class NsharpGpdPfcSoundingDialogContents {
         if (timeLines != null && timeLines.getTimeLines() != null) {
             ldDia.startWaitCursor();
             for (Object timeLine : timeLines.getTimeLines()) {
-                Timestamp reftime = (Timestamp) timeLine;
+                Date reftime = (Date) timeLine;
                 if (reftime != null) {
                     // need to format reftime to GMT time string.
-                    // Timestamp.toString produce a local time Not GMT time
+                    // Date.toString produce a local time Not GMT time
                     Calendar cal = Calendar.getInstance(TimeZone
                             .getTimeZone("GMT"));
                     cal.setTimeInMillis(reftime.getTime());
@@ -139,10 +139,10 @@ public class NsharpGpdPfcSoundingDialogContents {
             // GpdQuery.getGpdRangeStartTimes(currentProdName, fl);
             if (timeLines != null && timeLines.getTimeLines().length > 0) {
                 for (Object obj : timeLines.getTimeLines()) {
-                    Timestamp rangestart = (Timestamp) obj;
+                    Date rangestart = (Date) obj;
 
                     // need to format rangestart to GMT time string.
-                    // Timestamp.toString produce a local time Not GMT time
+                    // Date.toString produce a local time Not GMT time
                     cal.setTimeInMillis(rangestart.getTime());
                     long vHour = (cal.getTimeInMillis() - reftimeMs) / 3600000;
                     String dayOfWeek = defaultDays[cal
@@ -359,12 +359,12 @@ public class NsharpGpdPfcSoundingDialogContents {
     private void addStnPtWithoutQuery(String refTimeStr, String rangeStartStr,
             String selectedSndTime) {
         long reftimeMs = NcSoundingQuery.convertRefTimeStr(refTimeStr);
-        Timestamp refTime = new Timestamp(reftimeMs);
+        Date refTime = new Date(reftimeMs);
         for (NsharpStationInfo stn : stnPoints) {
             if (refTime.equals(stn.getReftime()) == true) {
                 long rangetimeMs = NcSoundingQuery
                         .convertRefTimeStr(rangeStartStr);
-                Timestamp rangeStartTime = new Timestamp(rangetimeMs);
+                Date rangeStartTime = new Date(rangetimeMs);
                 NsharpStationInfo.timeLineSpecific timeLinsSpc = stn.new timeLineSpecific();
                 String sndTypeStr = currentProdName;
                 int endIndex = Math.min(
@@ -373,7 +373,7 @@ public class NsharpGpdPfcSoundingDialogContents {
                 String dispInfo = stn.getStnId() + " " + selectedSndTime + " "
                         + sndTypeStr.substring(0, endIndex);
                 timeLinsSpc.setDisplayInfo(dispInfo);
-                timeLinsSpc.setTiemLine(rangeStartTime);
+                timeLinsSpc.setTimeLine(rangeStartTime);
                 stn.addToTimeLineSpList(timeLinsSpc);
             }
         }
@@ -406,7 +406,7 @@ public class NsharpGpdPfcSoundingDialogContents {
                 String dispInfo = packedStnIdStr + " " + selectedSndTime + " "
                         + sndTypeStr.substring(0, endIndex);
                 timeLinsSpc.setDisplayInfo(dispInfo);
-                timeLinsSpc.setTiemLine(stnInfo.getRangeStartTime());
+                timeLinsSpc.setTimeLine(stnInfo.getRangeStartTime());
                 stn.addToTimeLineSpList(timeLinsSpc);
                 stn.setLongitude(stnInfo.getStationLongitude());
                 stn.setLatitude(stnInfo.getStationLatitude());

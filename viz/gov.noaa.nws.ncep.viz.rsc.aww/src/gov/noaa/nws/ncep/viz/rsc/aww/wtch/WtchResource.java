@@ -61,6 +61,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 08/14/13     1028    G. Hull      Move to aww project. Use AwwReportType enum.
  * 06/27/14      ???       D. Sushon   fix endTime selection issue, investigating why watches never display
  * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 11/05/2015    5070      randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -888,7 +889,7 @@ public class WtchResource extends
         double ratio = screenExtentInPixels.getWidth()
                 / paintProps.getCanvasBounds().width;
 
-        IFont font = graphicTarget.initializeFont("Monospace", 14,
+        IFont font = graphicTarget.initializeFont("Monospace", 12,
                 new IFont.Style[] { IFont.Style.BOLD });
 
         String[] textArray = labelStringList.toArray(new String[0]);

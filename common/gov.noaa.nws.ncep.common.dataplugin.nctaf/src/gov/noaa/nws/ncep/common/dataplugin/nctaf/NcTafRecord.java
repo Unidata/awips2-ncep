@@ -78,6 +78,7 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract.
  * Dec 03, 2013 2551        rjpeter     Extend PersistablePluginDataObject.
  * Feb 11, 2014 2784        rferrel     Remove override of setIdentifier.
+ * Aug 03, 2015 4360        rferrel     Name unique constraint.
  * </pre>
  * 
  * @author sgurung
@@ -85,7 +86,7 @@ import com.raytheon.uf.edex.decodertools.time.TimeTools;
  */
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "nctafseq")
-@Table(name = "nctaf", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@Table(name = "nctaf", uniqueConstraints = { @UniqueConstraint(name = "uk_nctaf_datauri_fields", columnNames = { "dataURI" }) })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.

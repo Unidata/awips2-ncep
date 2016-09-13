@@ -11,6 +11,7 @@
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 03/23/2010	229			Chin Chen	Initial coding
+ * 01/19/2016   5054        randerso    Minor code cleanup, needs more but is out of scope
  *
  * </pre>
  * 
@@ -47,17 +48,17 @@ import com.raytheon.uf.viz.core.exception.VizException;
 
 public class NsharpLoadDialog extends Dialog {
 
+    private static NsharpLoadDialog INSTANCE = null;
+
     private final static int DIALOG_WIDTH = 350;
 
     private final static int DIALOG_HEIGHT = 920;
 
     protected Composite top;
 
-    private static Composite dialogParent;
+    private Composite dialogParent;
 
-    private static NsharpLoadDialog INSTANCE = null;
-
-    private static Shell shell;
+    private Shell shell;
 
     private org.eclipse.swt.widgets.List soundingTypeList;
 
@@ -441,7 +442,15 @@ public class NsharpLoadDialog extends Dialog {
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        NsharpLoadDialog.shell = shell;
+        this.shell = shell;
+        /*
+         * TODO: Setting the size of the dialog is not good GUI programming
+         * practice. It may not work well when font sizes or display resolutions
+         * are changed.
+         * 
+         * You should properly configure the layout and allow the dialog to size
+         * itself.
+         */
         shell.setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
         shell.setText("Load");
         mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);

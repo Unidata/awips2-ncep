@@ -23,6 +23,7 @@ import gov.noaa.nws.ncep.viz.rsc.ghcd.util.GhcdUtil;
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- --------------------------
  * Oct 27, 2014   R5097     sgurung     Initial creation
+ * Nov 05, 2015    5070     randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -54,13 +55,13 @@ public class GraphAttributes {
 
     private Boolean displayLastDataDate = true;
 
-    private String unitsFontSize = "14";
+    private String unitsFontSize = "12";
 
     private String unitsFont = "Times";
 
     private String unitsStyle = "Bold";
 
-    private String titleFontSize = "14";
+    private String titleFontSize = "12";
 
     private String titleFont = "Times";
 

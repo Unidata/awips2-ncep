@@ -35,7 +35,6 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.graphics.RGB;
 
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -91,7 +90,12 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 08/25/2014      RM4097  kbugenhagen Added EVENT_BEFORE_OR_AFTER timeMatchMethod
  * 02/09/2015      RM4980  srussell    Added BINNING_FOR_GRID_RESOURCES timeMatchMethod
  * 06/16/2015      RM6580  kvepuri     Updated PGEN latest file logic
+ * 02/16/2016      R15244  bkowal      Prevent potential Null Pointer Exception.
  * 03/01/2016      R6821   kbugenhagen Date/time changes for Blender and cleanup.
+ * 04/05/2016      R10435  rjpeter     Removed Inventory usage.
+ * 07/14/2016      R17949  Jeff Beck   Add support for displaying multiple PGEN resources selected from a list of available times.
+ *                                     Removed some code from getAvailableDataTimes()
+ * 
  * </pre>
  * 
  * *
@@ -105,8 +109,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         AbstractRequestableResourceData implements INatlCntrsResourceData,
         ISerializableObject {
 
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(AbstractNatlCntrsRequestableResourceData.class);
+    protected final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
     @XmlElement
     @XmlJavaTypeAdapter(RGBColorAdapter.class)
@@ -253,10 +257,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     // Version can be used to test whether an RBD was created with an older
     // version of the resource. Currently this is not enforced or implemented by
     // any of the resources.
+    @Override
     public String getResourceVersion() {
         return resourceVersion;
     }
 
+    @Override
     public void setResourceVersion(String resourceVersion) {
         this.resourceVersion = resourceVersion;
     }
@@ -267,10 +273,10 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     public boolean isAutoUpdateable() {
         ResourceCategory rscCat = getResourceName().getRscCategory();
 
-        if (rscCat != null && rscCat == ResourceCategory.SatelliteRscCategory
-                || rscCat == ResourceCategory.RadarRscCategory
-                || rscCat == ResourceCategory.SpaceRscCategory
-                || rscCat == ResourceCategory.GraphRscCategory) {
+        if (((rscCat != null) && (rscCat == ResourceCategory.SatelliteRscCategory))
+                || (rscCat == ResourceCategory.RadarRscCategory)
+                || (rscCat == ResourceCategory.SpaceRscCategory)
+                || (rscCat == ResourceCategory.GraphRscCategory)) {
             return true;
         }
         return false;
@@ -287,18 +293,22 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         return (frameSpan != 0);
     }
 
+    @Override
     public void setIsEdited(boolean e) {
         isEdited = e;
     }
 
+    @Override
     public boolean getIsEdited() {
         return isEdited;
     }
 
+    @Override
     public final ResourceName getResourceName() {
         return resourceName;
     }
 
+    @Override
     public void setResourceName(ResourceName rscName) {
         resourceName = new ResourceName(rscName);
     }
@@ -388,7 +398,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     public static Date parseCycleDayRef(DayReference dayRef, String cycleRef) {
-        if (dayRef == null || StringUtils.isBlank(cycleRef)) {
+        if ((dayRef == null) || StringUtils.isBlank(cycleRef)) {
             return null;
         }
         Calendar cal = dayRef.getReferencedDate();
@@ -400,18 +410,16 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     // make sure that the correct constraint type is set.
     @Override
     public HashMap<String, RequestConstraint> getMetadataMap() {
-        HashMap<String, RequestConstraint> mm = new HashMap<String, RequestConstraint>(
-                metadataMap);
+        HashMap<String, RequestConstraint> mm = new HashMap<>(metadataMap);
 
         for (String rcName : metadataMap.keySet()) {
             RequestConstraint rc = metadataMap.get(rcName);
-            if (rc.getConstraintValue().trim().equals("%")
-                    && rc.getConstraintType() != ConstraintType.LIKE) {
-                if (rcName.equals("dataTime")) {
-                    mm.remove(rcName);
-                } else {
-                    mm.put(rcName, RequestConstraint.WILDCARD);
-                }
+            /*
+             * WildCard constraints provide no value and increases query time as
+             * hibernate joins unnecessary tables in to the query.
+             */
+            if (rc.getConstraintValue().trim().equals("%")) {
+                mm.remove(rcName);
             }
         }
 
@@ -447,6 +455,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     // resources are on map-based displays. Other resources
     // that are written to draw to different display types will
     // need to override this.
+    @Override
     public NcDisplayType[] getSupportedDisplayTypes() {
         return new NcDisplayType[] { NcDisplayType.NMAP_DISPLAY };
     }
@@ -480,12 +489,14 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
              * it.
              */
             if (ncRsc != null) {
-                logger.debug("Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
-                logger.debug(" a resource that already exists. ");
+                statusHandler
+                        .debug("Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
+                statusHandler.debug(" a resource that already exists. ");
             }
             ncRsc = rsc;
         } else {
-            logger.debug("A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
+            statusHandler
+                    .debug("A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
         }
 
         return rsc;
@@ -494,7 +505,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     // There are better/faster ways of doing this I'm sure, but for now
     // just call getAvailableDataTimes to do this.
     public void resolveLatestCycleTime() {
-        if (getResourceName().getCycleTime() == null
+        if ((getResourceName().getCycleTime() == null)
                 && getResourceName().isLatestCycleTime()) {
             getAvailableDataTimes();
         }
@@ -512,31 +523,17 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
                     .getResourceDefinition(getResourceName());
 
-            if (rscDefn.getInventoryEnabled()
-                    && rscDefn.isInventoryInitialized()) {
-                availTimesList = rscDefn.getDataTimes(getResourceName());
-            } else {
-                try {
-                    availTimes = getAvailableTimes();
-                    if (availTimes == null) {
-                        return new ArrayList<DataTime>();
-                    }
-                    availTimesList = Arrays.asList(availTimes);
-
-                } catch (VizException e) {
-                    logger.debug("Error getting Available Times: "
-                            + e.getMessage());
-                    return null;
+            try {
+                availTimes = getAvailableTimes();
+                if (availTimes == null) {
+                    return new ArrayList<>();
                 }
-            }
+                availTimesList = Arrays.asList(availTimes);
 
-            // PGEN needs to display latest file, so don't display
-            // multiple available files. availTimesList is already sorted, pick
-            // the latest
-            if (rscDefn.getResourceCategory().isPgenCategory()
-                    && availTimesList.size() > 1) {
-                availTimesList = Arrays
-                        .asList(availTimes[availTimes.length - 1]);
+            } catch (VizException e) {
+                statusHandler.debug("Error getting Available Times: "
+                        + e.getMessage());
+                return null;
             }
 
         } catch (VizException e1) {
@@ -565,7 +562,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 cycleTimeMs = getResourceName().getCycleTime().getRefTime()
                         .getTime();
             }
-            ArrayList<DataTime> tmpTimesList = new ArrayList<DataTime>();
+            ArrayList<DataTime> tmpTimesList = new ArrayList<>();
 
             // Add all the forecast times for the given cycleTime.
             // (TODO: confirm that duplicate valid times (with different periods
@@ -589,7 +586,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
          * ascending order
          */
         String rscName = getResourceName().toString();
-        if (rscName != null && rscName.contains("RADAR/LocalRadar")) {
+        if ((rscName != null) && rscName.contains("RADAR/LocalRadar")) {
             Collections.sort(availTimesList);
         }
 
@@ -597,6 +594,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     // Get a list of the defined attributes for this resource and
+    @Override
     public ResourceAttrSet getRscAttrSet() {
 
         HashMap<String, ResourceParamInfo> rscImplParamInfo = rscExtPointMngr
@@ -643,18 +641,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                             // the attribute value
                             rscAttrSet.setAttrValue(paramName, attrVal);
 
-                        } catch (IllegalAccessException iae) {
-                            logger.debug(iae.getMessage());
-                        } catch (IllegalArgumentException iae) {
-                            logger.debug(iae.getMessage());
-                        } catch (InvocationTargetException ite) {
-                            logger.debug(ite.getMessage());
-                        } catch (ClassCastException cce) {
-                            logger.debug(cce.getMessage());
-                        } catch (SecurityException e) {
-                            logger.debug(e.getMessage());
-                        } catch (InstantiationException e) {
-                            logger.debug(e.getMessage());
+                        } catch (IllegalAccessException
+                                | IllegalArgumentException
+                                | InvocationTargetException
+                                | ClassCastException | SecurityException
+                                | InstantiationException e) {
+                            statusHandler.debug(e.getMessage());
                         }
                     }
                 }
@@ -666,6 +658,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     // The rscAttrSet should only contain attributes defined for this resource.
+    @Override
     public boolean setRscAttrSet(ResourceAttrSet newRscAttrSet) {
         if (newRscAttrSet == null) {
             return false;
@@ -675,7 +668,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 .getParameterInfoForRscImplementation(getResourceName());
 
         if (rscImplParamInfo == null) {
-            logger.debug("Couldn't find rsc impl parameter info for "
+            statusHandler.debug("Couldn't find rsc impl parameter info for "
                     + getResourceName());
             return false;
         }
@@ -700,7 +693,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             Class<?> attrClass = rscAttr.getAttrClass();
 
             if (attrClass != prmInfo.getParamClass()) {
-                logger.debug("Unable to set Attribute " + attrName
+                statusHandler.debug("Unable to set Attribute " + attrName
                         + " because it is defined as " + " the wrong type: "
                         + attrClass.getName() + " != "
                         + prmInfo.getParamClass().getName());
@@ -718,14 +711,9 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 if (m.getName().equals(setMthdName)) {
                     try {
                         m.invoke(this, attrValue);
-                    } catch (IllegalAccessException iae) {
-                        logger.debug(iae.getMessage());
-                    } catch (IllegalArgumentException iae) {
-                        logger.debug(iae.getMessage());
-                    } catch (InvocationTargetException ite) {
-                        logger.debug(ite.getMessage());
-                    } catch (ClassCastException cce) {
-                        logger.debug(cce.getMessage());
+                    } catch (IllegalAccessException | IllegalArgumentException
+                            | InvocationTargetException | ClassCastException e) {
+                        statusHandler.debug(e.getMessage());
                     }
 
                 }
@@ -759,6 +747,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         legendColor = legClr;
     }
 
+    @Override
     public RGB getLegendColor() {
         if (legendColor == null) {
             legendColor = new RGB(255, 255, 255);
@@ -769,7 +758,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     @Override
     public boolean equals(Object obj) {
 
-        if (obj == null || !super.equals(obj)) {
+        if ((obj == null) || !super.equals(obj)) {
             return false;
         }
 
@@ -779,8 +768,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
         AbstractNatlCntrsRequestableResourceData other = (AbstractNatlCntrsRequestableResourceData) obj;
 
-        if ((legendColor == null && other.legendColor != null)
-                || (legendColor != null && other.legendColor == null)) {
+        if (((legendColor == null) && (other.legendColor != null))
+                || ((legendColor != null) && (other.legendColor == null))) {
             return false;
         }
         if (!legendColor.toString().equals(other.legendColor.toString())) {
@@ -789,8 +778,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         if (isEdited != other.isEdited) {
             return false;
         }
-        if ((resourceName == null && other.resourceName != null)
-                || (resourceName != null && other.resourceName == null)) {
+        if (((resourceName == null) && (other.resourceName != null))
+                || ((resourceName != null) && (other.resourceName == null))) {
             return false;
         }
         if (!resourceName.toString().equals(other.resourceName.toString())) {
@@ -815,9 +804,9 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         ResourceAttrSet thisAttrSet = this.getRscAttrSet();
         ResourceAttrSet otherAttrSet = other.getRscAttrSet();
 
-        if (thisAttrSet == null && otherAttrSet != null) {
+        if ((thisAttrSet == null) && (otherAttrSet != null)) {
             return false;
-        } else if (thisAttrSet != null && otherAttrSet == null) {
+        } else if ((thisAttrSet != null) && (otherAttrSet == null)) {
             return false;
         } else if (thisAttrSet != null) {
             return thisAttrSet.equals(otherAttrSet);

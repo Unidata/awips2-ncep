@@ -34,6 +34,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 10/25/11      #467       Greg Hull    add Replace Resource 
  * 02/22/13      #972       G. Hull      Only show resources for given NcDisplayType
  * 07/23/14        ?        B. Hebbard   Use custom selection control for NTRANS
+ * 01/14/2016    R12859     A. Su        Added to clean up data when the dialog is closed.
  * 
  * </pre>
  * 
@@ -47,8 +48,6 @@ public class ResourceSelectionDialog extends Dialog {
 
     private Point dlgLocation = null;
 
-    private boolean replaceEnabled = false;
-
     private ResourceSelectionControl sel_rsc_cntrl = null;
 
     private Set<IResourceSelectedListener> rscSelListeners = new HashSet<IResourceSelectedListener>();
@@ -57,29 +56,22 @@ public class ResourceSelectionDialog extends Dialog {
         super(parShell);
     }
 
-    Boolean replaceBtnVisible;
-
-    Boolean replaceBtnEnabled;
-
     ResourceName initRscName;
 
     public Object open(Boolean replaceVisible, Boolean replaceEnabled,
             ResourceName initRsc, Boolean multiPane, NcDisplayType dispType,
             int style) {
 
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
         initRscName = initRsc;
 
-        String title = (replaceBtnVisible ? "Replace Resource" : "Add Resource");
-        title = "Select New Resource";
+        String title = "Add Resource";
+        title = "Add Resource";
 
         Shell parent = getParent();
         Display display = parent.getDisplay();
 
         shell = new Shell(parent, style);
         shell.setText(title);
-        shell.setSize( 800, 520 ); // pack later
 
         GridLayout mainLayout = new GridLayout(1, true);
         mainLayout.marginHeight = 1;
@@ -88,7 +80,6 @@ public class ResourceSelectionDialog extends Dialog {
         shell.setLayout(mainLayout);
 
         Group sel_rscs_grp = new Group(shell, SWT.SHADOW_NONE);
-        //sel_rscs_grp.setText("Select Resources");
         sel_rscs_grp.setLayout(new GridLayout(1, true));
 
         GridData gd = new GridData();
@@ -101,11 +92,11 @@ public class ResourceSelectionDialog extends Dialog {
         try {
             if (dispType == NcDisplayType.NTRANS_DISPLAY) {
                 sel_rsc_cntrl = new NtransSelectionControl(sel_rscs_grp,
-                        replaceBtnVisible, replaceBtnEnabled, initRscName,
+                        false, false, initRscName,
                         multiPane, dispType);
             } else {
                 sel_rsc_cntrl = new ResourceSelectionControl(sel_rscs_grp,
-                        replaceBtnVisible, replaceBtnEnabled, initRscName,
+                		false, false, initRscName,
                         multiPane, dispType);
             }
         } catch (VizException e) {
@@ -127,6 +118,7 @@ public class ResourceSelectionDialog extends Dialog {
 
         can_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
+                sel_rsc_cntrl.cleanup();
                 shell.dispose();
             }
         });
@@ -145,11 +137,10 @@ public class ResourceSelectionDialog extends Dialog {
             shell.setSize(1000, 300);
         }
 
-        //shell.pack();
+        shell.pack();
         if (dispType == NcDisplayType.NTRANS_DISPLAY) {
             shell.setSize(1000, 600);
         }
-        shell.setSize(1000, 600);
         shell.open();
 
         while (!shell.isDisposed()) {
@@ -157,8 +148,6 @@ public class ResourceSelectionDialog extends Dialog {
                 display.sleep();
             }
         }
-
-        // dlgLocation = shell.getLocation();
 
         return null;
     }
@@ -179,19 +168,12 @@ public class ResourceSelectionDialog extends Dialog {
         rscSelListeners.add(lstnr);
     }
 
-    // this isn't necessary if we remove the 'Replace' (Modify) button from
-    // Create Rbd
-    // and have it on the Select Resource instead.
-    //
-    public boolean replaceOptionEnabled() {
-        return replaceEnabled;
-    }
-
     public boolean isOpen() {
         return shell != null && !shell.isDisposed();
     }
 
     public void close() {
+        sel_rsc_cntrl.cleanup();
         shell.dispose();
     }
 

@@ -45,6 +45,7 @@ import com.sun.jna.ptr.PointerByReference;
  * 08/25/09		150			M. Li		initial creation
  * 10/05/10		317			X. Guo		Create loop management to
  *                                      handle all three loop options
+ * 01/19/2016    5054       randerso    Remove dummy shell
  * </pre>
  * 
  * @author 
@@ -376,7 +377,7 @@ public class AODTHistFileMngDialog extends Dialog {
     }
     
     private void messageBox(String msg) {
-    	MessageBox messageBox = new MessageBox(new Shell(),
+    	MessageBox messageBox = new MessageBox(shell,
                 SWT.ICON_WARNING | SWT.OK);
         messageBox.setText("Message");
         messageBox.setMessage(msg);

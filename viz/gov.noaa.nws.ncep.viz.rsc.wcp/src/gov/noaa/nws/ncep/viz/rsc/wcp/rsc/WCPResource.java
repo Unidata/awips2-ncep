@@ -48,6 +48,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      process WCPData as the IRscDataObj
  *  10/05/11                X. Guo      Make changes to display WCP
  *  05/23/2012     785      Q. Zhou    Added getName for legend.                                    
+ * 11/05/2015     5070      randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author mli 
@@ -190,7 +191,7 @@ public class WCPResource extends AbstractNatlCntrsResource<WCPResourceData, NCMa
 
     public void initResource( IGraphicsTarget grphTarget) throws VizException {
     	font = grphTarget.initializeFont("Monospace", 
-    			     14, new IFont.Style[] { IFont.Style.BOLD });
+    			     12, new IFont.Style[] { IFont.Style.BOLD });
     	queryRecords();
     }
 

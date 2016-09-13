@@ -81,6 +81,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date          Ticket#    Engineer    Description
  * ------------  ---------- ----------- --------------------------
  * May 5, 2014   1122       sgurung     Initial creation
+ * Nov 5, 2015   5070       randerso    Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -590,7 +591,7 @@ public class GeoMagWorldActivityResource extends
 
             font = target.initializeFont(
                     "Monospace",
-                    (float) (12 * getCapabilities()
+                    (float) (10 * getCapabilities()
                             .getCapability(resourceData,
                                     MagActivityCapability.class)
                             .getMarkerTextSize().getSoftwareSize()), null);

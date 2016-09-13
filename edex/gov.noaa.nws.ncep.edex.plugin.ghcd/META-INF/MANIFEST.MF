@@ -20,5 +20,4 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.12.1174",
  com.raytheon.uf.common.dataplugin.level;bundle-version="1.12.1174",
  com.raytheon.uf.common.pointdata;bundle-version="1.12.1174",
  com.raytheon.uf.edex.pointdata;bundle-version="1.12.1174",
- org.apache.commons.io;bundle-version="2.4.0",
- org.junit
+ org.apache.commons.io;bundle-version="2.4.0"

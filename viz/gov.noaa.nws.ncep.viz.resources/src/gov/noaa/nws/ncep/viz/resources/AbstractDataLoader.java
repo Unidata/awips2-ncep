@@ -15,6 +15,8 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -40,6 +42,8 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * 03/07/2016   R10155      B Hebbard   In order to handle auto-update fully,
  *                                      move update-related code here from 
  *                                      AbstractNatlCntrsResource2.
+ * 04/13/2016   R15954      S Russell   Added a statusHandler to use for all
+ *                                      child classes
  * 
  * </pre>
  * 
@@ -47,6 +51,12 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * @version 1
  */
 public abstract class AbstractDataLoader implements IDataLoader {
+
+    /**
+     * Use this for all child classes
+     */
+    protected static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(AbstractDataLoader.class);
 
     /**
      * The resource associated with this data loader.
@@ -95,9 +105,9 @@ public abstract class AbstractDataLoader implements IDataLoader {
      * Constructor
      */
     public AbstractDataLoader() {
-        autoUpdateCache = new ArrayList<IRscDataObject>();
-        newFrameTimesList = new ArrayList<DataTime>();
-        newRscDataObjsQueue = new ConcurrentLinkedQueue<IRscDataObject>();
+        autoUpdateCache = new ArrayList<>();
+        newFrameTimesList = new ArrayList<>();
+        newRscDataObjsQueue = new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -144,7 +154,7 @@ public abstract class AbstractDataLoader implements IDataLoader {
     }
 
     @Override
-    public void setResource(AbstractNatlCntrsResource2 resource) {
+    public void setResource(AbstractNatlCntrsResource2<?, ?> resource) {
         this.resource = resource;
     }
 
@@ -156,7 +166,7 @@ public abstract class AbstractDataLoader implements IDataLoader {
      */
     public void queryRecords() throws VizException {
 
-        HashMap<String, RequestConstraint> queryList = new HashMap<String, RequestConstraint>(
+        HashMap<String, RequestConstraint> queryList = new HashMap<>(
                 resourceData.getMetadataMap());
 
         queryRecords(queryList);
@@ -354,8 +364,7 @@ public abstract class AbstractDataLoader implements IDataLoader {
 
         // Loop through all of the times in the frameDataMap, and if the time is
         // not in the new frameTimes, then remove the frame from the map.
-        ArrayList<Long> frameTimesInMap = new ArrayList<Long>(
-                frameDataMap.keySet());
+        ArrayList<Long> frameTimesInMap = new ArrayList<>(frameDataMap.keySet());
 
         for (long frameTimeMs : frameTimesInMap) {
             if (!newFrameTimes.contains(new DataTime(new Date(frameTimeMs)))) {

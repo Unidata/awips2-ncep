@@ -12,6 +12,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
@@ -77,7 +78,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    10/29/13       #2491     bsteffen    Use custom JAXB context instead of SerializationUtil.
  *    05/15/2014     #1131     Quan Zhou   Added GRAPH_DISPLAY.
  *    05/24/14       R4078     S. Gurung   Added NMAP_RTKP_WORLD_DISPLAY in getDefaultRBD().
- *    11/12/2015       R8829     B. Yin      Sort resources in RBD by rendering order.
+ *    11/12/2015     R8829     B. Yin      Sort resources in RBD by rendering order.
+ *    03/10/2016     R16237    B. Yin      Get dominant resource within a group resource.
  * 
  * </pre>
  * 
@@ -756,21 +758,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
             // loop thru the displays looking for the dominant resource
             for (T disp : getDisplays()) {
-                ResourceList rl = disp.getDescriptor().getResourceList();
-                for (int r = 0; r < rl.size(); r++) {
-                    ResourcePair rp = rl.get(r);
-                    if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rp
-                                .getResourceData();
-
-                        if (domRscName.toString().equals(
-                                rdata.getResourceName().toString())) {
-
-                            timeMatcher.setDominantResourceData(rdata);
-                            return;
-                        }
-                    }
-                }
+                setDominantResourceData( disp.getDescriptor().getResourceList(), domRscName );
             }
         }
 
@@ -793,5 +781,26 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return rbdSequence - rbd.rbdSequence;
         }
     }
-
+    
+    /**
+     * Sets the dominant resource data from a resource list.
+     * @param rscList - a resource list.
+     * @param domRscName - name of the dominant resource.
+     */
+    private void setDominantResourceData( ResourceList rscList, ResourceName domRscName ){
+        for ( ResourcePair rscPair : rscList ) {
+            if ( rscPair.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData ) {
+                AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rscPair
+                    .getResourceData();
+                if ( domRscName.toString().equals( rdata.getResourceName().toString() ) ) {
+                    timeMatcher.setDominantResourceData( rdata );
+                    return;
+                }
+            }
+            else  if ( rscPair.getResourceData() instanceof GroupResourceData ) {
+                setDominantResourceData(((GroupResourceData)rscPair.getResourceData()).getResourceList(), domRscName);
+            }
+        }
+    
+    }
 }

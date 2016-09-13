@@ -89,7 +89,7 @@ public class RenameRbdDialog extends Dialog {
         Composite topComp = new Composite( shell, SWT.NONE );
         topComp.setLayout(new FormLayout() );
 
-        FormData fd = new FormData( 350, 160 );
+        FormData fd = new FormData( 350, 140 );
         fd.top = new FormAttachment( 0, 0 );
         fd.left  = new FormAttachment( 0, 0 );
         fd.right = new FormAttachment( 100, 0 );
@@ -101,19 +101,11 @@ public class RenameRbdDialog extends Dialog {
         newRbdNameText.setSelection(0, rbdToRename.getRbdName().length() );
         
         fd = new FormData();
-        fd.top = new FormAttachment( 0, 50);
+        fd.top = new FormAttachment( 0, 20);
         fd.left  = new FormAttachment( 0, 25 );
         fd.right = new FormAttachment( 100, -25 );
 
         newRbdNameText.setLayoutData( fd );
-
-        Label newRbdNameLabel = new Label(topComp, SWT.NONE); 
-        newRbdNameLabel.setText("Enter New Bundle Name:");
-
-        fd = new FormData();
-        fd.bottom = new FormAttachment( newRbdNameText, -3, SWT.TOP );
-        fd.left  = new FormAttachment( newRbdNameText, 0, SWT.LEFT );
-        newRbdNameLabel.setLayoutData( fd );
 
         Label sep = new Label( topComp, SWT.SEPARATOR | SWT.HORIZONTAL );
        	fd = new FormData();
@@ -188,7 +180,7 @@ public class RenameRbdDialog extends Dialog {
 
     	if( !SpfsManager.getInstance().isValidRbdName( newRbdName ) ) {
     		MessageBox mb = new MessageBox(myShell, SWT.ICON_ERROR);
-    		mb.setMessage("Invalid Bundle name.");
+    		mb.setMessage("Invalid RBD name.");
     		mb.setText("Error");
     		mb.open();
     		return;

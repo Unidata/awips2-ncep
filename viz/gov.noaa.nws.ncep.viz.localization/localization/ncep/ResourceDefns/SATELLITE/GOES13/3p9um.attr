@@ -1,0 +1,8 @@
+colorMapName=lingray
+colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
+imageTypeId=SWIR_3p9um
+displayUnitStr=C
+alpha=1.0
+brightness=1.0
+contrast=1.0
+legendString= {RD} {channel}

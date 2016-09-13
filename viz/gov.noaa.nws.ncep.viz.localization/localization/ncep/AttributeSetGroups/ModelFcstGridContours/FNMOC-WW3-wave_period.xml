@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+	<attrSetGroupName>wave_period</attrSetGroupName>
+	<resource>FNMOC-WW3</resource>
+	<attrSetLabels>
+		<attrSetLabel>
+			<name>peak_swell_per_fill_fnmoc</name>
+			<alias>peak_swell_per_fill</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>peak_swell_per_grid_fnmoc</name>
+			<alias>peak_swell_per_grid</alias>
+		</attrSetLabel>
+	</attrSetLabels>
+</AttributeSetGroup>
+

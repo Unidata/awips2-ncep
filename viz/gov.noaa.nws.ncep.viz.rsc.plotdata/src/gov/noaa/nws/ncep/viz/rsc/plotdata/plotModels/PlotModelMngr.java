@@ -23,7 +23,6 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -336,7 +335,7 @@ public class PlotModelMngr {
                 }
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch ( LocalizationException e ) {
             throw new VizException("Error Deleting PlotModel, " + pltMdlName
                     + ", for plugin, " + pluginName + "\n" + e.getMessage());
         }

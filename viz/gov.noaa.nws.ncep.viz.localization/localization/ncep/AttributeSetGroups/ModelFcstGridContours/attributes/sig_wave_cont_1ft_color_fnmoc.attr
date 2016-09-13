@@ -1,0 +1,25 @@
+!
+! Restore File : sig_wave_cont_1ft_color
+!
+! Log:
+! M.Mainelli/TPC     09/2004  Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0
+GDPFUN = mask(mul(HTSGW,3.28),sea) ! ! ! ! ! ! ! ! ! ! ! ! ! !
+TYPE   = c
+CINT   = 1/1/3 ! 1/4/6 ! 1/7/9 ! 1/10/12 ! 1/13/15 ! 1/16/18 ! 1/19/21 ! 1/22/24 ! 1/25/27 ! 1/28/30 ! 1/31/33 ! 1/34/36 ! 8/8/8 ! 12/12/12
+LINE   = 6/1/1/1 ! 26 ! 25 ! 24 ! 3 ! 22 ! 20 ! 18 ! 17 ! 8 ! 15 ! 30 !  7/1/3/1 ! 2/1/3/1
+FINT   = 
+FLINE  = 0
+HILO   = 0
+HLSYM  = 0
+WIND   = 
+TITLE  = 5/-2/?~^  COLOR CNTR SIG WAVE HEIGHT (FT)!0
+TEXT   = 1.3/21/1/hw
+COLORS = 2
+MARKER = 0
+GRDLBL = 0
+FILTER = yes

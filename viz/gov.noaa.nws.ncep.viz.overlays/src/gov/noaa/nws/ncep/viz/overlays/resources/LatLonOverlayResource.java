@@ -42,6 +42,9 @@ import com.vividsolutions.jts.geom.LineString;
  *   Nov 05, 2015 10436      njensen     Major cleanup and optimization
  *   02/17/16    #13554      dgilling    Implement IStaticDataNatlCntrsResource.
  * 
+ *   07/28/2014  #3397       vbclement   switched to non deprecated version of createWireframeShape()
+ *                                          removed unneeded clearCoodrinatePointArrayList() method
+ *   11/05/2015  #5070       randerso    Adjust font sizes for dpi scaling
  * </pre>
  * 
  * @author mgao

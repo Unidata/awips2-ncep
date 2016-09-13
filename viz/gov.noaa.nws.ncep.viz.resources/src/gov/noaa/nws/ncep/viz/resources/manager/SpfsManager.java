@@ -21,7 +21,7 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -37,9 +37,9 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/24/10		  #226		Greg Hull    Break out from NmapCommon
+ * Date         Ticket#     Engineer     Description
+ * ------------ ----------  -----------  --------------------------
+ * 02/24/10       #226      Greg Hull    Break out from NmapCommon
  * 03/04/10       #226      Greg Hull    special case for PGEN
  * 06/22/10       #273      Greg Hull    move some methods to ResourceDefnsMngr
  * 07/28/11       #450      Greg Hull    split out Predefined Areas methods and
@@ -57,15 +57,19 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 07/22/12       #568      Greg Hull    return Rbds and rbdNames sorted by seq num.
  * 02/10/13       #972      Greg Hull    changed to work with AbstractRbds
  * 05/19/13       #1001     Greg Hull    getRbdsFromSpf(), trap RBD errors
- * 03/06/14	       ?		B. Yin		 Replaced SerializationUtil with JAXBManager.
+ * 03/06/14       ?         B. Yin       Replaced SerializationUtil with JAXBManager.
  * 03/25/15                 B. Hebbard   Reformat only, to code standards
  * 03/25/15       R4983     B. Hebbard   In saveRbdToSpf(..), if saving cycle times as
  *                                       LATEST, apply to dominant resource name too;
  *                                       also fix save to resourceNameToCycleTimeMap to use
  *                                       as key resourceName after modification.
+ * 12/09/15        4834     njensen      Updated for LocalizationFile.delete() signature
+ * 
  * 06/23/15       R6821     J. Bernier   Added overloaded getRbdsFromSpf method
  *                                       to allow passing rbd name for blender.
  * 03/01/16       R6821     K.Bugenhagen Cleanup: mostly changed sysout statements to IUFStatusHandler
+ * 06/28/2016     R17025    S.Russell    Removed else clause for updates in 
+ *                                       fileUpdated() method.
  * </pre>
  * 
  * @author
@@ -81,10 +85,6 @@ public class SpfsManager implements ILocalizationFileObserver {
     // Might not want to rely on these counts for anything critical.
 
     private static long rbdCount = 0;
-
-    private static long spfCount = 0;
-
-    private static long spfGrpCount = 0;
 
     // TODO : do we want to store the NcMapRBD or just the LocalizationFile
     // (Store the NcMapRBD but don't give it out unless we are making a copy
@@ -105,7 +105,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     private void findAvailSpfs() {
 
-        spfsMap = new TreeMap<String, Map<String, Map<String, AbstractRBD<?>>>>();
+        spfsMap = new TreeMap<>();
 
         // This will find all the directories for SPFs and SPF groups as well
         // as the RBDs
@@ -166,7 +166,6 @@ public class SpfsManager implements ILocalizationFileObserver {
             if (!spfsMap.containsKey(grpName)) {
                 spfsMap.put(grpName,
                         new TreeMap<String, Map<String, AbstractRBD<?>>>());
-                spfGrpCount++;
             }
         }
     }
@@ -181,7 +180,6 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             if (!grpMap.containsKey(spfName)) {
                 grpMap.put(spfName, new TreeMap<String, AbstractRBD<?>>());
-                spfCount++;
             }
         }
     }
@@ -274,9 +272,7 @@ public class SpfsManager implements ILocalizationFileObserver {
             throw new VizException("SPF " + spfName + " doesn't exist.");
         }
 
-        List<AbstractRBD<?>> clonedRbsList = new ArrayList<AbstractRBD<?>>();
-
-        int r = 0;
+        List<AbstractRBD<?>> clonedRbsList = new ArrayList<>();
 
         for (AbstractRBD<?> rbd : sMap.values()) {
 
@@ -292,8 +288,6 @@ public class SpfsManager implements ILocalizationFileObserver {
                     // NoData.
                 }
                 clonedRbsList.add(clonedRBD);
-                r++;
-                // }
             } catch (VizException ve) {
                 // Print a msg but still return other good rbds in the spf
                 statusHandler.handle(Priority.PROBLEM, "Error cloning RBD: "
@@ -306,7 +300,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         Arrays.sort(rbdsList);
 
         // Make a copy to allow the user to modify the list.
-        return new ArrayList<AbstractRBD<?>>(Arrays.asList(rbdsList));
+        return new ArrayList<>(Arrays.asList(rbdsList));
     }
 
     // TODO : decide what is/isn't a valid rbd name ...
@@ -443,7 +437,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         //
         // TODO : do we still have to do this now that we can clone the RBDs?
         //
-        Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<String, DataTime>();
+        Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<>();
         if (!saveCycleTime) {
             for (AbstractRenderableDisplay display : rbd.getDisplays()) {
                 for (ResourcePair rp : display.getDescriptor()
@@ -487,7 +481,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             lFile.addFileUpdatedObserver(this);
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         } catch (JAXBException e) {
             throw new VizException(e);
@@ -555,11 +549,8 @@ public class SpfsManager implements ILocalizationFileObserver {
         // Note that this will trigger the fileUpdated which will remove the
         // group from the map.
         try {
-            if (!groupLocDir.delete()) {
-                throw new VizException("Error deleting file:"
-                        + groupLocDir.getFile().getAbsolutePath());
-            }
-        } catch (LocalizationOpFailedException e) {
+            groupLocDir.delete();
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -583,7 +574,6 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     public Boolean isUserLevelSpf(String spfGroup, String spfName) {
         try {
-            LocalizationContext spfCntx = getSpfContext(spfGroup, spfName);
 
             for (AbstractRBD<?> rbd : getRbdsFromSpf(spfGroup, spfName, false)) {
                 // TODO : should we look for the File if the LocalizationFile is
@@ -637,12 +627,6 @@ public class SpfsManager implements ILocalizationFileObserver {
                 delSpfName, false);
 
         for (AbstractRBD<?> delRbd : existingRbds) {
-            // Check to see if this RBD supercedes a SITE or DESK level RBD
-            // LocalizationFile rbdLocFiles[] =
-            // NcPathManager.getInstance().getTieredLocalizationFile(
-            // NcPathConstants.SPFS_DIR + File.separator + spfGroup +
-            // File.separator + delSpfName+File.separator+rbd.getR );
-
             deleteRbd(delRbd);
         }
 
@@ -658,7 +642,7 @@ public class SpfsManager implements ILocalizationFileObserver {
             } catch (InterruptedException e) {
             }
 
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
     }
@@ -678,7 +662,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         // remove the Rbd from the map.
         try {
             lFile.delete();
-        } catch (LocalizationOpFailedException e) {
+        } catch (LocalizationException e) {
             throw new VizException(e);
         }
 
@@ -781,14 +765,19 @@ public class SpfsManager implements ILocalizationFileObserver {
         FileChangeType chgType = message.getChangeType();
         LocalizationContext chgContext = message.getContext();
 
-        // TODO : need to handle the UPDATED cases
-        //
         LocalizationFile lFile = NcPathManager.getInstance()
                 .getLocalizationFile(chgContext, chgFile);
         String[] dirsf = chgFile.split(File.separator);
 
+        // The actual adding and updating of data to the files takes place
+        // in raytheon...localization.LocalizationManager.upload()
+        // there is no need here to process FileUpdatedMessage for updates.
+        // That processing/this method also belongs to a deprecated interface.
+
         try {
+            // File Added
             if (chgType == FileChangeType.ADDED) {
+
                 if (!chgFile.endsWith(".xml")) {
                     statusHandler.handle(Priority.PROBLEM,
                             "Non-xmlfile found under SPFs dir:" + chgFile);
@@ -800,16 +789,11 @@ public class SpfsManager implements ILocalizationFileObserver {
                     rbd.setLocalizationFile(lFile);
                     addRbd(dirsf[2], dirsf[3], rbd);
                 }
-            } else if (chgType == FileChangeType.DELETED) {
-
+            } // File Deleted
+            else if (chgType == FileChangeType.DELETED) {
                 removeEntryByFile(lFile);
             }
-            // TODO
-            else if (chgType == FileChangeType.UPDATED) {
-                statusHandler
-                        .handle(Priority.PROBLEM,
-                                "SpfsManager recieved FileUpdated msg but not handleing");
-            }
+
         } catch (VizException e) {
             statusHandler.handle(Priority.PROBLEM, "Error unmarshalling rbd: "
                     + chgFile + "\n" + e.getMessage());

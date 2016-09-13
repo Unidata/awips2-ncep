@@ -55,6 +55,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * Dec 03, 2013 2551            rjpeter     Remove get/setPersistenceTime
  * Feb 11, 2014 2784            rferrel     Remove override of setIdentifier.
  * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
+ * Aug 03, 2015 4360            rferrel     Name unique constraint.
  * 
  * 
  * </pre>
@@ -66,7 +67,7 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "ncuairseq")
-@Table(name = "ncuair", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
+@Table(name = "ncuair", uniqueConstraints = { @UniqueConstraint(name = "uk_ncuair_datauri_fields", columnNames = { "dataURI" }) })
 /*
  * Both refTime and forecastTime are included in the refTimeIndex since
  * forecastTime is unlikely to be used.

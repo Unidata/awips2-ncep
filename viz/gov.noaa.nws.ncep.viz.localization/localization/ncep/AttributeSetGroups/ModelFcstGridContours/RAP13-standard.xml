@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<<<<<<< HEAD
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
     <resource>RAP13</resource>
     <attrSetGroupName>standard</attrSetGroupName>
@@ -273,10 +274,22 @@
               <alias></alias>
          </attrSetLabel>
 		 <attrSetLabel>
+=======
+<AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
+    <resource>RAP13</resource>
+    <attrSetGroupName>standard</attrSetGroupName>
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>500mb_hght_tmpc_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+>>>>>>> origin/unidata_16.2.2-n
               <name>1000-500_thkn</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
+<<<<<<< HEAD
               <name>bl_1000mb_temp</name>
               <alias></alias>
          </attrSetLabel>
@@ -290,6 +303,13 @@
          </attrSetLabel>
 		 <attrSetLabel>
               <name>1000mb_hght_absv</name>
+=======
+              <name>1000-850_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>1000mb_hght_tmp_wind</name>
+>>>>>>> origin/unidata_16.2.2-n
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
@@ -297,6 +317,7 @@
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
+<<<<<<< HEAD
               <name>850mb_hght_absv</name>
               <alias></alias>
          </attrSetLabel>
@@ -466,6 +487,77 @@
          </attrSetLabel>
          <attrSetLabel>
               <name>pmsl_thkn</name>
+=======
+              <name>500mb_hght_absv_wnd</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_color</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_rh_rs_temp_nam</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850-700_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>simulated_radar</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>1000-500_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>1000-850_thkn</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>1000mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_hght_tmp_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_hght_tmp_wind</name>
+>>>>>>> origin/unidata_16.2.2-n
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

@@ -12,19 +12,18 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.tools;bundle-version="1.0.0",
  gov.noaa.nws.ncep.gempak.parameters;bundle-version="1.0.0",
  gov.noaa.nws.ncep.gempak.parameters.core;bundle-version="1.0.0",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",
  com.raytheon.viz.ui;bundle-version="1.11.22",
  com.raytheon.uf.common.colormap,
  com.raytheon.viz.grid,
  com.raytheon.uf.viz.core.grid,
  gov.noaa.nws.ncep.viz.ui.display;bundle-version="1.0.0",
- gov.noaa.nws.ncep.common.log;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.gempak;bundle-version="1.0.0",
  gov.noaa.nws.ncep.viz.gempak.nativelib;bundle-version="1.0.0",
  com.raytheon.uf.common.style;bundle-version="1.0.0",
  com.raytheon.uf.common.numeric;bundle-version="1.14.0",
  org.apache.commons.lang;bundle-version="2.3.0",
- gov.noaa.nws.ncep.common.dataplugin.ncgrib
+ gov.noaa.nws.ncep.common.dataplugin.ncgrib,
+ org.slf4j;bundle-version="1.7.5"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
@@ -36,5 +35,5 @@ Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.viz.core.contours.util,
  com.sun.jna,
  com.sun.jna.ptr,
- gov.noaa.nws.ncep.common.log.logger,
+ gov.noaa.nws.ncep.common.tools,
  gov.noaa.nws.ncep.viz.gempak.grid.units

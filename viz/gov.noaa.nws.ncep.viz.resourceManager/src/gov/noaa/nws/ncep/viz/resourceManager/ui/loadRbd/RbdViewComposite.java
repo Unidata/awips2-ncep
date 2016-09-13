@@ -75,7 +75,6 @@ public class RbdViewComposite extends Composite {
         rscLviewer.getList().setBackground(parent.getBackground());
 
         rbdNameLabel = new Label(topComp, SWT.NONE);
-        rbdNameLabel.setText("View RBD");
         fd = new FormData();
         fd.bottom = new FormAttachment(rscLviewer.getList(), -3, SWT.TOP);
         fd.left = new FormAttachment(rscLviewer.getList(), 0, SWT.LEFT);

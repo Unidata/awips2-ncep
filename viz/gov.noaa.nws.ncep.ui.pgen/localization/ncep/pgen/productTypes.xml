@@ -605,7 +605,7 @@
         <ns3:PgenLayer Name="CONV" OnOff="false" MonoColor="false" Filled="false">
             <ns3:Color blue="0" red="255" green="255" alpha="255"/>
         </ns3:PgenLayer>
-        <ns3:PgenSave outputFile="SIGWX_High.North.09092011.12.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_High.North.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="SIGWX High" Subtype="South">
         <ns3:PgenControls>
@@ -687,7 +687,7 @@
         <ns3:PgenLayer Name="CONV" OnOff="false" MonoColor="false" Filled="false">
             <ns3:Color blue="0" red="255" green="255" alpha="255"/>
         </ns3:PgenLayer>
-        <ns3:PgenSave outputFile="SIGWX_High.South.09092011.12.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_High.South.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="SIGWX High" Subtype="Final">
         <ns3:PgenControls>
@@ -769,7 +769,7 @@
         <ns3:PgenLayer Name="CONV" OnOff="false" MonoColor="false" Filled="false">
             <ns3:Color blue="0" red="255" green="255" alpha="255"/>
         </ns3:PgenLayer>
-        <ns3:PgenSave outputFile="SIGWX_High.Final.09092011.12.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_High.Final.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="SIGWX High" Subtype="Ukmet Final">
         <ns3:PgenControls>
@@ -851,7 +851,7 @@
         <ns3:PgenLayer Name="CONV" OnOff="false" MonoColor="false" Filled="false">
             <ns3:Color blue="0" red="255" green="255" alpha="255"/>
         </ns3:PgenLayer>
-        <ns3:PgenSave outputFile="SIGWX_High.Ukmet_Final.09092011.13.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_High.Ukmet_Final.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="Exeter SIGWX High" Subtype="None">
         <ns3:PgenControls>
@@ -1343,7 +1343,7 @@
                 <ns3:Name>Hash</ns3:Name>
             </ns3:PgenObjects>
         </ns3:PgenClass>
-        <ns3:PgenSave outputFile="SIGWX_Medium.Working.14092011.10.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_Medium.Working.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="SIGWX Medium" Subtype="Ukmet Working">
         <ns3:PgenControls>
@@ -1414,7 +1414,7 @@
                 <ns3:Name>Hash</ns3:Name>
             </ns3:PgenObjects>
         </ns3:PgenClass>
-        <ns3:PgenSave outputFile="SIGWX_Medium.Ukmet_Working.14092011.10.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
+        <ns3:PgenSave outputFile="SIGWX_Medium.Ukmet_Working.DDMMYYYY.HH.xml" saveLayers="false" autoSave="true" autoSaveFreq="5"/>
     </ns3:ProductType>
     <ns3:ProductType Name="" Type="Exeter SIGWX Medium" Subtype="None">
         <ns3:PgenControls>

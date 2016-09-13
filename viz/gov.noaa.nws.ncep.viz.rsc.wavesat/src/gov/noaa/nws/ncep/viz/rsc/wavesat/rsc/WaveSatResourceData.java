@@ -41,6 +41,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                       as well as the renaming of
  *                                       AbstractWaveSatResource to just
  *                                       WaveSatResource
+ *  11/05/2015    5070      randerso     Adjust font sizes for dpi scaling
  * 
  * </pre>
  * 
@@ -74,7 +75,7 @@ public class WaveSatResourceData extends
     private String fontName = "Times";
 
     @XmlElement
-    private Integer fontSize = 12;
+    private Integer fontSize = 10;
 
     @XmlElement
     private String latParam = null;

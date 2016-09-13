@@ -136,7 +136,7 @@ public class ManageSpfControl extends Composite {
     
     private List<AbstractRBD<?>> seldRbdsList = null; // RBDs to 
 
-    private Point initDlgSize = new Point( 850, 860 );
+    private Point initDlgSize = new Point( 1050, 860 );
 
 	public ManageSpfControl(Composite parent) {
 		super(parent, SWT.NONE);
@@ -278,7 +278,7 @@ public class ManageSpfControl extends Composite {
         
         
         Label spf_name_lbl = new Label( selSpfComp, SWT.NONE);
-        spf_name_lbl.setText("Group Name");
+        spf_name_lbl.setText("Group");
        	fd = new FormData();
         fd.bottom  = new FormAttachment( createSpfNameTxt, -3, SWT.TOP );
         fd.left  = new FormAttachment( createSpfNameTxt, 0, SWT.LEFT );
@@ -348,7 +348,7 @@ public class ManageSpfControl extends Composite {
 
 		
 		addRbdsBtn = new Button( mngRbdsGrp, SWT.PUSH );
-		addRbdsBtn.setText( "Add Bundle" );
+		addRbdsBtn.setText( "Add" );
         
        	fd = new FormData(110, 30);
         fd.top = new FormAttachment( seldRbdsLviewer.getList(), 20, SWT.BOTTOM );
@@ -356,7 +356,7 @@ public class ManageSpfControl extends Composite {
         addRbdsBtn.setLayoutData( fd );
 
         renameRbdBtn = new Button( mngRbdsGrp, SWT.PUSH );
-        renameRbdBtn.setText( "Rename Bundle" );
+        renameRbdBtn.setText( "Rename" );
         
        	fd = new FormData(110, 30);
         fd.top = new FormAttachment( addRbdsBtn, 0, SWT.TOP );
@@ -365,15 +365,15 @@ public class ManageSpfControl extends Composite {
 
 
 		removeRbdsBtn = new Button( mngRbdsGrp, SWT.PUSH );
-		removeRbdsBtn.setText( "Remove Bundle" );
+		removeRbdsBtn.setText( "Remove" );
         
        	fd = new FormData(110, 30);
-        fd.top = new FormAttachment( addRbdsBtn, 15, SWT.BOTTOM );
-        fd.left  = new FormAttachment( addRbdsBtn, 0, SWT.LEFT );
+        fd.top = new FormAttachment( addRbdsBtn, 0, SWT.TOP );
+        fd.left  = new FormAttachment( renameRbdBtn, 20, SWT.RIGHT );
         removeRbdsBtn.setLayoutData( fd );
        
 		moveDownBtn = new Button( mngRbdsGrp, SWT.PUSH );
-		moveDownBtn.setText( "Move Down" );
+		moveDownBtn.setText( "Down" );
         
        	fd = new FormData(90, 30);
         fd.bottom = new FormAttachment( seldRbdsLviewer.getList(), 0, SWT.BOTTOM );
@@ -381,7 +381,7 @@ public class ManageSpfControl extends Composite {
         moveDownBtn.setLayoutData( fd );
 
 		moveUpBtn = new Button( mngRbdsGrp, SWT.PUSH );
-		moveUpBtn.setText( "Move Up" );
+		moveUpBtn.setText( "Up" );
         
        	fd = new FormData(90, 30);
         fd.bottom = new FormAttachment( moveDownBtn, -13, SWT.TOP );
@@ -675,9 +675,9 @@ public class ManageSpfControl extends Composite {
     	modifySpfNameCombo.setVisible( !createSpfSeld );
 
         spfActionBtn.setText( 
-            	(currActionBtn == modifyActionBtn ? "Save Group" : 
-            		(currActionBtn == createActionBtn ? "Create Group" : 
-            			(currActionBtn == deleteActionBtn ? "Delete Group" : "" ))));
+            	(currActionBtn == modifyActionBtn ? "Save" : 
+            		(currActionBtn == createActionBtn ? "Create" : 
+            			(currActionBtn == deleteActionBtn ? "Delete" : "" ))));
 
         spfActionBtn.setVisible( true );
         spfActionBtn.setEnabled( !createSpfSeld );
@@ -971,7 +971,7 @@ public class ManageSpfControl extends Composite {
     			throw new VizException( "No Bundles are selected" );
     		}    	
     		else if( seldSpfName.isEmpty() ) {
-    			throw new VizException( "Select a Group Name." );
+    			throw new VizException( "Select a Group." );
     		}
     		else { // check for duplicate names
     			for( AbstractRBD<?> rbd1 : seldRbdsList ) {

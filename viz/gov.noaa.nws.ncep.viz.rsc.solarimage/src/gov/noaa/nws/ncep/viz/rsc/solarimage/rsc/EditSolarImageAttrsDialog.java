@@ -9,6 +9,8 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit Solar resource attributes.
  * 
@@ -17,6 +19,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 03/06/10      #           Greg Hull    Initial Creation.
+ * 04/05/2016   R15715       dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -28,14 +31,9 @@ public class EditSolarImageAttrsDialog extends
         AbstractEditResourceAttrsInteractiveDialog {
 
     public EditSolarImageAttrsDialog(Shell parentShell,
-            INatlCntrsResourceData r, Boolean apply) {
-
-        super(parentShell, r, apply);
-        resourceData = r;
-        // TODO Auto-generated constructor stub
+            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
-
-    private INatlCntrsResourceData resourceData;
 
     private ColorBarFromColorMapAttrsEditorComposite cBarComposite = null;
 
@@ -47,7 +45,7 @@ public class EditSolarImageAttrsDialog extends
         topComp.setLayout(layout0);
 
         cBarComposite = new ColorBarFromColorMapAttrsEditorComposite(topComp,
-                SWT.NONE, resourceData);
+                SWT.NONE, rscData, capabilities);
 
         return topComp;
     }
@@ -60,7 +58,8 @@ public class EditSolarImageAttrsDialog extends
     @Override
     protected void dispose() {
         super.dispose();
-        if (cBarComposite != null)
+        if (cBarComposite != null) {
             cBarComposite.dispose();
+        }
     }
 }

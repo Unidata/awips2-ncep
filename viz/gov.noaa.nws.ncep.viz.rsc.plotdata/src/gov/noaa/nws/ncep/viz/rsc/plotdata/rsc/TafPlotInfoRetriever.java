@@ -1,7 +1,7 @@
 
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -26,7 +26,7 @@ import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
  * 11/16/2011              sgurung     Order columns by issue_time and sequenceId desc for correct time matching
  * Jul 23, 2014 3410       bclement    location changed to floats
  * Aug 08, 2014 3477       bclement    changed plot info locations to floats
- * 
+ * Aug 05, 2015 4486       rjpeter     Changed Timestamp to Date.
  * </pre>
  * 
  * @author sgurung
@@ -78,7 +78,7 @@ public class TafPlotInfoRetriever extends AbstractDbPlotInfoRetriever {
             stationInfo.stationId = "" + data[1] + "#" + data[2];
         }
         if (onlyRefTime) {
-            stationInfo.dataTime = new DataTime((Timestamp) data[4]);
+            stationInfo.dataTime = new DataTime((Date) data[4]);
         } else {
             stationInfo.dataTime = (DataTime) data[4];
         }

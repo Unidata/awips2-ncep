@@ -49,6 +49,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 12/12         #591       J. Wu       TTR343 - added default label value for some fronts.
  * 10/13         TTR768     J. Wu       Set default attributes for outlook labels (Text).
  * 12/15         R12989     P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * 05/16/2016    R18388     J. Wu       Move some constants to PgenConstant.
  * </pre>
  * 
  * @author B. Yin
@@ -61,14 +62,6 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
     private AbstractDrawableComponent prevElem;
 
     private boolean usePrevColor;
-
-    public static final String ELEM_VOLCANO = "Volcano";
-
-    public static final String ELEM_LABELSYMBOL = "labeledSymbol";
-
-    public static final String ELEM_LABELFRONT = "labeledFront";
-
-    public static final String ELEM_FRONT = "Front";
 
     public PgenTextDrawingTool() {
 
@@ -92,7 +85,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
             String param;
             if ((param = event.getParameter(PgenConstant.EVENT_LABEL)) != null) {
 
-                if (param.equalsIgnoreCase("true"))
+                if (param.equalsIgnoreCase(PgenConstant.TRUE))
                     addLabelToSymbol = true;
                 if (event.getTrigger() instanceof AbstractDrawableComponent) {
                     prevElem = (AbstractDrawableComponent) event.getTrigger();
@@ -105,7 +98,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                     } else if (prevElem.getName().equalsIgnoreCase(
                             Outlook.OUTLOOK_LABELED_LINE)
                             || prevElem.getPgenCategory().equalsIgnoreCase(
-                                    ELEM_FRONT)) {
+                                    PgenConstant.CATEGORY_FRONT)) {
                         ((TextAttrDlg) attrDlg).setBoxText(false,
                                 DisplayType.NORMAL);
                         ((TextAttrDlg) attrDlg).setFontSize(18);
@@ -147,7 +140,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
                 if ((param = event.getParameter(PgenConstant.EVENT_PREV_COLOR)) != null) {
 
-                    if (param.equalsIgnoreCase("true"))
+                    if (param.equalsIgnoreCase(PgenConstant.TRUE))
                         usePrevColor = true;
 
                     if (usePrevColor) {
@@ -156,7 +149,8 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                     }
                 }
 
-                if (prevElem.getName().equalsIgnoreCase(ELEM_VOLCANO)) {
+                if (prevElem.getName().equalsIgnoreCase(
+                        PgenConstant.TYPE_VOLCANO)) {
                     ((TextAttrDlg) attrDlg).setFontSize(18);
                     ((TextAttrDlg) attrDlg).setBoxText(true, DisplayType.BOX);
                 }
@@ -193,7 +187,6 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                         ((TextAttrDlg) attrDlg).setText(txtArray);
                         return;
                     }
-                    // return;
                 }
 
                 /*
@@ -201,7 +194,8 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                  * Wave, Outflow boundary, Dry Line, and Shear Line, need to use
                  * the default label so the client won't need to type it -
                  */
-                if (prevElem.getName().equalsIgnoreCase(ELEM_LABELFRONT)) {
+                if (prevElem.getName().equalsIgnoreCase(
+                        PgenConstant.LABELED_FRONT)) {
                     String flbl = getDefaultFrontLabel(prevElem);
                     ((TextAttrDlg) attrDlg).setText(new String[] { flbl });
                     return;
@@ -221,7 +215,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                 // exists in the HashMap, otherwise default to blank.
                 String[] textLabel;
                 if ((textLabel = AttrSettings.getInstance().getPgenTypeLabel(
-                        PgenConstant.PGENCATEGORY_TEXT)) != null) {
+                        PgenConstant.CATEGORY_TEXT)) != null) {
                     ((TextAttrDlg) attrDlg).setText(textLabel);
                     return; // for initial testing of concept
                 } else {
@@ -291,7 +285,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
                 // variables for current type tracking for label array
                 // defaults to "Text" type if not a child label.
-                String pgenTypeStr = PgenConstant.PGENCATEGORY_TEXT;
+                String pgenTypeStr = PgenConstant.CATEGORY_TEXT;
                 String[] pgenLabelArray = null;
 
                 // create an element.
@@ -307,13 +301,12 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                 // add the product to the PGEN resource and repaint.
                 if (elem != null) {
 
-                    DECollection dec = PgenSinglePointDrawingTool
-                            .getCollection();
                     if (addLabelToSymbol
                             && prevElem != null
                             && (prevElem.getName().equalsIgnoreCase(
-                                    ELEM_LABELSYMBOL) || prevElem.getName()
-                                    .equalsIgnoreCase(ELEM_VOLCANO))) {
+                                    PgenConstant.LABELED_SYMBOL) || prevElem
+                                    .getName().equalsIgnoreCase(
+                                            PgenConstant.TYPE_VOLCANO))) {
                         ((DECollection) prevElem).add(elem);
                     } else if (prevElem != null
                             && prevElem.getName().equalsIgnoreCase(
@@ -321,7 +314,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                         ((DECollection) prevElem).add(elem);
                     } else if (prevElem instanceof DECollection
                             && prevElem.getPgenCategory().equalsIgnoreCase(
-                                    ELEM_FRONT)) {
+                                    PgenConstant.CATEGORY_FRONT)) {
                         ((DECollection) prevElem).add(elem);
                     } else {
                         drawingLayer.addElement(elem);
@@ -339,20 +332,22 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
 
                     addLabelToSymbol = false;
                     usePrevColor = false;
-                    if (prevElem.getName().equalsIgnoreCase(ELEM_LABELSYMBOL)
-                            || prevElem.getName()
-                                    .equalsIgnoreCase(ELEM_VOLCANO)) {
+                    if (prevElem.getName().equalsIgnoreCase(
+                            PgenConstant.LABELED_SYMBOL)
+                            || prevElem.getName().equalsIgnoreCase(
+                                    PgenConstant.TYPE_VOLCANO)) {
                         if (prevElem.getPrimaryDE() instanceof Symbol) {
                             PgenUtil.setDrawingSymbolMode(prevElem
                                     .getPrimaryDE().getPgenCategory(), prevElem
                                     .getPgenType(), false, null);
                         } else if (prevElem.getPrimaryDE() instanceof ComboSymbol) {
-                            PgenUtil.setDrawingSymbolMode("Combo",
+                            PgenUtil.setDrawingSymbolMode(
+                                    PgenConstant.CATEGORY_COMBO,
                                     prevElem.getPgenType(), false, null);
                         }
                     } else if (prevElem instanceof DECollection
                             && prevElem.getPgenCategory().equalsIgnoreCase(
-                                    ELEM_FRONT)) {
+                                    PgenConstant.CATEGORY_FRONT)) {
                         PgenUtil.setDrawingFrontMode((Line) prevElem
                                 .getPrimaryDE());
                     } else if (prevElem.getName().equalsIgnoreCase(
@@ -408,7 +403,7 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                     if (addLabelToSymbol
                             && prevElem.getPgenCategory() != null
                             && prevElem.getPgenCategory().equalsIgnoreCase(
-                                    ELEM_FRONT)) {
+                                    PgenConstant.CATEGORY_FRONT)) {
 
                         String[] text = ((IText) attrDlg).getString();
                         if (text.length == 1) {
@@ -490,18 +485,19 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
                 if (addLabelToSymbol) {
                     addLabelToSymbol = false;
                     usePrevColor = false;
-                    if (prevElem.getName().equalsIgnoreCase(ELEM_LABELSYMBOL)) {
+                    if (prevElem.getName().equalsIgnoreCase(
+                            PgenConstant.LABELED_SYMBOL)) {
                         if (prevElem.getPrimaryDE() instanceof Symbol) {
                             PgenUtil.setDrawingSymbolMode(prevElem
                                     .getPrimaryDE().getPgenCategory(), prevElem
                                     .getPgenType(), false, null);
                         } else if (prevElem.getPrimaryDE() instanceof ComboSymbol) {
-                            PgenUtil.setDrawingSymbolMode("Combo",
+                            PgenUtil.setDrawingSymbolMode(PgenConstant.CATEGORY_COMBO,
                                     prevElem.getPgenType(), false, null);
                         }
                     } else if (prevElem instanceof DECollection
                             && prevElem.getPgenCategory().equalsIgnoreCase(
-                                    ELEM_FRONT)) {
+                                    PgenConstant.CATEGORY_FRONT)) {
                         PgenUtil.setDrawingFrontMode((Line) prevElem
                                 .getPrimaryDE());
                     } else if (prevElem.getName().equalsIgnoreCase(
@@ -528,8 +524,6 @@ public class PgenTextDrawingTool extends AbstractPgenDrawingTool {
      * Check if a point is at right or left of the line. return: 1 - right side
      * of the line -1 - left side of the line 0 - on the line
      */
-    // public static int rightOfLine( NCMapEditor mEditor, Coordinate pt, Line
-    // ln ){
     public static int rightOfLine(AbstractEditor mEditor, Coordinate pt, Line ln) {
 
         double screenPt[] = mEditor.translateInverseClick(pt);

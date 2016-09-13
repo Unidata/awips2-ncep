@@ -118,7 +118,7 @@ public class NewResourceAction extends AbstractHandler {
    			@Override
    			public void resourceSelected( ResourceName rscName, 
    								boolean replace, // ignore the replace option 
-   							    boolean addAllPanes, boolean done ) {
+   							    boolean addAllPanes ) {
    				try {
    					
    					prevSeldRscName = rscName;
@@ -215,9 +215,7 @@ public class NewResourceAction extends AbstractHandler {
 					errDlg.open();
    				}
    				 
-   				if( done ) {
-   					rscSelDlg.close(); 
-   				}
+   				rscSelDlg.close();
    			}
    		});
 

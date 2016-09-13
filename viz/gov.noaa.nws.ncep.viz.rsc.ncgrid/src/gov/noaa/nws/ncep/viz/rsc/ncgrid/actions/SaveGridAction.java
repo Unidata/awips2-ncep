@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.actions;
 
 import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResource;
@@ -32,6 +31,7 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * Date         Ticket#    Engineer     Description
  * ------------ ---------- -----------  --------------------------
  * 03/01/2016   R6821      kbugenhagen  Initial creation
+ * 04/05/2016   R15715     dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -83,7 +83,7 @@ public class SaveGridAction extends AbstractRightClickAction {
         Shell parentShell = PlatformUI.getWorkbench()
                 .getActiveWorkbenchWindow().getShell();
         SaveGridDialog sgd = new SaveGridDialog(defaultSaveInput, parentShell,
-                (INatlCntrsResourceData) gridRscData);
+                gridRscData, gridRsc.getCapabilities());
         userSaveInput = sgd.open();
 
         while (userSaveInput != null && userSaveInput instanceof SaveGridInput) {

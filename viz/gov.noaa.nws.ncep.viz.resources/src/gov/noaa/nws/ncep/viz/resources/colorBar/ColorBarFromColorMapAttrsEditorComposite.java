@@ -72,8 +72,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
-import com.raytheon.viz.core.imagery.ImageCombiner;
-import com.raytheon.viz.core.imagery.ImageCombiner.IImageCombinerListener;
 import com.raytheon.viz.ui.dialogs.colordialog.ColorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -93,6 +91,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 07/17/2012    743        Archana       Refactored the packages for 
  *                                        ColorBarAnchorLocation and ColorBarOrientation                                              
  * 02/09/2013    972        Greg Hull     ResourceCategory class
+ * 09/14/2016    3241       bsteffen      Remove combine next image checkbox.
+ * 
  * </pre>
  * 
  * @author archana
@@ -148,7 +148,6 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 	private Label alphaLabel = null;
 	private Label alphaText = null;
 	private Button interpolationChk = null;
-	private Button combineNextImage = null;
 	private AbstractEditor currEditor = null;
 	private INatlCntrsResourceData theResourceData;
 	private ResourceAttrSet resAttrSet = null;
@@ -156,13 +155,6 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 	private int defaultDialogHeight = 205;
 	private int shellWidth = 764;
 	private Shell shell = null;
-
-	private IImageCombinerListener combineNextImageListener = new IImageCombinerListener() {
-		@Override
-		public void preferenceChanged(boolean newPref) {
-			combineNextImage.setSelection(newPref);
-		}
-	};
 
 	protected Color labelColor;
 
@@ -751,35 +743,7 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 		interpolationChk.setLayoutData(gd);
 		interpolationChk.setEnabled(false);
 		interpolationChk.setGrayed(true);
-		combineNextImage = new Button(checkBoxComp, SWT.CHECK);
-		combineNextImage.setText("Combine Next Image Load");
-		gd = new GridData(SWT.LEFT, SWT.CENTER, true, true);
-		combineNextImage.setLayoutData(gd);
-		combineNextImage.setSelection(ImageCombiner.isCombineImages());
-		combineNextImage.setEnabled(false);
-		combineNextImage.setGrayed(true);
-		combineNextImage.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// Lets call our command
-				IHandlerService handlerService = (IHandlerService) PlatformUI
-						.getWorkbench().getActiveWorkbenchWindow()
-						.getService(IHandlerService.class);
-				try {
-					handlerService
-							.executeCommand(
-									"com.raytheon.uf.viz.d2d.ui.actions.imageCombination",
-									null);
-				} catch (Exception ex) {
 
-				}
-				combineNextImage.setSelection(ImageCombiner.isCombineImages());
-				if (currEditor != null)
-					currEditor.refresh();
-			}
-		});
-
-		ImageCombiner.addListener(combineNextImageListener);
 
 		brightnessScale.addSelectionListener(new SelectionAdapter() {
 

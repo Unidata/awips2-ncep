@@ -9,12 +9,6 @@
  **/
 package gov.noaa.nws.ncep.viz.rtkp.rsc;
 
-import gov.noaa.nws.ncep.viz.rtkp.KpPlotCapability;
-import gov.noaa.nws.ncep.viz.rtkp.KsPlotCapability;
-import gov.noaa.nws.ncep.viz.rtkp.util.GeoMagTimeSeriesDataException;
-import gov.noaa.nws.ncep.viz.rtkp.util.RTKpTimeSeriesZoomHandler;
-import gov.noaa.nws.ncep.viz.rtkp.util.RTKpUtil;
-
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,14 +46,20 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.core.rsc.groups.ICombinedResourceData.CombineOperation;
 import com.raytheon.uf.viz.xy.timeseries.TimeSeriesEditor;
 import com.raytheon.uf.viz.xy.timeseries.adapter.AbstractTimeSeriesAdapter;
 import com.raytheon.uf.viz.xy.timeseries.rsc.TimeSeriesResource;
 import com.raytheon.viz.core.graphing.util.GraphPrefsFactory;
 import com.raytheon.viz.core.graphing.xy.XYData;
 import com.raytheon.viz.core.graphing.xy.XYDataList;
-import com.raytheon.viz.core.rsc.ICombinedResourceData.CombineOperation;
 import com.raytheon.viz.ui.EditorUtil;
+
+import gov.noaa.nws.ncep.viz.rtkp.KpPlotCapability;
+import gov.noaa.nws.ncep.viz.rtkp.KsPlotCapability;
+import gov.noaa.nws.ncep.viz.rtkp.util.GeoMagTimeSeriesDataException;
+import gov.noaa.nws.ncep.viz.rtkp.util.RTKpTimeSeriesZoomHandler;
+import gov.noaa.nws.ncep.viz.rtkp.util.RTKpUtil;
 
 /**
  * Provides a resource for displaying RTKP time series plot.

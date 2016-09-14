@@ -1,0 +1,36 @@
+!
+! Restore File : 500mb_hght_red
+!
+! Log:
+! M.Mainelli  04/02	Initial creation
+!
+GLEVEL=  500
+GVCORD=  pres
+PANEL=   0           
+SKIP=    1
+SCALE=   -1
+GDPFUN=  sm9s(hght)
+TYPE=    c
+CONTUR=  1          
+CINT=    18
+LINE=    2/1/2/1
+FINT=    
+FLINE=   
+HILO=    
+HLSYM=             
+CLRBAR=         
+WIND=    
+REFVEC=      
+TITLE=   2/-1/?~ @ HEIGHTS
+TEXT=    1/21//hw            
+CLEAR=   yes                
+STNPLT=                  
+SATFIL=                 
+RADFIL=                
+STREAM=              
+POSN=    4          
+COLORS=  2         
+MARKER=  2        
+GRDLBL=  5                                                                       
+LUTFIL=  none
+FILTER=  yes

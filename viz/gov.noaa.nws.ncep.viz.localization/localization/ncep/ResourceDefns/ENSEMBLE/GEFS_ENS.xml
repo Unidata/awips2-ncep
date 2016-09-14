@@ -3,13 +3,8 @@
     <resourceDefnName>GEFS_ENS</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-<<<<<<< HEAD
-primaryModel=gefs
-availableModels=gefs:01,02;GFS;NAM12
-=======
 primaryModel=GEFS
 availableModels=GEFS:01,02;GFS;NAM12
->>>>>>> origin/unidata_16.2.2-n
 pluginName=grid
 GDFILE=
     </resourceParameters>

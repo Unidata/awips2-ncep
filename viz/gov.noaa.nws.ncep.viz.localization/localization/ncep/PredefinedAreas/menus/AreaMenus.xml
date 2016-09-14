@@ -13,6 +13,11 @@
     GEMPAK_SFC_STN_NAME (not implemented)
     MCIDAS_AREA_NAME : areaName is the name of an entry in the mcidas areaNames db table.
     GINI_SECTOR_ID : areaName is the name of an entry in the satellite sector_ids table. 
+    METAR_STATION_ID : areaName is the name of a 'stationId' in the common_obs_spatial db (where catalogtype=1)
+    SYNOP_STATION_ID : 'stationId' in common_obs_spatial where catalogtype=20
+ 	UAIR_STATION_ID  : 'stationId' in common_obs_spatial where catalogtype=22
+    FIXED_BOUY_ID    : 'stationId' in common_obs_spatial where catalogtype=32
+    CMAN_STATION_ID  : 'stationId' in common_obs_spatial where catalogtype=33
     The menuName is optional and can be set to change the menu name from the areaName. If subMenuName is
     set then the menu will appear as a cascading sub menu.    
  
@@ -24,7 +29,6 @@
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="CONUS - Mercator">
         <source>PREDEFINED_AREA</source>
-<<<<<<< HEAD
         <areaName>CONUS_Mercator</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="North America">
@@ -42,40 +46,17 @@
     <AreaMenuItem subMenuName="" menuName="Africa">
         <source>PREDEFINED_AREA</source>
         <areaName>Africa</areaName>
-=======
-        <areaName>Alaska</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Africa</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-        <source>PREDEFINED_AREA</source>
-        <areaName>Europe</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="">
-	<source>PREDEFINED_AREA</source>
-	<areaName>Hawaii</areaName>
->>>>>>> origin/unidata_16.2.2-n
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="South America">
         <source>PREDEFINED_AREA</source>
         <areaName>South_America</areaName>
     </AreaMenuItem>
     <!-- created from geog.xml SOUTHERN_HEMISPHERE -->
-<<<<<<< HEAD
-=======
-    <AreaMenuItem subMenuName="" menuName="North Hemisphere">
-        <source>PREDEFINED_AREA</source>
-        <areaName>N_Hemisphere</areaName>
-    </AreaMenuItem>
->>>>>>> origin/unidata_16.2.2-n
     <AreaMenuItem subMenuName="" menuName="South Hemisphere">
         <source>PREDEFINED_AREA</source>
         <areaName>S_Hemisphere</areaName>
     </AreaMenuItem>
     <AreaMenuItem subMenuName="" menuName="World">
-<<<<<<< HEAD
         <source>PREDEFINED_AREA</source>
         <areaName>World0</areaName>
     </AreaMenuItem>
@@ -129,17 +110,4 @@
         <areaName>ACMN4</areaName>
     </AreaMenuItem>
     -->
-=======
-        <source>PREDEFINED_AREA</source>
-        <areaName>World</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="World (alt)">
-        <source>PREDEFINED_AREA</source>
-        <areaName>World0</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="" menuName="Alberts Equal Area">
-        <source>PREDEFINED_AREA</source>
-        <areaName>AlbersEqualArea</areaName>
-    </AreaMenuItem>
->>>>>>> origin/unidata_16.2.2-n
 </areaMenus>

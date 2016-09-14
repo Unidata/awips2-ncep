@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-colorMapName=HHC NEXRCOMP
-=======
 colorMapName=HHC
->>>>>>> origin/unidata_16.2.2-n
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 ! The DB values have spaces but imageType must use " "s. 
 imageType=HHC
@@ -10,7 +6,4 @@ displayUnitStr=IRPixel
 alpha=1.0
 brightness=1.0
 contrast=1.0
-<<<<<<< HEAD
-=======
 legendString=FNEXRAD HHC Composite
->>>>>>> origin/unidata_16.2.2-n

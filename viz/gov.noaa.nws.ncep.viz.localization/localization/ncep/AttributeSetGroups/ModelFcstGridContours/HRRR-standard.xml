@@ -61,37 +61,6 @@
          </attrSetLabel>
          <attrSetLabel>
               <name>simulated_radar</name>
-<<<<<<< HEAD
-=======
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>1000-500_thkn</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>1000-850_thkn</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>1000mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>500mb_hght_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>500mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>700mb_hght_tmp_wind</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>850mb_hght_tmp_wind</name>
->>>>>>> origin/unidata_16.2.2-n
               <alias></alias>
          </attrSetLabel>
     </attrSetLabels>

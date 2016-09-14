@@ -8,10 +8,6 @@
               <name>tpHPC</name>
               <alias></alias>
          </attrSetLabel>
-         <attrSetLabel>
-              <name>P48M</name>
-              <alias></alias>
-         </attrSetLabel>
     </attrSetLabels>
 
 </AttributeSetGroup>

@@ -1,19 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition>
-<<<<<<< HEAD
-    <inventoryEnabled>false</inventoryEnabled>    
     <resourceDefnName>VIIRS</resourceDefnName>
     <resourceCategory>SATELLITE</resourceCategory>
     <resourceParameters>
-! This must match the value in the
-! mcidas DB table valid values are 
-! (GOES12, GOES13, .....)
-! satelliteNametest=VIIRS
-=======
-    <resourceDefnName>VIIRS</resourceDefnName>
-    <resourceCategory>SATELLITE</resourceCategory>
-    <resourceParameters>
->>>>>>> origin/unidata_16.2.2-n
 pluginName=viirs
 legendColor=RGB {200, 200, 200}
     </resourceParameters>

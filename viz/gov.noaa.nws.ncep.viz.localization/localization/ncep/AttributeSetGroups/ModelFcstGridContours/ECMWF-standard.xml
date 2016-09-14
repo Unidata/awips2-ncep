@@ -1,27 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
+<AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
     <resource>ECMWF</resource>
     <attrSetGroupName>standard</attrSetGroupName>
     
     <attrSetLabels>
          <attrSetLabel>
-              <name>850mb_tmp</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>850mb_wnd</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
               <name>500mb_hght_geoabsv</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>
-              <name>500mb_hght</name>
-              <alias></alias>
-         </attrSetLabel>
-         <attrSetLabel>
-              <name>200mb_wind</name>
+              <name>850mb_tmp</name>
               <alias></alias>
          </attrSetLabel>
          <attrSetLabel>

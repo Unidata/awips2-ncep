@@ -1569,13 +1569,13 @@
 <ResourceDefinitionFilter rscDefnName="GOES12">
 <filters>McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES13">
+<ResourceDefinitionFilter rscDefnName="GOES-E">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GOES14">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
-<ResourceDefinitionFilter rscDefnName="GOES15">
+<ResourceDefinitionFilter rscDefnName="GOES-W">
 <filters>Standard,McIdas,GOES</filters>
 </ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="GOES-2">

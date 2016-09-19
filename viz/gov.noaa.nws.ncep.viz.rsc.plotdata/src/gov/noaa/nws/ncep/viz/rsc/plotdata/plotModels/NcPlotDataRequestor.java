@@ -3,11 +3,13 @@ package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
+import gov.noaa.nws.ncep.edex.common.metparameters.HeightAboveSeaLevel;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory;
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDerivableException;
 import gov.noaa.nws.ncep.edex.common.metparameters.PrecipitableWaterForEntireSounding;
 import gov.noaa.nws.ncep.edex.common.metparameters.PressChange3Hr;
 import gov.noaa.nws.ncep.edex.common.metparameters.PressureChange3HrAndTendency;
+import gov.noaa.nws.ncep.edex.common.metparameters.PressureLevel;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationID;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationLatitude;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationLongitude;
@@ -86,6 +88,8 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 11/17/2015   R9579        B. Hebbard   Fix synchronization problem (affecting conditional coloring) in requestSurfaceData; various cleanups
  * 12/17/2015   R9579        B. Hebbard   Guard against ConcurrentModificationException (parametersToPlot map) and NullPointerException (stationsWithData)
  * 07/20/2016   R15950       J. Huber     Add support for temp and dewpoint reported with tenths.
+ * 09/15/2016   R4151        jeff beck    Get pressureLevel from the sounding layer, and put it into a field in HeightAboveSeaLevel
+ * 
  */
 
 public class NcPlotDataRequestor {
@@ -94,6 +98,8 @@ public class NcPlotDataRequestor {
             .getHandler(NcPlotDataRequestor.class);
 
     private Map<String, RequestConstraint> constraintMap;
+
+    private PressureLevel pressureLevel;
 
     private String[] namesOfParametersToQuery = null;
 
@@ -189,24 +195,24 @@ public class NcPlotDataRequestor {
         this.plugin = plotModel.getPlugin();
         this.levelStr = level;
         this.constraintMap = constraintMap;
-        parametersToPlot = new HashMap<String, AbstractMetParameter>();
-        derivedParameters = new ArrayList<AbstractMetParameter>();
-        dbParamToMetParamMap = new HashMap<String, AbstractMetParameter>();
-        prioritySelectionsMap = new HashMap<String, PlotParameterDefn>();
-        allMetParamsMap = new HashMap<String, AbstractMetParameter>();
+        parametersToPlot = new HashMap<>();
+        derivedParameters = new ArrayList<>();
+        dbParamToMetParamMap = new HashMap<>();
+        prioritySelectionsMap = new HashMap<>();
+        allMetParamsMap = new HashMap<>();
         plotPrmDefns = PlotParameterDefnsMngr.getInstance().getPlotParamDefns(
                 plotModel.getPlugin());
         dataRequestJobPool = new JobPool("Requesting met param data...", 8,
                 false);
-        queueOfStations = new ConcurrentLinkedQueue<QueueEntry>();
+        queueOfStations = new ConcurrentLinkedQueue<>();
         namesOfParametersToQuery = new String[0];
-        metParamNameToDbNameMap = new HashMap<String, String>();
-        dbParamNamesForQuery = new HashSet<String>(2);
-        condColoringParamNames = new HashSet<String>(0);
+        metParamNameToDbNameMap = new HashMap<>();
+        dbParamNamesForQuery = new HashSet<>(2);
+        condColoringParamNames = new HashSet<>(0);
         conditionalFilter = cf;
         this.listener = listener;
         try {
-            condDerivedMetParamNames = new HashSet<String>(0);
+            condDerivedMetParamNames = new HashSet<>(0);
             establishPlotParamDefnToMetParamMappings();
             updateListOfParamsToPlotFromCurrentPlotModel(plotModel);
             if (conditionalFilter != null) {
@@ -282,8 +288,7 @@ public class NcPlotDataRequestor {
             ConditionalFilter cf) {
         Tracer.print("> Entry");
         if (cf != null) {
-            condFilterMap = new HashMap<String, RequestConstraint>(
-                    cf.getConditionalFilterMap());
+            condFilterMap = new HashMap<>(cf.getConditionalFilterMap());
         } else {
             if (condFilterMap != null) {
                 condFilterMap.clear();
@@ -306,7 +311,7 @@ public class NcPlotDataRequestor {
     public synchronized void updateListOfStationsPerConditionalFilter(
             DataTime dataTime, Set<Station> stationSet) {
         Tracer.print("> Entry");
-        Set<Station> filteredSetOfStations = new HashSet<Station>(0);
+        Set<Station> filteredSetOfStations = new HashSet<>(0);
         if (conditionalFilter != null) {
             updateConditionalFilterMapFromConditionalFilter(this.conditionalFilter);
             synchronized (stationSet) {
@@ -315,7 +320,7 @@ public class NcPlotDataRequestor {
                             || station.parametersToPlot.isEmpty()) {
                         continue;
                     }
-                    List<Boolean> displayPlotBoolList = new ArrayList<Boolean>(
+                    List<Boolean> displayPlotBoolList = new ArrayList<>(
                             station.parametersToPlot.size());
                     boolean displayStation = true;
                     synchronized (station.parametersToPlot) {
@@ -672,7 +677,7 @@ public class NcPlotDataRequestor {
 
     public void setDefaultConstraintsMap(Map<String, RequestConstraint> inMap) {
         Tracer.print("> Entry");
-        this.constraintMap = new HashMap<String, RequestConstraint>(inMap);
+        this.constraintMap = new HashMap<>(inMap);
         Tracer.print("< Exit");
     }
 
@@ -757,7 +762,7 @@ public class NcPlotDataRequestor {
             if (deriveParams.length >= 1
                     && !deriveParams[0].equalsIgnoreCase("all")) {
 
-                ArrayList<String> preferredDeriveParameterNames = new ArrayList<String>();
+                ArrayList<String> preferredDeriveParameterNames = new ArrayList<>();
 
                 for (String dPrm : deriveParams) {
                     AbstractMetParameter deriveInputParam = MetParameterFactory
@@ -780,7 +785,7 @@ public class NcPlotDataRequestor {
             // Determine the (top-level) method to derive this parameter from
             // the available parameters, AND the associated (bottom-level) base
             // (non-derived; i.e., mapped directly to a DB param) parameters.
-            Set<AbstractMetParameter> baseAmps = new HashSet<AbstractMetParameter>();
+            Set<AbstractMetParameter> baseAmps = new HashSet<>();
             Method deriveMethod = derivedMetParam.getDeriveMethod(
                     dbParamToMetParamMap.values(), baseAmps);
             if (deriveMethod == null) {
@@ -793,7 +798,7 @@ public class NcPlotDataRequestor {
             // For each base met parameter, get the associated DB param; store
             // complete list of these names in the met param, so we know what
             // to retrieve from the DB later.
-            Set<String> baseDbParamNames = new HashSet<String>();
+            Set<String> baseDbParamNames = new HashSet<>();
             for (AbstractMetParameter amp : baseAmps) {
                 String dbParamName = metParamNameToDbNameMap.get(amp
                         .getMetParamName());
@@ -912,15 +917,15 @@ public class NcPlotDataRequestor {
             int stationsRetrievedThisCallCount) {
         Tracer.print("> Entry" + "\n"
                 + Tracer.printableStationList(stationsRequestingData));
-        List<Boolean> displayStationPlotBoolList = new ArrayList<Boolean>(0);
+        List<Boolean> displayStationPlotBoolList = new ArrayList<>(0);
         boolean displayStationPlot = false;
         int listSize = stationsRequestingData.size();
         long beginTime = 0;
         long endTime = Long.MAX_VALUE;
         Date refTime = null;
-        List<String> stnIdLst = new ArrayList<String>(listSize);
-        List<Long> rangeTimeLst = new ArrayList<Long>(listSize);
-        Map<String, Station> mapOfStnidsWithStns = new HashMap<String, Station>();
+        List<String> stnIdLst = new ArrayList<>(listSize);
+        List<Long> rangeTimeLst = new ArrayList<>(listSize);
+        Map<String, Station> mapOfStnidsWithStns = new HashMap<>();
         synchronized (stationsRequestingData) {
             for (Station currentStation : stationsRequestingData) {
                 refTime = currentStation.info.dataTime.getRefTime();
@@ -1040,6 +1045,9 @@ public class NcPlotDataRequestor {
                             .getSoundingLyLst2().get(0);
                     Map<String, AbstractMetParameter> soundingParamsMap = soundingLayer
                             .getMetParamsMap();
+
+                    // We grab the pressure here to pass to HeightAboveSeaLevel
+                    pressureLevel = soundingLayer.getPressure();
 
                     // Set all the paramsToPlot values to missing. (All the
                     // metParams in the paramsToPlot map are references into the
@@ -1244,6 +1252,11 @@ public class NcPlotDataRequestor {
                         mapOfStnidsWithStns.put(currentStation.info.stationId,
                                 currentStation);
                     }
+
+                    // HeighAboveSeaLevel needs the pressure to calculate STDZ
+                    setPressureInHeightAboveSeaLevel(currentStation,
+                            pressureLevel);
+
                 }
             }
         }
@@ -1324,7 +1337,7 @@ public class NcPlotDataRequestor {
         // 1. Put all Station objects in local stationMap
         //
 
-        Map<String, Station> stationMap = new HashMap<String, Station>(
+        Map<String, Station> stationMap = new HashMap<>(
                 stationsRequestingData.size());
         if (stationsRequestingData != null && !stationsRequestingData.isEmpty()) {
             try {
@@ -1333,7 +1346,7 @@ public class NcPlotDataRequestor {
                         + " stationsRequestingData has " + listSize
                         + " entries" + "\n"
                         + Tracer.printableStationList(stationsRequestingData));
-                Map<String, RequestConstraint> map = new HashMap<String, RequestConstraint>();
+                Map<String, RequestConstraint> map = new HashMap<>();
 
                 map.put("pluginName", constraintMap.get("pluginName"));
                 Tracer.print(Tracer.shortTimeString(time) + " putting '"
@@ -1346,7 +1359,7 @@ public class NcPlotDataRequestor {
                 rc.setConstraintType(ConstraintType.IN);
                 PluginPlotProperties plotProp = PluginPlotProperties
                         .getPluginProperties(map);
-                Map<String, DataTime> stationIdToDataTimeMap = new HashMap<String, DataTime>(
+                Map<String, DataTime> stationIdToDataTimeMap = new HashMap<>(
                         listSize);
 
                 synchronized (stationsRequestingData) {
@@ -1418,10 +1431,10 @@ public class NcPlotDataRequestor {
                             + " Done with station loop; plotProp.hasDistinctStationId TRUE; adding location.stationId-to-rc entry to map");
                     map.put("location.stationId", rc);
                     // sort data times and remove duplicates...
-                    SortedSet<DataTime> allDataTimesSortedSet = new TreeSet<DataTime>(
+                    SortedSet<DataTime> allDataTimesSortedSet = new TreeSet<>(
                             stationIdToDataTimeMap.values());
                     // ...and convert to strings for time request constraint
-                    List<String> allDataTimesAsStrings = new ArrayList<String>(
+                    List<String> allDataTimesAsStrings = new ArrayList<>(
                             allDataTimesSortedSet.size());
                     for (DataTime dt : allDataTimesSortedSet) {
                         allDataTimesAsStrings.add(dt.toString());
@@ -1623,7 +1636,7 @@ public class NcPlotDataRequestor {
                             }
                         }
                     }
-                    List<Boolean> displayStationPlotBoolList = new ArrayList<Boolean>(
+                    List<Boolean> displayStationPlotBoolList = new ArrayList<>(
                             0);
 
                     //
@@ -1826,7 +1839,7 @@ public class NcPlotDataRequestor {
                     if (!currentStation.parametersToPlot.isEmpty()) {
                         currentStation.parametersToPlot.clear();
                     }
-                    metParamsToDisplay = new ArrayList<AbstractMetParameter>(
+                    metParamsToDisplay = new ArrayList<>(
                             parametersToPlot.values());
 
                     synchronized (metParamsToDisplay) {
@@ -2121,7 +2134,7 @@ public class NcPlotDataRequestor {
                     + Tracer.shortTimeString(time) + " with "
                     + stationsRequestingData.size() + " stations");
             this.time = new DataTime(time.getRefTime());
-            this.stationsRequestingData = new ArrayList<Station>(
+            this.stationsRequestingData = new ArrayList<>(
                     stationsRequestingData);
             Tracer.print("< Exit");
         }
@@ -2133,7 +2146,7 @@ public class NcPlotDataRequestor {
                 listener.retrievalAborted(time);
             }
 
-            Collection<Station> stationsWithData = new ArrayList<Station>(0);
+            Collection<Station> stationsWithData = new ArrayList<>(0);
             long t0 = System.nanoTime();
 
             int stationsRetrievedThisCallCount = 0;
@@ -2169,6 +2182,36 @@ public class NcPlotDataRequestor {
 
             Tracer.print("< Exit   END TASK   " + Tracer.shortTimeString(time));
 
+        }
+    }
+
+    /**
+     * Set the pressure level in the HeightAboveSeaLevel class
+     * 
+     * @param station
+     *            the station to set the pressure level for
+     * @param pressure
+     *            the pressureLevel itself
+     */
+    private void setPressureInHeightAboveSeaLevel(Station station,
+            PressureLevel pressure) {
+
+        if (station == null)
+            return;
+
+        HeightAboveSeaLevel heightAboveSeaLevel = null;
+
+        for (AbstractMetParameter metParam : station.parametersToPlot) {
+
+            if (metParam instanceof HeightAboveSeaLevel) {
+
+                heightAboveSeaLevel = (HeightAboveSeaLevel) metParam;
+
+                if (heightAboveSeaLevel != null) {
+                    heightAboveSeaLevel.setPressureLevel(pressure);
+                    break;
+                }
+            }
         }
     }
 

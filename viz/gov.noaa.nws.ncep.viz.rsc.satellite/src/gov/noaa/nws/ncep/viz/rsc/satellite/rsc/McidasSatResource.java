@@ -18,17 +18,15 @@ import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 
 import java.awt.Rectangle;
-import java.text.ParseException;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.measure.quantity.Temperature;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
 
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -39,13 +37,6 @@ import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingEntry;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
-import com.raytheon.uf.common.dataplugin.satellite.units.counts.DerivedWVPixel;
-import com.raytheon.uf.common.dataplugin.satellite.units.generic.GenericPixel;
-import com.raytheon.uf.common.dataplugin.satellite.units.goes.PolarPrecipWaterPixel;
-import com.raytheon.uf.common.dataplugin.satellite.units.water.BlendedTPWPixel;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
-import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
-import com.raytheon.uf.common.derivparam.library.DerivedParameterRequest;
 import com.raytheon.uf.common.geospatial.interpolation.GridDownscaler;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
 import com.raytheon.uf.common.style.ParamLevelMatchCriteria;
@@ -61,7 +52,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
-import com.raytheon.viz.satellite.SatelliteConstants;
 
 /**
  * Provides Mcidas satellite raster rendering support.
@@ -88,7 +78,12 @@ import com.raytheon.viz.satellite.SatelliteConstants;
  *                                        instead of AbstractSatelliteResource
  *                                        in order to use TileSetRenderable.
  *  07/26/2016    R19277     bsteffen     Move redundant code into McidasRecord.getGridGeometry()
- *  07/29/2016    R17936     mkean       null in legendString for unaliased satellite.
+ *  07/29/2016    R17936     mkean        null in legendString for unaliased satellite.
+ *  09/16/2016    R15716     SRussell     Updated the FrameData constructor,
+ *                                        Removed setRenderable() method,
+ *                                        Updated FrameData.updateFramData(),
+ *                                        Extended getGridGeometry method(),
+ *                                        Updated isCloudHeightCapable() method
  * 
  * </pre>
  * 
@@ -96,7 +91,8 @@ import com.raytheon.viz.satellite.SatelliteConstants;
  * @version 1
  */
 
-public class McidasSatResource extends NcSatelliteResource {
+public class McidasSatResource extends NcSatelliteResource implements
+        ICloudHeightCapable {
 
     private int numLevels;
 
@@ -117,7 +113,6 @@ public class McidasSatResource extends NcSatelliteResource {
      */
     private String createLegendString() {
 
-        char x;
         ResourceName rscName = resourceData.getResourceName();
         String legendString = "";
 
@@ -166,8 +161,7 @@ public class McidasSatResource extends NcSatelliteResource {
                 }
             }
 
-            // add in these last two.
-
+            // Add in these last two.
             value = rscDefn.getResourceDefnName();
             if (value != null && !value.isEmpty()) {
                 variables.put(McidasConstants.RESOURCE_DEFINITION,
@@ -180,7 +174,7 @@ public class McidasSatResource extends NcSatelliteResource {
                         rscDefnsMngr.getAttrSet(rscName).getName());
             }
 
-            // process legendStringAttribute if assignment exist
+            // Process legendStringAttribute if assignment exist
             if (legendStringAttribute != null) {
 
                 String customizedlegendString = constructCustomLegendString(
@@ -206,15 +200,14 @@ public class McidasSatResource extends NcSatelliteResource {
     protected class FrameData extends NcSatelliteResource.FrameData {
 
         // One renderable per frame, each renderable may have multiple tiles
-        protected McidasSatRenderable renderable;
+        // protected McidasSatRenderable renderable;
 
         // Spatial coverage for previously added record. Used to dispose of
         // previous tile in tilemap if current record is better time match.
         protected McidasMapCoverage coveragePrevAddedRecord;
 
         protected FrameData(DataTime time, int interval) {
-            super(time, interval);
-            setRenderable(new McidasSatRenderable());
+            super(time, interval, new McidasSatRenderable());
         }
 
         @Override
@@ -249,8 +242,7 @@ public class McidasSatResource extends NcSatelliteResource {
                     return false;
                 } else {
                     // new record is a better match, so dispose of old tile
-                    getRenderable().getTileMap()
-                            .remove(coveragePrevAddedRecord);
+                    renderable.getTileMap().remove(coveragePrevAddedRecord);
                 }
             }
 
@@ -261,20 +253,12 @@ public class McidasSatResource extends NcSatelliteResource {
 
             tileTimePrevAddedRecord = ((PluginDataObject) satRec).getDataTime();
             coveragePrevAddedRecord = ((McidasRecord) satRec).getCoverage();
-            getRenderable().addRecord(satRec);
+            last_record_added = satRec;
+            McidasSatRenderable msr = (McidasSatRenderable) renderable;
+            msr.addRecord(satRec);
 
             return true;
         }
-
-        @Override
-        public SatRenderable<McidasMapCoverage> getRenderable() {
-            return renderable;
-        }
-
-        public void setRenderable(McidasSatRenderable renderable) {
-            this.renderable = renderable;
-        }
-
     }
 
     protected class McidasSatRenderable extends
@@ -316,56 +300,7 @@ public class McidasSatResource extends NcSatelliteResource {
 
         NcSatelliteUnits.register();
         NcUnits.register();
-
-        // NOTE : This will replace Raytheons IRPixel (and
-        // IRPixelToTempConverter) with ours
-        // even for D2D's GiniSatResource.
-
-        Unit<?> dataUnit = null;
         PluginDataObject record = (PluginDataObject) rec;
-        String dataUnitStr = getDataUnitsFromRecord((PluginDataObject) record);
-        String imgType = null;
-        DerivedParameterRequest request = (DerivedParameterRequest) record
-                .getMessageData();
-
-        if (request == null) {
-            imgType = getImageTypeFromRecord(record);
-        } else {
-            imgType = request.getParameterAbbreviation();
-        }
-
-        if (dataUnitStr != null && !dataUnitStr.isEmpty() && request == null) {
-            try {
-                dataUnit = UnitFormat.getUCUMInstance().parseSingleUnit(
-                        dataUnitStr, new ParsePosition(0));
-            } catch (ParseException e) {
-                throw new VizException("Unable parse units : " + dataUnitStr, e);
-            }
-        } else if (request != null) {
-            if (imgType.equals("satDivWVIR")) {
-                dataUnit = new DerivedWVPixel();
-            } else {
-                dataUnit = new GenericPixel();
-            }
-        } else
-            dataUnit = new GenericPixel();
-
-        // This logic came from Raytheon's SatResource.
-        String creatingEntity = null;
-
-        if (imgType.equals(SatelliteConstants.PRECIP)) {
-
-            creatingEntity = getCreatingEntityFromRecord(record);
-
-            if (creatingEntity.equals(SatelliteConstants.DMSP)
-                    || creatingEntity.equals(SatelliteConstants.POES)) {
-
-                dataUnit = new PolarPrecipWaterPixel();
-            } else if (creatingEntity.equals(SatelliteConstants.MISC)) {
-
-                dataUnit = new BlendedTPWPixel();
-            }
-        }
 
         // Create the colorMap and set it in the colorMapParameters and init the
         // colorBar
@@ -382,11 +317,6 @@ public class McidasSatResource extends NcSatelliteResource {
         }
 
         colorMapParameters.setDisplayUnit(resourceData.getDisplayUnit());
-        colorMapParameters.setDataUnit(dataUnit);
-
-        // Set real color and data max/min
-        colorMapParameters.setDataMin(0.0f);
-        colorMapParameters.setDataMax(255.0f);
         colorMapParameters.setColorMapMin(0.0f);
         colorMapParameters.setColorMapMax(255.0f);
 
@@ -593,6 +523,21 @@ public class McidasSatResource extends NcSatelliteResource {
 
     }
 
+    public GridGeometry2D getGridGeometry() {
+
+        FrameData fd = (FrameData) getCurrentFrame();
+        McidasRecord mrecord = (McidasRecord) fd.getLastRecordAdded();
+        GridGeometry2D gridgeom = null;
+
+        if (mrecord != null) {
+            gridgeom = mrecord.getGridGeometry();
+        } else {
+            System.out.println("==> mrecord is null");
+        }
+
+        return gridgeom;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -614,16 +559,24 @@ public class McidasSatResource extends NcSatelliteResource {
      */
     @Override
     public boolean isCloudHeightCompatible() {
-        RequestConstraint imgTypeConstraint = resourceData.getMetadataMap()
-                .get("imageTypeId");
-        if (imgTypeConstraint != null) {
-            if (imgTypeConstraint.getConstraintType() == ConstraintType.EQUALS
-                    && imgTypeConstraint.getConstraintValue().equals("IR")) {
-                return true;
-            }
-        }
-        return false;
 
+        boolean isCldHtCmptble = false;
+        Unit<Temperature> tmpunit = null;
+
+        try {
+            tmpunit = this.getTemperatureUnits();
+
+            if (tmpunit == SI.CELSIUS) {
+                isCldHtCmptble = true;
+            }
+
+        } catch (Exception e) {
+            statusHandler
+                    .error("Did not obtain a unit for temperature for a McidasSatResource",
+                            e);
+        }
+
+        return isCldHtCmptble;
     }
 
     /*
@@ -636,7 +589,7 @@ public class McidasSatResource extends NcSatelliteResource {
     @Override
     public void project(CoordinateReferenceSystem mapData) throws VizException {
         for (AbstractFrameData frm : frameDataMap.values()) {
-            SatRenderable<McidasMapCoverage> sr = ((FrameData) frm).renderable;
+            McidasSatRenderable sr = (McidasSatRenderable) ((FrameData) frm).renderable;
             if (sr != null) {
                 sr.project();
             }

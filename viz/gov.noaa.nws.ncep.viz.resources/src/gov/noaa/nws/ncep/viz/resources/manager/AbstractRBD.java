@@ -22,8 +22,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
@@ -51,6 +53,7 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.reflect.SubClassLocator;
+import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -80,6 +83,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    05/24/14       R4078     S. Gurung   Added NMAP_RTKP_WORLD_DISPLAY in getDefaultRBD().
  *    11/12/2015     R8829     B. Yin      Sort resources in RBD by rendering order.
  *    03/10/2016     R16237    B. Yin      Get dominant resource within a group resource.
+ *    09/23/2016     R21176    J.Huber     Resolve latest cycle time for grouped gridded resources in SPF.
  * 
  * </pre>
  * 
@@ -472,7 +476,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     public abstract boolean addDisplayPane(T dispPane, NcPaneID pid);
-    
+
     public T[] getDisplays() {
         return displays;
     }
@@ -710,25 +714,63 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
     }
 
-    // After and Rbd is unmarshalled it is possible for forecast resources
+    // After an Rbd is unmarshalled it is possible for forecast resources
     // to have a cycle time of LATEST. We don't always want to resolve the
     // Rbd after unmarshalling it so we do this as a separate step here.
     //
+    // We also need to unpack any grouped resources and make sure that any
+    // non-dominant resources have the latest string replaced with the latest
+    // cycle time.
     public boolean resolveLatestCycleTimes() {
         for (T disp : getDisplays()) {
-            ResourceList rl = disp.getDescriptor().getResourceList();
-            for (int r = 0; r < rl.size(); r++) {
-                ResourcePair rp = rl.get(r);
-                if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                    AbstractNatlCntrsRequestableResourceData rscData = (AbstractNatlCntrsRequestableResourceData) rp
+            ResourceList displayResourceList = disp.getDescriptor()
+                    .getResourceList();
+            for (int r = 0; r < displayResourceList.size(); r++) {
+                ResourcePair rp = displayResourceList.get(r);
+                List<AbstractNatlCntrsRequestableResourceData> allResourcesList = new ArrayList<>();
+                if (rp.getResourceData() instanceof GroupResourceData) {
+                    GroupResourceData grpResourceData = (GroupResourceData) rp
                             .getResourceData();
+                    for (ResourcePair singlePair : grpResourceData
+                            .getResourceList()) {
+                        AbstractResourceData singleAbstractData = singlePair
+                                .getResourceData();
+                        if (singleAbstractData instanceof AbstractNatlCntrsRequestableResourceData) {
+                            allResourcesList
+                                    .add((AbstractNatlCntrsRequestableResourceData) singleAbstractData);
+                        }
+                    }
+                } else if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+                    allResourcesList
+                            .add((AbstractNatlCntrsRequestableResourceData) rp
+                                    .getResourceData());
+                }
+                for (AbstractNatlCntrsRequestableResourceData singleAbstractData : allResourcesList) {
+                    AbstractNatlCntrsRequestableResourceData rscData = singleAbstractData;
                     ResourceName rscName = rscData.getResourceName();
 
                     if (rscName.isForecastResource()
                             && rscName.isLatestCycleTime()) {
 
-                        rscData.getAvailableDataTimes();
+                        // The rscData comes in with the ResourceName variable
+                        // still including "LATEST". The getAvailableDataTimes()
+                        // changes the ResourceName but does not reset the
+                        // timeMatcher's ResourceName to match. So if the
+                        // incoming ResourceName (which still has "LATEST") is
+                        // the dominant resource we set a flag to reset the
+                        // dominant resource's ResourceData to refresh it which
+                        // in turn resets the ResourceName to have the proper
+                        // latest cycle time instead of "LATEST".
 
+                        boolean refreshResourceData = false;
+                        if (timeMatcher.getDominantResourceName().equals(
+                                rscData.getResourceName())) {
+                            refreshResourceData = true;
+                        }
+                        rscData.getAvailableDataTimes();
+                        if (refreshResourceData) {
+                            timeMatcher.setDominantResourceData(rscData);
+                        }
                         // TODO : do we leave as Latest, or flag
                         // as NoDataAvailable? Either way the resource is going
                         // to have to be able to handle this case.
@@ -758,7 +800,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
             // loop thru the displays looking for the dominant resource
             for (T disp : getDisplays()) {
-                setDominantResourceData( disp.getDescriptor().getResourceList(), domRscName );
+                setDominantResourceData(disp.getDescriptor().getResourceList(),
+                        domRscName);
             }
         }
 
@@ -781,26 +824,36 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return rbdSequence - rbd.rbdSequence;
         }
     }
-    
+
     /**
      * Sets the dominant resource data from a resource list.
-     * @param rscList - a resource list.
-     * @param domRscName - name of the dominant resource.
+     * 
+     * @param rscList
+     *            - a resource list.
+     * @param domRscName
+     *            - name of the dominant resource.
      */
-    private void setDominantResourceData( ResourceList rscList, ResourceName domRscName ){
-        for ( ResourcePair rscPair : rscList ) {
-            if ( rscPair.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData ) {
-                AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rscPair
+    private void setDominantResourceData(ResourceList rscList,
+            ResourceName domRscName) {
+        for (ResourcePair rscPair : rscList) {
+            AbstractResourceData rscPairResourceData = rscPair
                     .getResourceData();
-                if ( domRscName.toString().equals( rdata.getResourceName().toString() ) ) {
-                    timeMatcher.setDominantResourceData( rdata );
+            if (rscPairResourceData instanceof AbstractNatlCntrsRequestableResourceData) {
+                AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rscPair
+                        .getResourceData();
+                if (domRscName.toString().equals(
+                        rdata.getResourceName().toString())) {
+                    timeMatcher.setDominantResourceData(rdata);
                     return;
                 }
-            }
-            else  if ( rscPair.getResourceData() instanceof GroupResourceData ) {
-                setDominantResourceData(((GroupResourceData)rscPair.getResourceData()).getResourceList(), domRscName);
+            } else if (rscPairResourceData instanceof GroupResourceData) {
+                setDominantResourceData(
+                        ((GroupResourceData) rscPairResourceData)
+                                .getResourceList(),
+                        domRscName);
             }
         }
-    
+
     }
+
 }

@@ -34,14 +34,20 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 12/29/2009   202         B. Hebbard  Initial creation.
- * 08/18/2010   273         G. Hull     get full filename from rscMngr
- * 08/09/2011   450         G. Hull     add pgen directory with the filename
- * 12/14/2012   861         G. Hull     ignore onOff Layer flag
- * 06/25/2013   1011        G. Hull     read from new pgen plugin/db
- * 07/14/2016   R17949      Jeff Beck   Add support for displaying multiple PGEN resources selected from a list of available times.
- *                                      This ticket is being pushed, refactoring this class will NOT be done at this time.
- *                                      Affected code is in preProcessFrameUpdate().
+ * 12/29/2009   202         B. Hebbard     Initial creation.
+ * 08/18/2010   273         G. Hull        get full filename from rscMngr
+ * 08/09/2011   450         G. Hull        add pgen directory with the filename
+ * 12/14/2012   861         G. Hull        ignore onOff Layer flag
+ * 06/25/2013   1011        G. Hull        read from new pgen plugin/db
+ * 07/14/2016   R17949      Jeff Beck      Add support for displaying multiple PGEN resources selected from a list of available times.
+ *                                         This ticket is being pushed, refactoring this class will NOT be done at this time.
+ *                                         Affected code is in preProcessFrameUpdate().
+ *                                      
+ * 08/31/2016   R21006      K. Bugenhagen  In preProcessFrameUpdate, compare
+ *                                         frametime instead of resource cycle 
+ *                                         time, since frametime goes out to 
+ *                                         milliseconds, which is required for
+ *                                         comparison.
  * </pre>
  * 
  * @author bhebbard
@@ -227,9 +233,8 @@ public class PgenDisplayResource extends
         List<IRscDataObject> latestDataObjs = new ArrayList<IRscDataObject>(
                 newRscDataObjsQueue);
 
-        // we can work in millis more conveniently
-        long resourceTime = resourceData.getResourceName().getCycleTime()
-                .getValidTime().getTimeInMillis();
+        DataTime frameTime = getFrameTimes().get(0);
+        long frameTimeMillis = frameTime.getValidTime().getTimeInMillis();
 
         // empty the queue first, or we'll get ALL the available PGEN times
         // displayed on the map.
@@ -237,8 +242,7 @@ public class PgenDisplayResource extends
 
         // Add the times selected from the GUI
         for (IRscDataObject dataObj : latestDataObjs) {
-
-            if (dataObj.getDataTime().getValidTime().getTimeInMillis() == resourceTime) {
+            if (dataObj.getDataTime().getValidTime().getTimeInMillis() == frameTimeMillis) {
                 newRscDataObjsQueue.add(dataObj);
             }
         }

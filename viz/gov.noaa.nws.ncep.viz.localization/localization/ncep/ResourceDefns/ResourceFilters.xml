@@ -1653,6 +1653,9 @@
 <ResourceDefinitionFilter rscDefnName="UKMET_SA_HR">
 <filters>Forecast,NSBN</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="UKMETHR">
+<filters>Forecast,NSBN</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="ECENS">
 <filters>Forecast,Ensemble,Global</filters>
 </ResourceDefinitionFilter>

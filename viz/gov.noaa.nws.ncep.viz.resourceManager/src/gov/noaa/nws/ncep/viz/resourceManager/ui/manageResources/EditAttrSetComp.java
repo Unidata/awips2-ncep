@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -58,6 +59,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                          Added code to prevent errors (like empty UI text fields).
  *                                          Removed calls to the deprecated getFile() method (Raytheon).
  *                                          Added statusHandler for some events.
+ *  09/26/2016      R20482     K.Bugenhagen In setSelectedResource, only check 
+ *                                          if file exists if it's not a 
+ *                                          user-level file.  Also, cleanup.
+ * 
  * </pre>
  * 
  * @author Greg Hull
@@ -65,7 +70,8 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 class EditAttrSetComp extends Composite implements IEditResourceComposite {
 
-    private static final transient IUFStatusHandler statusHandler = UFStatus.getHandler(EditAttrSetComp.class);
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(EditAttrSetComp.class);
 
     private ResourceDefnsMngr resourceDefnsManager;
 
@@ -102,7 +108,8 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
      * @param mgrCtl
      *            the ManageResourceControl
      */
-    public EditAttrSetComp(Composite parent, int style, ManageResourceControl mgrCtl) {
+    public EditAttrSetComp(Composite parent, int style,
+            ManageResourceControl mgrCtl) {
 
         super(parent, style);
         init(mgrCtl);
@@ -226,7 +233,8 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
         attrNameTextField.setLayoutData(fd);
 
         // Create attribute set Text area
-        attrSetTextArea = new Text(parent, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+        attrSetTextArea = new Text(parent, SWT.MULTI | SWT.BORDER
+                | SWT.V_SCROLL | SWT.H_SCROLL);
         attrSetTextArea.setText("");
         fd = new FormData();
         fd.top = new FormAttachment(attrNameTextField, 0, SWT.TOP);
@@ -390,12 +398,18 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
         // Grab the selected attribute set for this resource
         selectedAttributeSet = resourceDefnsManager.getAttrSet(resourceName);
 
-        if (selectedAttributeSet == null || !selectedAttributeSet.getFile().exists()) {
-            attrNameTextField.setText("");
-            return;
+        boolean isUserLevelFile = selectedAttributeSet.getFile().getContext()
+                .getLocalizationLevel() == LocalizationLevel.USER;
+        if (!isUserLevelFile) {
+            if (selectedAttributeSet == null
+                    || !selectedAttributeSet.getFile().exists()) {
+                attrNameTextField.setText("");
+                return;
+            }
         }
 
-        selectedResourceDefn = resourceDefnsManager.getResourceDefinition(resourceName);
+        selectedResourceDefn = resourceDefnsManager
+                .getResourceDefinition(resourceName);
 
         // Set the name label text for the selected attribute set
         attrNameTextField.setText(resourceName.getRscAttrSetName());
@@ -420,15 +434,20 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
             attrSetTextArea.setText(outStream.toString());
 
         } catch (LocalizationException e) {
-            statusHandler.handle(Priority.PROBLEM, "Localiztion Exception encountered getting attribute set values", e);
+            statusHandler
+                    .handle(Priority.PROBLEM,
+                            "Localiztion Exception encountered getting attribute set values",
+                            e);
 
         }
 
         catch (FileNotFoundException fnf) {
-            statusHandler.handle(Priority.PROBLEM, "File not found error getting attribute set values", fnf);
+            statusHandler.handle(Priority.PROBLEM,
+                    "File not found error getting attribute set values", fnf);
 
         } catch (IOException ioe) {
-            statusHandler.handle(Priority.PROBLEM, "IO error getting attribute set values", ioe);
+            statusHandler.handle(Priority.PROBLEM,
+                    "IO error getting attribute set values", ioe);
         }
     }
 
@@ -483,20 +502,27 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
             boolean attrSetAlreadyExists;
 
             if (selectedResourceDefn.applyAttrSetGroups()) {
-                List<String> availAttrSetsList = resourceDefnsManager.getAvailAttrSetsForRscImpl(selectedResourceDefn
-                        .getRscImplementation());
+                List<String> availAttrSetsList = resourceDefnsManager
+                        .getAvailAttrSetsForRscImpl(selectedResourceDefn
+                                .getRscImplementation());
                 attrSetAlreadyExists = availAttrSetsList.contains(attrSetName);
 
             } else {
                 ResourceName newRscName = new ResourceName(selectedResourceName);
                 newRscName.setRscAttrSetName(attrSetName);
-                attrSetAlreadyExists = (resourceDefnsManager.getAttrSet(newRscName) != null);
+                attrSetAlreadyExists = (resourceDefnsManager
+                        .getAttrSet(newRscName) != null);
             }
 
             if (attrSetAlreadyExists) {
 
-                md = createMessageDialog(getShell(), "Save Error", "Warning: The Attribute Set " + attrSetName
-                        + " already exists! \n Choose a different name? ", MessageDialog.WARNING);
+                md = createMessageDialog(
+                        getShell(),
+                        "Save Error",
+                        "Warning: The Attribute Set "
+                                + attrSetName
+                                + " already exists! \n Choose a different name? ",
+                        MessageDialog.WARNING);
                 md.open();
                 return;
             }
@@ -505,23 +531,27 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
         // Try to save the attribute set
         try {
             // may throw a VizException
-            resourceDefnsManager.saveAttrSet(selectedResourceDefn, attrSetName, attrSetTextArea.getText());
+            resourceDefnsManager.saveAttrSet(selectedResourceDefn, attrSetName,
+                    attrSetTextArea.getText());
 
         } catch (VizException e) {
 
-            md = createMessageDialog(NcDisplayMngr.getCaveShell(), "Save Error", "Error Saving Attribute Set, "
-                    + attrSetName, MessageDialog.ERROR);
+            md = createMessageDialog(NcDisplayMngr.getCaveShell(),
+                    "Save Error", "Error Saving Attribute Set, " + attrSetName,
+                    MessageDialog.ERROR);
             md.open();
             return;
         }
 
         if (selectedResourceDefn.applyAttrSetGroups()) {
 
-            AttrSetGroup attrSetGroup = resourceDefnsManager.getAttrSetGroupForResource(selectedResourceName);
+            AttrSetGroup attrSetGroup = resourceDefnsManager
+                    .getAttrSetGroupForResource(selectedResourceName);
 
             try {
                 if (attrSetGroup == null) {
-                    throw new VizException("Can't find group for " + selectedResourceName.toString());
+                    throw new VizException("Can't find group for "
+                            + selectedResourceName.toString());
                 }
 
                 // if the attrSet is not already in the group then add it
@@ -534,14 +564,17 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
                 }
             } catch (VizException e) {
 
-                md = createMessageDialog(NcDisplayMngr.getCaveShell(), "Save Error", "Error Saving Attribute Set "
-                        + attrSetName + " to AttrSetGroup " + attrSetGroup, MessageDialog.ERROR);
+                md = createMessageDialog(NcDisplayMngr.getCaveShell(),
+                        "Save Error", "Error Saving Attribute Set "
+                                + attrSetName + " to AttrSetGroup "
+                                + attrSetGroup, MessageDialog.ERROR);
                 md.open();
             }
 
         }
 
-        md = createMessageDialog(getShell(), "Info", "The Attribute Set  " + attrSetName + "  has been "
+        md = createMessageDialog(getShell(), "Info", "The Attribute Set  "
+                + attrSetName + "  has been "
                 + (isCopy ? "Created!" : "Saved!"), MessageDialog.INFORMATION);
         md.open();
 
@@ -587,12 +620,15 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
 
         } catch (IOException e) {
 
-            md = createMessageDialog(getShell(), "IO Error", "IO Error Validating Attribute Set", MessageDialog.ERROR);
+            md = createMessageDialog(getShell(), "IO Error",
+                    "IO Error Validating Attribute Set", MessageDialog.ERROR);
             return md;
 
         } catch (VizException v) {
 
-            md = createMessageDialog(getShell(), "Parse Error",
+            md = createMessageDialog(
+                    getShell(),
+                    "Parse Error",
                     "Warning: Format/Parse Error while Validating Attribute Set \n Check format of Attribute Set ?",
                     MessageDialog.WARNING);
             return md;
@@ -602,8 +638,10 @@ class EditAttrSetComp extends Composite implements IEditResourceComposite {
         return null;
     }
 
-    private MessageDialog createMessageDialog(Shell parentShell, String title, String dialogMessage, int dialogImageType) {
-        return new MessageDialog(parentShell, title, null, dialogMessage, dialogImageType, new String[] { "OK" }, 0);
+    private MessageDialog createMessageDialog(Shell parentShell, String title,
+            String dialogMessage, int dialogImageType) {
+        return new MessageDialog(parentShell, title, null, dialogMessage,
+                dialogImageType, new String[] { "OK" }, 0);
     }
 
 }

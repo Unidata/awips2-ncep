@@ -74,6 +74,9 @@ import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.gridcoverage.GridCoverage;
+import com.raytheon.uf.common.numeric.DataUtilities;
+import com.raytheon.uf.common.numeric.buffer.FloatBufferWrapper;
+import com.raytheon.uf.common.numeric.source.DataSource;
 import com.raytheon.uf.common.parameter.Parameter;
 import com.raytheon.uf.common.parameter.lookup.ParameterLookupException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -175,6 +178,8 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  *                                          (not used anywhere). Use slf4j logger.
  * 08/16/2016   R17603      K.Bugenhagen    Added isDuplicateDatasetId method.
  *                                          Also, cleanup.
+ * Aug 23, 2016 R15955      bsteffen        Use old spatial object for vector displays.
+ *
  * 
  * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
  *                                          since they are no longer static. Also, cleanup.
@@ -774,10 +779,11 @@ public class NcgridResource extends
                             hasData = false;
                             if (gdPrxy != null
                                     && gdPrxy.getNewSpatialObject() != null) {
+                                rec = fixVectorSpatialData(rec);
                                 vectorDisplay[i] = new GriddedVectorDisplay(
                                         rec, displayType, isDirectionalArrow,
                                         getNcMapDescriptor(),
-                                        gdPrxy.getNewSpatialObject(),
+                                        gdPrxy.getSpatialObject(),
                                         contourAttributes[i]);
                                 hasData = true;
                             } else if (ncgribLogger.enableDiagnosticLogs()) {
@@ -808,7 +814,7 @@ public class NcgridResource extends
                                             gridData, displayType,
                                             isDirectionalArrow,
                                             getNcMapDescriptor(),
-                                            gdPrxy.getNewSpatialObject(),
+                                            gdPrxy.getSpatialObject(),
                                             contourAttributes[i]);
                                     hasData = true;
                                 } else if (ncgribLogger.enableDiagnosticLogs()) {
@@ -978,6 +984,47 @@ public class NcgridResource extends
             return true;
         }
 
+        /**
+         * {@link GriddedVectorDisplay} does not work for worldwide data with a
+         * redundant column because the CRS does not use a central meridian that
+         * is centered on the data. This method checks for that case and removes
+         * the redundant column so the original spatial object can be used which
+         * has a CRS properly centered on the data.
+         * 
+         * @param rec
+         *            a record that may need to be resized.
+         * @return a resized record or the input record if no resize is
+         *         necessary.
+         */
+        private FloatGridData fixVectorSpatialData(FloatGridData data) {
+            if (data.getSizes()[0] - 1 == gdPrxy.getSpatialObject().getNx()) {
+                long[] sizes = data.getSizes();
+                long[] newSizes = Arrays.copyOf(sizes, sizes.length);
+                newSizes[0] -= 1;
+                FloatGridData newData = new FloatGridData();
+                newData.setDimension(sizes.length);
+                newData.setSizes(newSizes);
+                newData.setVector(true);
+
+                DataSource source = new FloatBufferWrapper(data.getXdata(),
+                        (int) sizes[0], (int) sizes[1]);
+                FloatBufferWrapper destination = new FloatBufferWrapper(
+                        (int) newSizes[0], (int) newSizes[1]);
+                DataUtilities.copy(source, destination, (int) newSizes[0],
+                        (int) newSizes[1]);
+                newData.setXdata(destination.getArray());
+                source = new FloatBufferWrapper(data.getYdata(),
+                        (int) sizes[0], (int) sizes[1]);
+                destination = new FloatBufferWrapper((int) newSizes[0],
+                        (int) newSizes[1]);
+                DataUtilities.copy(source, destination, (int) newSizes[0],
+                        (int) newSizes[1]);
+                newData.setYdata(destination.getArray());
+                data = newData;
+            }
+            return data;
+        }
+
         public void procAttrsModified() {
 
             synchronized (this) {
@@ -1046,7 +1093,7 @@ public class NcgridResource extends
                                                 gridData, displayType,
                                                 isDirectionalArrow,
                                                 getNcMapDescriptor(),
-                                                gdPrxy.getNewSpatialObject(),
+                                                gdPrxy.getSpatialObject(),
                                                 contourAttributes[i]);
                                     } else if (ncgribLogger
                                             .enableDiagnosticLogs()) {
@@ -1600,6 +1647,9 @@ public class NcgridResource extends
 
                 GriddedVectorDisplay griddedVectorDisplay = currFrame.vectorDisplay[i];
                 if (griddedVectorDisplay != null) {
+                    if (currFrame.getReProjectFlag()) {
+                        griddedVectorDisplay.reproject();
+                    }
                     griddedVectorDisplay.paint(gridRscData, target, paintProps);
                 }
             } else {

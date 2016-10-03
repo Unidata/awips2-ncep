@@ -66,6 +66,12 @@ import com.raytheon.viz.ui.editor.IMultiPaneEditor;
  *                                       define where map is centered.
  * 04/11/2016      R15714   bkowal       Only attempt to center the display if a center has been defined
  *                                       for the pre-defined area.
+ * 10/03/2016      R20481   kbugenhagen  Save zoom level for existing renderable
+ *                                       display and use that in call to zoom 
+ *                                       method.  Also, move call to set zoom 
+ *                                       level AFTER call to scaleToClientArea, 
+ *                                       which ignores the zoom level set for 
+ *                                       the renderable display.
  * </pre>
  * 
  */
@@ -151,10 +157,11 @@ public class PredefinedAreaAction extends AbstractHandler implements
          */
         final double[] mapCenter = (pArea.getMapCenter() == null) ? existingDisplay
                 .getMapCenter() : pArea.getMapCenter();
-        pane.setZoomLevel(existingDisplay.getZoomLevel());
+        double zoomLevel = existingDisplay.getZoomLevel();
         pane.scaleToClientArea();
+        pane.setZoomLevel(zoomLevel);
         existingDisplay.recenter(mapCenter);
-        existingDisplay.getView().zoom(existingDisplay.getZoomLevel());
+        existingDisplay.getView().zoom(zoomLevel);
         ((INatlCntrsDescriptor) existingDisplay.getDescriptor())
                 .setSuspendZoom(zoomDisable);
     }

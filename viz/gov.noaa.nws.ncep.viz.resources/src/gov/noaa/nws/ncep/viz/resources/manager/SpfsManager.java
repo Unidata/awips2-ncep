@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.viz.resources.manager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,6 +71,8 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 03/01/16       R6821     K.Bugenhagen Cleanup: mostly changed sysout statements to IUFStatusHandler
  * 06/28/2016     R17025    S.Russell    Removed else clause for updates in 
  *                                       fileUpdated() method.
+ * 09/23/2016     R21176    J.Huber      Modify cycle time in ResourceName of grouped gridded resources
+ *                                       to LATEST if latest is selected on save.
  * </pre>
  * 
  * @author
@@ -439,36 +442,65 @@ public class SpfsManager implements ILocalizationFileObserver {
         //
         Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<>();
         if (!saveCycleTime) {
+
+            // For each display pane
             for (AbstractRenderableDisplay display : rbd.getDisplays()) {
+
+                // For each resource in the display
                 for (ResourcePair rp : display.getDescriptor()
                         .getResourceList()) {
                     AbstractResourceData ard = rp.getResourceData();
+                    List<AbstractNatlCntrsRequestableResourceData> allResourcesList = new ArrayList<>();
+                    // Add to list if it is ungrouped. If it comes across a
+                    // group the group needs to be pulled apart and processed.
                     if (ard instanceof AbstractNatlCntrsRequestableResourceData) {
-                        AbstractNatlCntrsRequestableResourceData ancrrd = (AbstractNatlCntrsRequestableResourceData) ard;
-                        ResourceName rn = ancrrd.getResourceName();
-                        if (rn.isForecastResource()) {
-                            DataTime savedCycleTime = rn.getCycleTime();
-                            rn.setCycleTimeLatest();
-                            resourceNameToCycleTimeMap.put(rn.toString(),
+                        allResourcesList
+                                .add((AbstractNatlCntrsRequestableResourceData) ard);
+                    } else if (ard instanceof GroupResourceData) {
+                        GroupResourceData grpResourceData = (GroupResourceData) ard;
+                        for (ResourcePair singlePair : grpResourceData
+                                .getResourceList()) {
+                            AbstractResourceData singleAbstractData = singlePair
+                                    .getResourceData();
+                            if (singleAbstractData instanceof AbstractNatlCntrsRequestableResourceData) {
+                                allResourcesList
+                                        .add((AbstractNatlCntrsRequestableResourceData) singleAbstractData);
+                            }
+                        }
+                    }
+                    // For each resource in the list, check to see if it is a
+                    // forecast resource set the cycle time to "LATEST" and
+                    // store current cycle time.
+                    for (AbstractNatlCntrsRequestableResourceData singleAbstractData : allResourcesList) {
+                        AbstractNatlCntrsRequestableResourceData singleRequestableData = singleAbstractData;
+                        ResourceName singleResourceName = singleRequestableData
+                                .getResourceName();
+                        if (singleResourceName.isForecastResource()) {
+                            DataTime savedCycleTime = singleResourceName
+                                    .getCycleTime();
+                            singleResourceName.setCycleTimeLatest();
+                            resourceNameToCycleTimeMap.put(
+                                    singleResourceName.toString(),
                                     savedCycleTime);
                         }
                     }
                 }
-            }
-            // Modify dominant resource name in time matcher too
-            ResourceName dominantResourceName = rbd.getTimeMatcher()
-                    .getDominantResourceName();
-            if (dominantResourceName.isForecastResource()) {
-                DataTime savedCycleTime = dominantResourceName.getCycleTime();
-                dominantResourceName.setCycleTimeLatest();
-                resourceNameToCycleTimeMap.put(dominantResourceName.toString(),
-                        savedCycleTime);
+                // Modify dominant resource name in time matcher too
+                ResourceName dominantResourceName = rbd.getTimeMatcher()
+                        .getDominantResourceName();
+                if (dominantResourceName.isForecastResource()) {
+                    DataTime savedCycleTime = dominantResourceName
+                            .getCycleTime();
+                    dominantResourceName.setCycleTimeLatest();
+                    resourceNameToCycleTimeMap.put(
+                            dominantResourceName.toString(), savedCycleTime);
+                }
             }
         }
-        // Marshal out the rbd to the file on disk, set the localizationFile for
-        // the rbd, save the localization file and update the spfsMap with the
-        // rbd and possible new group and spf.
-        //
+        // Marshal out the rbd to the file on disk, set the localizationFile
+        // for the rbd, save the localization file and update the spfsMap
+        // with the rbd and possible new group and spf.
+
         try {
             AbstractRBD.getJaxbManager().marshalToXmlFile(rbd,
                     rbdFile.getAbsolutePath());
@@ -492,38 +524,70 @@ public class SpfsManager implements ILocalizationFileObserver {
                 rbd.getTimeMatcher().setRefTime(savedRefTime);
             }
 
-            // If we saved cycle times as LATEST (as opposed to Constant), then
-            // restore the 'real' cycle times in each requestable forecast
-            // resource in the RBD. (See above.)
+            // If we saved cycle times as LATEST (as opposed to Constant),
+            // then restore the 'real' cycle times in each requestable
+            // forecast resource in the RBD. (See above.)
             if (!saveCycleTime) {
+
+                // For each display pane.
                 for (AbstractRenderableDisplay display : rbd.getDisplays()) {
+
+                    // For each resource.
                     for (ResourcePair rp : display.getDescriptor()
                             .getResourceList()) {
                         AbstractResourceData ard = rp.getResourceData();
+                        List<AbstractNatlCntrsRequestableResourceData> allResourcesRestoreList = new ArrayList<>();
+
+                        // If the resource is ungrouped add it to list. If
+                        // it comes across a group it needs to re-process
+                        // the group to get each resource and then add it to
+                        // the list.
                         if (ard instanceof AbstractNatlCntrsRequestableResourceData) {
-                            AbstractNatlCntrsRequestableResourceData ancrrd = (AbstractNatlCntrsRequestableResourceData) ard;
-                            ResourceName rn = ancrrd.getResourceName();
-                            if (rn.isForecastResource()
-                                    && rn.isLatestCycleTime() // better be
+                            allResourcesRestoreList
+                                    .add((AbstractNatlCntrsRequestableResourceData) ard);
+                        } else if (ard instanceof GroupResourceData) {
+                            GroupResourceData grpResourceData = (GroupResourceData) ard;
+                            for (ResourcePair singlePair : grpResourceData
+                                    .getResourceList()) {
+                                AbstractResourceData singleAbstractData = singlePair
+                                        .getResourceData();
+                                if (singleAbstractData instanceof AbstractNatlCntrsRequestableResourceData) {
+                                    allResourcesRestoreList
+                                            .add((AbstractNatlCntrsRequestableResourceData) singleAbstractData);
+                                }
+                            }
+                        }
+
+                        // For each resource in the list restore the
+                        // current latest cycle time.
+                        for (AbstractNatlCntrsRequestableResourceData singleAbstractData : allResourcesRestoreList) {
+                            AbstractNatlCntrsRequestableResourceData singleRequestableData = singleAbstractData;
+                            ResourceName singleResourceName = singleRequestableData
+                                    .getResourceName();
+                            if (singleResourceName.isForecastResource()
+                                    && singleResourceName.isLatestCycleTime() // better
+                                                                              // be
                                     && resourceNameToCycleTimeMap
-                                            .containsKey(rn.toString())) {
-                                rn.setCycleTime(resourceNameToCycleTimeMap
-                                        .get(rn.toString()));
+                                            .containsKey(singleResourceName
+                                                    .toString())) {
+                                singleResourceName
+                                        .setCycleTime(resourceNameToCycleTimeMap
+                                                .get(singleResourceName
+                                                        .toString()));
                             }
                         }
                     }
                 }
-                // Restore dominant resource name cycle time in time matcher too
-                ResourceName dominantResourceName = rbd.getTimeMatcher()
-                        .getDominantResourceName();
-                if (dominantResourceName.isForecastResource()
-                        && dominantResourceName.isLatestCycleTime() // better be
-                        && resourceNameToCycleTimeMap
-                                .containsKey(dominantResourceName.toString())) {
-                    dominantResourceName
-                            .setCycleTime(resourceNameToCycleTimeMap
-                                    .get(dominantResourceName.toString()));
-                }
+            }
+            // Restore dominant resource name cycle time in time matcher too
+            ResourceName dominantResourceName = rbd.getTimeMatcher()
+                    .getDominantResourceName();
+            if (dominantResourceName.isForecastResource()
+                    && dominantResourceName.isLatestCycleTime() // better be
+                    && resourceNameToCycleTimeMap
+                            .containsKey(dominantResourceName.toString())) {
+                dominantResourceName.setCycleTime(resourceNameToCycleTimeMap
+                        .get(dominantResourceName.toString()));
             }
         }
     }

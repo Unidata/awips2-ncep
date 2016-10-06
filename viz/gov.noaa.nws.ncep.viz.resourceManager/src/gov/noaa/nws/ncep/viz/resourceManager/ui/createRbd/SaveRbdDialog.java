@@ -1,7 +1,7 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -50,6 +50,7 @@ import org.eclipse.swt.widgets.Text;
  * 05/02/12      #585       S. Gurung    Commented out unwanted options ("Sort Alphabetically" and "Sort By Date")
  * 11/18/15      #12852     bkowal       Ensure that the dialog does not recursively reset its state
  *                                       when nothing has actually changed.
+ * 10/11/2016    R17032     A. Su        Disallowed some chars in naming SPF Group, SPF Name and RBD Name.
  * 
  * </pre>
  * 
@@ -298,10 +299,32 @@ public class SaveRbdDialog extends Dialog {
 
         save_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                seldSpfGroup = spf_group_combo.getText();
-                seldSpfName = spf_name_txt.getText();
 
+                SpfsManager manager = SpfsManager.getInstance();
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
+                seldSpfGroup = spf_group_combo.getText();
+                if (!manager.validateName(shell, seldSpfGroup, "Saving RBD",
+                        "SPF Group")) {
+                    return;
+                }
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
+                seldSpfName = spf_name_txt.getText();
+                if (!manager.validateName(shell, seldSpfName, "Saving RBD",
+                        "SPF Name")) {
+                    return;
+                }
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
                 seldRbdName = rbd_name_combo.getText();
+                if (!manager.validateName(shell, seldRbdName, "Saving RBD",
+                        "RBD Name")) {
+                    return;
+                }
 
                 if (seldRbdName == null || seldRbdName.isEmpty()) {
                     System.out.println("RBD name is not selected.");

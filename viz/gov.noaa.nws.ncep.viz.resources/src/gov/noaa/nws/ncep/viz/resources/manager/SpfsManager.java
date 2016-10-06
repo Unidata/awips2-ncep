@@ -15,6 +15,9 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Shell;
+
 import com.raytheon.uf.common.localization.FileUpdatedMessage;
 import com.raytheon.uf.common.localization.FileUpdatedMessage.FileChangeType;
 import com.raytheon.uf.common.localization.ILocalizationFileObserver;
@@ -75,6 +78,9 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  *                                       If so then return instead of throwing AlertViz (current behavior).
  * 09/23/2016     R21176    J.Huber      Modify cycle time in ResourceName of grouped gridded resources
  *                                       to LATEST if latest is selected on save.
+ * 10/11/2016     R17032    A. Su        Replaced the method isValidRbdName() with findDisallowedCharsInName().
+ *                                       Added a method validateName() to validate an input name.
+ * 
  * </pre>
  * 
  * @author
@@ -89,6 +95,12 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     // save LocalizationFile for comparison on subsequent removals
     private static LocalizationFile lastLocalizationFileRemoved = null;
+
+    // The disallowed characters in naming SPF Group, SPF, and RBD
+    // include shell special characters (meta-characters).
+    public static final char DISALLOWED_CHARS_IN_NAME[] = { '/', '*', '?', '[',
+            ']', '\'', '"', '\\', '$', ';', '&', '(', ')', '|', '^', '<', '>',
+            '`', '\n', ' ', '\t' };
 
     // Might not want to rely on these counts for anything critical.
     private static long rbdCount = 0;
@@ -307,18 +319,6 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         // Make a copy to allow the user to modify the list.
         return new ArrayList<>(Arrays.asList(rbdsList));
-    }
-
-    // TODO : decide what is/isn't a valid rbd name ...
-    public boolean isValidRbdName(String rbdName) {
-        if (rbdName != null && !rbdName.isEmpty()) {
-            if (!rbdName.contains(File.separator)) {
-                // more invalid checks....
-
-                return true;
-            }
-        }
-        return false;
     }
 
     // Create a new SPF with the given rbds. The rbdsList should be in order and
@@ -890,5 +890,76 @@ public class SpfsManager implements ILocalizationFileObserver {
             statusHandler.handle(Priority.PROBLEM, "Error unmarshalling rbd: "
                     + chgFile + "\n" + e.getMessage());
         }
+    }
+
+    /**
+     * Find any disallowed characters in the given name.
+     * 
+     * @param name
+     *            To be checked.
+     * @return found disallowed characters.
+     */
+    public String findDisallowedCharsInName(String name) {
+        String detectedChars = "";
+
+        for (char testedChar : DISALLOWED_CHARS_IN_NAME) {
+            if (name.indexOf(testedChar) != -1) {
+                if (testedChar == '&') {
+                    // Special processing for the character '&' to be printed.
+                    detectedChars += "&&, ";
+                } else if (testedChar == ' ') {
+                    detectedChars += "space, ";
+                } else {
+                    detectedChars += testedChar + ", ";
+                }
+            }
+        }
+        if (detectedChars.length() > 1) {
+            detectedChars = detectedChars.substring(0,
+                    detectedChars.length() - 2);
+
+        }
+        return detectedChars;
+    }
+
+    /**
+     * Validate a name against the list of DISALLOWED_CHARS_IN_NAME. If not a
+     * valid name, pop up a MessageDialog to alert the user.
+     * 
+     * @param dialogShell
+     *            the shell of dialog window where the name is to be validated
+     * @param name
+     *            name to be validated
+     * @param messageTitle
+     *            the title of the error message in an MessageDialog for an
+     *            invalid name
+     * @param nameCategory
+     *            the name category for the error message in an MessageDialog
+     *            for an invalid name
+     * @return true if the name is valid; false if the name is invalid.
+     */
+    public boolean validateName(Shell dialogShell, String name,
+            String messageTitle, String nameCategory) {
+
+        String disallowedChars = findDisallowedCharsInName(name);
+
+        if (!disallowedChars.isEmpty()) {
+            String errorMessage = "Error "
+                    + messageTitle
+                    + ": "
+                    + "characters <"
+                    + disallowedChars
+                    + "> "
+                    + ((nameCategory != null && !nameCategory.isEmpty()) ? "in "
+                            + nameCategory
+                            : "") + " are not allowed";
+
+            MessageDialog errDlg = new MessageDialog(dialogShell, "Error",
+                    null, errorMessage, MessageDialog.ERROR,
+                    new String[] { "OK" }, 0);
+            errDlg.open();
+            return false;
+        }
+        return true;
     }
 }

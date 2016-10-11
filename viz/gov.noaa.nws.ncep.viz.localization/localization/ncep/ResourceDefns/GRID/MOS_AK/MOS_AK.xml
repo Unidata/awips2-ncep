@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MOSGuide-AK
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

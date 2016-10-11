@@ -1,5 +1,5 @@
 /*
- * gov.noaa.nws.ncep.ui.pgen.file.ProductConverter
+F * gov.noaa.nws.ncep.ui.pgen.file.ProductConverter
  * 
  * Date created: 17 February 2009
  *
@@ -10,6 +10,7 @@ package gov.noaa.nws.ncep.ui.pgen.file;
 import gov.noaa.nws.ncep.common.staticdata.SPCCounty;
 import gov.noaa.nws.ncep.edex.common.stationTables.IStationField.StationField;
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -91,54 +92,55 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/17/09		#63			J. Wu   	Initial Creation.
- * 04/20/09		#88			J. Wu   	Added Text.
- * 04/30/09		#89			J. Wu   	Added Arc.
+ * Date         Ticket#     Engineer    Description
+ * -------------------------------------------------------------------
+ * 02/17/09     #63         J. Wu       Initial Creation.
+ * 04/20/09     #88         J. Wu       Added Text.
+ * 04/30/09     #89         J. Wu       Added Arc.
  * 05/09        #42         S. Gilbert  Added pgenType and pgenCategory to constructors
- * 05/09		#111		J. Wu   	Added Vector
- * 06/09		#116		B. Yin		Added DECollection
- * 07/09		#131		J. Wu		Added more attributes for Layer
+ * 05/09        #111        J. Wu       Added Vector
+ * 06/09        #116        B. Yin      Added DECollection
+ * 07/09        #131        J. Wu       Added more attributes for Layer
  * 07/09        #104        S. Gilbert  Added AvnText
- * 08/09		#135		B. Yin		Added Jet
- * 08/09		#135		B. Yin		Handle relative location for jet text
- * 08/09		#149		B. Yin		Added PgenType and PgenCategory for DECollections 
- * 09/09		#151		J. Wu		Added  more attributes for Product
- * 11/09		#167		J. Wu		Added Contours
+ * 08/09        #135        B. Yin      Added Jet
+ * 08/09        #135        B. Yin      Handle relative location for jet text
+ * 08/09        #149        B. Yin      Added PgenType and PgenCategory for DECollections 
+ * 09/09        #151        J. Wu       Added  more attributes for Product
+ * 11/09        #167        J. Wu       Added Contours
  * 10/09        #163        S. Gilbert  Added TCA
- * 11/09		#160		G. Zhang	Added Sigmet
+ * 11/09        #160        G. Zhang    Added Sigmet
  * 01/10        #104        S. Gilbert  Added MidCloudText
- * 03/10		#159		B. Yin		Added Watch and issued Watch information
- * 03/10		#159		B. Yin		Added Watch status information
- * 05/10		#267		B. Yin		Added Outlook
- * 03/10		#223		M.Laryukhin	Added Gfa
+ * 03/10        #159        B. Yin      Added Watch and issued Watch information
+ * 03/10        #159        B. Yin      Added Watch status information
+ * 05/10        #267        B. Yin      Added Outlook
+ * 03/10        #223        M.Laryukhin Added Gfa
  * 08/10        #137        Q. Zhou     Add a condition for standalone watchbox -- county 
- * 08/10		#215		J. Wu		Added Contours' attributes to Outlook
+ * 08/10        #215        J. Wu       Added Contours' attributes to Outlook
  * 09/10                    Q. Zhou     Fix a typo on xmlStatusExpCal
- * 09/10		#305/306	B. Yin		Added LabeledLine(Cloud and Turbulence)
- * 11/10		#?			B. Yin		Changed Cloud label from AvnText to MidLevelCloudText
+ * 09/10        #305/306    B. Yin      Added LabeledLine(Cloud and Turbulence)
+ * 11/10        #?          B. Yin      Changed Cloud label from AvnText to MidLevelCloudText
  * 11/10                    Q.Zhou      Handle null situation for contour time
  * 11/10                    J. Wu       Added ContourCircle into Contours
  * 11/10                    Q.Zhou      Added code to get Avntext in convertXML2LabeledLine()
  * 01/11                    J. Wu       Reworked on Product's attributes. 
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 12/11		#?			B. Yin		Changed 'TO' to '-' in LLWS vorText
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 12/11        #?          B. Yin      Changed 'TO' to '-' in LLWS vorText
  * 02/12        #597        S. Gurung   Moved snap functionalities to SnapUtil from SigmetInfo. 
  * 03/12        #676        Q. Zhou     Added Issue Office field.
- * 03/12        #610        J. Wu		Restore issue/until times for GFA smears.
- * 05/12        #808        J. Wu		Remove SnapUtil from converting GFA.
- * 06/12	    #734        J. Zeng     Add converter for spenes
- * 12/12  		#937        J. Wu    	Update G_Airmet layers/hazard - "C&V"
- * 11/13		#1049		B. Yin		Handle outlook type defined in layer.
- * 12/13		TTR904		B. Yin		Added back the water zone string for Watch county list
+ * 03/12        #610        J. Wu       Restore issue/until times for GFA smears.
+ * 05/12        #808        J. Wu       Remove SnapUtil from converting GFA.
+ * 06/12        #734        J. Zeng     Add converter for spenes
+ * 12/12        #937        J. Wu       Update G_Airmet layers/hazard - "C&V"
+ * 11/13        #1049       B. Yin      Handle outlook type defined in layer.
+ * 12/13        TTR904      B. Yin      Added back the water zone string for Watch county list
  * 11/13        #1065       J. Wu       Added Kink lines.
  * 05/14        TTR995      J. Wu       Set Text's 'auto" flag to false.
  * 09/14        TTR716      J. Wu       Use "-" for GFA Outlook's Vor text.
  * 02/15        R6158       J. Wu       Preserve ithw/iwidth for Text/AvnText/MidCloudText.
  * 03/15        R6872       J. Wu       Add status/forecaster/center in vgf2xml conversion.
- * 08/05		R8879		B. Yin		Check Outlook/Contour by type
+ * 08/05        R8879       B. Yin      Check Outlook/Contour by type
  * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
+ * 07/28/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 
  * </pre>
  * 
@@ -1799,9 +1801,9 @@ public class ProductConverter {
 
         gov.noaa.nws.ncep.ui.pgen.file.Contours contours = new gov.noaa.nws.ncep.ui.pgen.file.Contours();
 
-        contours.setCollectionName("Contours");
-        contours.setPgenType("Contours");
-        contours.setPgenCategory("MET");
+        contours.setCollectionName(PgenConstant.CONTOURS);
+        contours.setPgenType(PgenConstant.CONTOURS);
+        contours.setPgenCategory(PgenConstant.CATEGORY_MET);
 
         contours.setParm(cnt.getParm());
         contours.setLevel(cnt.getLevel());
@@ -1870,7 +1872,7 @@ public class ProductConverter {
     private static Contours convertXML2Contours(
             gov.noaa.nws.ncep.ui.pgen.file.Contours cnt) {
 
-        Contours contours = new Contours("Contours");
+        Contours contours = new Contours(PgenConstant.CONTOURS);
 
         contours.setPgenType(cnt.getPgenType());
         contours.setPgenCategory(cnt.getPgenCategory());
@@ -1910,6 +1912,11 @@ public class ProductConverter {
                 String[] labelString = null;
                 int numOfLabels = 0;
 
+                /*
+                 * If a contour line's label is hidden, sets the line's
+                 * "numOfLabels" to 0.
+                 */
+                boolean zeroLabels = false;
                 for (AbstractDrawableComponent de : delist) {
 
                     de.setParent(contourLine);
@@ -1917,6 +1924,9 @@ public class ProductConverter {
 
                     if (de instanceof Text) {
                         numOfLabels++;
+                        if (((Text) de).getHide()) {
+                            zeroLabels = true;
+                        }
 
                         if (labelString == null) {
                             labelString = ((Text) de).getText();
@@ -1926,6 +1936,9 @@ public class ProductConverter {
                 }
 
                 // Set the number of labels and label strings
+                if (zeroLabels) {
+                    numOfLabels = 0;
+                }
                 contourLine.setNumOfLabels(numOfLabels);
                 contourLine.setLabelString(labelString);
 

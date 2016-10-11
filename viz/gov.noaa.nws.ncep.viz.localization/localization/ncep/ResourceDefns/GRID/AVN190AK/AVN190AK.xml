@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=AVN203
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

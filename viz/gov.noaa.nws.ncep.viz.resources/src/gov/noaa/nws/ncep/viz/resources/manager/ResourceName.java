@@ -7,8 +7,6 @@ import java.util.Date;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-import org.eclipse.swt.graphics.RGB;
-
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 
@@ -17,17 +15,18 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------- ----------- -------------------------
  *  09/13/10      #307        Greg Hull   add cycleTime.
  *  09/16/10      #307        Greg Hull   add forecast flag
- *  10/14/10	  #277		  M. Li		  add ensemble category
+ *  10/14/10      #277        M. Li       add ensemble category
  *  10/20/10                  Xilin Guo   Rename getCycleTimeStringFromDataTime to getTimeStringFromDataTime
  *  02/16/11      #408        Greg Hull   add 'backup' categories for obs/fcst surface/uair
  *  01/09/11      #561        Greg Hull   generated equals()
  *  09/13/12      #860        Greg Hull   trim()
  *  11/19/12      #630        Greg Hull   getAbbrName() (for satellite-area names
  *  02/10/13      #972        Greg Hull   ResourceCategory class
+ *  02/16/16      R15244      bkowal      Cleanup unused imports.
  *
  * </pre>
  * 

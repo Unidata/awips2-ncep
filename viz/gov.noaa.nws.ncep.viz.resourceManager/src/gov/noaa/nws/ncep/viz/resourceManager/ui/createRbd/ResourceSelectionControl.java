@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -38,6 +39,7 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -107,7 +109,13 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 01/27/2016     R12859    A. Su        Sorted the list of cycle times in the cycleTimeCombo widget.
  *                                       Removed unneeded code for remembering last selected resource.
  *                                       Removed dead code for mcidas.
- * 
+ * 04/05/2016   RM#10435    rjpeter      Removed Inventory usage.
+ * 06/16/2016     R17949    Jeff Beck    Add the capability to select PGEN resources from available times,
+ *                                       using a comboBox and using the same UI layout familiar to users when selecting "Cycle Times".
+ *                                       Previous PGEN data in the UI will be labeled "Available Times" not "Cycle Times".
+ * 08/15/2016     R17368    Jeff Beck    If a resource in the parent window (Create RBD) is selected, display it
+ *                                       when opening this Resource Selection Control. Include cycle times. 
+ *                                       If there's unselected resource(s), display the most previous one, with cycle times.
  * </pre>
  * 
  * @author ghull
@@ -146,17 +154,17 @@ public class ResourceSelectionControl extends Composite {
     /**
      * A mapping from NcDisplayType to last selected ResourceName for this type.
      */
-    protected static HashMap<NcDisplayType, ResourceName> prevDisplayType2RscName = new HashMap<NcDisplayType, ResourceName>();;
+    protected static HashMap<NcDisplayType, ResourceName> prevDisplayType2RscName = new HashMap<>();
 
     /**
      * A mapping from Category to last selected filter for this category.
      */
-    protected static HashMap<ResourceCategory, String> prevCat2SelectedFilter = new HashMap<ResourceCategory, String>();;
+    protected static HashMap<ResourceCategory, String> prevCat2SelectedFilter = new HashMap<>();
 
     /**
      * A mapping from Category to last selected ResourceName for this category.
      */
-    protected static HashMap<ResourceCategory, ResourceName> prevCat2SelectedRscName = new HashMap<ResourceCategory, ResourceName>();
+    protected static HashMap<ResourceCategory, ResourceName> prevCat2SelectedRscName = new HashMap<>();
 
     private static ResourceCategory prevSelectedCat = ResourceCategory.NullCategory;
 
@@ -177,6 +185,8 @@ public class ResourceSelectionControl extends Composite {
     protected Label cycleTimeLbl = null;
 
     protected Combo cycleTimeCombo = null;
+
+    private boolean openingDialogWithResources = false;
 
     // For now only one of following two will be visible but we may want to
     // allow both later (and remove the Modify button from the Create RBD tab)
@@ -218,7 +228,9 @@ public class ResourceSelectionControl extends Composite {
                 boolean addAllPanes, boolean done);
     }
 
-    private Set<IResourceSelectedListener> rscSelListeners = new HashSet<IResourceSelectedListener>();
+    private final Set<IResourceSelectedListener> rscSelListeners = new HashSet<>();
+
+    private Cursor waitCursor = null;
 
     public ResourceSelectionControl(Composite parent, Boolean replaceVisible,
             Boolean replaceEnabled, ResourceName initRscName,
@@ -263,6 +275,8 @@ public class ResourceSelectionControl extends Composite {
         addSelectionListeners();
 
         initWidgets(initRscName);
+
+        waitCursor = new Cursor(getDisplay(), SWT.CURSOR_WAIT);
     }
 
     /**
@@ -445,7 +459,11 @@ public class ResourceSelectionControl extends Composite {
         cycleTimeCombo.setLayoutData(fd);
 
         cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
-        cycleTimeLbl.setText("Cycle Time");
+        // Default to the maximum string (length) the label might be:
+        // We use "Available Times" (for PGEN) and "Cycle Time" for all others
+        // If it's not used for PGEN, it will be set to "Cycle Time" in the
+        // listener
+        cycleTimeLbl.setText("Available Times");
         fd = new FormData();
         fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
         fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
@@ -518,6 +536,7 @@ public class ResourceSelectionControl extends Composite {
 
         rscTypeLViewer.setComparator(new ViewerComparator() {
 
+            @Override
             public int category(Object element) {
                 ResourceDefinition rd = (ResourceDefinition) element;
                 return (rd.isForecast() ? 1 : 0);
@@ -535,9 +554,11 @@ public class ResourceSelectionControl extends Composite {
 
         rscTypeLViewer.setLabelProvider(new LabelProvider() {
 
+            @Override
             public String getText(Object element) {
-                if (element == null)
+                if (element == null) {
                     return "null";
+                }
 
                 ResourceDefinition rd = (ResourceDefinition) element;
                 String rdName = rd.getResourceDefnName();
@@ -565,42 +586,49 @@ public class ResourceSelectionControl extends Composite {
             @Override
             public int compare(Viewer viewer, Object obj1, Object obj2) {
 
-                boolean isLocalRadar = (obj1 != null && ((ResourceDefinition) obj1)
+                boolean isLocalRadar = ((obj1 != null) && ((ResourceDefinition) obj1)
                         .getResourceCategory().equals(
                                 ResourceCategory.RadarRscCategory))
-                        || (obj2 != null && ((ResourceDefinition) obj2)
+                        || ((obj2 != null) && ((ResourceDefinition) obj2)
                                 .getResourceCategory().equals(
                                         ResourceCategory.RadarRscCategory));
 
-                if (!isLocalRadar)
+                if (!isLocalRadar) {
                     return super.compare(viewer, obj1, obj2);
+                }
 
-                if (obj1 == null)
+                if (obj1 == null) {
                     return 1;
+                }
 
-                if (obj2 == null)
+                if (obj2 == null) {
                     return -1;
+                }
 
                 final String firstOnRadarMenu = NATL_MOSAIC_DISPLAY_NAME;
                 String label1 = ((ResourceDefinition) obj1)
                         .getResourceDefnName();
-                if (label1.equals(firstOnRadarMenu))
+                if (label1.equals(firstOnRadarMenu)) {
                     return -1;
+                }
 
                 String label2 = ((ResourceDefinition) obj2)
                         .getResourceDefnName();
-                if (label2.equals(firstOnRadarMenu))
+                if (label2.equals(firstOnRadarMenu)) {
                     return 1;
+                }
 
                 String displayName1 = LocalRadarStationManager.getInstance()
                         .getDisplayedName(label1);
-                if (displayName1 != null)
+                if (displayName1 != null) {
                     label1 = displayName1;
+                }
 
                 String displayName2 = LocalRadarStationManager.getInstance()
                         .getDisplayedName(label2);
-                if (displayName2 != null)
+                if (displayName2 != null) {
                     label2 = displayName2;
+                }
 
                 return (label1.compareTo(label2));
 
@@ -623,7 +651,7 @@ public class ResourceSelectionControl extends Composite {
                         List<String> rscAttrSetsList = rscDefnsMngr
                                 .getAttrSetGroupNamesForResource(rscType);
 
-                        if (rscAttrSetsList != null
+                        if ((rscAttrSetsList != null)
                                 && !rscAttrSetsList.isEmpty()) {
                             return rscAttrSetsList.toArray();
                         }
@@ -632,7 +660,7 @@ public class ResourceSelectionControl extends Composite {
                             String[] rscGroups = rscDefnsMngr
                                     .getResourceSubTypes(rscType);
 
-                            if (rscGroups != null && rscGroups.length != 0) {
+                            if ((rscGroups != null) && (rscGroups.length != 0)) {
                                 return rscGroups;
                             }
                         } catch (VizException e) {
@@ -668,6 +696,7 @@ public class ResourceSelectionControl extends Composite {
 
         rscGroupLViewer.setLabelProvider(new LabelProvider() {
 
+            @Override
             public String getText(Object element) {
 
                 String displayName = (String) element;
@@ -697,8 +726,8 @@ public class ResourceSelectionControl extends Composite {
                     maxLengthOfSelectableAttrSets = 0;
 
                     for (AttributeSet attributeSet : attrSets) {
-                        if (attributeSet != null
-                                && attributeSet.getName().length() > maxLengthOfSelectableAttrSets) {
+                        if ((attributeSet != null)
+                                && (attributeSet.getName().length() > maxLengthOfSelectableAttrSets)) {
                             maxLengthOfSelectableAttrSets = attributeSet
                                     .getName().length();
                         }
@@ -763,6 +792,7 @@ public class ResourceSelectionControl extends Composite {
         });
 
         rscAttrSetLViewer.setLabelProvider(new LabelProvider() {
+            @Override
             public String getText(Object element) {
 
                 ResourceName rscName = new ResourceName(selectedRscName);
@@ -810,30 +840,19 @@ public class ResourceSelectionControl extends Composite {
                     attrSetName = attrSetName + " ";
                 }
 
-                // If we aren't using the inventory then the query is too
-                // slow for the gui.
-                // TODO : If the inventory doesn't pan out then we could
-                // either implement this in another thread and accept the
-                // delay or add a 'Check Availability' button.
-                if (rscName.isValid() && rscDefn.usesInventory()
-                        && rscDefn.getInventoryEnabled()) {
+                try {
+                    DataTime latestTime = rscDefn.getLatestDataTime(rscName);
 
-                    try {
-                        DataTime latestTime = rscDefn
-                                .getLatestDataTime(rscName);
+                    if ((latestTime == null) || latestTime.isNull()) {
+                        attrSetName = attrSetName + " (No Data)";
+                    } else {
+                        String latestTimeStr = NmapCommon
+                                .getTimeStringFromDataTime(latestTime, "_");
 
-                        if (latestTime.isNull()) {
-                            attrSetName = attrSetName + " (No Data)";
-                        } else {
-                            String latestTimeStr = NmapCommon
-                                    .getTimeStringFromDataTime(latestTime, "_");
-
-                            attrSetName = attrSetName + " (" + latestTimeStr
-                                    + ")";
-                        }
-                    } catch (VizException e) {
-                        statusHandler.handle(Priority.INFO, e.getMessage());
+                        attrSetName = attrSetName + " (" + latestTimeStr + ")";
                     }
+                } catch (VizException e) {
+                    statusHandler.handle(Priority.INFO, e.getMessage());
                 }
 
                 return attrSetName;
@@ -848,6 +867,7 @@ public class ResourceSelectionControl extends Composite {
 
         rscCatLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElements = (StructuredSelection) event
                                 .getSelection();
@@ -874,10 +894,11 @@ public class ResourceSelectionControl extends Composite {
                 });
 
         filterCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 String filterString = filterCombo.getText();
 
-                if (filterString != null
+                if ((filterString != null)
                         && filterString.equals(selectedFilterString)) {
                     return;
                 }
@@ -892,6 +913,7 @@ public class ResourceSelectionControl extends Composite {
 
         rscTypeLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -909,14 +931,13 @@ public class ResourceSelectionControl extends Composite {
                         selectedRscName.setRscAttrSetName("");
                         selectedRscName.setCycleTime(null);
 
-                        updateCycleTimes();
-
                         updateResourceGroups();
                     }
                 });
 
         rscGroupLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -940,6 +961,7 @@ public class ResourceSelectionControl extends Composite {
         rscAttrSetLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
 
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection selectedElement = (StructuredSelection) event
                                 .getSelection();
@@ -962,16 +984,18 @@ public class ResourceSelectionControl extends Composite {
                     }
                 });
 
-        // get the selected rsc and add to the list.
-        // ignoring the cycle time for now.
         addResourceBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
+                prevSelectedRscName = selectedRscName;
                 selectResource(false, false);
             }
         });
 
         replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
+                prevSelectedRscName = selectedRscName;
                 selectResource(true, false);
             }
         });
@@ -979,6 +1003,7 @@ public class ResourceSelectionControl extends Composite {
         // a double click will add the resource and close the dialog
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
                 new Listener() {
+                    @Override
                     public void handleEvent(Event event) {
                         if (addResourceBtn.isVisible()) {
                             selectResource(false, true);
@@ -989,21 +1014,38 @@ public class ResourceSelectionControl extends Composite {
                 });
 
         cycleTimeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 updateSelectedResource();
             }
         });
     }
 
-    /*
-     * set the initial values of the widgets.
+    /**
+     * Set the initial values of the widgets
+     * 
+     * @param initRscName
+     *            the selected ResourceName in the parent resource list
      */
     protected void initWidgets(ResourceName initRscName) {
 
-        if (prevSelectedRscName != null && prevSelectedRscName.isValid()) {
-            selectedRscName = new ResourceName(prevSelectedRscName);
-        } else {
+        if ((initRscName != null) && initRscName.isValid()) {
+            // We do have a selected resource in the create RBD resource list
+            openingDialogWithResources = true;
+
+            // Use the selected resource from the create RBD resource list
             selectedRscName = new ResourceName(initRscName);
+
+        } else if ((prevSelectedRscName != null)
+                && prevSelectedRscName.isValid()) {
+
+            // We have resources (but none are selected) in the create RBD
+            // resource list
+            openingDialogWithResources = true;
+
+            // Use the previous ResourceName
+            selectedRscName = new ResourceName(prevSelectedRscName);
+
         }
 
         if (selectedRscName != null) {
@@ -1020,8 +1062,8 @@ public class ResourceSelectionControl extends Composite {
 
         addToAllPanesBtn.setSelection(false);
 
-        if (selectedRscName == null
-                || selectedRscName.getRscCategory() == ResourceCategory.NullCategory) {
+        if ((selectedRscName == null)
+                || (selectedRscName.getRscCategory() == ResourceCategory.NullCategory)) {
             return;
         }
 
@@ -1041,6 +1083,11 @@ public class ResourceSelectionControl extends Composite {
 
         updateResourceFilters();
         updateResourceTypes();
+
+        // We are finished with work of opening this dialog.
+        // Now we must set this flag to false, so other functionalities that
+        // happen in the program will know this.
+        openingDialogWithResources = false;
     }
 
     /*
@@ -1099,7 +1146,7 @@ public class ResourceSelectionControl extends Composite {
                 String alias = LocalRadarStationManager.getInstance()
                         .getDisplayedName(selectedRscType);
 
-                if (alias != null && !alias.isEmpty()) {
+                if ((alias != null) && !alias.isEmpty()) {
                     selectedDisplayType = alias;
                 }
             }
@@ -1124,7 +1171,7 @@ public class ResourceSelectionControl extends Composite {
         // if no type is selected or it is not found for some reason, select the
         // first
         if (selectedRscName.getRscType().isEmpty()
-                && rscTypeLViewer.getList().getItemCount() > 0) {
+                && (rscTypeLViewer.getList().getItemCount() > 0)) {
 
             typeList.select(0);
             StructuredSelection selectedElement = (StructuredSelection) rscTypeLViewer
@@ -1137,7 +1184,6 @@ public class ResourceSelectionControl extends Composite {
             selectedRscName.setCycleTime(null);
         }
 
-        updateCycleTimes();
         updateResourceGroups();
     }
 
@@ -1177,7 +1223,7 @@ public class ResourceSelectionControl extends Composite {
             // if no type is selected or it is not found for some reason, select
             // the first
             if (selectedRscName.getRscGroup().isEmpty()
-                    && rscGroupLViewer.getList().getItemCount() > 0) {
+                    && (rscGroupLViewer.getList().getItemCount() > 0)) {
 
                 rscGroupLViewer.getList().select(0);
                 StructuredSelection selectedElement = (StructuredSelection) rscGroupLViewer
@@ -1217,7 +1263,7 @@ public class ResourceSelectionControl extends Composite {
         // if no attr set is selected or it is not found for some reason, select
         // the first
         if (selectedRscName.getRscAttrSetName().isEmpty()
-                && rscAttrSetLViewer.getList().getItemCount() > 0) {
+                && (rscAttrSetLViewer.getList().getItemCount() > 0)) {
 
             rscAttrSetLViewer.getList().select(0);
             StructuredSelection selectedElement = (StructuredSelection) rscAttrSetLViewer
@@ -1231,9 +1277,22 @@ public class ResourceSelectionControl extends Composite {
         updateSelectedResource();
     }
 
+    /**
+     * Convenience method to avoid adding isPgenResource() to existing
+     * conditional expressions.
+     * 
+     * @param rscDefn
+     *            the definition of the currently selected resoure name
+     * 
+     * @return true if our intent is to display a cycle times comboBox in the
+     *         resource selection manager UI
+     */
+    private boolean usingCycleTimes(ResourceDefinition rscDefn) {
+        return isForecast() || rscDefn.isPgenResource();
+    }
+
     /*
-     * when an attrSetName is selected and resource name, with possible cycle
-     * time, is ready for selection
+     * Keeps the selected resource updated
      */
     public void updateSelectedResource() {
 
@@ -1246,32 +1305,24 @@ public class ResourceSelectionControl extends Composite {
         ResourceDefinition rscDefn = rscDefnsMngr
                 .getResourceDefinition(selectedRscName.getRscType());
 
-        if (!selectedRscName.isValid() || rscDefn == null) {
+        if (!selectedRscName.isValid() || (rscDefn == null)) {
             enableSelections = false;
         }
 
         if (enableSelections) {
             try {
-                if (this.isForecast()) {
+                if (usingCycleTimes(rscDefn)) {
                     if (cycleTimeCombo.getItems().length == 0) {
                         enableSelections = false;
                     }
-                } else if (rscDefn.isPgenResource()) {
-                    availMsg = "";
                 } else if (!rscDefn.isRequestable()) {
                     availMsg = "";
                 } else {
-                    // If we aren't using the inventory then the query is too
-                    // slow for the gui.
-                    // TODO : If the inventory doesn't pan out then we could
-                    // either implement this in another thread and accept the
-                    // delay or add a 'Check Availability' button.
                     DataTime latestTime = rscDefn
                             .getLatestDataTime(selectedRscName);
 
-                    if (latestTime == null || latestTime.isNull()) {
+                    if ((latestTime == null) || latestTime.isNull()) {
                         enableSelections = false;
-
                     } else {
                         availMsg = "Latest Data: "
                                 + NmapCommon.getTimeStringFromDataTime(
@@ -1286,19 +1337,29 @@ public class ResourceSelectionControl extends Composite {
         }
 
         if (enableSelections) {
-
             addResourceBtn.setEnabled(true);
             replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
-            if (this.isForecast()) {
+            // combo box will now be enabled for PGEN Available times
+            if (usingCycleTimes(rscDefn)) {
                 cycleTimeLbl.setEnabled(true);
                 cycleTimeCombo.setEnabled(true);
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
-                String cycleTime = cycleTimeCombo.getText();
-                DataTime refTime = (DataTime) cycleTimeCombo.getData(cycleTime);
-                selectedRscName.setCycleTime(refTime);
+                if (!openingDialogWithResources) {
+
+                    String cycleTime = cycleTimeCombo.getText();
+                    DataTime refTime = (DataTime) cycleTimeCombo
+                            .getData(cycleTime);
+                    selectedRscName.setCycleTime(refTime);
+
+                } else {
+
+                    int i = getSelectedCycleTimeIndex(selectedRscName,
+                            cycleTimeCombo);
+                    cycleTimeCombo.select(i);
+                }
 
                 availDataTimeLbl.setVisible(false);
             } else {
@@ -1312,7 +1373,6 @@ public class ResourceSelectionControl extends Composite {
 
             // For now, don't let the user select 'Latest'
             if (selectedRscName.isLatestCycleTime()) {
-
                 addResourceBtn.setEnabled(false);
                 replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
@@ -1335,18 +1395,20 @@ public class ResourceSelectionControl extends Composite {
                 selectedRscName));
         prevCat2SelectedRscName.put(selectedRscName.getRscCategory(),
                 new ResourceName(selectedRscName));
-        prevSelectedRscName = selectedRscName;
     }
 
     /*
      * code for the Listeners for the Add Resource button and the double Click
-     * /on the list
+     * on the list. Get the selected rsc and add to the list, ignoring the cycle
+     * time for now. This is true and makes the UI "clumsy"" and misleading
      */
     public void selectResource(boolean replaceRsc, boolean done) {
 
         boolean addToAllPanes = (addToAllPanesBtn.isVisible() && addToAllPanesBtn
                 .getSelection());
-        if (selectedRscName != null && selectedRscName.isValid()) {
+
+        if ((selectedRscName != null) && selectedRscName.isValid()) {
+
             for (IResourceSelectedListener lstnr : rscSelListeners) {
                 lstnr.resourceSelected(selectedRscName, replaceRsc,
                         addToAllPanes, done);
@@ -1367,30 +1429,41 @@ public class ResourceSelectionControl extends Composite {
      * time. Currently the user cannot select a forecast resource without
      * selecting an available cycle time.
      */
-    public void updateCycleTimes() {
+    protected void updateCycleTimes() {
         ResourceDefinition rscDefn = rscDefnsMngr
                 .getResourceDefinition(selectedRscName);
 
         if (rscDefn == null) {
             cycleTimeLbl.setEnabled(false);
             cycleTimeCombo.setEnabled(false);
+            clearCycleTimeCombo();
             return;
         }
 
         cycleTimeLbl.setEnabled(true);
         cycleTimeCombo.setEnabled(true);
 
-        boolean isRDForecast = rscDefn.isForecast();
-        cycleTimeLbl.setVisible(isRDForecast);
-        cycleTimeCombo.setVisible(isRDForecast);
-        availDataTimeLbl.setVisible(!isRDForecast);
+        boolean cycleTimeEnabled = (rscDefn.isForecast() || rscDefn
+                .isPgenResource());
+        cycleTimeLbl.setVisible(cycleTimeEnabled);
+        cycleTimeCombo.setVisible(cycleTimeEnabled);
+        availDataTimeLbl.setVisible(!cycleTimeEnabled);
 
-        if (!isForecast()) {
+        // use a different label name if PGEN
+        if (rscDefn.isPgenResource()) {
+            cycleTimeLbl.setText("Available Times");
+        } else {
+            cycleTimeLbl.setText("Cycle Time");
+        }
+
+        if (!isForecast() && !rscDefn.isPgenResource()) {
             selectedRscName.setCycleTime(null);
+            clearCycleTimeCombo();
             return;
         }
 
         try {
+            startWaitCursor();
             List<DataTime> availableTimes = null;
 
             // If the timeline is generated using frame intervals from a given
@@ -1425,43 +1498,60 @@ public class ResourceSelectionControl extends Composite {
                     cal.set(Calendar.MINUTE, 0);
                     cal.set(Calendar.SECOND, 0);
                     cal.set(Calendar.MILLISECOND, 0);
-                    availableTimes = new ArrayList<DataTime>();
+                    availableTimes = new ArrayList<>();
                     availableTimes.add(new DataTime(cal));
                 }
             } else {
+
+                // create the List of available times from the ResourceName
                 availableTimes = rscDefn.getDataTimes(selectedRscName);
+
             }
 
-            clearCycleTimeComboData();
-            cycleTimeCombo.removeAll();
+            /* Use map to handle dupElim */
+            Map<String, DataTime> newTimes = new HashMap<>(
+                    availableTimes.size(), 1);
 
             for (DataTime aTime : availableTimes) {
                 DataTime refTime = new DataTime(aTime.getRefTime());
                 String cycleTime = NmapCommon.getTimeStringFromDataTime(
                         refTime, "_");
-                cycleTimeCombo.add(cycleTime);
-                cycleTimeCombo.setData(cycleTime, refTime);
+                newTimes.put(cycleTime, refTime);
             }
 
-            String[] cycleTimeArray = cycleTimeCombo.getItems();
+            /* Determine if any of the times have changed */
+            List<String> previousTimes = Arrays.asList(cycleTimeCombo
+                    .getItems());
+            Set<String> timesToRemove = new HashSet<>(previousTimes);
+            timesToRemove.removeAll(newTimes.keySet());
+            newTimes.keySet().removeAll(previousTimes);
 
-            if (cycleTimeArray.length == 0) {
-                cycleTimeCombo.setVisible(false);
-                cycleTimeLbl.setVisible(false);
-                availDataTimeLbl.setVisible(true);
-                availDataTimeLbl.setText("No Data Available");
-            } else {
-                // Remove duplicate cycle times and sort the cycle times.
-                List<String> cycleTimeList = Arrays.asList(cycleTimeArray);
-                Set<String> cycleTimeSet = new HashSet<String>(cycleTimeList);
-                cycleTimeArray = cycleTimeSet.toArray(new String[cycleTimeSet
-                        .size()]);
-                Arrays.sort(cycleTimeArray, Collections.reverseOrder());
+            if (!timesToRemove.isEmpty() || !newTimes.isEmpty()) {
+                List<String> currentTimes = new ArrayList<>(previousTimes);
+                currentTimes.removeAll(timesToRemove);
+                for (String time : timesToRemove) {
+                    cycleTimeCombo.setData(time, null);
+                }
+                currentTimes.addAll(newTimes.keySet());
+                for (Map.Entry<String, DataTime> entry : newTimes.entrySet()) {
+                    cycleTimeCombo.setData(entry.getKey(), entry.getValue());
+                }
 
-                cycleTimeCombo.setItems(cycleTimeArray);
+                if (currentTimes.isEmpty()) {
+                    cycleTimeCombo.removeAll();
+                    cycleTimeCombo.setVisible(false);
+                    cycleTimeLbl.setVisible(false);
+                    availDataTimeLbl.setVisible(true);
+                    availDataTimeLbl.setText("No Data Available");
+                } else {
+                    Collections.sort(currentTimes, Collections.reverseOrder());
+                    cycleTimeCombo.setItems(currentTimes
+                            .toArray(new String[currentTimes.size()]));
+                    cycleTimeCombo.select(0);
+                }
+            } else if (cycleTimeCombo.getItemCount() > 0) {
                 cycleTimeCombo.select(0);
             }
-
         } catch (VizException e) {
             MessageDialog errDlg = new MessageDialog(
                     NcDisplayMngr.getCaveShell(), "Error", null,
@@ -1469,6 +1559,8 @@ public class ResourceSelectionControl extends Composite {
                     MessageDialog.ERROR, new String[] { OK }, 0);
             errDlg.open();
             return;
+        } finally {
+            stopWaitCursor();
         }
 
         return;
@@ -1497,7 +1589,7 @@ public class ResourceSelectionControl extends Composite {
         AttributeSet attr = (AttributeSet) is.getFirstElement();
         if (attr != null) {
             String gdattim = attr.getAttributes().get("GDATTIM");
-            gridAnalysis = gdattim != null
+            gridAnalysis = (gdattim != null)
                     && !gdattim.isEmpty()
                     && (gdattim.toUpperCase().contains("ALLF") || (gdattim
                             .toUpperCase().contains("FIRSTF") && gdattim
@@ -1510,17 +1602,68 @@ public class ResourceSelectionControl extends Composite {
         return rscDefn.isForecast() && !gridAnalysis;
     }
 
-    protected void clearCycleTimeComboData() {
+    protected void clearCycleTimeCombo() {
         String[] cycleTimeArray = cycleTimeCombo.getItems();
         for (String cycleTime : cycleTimeArray) {
             cycleTimeCombo.setData(cycleTime, null);
         }
+        cycleTimeCombo.removeAll();
     }
 
     /**
      * Clean up data that are not cleaned up by the Garbage Collector.
      */
     public void cleanup() {
-        clearCycleTimeComboData();
+        clearCycleTimeCombo();
     }
+
+    protected void startWaitCursor() {
+        if (waitCursor != null) {
+            setCursor(waitCursor);
+        }
+    }
+
+    protected void stopWaitCursor() {
+        setCursor(null);
+    }
+
+    /**
+     * 
+     * Get the cycle time from a ResourceName and look for a match in the
+     * cycleTimeCombo widget
+     * 
+     * @param selectedRscName
+     *            the selected ResourceName
+     * @param cycleTimeCombo
+     *            the Combo widget that shows Cycle Times
+     * @return the index of the cycleTimeCombo that matches the cycle time
+     *         stored in the ResourceName
+     */
+    public int getSelectedCycleTimeIndex(ResourceName selectedRscName,
+            Combo cycleTimeCombo) {
+
+        String cycleTimeString = selectedRscName.getCycleTimeString();
+        String[] items = cycleTimeCombo.getItems();
+        int totalItems = items.length;
+        int i;
+
+        for (i = 0; i < totalItems; i++) {
+
+            if (items[i].equals(cycleTimeString)) {
+                break;
+            }
+        }
+        return i;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        if (waitCursor != null) {
+            waitCursor.dispose();
+            waitCursor = null;
+        }
+    }
+
 }

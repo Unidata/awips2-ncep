@@ -1,20 +1,17 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd;
 
-//import gov.noaa.nws.ncep.viz.common.EditorManager;
 import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.INcPaneLayout;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.GraphRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceBndlLoader;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,12 +51,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
-import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
-import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
  * An SWT Composite control to load Rbds
@@ -104,6 +99,9 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 02/22/2013     #972      G. Hull         work with AbstractRBD
  * 05/07/2014   TTR991      D. Sushon       if a different NCP editor is selected, the CreateRDB tab should now adjust.
  * 07/28/2014     R4079     sgurung         Load graph RBDs.
+ * 03/10/2016     R16237    B. Yin          Get dominant resource within a group resource.
+ * 03/11/2016     R15244    bkowal          Cleanup. Eliminate warnings.
+ * 08/26/2016     R21170    bsteffen        Use IncrementalRbdLoader.
  * 
  * </pre>
  * 
@@ -146,8 +144,6 @@ public class LoadRbdControl extends Composite {
     private Button auto_update_btn = null;
 
     private Button geo_sync_panes = null;
-
-    private Button time_sync_panes = null;
 
     // this is the input for the rbd_lviewr content provider. It is
     // initially set with the rbds in an spf and is updated with edited rbds.
@@ -692,7 +688,7 @@ public class LoadRbdControl extends Composite {
     private void setSelectedRBDs() {
         StructuredSelection sel_rbds = (StructuredSelection) rbd_lviewer
                 .getSelection();
-        Iterator sel_iter = sel_rbds.iterator();
+        Iterator<?> sel_iter = sel_rbds.iterator();
         seldRbdsList.clear();
         AbstractRBD<?> rbdSel = null;
 
@@ -731,10 +727,6 @@ public class LoadRbdControl extends Composite {
                     && !(timelineControl instanceof GraphTimelineControl)) {
                 updateTimeLineControl(rbdSel);
             }
-            // else {
-            // timelineControl.dispose();
-            // timelineControl = new TimelineControl(timeline_grp);
-            // }
 
             NCTimeMatcher timeMatcher = rbdSel.getTimeMatcher();
 
@@ -746,14 +738,7 @@ public class LoadRbdControl extends Composite {
                     .getDisplays();
 
             for (AbstractRenderableDisplay pane : panes) {
-                ResourceList rscList = pane.getDescriptor().getResourceList();
-                for (ResourcePair rp : rscList) {
-                    if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        timelineControl
-                                .addAvailDomResource((AbstractNatlCntrsRequestableResourceData) rp
-                                        .getResourceData());
-                    }
-                }
+                addDomResources( pane.getDescriptor().getResourceList() );
             }
 
             timelineControl.setTimeMatcher(timeMatcher);
@@ -813,142 +798,17 @@ public class LoadRbdControl extends Composite {
             return false;
         }
 
-        // Since the rbdLoader is not a UI thread it can not create an editor so
-        // we need to create the editors here and pass them to the rbdLoader
+        new IncrementalRbdLoader(rbdLoader, seldRbdsList,
+                !no_duplicate_displays_btn.getSelection()).run();
 
-        rbdLoader.removeAllSeldRBDs();
-
-        // timelineControl.updateTimeMatcher();
-
-        boolean duplicatesRBDsAllowed = false;
-        duplicatesRBDsAllowed = !no_duplicate_displays_btn.getSelection();
-
-        for (AbstractRBD<?> rbdBndl : seldRbdsList) {
-            String rbdName = rbdBndl.getRbdName();
-            // NCTimeMatcher timeMatcher = rbdBndl.getTimeMatcher();
-
-            // Since rbdLoader uses the same resources in the AbstractRBD<?> to
-            // load in the editor,
-            // we will need to make a copy here so that future edits are not
-            // immediately reflected in
-            // the loaded display. The easiest way to do this is to marshal and
-            // then unmarshal the rbd.
-            try {
-                rbdBndl = AbstractRBD.clone(rbdBndl);
-                // // timeMatcher currently isn't marshalling completely.
-                // rbdBndl.setTimeMatcher( new NCTimeMatcher( timeMatcher ) );
-
-                AbstractRenderableDisplay panes[] = rbdBndl.getDisplays();
-
-                if (panes == null || panes.length == 0) {
-                    throw new VizException(
-                            "No Panes are defined for this RBD???.");
-                }
-
-                Integer paneCount = panes.length;
-                INcPaneLayout paneLayout = rbdBndl.getPaneLayout();
-
-                // if this is a multi-pane display
-                // if( panes.length > 1 ) {
-                // // Check that the user didn't change the pane layout and make
-                // // it so there aren't enough panes.
-                // if( paneLayout.getPaneCount() < paneCount ) {
-                // MessageDialog confirmDlg = new MessageDialog(
-                // PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                // "Confirm", null,
-                // "A "+ paneLayout.toString() +
-                // " Display doesn't have enough panes\n"+
-                // "for the "+paneCount+" defined in this RBD.\n\n"+
-                // "Do you wish to continue and create the necessary new panes?",
-                // MessageDialog.QUESTION, new String[]{"Continue", "Cancel"},
-                // 0);
-                // confirmDlg.open();
-                // if( confirmDlg.getReturnCode() == MessageDialog.CANCEL ) {
-                // return false;
-                // }
-                // }
-                //
-                // // if there are 'extra' panes then create default RBDs to
-                // // load into these panes
-                // // if( numRows*numCols > panes.length ) {
-                // // while(
-                // rbdLoader.getNumPaneRows()*rbdLoader.getNumPaneCols() >
-                // rbdBndls.length ) {
-                // // rbdLoader.addRBD( NmapCommon.getDefaultRBDFile() );
-                // // rbdBndls = rbdLoader.getSelectedRBDs();
-                // // }
-                // // }
-                // }
-
-                AbstractEditor newEditor = NcDisplayMngr
-                        .findDisplayByNameAndType(rbdBndl.getDisplayType(),
-                                rbdName);
-
-                // if there is already a display with this RBD name then check
-                // whether duplicates have been allowed
-                boolean duplicateRBD = false;
-                if (newEditor != null
-                        && NcEditorUtil.getPaneLayout(newEditor)
-                                .getNumberOfPanes() == paneCount) {
-                    duplicateRBD = true;
-                    if (duplicatesRBDsAllowed) {
-                        newEditor = null;
-                    }
-                }
-
-                // TODO : punt on putting multi-pane RBDs into empty displays
-                // not sure if this is hard or easy but don't have time to test
-                // it.
-                if (newEditor == null && paneCount == 1) {
-                    newEditor = NcDisplayMngr
-                            .findUnmodifiedDisplayToLoad(rbdBndl
-                                    .getDisplayType());
-                }
-
-                if (newEditor == null) {
-                    newEditor = NcDisplayMngr.createNatlCntrsEditor(
-                            rbdBndl.getDisplayType(), rbdName, paneLayout);
-                }
-
-                if (newEditor == null) {
-                    throw new VizException(
-                            "Unable to find or create an Editor for RBD "
-                                    + rbdName);
-                }
-
-                if (panes.length > 1) {
-                    NcEditorUtil.setGeoSyncPanesEnabled(newEditor,
-                            rbdBndl.isGeoSyncedPanes());
-                    // newEditor.setTimeSyncPanesEnabled(
-                    // rbdLoader.arePanesTimeSynced() );
-                    // newEditor.selectPane( newEditor.getDisplayPanes()[0],
-                    // true );
-                }
-
-                if (!duplicateRBD || (duplicateRBD && duplicatesRBDsAllowed)) {
-                    rbdLoader.addRBD(rbdBndl, newEditor);
-                }
-
-            } catch (VizException e) {
-                MessageBox mb = new MessageBox(shell, SWT.OK);
-                mb.setText("Error Loading RBD " + rbdName);
-                mb.setMessage("Error Loading RBD " + rbdName + ".\n\n"
-                        + e.getMessage());
-                mb.open();
-            }
-        }
         // In the loadRBD method, before start the rbdLoader, call
         updateImportCombo();
-        VizApp.runSync(rbdLoader);
 
         // They aren't going to like this if there is an error loading....
         if (close) {
-            // if( Thread.currentThread().wait() rbdLoader.
             shell.dispose();
         }
 
-        // rbdLoader.loadRBDs();
-        // rbdLoader.schedule();
         return true;
     }
 
@@ -1034,8 +894,6 @@ public class LoadRbdControl extends Composite {
                             auto_update_btn.setEnabled(false);
                         } else if (newDomRsc.isAutoUpdateable()) {
                             auto_update_btn.setEnabled(true);
-                            // auto_update_btn.setSelection(
-                            // rbdMngr.isAutoUpdate() );
                             auto_update_btn.setSelection(true);
                         } else {
                             auto_update_btn.setSelection(false);
@@ -1052,5 +910,21 @@ public class LoadRbdControl extends Composite {
                         .getTimeMatcher().getDominantResource());
         shell.pack();
         shell.setSize(initDlgSize);
+    }
+    
+    /**
+     * Adds resources into the dominant resource combo in time line control 
+     * @param rscList - resource list that goes to the dominant list
+     */
+    private void addDomResources( ResourceList rscList ){
+        for ( ResourcePair rp : rscList ) {
+            if ( rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData ) {
+                timelineControl.addAvailDomResource((AbstractNatlCntrsRequestableResourceData)rp
+                .getResourceData());
+            }
+            else if ( rp.getResourceData() instanceof GroupResourceData ){
+                addDomResources( ((GroupResourceData)rp.getResourceData()).getResourceList() );
+            }
+        }
     }
 }

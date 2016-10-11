@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=UKMET-NorthernHemisphere
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

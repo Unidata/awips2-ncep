@@ -36,6 +36,7 @@ import com.raytheon.uf.viz.core.drawables.IFont.Style;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 11/17/2015    R9579     bhebbard    Initial creation
+ * 06/30/2016    R16129    bsteffen    Make maps non-static
  * 
  * </pre>
  * 
@@ -67,9 +68,9 @@ public class PlotFontMngr {
     private final static Style[] BOLD_ITALIC_STYLE = new Style[] { Style.BOLD,
             Style.ITALIC };
 
-    private static Map<String, IFont> fontNameToFontMap = null;
+    private Map<String, IFont> fontNameToFontMap = null;
 
-    private static Map<String, FileFontEnum> fontNameToEnumMap = null;
+    private Map<String, FileFontEnum> fontNameToEnumMap = null;
 
     /**
      * Enumeration of the fonts that, if requested, we want to 'intercept' and

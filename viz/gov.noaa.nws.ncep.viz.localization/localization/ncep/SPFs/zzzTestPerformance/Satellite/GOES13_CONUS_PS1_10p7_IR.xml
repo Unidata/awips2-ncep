@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="GOES13_CONUS_PS1_10p7_IR">
+    <displayType>NMAP_DISPLAY</displayType>
+    <paneLayout numRows="1" numColumns="1"/>
+    <selectedPaneId row="0" col="0"/>
+    <geoSyncedPanes>true</geoSyncedPanes>
+    <autoUpdate>true</autoUpdate>
+    <rbdSequence>0</rbdSequence>
+    <timeMatcher dominantResourceName="SATELLITE/GOES13/4_4063_STR/10p7um" numFrames="20" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="-1"/>
+    <displayList>
+        <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="NC-MapRenderableDisplay" mapCenter="-98.95354858418219 44.98251616359571 0.0" zoomLevel="1.0">
+            <descriptor xsi:type="NCMapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities>
+                            <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+                            <capability xsi:type="colorMapCapability">
+<colorMapParameters colorMapName="m58">
+    <persisted/>
+</colorMapParameters>
+                            </capability>
+                        </capabilities>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="IMAGE_COUNTRY">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/GOES13/4_4063_STR/10p7um" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+                        <metadataMap>
+                            <mapping key="satelliteId">
+<constraint constraintType="EQUALS" constraintValue="180"/>
+                            </mapping>
+                            <mapping key="imageTypeId">
+<constraint constraintType="EQUALS" constraintValue="8"/>
+                            </mapping>
+                            <mapping key="resolution">
+<constraint constraintType="EQUALS" constraintValue="4"/>
+                            </mapping>
+                            <mapping key="areaId">
+<constraint constraintType="EQUALS" constraintValue="4063"/>
+                            </mapping>
+                            <mapping key="pluginName">
+<constraint constraintType="EQUALS" constraintValue="mcidas"/>
+                            </mapping>
+                            <mapping key="projection">
+<constraint constraintType="EQUALS" constraintValue="STR"/>
+                            </mapping>
+                        </metadataMap>
+                        <legendColor>RGB {255, 255, 102}</legendColor>
+                        <resourceVersion></resourceVersion>
+                        <frameSpan>60</frameSpan>
+                        <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+                        <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+                        <dfltNumFrames>10</dfltNumFrames>
+                        <dfltGraphRange>12</dfltGraphRange>
+                        <dfltHourSnap>3</dfltHourSnap>
+                        <dfltTimeRange>48</dfltTimeRange>
+                        <alpha>1.0</alpha>
+                        <brightness>1.0</brightness>
+                        <contrast>1.0</contrast>
+                        <colorMapName>m58</colorMapName>
+                        <colorBar>
+                            <orientation>Vertical</orientation>
+                            <anchorLoc>UpperLeft</anchorLoc>
+                            <labelColor>RGB {255, 255, 255}</labelColor>
+                            <pixelRGBs>RGB {3, 3, 3}</pixelRGBs>
+                            <pixelRGBs>RGB {5, 5, 5}</pixelRGBs>
+                            <pixelRGBs>RGB {7, 7, 7}</pixelRGBs>
+                            <pixelRGBs>RGB {11, 11, 11}</pixelRGBs>
+                            <pixelRGBs>RGB {13, 13, 13}</pixelRGBs>
+                            <pixelRGBs>RGB {15, 15, 15}</pixelRGBs>
+                            <pixelRGBs>RGB {19, 19, 19}</pixelRGBs>
+                            <pixelRGBs>RGB {21, 21, 21}</pixelRGBs>
+                            <pixelRGBs>RGB {23, 23, 23}</pixelRGBs>
+                            <pixelRGBs>RGB {27, 27, 27}</pixelRGBs>
+                            <pixelRGBs>RGB {29, 29, 29}</pixelRGBs>
+                            <pixelRGBs>RGB {31, 31, 31}</pixelRGBs>
+                            <pixelRGBs>RGB {35, 35, 35}</pixelRGBs>
+                            <pixelRGBs>RGB {37, 37, 37}</pixelRGBs>
+                            <pixelRGBs>RGB {39, 39, 39}</pixelRGBs>
+                            <pixelRGBs>RGB {43, 43, 43}</pixelRGBs>
+                            <pixelRGBs>RGB {45, 45, 45}</pixelRGBs>
+                            <pixelRGBs>RGB {47, 47, 47}</pixelRGBs>
+                            <pixelRGBs>RGB {51, 51, 51}</pixelRGBs>
+                            <pixelRGBs>RGB {53, 53, 53}</pixelRGBs>
+                            <pixelRGBs>RGB {55, 55, 55}</pixelRGBs>
+                            <pixelRGBs>RGB {59, 59, 59}</pixelRGBs>
+                            <pixelRGBs>RGB {61, 61, 61}</pixelRGBs>
+                            <pixelRGBs>RGB {63, 63, 63}</pixelRGBs>
+                            <pixelRGBs>RGB {67, 67, 67}</pixelRGBs>
+                            <pixelRGBs>RGB {69, 69, 69}</pixelRGBs>
+                            <pixelRGBs>RGB {71, 71, 71}</pixelRGBs>
+                            <pixelRGBs>RGB {75, 75, 75}</pixelRGBs>
+                            <pixelRGBs>RGB {77, 77, 77}</pixelRGBs>
+                            <pixelRGBs>RGB {79, 79, 79}</pixelRGBs>
+                            <pixelRGBs>RGB {83, 83, 83}</pixelRGBs>
+                            <pixelRGBs>RGB {85, 85, 85}</pixelRGBs>
+                            <pixelRGBs>RGB {87, 87, 87}</pixelRGBs>
+                            <pixelRGBs>RGB {91, 91, 91}</pixelRGBs>
+                            <pixelRGBs>RGB {93, 93, 93}</pixelRGBs>
+                            <pixelRGBs>RGB {95, 95, 95}</pixelRGBs>
+                            <pixelRGBs>RGB {99, 99, 99}</pixelRGBs>
+                            <pixelRGBs>RGB {101, 101, 101}</pixelRGBs>
+                            <pixelRGBs>RGB {103, 103, 103}</pixelRGBs>
+                            <pixelRGBs>RGB {107, 107, 107}</pixelRGBs>
+                            <pixelRGBs>RGB {109, 109, 109}</pixelRGBs>
+                            <pixelRGBs>RGB {111, 111, 111}</pixelRGBs>
+                            <pixelRGBs>RGB {115, 115, 115}</pixelRGBs>
+                            <pixelRGBs>RGB {117, 117, 117}</pixelRGBs>
+                            <pixelRGBs>RGB {119, 119, 119}</pixelRGBs>
+                            <pixelRGBs>RGB {123, 123, 123}</pixelRGBs>
+                            <pixelRGBs>RGB {125, 125, 125}</pixelRGBs>
+                            <pixelRGBs>RGB {127, 127, 127}</pixelRGBs>
+                            <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+                            <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+                            <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+                            <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+                            <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+                            <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+                            <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+                            <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+                            <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+                            <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+                            <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+                            <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+                            <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+                            <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+                            <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+                            <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+                            <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+                            <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+                            <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+                            <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+                            <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 0, 150}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 0, 202}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 0, 255}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 228, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+                            <pixelRGBs>RGB {176, 0, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {200, 100, 100}</pixelRGBs>
+                            <pixelRGBs>RGB {220, 220, 220}</pixelRGBs>
+                            <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+                            <pixelRGBs>RGB {213, 213, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {241, 241, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {220, 150, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {255, 180, 0}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 213, 213}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 241, 241}</pixelRGBs>
+                            <pixelRGBs>RGB {227, 0, 227}</pixelRGBs>
+                            <pixelRGBs>RGB {255, 0, 255}</pixelRGBs>
+                            <pixelRGBs>RGB {130, 130, 130}</pixelRGBs>
+                            <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+                            <pixelRGBs>RGB {161, 161, 162}</pixelRGBs>
+                            <pixelRGBs>RGB {171, 171, 173}</pixelRGBs>
+                            <pixelRGBs>RGB {192, 192, 194}</pixelRGBs>
+                            <pixelRGBs>RGB {203, 203, 205}</pixelRGBs>
+                            <pixelRGBs>RGB {213, 213, 216}</pixelRGBs>
+                            <pixelRGBs>RGB {239, 239, 243}</pixelRGBs>
+                            <pixelRGBs>RGB {249, 249, 254}</pixelRGBs>
+                            <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+                            <showLabels>true</showLabels>
+                            <reverseOrder>true</reverseOrder>
+                            <lengthAsRatio>0.6</lengthAsRatio>
+                            <widthInPixels>15</widthInPixels>
+                            <drawColorBar>true</drawColorBar>
+                            <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                        </colorBar>
+                        <satelliteType>MCIDAS</satelliteType>
+                        <displayUnitStr>C</displayUnitStr>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_LOCATOR">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" isEdited="false" resourceName="OVERLAY/Locator/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                        <color>RGB {255, 255, 255}</color>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-OverlayResourceGroupData" isEdited="true" resourceName="OVERLAY/GeoPolitical/default">
+                        <legendColor>RGB {255, 215, 0}</legendColor>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 215, 0}</legendColor>
+<mapName>World</mapName>
+<dbName>maps</dbName>
+<table>mapdata.world</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 215, 0}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 215, 0}</legendColor>
+<mapName>State Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.states</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 215, 0}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 215, 0}</legendColor>
+<mapName>Canada</mapName>
+<dbName>maps</dbName>
+<table>mapdata.canada</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 215, 0}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 215, 0}</legendColor>
+<mapName>Mexico</mapName>
+<dbName>maps</dbName>
+<table>mapdata.mexico</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 215, 0}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 215, 0}</legendColor>
+<mapName>County Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.county</table>
+<geomField>the_geom</geomField>
+<labelField>countyname</labelField>
+<displayLabelField>false</displayLabelField>
+<color>RGB {255, 215, 0}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <mapName>Geo-Political</mapName>
+                        <color>RGB {255, 215, 0}</color>
+                        <lineWidth>1</lineWidth>
+                        <lineStyle>SOLID</lineStyle>
+                    </resourceData>
+                </resource>
+                <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+                <gridGeometry rangeX="0 2999" rangeY="0 2549" envelopeMinX="-5996000.812381756" envelopeMaxX="5999999.187618245" envelopeMinY="-1.0027999531657083E7" envelopeMaxY="168000.46834292443">
+                    <CRS>PROJCS[&quot;AWIPS Polar Stereographic (SP: 60.0, CM: -99.0)&quot;, 
+  GEOGCS[&quot;WGS84(DD)&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Stereographic_North_Pole&quot;], 
+  PARAMETER[&quot;semi_minor&quot;, 6378137.0], 
+  PARAMETER[&quot;central_meridian&quot;, -99.0], 
+  PARAMETER[&quot;Standard_Parallel_1&quot;, 60.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+                <timeMatcher xsi:type="ncTimeMatcher" dominantResourceName="SATELLITE/GOES13/4_4063_STR/10p7um" numFrames="20" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="-1"/>
+                <autoUpdate>true</autoUpdate>
+                <suspendZoom>false</suspendZoom>
+            </descriptor>
+            <paneId row="0" col="0"/>
+            <initialArea areaName="180/4063" mapCenter="-98.95354858418219 44.98251616359571 0.0">
+                <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+                <areaSource>MCIDAS_AREA_NAME</areaSource>
+                <zoomLevel>1.0</zoomLevel>
+                <zoomDisable>false</zoomDisable>
+                <description>N/A</description>
+                <gridGeometry rangeX="0 2999" rangeY="0 2549" envelopeMinX="-5996000.812381756" envelopeMaxX="5999999.187618245" envelopeMinY="-1.0027999531657083E7" envelopeMaxY="168000.46834292443">
+                    <CRS>PROJCS[&quot;AWIPS Polar Stereographic (SP: 60.0, CM: -99.0)&quot;, 
+  GEOGCS[&quot;WGS84(DD)&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Stereographic_North_Pole&quot;], 
+  PARAMETER[&quot;semi_minor&quot;, 6378137.0], 
+  PARAMETER[&quot;central_meridian&quot;, -99.0], 
+  PARAMETER[&quot;Standard_Parallel_1&quot;, 60.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+            </initialArea>
+        </displays>
+    </displayList>
+    <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

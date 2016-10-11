@@ -5,6 +5,8 @@ import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.raytheon.uf.common.time.DataTime;
+
 /**
  * IDataLoader is part of the Resource classes redesign as specified
  * in Redmine 11819.  For more details about that redesign please see that
@@ -23,7 +25,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 10/19/2015   R 11819    srussell     Initial creation
+ * 10/19/2015   R11819     S. Russell  Initial creation
+ * 03/07/2016   R10155     B Hebbard   In order to handle auto-update fully,
+ *                                     move update-related code here from 
+ *                                     the resource.
+ * 04/22/2016   R15494     S. Russell  Updated generics in setResource()
  * 
  * </pre>
  * 
@@ -52,5 +58,15 @@ public interface IDataLoader {
             AbstractNatlCntrsRequestableResourceData resourceData);
 
     public abstract void setDescriptor(INatlCntrsDescriptor descriptor);
+
+    public abstract void resourceDataUpdate(Object object);
+
+    public abstract void setResource(AbstractNatlCntrsResource2<?, ?> resource);
+
+    public abstract void setNextFrameTime(DataTime nextFrameTime);
+
+    public abstract Boolean updateTimeline();
+
+    public abstract void processAnyNewData();
 
 }

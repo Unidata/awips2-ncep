@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=PROB3HR
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

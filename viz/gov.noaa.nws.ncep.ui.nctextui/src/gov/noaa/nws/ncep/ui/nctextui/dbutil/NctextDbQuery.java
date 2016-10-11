@@ -48,10 +48,11 @@
  *                                      instead of using XML files. 
  * 12/10/2012               Chin Chen   Add support for "Observed Data" group
  * 07/10/2014               Chin Chen   added NcText new Admin Message Group
- * 11/09/2015    R9392      kbugenhagen Modified query in createProductDataQuery
+ * 11/09/2015   R9392       kbugenhagen Modified query in createProductDataQuery
  *                                      to include wmoid in order to avoid
  *                                      returning multiple rows + code cleanup.
- * 
+ * 09/01/2016   R15951      jlopez      Modified query in createProductDataQuery to
+ *                                      check if productid is a valid WMO Header
  * </pre>
  * 
  * @author Chin Chen
@@ -90,6 +91,7 @@ import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.viz.pointdata.PointDataRequest;
+
 
 public class NctextDbQuery {
 
@@ -159,6 +161,8 @@ public class NctextDbQuery {
     private static final char NEW_LINE = '\n';
 
     private static final int MILLISECONDS_IN_HOUR = 3600000;
+
+    private static final String WMO_REGEX = "\\D{4}\\d{2}";
 
     // List of data type group
     private static List<String> dataTypeGpStrList = new ArrayList<String>();
@@ -414,13 +418,23 @@ public class NctextDbQuery {
                                 + sta.getProductid() + "' AND issuesite='"
                                 + sta.getStnid() + "' AND producttype='"
                                 + productType + "'");
-            } else {
+            }
+            // if the productid is a valid WMO Header (4 letters, 2 numbers)
+            // use the wmoid in the query
+            else if (sta.getProductid().matches(WMO_REGEX)) {
                 queryStr = new StringBuilder(
                         "Select rawrecord, issuesite FROM "
                                 + NCTEXT_DATA_DB_TABLE + " WHERE issuesite='"
                                 + sta.getStnid() + "' AND producttype='"
                                 + productType + "'" + " AND wmoid='"
                                 + sta.getProductid() + "'");
+            } else {
+                queryStr = new StringBuilder(
+                        "Select rawrecord, issuesite FROM "
+                                + NCTEXT_DATA_DB_TABLE + " WHERE issuesite='"
+                                + sta.getStnid() + "' AND producttype='"
+                                + productType + "'");
+
             }
 
         } else if (productName != null) {

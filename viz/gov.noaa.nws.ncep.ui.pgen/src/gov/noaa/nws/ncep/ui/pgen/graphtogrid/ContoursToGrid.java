@@ -49,16 +49,18 @@ import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/10		#215		J. Wu   	Initial Creation.
- * 06/10		#215		J. Wu   	Added support for Min/Max.
- * 07/10		#215		J. Wu   	Added support for Outlook.
- * 07/10		#215		J. Wu   	Added support for writing grid to
- * 											a GEMPAK grid file
- * 09/10		#215		J. Wu   	Checked working directory and PATH.
- * 11/10		#345		J. Wu   	Added support for circle.
+ * Date         Ticket#     Engineer    Description
+ * -------------------------------------------------------------------
+ * 01/10        #215        J. Wu       Initial Creation.
+ * 06/10        #215        J. Wu       Added support for Min/Max.
+ * 07/10        #215        J. Wu       Added support for Outlook.
+ * 07/10        #215        J. Wu       Added support for writing grid to
+ *                                         a GEMPAK grid file
+ * 09/10        #215        J. Wu       Checked working directory and PATH.
+ * 11/10        #345        J. Wu       Added support for circle.
  * 05/14        TTR989      J. Wu       Allow environmental variable in PATH.
+ * 01/27/2016   R13166      J. Wu       Allow symbol only & label only Minmax.
+ * 07/21/2016   R16077      J. Wu       Allow number of labels to be 0 for contour lines.
  * 
  * </pre>
  * 
@@ -183,6 +185,17 @@ public class ContoursToGrid extends GraphToGrid {
             }
         }
 
+        /*
+         * A contour-line should have at least one label, even if the label is
+         * hidden from display. But we do a sanity check here to exclude real
+         * label-less lines from G2G calculation.
+         */
+        for (ContourLine cl : extContours.getContourLines()) {
+            if (cl.getLabels().size() < 1) {
+                extContours.removeElement(cl);
+            }
+        }
+
         // Do extensions
         ContoursExtension cntExt = new ContoursExtension(extContours, gtrans,
                 kx, ky, new Color[] { Color.blue }, cmap);
@@ -201,11 +214,7 @@ public class ContoursToGrid extends GraphToGrid {
          * 
          * ?It is reasonable to always extend the lines regardless of bounds?
          */
-        String bnds = getParamValues(gridParameters, "BOUNDS");
         boolean extend = true;
-        // if ( bnds != null && bnds.trim().length() > 0 ) {
-        // extend = false;
-        // }
 
         float[][] flat, flon;
         float[][] fi_orig, fj_orig;
@@ -326,15 +335,27 @@ public class ContoursToGrid extends GraphToGrid {
 
         int ii = 0;
         for (ContourMinmax cmm : cminmax) {
-            Coordinate p = ((SinglePointElement) (cmm.getSymbol()))
-                    .getLocation();
-            mmlon[ii] = (float) p.x;
-            mmlat[ii] = (float) p.y;
 
-            mmlonlat[ii * 2] = p.x;
-            mmlonlat[ii * 2 + 1] = p.y;
-            mmvalue[ii] = getValueForLabel(cmap, cmm.getLabelString()[0]);
-            ;
+            Coordinate cmmPt;
+            if (cmm.getSymbol() != null) {
+                cmmPt = ((SinglePointElement) (cmm.getSymbol()))
+                    .getLocation();
+            } else {
+                cmmPt = cmm.getLabel().getLocation();
+            }
+
+            mmlon[ii] = (float) cmmPt.x;
+            mmlat[ii] = (float) cmmPt.y;
+
+            mmlonlat[ii * 2] = cmmPt.x;
+            mmlonlat[ii * 2 + 1] = cmmPt.y;
+
+            if (cmm.getLabel() != null) {
+                mmvalue[ii] = getValueForLabel(cmap, cmm.getLabelString()[0]);
+            } else {
+                mmvalue[ii] = G2GCommon.RMISSD;
+            }
+
             ii++;
         }
 
@@ -515,11 +536,6 @@ public class ContoursToGrid extends GraphToGrid {
         int szX = (maxX - minX) + 1;
         int szY = (maxY - minY) + 1;
 
-        int[] work = new int[10 * grid.length];
-        float[] xPoints = new float[10 * grid.length];
-        float[] yPoints = new float[10 * grid.length];
-        int[] numPoints = new int[1];
-
         /*
          * Build an array of contour levels
          */
@@ -687,14 +703,12 @@ public class ContoursToGrid extends GraphToGrid {
         /*
          * Check if a grid point is inside .
          */
-        int ks = 0;
         Boolean inout = true;
         Point p;
         for (BoundPolygon bpoly : boundPolys) {
 
             inout = bpoly.getInout();
             for (MultiPolygon mpoly : bpoly.getBoundPolygons()) {
-                ks++;
                 /*
                  * Mask the grid points inside the bound as bounded. If the
                  * inout is set to false, set the grid point outside the bound
@@ -905,18 +919,10 @@ public class ContoursToGrid extends GraphToGrid {
         for (int j = 0; j < numpts; j++) {
             double thisSine = Math.sin(Math.toRadians(angle));
             double thisCosine = Math.cos(Math.toRadians(angle));
-            // Can maybe use simpler less expensive calculations for circle,
-            // if ever necessary.
-            // if ( arc.getAxisRatio() == 1.0 ) {
-            // path[j][0] = center[0] + (major * thisCosine );
-            // path[j][1] = center[1] + (minor * thisSine );
-            // }
-            // else {
             path[j][0] = center[0] + (major * cosineAxis * thisCosine)
                     - (minor * sineAxis * thisSine);
             path[j][1] = center[1] + (major * sineAxis * thisCosine)
                     + (minor * cosineAxis * thisSine);
-            // }
 
             double[] pt = drawingLayer.getDescriptor().pixelToWorld(
                     new double[] { path[j][0], path[j][1], 0.0 });

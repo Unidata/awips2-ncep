@@ -53,8 +53,8 @@ import com.raytheon.viz.ui.editor.IMultiPaneEditor;
  * Oct 14, 2009             B. Hebbard   Added proper zooming to the newly selected area
  * Oct 27, 2009             G. Hull      Moved out of perspectives project
  * Feb 26. 2010             G. Hull      retrieve PredefinedArea instead of a Bundle file
- * Sep 10. 2012             B. Yin       Remove the call to setRenderabl
- * eDisplay which creates a new GLTarget
+ * Sep 10. 2012             B. Yin       Remove the call to setRenderableDisplay which creates 
+ *                                       a new GLTarget
  * Nov 18, 2012             G. Hull      add areaType parameter and code to get the area based on other types (ie RESOURCES and DISPLAYS)
  * Dec 12  2012    #630     G. Hull      replace ZoomUtil.allowZoom with refreshGUIelements
  * Feb 12  2012    #972     G. Hull      change to INatlCntrsRenderableDisplay
@@ -64,7 +64,8 @@ import com.raytheon.viz.ui.editor.IMultiPaneEditor;
  * 09/23/2015      R9397    N. Jensen    Added updateElement(UIElement, Map)
  * 02/08/2015      R15438   J. Huber     Use original value of mapcenter instead of Raytheon calculated center to
  *                                       define where map is centered.
- * 
+ * 04/11/2016      R15714   bkowal       Only attempt to center the display if a center has been defined
+ *                                       for the pre-defined area.
  * </pre>
  * 
  */
@@ -143,10 +144,16 @@ public class PredefinedAreaAction extends AbstractHandler implements
          * the descriptor, so don't need to do this explicitly
          */
         existingDisplay.setInitialArea(pArea);
-
+        /*
+         * Use the existing map center if the predefined area does not have a
+         * defined center. Extracted to maintain the integrity of the
+         * pre-defined area.
+         */
+        final double[] mapCenter = (pArea.getMapCenter() == null) ? existingDisplay
+                .getMapCenter() : pArea.getMapCenter();
         pane.setZoomLevel(existingDisplay.getZoomLevel());
         pane.scaleToClientArea();
-        existingDisplay.recenter(pArea.getMapCenter());
+        existingDisplay.recenter(mapCenter);
         existingDisplay.getView().zoom(existingDisplay.getZoomLevel());
         ((INatlCntrsDescriptor) existingDisplay.getDescriptor())
                 .setSuspendZoom(zoomDisable);

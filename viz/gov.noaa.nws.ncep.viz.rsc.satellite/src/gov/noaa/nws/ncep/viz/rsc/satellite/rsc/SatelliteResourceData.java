@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.IDataLoader;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 
 import java.io.File;
@@ -29,15 +30,18 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * July 10, 2009           mgao		   Initial creation
- * July 31, 2009           ghull       to11 migration
- * Aug  26, 2009           ghull       Integrate with AbstractNatlCntrsResource
- * Apr  15, 2010   #259    ghull       Added ColorBar
- * Nov  20, 2012   #630    ghull       implement IGridGeometryProvider
- * May  08, 2013   #892    ghull       change to IAreaProviderCapable
- * Sep  28, 2015  11385    njensen     construct NcSatelliteResource instead of GiniSatResource
+ * 07/10/2009              mgao        Initial creation
+ * 07/31/2009              ghull       to11 migration
+ * 08/26/2009              ghull       Integrate with AbstractNatlCntrsResource
+ * 04/15/2010      #259    ghull       Added ColorBar
+ * 11/20/2012      #630    ghull       implement IGridGeometryProvider
+ * 05/08/2013      #892    ghull       change to IAreaProviderCapable
+ * 09/28/2015      11385   njensen     construct NcSatelliteResource instead of GiniSatResource
  * 10/15/2015      R7190   R. Reynolds Added support for Mcidas
  * 10/28/2015      R7190   kbugenhagen Added support for Himawari
+ * 04/12/2016      R16367  kbugenhagen Added support for SIMGOESR
+ * 04/13/2016      R15954  S Russell   Added method getDataLoader()
+ * 06/01/2016      R18511  kbugenhagen Added support for MODIS, removed system.out's
  * 
  * This class is copied from com.raytheon.viz.satellite.rsc.SatResourceData
  * for TO 11 integration
@@ -54,7 +58,7 @@ public class SatelliteResourceData extends
         IAreaProviderCapable {
 
     enum SatelliteType {
-        GINI, MCIDAS, HIMAWARI
+        GINI, MCIDAS, HIMAWARI, SIMGOESR, MODIS
     }
 
     @XmlElement
@@ -73,14 +77,12 @@ public class SatelliteResourceData extends
     private ColorBarFromColormap colorBar;
 
     @XmlElement
-    private SatelliteType satelliteType;
+    protected SatelliteType satelliteType;
 
     @XmlElement
     private String displayUnitStr;
 
     private Unit<?> displayUnit;
-
-    private AbstractSatelliteResource satRsc = null;
 
     public SatelliteResourceData() {
         super();
@@ -91,8 +93,7 @@ public class SatelliteResourceData extends
         this.nameGenerator = new AbstractNameGenerator() {
             @Override
             public String getName(AbstractVizResource<?, ?> resource) {
-                return ((AbstractSatelliteResource) resource).getLegendString();
-
+                return resource.getName();
             }
         };
 
@@ -102,13 +103,17 @@ public class SatelliteResourceData extends
     protected AbstractVizResource<?, ?> constructResource(
             LoadProperties loadProperties, PluginDataObject[] objects) {
         if (satelliteType == SatelliteType.GINI) {
-            return new NcSatelliteResource(this, loadProperties);
+            return new GiniSatResource(this, loadProperties);
+        } else if (satelliteType == SatelliteType.MODIS) {
+            return new ModisSatResource(this, loadProperties);
         } else if (satelliteType == SatelliteType.MCIDAS) {
             return new McidasSatResource(this, loadProperties);
         } else if (satelliteType == SatelliteType.HIMAWARI) {
             return new NcSatelliteResource(this, loadProperties);
+        } else if (satelliteType == SatelliteType.SIMGOESR) {
+            return new NcSatelliteResource(this, loadProperties);
         } else {
-            System.out.println("Unrecognized satellite type: "
+            statusHandler.error("Unrecognized satellite type: "
                     + satelliteType.toString());
             return null;
         }
@@ -135,8 +140,8 @@ public class SatelliteResourceData extends
                     displayUnit = UnitFormat.getUCUMInstance().parseSingleUnit(
                             displayUnitStr, new ParsePosition(0));
                 } catch (ParseException e) {
-                    System.out.println("Unable parse display units : "
-                            + displayUnitStr);
+                    statusHandler.error("Unable parse display units : "
+                            + displayUnitStr, e);
                 }
             }
         }
@@ -255,9 +260,6 @@ public class SatelliteResourceData extends
         default:
             return AreaSource.getAreaSource("UNKNOWN");
         }
-        // return (satelliteType == SatelliteType.MCIDAS ? AreaSource
-        // .getAreaSource("MCIDAS_AREA_NAME") : AreaSource
-        // .getAreaSource("GINI_SECTOR_ID"));
     }
 
     /*
@@ -279,4 +281,9 @@ public class SatelliteResourceData extends
         }
         return areaName;
     }
+
+    public IDataLoader getDataLoader() {
+        return new NcSatelliteDataLoader(this);
+    }
+
 }

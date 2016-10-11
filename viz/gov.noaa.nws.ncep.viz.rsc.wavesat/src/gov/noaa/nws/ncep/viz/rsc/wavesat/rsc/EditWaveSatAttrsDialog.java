@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * A Dialog to edit SGWH resource attributes.
  * 
@@ -37,6 +39,7 @@ import org.eclipse.swt.widgets.Spinner;
  * 07/01/14     TTR 1018     Steve Russell  Updated call to ColorBarEditor
  * 04/15/15     R6281        Bruce Hebbard  Add meters/feet selection
  * 06/16/15     R6281        Bruce Hebbard  Clean up per code review comments
+ * 04/05/2016   R15715       dgilling       Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -47,8 +50,8 @@ import org.eclipse.swt.widgets.Spinner;
 public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     public EditWaveSatAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
-            Boolean apply) {
-        super(parentShell, r, apply);
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
     }
 
     private RscAttrValue useFeetInsteadOfMetersAttr = null;
@@ -174,6 +177,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
                 .getAttrValue()).booleanValue());
         feetButton.setText("Feet");
         feetButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Boolean useFeet = feetButton.getSelection();
                 useFeetInsteadOfMetersAttr.setAttrValue(useFeet);
@@ -191,6 +195,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
                 .getAttrValue()).booleanValue());
         metersButton.setText("Meters");
         metersButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Boolean useFeet = feetButton.getSelection();
                 useFeetInsteadOfMetersAttr.setAttrValue(useFeet);
@@ -225,6 +230,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         fontNameCombo.setText(((String) fontNameAttr.getAttrValue()));
 
         fontNameCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 int selIndx = fontNameCombo.getSelectionIndex();
 
@@ -267,6 +273,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
         // fontSizeLbl.setVisible( false );
 
         fontSizeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 int selIndx = fontSizeCombo.getSelectionIndex();
 
@@ -307,6 +314,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
                 .setSelection(((Integer) timeDisplayIntervalAttr.getAttrValue())
                         .intValue());
         timeStampIntervalSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 timeDisplayIntervalAttr.setAttrValue(new Integer(
                         timeStampIntervalSpinner.getSelection()));
@@ -339,6 +347,7 @@ public class EditWaveSatAttrsDialog extends AbstractEditResourceAttrsDialog {
                 selColComp, 55, 25);
         colBtnSel.setColorValue((RGB) timeDisplayColorAttr.getAttrValue());
         colBtnSel.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 timeDisplayColorAttr.setAttrValue(event.getNewValue());
             }

@@ -14,6 +14,10 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 11/18/2015    R12829    J. Wu       Add more common constants.
  * 12/17/2015    R12990    J. Wu       Add more constants.
  * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
+ * 01/27/2016    R13166    J. Wu       Add CIRCLE.
+ * 05/02/2016    R16076    J. Wu       Add more constants.
+ * 05/16/2016    R18388    J. Wu       Add more constants.
+ * 05/25/2016    R17940    J. Wu       Add more constants.
  * 
  * </pre>
  * 
@@ -23,6 +27,8 @@ package gov.noaa.nws.ncep.ui.pgen;
 
 public final class PgenConstant {
     public static final String LABELED_SYMBOL = "labeledSymbol";
+
+    public static final String LABELED_FRONT = "labeledFront";
 
     public static final String DELETE_LABEL = "Delete Label";
 
@@ -42,10 +48,6 @@ public final class PgenConstant {
 
     public static final String NAME = "name";
 
-    public static final String UNDO = "Undo";
-
-    public static final String REDO = "Redo";
-
     public static final String ACTIONSXTRA = "actionsxtra";
 
     public static final String SYMBOL = "Symbol";
@@ -56,9 +58,76 @@ public final class PgenConstant {
 
     public static final String PLUGINXML_ATTRIBUTE_DELIMETER = "\\s*,\\s*";
 
-    public static final String PGENCATEGORY_TEXT = "Text";
+    /*
+     * Pgen actions as defined in pgen plugin.xml <action name="Connect", ...>
+     */
+    public static final String ACTION_CONNECT = "Connect";
 
-    public static final String PGENTYPE_GENERAL_TEXT = "General Text";
+    public static final String ACTION_COPY = "Copy";
+
+    public static final String ACTION_EXTRAP = "Extrap";
+
+    public static final String ACTION_FLIP = "Flip";
+
+    public static final String ACTION_INTERP = "Interp";
+
+    public static final String ACTION_MODIFY = "Modify";
+
+    public static final String ACTION_MOVE = "Move";
+
+    public static final String ACTION_MULTISELECT = "MultiSelect";
+
+    public static final String ACTION_ROTATE = "Rotate";
+
+    public static final String ACTION_SELECT = "Select";
+
+    public static final String UNDO = "Undo";
+
+    public static final String REDO = "Redo";
+
+    /*
+     * Pgen categories (aka, classes) as defined in pgen plugin.xml <class
+     * name="Front", ...>
+     */
+    public static final String CATEGORY_ARC = "Arc";
+
+    public static final String CATEGORY_COMBO = "Combo";
+
+    public static final String CATEGORY_FRONT = "Front";
+
+    public static final String CATEGORY_LINES = "Lines";
+
+    public static final String CATEGORY_MET = "MET";
+
+    public static final String CATEGORY_SIGMET = "SIGMET";
+
+    public static final String CATEGORY_SYMBOLS = "Symbols";
+
+    public static final String CATEGORY_TEXT = "Text";
+
+    public static final String CATEGORY_ANY = "Any";
+
+    /*
+     * Pgen objects (aka, elements) as defined in pgen plugin.xml <object
+     * name="General Text", ...>
+     */
+    public static final String TYPE_GENERAL_TEXT = "General Text";
+
+    public static final String TYPE_OUTLOOK = "Outlook";
+
+    public static final String TYPE_VOLCANO = "Volcano";
+
+    public static final String TYPE_WATCH = "Watch";
+
+    public static final String TYPE_INTL_SIGMET = "INTL_SIGMET";
+
+    public static final String TYPE_VOLC_SIGMET = "VOLC_SIGMET";
+
+    public static final String TYPE_VACL_SIGMET = "VACL_SIGMET";
+
+    public static final String TYPE_CCFP_SIGMET = "CCFP_SIGMET";
+
+    public static final String CIRCLE = "Circle";
 
     public static final String PARM = "Parm";
 
@@ -67,6 +136,10 @@ public final class PgenConstant {
     public static final String FORECAST_HOUR = "ForecastHour";
 
     public static final String NONE = "None";
+
+    public static final String DEFAULT_ACTIVITY_TYPE = "Default";
+
+    public static final String DEFAULT_ACTIVITY_LABEL = "Default.DDMMYYYY.HH.xml";
 
     public static final String DEFAULT_SUBTYPE = "None";
 
@@ -79,4 +152,13 @@ public final class PgenConstant {
     public static final String EVENT_PREV_COLOR = "usePrevColor";
 
     public static final String EVENT_OTHER = "Other";
+
+    public static final String GENERAL_DEFAULT = "Default";
+
+    public static final String OPTION_ALL = "All";
+
+    public static final String DESK = "DESK";
+
+    public static final String G2G_BOUND_MARK = "9999";
+
 }

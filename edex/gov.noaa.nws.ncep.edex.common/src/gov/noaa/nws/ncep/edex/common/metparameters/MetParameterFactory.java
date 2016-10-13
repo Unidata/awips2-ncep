@@ -16,23 +16,30 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
 
-// TODO : this class can be enhanced to read AbstractNcParameter objects either from an extension point or to read
-// jaxb files from a directory. Till then the AbstractNcParameter's are just created here.
-//
-// njensen comment: If you end up deciding to read jaxb files, please make your own JAXBManager instead of using
-// SerializationUtil.  It will perform faster and you can remove the deprecated ISerializableObject from these
-// classes.
-//
-
 /**
+ * Creates AbstractNcParameters
+ * 
+ * TODO : this class can be enhanced to read AbstractNcParameter objects either
+ * from an extension point or to read jaxb files from a directory. Till then the
+ * AbstractNcParameter's are just created here.
+ * 
+ * njensen comment: If you end up deciding to read jaxb files, please make your
+ * own JAXBManager instead of using SerializationUtil. It will perform faster
+ * and you can remove the deprecated ISerializableObject from these classes.
  * 
  * <pre>
+ * 
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- --------------------------
- * 07/20/2016     R15950     J.Huber     Added Snowfall, AirTemperatureTenths, and 
- *                                       DewPointTempTenths
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 08/24/2016    R18194    RReynolds    Added Ceiling parameters
+ * 07/20/2016    R15950      J.Huber    Added Snowfall, AirTemperatureTenths, and DewPointTempTenths
+ * 
  * </pre>
+ * 
+ * @author ?
+ * @version 1.0
  */
 
 @XmlRootElement
@@ -109,6 +116,16 @@ public class MetParameterFactory {
                     new CatFcstVisibilityCond());
             ncParamsMap.put(CeilingFromSurface.class.getSimpleName(),
                     new CeilingFromSurface());
+
+            ncParamsMap.put(CeilingOrLowestLayer.class.getSimpleName(),
+                    new CeilingOrLowestLayer());
+
+            ncParamsMap.put(CombinedCloudMaxCoverage.class.getSimpleName(),
+                    new CombinedCloudMaxCoverage());
+
+            ncParamsMap.put(CombinedCloud.class.getSimpleName(),
+                    new CombinedCloud());
+
             ncParamsMap.put(CeilingFromSeaLevel.class.getSimpleName(),
                     new CeilingFromSeaLevel());
             ncParamsMap.put(CloudCover.class.getSimpleName(), new CloudCover());
@@ -596,6 +613,8 @@ public class MetParameterFactory {
             ncParamsMap.put(LowLevelWindShear.class.getSimpleName(),
                     new LowLevelWindShear());
             ncParamsMap.put(WxPresent.class.getSimpleName(), new WxPresent());
+            ncParamsMap.put(CloudLayerBase.class.getSimpleName(),
+                    new CloudLayerBase());
         } catch (Exception e) {
             e.printStackTrace();
         }

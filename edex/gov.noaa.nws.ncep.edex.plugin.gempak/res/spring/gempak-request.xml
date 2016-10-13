@@ -25,6 +25,22 @@
             value="gov.noaa.nws.ncep.common.dataplugin.gempak.request.StationDataRequest" />
         <constructor-arg ref="StationDataRequestHandler" />
     </bean>
+
+    <bean id="SurfaceDataRequestHandler"
+        class="gov.noaa.nws.ncep.edex.plugin.gempak.handler.SurfaceDataRequestHandler" />
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ncep.common.dataplugin.gempak.request.SurfaceDataRequest" />
+        <constructor-arg ref="SurfaceDataRequestHandler" />
+    </bean>
+
+    <bean id="UpperAirDataRequestHandler"
+        class="gov.noaa.nws.ncep.edex.plugin.gempak.handler.UpperAirDataRequestHandler" />
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ncep.common.dataplugin.gempak.request.UpperAirDataRequest" />
+        <constructor-arg ref="UpperAirDataRequestHandler" />
+    </bean>
   
     <bean id="GetGridDataRequestHandler"
         class="gov.noaa.nws.ncep.edex.plugin.gempak.handler.GetGridDataRequestHandler" />
@@ -51,4 +67,3 @@
     </bean>
   
 </beans>
-  

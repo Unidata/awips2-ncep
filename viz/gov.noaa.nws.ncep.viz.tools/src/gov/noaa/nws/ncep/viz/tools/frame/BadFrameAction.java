@@ -8,14 +8,11 @@
 
 package gov.noaa.nws.ncep.viz.tools.frame;
 
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.TreeSet;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -35,18 +32,17 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 10/10		#309		G. Zhang   	Initial Creation.
+ * Date       	Ticket#	    Engineer	Description
+ * ------------	----------  -----------	--------------------------
+ * 10/10        #309        G. Zhang   	Initial Creation.
  * 02/11/13     #972        G. Hull     AbstractEditor instead of NCMapEditor
+ * 10/17/16     ----        M. James    Remove logger.
  *
  * </pre>
  * 
  * @author	G. Zhang
  */
 public class BadFrameAction  extends AbstractTool {
-	
-	private final static Logger THE_LOG = Logger.getLogger(BadFrameAction.class);
 	
 	private final static String ERROR_MESSAGE = "The editor or frame is invalid! ";
 	
@@ -126,8 +122,6 @@ public class BadFrameAction  extends AbstractTool {
 					
 					fi = new FramesInfo(fi.getFrameTimes(), nxtIdx);
 				}catch(Throwable t){
-					
-					THE_LOG.info(ERROR_MESSAGE);				
 					
 					return null;
 				}					

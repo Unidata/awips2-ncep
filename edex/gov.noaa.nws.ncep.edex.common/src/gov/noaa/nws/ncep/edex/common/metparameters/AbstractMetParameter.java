@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.DataTime.FLAG;
+import com.raytheon.uf.common.units.UnitAdapter;
 
 /**
  * An abstract class for all metParameters. This will hold the value of the
@@ -63,6 +63,7 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
  * 12/04/2014    R5437     B. Hebbard   Add/enhance recursive getDeriveMethod(..) variants to return
  *                                      ('bubble up') bottom-level (non-derived) params from the
  *                                      given set that are actually needed in the derivation.
+ * 08/24/2016    R18194    RReynolds    Added access to met data arrays
  * 
  * </pre>
  * 
@@ -118,6 +119,28 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
         this.dbParamNamesForDerivingThisMetPrm = dbParamNamesForDerivingThisMetPrm;
     }
 
+    public String dbValsString[];
+
+    public Number dbValsNumber[];
+
+    public void setDbValsString(String[] dbv) {
+        dbValsString = dbv;
+    }
+
+    public void setDbValsNumber(Number[] dbv) {
+        dbValsNumber = dbv;
+    }
+
+    public Number[] getDbValsNumber() {
+
+        return dbValsNumber;
+    }
+
+    public String[] getDbValsString() {
+
+        return dbValsString;
+    }
+
     // TTR 923
     public void setAssociatedMetParam(AbstractMetParameter amp) {
         // TODO remove following?
@@ -162,6 +185,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
     }
 
     /**
+     * -
+     * 
      * @param useStringValue
      *            the useStringValue to set
      */
@@ -173,11 +198,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
      * @param standardUnit
      *            the standardUnit to set
      */
-    //  @formatter:off
-    //	public final void setStandardUnit(Unit<?> standardUnit) {
-    //		this.standardUnit = standardUnit;
-    //	}
-    //  @formatter:on
 
     // only one of these may be set at a time. In order to hold a string value
     // the Quantity of the parameter must be Dimensionless
@@ -376,13 +396,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
 
     // if this
     public void setStringValue(String sv) throws ConversionException {
-        // @formatter:off
-        // the units must be dimensionless
-        //		if( isUnitCompatible( Unit.ONE ) ) {
-        //			throw new ConversionException("Incompatible unit in setStringValue the Quantity "					
-        //					+" for this parameter must be Dimensionless." );
-        //		}
-        // @formatter:on
         setValueToMissing();
 
         valueString = sv;
@@ -531,11 +544,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
             if (m.getAnnotation(DeriveMethod.class) != null) {
 
                 Class<?> rtype = m.getReturnType();
-                // @formatter:off
-                //	if (rtype.getSimpleName().equals(AbstractMetParameter.class.getName()) { // sanity check
-                //		continue;
-                //	}
-                // @formatter:on
                 Class<?>[] deriveMthdArgs = m.getParameterTypes();
 
                 // loop thru the list of args for this derive() method and check
@@ -767,54 +775,4 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
                     + " " + getUnit().toString();
         }
     }
-
-    //  @formatter:off
-    //	@Override
-    //	public Object clone(){
-    //		AbstractMetParameter metParam = null;
-    //		try {
-    //			synchronized(this){
-    //			metParam = this.getClass().newInstance();
-    //			
-    //			if(metParam == null )
-    //				return metParam;
-    //			
-    //			if(this.getDataTime() == null )
-    //				return metParam;
-    //			if(this.getDataTime() != null )
-    //			    metParam.dataTime = new DataTime(this.getDataTime().getRefTime());
-    //			
-    //			if( this.listOfInputMetPrmNamesForDerivingThisMetPrm != null )
-    //			    metParam.listOfInputMetPrmNamesForDerivingThisMetPrm = new ArrayList<String>(this.listOfInputMetPrmNamesForDerivingThisMetPrm);
-    //			
-    //			if( this.valueString != null )
-    //			    metParam.valueString = new String(this.valueString);
-    //			
-    //			if( this.getUnit() != null)
-    //				metParam.setUnit(this.getUnit());
-    //			
-    //			if ( this.getUnitStr() != null )
-    //				 metParam.setUnitStr( new String( this.getUnitStr() ) );
-    //			
-    //			if ( this.getValueString() != null )
-    //				metParam.setValueString( new String( this.getValueString()));
-    //			
-    //			if ( this.getValue() != null  )
-    //			     metParam.setValue(this.getValue());
-    //				
-    //			metParam.useStringValue = this.useStringValue;
-    //			}	
-    //			
-    //		} catch (InstantiationException e) {
-    //			// TODO Auto-generated catch block
-    //			e.printStackTrace();
-    //		} catch (IllegalAccessException e) {
-    //			// TODO Auto-generated catch block
-    //			e.printStackTrace();
-    //		}
-    //		
-    //		return metParam;
-    //	}
-    //  @formatter:on
-
 }

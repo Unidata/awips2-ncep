@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.cloudHeight;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
@@ -29,13 +28,10 @@ import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.SoundingDataSource
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.McidasSatResource;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
-import java.awt.Rectangle;
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -52,33 +48,19 @@ import javax.xml.bind.JAXBException;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
-import com.raytheon.uf.common.dataplugin.HDF5Util;
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
-import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
-import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.geospatial.MapUtil;
-import com.raytheon.uf.common.inventory.exception.DataCubeException;
-import com.raytheon.uf.common.numeric.buffer.ByteBufferWrapper;
-import com.raytheon.uf.common.numeric.filter.UnsignedFilter;
-import com.raytheon.uf.common.numeric.source.DataSource;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.util.BufferUtil;
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.raytheon.uf.viz.core.data.IColorMapDataRetrievalCallback;
-import com.raytheon.uf.viz.core.data.prep.HDF5DataRetriever;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
-import com.raytheon.uf.viz.datacube.CubeUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 
 /**
@@ -87,14 +69,14 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	DescriptionN
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer        DescriptionN
+ * ------------ ----------  ----------- --------------------------
  * 05/19/2009   #106        Greg Hull       Created
  * 07/22/2009               M. Li           TO10 -> TO11
  * 09/27/2009   #169        Greg Hull       NCMapEditor
  * 03/04/2009               M. Gao          Using localization extension to replace NmapCommon class
  * 05/23/2010               G. Hull         Use ICloudHeightCapable. Use UnitConverter (don't assume Celsius)
- * 11/18/2010	327         M. Li	        add isAlreadyOpen
+ * 11/18/2010   327         M. Li           add isAlreadyOpen
  * 01/05/2011   393         Archana         Added logic to compute the cloud-height using station data
  * 02/28/2011   393         Archana         Added logic to compute the cloud height
  *                                          using the moist adiabatic method
@@ -119,6 +101,11 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/14/2015   RM#9173     Chin Chen       Use NcSoundingQuery to query ncuair sounding data
  * 06/09/2016   R18511      K. Bugenhagen   Change due to refactoring. Cleanup: removed system.outs, stacktrace prints, commented code.
  * 07/26/2016   R19277      bsteffen        Move redundant code into McidasRecord.getGridGeometry()
+ * 08/31/2016   R15716      S. Russell      Repaired, refactored, and renamed 
+ *                                          getPixelValue() into 
+ *                                          getDataAtCoordinate(). Updated
+ *                                          getSoundingFromStationData() to 
+ *                                          fix left over status messages.
  * 
  * 
  * @version 1
@@ -127,6 +114,8 @@ public class CloudHeightProcesser {
 
     private static IUFStatusHandler statusHandler = UFStatus
             .getHandler(CloudHeightProcesser.class);
+
+    private final CoordinateReferenceSystem DEFAULT_MAP_PROJECTION = DefaultGeographicCRS.WGS84;
 
     private CloudHeightDialog cldHghtDlg = null;
 
@@ -177,10 +166,13 @@ public class CloudHeightProcesser {
 
     private String algo = "Cloud height by moist-adiabatic method...  ";
 
+    private final String STD_SOUNDING_DATA_SOURCE = "Standard";
+
     StationData stnData = null;
 
     public static class CloudHeightData {
-        protected double cloudHght; // in meters
+        // in meters
+        protected double cloudHght;
 
         protected double cloudPres;
 
@@ -194,9 +186,8 @@ public class CloudHeightProcesser {
             throws VizException {
         seldPane = p;
         cldHghtDlg = dlg;
-        aListOfNcSoundingLayers = new ArrayList<NcSoundingLayer2>(0);
+        aListOfNcSoundingLayers = new ArrayList<>(0);
         // tell the dialog what units the data values will be in.
-        //
         cldHghtDlg.setWorkingUnits(SI.METER, SI.CELSIUS, SI.METER);
         celsiusToKelvinConverter = SI.CELSIUS.getConverterTo(SI.KELVIN);
         pixelToTemperatureConverter = new NcIRPixelToTempConverter();
@@ -230,15 +221,12 @@ public class CloudHeightProcesser {
         }
 
         removeCloudHeightResource();
-
         seldPane = newPane;
-
         getResources();
     }
 
     public void processCloudHeight(Coordinate latlon, boolean mouseDown) {
-        List<CloudHeightData> cloudHeights = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
+        List<CloudHeightData> cloudHeights = new ArrayList<>(0);
 
         if (cldHghtDlg != null && cldHghtDlg.isOpen() && latlon != null) {
 
@@ -255,8 +243,8 @@ public class CloudHeightProcesser {
                 }
             }
 
-            if (cldHghtRsc == null) { // a user could have unloaded the cloud
-                                      // height resource
+            // a user could have unloaded the cloud height resource
+            if (cldHghtRsc == null) {
                 getResources();
             }
 
@@ -267,17 +255,16 @@ public class CloudHeightProcesser {
             // get the options
             if (mouseDown) {
                 sndingDataSrc = cldHghtDlg.getSoundingDataSourceType();
-                maxSndingDist = cldHghtDlg.getMaxSoundingDist(); // in working
-                                                                 // units of
-                                                                 // meters
+                // in working units of meters
+                maxSndingDist = cldHghtDlg.getMaxSoundingDist();
 
                 compMthd = cldHghtDlg.getComputationalMethod();
                 pixValMthd = cldHghtDlg.getPixelValueMethod();
                 pixAreaRad = cldHghtDlg.getPixelAreaDimension();
                 useSnglPix = cldHghtDlg.isPixelValueFromSinglePixel();
             }
-            pixVal = getPixelValue(latlon, satRsc, useSnglPix, pixAreaRad,
-                    pixValMthd);
+            pixVal = getDataAtCoordinate(latlon, satRsc, useSnglPix,
+                    pixAreaRad, pixValMthd);
             if (pixVal != null) {
                 NumberFormat nf = new DecimalFormat("####");
                 pixValStr = nf.format(pixVal);
@@ -302,14 +289,14 @@ public class CloudHeightProcesser {
                 sndingSrcTimeStr = new String("N/A");
                 sndingSrcDist = Double.NaN; // flag to display empty
 
-                if (currSndingDataSource != "Standard") {
-                    currSndingDataSource = "Standard";
+                if (currSndingDataSource != this.STD_SOUNDING_DATA_SOURCE) {
+                    currSndingDataSource = this.STD_SOUNDING_DATA_SOURCE;
                 }
 
                 for (SoundingModel sndMod : sndingModels) {
                     // TODO : Add checks for Summer/Winter and valid region
-                    //
-                    if (sndMod.getName().equalsIgnoreCase("Standard")) {
+                    if (sndMod.getName().equalsIgnoreCase(
+                            this.STD_SOUNDING_DATA_SOURCE)) {
                         soundingData = (ArrayList<LevelValues>) sndMod
                                 .getSoundingLevels().getLevelValues();
                         cloudHeights = computeCloudHeights(soundingData, tempC);
@@ -442,11 +429,18 @@ public class CloudHeightProcesser {
      *         that are time-matched to the satellite image time
      */
     private List<LevelValues> getSoundingFromStationData(Coordinate latlon) {
-        List<LevelValues> listOfLevelValues = new ArrayList<LevelValues>(0);
+        List<LevelValues> listOfLevelValues = new ArrayList<>(0);
         if (sndingDataSrc == SoundingDataSourceType.STATION_DATA) {
             sndingSrcTimeStr = "N/A";
-            sndingSrcStr = "Station Data";
-            sndingSrcDist = cldHghtDlg.getMaxSoundingDist();
+            sndingSrcStr = "N/A";
+            sndingSrcDist = Double.NaN;
+            aListOfNcSoundingLayers = new ArrayList<>(0);
+
+            // Used as a flag, reset this for a new click on the map
+            if (!this.aListOfNcSoundingLayers.isEmpty()) {
+                this.aListOfNcSoundingLayers.clear();
+            }
+
             maxIntervalInHoursForValidStationData = cldHghtDlg
                     .getMaxValidIntervalInHoursForStationData();
             stnData = cldHghtRsc.getStationData(latlon, maxSndingDist,
@@ -496,8 +490,7 @@ public class CloudHeightProcesser {
 
     private List<CloudHeightData> moistAdiabaticMethod(
             List<NcSoundingLayer2> listOfNcSoundingLayer, Amount tmpk) {
-        List<CloudHeightData> cldHgtDataList = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
+        List<CloudHeightData> cldHgtDataList = new ArrayList<>(0);
         try {
             PressureLevel plev = new PressureLevel();
             plev.setValue(new Amount(600, NcUnits.MILLIBAR));
@@ -605,8 +598,7 @@ public class CloudHeightProcesser {
      */
     private List<NcSoundingLayer2> getStationSounding(StationData stationData) {
 
-        List<NcSoundingLayer2> ncSoundingLayer2List = new ArrayList<NcSoundingLayer2>(
-                0);
+        List<NcSoundingLayer2> ncSoundingLayer2List = new ArrayList<>(0);
         String[] stnIdAry = new String[1];
         if (stationData.stationId != null && !stationData.stationId.isEmpty())
             stnIdAry[0] = stationData.stationId;
@@ -675,7 +667,7 @@ public class CloudHeightProcesser {
      */
     private List<LevelValues> getListOfLevelData(
             List<NcSoundingLayer2> listOfNcSoundingLayer) {
-        List<LevelValues> aListOfLevelValues = new ArrayList<LevelValues>(0);
+        List<LevelValues> aListOfLevelValues = new ArrayList<>(0);
         if (listOfNcSoundingLayer != null && !listOfNcSoundingLayer.isEmpty()) {
             for (NcSoundingLayer2 eachNcSoundingLayer : listOfNcSoundingLayer) {
 
@@ -721,7 +713,7 @@ public class CloudHeightProcesser {
      */
     private List<CloudHeightData> computeCloudHeights(
             List<LevelValues> soundingLevels, Double tempC) {
-        List<CloudHeightData> cldHghts = new ArrayList<CloudHeightData>(0);
+        List<CloudHeightData> cldHghts = new ArrayList<>(0);
 
         double tempMax = -9999.0;
         int lindx = 0;
@@ -899,8 +891,7 @@ public class CloudHeightProcesser {
     private List<CloudHeightData> computeCloudHeightFromPreviousStationData(
             StationData nearestStationData, int maxInterval,
             DataTime imageTime, float tempInKelvin) {
-        List<CloudHeightData> cloudHeightData = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
+        List<CloudHeightData> cloudHeightData = new ArrayList<>(0);
         if (stnData != null) {
             Calendar limitingCalendar = imageTime.getRefTimeAsCalendar();
             limitingCalendar.add(Calendar.HOUR_OF_DAY, -maxInterval);
@@ -929,186 +920,204 @@ public class CloudHeightProcesser {
 
     /**
      * 
-     * @param coord
+     * Get the satellite data located at the coordinate the user clicked on the
+     * map. If the option was chosen get maximum or minimum data value from a
+     * rectangular matrix of coordiantes around the point the user clicked
+     * 
+     * @param usrClickdLatLon
+     *            - this is the point the user clicked on the map translated
+     *            from mouseclicks into LatLon
      * @param satRsc
+     *            - a satellite Resource that has implemented the
+     *            ICloudHeightCapable Interface
      * @param isSinglePixelNeeded
+     *            - from the dialog, did the user want data ONLY from the point
+     *            on the map s/he clicked?
      * @param pixelAreaDimension
+     *            - the distance beyond the user clicked point from which to
+     *            gather more data if chosen
      * @param pixelSelectionMethod
      * @return
      */
-    private Double getPixelValue(Coordinate coord, ICloudHeightCapable satRsc,
-            boolean isSinglePixelNeeded, int pixelAreaDimension,
+
+    private Double getDataAtCoordinate(Coordinate usrClickdLatLon,
+            ICloudHeightCapable satRsc, boolean isSinglePixelNeeded,
+            int pixelAreaDimension,
             CloudHeightDialog.PixelValueMethod pixelSelectionMethod) {
-        Double pixVal = Double.NaN;
+
+        Double dataVal = Double.NaN;
+
+        // Abort
+        if (satRsc == null) {
+            return dataVal;
+        }
+
+        double[] userClickedPixelCoord = new double[2];
         double[] in = new double[2];
         double[] out = new double[2];
-        double[] outCoord = new double[2];
-        int newArrDimensions = (pixelAreaDimension * 2) + 1;
-        PixelLocation[][] squarePixelArea = new PixelLocation[newArrDimensions][newArrDimensions];
-        in[0] = MapUtil.correctLon(coord.x);
-        in[1] = MapUtil.correctLat(coord.y);
-        if (satRsc != null && satRsc instanceof McidasSatResource) {
-            int maxX = 0;
-            int maxY = 0;
-            if (satRsc instanceof McidasSatResource) {
-                PluginDataObject pdo = (PluginDataObject) satRsc;
-                if (pdo != null && pdo instanceof McidasRecord) {
+        MathTransform localProjToLatLon = null;
+        MathTransform mtGridToCRS = null;
+        MathTransform latLonToLocalProj = null;
+        MathTransform invmtCRSToGrid = null;
 
-                    /* Get the geometry associated with the Mcidas file */
-                    GridGeometry2D gridGeom = getGridGeometry(pdo, satRsc);
-                    try {
-                        MathTransform localProjToLatLon = CRS
-                                .findMathTransform(
-                                        gridGeom.getCoordinateReferenceSystem(),
-                                        DefaultGeographicCRS.WGS84);
-                        MathTransform latLonToLocalProj = localProjToLatLon
-                                .inverse();
-                        MathTransform mtGridToCRS = gridGeom
-                                .getGridToCRS(PixelInCell.CELL_CORNER);
-                        MathTransform invmtCRSToGrid = mtGridToCRS.inverse();
-                        latLonToLocalProj.transform(in, 0, out, 0, 1);
-                        invmtCRSToGrid.transform(out, 0, outCoord, 0, 1);
-                        /* Get the raw data from the HDF5 file */
-                        File file = HDF5Util.findHDF5Location(pdo);
-                        IDataRecord idr = null;
-                        // Following throws VizException on fail; trapped below
-                        idr = CubeUtil.retrieveData(pdo, "mcidas");
-                        if (idr != null) {
-                            AbstractStorageRecord asr = (AbstractStorageRecord) idr;
-                            long[] sizes = asr.getSizes();
-                            maxX = (int) sizes[0];
-                            maxY = (int) sizes[1];
+        int pixelDistFrmUsrClickPt = (pixelAreaDimension * 2) + 1;
+        in[0] = MapUtil.correctLon(usrClickdLatLon.x);
+        in[1] = MapUtil.correctLat(usrClickdLatLon.y);
 
-                            if (((ByteDataRecord) idr).validateDataSet()) {
-                                byte[] arrayOfBytes = ((ByteDataRecord) idr)
-                                        .getByteData();
-                                Rectangle rectangle = new Rectangle(0, 0, maxX,
-                                        maxY);
-                                ByteBuffer byteBuffer = BufferUtil.wrapDirect(
-                                        arrayOfBytes, rectangle);
-                                IColorMapDataRetrievalCallback retriever = new HDF5DataRetriever(
-                                        file, "/full", rectangle);
-                                double tempDbl = Double.NaN;
-                                if (retriever != null) {
+        GridGeometry2D gridGeom = satRsc.getGridGeometry();
 
-                                    /*
-                                     * Wrap the raw data of bytes into a
-                                     * ByteBufferWrapper object
-                                     */
-                                    DataSource bdf = UnsignedFilter
-                                            .apply(new ByteBufferWrapper(
-                                                    byteBuffer, maxX, maxY));
-                                    /*
-                                     * Get the actual pixel value information
-                                     * from the byte array
-                                     */
-                                    tempDbl = bdf.getDataValue(
-                                            (int) (outCoord[0]),
-                                            (int) (outCoord[1]));
+        try {
 
-                                    if (isSinglePixelNeeded) {
-                                        pixVal = new Double((tempDbl));
-                                    } else {
-                                        int[] pixCoord = new int[2];
-                                        pixCoord[0] = (int) outCoord[0];
-                                        pixCoord[1] = (int) outCoord[1];
+            // Get the appropriate coordinate systems to translate LatLon
+            // into pixel coordiantes
+            localProjToLatLon = CRS.findMathTransform(
+                    gridGeom.getCoordinateReferenceSystem(),
+                    this.DEFAULT_MAP_PROJECTION);
+            latLonToLocalProj = localProjToLatLon.inverse();
 
-                                        if (pixCoord != null
-                                                && pixCoord.length == 2) {
-                                            PixelLocation userClickedPoint = new PixelLocation(
-                                                    pixCoord[0], pixCoord[1]);
-                                            /*
-                                             * In the pixel area generate the
-                                             * middle column of pixel locations
-                                             */
-                                            PixelLocation[] tempPixelArea = this
-                                                    .generatePixelLocations(
-                                                            userClickedPoint,
-                                                            false,
-                                                            newArrDimensions);
-                                            int midpoint = ((int) (pixelAreaDimension));
+            mtGridToCRS = gridGeom.getGridToCRS(PixelInCell.CELL_CORNER);
+            invmtCRSToGrid = mtGridToCRS.inverse();
 
-                                            /*
-                                             * For each PixelLocaton in the
-                                             * column, generate the entire row
-                                             * to complete the matrix
-                                             */
-                                            for (int i = 0; i < newArrDimensions; i++) {
-                                                squarePixelArea[i][midpoint] = tempPixelArea[i];
-                                                squarePixelArea[i] = this
-                                                        .generatePixelLocations(
-                                                                squarePixelArea[i][midpoint],
-                                                                true,
-                                                                newArrDimensions);
-                                            }
+            // Convert the user clicked LatLon into pixel coordiantes
+            latLonToLocalProj.transform(in, 0, out, 0, 1);
+            invmtCRSToGrid.transform(out, 0, userClickedPixelCoord, 0, 1);
 
-                                            double[][] arrayOfPixVal = new double[newArrDimensions][newArrDimensions];
-                                            /*
-                                             * Generate the NxN array of pixel
-                                             * values
-                                             */
-                                            for (int i = 0; i < newArrDimensions; i++) {
-                                                for (int j = 0; j < newArrDimensions; j++) {
-                                                    try {
-                                                        arrayOfPixVal[i][j] = bdf
-                                                                .getDataValue(
-                                                                        (int) (squarePixelArea[i][j].xCoord),
-                                                                        (int) (squarePixelArea[i][j].yCoord));
-                                                    } catch (Exception e) {
-                                                        statusHandler
-                                                                .error("Error generating array of pixel values",
-                                                                        e);
-                                                    }
-
-                                                }
-                                            }
-
-                                            /*
-                                             * Get either the maximum or the
-                                             * most frequently used pixel value
-                                             */
-                                            if (pixelSelectionMethod == PixelValueMethod.MAX_VALUE) {
-                                                pixVal = new Double(
-                                                        getMaxPixValue(arrayOfPixVal));
-                                            } else {
-                                                pixVal = new Double(
-                                                        getModeOfPixelValues(arrayOfPixVal));
-                                            }
-
-                                        }
-
-                                    }
-                                }
-
-                            }
-                        }
-                    } catch (FactoryException | TransformException
-                            | DataCubeException e) {
-                        statusHandler.error("Error getting pixel value", e);
-                    }
-                }
-            }
+        } catch (Exception e) {
+            statusHandler
+                    .error("Error transforming the user clicked latlon value into pixel coordiantes",
+                            e);
         }
-        return pixVal;
+
+        // If the user ONLY wants data for the point s/he clicked on the map
+        if (isSinglePixelNeeded) {
+            Double imageValue = satRsc.getRawIRImageValue(usrClickdLatLon);
+            dataVal = new Double(imageValue);
+        } else {
+            // The user wants data from pixels for an entire rectangular area
+            // surronging the point s/he clicked on the map.
+
+            double[][] arrayDataValAroundUsrClikdPt = new double[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+
+            arrayDataValAroundUsrClikdPt = getDataFrmRectAreaOfPixelCoordsArndClckdPt(
+                    userClickedPixelCoord, pixelDistFrmUsrClickPt,
+                    pixelAreaDimension, mtGridToCRS, localProjToLatLon, satRsc);
+
+            // Get either maximum or most frequently data value in the
+            // rectangular area around the user clicked point
+            if (pixelSelectionMethod == PixelValueMethod.MAX_VALUE) {
+                dataVal = new Double(
+                        getMaxDataVal(arrayDataValAroundUsrClikdPt));
+            } else {
+                dataVal = new Double(
+                        getModeOfDataValues(arrayDataValAroundUsrClikdPt));
+            }
+
+        }// end else if(isSinglePixelNeeded)
+
+        return dataVal;
     }
 
     /**
-     * Retrieves the grid geometry for the mcidas data
+     * Get the data for a rectangle of pixels arund the pixel coordinate the
+     * user clicked on the map
      * 
-     * @param pdo
-     *            - The Mcidas Record
+     * @param userClickePixelCoord
+     * @param pixelDistFrmUsrClickPt
+     * @param pixelAreaDimension
+     * @param mtGridToCRS
+     * @param localProjToLatLon
      * @param satRsc
-     *            - The Mcidas satellite resource
-     * @return the grid geometry depending upon the type of projection described
-     *         in the Mcidas data
+     * @return
      */
-    private GridGeometry2D getGridGeometry(PluginDataObject pdo,
-            ICloudHeightCapable satRsc) {
-        GridGeometry2D mcidasGeom = null;
-        if (pdo instanceof McidasRecord) {
-            mcidasGeom = ((McidasRecord) pdo).getGridGeometry();
+    private double[][] getDataFrmRectAreaOfPixelCoordsArndClckdPt(
+            double[] userClickePixelCoord, int pixelDistFrmUsrClickPt,
+            int pixelAreaDimension, MathTransform mtGridToCRS,
+            MathTransform localProjToLatLon, ICloudHeightCapable satRsc) {
+
+        double[][] arrayOfPixVal = new double[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+        PixelLocation[][] squarePixelArea = new PixelLocation[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+        int[] pixCoord = new int[2];
+
+        // Set the pixel coordinates of where the user clicked on the map
+        pixCoord[0] = (int) userClickePixelCoord[0];
+        pixCoord[1] = (int) userClickePixelCoord[1];
+
+        if (pixCoord == null || pixCoord.length != 2) {
+            // Abort
+            return null;
         }
-        return mcidasGeom;
+
+        PixelLocation userClickedPoint = new PixelLocation(pixCoord[0],
+                pixCoord[1]);
+
+        // For the rectangular area around the user clicked point generate a
+        // column of pixel coordinates in the middle of that rectangle
+        PixelLocation[] tempPixelArea = this.generatePixelLocations(
+                userClickedPoint, false, pixelDistFrmUsrClickPt);
+        int midpoint = ((int) (pixelAreaDimension));
+
+        // For each PixelLocaton in the middle column, generate the entire row
+        // to complete the rectangle of pixel coordinates around the point the
+        // the user clicked.
+        for (int i = 0; i < pixelDistFrmUsrClickPt; i++) {
+            squarePixelArea[i][midpoint] = tempPixelArea[i];
+            squarePixelArea[i] = this.generatePixelLocations(
+                    squarePixelArea[i][midpoint], true, pixelDistFrmUsrClickPt);
+        }
+
+        // Get the data from the satellite tile map for each pixel coordinate
+        // in the rectangular matrix of pixel coordinates
+        for (int i = 0; i < pixelDistFrmUsrClickPt; i++) {
+            for (int j = 0; j < pixelDistFrmUsrClickPt; j++) {
+
+                double xCoord = (double) (squarePixelArea[i][j].xCoord);
+                double yCoord = (double) (squarePixelArea[i][j].yCoord);
+
+                Coordinate latlon = pixelsBackToLatlon(mtGridToCRS,
+                        localProjToLatLon, xCoord, yCoord);
+
+                arrayOfPixVal[i][j] = satRsc.getRawIRImageValue(latlon);
+
+            }
+
+        }
+
+        return arrayOfPixVal;
+
+    }
+
+    /**
+     * Convert coordinates in pixels into the same coordinate in LatLon
+     * 
+     * @param mtGridToCRS
+     * @param localProjToLatLon
+     * @param xCoord
+     * @param yCoord
+     * @return
+     */
+    private Coordinate pixelsBackToLatlon(MathTransform mtGridToCRS,
+            MathTransform localProjToLatLon, double xCoord, double yCoord) {
+        Coordinate latlon = null;
+
+        double[] pixelCoord = new double[2];
+        double[] crsCoord = new double[2];
+        double[] latlonCoord = new double[2];
+
+        pixelCoord[0] = xCoord;
+        pixelCoord[1] = yCoord;
+
+        try {
+            mtGridToCRS.transform(pixelCoord, 0, crsCoord, 0, 1);
+            localProjToLatLon.transform(crsCoord, 0, latlonCoord, 0, 1);
+        } catch (Exception e) {
+            statusHandler
+                    .error("Error tranforming pixel coordinates to latitude and longitude",
+                            e);
+        }
+
+        latlon = new Coordinate(latlonCoord[0], latlonCoord[1]);
+
+        return latlon;
     }
 
     /**
@@ -1118,7 +1127,7 @@ public class CloudHeightProcesser {
      *            - the 2D array to search
      * @return the maximum pixel value in the array
      */
-    private double getMaxPixValue(double[][] arrayOfPixVal) {
+    private double getMaxDataVal(double[][] arrayOfPixVal) {
         double maxPixVal = 0.0f;
         if (arrayOfPixVal != null && arrayOfPixVal.length > 0) {
             int arraySize = arrayOfPixVal.length;
@@ -1140,9 +1149,9 @@ public class CloudHeightProcesser {
      *            - the input 2D array to search
      * @return the most frequently occurring pixel value
      */
-    private double getModeOfPixelValues(double[][] arrayOfPixVal) {
+    private double getModeOfDataValues(double[][] arrayOfPixVal) {
         double modePixVal = 0.0f;
-        Map<Double, Integer> frequencyMap = new HashMap<Double, Integer>(0);
+        Map<Double, Integer> frequencyMap = new HashMap<>(0);
         int counter = 0;
         if (arrayOfPixVal != null && arrayOfPixVal.length > 0) {
             int arraySize = arrayOfPixVal.length;
@@ -1210,13 +1219,9 @@ public class CloudHeightProcesser {
      */
     private List<CloudHeightData> getSoundingFromClimatology(Coordinate latlon,
             double tmpc) {
-        List<CloudHeightData> chSummer = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
-        List<CloudHeightData> chWinter = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
-        List<List<CloudHeightData>> ch = new ArrayList<List<CloudHeightData>>(4);
-        // List<LevelValues> summerSounding = null;
-        // List<LevelValues> winterSounding = null;
+        List<CloudHeightData> chSummer = new ArrayList<>(0);
+        List<CloudHeightData> chWinter = new ArrayList<>(0);
+        List<List<CloudHeightData>> ch = new ArrayList<>(4);
 
         double latitude = Math.abs(latlon.y);
         Calendar cal = satelliteImageTime.getRefTimeAsCalendar();
@@ -1225,9 +1230,7 @@ public class CloudHeightProcesser {
         if (latlon.y < 0)
             jdy += 180;
 
-        /*
-         * Acquire needed data.
-         */
+        // Acquire needed data.
 
         double fraction = 1.d;
         double pfraction = 0.d;
@@ -1335,10 +1338,14 @@ public class CloudHeightProcesser {
 
         }
 
-        /*
-         * Geographical interpolation to the location.
-         */
-        double hhs = 0., pps = 0., hhw = 0., ppw = 0., hh = -9999., pp = -9999.;
+        // Geographical interpolation to the location.
+        double hhs = 0.0;
+        double pps = 0.0;
+        double hhw = 0.0;
+        double ppw = 0.0;
+        double hh = -9999.0;
+        double pp = -9999.0;
+
         try {
             if (latitude > 15 && latitude < 75) {
                 hhs = (ch.get(3).get(0).cloudHght)

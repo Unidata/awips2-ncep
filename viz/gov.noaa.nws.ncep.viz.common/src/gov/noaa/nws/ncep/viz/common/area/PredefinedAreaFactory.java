@@ -29,17 +29,19 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
+import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
+import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.SerializationUtil;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.exception.VizException;
 
 /**
  * Read and create PredefinedAreas from localization. Also
- * 
- * TODO : add methods to save, delete and edit PredefinedAreas at the USER
- * localization level.
  * 
  * <pre>
  * SOFTWARE HISTORY
@@ -52,6 +54,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 04/16/13       #863      Greg Hull    read menus table. 
  * 04/18/13       #863      Greg Hull    change key to be the areaName.
  * 05/07/13       #862      Greg Hull 	 Area Source ; change name from PredefinedAreasMngr
+ * 09/26/2016   R20482      K.Bugenhagen Handle saving localization file without 
+ *                                       throwing exception due to updated 
+ *                                       checksum.  Fixed issue with deleting.
  * 
  * </pre>
  * 
@@ -60,11 +65,21 @@ import com.raytheon.uf.viz.core.exception.VizException;
  */
 public class PredefinedAreaFactory implements INcAreaProviderFactory {
 
+    private static IUFStatusHandler statusHandler = UFStatus
+            .getHandler(PredefinedAreaFactory.class);
+
+    private static JAXBManager jaxBPreDefinedArea;
+
     private static Map<String, LocalizationFile> predefinedAreasMap = null;
 
-    private static List<VizException> badAreas = new ArrayList<VizException>();
+    private static List<VizException> badAreas = new ArrayList<>();
 
     public PredefinedAreaFactory() {
+        try {
+            jaxBPreDefinedArea = new JAXBManager(PredefinedArea.class);
+        } catch (JAXBException e) {
+            statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
+        }
     }
 
     @Override
@@ -91,7 +106,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
 
         // only null the first time. Empty if read and error.
         if (predefinedAreasMap == null) {
-            predefinedAreasMap = new HashMap<String, LocalizationFile>();
+            predefinedAreasMap = new HashMap<>();
 
             Map<String, LocalizationFile> areaLocFileMap = NcPathManager
                     .getInstance().listFiles(
@@ -142,7 +157,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
 
     @Override
     public List<AreaName> getAvailableAreaNames() {
-        List<AreaName> areaNames = new ArrayList<AreaName>();
+        List<AreaName> areaNames = new ArrayList<>();
 
         for (String aname : getAllAvailAreasForDisplayType()) {
             areaNames.add(new AreaName(getAreaSource(), aname));
@@ -166,50 +181,16 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
             return new String[0];
         }
 
-        List<String> areaNamesList = new ArrayList<String>(
+        List<String> areaNamesList = new ArrayList<>(
                 predefinedAreasMap.keySet());
         String areaNamesArray[] = areaNamesList.toArray(new String[0]);
 
         return areaNamesArray;
     }
 
-    // // to sort the list of area names. The default goes first
-    // public static class AreaNamesComparator implements Comparator<String> {
-    // private NcDisplayType dispType=NcDisplayType.NMAP_DISPLAY;
-    //
-    // public AreaNamesComparator( NcDisplayType dt ) {
-    // dispType = dt;
-    // }
-    //
-    // @Override
-    // public int compare(String a1, String a2) {
-    // if( a1.equals(a2) ) {
-    // return 0;
-    // }
-    // if( a1.equals( dispType.getDefaultMap() ) ) {
-    // return -1;
-    // }
-    // if( a2.equals( dispType.getDefaultMap() ) ) {
-    // return 1;
-    // }
-    //
-    // int a1menuIndx = (areaMenuNames == null ? 999 :
-    // (areaMenuNames.contains(a1) ? areaMenuNames.indexOf(a1) : 999) );
-    // int a2menuIndx = (areaMenuNames == null ? 999 :
-    // (areaMenuNames.contains(a2) ? areaMenuNames.indexOf(a2) : 999) );
-    //
-    // if( a1menuIndx == a2menuIndx ) { // ie both -1
-    // return a1.compareTo( a2 );
-    // }
-    // return (a1menuIndx < a2menuIndx ? -1 : 1 );
-    // }
-    // }
-
-    // // it might be nice create a class specifically to store the predefined
-    // // area but for now this will just be the Display (we need the zoomLevel
-    // and
-    // // mapCenter as well as the gridGeometry)
-    // //
+    // it might be nice create a class specifically to store the predefined
+    // area but for now this will just be the Display (we need the zoomLevel
+    // and mapCenter as well as the gridGeometry)
     public static PredefinedArea getDefaultPredefinedAreaForDisplayType(
             NcDisplayType dt) throws VizException {
         switch (dt) {
@@ -236,8 +217,6 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
             return createDefaultNonMapArea(NcDisplayType.GRAPH_DISPLAY);
         }
 
-        // String key = NcPathConstants.PREDEFINED_AREAS_DIR + File.separator +
-        // areaName +".xml";
         String key = areaName;
 
         if (!predefinedAreasMap.containsKey(key)) {
@@ -254,7 +233,6 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
             PredefinedArea pa = SerializationUtil.jaxbUnmarshalFromXmlFile(
                     PredefinedArea.class, lFile.getFile());
 
-            // Todo : could fill this in with the filename???
             if (pa.getAreaName().isEmpty()) {
                 VizException ve = new VizException(
                         "Error unmarshaling PredefinedArea: missing AreaName");
@@ -356,16 +334,12 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
 
             // first need to remove the entry for the updated file from the
             // map. Do it this way to best handle the case when a user changes
-            // the
-            // area name in an existing file.
-            //
+            // the area name in an existing file.
             String keyToRemove = null;
 
             for (Entry<String, LocalizationFile> areaEntry : predefinedAreasMap
                     .entrySet()) {
                 LocalizationFile lf = areaEntry.getValue();
-
-                // ?? check the context too?
                 if (fumsg.getFileName().equals(lf.getName())) {
                     lf.removeFileUpdatedObserver(areaFileObserver);
                     keyToRemove = areaEntry.getKey();
@@ -399,9 +373,8 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
                             area = getPredefinedArea(locFile);
 
                             // since the existing entry should have been
-                            // removed, this means
-                            // they have changed the name to a name that already
-                            // exists.
+                            // removed, this means they have changed the name
+                            // to a name that already exists.
                             if (predefinedAreasMap.containsKey(area
                                     .getAreaName())) {
                                 System.out
@@ -411,8 +384,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
                                                 + predefinedAreasMap.get(
                                                         area.getAreaName())
                                                         .getName());
-                            } // else ?????
-                            else {
+                            } else {
                                 locFile.addFileUpdatedObserver(areaFileObserver);
 
                                 predefinedAreasMap.put(area.getAreaName(),
@@ -425,7 +397,6 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
                         if (locFile != null) {
                             area = getPredefinedArea(locFile);
 
-                            // shouldn't happen.
                             if (locFile.getContext().getLocalizationLevel() == LocalizationLevel.USER) {
                                 System.out
                                         .println("sanity check: loc file deleted but still found a user-level version???");
@@ -448,7 +419,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
 
     @Override
     public AreaSource getAreaSource() {
-        return AreaSource.PREDEFINED_AREA;// areaSource;
+        return AreaSource.PREDEFINED_AREA;
     }
 
     @Override
@@ -480,7 +451,6 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
             throw new VizException("Error creating PredefinedArea for: "
                     + geomProv.getSource() + "/" + geomProv.getProviderName());
         }
-        AreaName pareaName = new AreaName(AreaSource.PREDEFINED_AREA, areaname);
         parea.setAreaName(areaname);
         parea.setAreaSource(AreaSource.PREDEFINED_AREA.toString());
 
@@ -501,25 +471,25 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
         }
 
         try {
-            SerializationUtil.jaxbMarshalToXmlFile(parea, lfile.getFile()
-                    .getAbsolutePath());
-            lfile.save();
-
-            if (!areaExists) {
-                lfile.addFileUpdatedObserver(areaFileObserver);
-                predefinedAreasMap.put(areaname, lfile);
-            }
-
-            return parea;
-        } catch (LocalizationException | SerializationException e) {
-            throw new VizException("Error saving Predefined Area, " + areaname
-                    + ": " + e.getMessage());
+            SaveableOutputStream outstream = lfile.openOutputStream();
+            jaxBPreDefinedArea.marshalToStream(parea, outstream);
+            outstream.save();
+            outstream.close();
+        } catch (LocalizationException | IOException e) {
+            statusHandler.error(
+                    "Error saving predefined area: " + parea.getAreaName(), e);
+        } catch (SerializationException e) {
+            statusHandler.error(
+                    "Error marshalling predefined area " + parea.getAreaName(),
+                    e);
         }
+
+        if (!areaExists) {
+            lfile.addFileUpdatedObserver(areaFileObserver);
+            predefinedAreasMap.put(areaname, lfile);
+        }
+
+        return parea;
     }
-    // @Override
-    // public void setInitializationData(IConfigurationElement config,
-    // String propertyName, Object data) throws CoreException {
-    // System.out.println("setInitializationData called with propertyName "+
-    // propertyName+ " = "+(data == null ? "null" : data.toString()) );
-    // }
+
 }

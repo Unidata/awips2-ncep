@@ -1,14 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ntrans.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Command;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.NcCGM;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.NcText;
-import gov.noaa.nws.ncep.viz.ui.display.NCNonMapDescriptor;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -34,8 +25,19 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
+import gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Command;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.NcCGM;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.NcText;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.wireframe.SharedWireframeGenerator;
+import gov.noaa.nws.ncep.viz.ui.display.NCNonMapDescriptor;
 
 /**
  * NtransResource - Resource for Display of NTRANS Metafiles.
@@ -58,6 +60,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 29 Aug 2014              B. Hebbard  Remove time string and "/" separator from legend
  * 12 Sep 2014              B. Hebbard  Refactor to avoid regenerating paintables from CGM on each paint.
  * 19 Dec 2014       ?      B. Yin      Remove ScriptCreator, use Thrift Client.
+ * 24 Oct 2016  R22550      bsteffen    Create all PaintableImages in init using multiple threads.
  * </pre>
  * 
  * @author bhebbard
@@ -66,8 +69,6 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 public class NtransResource extends
         AbstractNatlCntrsResource<NtransResourceData, NCNonMapDescriptor>
         implements INatlCntrsResource {
-
-    private NtransResourceData ntransResourceData;
 
     private String legendStr = "NTRANS "; // init so not-null
 
@@ -80,9 +81,6 @@ public class NtransResource extends
 
         NtransRecord ntransRecord; // the metadata record (PDO)
 
-        NcCGM cgmImage; // "jcgm" (connected Java objects) representation of the
-                        // CGM image
-
         PaintableImage paintableImage; // AWIPS graphics elements of the image;
                                        // compiled and ready to paint
 
@@ -90,6 +88,7 @@ public class NtransResource extends
             super(frameTime, timeInt);
         }
 
+        @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof DfltRecordRscDataObj)) {
                 logger.error("NtransResource.updateFrameData expecting DfltRecordRscDataObj "
@@ -112,68 +111,16 @@ public class NtransResource extends
             DfltRecordRscDataObj ntransRDO = (DfltRecordRscDataObj) rscDataObj;
             ntransRecord = (NtransRecord) ntransRDO.getPDO();
 
-            // Get binary CGM image data from data store
-
-            long t0 = System.currentTimeMillis();
-            byte[] imageBytes = getBinaryCgmFromNtransRecord(ntransRecord);
-            long t1 = System.currentTimeMillis();
-            if (imageBytes == null) {
-                logger.error("NtransResource.updateFrameData imageBytes from NtransRecord is null ");
-                return false;
-            }
-
-            // Fix endianess if needed
-
-            boolean flipped = false;
-            if (imageBytes[0] == 96) { // TODO clean up and/or move to decoder?
-                imageBytes = shuffleByteArray(imageBytes);
-                flipped = true;
-            }
-
-            // Construct "jcgm" (Java objects) CGM representation of the image
-            // from the binary CGM
-
-            cgmImage = new NcCGM();
-            InputStream is = new ByteArrayInputStream(imageBytes);
-            DataInput di = new DataInputStream(is);
-
-            try {
-                long t2 = System.currentTimeMillis();
-                cgmImage.read(di); // <-- Voom!
-                long t3 = System.currentTimeMillis();
-                logger.info("CGM image " + ntransRecord.getImageByteCount()
-                        + " bytes retrieved from HDF5 in " + (t1 - t0) + " ms"
-                        + " and parsed in " + (t3 - t2) + " ms");
-            } catch (Exception e) {
-                logger.info("CGM image " + ntransRecord.getImageByteCount()
-                        + " bytes retrieved from HDF5 in " + (t1 - t0) + " ms");
-                logger.error("EXCEPTION occurred interpreting CGM"
-                        + " for metafile " + ntransRecord.getMetafileName()
-                        + " product " + ntransRecord.getProductName());
-                e.printStackTrace();
-            }
-
-            // Endianess revisited
-
-            if (flipped) { // if we shuffled the bytes before parsing...
-                flipStrings(cgmImage); // ...then unshuffle the strings
-                                       // (now that we know where they are)
-            }
-
-            // TODO Add optional (cool) debug dump of CGM representation
-            // cgmImage.showCGMCommands();
-
             return true;
         }
 
-        private byte[] shuffleByteArray(byte[] image) {
+        private void shuffleByteArray(byte[] image) {
             // Flip every even byte with its odd sibling (endianess reversal)
-            byte[] returnArray = new byte[image.length];
             for (int i = 0; i < image.length; i = i + 2) {
-                returnArray[i] = image[i + 1];
-                returnArray[i + 1] = image[i];
+                byte tmp = image[i];
+                image[i] = image[i + 1];
+                image[i + 1] = tmp;
             }
-            return returnArray;
         }
 
         private void flipStrings(NcCGM cgm) {
@@ -221,34 +168,95 @@ public class NtransResource extends
 
             IDataStore ds = DataStoreFactory.getDataStore(location);
             IDataRecord dr = null;
-            // IDataRecord[] dr;
             try {
                 dr = ds.retrieve(group, dataset, Request.ALL);
-                // dr = ds.retrieve(uri);
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException | StorageException e) {
                 logger.error("[EXCEPTION occurred retrieving CGM"
                         + " for metafile " + nr.getMetafileName() + " product "
-                        + nr.getProductName() + "]");
-                e.printStackTrace();
-                return null;
-            } catch (StorageException e) {
-                logger.error("[EXCEPTION occurred retrieving CGM"
-                        + " for metafile " + nr.getMetafileName() + " product "
-                        + nr.getProductName() + "]");
-                e.printStackTrace();
+                        + nr.getProductName() + "]", e);
                 return null;
             }
 
-            // return (byte[]) dr[0].getDataObject();
             return (byte[]) dr.getDataObject();
         }
 
+        @Override
         public void dispose() {
             if (paintableImage != null) {
                 paintableImage.dispose();
                 paintableImage = null;
             }
             super.dispose();
+        }
+
+        public void buildPaintableImages(IGraphicsTarget target,
+                SharedWireframeGenerator wireframeGen) {
+            // Get binary CGM image data from data store
+
+            long t0 = System.currentTimeMillis();
+            byte[] imageBytes = getBinaryCgmFromNtransRecord(ntransRecord);
+            long t1 = System.currentTimeMillis();
+
+            if (imageBytes == null) {
+                logger.error(
+                        "NtransResource.updateFrameData imageBytes from NtransRecord is null ");
+                return;
+            }
+
+            // Fix endianess if needed
+
+            boolean flipped = false;
+            if (imageBytes[0] == 96) { // TODO clean up and/or move to decoder?
+                shuffleByteArray(imageBytes);
+                flipped = true;
+            }
+
+            // Construct "jcgm" (Java objects) CGM representation of the image
+            // from the binary CGM
+
+            NcCGM cgmImage = new NcCGM();
+            InputStream is = new ByteArrayInputStream(imageBytes);
+            DataInput di = new DataInputStream(is);
+
+            try {
+                long t2 = System.currentTimeMillis();
+                cgmImage.read(di); // <-- Voom!
+                long t3 = System.currentTimeMillis();
+                logger.info("CGM image " + ntransRecord.getImageByteCount()
+                + " bytes retrieved from HDF5 in " + (t1 - t0) + " ms"
+                + " and parsed in " + (t3 - t2) + " ms");
+            } catch (Exception e) {
+                logger.info("CGM image " + ntransRecord.getImageByteCount()
+                + " bytes retrieved from HDF5 in " + (t1 - t0) + " ms");
+                logger.error("EXCEPTION occurred interpreting CGM"
+                        + " for metafile " + ntransRecord.getMetafileName()
+                        + " product " + ntransRecord.getProductName(), e);
+            }
+
+            // Endianess revisited
+
+            if (flipped) { // if we shuffled the bytes before parsing...
+                flipStrings(cgmImage); // ...then unshuffle the strings
+                                       // (now that we know where they are)
+            }
+
+            // TODO Add optional (cool) debug dump of CGM representation
+            // cgmImage.showCGMCommands();
+
+            double scale = 1000.000 / ntransRecord.getImageSizeX();
+            try {
+                ImageBuilder ib = new ImageBuilder(descriptor, target, scale);
+
+                paintableImage = ib.build(cgmImage, wireframeGen);
+                cgmImage = null;
+            } catch (Exception e) {
+                logger.error("[EXCEPTION occurred constructing paintable image"
+                        + " for metafile " + ntransRecord.getMetafileName()
+                        + " product " + ntransRecord.getProductName() + "]");
+                paintableImage = null;
+                cgmImage = null; // don't keep trying on subsequent paints
+                return;
+            }
         }
     }
 
@@ -262,32 +270,32 @@ public class NtransResource extends
     public NtransResource(NtransResourceData resourceData,
             LoadProperties loadProperties) throws VizException {
         super(resourceData, loadProperties);
-        ntransResourceData = (NtransResourceData) resourceData;
 
         // Set the legend from the metafileName and productName.
         // NOTE: This assumes that the request type of EQUALS
         // (i.e. only one kind of metafileName and productName) (??) [from GH]
         //
-        if (ntransResourceData.getMetadataMap().containsKey("metafileName")
-                && ntransResourceData.getMetadataMap().containsKey(
-                        "productName")) {
+        if (resourceData.getMetadataMap().containsKey("metafileName")
+                && resourceData.getMetadataMap()
+                        .containsKey("productName")) {
             legendStr = " "
-                    + ntransResourceData.getMetadataMap().get("metafileName")
+                    + resourceData.getMetadataMap().get("metafileName")
                             .getConstraintValue()
-                    + "  "
-                    // + " / "
-                    + ntransResourceData.getMetadataMap().get("productName")
+                    + "  " + resourceData.getMetadataMap().get("productName")
                             .getConstraintValue();
         }
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
-        return (AbstractFrameData) new FrameData(frameTime, timeInt);
+    @Override
+    protected FrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
+        return new FrameData(frameTime, timeInt);
     }
 
     // Query all the data in the DB matching the request constraints (modelName,
     // metaFile, and productName) and also match the selected cycle time.
     //
+    @Override
     public void initResource(IGraphicsTarget grphTarget) throws VizException {
         // Set initial display values from resource attributes (as if after
         // modification)
@@ -301,17 +309,18 @@ public class NtransResource extends
         String cycleTimeStr = dts[0] + " "
                 + dts[1].substring(0, dts[1].length() - 2);
 
-        HashMap<String, RequestConstraint> reqConstraintsMap = new HashMap<String, RequestConstraint>(
-                ntransResourceData.getMetadataMap());
+        HashMap<String, RequestConstraint> reqConstraintsMap = new HashMap<>(
+                resourceData.getMetadataMap());
 
         RequestConstraint timeConstraint = new RequestConstraint(cycleTimeStr);
         reqConstraintsMap.put("dataTime.refTime", timeConstraint);
 
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(reqConstraintsMap);
-      
+
         long t0 = System.currentTimeMillis();
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
         long t1 = System.currentTimeMillis();
 
         logger.info("Metadata records for " + this.newRscDataObjsQueue.size()
@@ -337,8 +346,28 @@ public class NtransResource extends
         ) {
             processNewRscDataList();
         }
+
+        SharedWireframeGenerator wireframeGen = new SharedWireframeGenerator(
+                descriptor, grphTarget);
+        JobPool initPool = new JobPool("Loading NTrans Data", 4);
+
+        for (AbstractFrameData afd : frameDataMap.values()) {
+            if (afd instanceof FrameData) {
+                final FrameData frameData = (FrameData) afd;
+                initPool.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        frameData.buildPaintableImages(grphTarget,
+                                wireframeGen);
+                    }
+                });
+            }
+        }
+        initPool.join();
+        wireframeGen.dispose();
     }
 
+    @Override
     public void paintFrame(AbstractFrameData frameData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
 
@@ -352,51 +381,27 @@ public class NtransResource extends
             // throw new VizException();
             return; // TODO why?
         }
-        if (fd.paintableImage == null && fd.cgmImage == null) {
-            // throw new VizException();
-            return; // TODO why?
-        }
 
         // If a ready-to-paint image has not yet been built for this frame, then
         // construct one from the (Java representation of the) CGM image
 
-        final boolean discardCGMAfterPaintableImageBuilt = true;
-
         if (fd.paintableImage == null) {
-            double scale = 1000.000 / (double) fd.ntransRecord.getImageSizeX();
-            try {
-                fd.paintableImage = new PaintableImage(fd.cgmImage, target,
-                        paintProps, descriptor, scale);
-                if (discardCGMAfterPaintableImageBuilt) {
-                    fd.cgmImage = null;
-                }
-            } catch (Exception e) {
-                logger.error("[EXCEPTION occurred constructing paintable image"
-                        + " for metafile " + fd.ntransRecord.getMetafileName()
-                        + " product " + fd.ntransRecord.getProductName() + "]");
-                fd.paintableImage = null;
-                fd.cgmImage = null; // don't keep trying on subsequent paints
-                return;
-            }
+            fd.buildPaintableImages(target,
+                    new SharedWireframeGenerator(descriptor, target));
         }
 
         // Paint it
 
-        fd.paintableImage.paint();
-    }
-
-    public void resourceAttrsModified() {
-        // So far, none exist (possible future enhancement)
+        fd.paintableImage.paint(target);
     }
 
     @Override
     public String getName() {
         FrameData fd = (FrameData) getCurrentFrame();
         if (fd == null || fd.getFrameTime() == null
-                || (fd.paintableImage == null && fd.cgmImage == null)) {
+                || (fd.paintableImage == null)) {
             return legendStr + "-No Data";
         }
-        return legendStr; // + " "
-        // + NmapCommon.getTimeStringFromDataTime(fd.getFrameTime(), "/");
+        return legendStr;
     }
 }

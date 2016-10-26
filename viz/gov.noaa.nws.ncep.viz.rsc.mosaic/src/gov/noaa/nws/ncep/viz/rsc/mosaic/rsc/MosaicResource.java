@@ -90,6 +90,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
  *  07/18/12       717        Archana     Refactored a field used to align the label data
  * 12/19/2012     #960        Greg Hull   override propertiesChanged() to update colorBar.
  * 06/15/2016     R19647      bsteffen    Improve performance
+ * 10/20/2016     R20700      pmoyer      Added image brightness adjustment to paintFrame
  * 
  * </pre>
  * 
@@ -396,6 +397,11 @@ public class MosaicResource extends
             imgCap.setBrightness(resourceData.getBrightness());
             imgCap.setContrast(resourceData.getContrast());
             imgCap.setAlpha(resourceData.getAlpha());
+
+            image.getImage().setBrightness(resourceData.getBrightness());
+            image.getImage().setContrast(resourceData.getContrast());
+            image.getImage().setInterpolated(imgCap.isInterpolationState());
+
             paintProps.setAlpha(resourceData.getAlpha());
             resourceData.fireChangeListeners(ChangeType.CAPABILITY, imgCap);
 

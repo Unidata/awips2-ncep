@@ -1,5 +1,17 @@
 package gov.noaa.nws.ncep.viz.rsc.pgen.rsc;
 
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.drawables.PaintProperties;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.map.MapDescriptor;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
 import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
 import gov.noaa.nws.ncep.ui.pgen.display.AbstractElementContainer;
 import gov.noaa.nws.ncep.ui.pgen.display.DisplayProperties;
@@ -12,18 +24,6 @@ import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.map.MapDescriptor;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
 /**
  * PgenResource - Resource for Display of PGEN Products loaded from XML.
@@ -41,13 +41,15 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 06/25/2013   1011        G. Hull        read from new pgen plugin/db
  * 07/14/2016   R17949      Jeff Beck      Add support for displaying multiple PGEN resources selected from a list of available times.
  *                                         This ticket is being pushed, refactoring this class will NOT be done at this time.
- *                                         Affected code is in preProcessFrameUpdate().
- *                                      
+ *                                         Affected code is in preProcessFrameUpdate(). *                                      
  * 08/31/2016   R21006      K. Bugenhagen  In preProcessFrameUpdate, compare
  *                                         frametime instead of resource cycle 
  *                                         time, since frametime goes out to 
  *                                         milliseconds, which is required for
  *                                         comparison.
+ * 10/26/2016   R21113      K. Bugenhagen  In preProcessFrameUpdate, compare resource
+ *                                         cycle time and if that fails, use
+ *                                         frametime.
  * </pre>
  * 
  * @author bhebbard
@@ -111,11 +113,11 @@ public class PgenDisplayResource extends
                 // issue dataURINotifications.
                 //
                 if (rscDataObj instanceof PgenRecord) {
-                    statusHandler
-                            .debug("PgenDisplayResource not designed to work with auto update");
+                    statusHandler.debug(
+                            "PgenDisplayResource not designed to work with auto update");
                 } else {
-                    statusHandler
-                            .debug("sanity check: PgenDisplayResource.updateFrameData is not a TimeTaggedPgenProduct object??");
+                    statusHandler.debug(
+                            "sanity check: PgenDisplayResource.updateFrameData is not a TimeTaggedPgenProduct object??");
                 }
                 return false;
             }
@@ -149,7 +151,8 @@ public class PgenDisplayResource extends
         pgenResourceData = (PgenDisplayResourceData) resourceData;
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
         return (AbstractFrameData) new FrameData(frameTime, timeInt);
     }
 
@@ -163,8 +166,8 @@ public class PgenDisplayResource extends
     @Override
     protected IRscDataObject[] processRecord(Object pdo) {
         if (!(pdo instanceof PgenRecord)) {
-            statusHandler
-                    .debug("sanity check: PgenDisplayResource.processRecord is not a PgenRecord??");
+            statusHandler.debug(
+                    "sanity check: PgenDisplayResource.processRecord is not a PgenRecord??");
 
             return null;
         }
@@ -179,9 +182,8 @@ public class PgenDisplayResource extends
             List<Product> recProds = StorageUtils.retrieveProduct(uri);
 
             if (recProds.isEmpty()) {
-                statusHandler
-                        .debug("Error: No products retrieved for PgenRecord: "
-                                + uri);
+                statusHandler.debug(
+                        "Error: No products retrieved for PgenRecord: " + uri);
 
             } else {
                 for (Product pgenProd : recProds) {
@@ -229,6 +231,7 @@ public class PgenDisplayResource extends
      */
     @Override
     protected boolean preProcessFrameUpdate() {
+
         // clone the list in AbstractNatlCntrsResource
         List<IRscDataObject> latestDataObjs = new ArrayList<IRscDataObject>(
                 newRscDataObjsQueue);
@@ -236,13 +239,24 @@ public class PgenDisplayResource extends
         DataTime frameTime = getFrameTimes().get(0);
         long frameTimeMillis = frameTime.getValidTime().getTimeInMillis();
 
+        // we can work in millis more conveniently
+        long resourceTimeMillis = resourceData.getResourceName().getCycleTime()
+                .getValidTime().getTimeInMillis();
+
         // empty the queue first, or we'll get ALL the available PGEN times
         // displayed on the map.
         newRscDataObjsQueue.clear();
 
         // Add the times selected from the GUI
         for (IRscDataObject dataObj : latestDataObjs) {
-            if (dataObj.getDataTime().getValidTime().getTimeInMillis() == frameTimeMillis) {
+            long dataTimeMillis = dataObj.getDataTime().getValidTime()
+                    .getTimeInMillis();
+            if (dataTimeMillis == resourceTimeMillis) {
+                newRscDataObjsQueue.add(dataObj);
+            } else if (dataTimeMillis == frameTimeMillis) {
+                // try matching frame time, which has millisecond precision;
+                // resourceTime
+                // generally will not
                 newRscDataObjsQueue.add(dataObj);
             }
         }
@@ -267,9 +281,8 @@ public class PgenDisplayResource extends
                         AbstractElementContainer container;
                         while (iterator.hasNext()) {
                             DrawableElement el = iterator.next();
-                            container = ElementContainerFactory
-                                    .createContainer(el,
-                                            (MapDescriptor) descriptor, target);
+                            container = ElementContainerFactory.createContainer(
+                                    el, (MapDescriptor) descriptor, target);
                             container.draw(target, paintProps, dprops);
                         }
                     }

@@ -11,7 +11,7 @@ legendColor=RGB {200, 200, 200}
     <rscImplementation>Lightning</rscImplementation>
     <subTypeGenerator></subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
-    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <timeMatchMethod>BEFORE_OR_EQUAL</timeMatchMethod>
     <frameSpan>10</frameSpan>
     <timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
     <dfltFrameCount>10</dfltFrameCount>

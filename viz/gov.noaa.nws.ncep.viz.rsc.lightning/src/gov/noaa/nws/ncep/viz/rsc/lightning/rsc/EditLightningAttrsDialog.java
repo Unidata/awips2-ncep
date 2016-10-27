@@ -1,10 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.lightning.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -23,6 +19,15 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarEditor;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+
 /**
  * An interface to edit Lightning resource attributes.
  * 
@@ -36,7 +41,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 04/27/2010    #245        Greg Hull      Added Apply Button
  * 07/01/2014 TTR 1018       Steve Russell  Updated call to ColorBarEditor
  * 04/05/2016   R15715       dgilling       Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ * 10/13/2016   R20520       K.Bugenhagen   Enhanced validation to only check for editable attributes.
  * </pre>
  * 
  * @author ghull
@@ -45,8 +50,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
 public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
 
-    public EditLightningAttrsDialog(Shell parentShell,
-            INatlCntrsResourceData r, Capabilities capabilities, Boolean apply) {
+    public EditLightningAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
+            Capabilities capabilities, Boolean apply) {
         super(parentShell, r, capabilities, apply);
     }
 
@@ -85,45 +90,21 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
     @Override
     public Composite createDialog(Composite topComp) {
 
-        colorByIntensityAttr = editedRscAttrSet.getRscAttr("colorByIntensity");
-        enablePosStrikesAttr = editedRscAttrSet
-                .getRscAttr("enablePositiveStrikes");
-        enableNegStrikesAttr = editedRscAttrSet
-                .getRscAttr("enableNegativeStrikes");
-        posSymbolSizeAttr = editedRscAttrSet.getRscAttr("positiveSymbolSize");
-        negSymbolSizeAttr = editedRscAttrSet.getRscAttr("negativeSymbolSize");
-        colorBarAttr = editedRscAttrSet.getRscAttr("colorBar");
+        HashMap<String, ResourceParamInfo> rscImplParamInfo = ResourceExtPointMngr
+                .getInstance().getParameterInfoForRscImplementation(
+                        rscData.getResourceName());
 
-        if (colorByIntensityAttr == null
-                || colorByIntensityAttr.getAttrClass() != Boolean.class) {
-            statusHandler
-                    .error("colorByIntensity is null or not of expected class Boolean?");
-        }
-        if (enablePosStrikesAttr == null
-                || enablePosStrikesAttr.getAttrClass() != Boolean.class) {
-            statusHandler
-                    .error("enablePositiveStrikes is null or not of expected class Boolean?");
-        }
-        if (enableNegStrikesAttr == null
-                || enableNegStrikesAttr.getAttrClass() != Boolean.class) {
-            statusHandler
-                    .error("enableNegativeStrikes is null or not of expected class Boolean?");
-        }
-        if (posSymbolSizeAttr == null
-                || posSymbolSizeAttr.getAttrClass() != Integer.class) {
-            statusHandler
-                    .error("posSymbolSize is null or not of expected class Integer?");
-        }
-        if (negSymbolSizeAttr == null
-                || negSymbolSizeAttr.getAttrClass() != Integer.class) {
-            statusHandler
-                    .error("negSymbolSize is null or not of expected class Integer?");
-        }
-        if (colorBarAttr == null
-                || colorBarAttr.getAttrClass() != ColorBar.class) {
-            statusHandler
-                    .error("colorBar is null or not of expected class colorBar?");
-        }
+        colorByIntensityAttr = validate("colorByIntensity", rscImplParamInfo,
+                Boolean.class);
+        enablePosStrikesAttr = validate("enablePositiveStrikes",
+                rscImplParamInfo, Boolean.class);
+        enableNegStrikesAttr = validate("enableNegativeStrikes",
+                rscImplParamInfo, Boolean.class);
+        posSymbolSizeAttr = validate("positiveSymbolSize", rscImplParamInfo,
+                Integer.class);
+        negSymbolSizeAttr = validate("negativeSymbolSize", rscImplParamInfo,
+                Integer.class);
+        colorBarAttr = validate("colorBar", rscImplParamInfo, ColorBar.class);
 
         editedColorBar = (ColorBar) colorBarAttr.getAttrValue();
 
@@ -141,13 +122,13 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         enablePosStrikesBtn = new Button(posStrikesGrp, SWT.CHECK);
         enablePosStrikesBtn.setText("Enable     ");
-        enablePosStrikesBtn.setSelection(((Boolean) enablePosStrikesAttr
-                .getAttrValue()).booleanValue());
+        enablePosStrikesBtn.setSelection(
+                ((Boolean) enablePosStrikesAttr.getAttrValue()).booleanValue());
         enablePosStrikesBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                enablePosStrikesAttr.setAttrValue(new Boolean(
-                        enablePosStrikesBtn.getSelection()));
+                enablePosStrikesAttr.setAttrValue(
+                        new Boolean(enablePosStrikesBtn.getSelection()));
                 lineWidComp1.setEnabled(enablePosStrikesBtn.getSelection());
                 lwLbl1.setEnabled(enablePosStrikesBtn.getSelection());
             }
@@ -165,14 +146,14 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         enableNegStrikesBtn = new Button(negStrikesGrp, SWT.CHECK);
         enableNegStrikesBtn.setText("Enable     ");
         enableNegStrikesBtn.setAlignment(SWT.RIGHT);
-        enableNegStrikesBtn.setSelection(((Boolean) enableNegStrikesAttr
-                .getAttrValue()).booleanValue());
+        enableNegStrikesBtn.setSelection(
+                ((Boolean) enableNegStrikesAttr.getAttrValue()).booleanValue());
 
         enableNegStrikesBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                enableNegStrikesAttr.setAttrValue(new Boolean(
-                        enableNegStrikesBtn.getSelection()));
+                enableNegStrikesAttr.setAttrValue(
+                        new Boolean(enableNegStrikesBtn.getSelection()));
                 lineWidComp2.setEnabled(enableNegStrikesBtn.getSelection());
                 lwLbl2.setEnabled(enableNegStrikesBtn.getSelection());
             }
@@ -198,8 +179,8 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         widthSlider1.setLayoutData(fd);
 
         final Text widthText1 = new Text(lineWidComp1, SWT.BORDER);
-        widthText1.setText(((Integer) posSymbolSizeAttr.getAttrValue())
-                .toString());
+        widthText1.setText(
+                ((Integer) posSymbolSizeAttr.getAttrValue()).toString());
         fd = new FormData(20, 20);
         fd.left = new FormAttachment(widthSlider1, 5, SWT.RIGHT);
         fd.bottom = new FormAttachment(widthSlider1, 0, SWT.BOTTOM);
@@ -209,9 +190,10 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         widthSlider1.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                posSymbolSizeAttr.setAttrValue(new Integer(widthSlider1
-                        .getSelection()));
-                widthText1.setText(Integer.toString(widthSlider1.getSelection()));
+                posSymbolSizeAttr
+                        .setAttrValue(new Integer(widthSlider1.getSelection()));
+                widthText1
+                        .setText(Integer.toString(widthSlider1.getSelection()));
             }
         });
 
@@ -267,8 +249,8 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         widthSlider2.setLayoutData(fd);
 
         final Text widthText2 = new Text(lineWidComp2, SWT.BORDER);
-        widthText2.setText(((Integer) negSymbolSizeAttr.getAttrValue())
-                .toString());
+        widthText2.setText(
+                ((Integer) negSymbolSizeAttr.getAttrValue()).toString());
         fd = new FormData(20, 20);
         fd.left = new FormAttachment(widthSlider2, 5, SWT.RIGHT);
         fd.bottom = new FormAttachment(widthSlider2, 0, SWT.BOTTOM);
@@ -278,9 +260,10 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         widthSlider2.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                negSymbolSizeAttr.setAttrValue(new Integer(widthSlider2
-                        .getSelection()));
-                widthText2.setText(Integer.toString(widthSlider2.getSelection()));
+                negSymbolSizeAttr
+                        .setAttrValue(new Integer(widthSlider2.getSelection()));
+                widthText2
+                        .setText(Integer.toString(widthSlider2.getSelection()));
             }
         });
 
@@ -327,6 +310,24 @@ public class EditLightningAttrsDialog extends AbstractEditResourceAttrsDialog {
         colorBarEditor = new ColorBarEditor(colorBarGrp, editedColorBar, true);
 
         return topComp;
+    }
+
+    private RscAttrValue validate(String paramName,
+            HashMap<String, ResourceParamInfo> paramInfo, Class<?> clazz) {
+
+        RscAttrValue attrValue = editedRscAttrSet.getRscAttr(paramName);
+
+        // only check editable attributes
+        if (paramInfo.get(paramName)
+                .getParamType() == ResourceParamType.EDITABLE_ATTRIBUTE) {
+            if (attrValue == null || attrValue.getAttrClass() != clazz) {
+                statusHandler.error("Attribute: " + paramName
+                        + " is null or not of expected class "
+                        + clazz.getName());
+            }
+        }
+
+        return attrValue;
     }
 
     @Override

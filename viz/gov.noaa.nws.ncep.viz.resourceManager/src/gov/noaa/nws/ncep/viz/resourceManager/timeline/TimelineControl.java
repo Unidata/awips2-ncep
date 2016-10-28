@@ -8,14 +8,6 @@
 
 package gov.noaa.nws.ncep.viz.resourceManager.timeline;
 
-import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.cache.TimeSettingsCacheManager;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME_SELECTION;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -60,35 +52,60 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.viz.core.exception.VizException;
 
-/** 
- * This class was previously implemented as 2 classes a TimelineControl class and a Timeline
- * class.  
- *    Previous TimelineControl class and History.....
- *    
- * An SWT Composite Control to select the timeline for an RBD. Most of the Timeline controls and 
- * selection is delegated to the Timeline class and the timeline generation is now done in the 
- * NCTimeMatcher. A Timeline object is created and set with an NCTimeMatcher object. When the
- * user modifies the timeline this NCTimeMatcher is updated and may be called on to generate a new
- * list of times using the new timeRange, or frameInterval or refTime. 
- *   This class is only responsible for the selection of the dominant resource.  
- * Since multiple resources with the same name may be made available for selection, (because
- * different panes may contain different instances of the same resource), this class needs 
- * to manage which resources are available at a given time. 
- *    When a dominant resource is selected, the timeMatcher is updated with the new dominant 
- * resource and the the Timeline is called to update from the modified timeMatcher.
+import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
+import gov.noaa.nws.ncep.viz.resourceManager.timeline.cache.TimeSettingsCacheManager;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME_SELECTION;
+
+/**
+ * Timeline: A graphical view of available data times, that allows users to
+ * select any or all data times from the available list.
+ * 
+ * An SWT Composite Control to select the timeline for an RBD. Most of the
+ * Timeline controls and selection is delegated to the Timeline class and the
+ * timeline generation is now done in the NCTimeMatcher. A Timeline object is
+ * created and set with an NCTimeMatcher object. When the user modifies the
+ * timeline this NCTimeMatcher is updated and may be called on to generate a new
+ * list of times using the new timeRange, or frameInterval or refTime. This
+ * class is only responsible for the selection of the dominant resource. Since
+ * multiple resources with the same name may be made available for selection,
+ * (because different panes may contain different instances of the same
+ * resource), this class needs to manage which resources are available at a
+ * given time. When a dominant resource is selected, the timeMatcher is updated
+ * with the new dominant resource and the the Timeline is called to update from
+ * the modified timeMatcher.
+ * 
+ * This class was previously implemented as 2 classes a TimelineControl class
+ * and a Timeline class.
  * 
  * <pre>
  * SOFTWARE HISTORY
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
+ *                        Steve Gilbert  created (class Timeline)
  * 01/26/10       #226      Greg Hull    refactored for from resourceManager Dialog
  * 09/01/10       #307      Greg Hull    added dominantResourceChanged listener
+ * 09/06/10       #307      Greg Hull    added range, frame Interval, refTime,
+ *                                       and timelineStateMessage  (class Timeline)
  * 09/21/10       #307      Greg Hull    pass timeMatcher to Timeline 
  * 10/04/10       #307      Greg Hull    add Manual Timeline selection
  * 01/27/11       #408      Greg Hull    add an avail dom rsc without setting the GUI
  * 02/11/11       #408      Greg Hull    combined with Timeline class (now TimelineControl)
+ * 02/14/11       #408      Greg Hull    add Ref. Time Selection (class Timeline)
+ * 02/22/11       #408      Greg Hull    update timeMatcher with frameTimes and 
+ *                                       numFrames to keep them in sync. (class Timeline)
  * 06/19/12       #657      Greg Hull    removeSpinnerListeners() before setting the 
  *                                       spinner maxvalues.
  * 04/30/2014     #1131     qzhou        Add construct for Graph to create graph widgets.
@@ -96,29 +113,10 @@ import com.raytheon.uf.common.time.DataTime;
  * 07/11/14       TTR1032   J. Wu        reload data times as necessary to keep timeline current.
  * 03/11/16       R15244    bkowal       Updated to support caching and retrieving settings for
  *                                       modified dominant resources.
- * 
- * </pre>
- * 
- * @author 
- * @version 1
- */
-
-/**
- * Timeline: A graphical view of available data times, that allows users to
- * select any or all data times from the available list.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	    Description
- * ------------	----------	---------------	--------------------------
- *                          Steve Gilbert   created
- * 09/06/10       #307      Greg Hull       added range, frame Interval, refTime,
- * 											and timelineStateMessage
- * 02/11/11       #408      Greg Hull       combine with previous TimelineControl 
- * 02/14/11       #408      Greg Hull       add Ref. Time Selection 
- * 02/22/11       #408      Greg Hull       update timeMatcher with frameTimes and 
- * 	                                        numFrames to keep them in sync.
- * 
+ * 11/02/2016     R19323    A. Su        Set the first resource in dom_rsc_combo as dominant
+ *                                       after a dominant resource is unloaded;
+ *                                       reaffirmed the dominant resource to populate the timeline 
+ *                                       when a non-dominant resource is unloaded.
  * </pre>
  * 
  * @author sgilbert
@@ -126,7 +124,11 @@ import com.raytheon.uf.common.time.DataTime;
  */
 public class TimelineControl extends Composite {
 
-    protected final String[] noResourcesList = { "                       None Available               " };
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(TimelineControl.class);
+
+    protected final String[] noResourcesList = {
+            "                       None Available               " };
 
     protected final String manualTimelineStr = "                       Manual Timeline              ";
 
@@ -424,7 +426,8 @@ public class TimelineControl extends Composite {
                     return false;
                 }
                 for (AbstractNatlCntrsRequestableResourceData rsc : seldRscsList) {
-                    if (rsc.getResourceName().equals(domRsc.getResourceName())) {
+                    if (rsc.getResourceName()
+                            .equals(domRsc.getResourceName())) {
                         domRscData = domRsc;
                         dom_rsc_combo.setText(comboEntry);
                         break;
@@ -482,7 +485,8 @@ public class TimelineControl extends Composite {
         }
     }
 
-    public void addAvailDomResource(AbstractNatlCntrsRequestableResourceData rsc) {
+    public void addAvailDomResource(
+            AbstractNatlCntrsRequestableResourceData rsc) {
 
         String mapKey; // the key for the map and the entry in the combo box
 
@@ -587,7 +591,8 @@ public class TimelineControl extends Composite {
         // if this is an event type then force the next event type resource to
         // be the
         // dominant.
-        else if (rsc.getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
+        else if (rsc
+                .getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
             selectDominantResource(false);
         }
 
@@ -638,6 +643,29 @@ public class TimelineControl extends Composite {
         if (timeMatcher.getFrameTimes().isEmpty()) {
             if (timeMatcher.getDominantResource() == null) {
                 setTimelineState("No Dominant Resource Selected", true);
+
+                if (dom_rsc_combo.getItems().length > 0 && !dom_rsc_combo
+                        .getItem(0).equals(noResourcesList[0])) {
+
+                    // When the dominant resource is unloaded,
+                    // set the first resource in dom_rsc_combo as dominant.
+                    String rscNameString = dom_rsc_combo.getItem(0);
+                    ResourceName rscName = new ResourceName(rscNameString);
+                    try {
+                        ResourceSelection rbt = ResourceFactory
+                                .createResource(rscName);
+                        setDominantResource(
+                                (AbstractNatlCntrsRequestableResourceData) rbt
+                                        .getResourceData(),
+                                true);
+                    } catch (VizException ve) {
+                        // This should not happen
+                        // because this resource has been previously created.
+                        statusHandler.handle(Priority.ERROR,
+                                "Error Creating a resource", ve);
+                    }
+                    return;
+                }
             } else if (!timeMatcher.isDataAvailable()) {
                 // don't disable since the user may still change to use a time
                 // interval
@@ -645,8 +673,8 @@ public class TimelineControl extends Composite {
                         + timeMatcher.getDominantResourceName().toString(),
                         false);
             } else {
-                setTimelineState(
-                        "No Data Available Within Selected Time Range", false);
+                setTimelineState("No Data Available Within Selected Time Range",
+                        false);
             }
 
             timeData = new TimelineData(new ArrayList<Calendar>());
@@ -657,12 +685,22 @@ public class TimelineControl extends Composite {
 
         } else {
 
-            List<Calendar> availTimes = toCalendar(timeMatcher
-                    .getSelectableDataTimes());
+            List<Calendar> availTimes = toCalendar(
+                    timeMatcher.getSelectableDataTimes());
 
             // this shouldn't happen. If there are no times then the caller
             // should set the state based on the reason there are no times.
             if (availTimes == null || availTimes.isEmpty()) {
+
+                ResourceName domRscName = timeMatcher.getDominantResourceName();
+                if (domRscName != null && !domRscName.toString().isEmpty()) {
+
+                    // When a non-dominant resource is unloaded,
+                    // reaffirm the dominant one to populate the timeline.
+                    selectDominantResource(true);
+                    return;
+                }
+
                 setTimelineState("Timeline Disabled", true);
                 availTimes = new ArrayList<Calendar>();
             } else if (availTimes.isEmpty()) {
@@ -689,11 +727,11 @@ public class TimelineControl extends Composite {
                             .getTimeInMillis();
                 }
 
-                long timeRangeMillisecs = ((long) timeMatcher.getTimeRange()) * 60 * 60 * 1000;
+                long timeRangeMillisecs = ((long) timeMatcher.getTimeRange())
+                        * 60 * 60 * 1000;
 
-                DataTime endRefTime = timeMatcher
-                        .getNormalizedTime(new DataTime(new Date(
-                                refTimeMillisecs)));
+                DataTime endRefTime = timeMatcher.getNormalizedTime(
+                        new DataTime(new Date(refTimeMillisecs)));
                 DataTime startRefTime = timeMatcher
                         .getNormalizedTime(new DataTime(new Date(
                                 refTimeMillisecs - timeRangeMillisecs)));
@@ -710,9 +748,8 @@ public class TimelineControl extends Composite {
             if (replace && this.getDominantResource() != null) {
                 cachedSettings = TimeSettingsCacheManager.getInstance()
                         .getCachedSettings(this.domRscData.getResourceName());
-                if (cachedSettings != null
-                        && CollectionUtils.isNotEmpty(cachedSettings
-                                .getSelectedFrameTimes())) {
+                if (cachedSettings != null && CollectionUtils
+                        .isNotEmpty(cachedSettings.getSelectedFrameTimes())) {
                     List<Calendar> alreadySelectedTimes = new ArrayList<>(
                             cachedSettings.getSelectedFrameTimes());
                     /*
@@ -826,8 +863,8 @@ public class TimelineControl extends Composite {
 
                 timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
                 NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
-                settings.setSelectedFrameTimes(new HashSet<Calendar>(
-                        getSelectedTimes()));
+                settings.setSelectedFrameTimes(
+                        new HashSet<Calendar>(getSelectedTimes()));
                 TimeSettingsCacheManager.getInstance().cacheSettings(
                         timeMatcher.getDominantResourceName(), settings);
 
@@ -864,8 +901,8 @@ public class TimelineControl extends Composite {
 
                 timeMatcher.setNumFrames(timeData.numSelected());
                 settings.setNumberFrames(timeMatcher.getNumFrames());
-                settings.setSelectedFrameTimes(new HashSet<Calendar>(
-                        getSelectedTimes()));
+                settings.setSelectedFrameTimes(
+                        new HashSet<Calendar>(getSelectedTimes()));
                 TimeSettingsCacheManager.getInstance().cacheSettings(
                         timeMatcher.getDominantResourceName(), settings);
             }
@@ -906,9 +943,10 @@ public class TimelineControl extends Composite {
 
         NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
         settings.setTimeRange(timeRangeHrs);
-        settings.setSelectedFrameTimes(new HashSet<Calendar>(getSelectedTimes()));
-        TimeSettingsCacheManager.getInstance().cacheSettings(
-                timeMatcher.getDominantResourceName(), settings);
+        settings.setSelectedFrameTimes(
+                new HashSet<Calendar>(getSelectedTimes()));
+        TimeSettingsCacheManager.getInstance()
+                .cacheSettings(timeMatcher.getDominantResourceName(), settings);
     }
 
     /*
@@ -1049,8 +1087,8 @@ public class TimelineControl extends Composite {
                          * If user grabs right side of slider bar, adjust its
                          * location on mouse up
                          */
-                        Rectangle rightSide = new Rectangle(slider.x
-                                + slider.width - 2, slider.y - 2, 4,
+                        Rectangle rightSide = new Rectangle(
+                                slider.x + slider.width - 2, slider.y - 2, 4,
                                 slider.height + 4);
                         if (rightSide.contains(e.x, e.y)) {
                             saveX = e.x;
@@ -1091,8 +1129,8 @@ public class TimelineControl extends Composite {
                                 slider.height + 4);
                         Rectangle leftSide = new Rectangle(slider.x - 2,
                                 slider.y - 2, 4, slider.height + 4);
-                        Rectangle rightSide = new Rectangle(slider.x
-                                + slider.width - 2, slider.y - 2, 4,
+                        Rectangle rightSide = new Rectangle(
+                                slider.x + slider.width - 2, slider.y - 2, 4,
                                 slider.height + 4);
 
                         if (moveSlider.contains(e.x, e.y)) {
@@ -1148,8 +1186,7 @@ public class TimelineControl extends Composite {
                             numFramesSpnr.setSelection(timeData.numSelected());
                             NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
                             settings.setNumberFrames(timeData.numSelected());
-                            TimeSettingsCacheManager
-                                    .getInstance()
+                            TimeSettingsCacheManager.getInstance()
                                     .cacheSettings(
                                             timeMatcher
                                                     .getDominantResourceName(),
@@ -1171,8 +1208,8 @@ public class TimelineControl extends Composite {
             public void widgetSelected(SelectionEvent e) {
                 NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
                 for (int i = 0; i < availFrameIntervalStrings.length; i++) {
-                    if (availFrameIntervalStrings[i].equals(frameIntervalCombo
-                            .getText())) {
+                    if (availFrameIntervalStrings[i]
+                            .equals(frameIntervalCombo.getText())) {
                         timeMatcher.setFrameInterval(availFrameIntervalMins[i]);
                         settings.setFrameInterval(availFrameIntervalMins[i]);
                         break;
@@ -1202,12 +1239,12 @@ public class TimelineControl extends Composite {
                     CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
                             shell);
 
-                    DataTime newRefTime = calSelDlg.open(timeMatcher
-                            .getRefTime());
+                    DataTime newRefTime = calSelDlg
+                            .open(timeMatcher.getRefTime());
                     if (newRefTime != null) {
                         timeMatcher.setRefTime(newRefTime);
-                        settings.setSelectedRefTime(newRefTime
-                                .getRefTimeAsCalendar());
+                        settings.setSelectedRefTime(
+                                newRefTime.getRefTimeAsCalendar());
                     } else {
                         return;
                     }
@@ -1460,8 +1497,8 @@ public class TimelineControl extends Composite {
                 days.add(cal);
                 dayLocation.add(beg.x);
             } else {
-                double dist = (double) (cal.getTimeInMillis() - first
-                        .getTimeInMillis()) / (double) timeLength;
+                double dist = (double) (cal.getTimeInMillis()
+                        - first.getTimeInMillis()) / (double) timeLength;
                 long lineDist = Math.round(dist * (double) lineLength);
                 days.add(cal);
                 dayLocation.add(beg.x + (int) lineDist);
@@ -1601,8 +1638,8 @@ public class TimelineControl extends Composite {
                 cal.add(Calendar.MINUTE, timeInterval);
                 continue;
             }
-            double dist = (double) (cal.getTimeInMillis() - first
-                    .getTimeInMillis()) / (double) timeLength;
+            double dist = (double) (cal.getTimeInMillis()
+                    - first.getTimeInMillis()) / (double) timeLength;
             long lineDist = Math.round(dist * (double) lineLength);
             int locX = beg.x + (int) lineDist;
             int tickSize;
@@ -1675,8 +1712,8 @@ public class TimelineControl extends Composite {
         long timeLength = timeData.getTotalMillis();
 
         for (Calendar curr : timeData.getTimes()) {
-            double dist = (double) (curr.getTimeInMillis() - first
-                    .getTimeInMillis()) / (double) timeLength;
+            double dist = (double) (curr.getTimeInMillis()
+                    - first.getTimeInMillis()) / (double) timeLength;
             long lineDist = Math.round(dist * (double) lineLength);
             int locX = beg.x + (int) lineDist - (MARKER_WIDTH / 2);
             int locY = beg.y - (MARKER_HEIGHT / 2);
@@ -1737,8 +1774,8 @@ public class TimelineControl extends Composite {
      * @param num
      */
     public void setNumberofFrames(int num) {
-        numFramesSpnr.setSelection(Math.min(num,
-                (timeData != null ? timeData.getSize() : 0)));
+        numFramesSpnr.setSelection(
+                Math.min(num, (timeData != null ? timeData.getSize() : 0)));
     }
 
     /**
@@ -1803,8 +1840,8 @@ public class TimelineControl extends Composite {
      */
     private void moveSlider(Rectangle start, int pos) {
 
-        Rectangle whole = new Rectangle(sliderMin, slider.y, sliderMax
-                - sliderMin, slider.height);
+        Rectangle whole = new Rectangle(sliderMin, slider.y,
+                sliderMax - sliderMin, slider.height);
         start.x += pos;
         slider = whole.intersection(start);
         start.x -= pos;
@@ -1900,9 +1937,10 @@ public class TimelineControl extends Composite {
         timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
 
         NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
-        settings.setSelectedFrameTimes(new HashSet<Calendar>(getSelectedTimes()));
-        TimeSettingsCacheManager.getInstance().cacheSettings(
-                timeMatcher.getDominantResourceName(), settings);
+        settings.setSelectedFrameTimes(
+                new HashSet<Calendar>(getSelectedTimes()));
+        TimeSettingsCacheManager.getInstance()
+                .cacheSettings(timeMatcher.getDominantResourceName(), settings);
     }
 
     /*
@@ -1929,8 +1967,8 @@ public class TimelineControl extends Composite {
                 timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
                 NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
                 settings.setNumberFrames(timeData.numSelected());
-                settings.setSelectedFrameTimes(new HashSet<Calendar>(
-                        getSelectedTimes()));
+                settings.setSelectedFrameTimes(
+                        new HashSet<Calendar>(getSelectedTimes()));
                 TimeSettingsCacheManager.getInstance().cacheSettings(
                         timeMatcher.getDominantResourceName(), settings);
 

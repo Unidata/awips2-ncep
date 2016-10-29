@@ -524,15 +524,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="basemaps"
-             recursive="false"
-             value="ncep/basemaps"
-	         extensionFilter=".lpi,.spi">
-       </path>
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="StaticPgenOverlays"
+             name="PGEN Overlays"
              recursive="false"
              value="ncep/StaticPgenOverlays"
 	         extensionFilter=".xml">

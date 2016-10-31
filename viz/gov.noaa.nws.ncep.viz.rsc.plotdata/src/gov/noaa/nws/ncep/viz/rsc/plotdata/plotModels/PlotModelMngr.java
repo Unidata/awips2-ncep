@@ -41,7 +41,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 12/15  		 #217	   	Greg Hull   Initial Creation
+ * 12/15        #217        Greg Hull   Initial Creation
  * 03/21        R1G2-9      Greg Hull   synchronized readPlotModels()     
  * 03/04/11      425        Greg Hull   change category to plugin
  * 03/08/11      425        Greg Hull   add deletePlotModel
@@ -53,6 +53,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 07/20/15	    #8051   Jonas Okwara    Modified readPlotModel method to read PLOT_MODEL directory
  * 07/24/15     #8051   Jonas Okwara    Switched from SerializationUtil methods to jaxbMarshal and jaxbUnmarshal methods
  * 10/01/2015   R8051   Edwin Brown     Clean up work
+ * 09/22/2016   RM15953 R.Reynolds      Added capability for wind interpolation
  * 09/26/2016   R20482  Bugenhagen      Handle saving localization file without 
  *                                      throwing exception due to updated 
  *                                      checksum.  Fixed issue with deletion.
@@ -415,6 +416,6 @@ public class PlotModelMngr {
         return NcSoundingQuery.genericSoundingDataQuery(refTime, rangeTime,
                 null, null, null, stnIdAry, sndType,
                 NcSoundingLayer.DataType.ALLDATA, true, level, null, true,
-                true, pwRequired);
+                true, pwRequired, true);
     }
 }

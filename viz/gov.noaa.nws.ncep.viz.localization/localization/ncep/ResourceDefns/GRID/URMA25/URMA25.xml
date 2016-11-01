@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=URMA25
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

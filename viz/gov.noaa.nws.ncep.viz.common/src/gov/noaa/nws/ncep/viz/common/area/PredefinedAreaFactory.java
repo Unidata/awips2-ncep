@@ -52,6 +52,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 04/16/13       #863      Greg Hull    read menus table. 
  * 04/18/13       #863      Greg Hull    change key to be the areaName.
  * 05/07/13       #862      Greg Hull 	 Area Source ; change name from PredefinedAreasMngr
+ * 10/17/16       ----      M. James     call readPredefinedAreas from getDefaultPredefinedAreaForDisplayType
  * 
  * </pre>
  * 

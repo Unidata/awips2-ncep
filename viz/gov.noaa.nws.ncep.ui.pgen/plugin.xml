@@ -3377,7 +3377,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="PGEN"
+             name="PGEN Config"
              recursive="true"
              value="ncep/pgen"
 	         extensionFilter=".xml,.tbl,.png,.txt,.xsl,.xlt,.xslt">

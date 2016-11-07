@@ -2,7 +2,7 @@
 <PlotParameterDefns>
   <plugin>obs</plugin>
 
-	<!-- TODO : ceil cldb clds cldt p01i*100 p03i*100 p06i*100 p24i*100 dmax dmin-->
+   <!-- TODO : ceil cldb clds cldt p01i*100 p03i*100 p06i*100 p24i*100 -->
 
   <PlotParameterDefn plotParamName="ALTI"
     metParamName="SeaLevelPressure" dbParamName="altimeter" plotUnit="inHg"
@@ -11,6 +11,22 @@
   <PlotParameterDefn plotParamName="ALTM"
     metParamName="SeaLevelPressure" dbParamName="altimeter" plotUnit="hPa"
     plotFormat="%3.0f" />
+    
+  <PlotParameterDefn plotParamName="ARRK"
+    metParamName="WindDirection,WindSpeed" plotMode="arrow" symbolFont="WindSymbolFont"
+    plotUnit="kts" />   
+ 
+  <PlotParameterDefn plotParamName="ARRM"
+    metParamName="WindDirection,WindSpeed" plotMode="arrow" symbolFont="WindSymbolFont"
+    plotUnit="m/s" />   
+    
+   <PlotParameterDefn plotParamName="ARRW"
+    metParamName="WindDirection,WindSpeed" plotMode="arrow" symbolFont="WindSymbolFont"
+    plotUnit="m/s" />
+    
+   <PlotParameterDefn plotParamName="BARB"
+    metParamName="WindDirection,WindSpeed" plotMode="barb" symbolFont="WindSymbolFont"
+    plotUnit="m/s" />
 
   <PlotParameterDefn plotParamName="BRBK"
     metParamName="WindDirection,WindSpeed" plotMode="barb" symbolFont="WindSymbolFont"

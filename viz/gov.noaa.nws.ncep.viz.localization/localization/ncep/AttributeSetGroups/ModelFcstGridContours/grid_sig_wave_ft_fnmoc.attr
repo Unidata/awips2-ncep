@@ -6,18 +6,18 @@
 !
 GLEVEL = 0
 GVCORD = none
-SKIP   = 
+SKIP   =
 SCALE  = 0
 GDPFUN = mask(mul(HTSGW,3.28),sea)
 TYPE   = p
 CINT   = 0
-LINE   = 
-FINT   = 
-FLINE  = 
+LINE   =
+FINT   =
+FLINE  =
 HILO   = 0
 HLSYM  = 0
-WIND   = 
-TITLE  = 5/-1/?~^  GRD SIG WAVE HEIGHT (FT)!0
+WIND   =
+TITLE  = 5/-1/GRD SIG WAVE HEIGHT (FT) ?^!0
 TEXT   = 1/21/1/hw
 COLORS = 1
 MARKER = 0

@@ -6,18 +6,18 @@
 !
 GLEVEL = 0
 GVCORD = none
-SKIP   = 
+SKIP   =
 SCALE  = 0
 GDPFUN = SWDIR
 TYPE   = d
 CINT   = 0
-LINE   = 
-FINT   = 
-FLINE  = 
+LINE   =
+FINT   =
+FLINE  =
 HILO   = 0
-HLSYM  = 
+HLSYM  =
 WIND   = DK1/.9/1/112/.9
-TITLE  = 5/-1/?~^  SECONDARY SWELL DIRECTION (arrow)!0
+TITLE  = 5/-1/SECONDARY SWELL DIRECTION (arrow) ?^!0
 TEXT   = 1.3/21/1/hw
 COLORS = 1
 MARKER = 0

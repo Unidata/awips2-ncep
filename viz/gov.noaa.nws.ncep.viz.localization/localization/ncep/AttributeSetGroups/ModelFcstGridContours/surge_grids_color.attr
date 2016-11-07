@@ -2,7 +2,7 @@
 ! Restore File : ssh_contours
 !
 ! Log:
-! Y.Hao		       01/09/08 
+! Y.Hao		       01/09/08
 !
 GLEVEL=  0
 GVCORD=  none
@@ -13,13 +13,13 @@ TYPE=    p
 CONTUR=  0
 CINT=    0
 LINE=
-FINT=               
-FLINE=   
+FINT=
+FLINE=
 HILO=    0
 HLSYM=   0
 CLRBAR=  1/v/ll
-WIND=    
-TITLE=   5/-2/~ Extra Tropical Surge Height (1/10 feet)
+WIND=
+TITLE=   5/-2/Extra Tropical Surge Height (1/10 feet) ~
 TEXT=    1/21/1.4/hw
 COLORS=  24!25!26!27!23!22!3!21!5!19!17!16!15!14!7!28!29
 MARKER=  0

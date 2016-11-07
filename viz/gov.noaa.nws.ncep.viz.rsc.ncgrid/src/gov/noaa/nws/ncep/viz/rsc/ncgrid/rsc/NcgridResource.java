@@ -179,10 +179,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 08/16/2016   R17603      K.Bugenhagen    Added isDuplicateDatasetId method.
  *                                          Also, cleanup.
  * Aug 23, 2016 R15955      bsteffen        Use old spatial object for vector displays.
- *
- * 
- * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
+ * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods   
  *                                          since they are no longer static. Also, cleanup.
+ * 11/07/2016    R20009     A. Su           Rewrote method replaceTitleSpecialCharacters() to implement
+ *                                          requirements of escaping and substituting all special chars.
+ *                                          Removed short title string from the legend.
  * 11/18/2016    R23069     A. Su           Added a null check in fixVectorSpatialData() for
  *                                          no Y data, such as directional arrows.
  * </pre>
@@ -2402,126 +2403,143 @@ public class NcgridResource
                             gridRscData.getResourceName().getCycleTime());
             modelname = modelname + " " + gdfile.toUpperCase();
         }
-        titleInfoStr = modelname
-                + replaceTitleSpecialCharacters(titleStr, cTime);
-        if (shrttlStr != null) {
-            titleInfoStr = titleInfoStr + " | "
-                    + replaceTitleSpecialCharacters(shrttlStr, cTime);
-        }
+
+        // Trimming title string for right justification of legend strings.
+        titleInfoStr = modelname + "  "
+                + replaceTitleSpecialCharacters(titleStr.trim(), cTime).trim();
+
         return titleInfoStr;
     }
 
-    /*
-     * In the grid display programs, special characters will be replaced as
-     * follows: ^ Forecast date/time ~ Valid date/time
+    /**
+     * The output format of forecast time used in legend string.
+     */
+    static final String LEGEND_STRING_FORECAST_TIME_FORMAT = "%02d%02d%02d/%02d%02dF%s";
+
+    /**
+     * The output format of valid time used in legend string.
+     */
+    static final String LEGEND_STRING_VALID_TIME_FORMAT = "%02d%02d%02d/%02d%02dV%s";
+
+    /**
+     * The title string contains some special characters that are substituted
+     * according to their meanings in order to form a legend string.
      * 
-     * @ Vertical level _ Grid function $ Nonzero scaling factor # Grid point
-     * location ? Day of the week flag
+     * The special characters include \ for escaping next character, ! for a
+     * comment, ~ for valid time, ^ for forecast time, ? for day of the week, @
+     * for vertical level, _ for Grid function, $ for nNonzero scaling factor, #
+     * for Grid point location (not implemented).
      */
     private String replaceTitleSpecialCharacters(String title, DataTime cTime) {
-        StringBuilder titleBuilder = new StringBuilder(title);
-        int pos, posV, posF;
 
-        /*
-         * check '!' and remove it for now
-         */
-        if ((pos = titleBuilder.indexOf("!")) > 0) {
-            titleBuilder = titleBuilder.delete(pos, titleBuilder.length());
-        }
-        /*
-         * get '~'/'^' position and decide which one to use.
-         */
-        if (((posF = titleBuilder.indexOf("^")) >= 0)
-                | ((posV = titleBuilder.indexOf("~")) >= 0)) {
-            Calendar cal;
-            String timestampFormat;
-            /*
-             * The time will be placed where the furthest ~ or ^ is positioned
-             */
-            pos = (posF > posV ? posF : posV);
-            /*
-             * The time to use will be which ever one comes latest in the title
-             * string. *EXCEPT* if the ~ is the first character in which case
-             * the valid time is used.
-             */
-            if (posF > posV && posV != 0) {
-                cal = cTime.getRefTimeAsCalendar();
-                timestampFormat = "%02d%02d%02d/%02d%02dF%s";
-                /*
-                 * Legacy behavior will put the forcast time at the next
-                 * position after the ^ when there is both ~ and ^ the ^ is
-                 * after the ~ and the ~ is not the first character. We must add
-                 * a space at the end if the ^ is the last character in the
-                 * title.
-                 */
-                if (posF >= 0 && posV > 0) {
-                    if (++pos == titleBuilder.length()) {
-                        titleBuilder.append(" ");
-                    }
+        // If there exists an un-escaped '?' (i.e., not "\?") in title string,
+        // then day of the week will be added to valid time and forecast time.
+        boolean isToAddDayOfWeek = false;
+        if (title.charAt(0) == '?') {
+            isToAddDayOfWeek = true;
+        } else {
+            for (int i = 1; i < title.length(); i++) {
+                if (title.charAt(i) == '?' && title.charAt(i - 1) != '\\') {
+                    isToAddDayOfWeek = true;
+                    break;
                 }
-            } else {
-                // Use cycle time (ctime) instead of
-                // cal = currFrameTm.getValidTime();
-                cal = cTime.getValidTime();
-                timestampFormat = "%02d%02d%02d/%02d%02dV%s";
-            }
-            String forecastTime = CommonDateFormatUtil
-                    .getForecastTimeString(cTime.getFcstTime());
-
-            /*
-             * check '?' flag for day of week
-             */
-            if (titleBuilder.indexOf("?") >= 0) {
-                deleteWildcard(titleBuilder, "?");
-                String dayOfWeek = cal.getDisplayName(Calendar.DAY_OF_WEEK,
-                        Calendar.SHORT, Locale.ENGLISH).toUpperCase() + " ";
-                titleBuilder.insert(pos, dayOfWeek);
-                pos = pos + dayOfWeek.length();
-            }
-            titleBuilder.insert(pos,
-                    String.format(timestampFormat,
-                            (cal.get(Calendar.YEAR) % 100),
-                            (cal.get(Calendar.MONTH) + 1),
-                            cal.get(Calendar.DAY_OF_MONTH),
-                            cal.get(Calendar.HOUR_OF_DAY),
-                            cal.get(Calendar.MINUTE), forecastTime));
-
-            deleteWildcard(titleBuilder, "^");
-            deleteWildcard(titleBuilder, "~");
-        }
-        /*
-         * check '@' for Vertical level
-         */
-        if ((pos = titleBuilder.indexOf("@")) >= 0) {
-            deleteWildcard(titleBuilder, "@");
-            titleBuilder.insert(pos, gridRscData.getGlevel() + " "
-                    + getVerticalLevelUnits(gridRscData.getGvcord()));
-        }
-        /*
-         * check '_' for Grid function
-         */
-        if ((pos = titleBuilder.indexOf("_")) >= 0) {
-            deleteWildcard(titleBuilder, "_");
-            titleBuilder.insert(pos, gridRscData.getGdpfun().toUpperCase());
-        }
-        /*
-         * check '$' for Nonzero scaling factor
-         */
-        if ((pos = titleBuilder.indexOf("$")) >= 0) {
-            deleteWildcard(titleBuilder, "$");
-            if (gridRscData.getScale().compareTo("0") != 0) {
-                titleBuilder.insert(pos,
-                        "(*10**" + gridRscData.getScale() + ")");
             }
         }
-        /*
-         * check '#' for Grid point location
-         */
-        if ((pos = titleBuilder.indexOf("#")) >= 0) {
-            deleteWildcard(titleBuilder, "#");
+
+        // Set up forecastTime string
+        Calendar calendar = cTime.getRefTimeAsCalendar();
+        int timeInSec = cTime.getFcstTime();
+
+        String forecastTimeString = getTimeString(
+                LEGEND_STRING_FORECAST_TIME_FORMAT, calendar, timeInSec,
+                isToAddDayOfWeek);
+
+        // Set up validTime string
+        calendar = cTime.getValidTime();
+        String validTimeString = getTimeString(LEGEND_STRING_VALID_TIME_FORMAT,
+                calendar, timeInSec, isToAddDayOfWeek);
+
+        String newTitleString = new String();
+        boolean isToEscape = false;
+        boolean isToStop = false;
+
+        for (int i = 0; i < title.length() && !isToStop; i++) {
+            char currentChar = title.charAt(i);
+
+            if (isToEscape) {
+                newTitleString += Character.toString(currentChar);
+                isToEscape = false;
+                continue;
+            }
+
+            switch (currentChar) {
+            case '\\': // escaping
+                isToEscape = true;
+                break;
+
+            case '!': // start of comment
+                isToStop = true;
+                break;
+
+            case '~': // valid time
+                newTitleString += validTimeString;
+                break;
+
+            case '^': // forecast time
+                newTitleString += forecastTimeString;
+                break;
+
+            case '?': // day of the week
+                break;
+
+            case '@': // vertical level
+                newTitleString += gridRscData.getGlevel() + " "
+                        + getVerticalLevelUnits(gridRscData.getGvcord());
+                break;
+
+            case '_': // Grid function
+                newTitleString += gridRscData.getGdpfun().toUpperCase();
+                break;
+
+            case '$': // nonzero scaling factor
+                if (gridRscData.getScale().compareTo("0") != 0) {
+                    newTitleString += "(*10**" + gridRscData.getScale() + ")";
+                }
+                break;
+
+            case '#': // Grid point location (not implemented)
+                break;
+
+            default:
+                newTitleString += Character.toString(currentChar);
+                break;
+            }
         }
 
-        return titleBuilder.toString();
+        return newTitleString;
+    }
+
+    private String getTimeString(String timestampFormat, Calendar cal,
+            int timeInSec, boolean isToAddDayOfWeek) {
+
+        String timeInHHH = CommonDateFormatUtil
+                .getForecastTimeString(timeInSec);
+
+        // For reference, timestampFormat can be one of the following:
+        // forecast time format: "%02d%02d%02d/%02d%02dF%s"
+        // valid time format: "%02d%02d%02d/%02d%02dV%s"
+        String timeString = String.format(timestampFormat,
+                (cal.get(Calendar.YEAR) % 100), (cal.get(Calendar.MONTH) + 1),
+                cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY),
+                cal.get(Calendar.MINUTE), timeInHHH);
+
+        if (isToAddDayOfWeek) {
+            timeString = " " + cal.getDisplayName(Calendar.DAY_OF_WEEK,
+                    Calendar.SHORT, Locale.ENGLISH).toUpperCase() + " "
+                    + timeString;
+        }
+
+        return timeString;
     }
 
     /*

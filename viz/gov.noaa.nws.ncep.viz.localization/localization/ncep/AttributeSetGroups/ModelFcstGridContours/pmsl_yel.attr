@@ -2,35 +2,35 @@
 ! Restore File : pmsl_yel
 !
 ! Log:
-! M.Mainelli/TPC  10/2004 Initial creation       
+! M.Mainelli/TPC  10/2004 Initial creation
 !
-GLEVEL=  0 
-GVCORD=  none 
-PANEL=   0           
+GLEVEL=  0
+GVCORD=  none
+PANEL=   0
 SKIP=    1
 SCALE=   0
 GDPFUN=  pmsl
 TYPE=    c
-CONTUR=  3          
-CINT=    4 
+CONTUR=  3
+CINT=    4
 LINE=    5/1/3/2/3/0
-FINT=    
-FLINE=   
+FINT=
+FLINE=
 HILO=    2;2/H#;L#//4
-HLSYM=   4/2/2;3/          
-CLRBAR=         
-WIND=    
-REFVEC=      
-TITLE=   5/-2/?~ MEAN SEA LEVEL PRESSURE
-TEXT=    1/21//hw            
-CLEAR=   yes                
-STNPLT=                  
-SATFIL=                 
-RADFIL=                
-STREAM=              
-POSN=    4          
-COLORS=  6         
-MARKER=  2        
-GRDLBL=  5                                                                       
+HLSYM=   4/2/2;3/
+CLRBAR=
+WIND=
+REFVEC=
+TITLE=   5/-2/MEAN SEA LEVEL PRESSURE ?~
+TEXT=    1/21//hw
+CLEAR=   yes
+STNPLT=
+SATFIL=
+RADFIL=
+STREAM=
+POSN=    4
+COLORS=  6
+MARKER=  2
+GRDLBL=  5
 LUTFIL=  none
 FILTER=  no

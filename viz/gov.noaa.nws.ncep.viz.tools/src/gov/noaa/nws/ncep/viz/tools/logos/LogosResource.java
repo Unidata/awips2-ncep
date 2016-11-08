@@ -7,6 +7,7 @@ import gov.noaa.nws.ncep.viz.tools.logos.LogoInfo.LogoEntry;
 
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,20 +15,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
 import org.eclipse.swt.graphics.RGB;
 
-import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.localization.LocalizationFile;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.PixelCoverage;
-import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.uf.viz.core.data.prep.IODataPreparer;
+import com.raytheon.uf.viz.core.data.IRenderedImageCallback;
 import com.raytheon.uf.viz.core.drawables.IImage;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
+import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.vividsolutions.jts.geom.Coordinate;
 
 /**
@@ -40,6 +42,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * June 2009  	105        M. Li    	Initial creation. 
  * Nov  2009               G. Hull      migrate to to11d6
  * July 2011    #450       G. Hull      get Logos from NcPathManager.
+ * Nov 2016     5976       bsteffen     Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -125,8 +128,19 @@ public class LogosResource extends AbstractVizResource<LogosResourceData,MapDesc
     		for (int i = 0; i < logoList.size(); i++) {
 
     			String logofileName = logoList.get(i).getImageFile();
-	    		IImage theImage = target.initializeRaster( 
-	    				new IODataPreparer( logofileName, 1), null );
+                IImage theImage = target
+                        .initializeRaster(new IRenderedImageCallback() {
+
+                            @Override
+                            public RenderedImage getImage()
+                                    throws VizException {
+                                try {
+                                    return ImageIO.read(new File(logofileName));
+                                } catch (IOException e) {
+                                    throw new VizException(e);
+                                }
+                            }
+                        });
     			
     			Image image = Toolkit.getDefaultToolkit().getImage( logofileName );
     			double h = image.getHeight(null) * ratio * scaleArray[i] / 100;

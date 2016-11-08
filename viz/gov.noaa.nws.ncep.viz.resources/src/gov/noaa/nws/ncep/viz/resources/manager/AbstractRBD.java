@@ -44,8 +44,8 @@ import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.common.util.VariableSubstitutor;
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.raytheon.uf.viz.core.VariableSubstitutionUtil;
 import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -78,6 +78,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    05/15/2014     #1131     Quan Zhou   Added GRAPH_DISPLAY.
  *    05/24/14       R4078     S. Gurung   Added NMAP_RTKP_WORLD_DISPLAY in getDefaultRBD().
  *    11/12/2015       R8829     B. Yin      Sort resources in RBD by rendering order.
+ *    11/08/16       5976      bsteffen    Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -611,7 +612,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             Map<String, String> variables) throws VizException {
 
         try {
-            String substStr = VariableSubstitutionUtil.processVariables(
+            String substStr = VariableSubstitutor.processVariables(
                     bundleStr, variables);
 
             AbstractRBD<?> b = (AbstractRBD<?>) getJaxbManager()

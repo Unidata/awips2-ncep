@@ -1,4 +1,5 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
+
 /**
  * 
  * 
@@ -10,7 +11,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 09/2013			    	Chin Chen	Initial coding
- *
+ * 11/2016      5976        bsteffen    Update deprecated method call.
  * </pre>
  * 
  * @author Chin Chen
@@ -50,7 +51,6 @@ public class NsharpDisplayElementFactory extends DisplayElementFactory {
 		// TODO Auto-generated constructor stub
 	}
 
-    @SuppressWarnings("deprecation")
 	private ArrayList<IDisplayable> createWindBarb(IVector vect) {
         double sfactor = deviceScale * vect.getSizeScale() * 10.;
         IWireframeShape mask = null;
@@ -61,7 +61,8 @@ public class NsharpDisplayElementFactory extends DisplayElementFactory {
          */
         ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
         IWireframeShape barb = target.createWireframeShape(false, iDescriptor);
-        IShadedShape flags = target.createShadedShape(false, iDescriptor, false);
+        IShadedShape flags = target.createShadedShape(false,
+                iDescriptor.getGridGeometry());
         if ( vect.hasBackgroundMask() ) {
         	mask = target.createWireframeShape(false, iDescriptor);
 			RGB bg = backgroundColor.getColor(BGColorMode.EDITOR);

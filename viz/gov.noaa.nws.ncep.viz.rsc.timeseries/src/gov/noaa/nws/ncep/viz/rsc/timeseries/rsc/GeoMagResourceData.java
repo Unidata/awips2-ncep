@@ -36,7 +36,6 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractNameGenerator;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
-import com.raytheon.uf.viz.core.rsc.IPointsToolContainer;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -51,7 +50,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------ ---------- ----------- --------------------------
  * 06/24/2014   #1136       qzhou      Initial creation
  * 07/28/2014   R4079       sgurung    Added showReadoutView and showKTableView
- * 
+ * Nov 08, 2016 5976        bsteffen   Remove unused interface
  * 
  * </pre>
  * 
@@ -60,9 +59,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "GeoMagResourceData")
-public class GeoMagResourceData extends
-        AbstractNatlCntrsRequestableResourceData implements
-        IPointsToolContainer {
+public class GeoMagResourceData
+        extends AbstractNatlCntrsRequestableResourceData {
 
     private static final String stationCodeParam = "stationCode";
 
@@ -254,24 +252,12 @@ public class GeoMagResourceData extends
         this.dataColor = dataColor;
     }
 
-    @Override
     public void setPointCoordinate(Coordinate pointCoordinate) {
         this.coordinate = pointCoordinate;
     }
 
-    @Override
     public Coordinate getPointCoordinate() {
         return coordinate;
-    }
-
-    @Override
-    public void setPointLetter(String pointLetter) {
-        // this.pointLetter = pointLetter;
-    }
-
-    @Override
-    public String getPointLetter() {
-        return null;
     }
 
     public boolean getShowReadoutView() {

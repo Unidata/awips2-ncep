@@ -26,6 +26,8 @@ import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
+import com.raytheon.uf.common.colormap.ColorMapException;
+import com.raytheon.uf.common.colormap.ColorMapLoader;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.npp.viirs.VIIRSDataRecord;
@@ -48,7 +50,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.RasterMode;
 import com.raytheon.uf.viz.core.IMesh;
 import com.raytheon.uf.viz.core.PixelCoverage;
-import com.raytheon.uf.viz.core.drawables.ColorMapLoader;
 import com.raytheon.uf.viz.core.drawables.IImage;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
@@ -86,6 +87,7 @@ import com.vividsolutions.jts.geom.Point;
  * 06/23/2014               Yukuan Song  Initial creation
  * 08/20/2014   R4644       kbugenhagen  Modified to work with NCP perspective
  * 11/19/2015   R13133      kbugenhagen  Added sampling capability.
+ * 11/08/2016   5976        bsteffen     Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -372,7 +374,12 @@ public class ViirsResource extends
                     name = "IR Default";
                 }
             }
-            colorMapParameters.setColorMap(ColorMapLoader.loadColorMap(name));
+            try {
+                colorMapParameters
+                        .setColorMap(ColorMapLoader.loadColorMap(name));
+            } catch (ColorMapException e) {
+                throw new VizException("Error loading Colormap", e);
+            }
         }
 
         // Setup units for display and data

@@ -18,7 +18,6 @@ import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
 import org.geotools.coverage.grid.GridGeometry2D;
 
-import com.raytheon.uf.viz.core.GraphicsFactory;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.PixelExtent;
@@ -37,6 +36,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *   02/22/13   #972       G. Hull       AbstractNcEditor instead of NCMapEditor
  *   05/15/13   #862       G. Hull      Resources as AreaProviders
  *   11/24/13   #1078      G. Hull      diff constructor for PixelExtent on sizeOfImage
+ *   11/08/16    5976      bsteffen     Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -268,18 +268,8 @@ public class ZoomToAction extends AbstractHandler {
 
             int centerX = zoomRect.x + zoomRect.width / 2;
             int centerY = zoomRect.y + zoomRect.height / 2;
-            IExtent extent = null;
-
-            try {
-                extent = GraphicsFactory.getGraphicsAdapter().constructExtent(
-                        centerX - wd / 2, centerX + wd / 2, centerY - ht / 2,
-                        centerY + ht / 2);
-            } catch (VizException e) {
-                // Failed to construct extent with the factory. Default to
-                // PixelExtent type.
-                extent = new PixelExtent(centerX - wd / 2, centerX + wd / 2,
-                        centerY - ht / 2, centerY + ht / 2);
-            }
+            IExtent extent = new PixelExtent(centerX - wd / 2, centerX + wd / 2,
+                    centerY - ht / 2, centerY + ht / 2);
 
             pane.getRenderableDisplay().setExtent(extent);
             pane.setZoomLevel(pane.getRenderableDisplay().recalcZoomLevel(

@@ -51,6 +51,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * ------------   ---------- -----------      --------------------------
  * April 16, 2014 1122       sgurung     Initial creation
  * Nov   05, 2015 5070       randerso    Adjust font sizes for dpi scaling
+ * Nov   08, 2016 5976       bsteffen    Update deprecated text style
  * 
  * </pre>
  * 
@@ -245,10 +246,10 @@ public class GeoMagSampling {
                     DrawableString hoverString = new DrawableString(newStrs,
                             new RGB(0, 0, 0));
                     hoverString.font = hoverFont;
-                    hoverString.textStyle = TextStyle.BOXED;
                     hoverString.horizontalAlignment = HorizontalAlignment.LEFT;
                     hoverString.verticallAlignment = verticalAlignment;
-                    hoverString.boxColor = new RGB(255, 255, 255);
+                    hoverString.addTextStyle(TextStyle.BOXED,
+                            new RGB(255, 255, 255));
                     hoverString.setCoordinates(c.x, referencePtY);
 
                     target.drawStrings(hoverString);

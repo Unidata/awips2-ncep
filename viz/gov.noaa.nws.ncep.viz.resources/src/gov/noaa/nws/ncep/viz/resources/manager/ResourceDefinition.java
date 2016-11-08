@@ -43,11 +43,9 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.alerts.AlertMessage;
 import com.raytheon.uf.viz.core.catalog.CatalogQuery;
-import com.raytheon.uf.viz.core.catalog.LayerProperty;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 import com.raytheon.viz.alerts.IAlertObserver;
 import com.raytheon.viz.alerts.observers.ProductAlertObserver;
 
@@ -96,7 +94,7 @@ import com.raytheon.viz.alerts.observers.ProductAlertObserver;
  *  08/17/15      R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions
  *  08/21/2015    R7190      R. Reynolds  Modifications to handle ordering of GUI text associated with Mcidas data
  *  01/22/2016    R14142     R. Reynolds  Moved in mcidas specific aliasing code
- * 
+ *  11/08/16      5976       bsteffen     Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -1551,13 +1549,8 @@ public class ResourceDefinition implements IAlertObserver,
                             new Date(0)) : new DataTime(rsltsList[i]));
                 }
             } else { // if the inventory is not enabled
-
-                LayerProperty property = new LayerProperty();
-
-                property.setDesiredProduct(ResourceType.PLAN_VIEW);
-                property.setEntryQueryParameters(resourceConstraints, true,
-                        null);
-                dataTimeArr = property.getEntryTimes();
+                dataTimeArr = CatalogQuery.performTimeQuery(
+                        resourceConstraints, false, null);
             }
 
             Arrays.sort(dataTimeArr);

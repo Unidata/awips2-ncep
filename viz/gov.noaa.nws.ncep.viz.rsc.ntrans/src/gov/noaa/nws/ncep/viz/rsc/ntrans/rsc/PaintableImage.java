@@ -1,169 +1,78 @@
 package gov.noaa.nws.ncep.viz.rsc.ntrans.rsc;
 
-import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Command;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.INcCommand;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm.NcCGM;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder.WireframeKey;
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.Map.Entry;
 
 import com.raytheon.uf.viz.core.DrawableCircle;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
 import com.raytheon.uf.viz.core.drawables.IFont;
-import com.raytheon.uf.viz.core.drawables.IFont.Style;
 import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.viz.rsc.ntrans.wireframe.SharedWireframeGenerator.SharedWireframe;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.wireframe.WireframeKey;
+
+/**
+ * 
+ * This is just a container holding the ready-to-paint information for // a
+ * single NTRANS image.
+ * 
+ * <pre>
+ *
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- ------------------------
+ * Oct 24, 2016  R22550   bsteffen  Share wireframe shapes.
+ * 
+ * </pre>
+ *
+ */
 public class PaintableImage {
-    // This is just a container holding the ready-to-paint information for
-    // a single NTRANS image.
 
-    // Once generated (at first paint), cache here for future paints, instead of
-    // regenerating each time
+    protected IShadedShape shadedShape;
 
-    // shaded shapes (filled polygons) especially necessary to avoid memory
-    // (heap runaway) issues;
-    public IShadedShape shadedShape;
+    protected LinkedHashMap<WireframeKey, SharedWireframe> wireframes;
 
-    // Map of all now-compiled wireframes, keyed by unique output draw states
-    public Map<WireframeKey, IWireframeShape> wireframes = new HashMap<WireframeKey, IWireframeShape>();
+    protected List<DrawableString> strings;
 
-    // Sequence in which to paint the wireframes
-    public List<WireframeKey> wireframePaintOrder = new ArrayList<WireframeKey>();
+    protected List<DrawableCircle> circles;
 
-    // AWIPS II DrawableString text objects
-    public List<DrawableString> strings = new ArrayList<DrawableString>();
+    /*
+     * Need reference to all fonts in the strings so they can be disposed. Since
+     * some fonts are reused across multiple strings the easiest way to ensure
+     * each font is disposed once is to keep a separate list.
+     */
+    protected List<IFont> fonts;
 
-    // AWIPS II DrawableCircle objects
-    public List<DrawableCircle> circles = new ArrayList<DrawableCircle>();
-
-    private IFont font = null; // TODO: Move this?
-
-    private IGraphicsTarget target = null;
-
-    private final Log logger = LogFactory.getLog(this.getClass());
-
-    public PaintableImage(NcCGM cgmImage, IGraphicsTarget target,
-            PaintProperties paintProps, IDescriptor descriptor, double scale)
-            throws VizException {
-
-        // Construct a PaintableImage (containing ready-to-paint,
-        // compiled-where-necessary) AWIPS graphics elements, given
-        // the (Java) CGM image.
-
-        this.target = target;
-
-        ImageBuilder ib = new ImageBuilder();
-
-        if (this.font == null) { // TODO clean up font handling
-            this.font = target.initializeFont("Monospace", 10,
-                    new IFont.Style[] { Style.BOLD });
-        }
-
-        ib.currentFont = this.font;
-        ib.scale = scale;
-        ib.shadedShape = target.createShadedShape(false, // mutable
-                descriptor.getGridGeometry(), false); // tesselate
-
-        double screenToWorldRatio = paintProps.getCanvasBounds().width
-                / paintProps.getView().getExtent().getWidth();
-        ib.scaleNoZoom = ib.scale / screenToWorldRatio;
-        ib.scaleNoZoom = ib.scale * paintProps.getZoomLevel();
-
-        // IExtent screenExtent = paintProps.getView().getExtent();
-        // IExtent mapExtent = new PixelExtent(descriptor.getGridGeometry()
-        // .getGridRange());
-
-        // Loop through the CGM commands -- in order -- to build paintable
-        // AWIPS image elements...
-
-        for (Command c : cgmImage.getCommands()) {
-            if (c instanceof INcCommand) {
-                try {
-                    ((INcCommand) c).contributeToPaintableImage(ib, target,
-                            paintProps, descriptor);
-                } catch (VizException e) {
-                    logger.error("[EXCEPTION occurred processing CGM"
-                            + " command " + c + "]");
-                    e.printStackTrace();
-                    throw (e);
-                }
-            }
-        }
-
-        // Compilation: Now that we've processed all the CGM commands, "compile"
-        // those AWIPS graphics elements that need it once they're complete
-        // (here, shaded shapes and wireframe shapes...
-
-        ib.shadedShape.compile();
-
-        for (WireframeKey key : ib.wireframes.keySet()) {
-            IWireframeShape wireframeForThisKey = ib.wireframes.get(key);
-            if (wireframeForThisKey == null || !wireframeForThisKey.isMutable()) {
-                // TODO assert: Wireframe missing, or not compiled yet
-            } else {
-                wireframeForThisKey.compile();
-            }
-        }
-
-        // Now retrieve from the ImageBuilder only the completed paintable
-        // objects that we want to save as this PaintableImage.
-        // (The temporary ImageBuilder object will then be discarded.)
-
-        this.shadedShape = ib.shadedShape;
-        this.wireframes = ib.wireframes;
-        this.wireframePaintOrder = ib.wireframePaintOrder;
-        this.circles = ib.circles;
-        this.strings = ib.strings;
+    public PaintableImage(
+            LinkedHashMap<WireframeKey, SharedWireframe> wireframes,
+            IShadedShape shadedShape, List<DrawableString> strings,
+            List<DrawableCircle> circles, List<IFont> fonts) {
+        this.wireframes = wireframes;
+        this.shadedShape = shadedShape;
+        this.strings = strings;
+        this.circles = circles;
+        this.fonts = fonts;
     }
 
-    public void paint() throws VizException {
-
-        // Finally! Actually paint the AWIPS graphics elements...
-
-        // Shaded Shape (filled polygons)
-
+    public void paint(IGraphicsTarget target) throws VizException {
         if (shadedShape != null) {
-            float alpha = 1.0f; // TODO verify
-            float brightness = 1.0f;
-            target.drawShadedShape(shadedShape, alpha, brightness);
+            target.drawShadedShape(shadedShape, 1.0f, 1.0f);
         }
 
-        // Wireframes
-
-        // int count = 0;
-        for (WireframeKey key : wireframePaintOrder /* wireframes.keySet() */) {
-            IWireframeShape wireframeForThisKey = wireframes.get(key);
-            if (wireframeForThisKey == null /*
-                                             * ||
-                                             * wireframeForThisKey.isMutable()
-                                             */) {
-                // TODO assert: Wireframe missing, or not compiled yet
-                throw new VizException();
-            } else {
-                target.drawWireframeShape(wireframeForThisKey, key.color,
-                        (float) key.width);
-                // System.out.println("[Drew wireframe " + ++count + " for "
-                // + key.toString());
-            }
+        for (Entry<WireframeKey, SharedWireframe> entry : wireframes
+                .entrySet()) {
+            IWireframeShape wireframeForThisKey = entry.getValue()
+                    .getWireframe();
+            target.drawWireframeShape(wireframeForThisKey, entry.getKey().color,
+                    (float) entry.getKey().width);
         }
-
-        // Strings
 
         target.drawStrings(strings);
-
-        // Circles
-
         target.drawCircle(circles.toArray(new DrawableCircle[circles.size()]));
     }
 
@@ -172,27 +81,17 @@ public class PaintableImage {
             shadedShape.dispose();
             shadedShape = null;
         }
-        // any of the following really needed??
         if (wireframes != null) {
-            for (IWireframeShape wf : wireframes.values()) {
+            for (SharedWireframe wf : wireframes.values()) {
                 wf.dispose();
             }
             wireframes.clear();
-            wireframes = null;
         }
-        if (strings != null) {
-            for (DrawableString ds : strings) {
-                // no such method ds.dispose();
-                ds = null;
-            }
-            strings = null;
+        strings.clear();
+        circles.clear();
+        for (IFont font : fonts) {
+            font.dispose();
         }
-        if (circles != null) {
-            for (DrawableCircle dc : circles) {
-                // no such method dc.dispose();
-                dc = null;
-            }
-            circles = null;
-        }
+        fonts.clear();
     }
 }

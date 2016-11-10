@@ -126,6 +126,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                      different methods for getting the colormap 
  *                                      name (i.e. via stylerules or attribute files.
  *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
+ *  09/16/2016   R15716     SRussell    Added a new FrameData constructor,
+ *                                      Added method getLastRecordAdded()
+ * 
  * 
  * </pre>
  * 
@@ -164,14 +167,23 @@ public class NcSatelliteResource extends
 
         DataTime tileTimePrevAddedRecord = null;
 
+        IPersistable last_record_added = null;
+
         protected RecordTileSetRenderable tileSet;
 
         // one renderable per frame, each renderable may have multiple tiles
-        protected SatRenderable<SatMapCoverage> renderable;
+        // protected SatRenderable<SatMapCoverage> renderable;
+        protected SatRenderable renderable;
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval, satelliteResourceData);
-            setRenderable(new SatRenderable());
+            setRenderable(new SatRenderable<SatMapCoverage>());
+        }
+
+        protected FrameData(DataTime time, int interval,
+                SatRenderable<?> childClassRndble) {
+            super(time, interval, satelliteResourceData);
+            setRenderable(childClassRndble);
         }
 
         /*
@@ -226,7 +238,9 @@ public class NcSatelliteResource extends
             if (satRec != null) {
                 tileTimePrevAddedRecord = ((PluginDataObject) satRec)
                         .getDataTime();
+                last_record_added = satRec;
                 getRenderable().addRecord(satRec);
+
             }
 
             return true;
@@ -261,15 +275,25 @@ public class NcSatelliteResource extends
             return oldDataBetterTimeMatch;
         }
 
-        public SatRenderable getRenderable() {
+        public SatRenderable<?> getRenderable() {
             return renderable;
         }
 
-        public void setRenderable(SatRenderable renderable) {
-            this.renderable = renderable;
+        public void setRenderable(SatRenderable<?> renderable) {
+            this.renderable = (SatRenderable<SatMapCoverage>) renderable;
+        }
+
+        public IPersistable getLastRecordAdded() {
+            return last_record_added;
         }
 
     } // FrameData class
+
+    public IPersistable getRecord() {
+        FrameData fd = (FrameData) this.getCurrentFrame();
+        IPersistable record = fd.getLastRecordAdded();
+        return record;
+    }
 
     /**
      * Renderable for displaying satellite data. There is one renderable per
@@ -336,6 +360,7 @@ public class NcSatelliteResource extends
          * @param record
          *            satellite data record
          */
+        @SuppressWarnings("unchecked")
         public void addRecord(IPersistable record) {
             synchronized (tileMap) {
 
@@ -637,8 +662,8 @@ public class NcSatelliteResource extends
         matchCriteria.setParameterName(paramList);
 
         try {
-            StyleRuleset styleSet = (StyleRuleset) getJaxbManager()
-                    .unmarshalFromXmlFile(StyleRuleset.class, file);
+            StyleRuleset styleSet = getJaxbManager().unmarshalFromXmlFile(
+                    StyleRuleset.class, file);
             if (styleSet != null) {
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
@@ -1024,7 +1049,7 @@ public class NcSatelliteResource extends
             IGraphicsTarget target, PaintProperties paintProps)
             throws VizException {
         FrameData currFrame = (FrameData) frmData;
-        SatRenderable satr = currFrame.getRenderable();
+        SatRenderable<SatMapCoverage> satr = currFrame.renderable;
 
         if (satr != null) {
             ImagingCapability imgCap = new ImagingCapability();
@@ -1032,8 +1057,6 @@ public class NcSatelliteResource extends
             imgCap.setContrast(resourceData.getContrast());
             imgCap.setAlpha(resourceData.getAlpha());
             paintProps.setAlpha(resourceData.getAlpha());
-            ColorMapParameters params = getCapability(ColorMapCapability.class)
-                    .getColorMapParameters();
             satr.paint(target, paintProps);
         }
     }
@@ -1111,7 +1134,8 @@ public class NcSatelliteResource extends
                     e);
         }
 
-        return currFrame.renderable.interrogate(latlon,
+        return currFrame.getRenderable().interrogate(
+                latlon,
                 getCapability(ColorMapCapability.class).getColorMapParameters()
                         .getDisplayUnit());
     }
@@ -1137,7 +1161,7 @@ public class NcSatelliteResource extends
         }
 
         try {
-            return currFrame.renderable.interrogate(latlon, null);
+            return currFrame.getRenderable().interrogate(latlon, null);
         } catch (VizException e) {
             return null;
         }
@@ -1157,14 +1181,16 @@ public class NcSatelliteResource extends
         }
 
         FrameData currFrame = (FrameData) getCurrentFrame();
+        Unit<?> unit = null;
 
         if (currFrame == null) {
             return null;
         }
         try {
-            return currFrame.renderable.interrogate(latlon,
-                    getCapability(ColorMapCapability.class)
-                            .getColorMapParameters().getDisplayUnit());
+
+            SatRenderable<?> sr = currFrame.getRenderable();
+            return sr.interrogate(latlon, unit);
+
         } catch (VizException e) {
             statusHandler.error("Error getting temperature", e);
             return null;
@@ -1173,20 +1199,20 @@ public class NcSatelliteResource extends
     }
 
     /**
-     * Get temperature units for cloud height tool
+     * This is an ICloudHeightCapable Interface method Get the display Units. If
+     * it is Celsius, the resource is usable with the Cloud Height Tool which
+     * calculates the height of clouds from temperature data
      * 
-     * @return
+     * @return Unit
      */
+
     @SuppressWarnings("unchecked")
     public Unit<Temperature> getTemperatureUnits() {
-        if (isCloudHeightCompatible()) {
-            if (resourceData.getDisplayUnit() == null) {
-                return SI.CELSIUS;
-            } else {
-                return (Unit<Temperature>) resourceData.getDisplayUnit();
-            }
+
+        if (resourceData.getDisplayUnit() == null) {
+            return SI.CELSIUS;
         } else {
-            return null;
+            return (Unit<Temperature>) resourceData.getDisplayUnit();
         }
     }
 

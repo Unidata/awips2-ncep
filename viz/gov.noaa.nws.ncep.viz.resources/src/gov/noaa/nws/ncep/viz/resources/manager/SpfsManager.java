@@ -15,6 +15,9 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Shell;
+
 import com.raytheon.uf.common.localization.FileUpdatedMessage;
 import com.raytheon.uf.common.localization.FileUpdatedMessage.FileChangeType;
 import com.raytheon.uf.common.localization.ILocalizationFileObserver;
@@ -49,8 +52,8 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 11/14/11       #???      B. Hebbard   Optionally have saveRbdToSpf(...) switch
  *                                       cycle times to LATEST before marshaling,
  *                                       and restore actual times afterwards.
- * 11/15/11                  ghull       add resolveLatestCycleTimes
- * 01/01/12                  J. Zeng     Add listener for multiple CAVEs to get SPFs info from each other
+ * 11/15/11                 ghull        add resolveLatestCycleTimes
+ * 01/01/12                 J. Zeng      Add listener for multiple CAVEs to get SPFs info from each other
  * 04/29/12       #606      Greg Hull    now called from the PerspectiveManager. Better timing/count output. 
  * 06/13/12       #817      Greg Hull    add resolveDominantResource() 
  * 06/18/12       #713      Greg Hull    in addRbd() overwrite existing rbds if they exist.
@@ -71,8 +74,13 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  * 03/01/16       R6821     K.Bugenhagen Cleanup: mostly changed sysout statements to IUFStatusHandler
  * 06/28/2016     R17025    S.Russell    Removed else clause for updates in 
  *                                       fileUpdated() method.
+ * 08/30/2016     R17027    mkean        Added a conditional to detect repeated calls to removeEntryByFile(). 
+ *                                       If so then return instead of throwing AlertViz (current behavior).
  * 09/23/2016     R21176    J.Huber      Modify cycle time in ResourceName of grouped gridded resources
  *                                       to LATEST if latest is selected on save.
+ * 10/11/2016     R17032    A. Su        Replaced the method isValidRbdName() with findDisallowedCharsInName().
+ *                                       Added a method validateName() to validate an input name.
+ * 
  * </pre>
  * 
  * @author
@@ -85,8 +93,16 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     private static SpfsManager instance = null;
 
-    // Might not want to rely on these counts for anything critical.
+    // save LocalizationFile for comparison on subsequent removals
+    private static LocalizationFile lastLocalizationFileRemoved = null;
 
+    // The disallowed characters in naming SPF Group, SPF, and RBD
+    // include shell special characters (meta-characters).
+    public static final char DISALLOWED_CHARS_IN_NAME[] = { '/', '*', '?', '[',
+            ']', '\'', '"', '\\', '$', ';', '&', '(', ')', '|', '^', '<', '>',
+            '`', '\n', ' ', '\t' };
+
+    // Might not want to rely on these counts for anything critical.
     private static long rbdCount = 0;
 
     // TODO : do we want to store the NcMapRBD or just the LocalizationFile
@@ -121,7 +137,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
             lFile.addFileUpdatedObserver(this);
 
-            String[] dirs = lFile.getName().split(File.separator);
+            String[] dirs = lFile.getPath().split(File.separator);
 
             // If this is a SPF Group or SPF directory
             // NOTE: Wait to add the Group/SPF so that only directories
@@ -131,21 +147,21 @@ public class SpfsManager implements ILocalizationFileObserver {
                 if (dirs.length > 4) {
                     statusHandler.handle(Priority.PROBLEM,
                             "Found dir under SPFs with more than 3 paths:"
-                                    + lFile.getName());
+                                    + lFile.getPath());
                 }
                 // if this is an RBD, check for .xml and in an SPF directory
             } else {
-                if (!lFile.getName().endsWith(".xml")) {
+                if (!lFile.getPath().endsWith(".xml")) {
                     statusHandler.handle(
                             Priority.PROBLEM,
                             "Non-xmlfile found under SPFs dir:"
-                                    + lFile.getName());
+                                    + lFile.getPath());
 
                 } else if (dirs.length != 5) {
                     statusHandler.handle(
                             Priority.PROBLEM,
                             "xml file found in non-SPF directory? "
-                                    + lFile.getName());
+                                    + lFile.getPath());
                 } else {
                     try {
                         AbstractRBD<?> rbd = NcMapRBD.getRbd(lFile.getFile());
@@ -154,7 +170,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                         addRbd(dirs[2], dirs[3], rbd);
                     } catch (VizException e) {
                         statusHandler.handle(Priority.PROBLEM,
-                                "Error unmarshalling rbd: " + lFile.getName()
+                                "Error unmarshalling rbd: " + lFile.getPath()
                                         + "\n" + e.getMessage());
                     }
                 }
@@ -226,7 +242,6 @@ public class SpfsManager implements ILocalizationFileObserver {
         return spfNames;
     }
 
-    //
     public String[] getRbdNamesForSPF(String grpName, String spfName) {
         Map<String, Map<String, AbstractRBD<?>>> grpMap = spfsMap.get(grpName);
 
@@ -306,25 +321,12 @@ public class SpfsManager implements ILocalizationFileObserver {
         return new ArrayList<>(Arrays.asList(rbdsList));
     }
 
-    // TODO : decide what is/isn't a valid rbd name ...
-    //
-    public boolean isValidRbdName(String rbdName) {
-        if (rbdName != null && !rbdName.isEmpty()) {
-            if (!rbdName.contains(File.separator)) {
-                // more invalid checks....
-
-                return true;
-            }
-        }
-        return false;
-    }
-
     // Create a new SPF with the given rbds. The rbdsList should be in order and
     // the SPF should not exist yet.
-    //
     public void createSpf(String grpName, String spfName,
             List<AbstractRBD<?>> rbdsList, Boolean saveRefTime,
             Boolean saveCycleTime) throws VizException {
+
         // make sure the spf doesn't exist.
         if (rbdsList.isEmpty() || grpName == null || grpName.isEmpty()
                 || spfName == null || spfName.isEmpty()) {
@@ -357,10 +359,10 @@ public class SpfsManager implements ILocalizationFileObserver {
 
     // The SPF should already exist. This will delete any existing Rbds that
     // aren't in the given list.
-    //
     public void saveSpf(String grpName, String spfName,
             List<AbstractRBD<?>> rbdsList, Boolean saveRefTime,
             Boolean saveCycleTime) throws VizException {
+
         if (rbdsList.isEmpty() || grpName == null || grpName.isEmpty()
                 || spfName == null || spfName.isEmpty()) {
             throw new VizException(
@@ -390,7 +392,6 @@ public class SpfsManager implements ILocalizationFileObserver {
         // TODO : it would be nice if we could determine if the spf has
         // changed so that we don't have to override BASE/SITE level rbds that
         // haven't changed.
-        //
         for (AbstractRBD<?> rbd : rbdsList) {
             saveRbdToSpf(grpName, spfName, rbd, saveRefTime, saveCycleTime);
         }
@@ -403,7 +404,6 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
     }
 
-    //
     public void saveRbdToSpf(String grpName, String spfName,
             AbstractRBD<?> rbd, boolean saveRefTime, boolean saveCycleTime)
             throws VizException {
@@ -419,7 +419,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         LocalizationFile lFile = NcPathManager.getInstance()
                 .getLocalizationFile(usrCntxt, rbdLclName);
 
-        if (lFile == null || lFile.getFile() == null) {
+        if (lFile == null || lFile.getPath() == null) {
             throw new VizException("Error creating localization file for rbd: "
                     + rbdLclName);
         }
@@ -441,6 +441,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         // TODO : do we still have to do this now that we can clone the RBDs?
         //
         Map<String, DataTime> resourceNameToCycleTimeMap = new HashMap<>();
+
         if (!saveCycleTime) {
 
             // For each display pane
@@ -449,6 +450,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                 // For each resource in the display
                 for (ResourcePair rp : display.getDescriptor()
                         .getResourceList()) {
+
                     AbstractResourceData ard = rp.getResourceData();
                     List<AbstractNatlCntrsRequestableResourceData> allResourcesList = new ArrayList<>();
                     // Add to list if it is ungrouped. If it comes across a
@@ -535,6 +537,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                     // For each resource.
                     for (ResourcePair rp : display.getDescriptor()
                             .getResourceList()) {
+
                         AbstractResourceData ard = rp.getResourceData();
                         List<AbstractNatlCntrsRequestableResourceData> allResourcesRestoreList = new ArrayList<>();
 
@@ -565,8 +568,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                             ResourceName singleResourceName = singleRequestableData
                                     .getResourceName();
                             if (singleResourceName.isForecastResource()
-                                    && singleResourceName.isLatestCycleTime() // better
-                                                                              // be
+                                    && singleResourceName.isLatestCycleTime()
                                     && resourceNameToCycleTimeMap
                                             .containsKey(singleResourceName
                                                     .toString())) {
@@ -640,6 +642,7 @@ public class SpfsManager implements ILocalizationFileObserver {
         try {
 
             for (AbstractRBD<?> rbd : getRbdsFromSpf(spfGroup, spfName, false)) {
+
                 // TODO : should we look for the File if the LocalizationFile is
                 // not set? Just assume that the RBD hasn't been created yet....
                 if (rbd.getLocalizationFile() != null) {
@@ -733,20 +736,37 @@ public class SpfsManager implements ILocalizationFileObserver {
         rbd.setLocalizationFile(null);
     }
 
-    public void removeEntryByFile(LocalizationFile lFile) {
+    /**
+     * Removes a given RBD/SPF from localization (static Maps)
+     * 
+     * @param localizationFile
+     */
+    public void removeEntryByFile(LocalizationFile localizationFile) {
+
+        // was the given localizationFile removed in previous call?
+        if (localizationFile != null
+                && localizationFile.equals(lastLocalizationFileRemoved)) {
+
+            statusHandler.handle(
+                    Priority.INFO,
+                    "LocalizationFile was already removed: "
+                            + localizationFile.getPath());
+            return;
+        }
+        lastLocalizationFileRemoved = localizationFile;
 
         Map<LocalizationLevel, LocalizationFile> superFiles = NcPathManager
-                .getInstance().getTieredLocalizationFile(lFile.getName());
+                .getInstance().getTieredLocalizationFile(
+                        localizationFile.getPath());
         superFiles.remove(LocalizationLevel.USER);
 
         if (!superFiles.isEmpty()) {
-            statusHandler.handle(Priority.PROBLEM,
-                    "Removing File " + lFile.getName()
-                            + " that has a lower level File. Need to Revert.");
-
+            statusHandler.handle(Priority.PROBLEM, "Removing File "
+                    + localizationFile.getPath()
+                    + " that has a lower level File. Need to Revert.");
         }
 
-        String spfPaths[] = lFile.getName().split(File.separator);
+        String spfPaths[] = localizationFile.getPath().split(File.separator);
         int i = NcPathConstants.SPFS_DIR.split(File.pathSeparator).length;
         int pathCount = spfPaths.length - i - 1;
 
@@ -756,14 +776,14 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         if (grpMap == null) {
             statusHandler.handle(Priority.PROBLEM, "Could not find Group "
-                    + spfGroup + " for RBD " + lFile.getName());
+                    + spfGroup + " for RBD " + localizationFile.getPath());
             return;
         }
 
         // If this is an Spf Group then remove it and return
         if (pathCount == 1) {
+
             // sanity check that the group is empty
-            //
             if (spfsMap.containsKey(spfGroup)) {
                 if (!spfsMap.get(spfGroup).isEmpty()) {
                     statusHandler.handle(Priority.PROBLEM,
@@ -782,7 +802,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         if (sMap == null) {
             statusHandler.handle(Priority.PROBLEM, "Could not find SPF "
-                    + spfName + " for RBD " + lFile.getName());
+                    + spfName + " for RBD " + localizationFile.getPath());
             return;
         }
 
@@ -807,7 +827,7 @@ public class SpfsManager implements ILocalizationFileObserver {
 
         for (String rbdName : sMap.keySet()) {
             LocalizationFile lf = sMap.get(rbdName).getLocalizationFile();
-            if (lf != null && lf.getName().equals(lFile.getName())) {
+            if (lf != null && lf.getPath().equals(localizationFile.getPath())) {
 
                 sMap.remove(rbdName);
 
@@ -817,12 +837,20 @@ public class SpfsManager implements ILocalizationFileObserver {
         }
 
         if (saveRbdCount == rbdCount) {
-            statusHandler.handle(Priority.PROBLEM,
-                    "Could not find rbd to remove for File:" + lFile.getName());
-
+            statusHandler.handle(
+                    Priority.PROBLEM,
+                    "Could not find rbd to remove for File:"
+                            + localizationFile.getPath());
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.uf.common.localization.ILocalizationFileObserver#fileUpdated
+     * (com.raytheon.uf.common.localization.FileUpdatedMessage)
+     */
     @Override
     public void fileUpdated(FileUpdatedMessage message) {
         String chgFile = message.getFileName();
@@ -862,5 +890,76 @@ public class SpfsManager implements ILocalizationFileObserver {
             statusHandler.handle(Priority.PROBLEM, "Error unmarshalling rbd: "
                     + chgFile + "\n" + e.getMessage());
         }
+    }
+
+    /**
+     * Find any disallowed characters in the given name.
+     * 
+     * @param name
+     *            To be checked.
+     * @return found disallowed characters.
+     */
+    public String findDisallowedCharsInName(String name) {
+        String detectedChars = "";
+
+        for (char testedChar : DISALLOWED_CHARS_IN_NAME) {
+            if (name.indexOf(testedChar) != -1) {
+                if (testedChar == '&') {
+                    // Special processing for the character '&' to be printed.
+                    detectedChars += "&&, ";
+                } else if (testedChar == ' ') {
+                    detectedChars += "space, ";
+                } else {
+                    detectedChars += testedChar + ", ";
+                }
+            }
+        }
+        if (detectedChars.length() > 1) {
+            detectedChars = detectedChars.substring(0,
+                    detectedChars.length() - 2);
+
+        }
+        return detectedChars;
+    }
+
+    /**
+     * Validate a name against the list of DISALLOWED_CHARS_IN_NAME. If not a
+     * valid name, pop up a MessageDialog to alert the user.
+     * 
+     * @param dialogShell
+     *            the shell of dialog window where the name is to be validated
+     * @param name
+     *            name to be validated
+     * @param messageTitle
+     *            the title of the error message in an MessageDialog for an
+     *            invalid name
+     * @param nameCategory
+     *            the name category for the error message in an MessageDialog
+     *            for an invalid name
+     * @return true if the name is valid; false if the name is invalid.
+     */
+    public boolean validateName(Shell dialogShell, String name,
+            String messageTitle, String nameCategory) {
+
+        String disallowedChars = findDisallowedCharsInName(name);
+
+        if (!disallowedChars.isEmpty()) {
+            String errorMessage = "Error "
+                    + messageTitle
+                    + ": "
+                    + "characters <"
+                    + disallowedChars
+                    + "> "
+                    + ((nameCategory != null && !nameCategory.isEmpty()) ? "in "
+                            + nameCategory
+                            : "") + " are not allowed";
+
+            MessageDialog errDlg = new MessageDialog(dialogShell, "Error",
+                    null, errorMessage, MessageDialog.ERROR,
+                    new String[] { "OK" }, 0);
+            errDlg.open();
+            return false;
+        }
+        return true;
     }
 }

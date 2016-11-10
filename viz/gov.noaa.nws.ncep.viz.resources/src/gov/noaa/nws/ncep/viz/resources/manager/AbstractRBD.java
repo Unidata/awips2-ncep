@@ -19,6 +19,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -84,6 +86,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    11/12/2015     R8829     B. Yin      Sort resources in RBD by rendering order.
  *    03/10/2016     R16237    B. Yin      Get dominant resource within a group resource.
  *    09/23/2016     R21176    J.Huber     Resolve latest cycle time for grouped gridded resources in SPF.
+ *    10/07/2016     R21481    Bugenhagen  Replaced use of temp file with ByteArrayOutputStream 
+ *                                         in getRbd method.
  * 
  * </pre>
  * 
@@ -196,6 +200,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         this.paneLayout = paneLayout;
     }
 
+    @Override
     public NcPaneLayout getPaneLayout() {
         return paneLayout;
     }
@@ -271,8 +276,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         try {
             NCTimeMatcher tm = new NCTimeMatcher(rbdBndl.getTimeMatcher());
 
-            File tempRbdFile = File.createTempFile("tempRBD-", ".xml");
-
             // HACK Alert ; for Mcidas GVAR projections, the NAV_BLOCK_BASE64
             // parameter is a String, but since the wkt format is assuming all
             // projection params are doubles, the CRS string will throw an error
@@ -280,8 +283,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             // projection and save off the wkt for the GVARs and then call the
             // McidasSpatialFactory to handle the parsing.
 
-            Map<String, GridGeometrySerialized> ggsMap = new HashMap<String, GridGeometrySerialized>();
-            Map<String, AbstractRenderableDisplay> dispMap = new HashMap<String, AbstractRenderableDisplay>();
+            Map<String, GridGeometrySerialized> ggsMap = new HashMap<>();
+            Map<String, AbstractRenderableDisplay> dispMap = new HashMap<>();
 
             NcGridGeometryAdapter geomAdapter = new NcGridGeometryAdapter();
 
@@ -307,10 +310,9 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 }
             }
 
-            getJaxbManager().marshalToXmlFile(rbdBndl,
-                    tempRbdFile.getAbsolutePath());
-
-            AbstractRBD<?> clonedRbd = getRbd(tempRbdFile);
+            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+            getJaxbManager().marshalToStream(rbdBndl, outstream);
+            AbstractRBD<?> clonedRbd = getRbd(outstream);
 
             for (AbstractRenderableDisplay disp : clonedRbd.getDisplays()) {
                 String ggsKey = ((INatlCntrsRenderableDisplay) disp)
@@ -334,8 +336,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             clonedRbd.setTimeMatcher(tm);
 
             clonedRbd.setLocalizationFile(rbdBndl.getLocalizationFile());
-
-            tempRbdFile.delete();
 
             // set the RbdName inside the renderable display panes
             clonedRbd.setRbdName(clonedRbd.getRbdName());
@@ -537,7 +537,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
 
         try {
-            AbstractRBD<?> dfltRbd = AbstractRBD.unmarshalRBD(rbdFile, null);
+            AbstractRBD<?> dfltRbd = AbstractRBD.unmarshalRBDFromFile(rbdFile,
+                    null);
 
             // shouldn't need this but just in case the user creates a default
             // with real resources in it
@@ -545,6 +546,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             dfltRbd.setIsDefaultRbd(true);
 
             return clone(dfltRbd);
+
         } catch (Exception ve) {
             throw new VizException("Error getting default RBD: "
                     + ve.getMessage());
@@ -553,7 +555,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
     public static AbstractRBD<?> getRbd(File rbdFile) throws VizException {
 
-        AbstractRBD<?> rbd = unmarshalRBD(rbdFile, null);
+        AbstractRBD<?> rbd = unmarshalRBDFromFile(rbdFile, null);
 
         // check for any required data that may be null or not set.
         // This shouldn't happen except possibly from an out of date RBD. (ie
@@ -568,7 +570,31 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     /**
-     * Unmarshal a bundle
+     * Get RBD from output stream
+     * 
+     * @param outstream
+     * @return
+     * @throws VizException
+     */
+    public static AbstractRBD<?> getRbd(ByteArrayOutputStream outstream)
+            throws VizException {
+
+        AbstractRBD<?> rbd = unmarshalRBD(outstream, null);
+
+        // check for any required data that may be null or not set.
+        // This shouldn't happen except possibly from an out of date RBD. (ie
+        // older version)
+        //
+        if (rbd.displays == null || rbd.displays.length == 0) {
+            throw new VizException(
+                    "Error unmarshalling RBD: the renderable display list is null");
+        }
+
+        return rbd;
+    }
+
+    /**
+     * Unmarshal a bundle from a file
      * 
      * @param fileName
      *            the bundle to load
@@ -581,7 +607,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
      * 
      * @throws VizException
      */
-    private static AbstractRBD<?> unmarshalRBD(File fileName,
+    private static AbstractRBD<?> unmarshalRBDFromFile(File fileName,
             Map<String, String> variables) throws VizException {
         String s = null;
         try {
@@ -596,6 +622,47 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
 
         return unmarshalRBD(s, variables);
+
+    }
+
+    /**
+     * Unmarshal a bundle from an output stream
+     * 
+     * @param outstream
+     *            the output stream to load
+     * 
+     * @param variables
+     *            Optional: A map containing key value pairs to be used to
+     *            perform variable substitution.
+     * 
+     * @return bundle loaded
+     * 
+     * @throws VizException
+     */
+    private static AbstractRBD<?> unmarshalRBD(ByteArrayOutputStream outstream,
+            Map<String, String> variables) throws VizException {
+
+        byte[] bytes = outstream.toByteArray();
+        ByteArrayInputStream instream = new ByteArrayInputStream(bytes);
+
+        try {
+            AbstractRBD<?> rbd = (AbstractRBD<?>) getJaxbManager()
+                    .unmarshalFromInputStream(instream);
+            if (rbd == null) {
+                statusHandler.handle(Priority.INFO,
+                        "Unmarshalled stream is not a valid RBD.");
+                return null;
+            }
+
+            rbd.sortResourcesAndSetTimeMatcher();
+
+            return rbd;
+
+        } catch (SerializationException e) {
+            throw new VizException("Error unmarshalling RBD", e);
+        } catch (JAXBException e) {
+            throw new VizException("JAXB error for RBD", e);
+        }
 
     }
 
@@ -629,21 +696,31 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 return null;
             }
 
-            b.sortResourcesByRenderingOrder();
-
-            if (b.getTimeMatcher() == null) {
-                b.setTimeMatcher(new NCTimeMatcher());
-            }
-
-            // This will make sure that all descriptors use the same timeMatcher
-            // instance. All the timeMatchers should be the same but we need to
-            // share them.
-            b.setTimeMatcher(b.getTimeMatcher());
+            b.sortResourcesAndSetTimeMatcher();
 
             return b;
+
         } catch (Exception e) {
             throw new VizException("Error loading bundle", e);
         }
+    }
+
+    /**
+     * Sort all resources for this RBD and set its time matcher.
+     */
+    private void sortResourcesAndSetTimeMatcher() {
+
+        sortResourcesByRenderingOrder();
+
+        if (getTimeMatcher() == null) {
+            setTimeMatcher(new NCTimeMatcher());
+        }
+
+        // This will make sure that all descriptors use the same timeMatcher
+        // instance. All the timeMatchers should be the same but we need to
+        // share them.
+        setTimeMatcher(getTimeMatcher());
+
     }
 
     /*

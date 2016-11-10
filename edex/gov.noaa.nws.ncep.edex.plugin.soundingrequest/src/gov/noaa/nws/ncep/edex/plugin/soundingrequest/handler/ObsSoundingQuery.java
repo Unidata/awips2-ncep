@@ -75,20 +75,20 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  Oct 03, 2014         B. Hebbard Performance improvement:  getObservedSndNcUairDataGeneric( )
  *                                  limits DB param set to retrieve, in cases where possible
  *                                  (mandatory level and no PW-for-full-sounding)
- * **********************************************************************************************************
- * 
- * 
  *  05/20/2015	RM#8306	Chin Chen  eliminate NSHARP dependence on uEngine.
  *                                  Copy whole file ObservedSoundingQuery.java from uEngine project to this serverRequestService project
  *                                  "refactor" and clean up unused code for this ticket.
  *  07/02/2015   RM#8107 Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
  *  07/21/2015   RM#9173 Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
  *  04/19/2016   #17875  Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
+ *  09/29/2016   RM15953 R.Reynolds  Added capability for wind interpolation
  *  
  *  @author Chin Chen
  * @version 1.0
  */
+
 public class ObsSoundingQuery {
+
     private static final UnitConverter metersPerSecondToKnots = SI.METERS_PER_SECOND
             .getConverterTo(NonSI.KNOT);
 
@@ -1085,7 +1085,7 @@ public class ObsSoundingQuery {
 
     private static List<NcSoundingProfile> processQueryReturnedNcUairData(
             List<NcUairRecord[]> uairRecordArrList, boolean merge,
-            String level, boolean pwRequired) {
+            String level, boolean pwRequired, boolean windInterpolation) {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<>(0);
         for (NcUairRecord[] recordArray : uairRecordArrList) {
 
@@ -1155,7 +1155,7 @@ public class ObsSoundingQuery {
 
                     sls = ms.mergeUairSounding(level, ttaa, ttbb, ttcc, ttdd,
                             ppaa, ppbb, ppcc, ppdd, trop_a, trop_c, wmax_a,
-                            wmax_c, pf.getStationElevation());
+                            wmax_c, pf.getStationElevation(), windInterpolation);
                     // PW Support
                     if (pwRequired) {
                         if (level.equals("-1")) {
@@ -1163,10 +1163,12 @@ public class ObsSoundingQuery {
                             pf.setPw(pw);
                         } else {
                             List<NcSoundingLayer> sls2 = new ArrayList<>();
-                            sls2 = ms.mergeUairSounding("-1", ttaa, ttbb, ttcc,
-                                    ttdd, ppaa, ppbb, ppcc, ppdd, trop_a,
-                                    trop_c, wmax_a, wmax_c,
-                                    pf.getStationElevation());
+                            sls2 = ms
+                                    .mergeUairSounding("-1", ttaa, ttbb, ttcc,
+                                            ttdd, ppaa, ppbb, ppcc, ppdd,
+                                            trop_a, trop_c, wmax_a, wmax_c,
+                                            pf.getStationElevation(),
+                                            windInterpolation);
                             if (sls2 != null && sls2.size() > 0) {
                                 pf.setPw(NcSoundingTools.precip_water(sls2));
                             }
@@ -1272,6 +1274,7 @@ public class ObsSoundingQuery {
 
     public static NcSoundingCube handleNcuairDataRequest(
             SoundingServiceRequest request) {
+
         String[] refTimeStrLst = request.getRefTimeStrAry();
         if (refTimeStrLst == null)
             refTimeStrLst = QueryMiscTools
@@ -1285,7 +1288,8 @@ public class ObsSoundingQuery {
             List<NcSoundingProfile> soundingProfileList = ObsSoundingQuery
                     .processQueryReturnedNcUairData(uairRecordArrList,
                             request.isMerge(), request.getLevel(),
-                            request.isPwRequired());
+                            request.isPwRequired(),
+                            request.isWindInterpolation());
             NcSoundingCube cube = new NcSoundingCube();
             cube.setSoundingProfileList(soundingProfileList);
             cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
@@ -1297,6 +1301,7 @@ public class ObsSoundingQuery {
 
     public static NcSoundingCube handleBufruaDataRequest(
             SoundingServiceRequest request) {
+
         int arrLen = 0;
         SndQueryKeyType sndQuery;
         NcSoundingCube cube = new NcSoundingCube();
@@ -1395,7 +1400,8 @@ public class ObsSoundingQuery {
                             sndQuery);
                     sls = ms.mergeUairSounding(request.getLevel(), ttaa, ttbb,
                             ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a, trop_c,
-                            wmax_a, wmax_c, pf.getStationElevation());
+                            wmax_a, wmax_c, pf.getStationElevation(),
+                            request.isWindInterpolation());
 
                     if (request.getLevel().toUpperCase()
                             .equalsIgnoreCase("MAN"))

@@ -2,6 +2,7 @@ package gov.noaa.nws.ncep.viz.tools.imageProperties;
 
 import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
 import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
@@ -61,7 +62,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *                                      non-AbstractNatlCntrsResource resources
  *                                      (like GeoTiffResource's).
  * 05/26/2016   R17960     bsteffen     Search within IPowerLegend resources to find image resources.
- * 
+ * 10/20/2016   R20700     pmoyer       Implemented inclusion of AbstractNatlCntrsResource2 for
+ *                                      control activation.
  * </pre>
  * 
  * @author Q. Zhou
@@ -82,7 +84,7 @@ public class FadeDisplay extends ContributionItem {
     private Font font = new Font(Display.getCurrent(), "Monospace", 10,
             SWT.NORMAL);
 
-    private ArrayList<AbstractNatlCntrsResource<?, ?>> imageResources = null;
+    private ArrayList<AbstractVizResource<?, ?>> imageResources = null;
 
     private AbstractNcEditor activeDisp = null;
 
@@ -91,7 +93,7 @@ public class FadeDisplay extends ContributionItem {
      */
     public FadeDisplay() {
         super();
-        imageResources = new ArrayList<AbstractNatlCntrsResource<?, ?>>();
+        imageResources = new ArrayList<AbstractVizResource<?, ?>>();
         if (fadeKeyListener == null) {
             fadeKeyListener = new FadeHotKeyListener();
         }
@@ -126,10 +128,13 @@ public class FadeDisplay extends ContributionItem {
 
         btn0.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                for (AbstractNatlCntrsResource<?, ?> rsc : imageResources) {
-                    ImagingCapability imgCap = rsc
-                            .getCapability(ImagingCapability.class);
-                    imgCap.setBrightness(0);
+                for (AbstractVizResource<?, ?> rsc : imageResources) {
+                    if ((rsc instanceof AbstractNatlCntrsResource<?, ?>)
+                            || (rsc instanceof AbstractNatlCntrsResource2<?, ?>)) {
+                        ImagingCapability imgCap = rsc
+                                .getCapability(ImagingCapability.class);
+                        imgCap.setBrightness(0);
+                    }
                 }
                 scale.setEnabled(true);
                 scale.setSelection(0);
@@ -142,10 +147,13 @@ public class FadeDisplay extends ContributionItem {
         btn50.setFont(font);
         btn50.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                for (AbstractNatlCntrsResource<?, ?> rsc : imageResources) {
-                    ImagingCapability imgCap = rsc
-                            .getCapability(ImagingCapability.class);
-                    imgCap.setBrightness(100 / 100.0f);
+                for (AbstractVizResource<?, ?> rsc : imageResources) {
+                    if ((rsc instanceof AbstractNatlCntrsResource<?, ?>)
+                            || (rsc instanceof AbstractNatlCntrsResource2<?, ?>)) {
+                        ImagingCapability imgCap = rsc
+                                .getCapability(ImagingCapability.class);
+                        imgCap.setBrightness(100 / 100.0f);
+                    }
                 }
                 scale.setEnabled(true);
                 scale.setSelection(100);
@@ -166,10 +174,13 @@ public class FadeDisplay extends ContributionItem {
                 if (imageResources == null) {
                     return;
                 }
-                for (AbstractNatlCntrsResource<?, ?> imgRsc : imageResources) {
-                    ImagingCapability imgCap = imgRsc
-                            .getCapability(ImagingCapability.class);
-                    imgCap.setBrightness(scale.getSelection() / 100.0f);
+                for (AbstractVizResource<?, ?> imgRsc : imageResources) {
+                    if ((imgRsc instanceof AbstractNatlCntrsResource<?, ?>)
+                            || (imgRsc instanceof AbstractNatlCntrsResource2<?, ?>)) {
+                        ImagingCapability imgCap = imgRsc
+                                .getCapability(ImagingCapability.class);
+                        imgCap.setBrightness(scale.getSelection() / 100.0f);
+                    }
                 }
                 activeDisp.refresh();
             }
@@ -226,13 +237,16 @@ public class FadeDisplay extends ContributionItem {
             // TODO : It is possible that a rsc has no image and so there may
             // not be a conflict. Or there may not be an image for the first
             // frame.
-            for (AbstractNatlCntrsResource<?, ?> imgRsc : imageResources) {
-                ImagingCapability imgCap = imgRsc
-                        .getCapability(ImagingCapability.class);
-                if (brightness != (int) (imgCap.getBrightness() * 100f)) {
-                    brightness = -1;
-                    scale.setToolTipText("Fade disabled due to multiple images with different brightnesses.");
-                    break;
+            for (AbstractVizResource<?, ?> imgRsc : imageResources) {
+                if ((imgRsc instanceof AbstractNatlCntrsResource<?, ?>)
+                        || (imgRsc instanceof AbstractNatlCntrsResource2<?, ?>)) {
+                    ImagingCapability imgCap = imgRsc
+                            .getCapability(ImagingCapability.class);
+                    if (brightness != (int) (imgCap.getBrightness() * 100f)) {
+                        brightness = -1;
+                        scale.setToolTipText("Fade disabled due to multiple images with different brightnesses.");
+                        break;
+                    }
                 }
             }
         } else {
@@ -253,9 +267,9 @@ public class FadeDisplay extends ContributionItem {
         }
     }
 
-    private static List<AbstractNatlCntrsResource<?, ?>> getImageResources(
+    private static List<AbstractVizResource<?, ?>> getImageResources(
             ResourceList list) {
-        List<AbstractNatlCntrsResource<?, ?>> imageResources = new ArrayList<>();
+        List<AbstractVizResource<?, ?>> imageResources = new ArrayList<>();
         for (ResourcePair rp : list) {
             if (rp.getProperties().isSystemResource()) {
                 continue;
@@ -265,6 +279,11 @@ public class FadeDisplay extends ContributionItem {
                 if (resource.hasCapability(ImagingCapability.class)) {
                     imageResources
                             .add((AbstractNatlCntrsResource<?, ?>) resource);
+                }
+            } else if (resource instanceof AbstractNatlCntrsResource2<?, ?>) {
+                if (resource.hasCapability(ImagingCapability.class)) {
+                    imageResources
+                            .add((AbstractNatlCntrsResource2<?, ?>) resource);
                 }
             } else if (resource instanceof IPowerLegend) {
                 imageResources

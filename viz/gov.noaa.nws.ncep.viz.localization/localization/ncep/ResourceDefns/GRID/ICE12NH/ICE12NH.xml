@@ -10,7 +10,6 @@
     <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
     <dfltFrameCount>999</dfltFrameCount>
     <dfltTimeRange>384</dfltTimeRange>
-    <isEnabled>false</isEnabled> 
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
     <resourceParameters>
 pluginName=grid

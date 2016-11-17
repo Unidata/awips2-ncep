@@ -33,8 +33,9 @@ import com.raytheon.uf.common.time.DataTime;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
+ * 07/20/2016    R15950     J. Huber    Added Snowfall, AirTemperatureTenths, and DewPointTempTenths
  * 08/24/2016    R18194    RReynolds    Added Ceiling parameters
- * 07/20/2016    R15950      J.Huber    Added Snowfall, AirTemperatureTenths, and DewPointTempTenths
+ * 11/17/2016    R26156     J. Huber    Added CloudFractionMax and CloudFractionMaxLowMidLayer  
  * 12/13/2016    R27046    S.Russell    Added PackedWindSpeedAndDirection
  * 
  * </pre>
@@ -141,6 +142,10 @@ public class MetParameterFactory {
             ncParamsMap.put(CloudBase2.class.getSimpleName(), new CloudBase2());
             ncParamsMap.put(CloudFractionInLayer.class.getSimpleName(),
                     new CloudFractionInLayer());
+            ncParamsMap.put(CloudFractionMax.class.getSimpleName(),
+                    new CloudFractionMax());
+            ncParamsMap.put(CloudFractionMaxLowMidLayer.class.getSimpleName(),
+                    new CloudFractionMaxLowMidLayer());
             ncParamsMap.put(CloudWater.class.getSimpleName(), new CloudWater());
             ncParamsMap.put(CloudTop1.class.getSimpleName(), new CloudTop1());
             ncParamsMap.put(CloudTop2.class.getSimpleName(), new CloudTop2());

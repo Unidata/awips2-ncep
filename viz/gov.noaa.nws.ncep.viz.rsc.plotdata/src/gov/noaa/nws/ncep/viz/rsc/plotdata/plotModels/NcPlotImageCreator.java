@@ -75,7 +75,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  * 06/17/2014    923         S. Russell   altered method setUpSymbolMappingTables()
  * 06/17/2014    923         S. Russell   altered method createRenderableData()
  * 07/08/2014    TTR1027     B. Hebbard   Force createRenderableData to recreate wind vectors each time.
- * Aug 08, 2014  3477        bclement     changed plot info locations to floats
+ * 08/08/2014    3477        bclement     changed plot info locations to floats
  * 09/10/2014    R4230       S. Russell   Fix wind barb/brbk menu option in plot model dialog box
  * 11/03/2014    R4830       S. Russell   Added elements to presWxSymbolNames
  * 11/03/2014    R5156       B. Hebbard   Allow use of system fonts in addition to file-based 3
@@ -84,14 +84,15 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                        (instead of NcPlotDataRequestor) for better frame status tracking; other cleanups.
  * 11/17/2015    R9579       B. Hebbard   Add support for MARK (marker) symbol parameter; various cleanups
  * 12/17/2015    R9579       B. Hebbard   Fix PTND regression preventing symbol draw; prevent NPE on null lookupTable return
- * 11/05/2015    5070         randerso    Adjust font sizes for dpi scaling
+ * 11/05/2015    5070        randerso     Adjust font sizes for dpi scaling
  * 04/18/2016    R17315      J. Beck      Fix Exception on startup coming from removeSign(). Fix logic in removeSign().Added Bruce's comments to removeSign().
  *                                        Added statusHandler wrapper -- problemHandler(), to make distinct error messages programmatically.
  * 11/07/2016    R23252      S. Russell   Updated createOneVector() to support
  *                                        Vector wind arrows with OPEN 
  *                                        arrowheads and support plotMode
  *                                        "arrows"
- * 
+ * 11/09/2016    R26156      S. Russell   update createOneVector() to handle
+ *                                        the special case of parameter DARR
  * 
  * </pre>
  */
@@ -543,12 +544,15 @@ public class NcPlotImageCreator {
                 Collection<Station> stnColl, String plotUnit, double symbolSize,
                 RGB rgb, String metPrm1, String metPrm2, PlotModelElement pme,
                 boolean directionOnly, boolean directionReverse,
-                String plotmode) {
+                String plotmode, String paramname) {
+
             Tracer.print("> Entry " + Tracer.shortTimeString(this.dataTime)
                     + " with " + stnColl.size() + " stations" + " metPrm1 "
                     + metPrm1 + " metPrm2 " + metPrm2);
+
             mapDescriptor = NcDisplayMngr.getActiveNatlCntrsEditor()
                     .getActiveDisplayPane().getDescriptor();
+
             synchronized (stnColl) {
                 Tracer.printX(Tracer.shortTimeString(this.dataTime)
                         + " Still have " + stnColl.size()
@@ -583,7 +587,8 @@ public class NcPlotImageCreator {
                                 vector = createOneVector(vectorParam1,
                                         vectorParam2, plotUnit, symbolSize, rgb,
                                         stationWorldLoc, directionReverse,
-                                        plotmode);
+                                        plotmode, paramname);
+
                             }
                             if (vector != null) {
                                 Tracer.printX(Tracer.shortTimeString(
@@ -636,11 +641,13 @@ public class NcPlotImageCreator {
         private IVector createOneVector(AbstractMetParameter metParam1,
                 AbstractMetParameter metParam2, String plotUnit,
                 double symbolSize, RGB rgb, double[] stationLoc,
-                boolean directionReverse, String plotmode) {
+
+                boolean directionReverse, String plotmode, String paramname) {
 
             Tracer.printX("> Entry");
             AbstractMetParameter speed = null, direction = null;
             Vector vector = null;
+            ArrowHead.ArrowHeadType arrowHeadType = ArrowHead.ArrowHeadType.FILLED;
 
             if (metParam1 instanceof Angle) {
                 direction = metParam1;
@@ -665,6 +672,18 @@ public class NcPlotImageCreator {
 
                 if (plotmode.equalsIgnoreCase(
                         PlotParameterDefn.PLOT_MODE_DIRECTIONAL)) {
+
+                    // TODO: A more elegant way of accommodating the special
+                    // case of DARR should be found. Directional arrows
+                    // usually have FILLED arrowheads, but NMAP is inconsistent
+                    // in regards to DARR, which is a directional arrow. NMAP
+                    // renders DARR with OPEN arrowheads, so this hackish method
+                    // is done here to make CAVE match NMAP while making a
+                    // deadline.
+                    if (paramname.equalsIgnoreCase("DARR")) {
+                        arrowHeadType = ArrowHead.ArrowHeadType.OPEN;
+                    }
+
                     // Directional arrow.
                     // Always the same size arrows
                     // Only indicates direction
@@ -696,8 +715,7 @@ public class NcPlotImageCreator {
                                 symbolSize * 2.60, false,
                                 new Coordinate(stationLoc[0], stationLoc[1]),
                                 VectorType.ARROW, dSpeed, dDirection, 0.9, true,
-                                "Vector", "Arrow");
-
+                                "Vector", "Arrow", arrowHeadType);
                     }
                 } else if (plotmode
                         .equalsIgnoreCase(PlotParameterDefn.PLOT_MODE_BARB)) {
@@ -725,6 +743,8 @@ public class NcPlotImageCreator {
                     // AND speed. Faster vectors are longer arrows, slower
                     // vectors are shorter arrows.
 
+                    arrowHeadType = ArrowHead.ArrowHeadType.OPEN;
+
                     Number nSpeed = null;
                     double dSpeed = 1.0d;
 
@@ -745,8 +765,7 @@ public class NcPlotImageCreator {
                                 symbolSize * 1.28, false,
                                 new Coordinate(stationLoc[0], stationLoc[1]),
                                 VectorType.ARROW, dSpeed, dDirection, 0.9,
-                                false, "VECTOR", "Arrow",
-                                ArrowHead.ArrowHeadType.OPEN);
+                                false, "VECTOR", "Arrow", arrowHeadType);
                     }
                 }
 
@@ -1257,6 +1276,7 @@ public class NcPlotImageCreator {
                         metPrm2 = vectorPrmNames[1];
                     }
                     Double d = pme.getSymbolSize();
+                    String paramname = pme.getParamName();
                     double symbolSize = (d == null ? 1.0 : d.doubleValue());
                     boolean directionOnly = plotParamDefn.getPlotMode()
                             .equals(PlotParameterDefn.PLOT_MODE_DIRECTIONAL);
@@ -1268,7 +1288,7 @@ public class NcPlotImageCreator {
                     createVectors(vectorCoordinatesToVectorsMap, stnColl,
                             plotParamDefn.getPlotUnit(), symbolSize, pmeColor,
                             metPrm1, metPrm2, pme, directionOnly,
-                            directionReverse, plotmode);
+                            directionReverse, plotmode, paramname);
                 }
 
                 if (drawSymbol) {

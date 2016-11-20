@@ -26,7 +26,6 @@ C* K. Tyle/GSC		12/96	Replace IESTAT with call to ER_STAT;	*
 C*				added ER_INIT call			*
 C* R. Tian/SAIC		 1/04	Added GD_INIT call			*
 C* T. Piper/SAIC	12/07	Removed GD_INIT				*
-C* T. Lee/NCEP		 4/10	Write error message to buffer		*
 C************************************************************************
 	INCLUDE		'GEMPRM.PRM'
 	INCLUDE		'GMBDTA.CMN'
@@ -88,7 +87,7 @@ C
 C
 C*	Initialize ERCMN.CMN and ERCMN.H files.
 C
-	CALL ER_STAT ( 0, 1, .false., iret )
+	CALL ER_STAT ( 0, 0, .false., iret )
 	CALL ER_INIT ( iret )
 C*
  	RETURN

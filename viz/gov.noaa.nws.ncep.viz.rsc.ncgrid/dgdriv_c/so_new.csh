@@ -14,10 +14,11 @@
 # 5. Deploy the SL and add the path, e.g., AWIPS2/lib, to LD_LIBRARY_PATH 
 #    (in ~/.alias)
 #
+. ~/GEMPAK7/Gemenviron.profile
 
-$RM *.o *.so
+rm *.o *.so
 
-set myLinkflags = "-L/usr/lib/gcc/i386-redhat-linux/3.4.6/ -shared -Wl,-soname,libgempak.so -o libgdtest.so"
+set myLinkflags = "-L/usr/lib/gcc/x86_64-redhat-linux/4.8.2/ -shared -Wl,-soname,libgempak.so -o libgdtest.so"
 set myLinktail = "-lg2c -lc"
 
 #

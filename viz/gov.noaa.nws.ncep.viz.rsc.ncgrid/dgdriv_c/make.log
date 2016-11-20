@@ -1,0 +1,5233 @@
+cflscandir.c: In function ‘cfl_scandir’:
+cflscandir.c:88:4: warning: passing argument 4 of ‘scandir’ from incompatible pointer type [enabled by default]
+    n_entries = scandir(_cflrdirPath, namelist, filter, compar);
+    ^
+In file included from geminc.h:24:0,
+                 from cflscandir.c:1:
+/usr/include/dirent.h:255:12: note: expected ‘int (*)(const struct dirent **, const struct dirent **)’ but argument is of type ‘int (*)(const void *, const void *)’
+ extern int scandir (const char *__restrict __dir,
+            ^
+dbgfilenames.c: In function ‘db_gFileNames’:
+dbgfilenames.c:52:5: warning: passing argument 1 of ‘cst_clst’ discards ‘const’ qualifier from pointer target type [enabled by default]
+     cst_clst (dir, '_', " ", max_number_components, max_component_length, starr, &istmax, &ier);
+     ^
+In file included from proto.h:20:0,
+                 from gemprm.h:621,
+                 from dbgfilenames.c:2:
+proto_cgemlib.h:1606:6: note: expected ‘char *’ but argument is of type ‘const char *’
+ void cst_clst (  char *instr,
+      ^
+dbseta2dtinfo.c: In function ‘db_seta2dtinfo’:
+dbseta2dtinfo.c:37:5: warning: passing argument 1 of ‘cst_clst’ discards ‘const’ qualifier from pointer target type [enabled by default]
+     cst_clst (alias, '|', " ", max_number_alias, max_alias_length, starra, &istmaxa, &ier);
+     ^
+In file included from proto.h:20:0,
+                 from gemprm.h:621,
+                 from dbseta2dtinfo.c:2:
+proto_cgemlib.h:1606:6: note: expected ‘char *’ but argument is of type ‘const char *’
+ void cst_clst (  char *instr,
+      ^
+dbseta2dtinfo.c:38:5: warning: passing argument 1 of ‘cst_clst’ discards ‘const’ qualifier from pointer target type [enabled by default]
+     cst_clst (path, '|', " ", max_number_path, max_path_length, starrp, &istmaxp, &ier);
+     ^
+In file included from proto.h:20:0,
+                 from gemprm.h:621,
+                 from dbseta2dtinfo.c:2:
+proto_cgemlib.h:1606:6: note: expected ‘char *’ but argument is of type ‘const char *’
+ void cst_clst (  char *instr,
+      ^
+dbseta2dtinfo.c:39:5: warning: passing argument 1 of ‘cst_clst’ discards ‘const’ qualifier from pointer target type [enabled by default]
+     cst_clst (template, '|', " ", max_number_template, max_template_length, starrt, &istmaxt, &ier);
+     ^
+In file included from proto.h:20:0,
+                 from gemprm.h:621,
+                 from dbseta2dtinfo.c:2:
+proto_cgemlib.h:1606:6: note: expected ‘char *’ but argument is of type ‘const char *’
+ void cst_clst (  char *instr,
+      ^
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbensm1.f:16:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetcycle.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetensmbrs.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetevtname.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+dbgetgarea.f:2.44:
+
+     +                           garea, iret )                          
+                                            1
+Warning: Unused dummy argument 'iret' at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetnavtime.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbgetparm.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinfo.f:21:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbinit.f:18:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbisdbfile.f:21:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetdatasrc.f:22:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetensmbrs.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetevtname.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dbsetnavtime.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmchkf.f:21:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmcsrc.f:29:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+dmcsrc.f:60.72:
+
+               dbstns(stnindx+istn) = astnstr(1)                        
+                                                                        1
+Warning: CHARACTER expression will be truncated in assignment (6/10) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmdcsr.f:22:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetf.f:19:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgetgnav.f:32:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+dmgetgnav.f:89.72:
+
+        proj = gridnav(1)                                               
+                                                                        1
+Warning: CHARACTER expression will be truncated in assignment (3/60) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmgtim.f:29:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlssf.f:44:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmlstn.f:39:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmltim.f:25:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmnext.f:24:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+dmnext.f:64.72:
+
+                    dbtimes(itim)= timlist(itim)                        
+                                                                        1
+Warning: CHARACTER expression will be truncated in assignment (20/21) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmopen.f:45:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpart.f:31:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmpsrc.f:27:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrclh.f:24:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrdtr.f:36:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrfhr.f:33:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmrlbl.f:30:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at dmsrch.f:29:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+dmsrch.f:193.72:
+
+               dbstid = astnstr(1)                                      
+                                                                        1
+Warning: CHARACTER expression will be truncated in assignment (6/10) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at erlmsg.f:38:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at ermmsg.f:54:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+ermmsg.f:64.24:
+
+      PARAMETER ( CRLF = CHCR // CHLF )                                 
+                        1
+Error: Parameter 'chcr' at (1) has not been declared or is a variable, which does not reduce to a constant expression
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at erwmsg.f:41:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdaddt.f:22:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgcyc.f:29:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdgtmf.f:38:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdinit.f:20:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdofil.f:44:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdopen.f:39:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdrdat.f:39:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at gdsrtt.f:21:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at ggsdev.f:38:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at grsscl.f:48:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+grsscl.f:85.19:
+
+           irlog = -rlog                                                
+                   1
+Warning: Possible change of value in conversion from REAL(4) to INTEGER(4) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at inbdta.f:31:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcabnd.f:62:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at lcgare.f:30:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at pcinit.f:32:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:37.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHNULL = '00'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:39.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHCTLA = '01'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:41.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHCTLC = '03'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:43.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHTAB  = '09'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:45.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHLF   = '0A'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:47.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHFF   = '0C'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:49.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHCR   = '0D'X)                                       
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:51.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHCAN  = '18'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:53.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHESC  = '1B'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:55.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHFS   = '1C'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:57.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHGS   = '1D'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:59.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHRS   = '1E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:61.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHUS   = '1F'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:63.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHSPAC = '20'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+MCHPRM.PRM:65.26:
+    Included at GEMPRM.PRM:21:
+    Included at tester.f:16:
+
+      PARAMETER ( CHTLDA = '7E'X )                                      
+                          1
+Error: Can't convert INTEGER(16) to CHARACTER(1) at (1)
+
+gcc  -I. -I/home/awips/NAWIPS/gempak/source/diaglib/dg -I/home/awips/NAWIPS/gempak/source/gemlib/er -DDEBUG -c -fPIC *.c
+
+gfortran -I. -I/home/awips/NAWIPS/os/linux64/include -I/home/awips/NAWIPS/gempak/include -fPIC -g -c -Wall -Wtabs -fno-second-underscore *.f
+
+gcc -L/usr/lib/gcc/x86_64-redhat-linux/4.8.2/ -shared -Wl,-soname,libgempak.so -o libgdtest.so *.o -I/home/awips/NAWIPS/os/linux64/include -I/home/awips/NAWIPS/gempak/include -I.  /home/awips/NAWIPS/os/linux64/lib/ginitp_alt.o /home/awips/NAWIPS/os/linux64/lib/gendp_alt.o /home/awips/NAWIPS/os/linux64/lib/libsflist.a /home/awips/NAWIPS/os/linux64/lib/libgdlist.a /home/awips/NAWIPS/os/linux64/lib/libgemlib.a /home/awips/NAWIPS/os/linux64/lib/libgplt.a /home/awips/NAWIPS/os/linux64/lib/libdevice.a /home/awips/NAWIPS/os/linux64/lib/libgn.a /home/awips/NAWIPS/os/linux64/lib/libcgemlib.a /home/awips/NAWIPS/os/linux64/lib/libgemlib.a /usr/lib64/libnetcdf.so.7 /home/awips/NAWIPS/os/linux64/lib/libtextlib.a /usr/lib64/libxslt.so.1 /usr/lib64/libxml2.so /usr/lib64/libz.so /home/awips/NAWIPS/os/linux64/lib/libbz2.a /usr/lib64/libg2c.so.0 -lc

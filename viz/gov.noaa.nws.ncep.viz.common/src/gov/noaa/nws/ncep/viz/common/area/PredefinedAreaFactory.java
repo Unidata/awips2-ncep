@@ -52,6 +52,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 04/16/13       #863      Greg Hull    read menus table. 
  * 04/18/13       #863      Greg Hull    change key to be the areaName.
  * 05/07/13       #862      Greg Hull 	 Area Source ; change name from PredefinedAreasMngr
+ * 10/17/16       ----      M. James     call readPredefinedAreas from getDefaultPredefinedAreaForDisplayType
  * 
  * </pre>
  * 
@@ -87,7 +88,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
     // could be changed in the future to allow for NonMap NTRANS and
     // for SWPC displays to have more than the 1 default area.
     //
-    private void readPredefinedAreas() throws VizException {
+    private static void readPredefinedAreas() throws VizException {
 
         // only null the first time. Empty if read and error.
         if (predefinedAreasMap == null) {
@@ -212,6 +213,7 @@ public class PredefinedAreaFactory implements INcAreaProviderFactory {
     // //
     public static PredefinedArea getDefaultPredefinedAreaForDisplayType(
             NcDisplayType dt) throws VizException {
+    	readPredefinedAreas();
         switch (dt) {
         case NMAP_DISPLAY:
             return getPredefinedArea(dt.getDefaultMap());

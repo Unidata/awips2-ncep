@@ -20,15 +20,4 @@
        </handler> 
    </extension>
       
-   <extension
-          point="com.raytheon.uf.viz.localization.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="COMMON_STATIC"
-             name="remoteScripts"
-             recursive="false"
-             value="ncep/remoteScripts"
-	         >
-       </path>
-   </extension>
 </plugin>

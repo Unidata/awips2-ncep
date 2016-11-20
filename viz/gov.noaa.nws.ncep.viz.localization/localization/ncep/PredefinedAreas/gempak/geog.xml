@@ -21,30 +21,6 @@
 
 <!--
      <geographical_data>
-          <geog_code>SHM</geog_code>
-          <geog_area_name>SOUTHERN_HEMISPHERE</geog_area_name>
-          <center_lat>-89.50</center_lat>
-          <center_lon>-142</center_lon>
-          <lower_left_lat>30.00</lower_left_lat>
-          <lower_left_lon>88.00</lower_left_lon>
-          <upper_right_lat>30.00</upper_right_lat>
-          <upper_right_lon>-92.00</upper_right_lon>
-          <map_projection_string> STR/-90;-142</map_projection_string>
-     </geographical_data> 
-
-     <geographical_data>
-          <geog_code>105</geog_code>
-          <geog_area_name>GRID 105          </geog_area_name>
-          <center_lat>35.65</center_lat>
-          <center_lon>-105.00</center_lon>
-          <lower_left_lat>17.52</lower_left_lat>
-          <lower_left_lon>-129.30</lower_left_lon>
-          <upper_right_lat>53.78</upper_right_lat>
-          <upper_right_lon>-22.37</upper_right_lon>
-          <map_projection_string> STR/90;-105;0</map_projection_string>
-     </geographical_data>
-
-     <geographical_data>
           <geog_code>LOCAL</geog_code>
           <geog_area_name>LOCAL AREA        </geog_area_name>
           <center_lat>38.50</center_lat>
@@ -55,7 +31,7 @@
           <upper_right_lon>-64.00</upper_right_lon>
           <map_projection_string> STR/90;-78;-7</map_projection_string>
      </geographical_data>
--->
+     
      <geographical_data>
           <geog_code>TROPSFC</geog_code>
           <geog_area_name>TROPICAL SURFACE  </geog_area_name>
@@ -67,19 +43,7 @@
           <upper_right_lon>-55.00</upper_right_lon>
           <map_projection_string> MER</map_projection_string>
      </geographical_data>
-<!--
-     <geographical_data>
-          <geog_code>EPACSFC</geog_code>
-          <geog_area_name>EPAC SURFACE      </geog_area_name>
-          <center_lat>0.00</center_lat>
-          <center_lon>0.00</center_lon>
-          <lower_left_lat>-20.00</lower_left_lat>
-          <lower_left_lon>-155.00</lower_left_lon>
-          <upper_right_lat>33.00</upper_right_lat>
-          <upper_right_lon>-75.00</upper_right_lon>
-          <map_projection_string> MER</map_projection_string>
-     </geographical_data>
-
+     
      <geographical_data>
           <geog_code>OFAGX</geog_code>
           <geog_area_name>OFAGX             </geog_area_name>
@@ -91,43 +55,6 @@
           <upper_right_lon>-80.00</upper_right_lon>
           <map_projection_string> MER</map_projection_string>
      </geographical_data>
--->
-     <geographical_data>
-          <geog_code>AHSF</geog_code>
-          <geog_area_name>ATLC HIGH SEAS    </geog_area_name>
-          <center_lat>0.00</center_lat>
-          <center_lon>0.00</center_lon>
-          <lower_left_lat>-5.00</lower_left_lat>
-          <lower_left_lon>-105.00</lower_left_lon>
-          <upper_right_lat>35.00</upper_right_lat>
-          <upper_right_lon>-30.00</upper_right_lon>
-          <map_projection_string> MER</map_projection_string>
-     </geographical_data>
-
-     <geographical_data>
-          <geog_code>EHSF</geog_code>
-          <geog_area_name>EPAC HIGH SEAS    </geog_area_name>
-          <center_lat>0.00</center_lat>
-          <center_lon>0.00</center_lon>
-          <lower_left_lat>-5.00</lower_left_lat>
-          <lower_left_lon>-145.00</lower_left_lon>
-          <upper_right_lat>35.00</upper_right_lat>
-          <upper_right_lon>-75.00</upper_right_lon>
-          <map_projection_string> MER</map_projection_string>
-     </geographical_data>
- 
-     <geographical_data>
-          <geog_code>SHSF</geog_code>
-          <geog_area_name>SPAC HIGH SEAS    </geog_area_name>
-          <center_lat>0.00</center_lat>
-          <center_lon>0.00</center_lon>
-          <lower_left_lat>-20.00</lower_left_lat>
-          <lower_left_lon>-125.00</lower_left_lon>
-          <upper_right_lat>5.00</upper_right_lat>
-          <upper_right_lon>-75.00</upper_right_lon>
-          <map_projection_string> MER</map_projection_string>
-     </geographical_data>
-<!-- 
      <geographical_data>
           <geog_code>TROPFUL</geog_code>
           <geog_area_name>TROPICAL SFC MAP  </geog_area_name>
@@ -787,7 +714,6 @@
           <upper_right_lon>-160.00</upper_right_lon>
           <map_projection_string> MER//NM</map_projection_string>
      </geographical_data>
--->
      <geographical_data>
           <geog_code>ICAO_A</geog_code>
           <geog_area_name>ICAO MERC AREA A  </geog_area_name>
@@ -991,7 +917,7 @@
           <upper_right_lon>60.30</upper_right_lon>
           <map_projection_string> STR/90;-20;0/NM</map_projection_string>
      </geographical_data>
-<!--
+     
      <geographical_data>
           <geog_code>NHEM</geog_code>
           <geog_area_name>N HEMISPHERE 90W  </geog_area_name>
@@ -1243,7 +1169,6 @@
           <upper_right_lon>-15.00</upper_right_lon>
           <map_projection_string> MER</map_projection_string>
      </geographical_data>
--->
      <geographical_data>
           <geog_code>US</geog_code>
           <geog_area_name>UNITED STATES     </geog_area_name>
@@ -1267,7 +1192,7 @@
           <upper_right_lon>-63.90</upper_right_lon>
           <map_projection_string> STR/90;-97;0</map_projection_string>
      </geographical_data>
-<!-- 
+
      <geographical_data>
           <geog_code>AFUS</geog_code>
           <geog_area_name>AFOS US           </geog_area_name>

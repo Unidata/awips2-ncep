@@ -1363,11 +1363,12 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
         importRbdButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                importRBD();
-            }
+        	@Override
+        	public void widgetSelected(SelectionEvent ev) {
+        		importRBD();
+        	}
         });
+
 
         importPaneButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -2232,17 +2233,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             VizApp.runSync(rbdLoader);
 
-            // They aren't going to like this if there is an error loading....
-
-            // update the "Import RBD" list once a new RBD is loaded.
-            // after the rbdLoader starts, if the close flag is false, update
-            // the import_rbd_combo.
             if (close) {
                 shell.dispose();
             } else {
-                importRbdButton.setText(editor.getPartName());
                 rbdMngr.setRbdModified(false);
-                importRBD();
             }
 
         } catch (VizException e) {

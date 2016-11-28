@@ -8,12 +8,6 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenSession;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-
 import java.awt.Color;
 import java.util.HashMap;
 
@@ -41,24 +35,32 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenSession;
+import gov.noaa.nws.ncep.ui.pgen.display.ArrowHead;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+
 /**
  * Singleton attribute dialog for text.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 05/09		#111		J. Wu   	Initial Creation.
- * 09/09		#149		B. Yin		Added check boxes for multi-selection
+ * Date         Ticket#     Engineer    Description
+ * ------------ ---------   ----------- --------------------------
+ * 05/09        #111        J. Wu       Initial Creation.
+ * 09/09        #149        B. Yin      Added check boxes for multi-selection
  * 03/10        #231        Archana     Altered the dialog for the vector attribute
  *                                      to show only a button showing the 
  *                                      selected color instead of displaying 
  *                                      the complete color matrix.
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 03/13		#928		B. Yin 		Added a separator above the button bar.
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 03/13        #928        B. Yin      Added a separator above the button bar.
  * 08/15        R8188       J. Lopez    Changed rotation of Hash Mark to match legacy
- * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 09/29/2015   R1283       J. Wu       Fix direction-change when moving hash marks.
  * 03/03/2016   #13557      J. Beck     Set keyboard focus to wind speed text field for Wind Barb and Wind Arrow
+ * 11/07/2016   R23252      S. Russell  Added method getArrowHeadType()
  * 
  * </pre>
  * 
@@ -67,7 +69,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 public class VectorAttrDlg extends AttrDlg implements IVector {
 
-    private static final transient IUFStatusHandler statusHandler = UFStatus.getHandler(VectorAttrDlg.class);
+    private static final transient IUFStatusHandler statusHandler = UFStatus
+            .getHandler(VectorAttrDlg.class);
 
     private static final String HASH = "Hash";
 
@@ -87,7 +90,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
     // Vector drawing tool attributes
 
-    // Color attribute is a single color block that activates a colorSelector when clicked
+    // Color attribute is a single color block that activates a colorSelector
+    // when clicked
     private Label colorLabel;
 
     private ColorButtonSelector colorSelector = null;
@@ -134,8 +138,11 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
     protected Text arrowheadSizeText = null;
 
+    protected ArrowHead.ArrowHeadType arrowHeadType = ArrowHead.ArrowHeadType.FILLED;
+
     // Check boxes are for instances when multi-selection is used.
-    // These check boxes appear on the leftmost column of the dialog, one check box for each attribute.
+    // These check boxes appear on the leftmost column of the dialog, one check
+    // box for each attribute.
     // Not all dialogs and tools use the check boxes, but some do.
     private Button checkBox[];
 
@@ -171,7 +178,9 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     /*
      * (non-Javadoc) Creates the dialog area.
      * 
-     * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+     * @see
+     * org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets
+     * .Composite)
      */
     @Override
     public Control createDialogArea(Composite parent) {
@@ -222,7 +231,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
             // Only the first color is used at this time.
             Color[] colors = new Color[1];
 
-            colors[0] = new java.awt.Color(colorSelector.getColorValue().red, colorSelector.getColorValue().green,
+            colors[0] = new java.awt.Color(colorSelector.getColorValue().red,
+                    colorSelector.getColorValue().green,
                     colorSelector.getColorValue().blue);
 
             return colors;
@@ -238,7 +248,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void setColor(Color clr) {
 
-        colorSelector.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
+        colorSelector.setColorValue(
+                new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
     }
 
     /**
@@ -251,7 +262,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     }
 
     /**
-     * Gets the wind direction. North is considered 0 degrees and direction increases clockwise.
+     * Gets the wind direction. North is considered 0 degrees and direction
+     * increases clockwise.
      * 
      * @return the direction from which the wind is blowing
      */
@@ -274,15 +286,15 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
             Double speed = Double.valueOf(0);
 
             /*
-             * if speedText field is empty or not well formed, an exception will be thrown. We will catch it and set the
-             * speed of zero KPH
+             * if speedText field is empty or not well formed, an exception will
+             * be thrown. We will catch it and set the speed of zero KPH
              */
             try {
                 speed = Double.valueOf(speedText.getText());
             } catch (NumberFormatException e) {
 
-                // speed is already set to 0 KPH, set the Text field
-                // when input cannot be parsed, we force the dialog to display a zero
+                // speed is already set to 0 KPH, set the Text field when input
+                // cannot be parsed, we force the dialog to display a zero
                 speedText.setText("0");
             }
 
@@ -333,7 +345,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     }
 
     /**
-     * Gets boolean flag indicating whether an arrow has speed and direction, or direction only.
+     * Gets boolean flag indicating whether an arrow has speed and direction, or
+     * direction only.
      * 
      * @return direction only flag
      */
@@ -453,7 +466,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     }
 
     /**
-     * Sets values for all attributes of the dialog, based on the type of vector.
+     * Sets values for all attributes of the dialog, based on the type of
+     * vector.
      */
     public void adjustAttrForDlg(String pgenType) {
 
@@ -461,8 +475,10 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
             this.getShell().setText("Wind Barb Attributes");
 
-            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, false);
-            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, true);
+            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText,
+                    arrowheadSizeSlider, false);
+            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider,
+                    true);
 
             speedSlider.setValues(100, 0, 405, 5, 5, 5);
             speedText.setText("100");
@@ -471,22 +487,27 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
             this.getShell().setText("Hash Attributes");
 
-            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, false);
-            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, false);
+            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText,
+                    arrowheadSizeSlider, false);
+            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider,
+                    false);
 
         } else if (pgenType.equalsIgnoreCase(DIRECTIONAL)) {
 
             this.getShell().setText("Directional Arrow Attributes");
 
-            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, false);
+            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider,
+                    false);
 
         } else if (pgenType.equalsIgnoreCase(ARROW)) {
 
             // it must be a wind arrow at this point
             this.getShell().setText("Wind Arrow Attributes");
 
-            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, true);
-            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, true);
+            setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText,
+                    arrowheadSizeSlider, true);
+            setAttributeComponentsEnabled(speedLabel, speedText, speedSlider,
+                    true);
 
             speedSlider.setValues(10, 0, 401, 1, 1, 1);
 
@@ -497,8 +518,9 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     }
 
     /**
-     * Checks whether or not the wind speed Text field is enabled. If enabled, we are drawing a vector that has a speed
-     * attribute (wind barb or wind arrow).
+     * Checks whether or not the wind speed Text field is enabled. If enabled,
+     * we are drawing a vector that has a speed attribute (wind barb or wind
+     * arrow).
      * 
      * @return true if enabled, false otherwise
      */
@@ -509,16 +531,18 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     /**
      * Sets focus on the wind speed Text field.
      * 
-     * Call this to keep keyboard focus on the speed text field. The user can type a speed value without mouse movement
-     * or clicking inside the Text field. The focus stays at the end of the text field so the user may easily edit the
-     * value, including using backspace key.
+     * Call this to keep keyboard focus on the speed text field. The user can
+     * type a speed value without mouse movement or clicking inside the Text
+     * field. The focus stays at the end of the text field so the user may
+     * easily edit the value, including using backspace key.
      * 
      * @param dialog
      *            the dialog box containing the speed text field
      */
     public void setSpeedTextFocus(AttrDlg dialog) {
 
-        if (dialog != null && dialog instanceof VectorAttrDlg && !speedText.isDisposed()) {
+        if (dialog != null && dialog instanceof VectorAttrDlg
+                && !speedText.isDisposed()) {
 
             speedText.setFocus();
             speedText.setSelection(speedText.getText().length());
@@ -526,8 +550,9 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     }
 
     /*
-     * Create UI widgets and handlers for each of the attributes in the the dialog box: Size, Line width, Arrowhead
-     * size, Color, Clear, Direction, and Speed.
+     * Create UI widgets and handlers for each of the attributes in the the
+     * dialog box: Size, Line width, Arrowhead size, Color, Clear, Direction,
+     * and Speed.
      */
 
     /**
@@ -535,26 +560,30 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createSizeAttr() {
         checkBox[Attributes.SIZE.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.SIZE.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.SIZE.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.SIZE.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.SIZE.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                // must implement all methods in super class
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                        // must implement all methods in super class
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    setAttributeComponentsEnabled(sizeLabel, sizeText, sizeSlider, true);
-                } else {
-                    setAttributeComponentsEnabled(sizeLabel, sizeText, sizeSlider, false);
-                }
-            }
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            setAttributeComponentsEnabled(sizeLabel, sizeText,
+                                    sizeSlider, true);
+                        } else {
+                            setAttributeComponentsEnabled(sizeLabel, sizeText,
+                                    sizeSlider, false);
+                        }
+                    }
 
-        });
+                });
 
         sizeLabel = new Label(top, SWT.LEFT);
         sizeLabel.setText("Size:");
@@ -584,10 +613,12 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
                         sizeSlider.setSelection((int) (value * 10));
                         sizeText.setToolTipText("");
                     } else {
-                        sizeText.setToolTipText("Only values between 0.1 and 10.0 are accepted.");
+                        sizeText.setToolTipText(
+                                "Only values between 0.1 and 10.0 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    sizeText.setToolTipText("Only values between 0.1 and 10.0 are accepted.");
+                    sizeText.setToolTipText(
+                            "Only values between 0.1 and 10.0 are accepted.");
                 }
             }
         });
@@ -598,26 +629,30 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createWidthAttr() {
         checkBox[Attributes.WIDTH.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.WIDTH.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.WIDTH.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.WIDTH.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.WIDTH.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                // must implement all methods in super class
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                        // must implement all methods in super class
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    setAttributeComponentsEnabled(widthLabel, widthText, widthSlider, true);
-                } else {
-                    setAttributeComponentsEnabled(widthLabel, widthText, widthSlider, false);
-                }
-            }
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            setAttributeComponentsEnabled(widthLabel, widthText,
+                                    widthSlider, true);
+                        } else {
+                            setAttributeComponentsEnabled(widthLabel, widthText,
+                                    widthSlider, false);
+                        }
+                    }
 
-        });
+                });
 
         widthLabel = new Label(top, SWT.LEFT);
         widthLabel.setText("Width:");
@@ -648,10 +683,12 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
                         widthSlider.setSelection(value);
                         widthText.setToolTipText("");
                     } else {
-                        widthText.setToolTipText("Only values between 1.0 and 10.0 are accepted.");
+                        widthText.setToolTipText(
+                                "Only values between 1.0 and 10.0 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    widthText.setToolTipText("Only values between 1.0 and 10.0 are accepted.");
+                    widthText.setToolTipText(
+                            "Only values between 1.0 and 10.0 are accepted.");
                 }
             }
         });
@@ -662,26 +699,32 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createHeadSizeAttr() {
         checkBox[Attributes.HEADSIZE.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.HEADSIZE.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.HEADSIZE.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.HEADSIZE.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.HEADSIZE.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                // must implement all methods in super class
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                        // must implement all methods in super class
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, true);
-                } else {
-                    setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, false);
-                }
-            }
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            setAttributeComponentsEnabled(arrowheadSizeLabel,
+                                    arrowheadSizeText, arrowheadSizeSlider,
+                                    true);
+                        } else {
+                            setAttributeComponentsEnabled(arrowheadSizeLabel,
+                                    arrowheadSizeText, arrowheadSizeSlider,
+                                    false);
+                        }
+                    }
 
-        });
+                });
 
         arrowheadSizeLabel = new Label(top, SWT.LEFT);
         arrowheadSizeLabel.setText("Head Size:");
@@ -694,7 +737,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
         arrowheadSizeSlider.setValues(10, 1, 101, 1, 1, 1);
         arrowheadSizeSlider.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                arrowheadSizeText.setText("" + arrowheadSizeSlider.getSelection() / 10.0);
+                arrowheadSizeText.setText(
+                        "" + arrowheadSizeSlider.getSelection() / 10.0);
             }
         });
 
@@ -711,10 +755,12 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
                         arrowheadSizeSlider.setSelection((int) (value * 10));
                         arrowheadSizeText.setToolTipText("");
                     } else {
-                        arrowheadSizeText.setToolTipText("Only values between 0.1 and 10.0 are accepted.");
+                        arrowheadSizeText.setToolTipText(
+                                "Only values between 0.1 and 10.0 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    arrowheadSizeText.setToolTipText("Only values between 0.1 and 10.0 are accepted.");
+                    arrowheadSizeText.setToolTipText(
+                            "Only values between 0.1 and 10.0 are accepted.");
                 }
             }
         });
@@ -726,25 +772,27 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createColorAttr() {
         checkBox[Attributes.COLOR.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.COLOR.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
-        checkBox[Attributes.COLOR.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.COLOR.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.COLOR.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                // must implement all methods in super class
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                        // must implement all methods in super class
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    colorLabel.setEnabled(true);
-                } else {
-                    colorLabel.setEnabled(false);
-                }
-            }
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            colorLabel.setEnabled(true);
+                        } else {
+                            colorLabel.setEnabled(false);
+                        }
+                    }
 
-        });
+                });
 
         colorLabel = new Label(top, SWT.LEFT);
         colorLabel.setText("Color:");
@@ -758,29 +806,31 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createClearAttr() {
         checkBox[Attributes.CLEAR.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.CLEAR.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.CLEAR.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.CLEAR.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.CLEAR.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    clearLabel.setEnabled(true);
-                    clearButton1.setEnabled(true);
-                    clearButton2.setEnabled(true);
-                } else {
-                    clearLabel.setEnabled(false);
-                    clearButton1.setEnabled(false);
-                    clearButton2.setEnabled(false);
-                }
-            }
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            clearLabel.setEnabled(true);
+                            clearButton1.setEnabled(true);
+                            clearButton2.setEnabled(true);
+                        } else {
+                            clearLabel.setEnabled(false);
+                            clearButton1.setEnabled(false);
+                            clearButton2.setEnabled(false);
+                        }
+                    }
 
-        });
+                });
 
         clearLabel = new Label(top, SWT.LEFT);
         clearLabel.setText("Clear:");
@@ -802,27 +852,31 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createDirectionAttr() {
         checkBox[Attributes.DIRECTION.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.DIRECTION.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.DIRECTION.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.DIRECTION.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.DIRECTION.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    setAttributeComponentsEnabled(directionLabel, directionText, directionSlider, true);
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            setAttributeComponentsEnabled(directionLabel,
+                                    directionText, directionSlider, true);
 
-                } else {
-                    setAttributeComponentsEnabled(directionLabel, directionText, directionSlider, false);
+                        } else {
+                            setAttributeComponentsEnabled(directionLabel,
+                                    directionText, directionSlider, false);
 
-                }
-            }
+                        }
+                    }
 
-        });
+                });
 
         directionLabel = new Label(top, SWT.LEFT);
         directionLabel.setText("Direction:");
@@ -852,10 +906,12 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
                         directionSlider.setSelection(value / 5 * 5);
                         directionText.setToolTipText("");
                     } else {
-                        directionText.setToolTipText("Only integer values between 0 and 360 are accepted.");
+                        directionText.setToolTipText(
+                                "Only integer values between 0 and 360 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    directionText.setToolTipText("Only integer values between 0 and 360 are accepted.");
+                    directionText.setToolTipText(
+                            "Only integer values between 0 and 360 are accepted.");
                 }
             }
         });
@@ -867,26 +923,30 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      */
     private void createSpeedAttr() {
         checkBox[Attributes.SPEED.ordinal()] = new Button(top, SWT.CHECK);
-        checkBox[Attributes.SPEED.ordinal()].setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
+        checkBox[Attributes.SPEED.ordinal()]
+                .setLayoutData(new GridData(CHK_WIDTH, CHK_HEIGHT));
 
-        checkBox[Attributes.SPEED.ordinal()].addSelectionListener(new SelectionListener() {
+        checkBox[Attributes.SPEED.ordinal()]
+                .addSelectionListener(new SelectionListener() {
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-            }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                    }
 
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                Button btn = (Button) e.widget;
-                if (btn.getSelection()) {
-                    setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, true);
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        Button btn = (Button) e.widget;
+                        if (btn.getSelection()) {
+                            setAttributeComponentsEnabled(speedLabel, speedText,
+                                    speedSlider, true);
 
-                } else {
-                    setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, false);
-                }
-            }
+                        } else {
+                            setAttributeComponentsEnabled(speedLabel, speedText,
+                                    speedSlider, false);
+                        }
+                    }
 
-        });
+                });
 
         speedLabel = new Label(top, SWT.LEFT);
         speedLabel.setText("Speed:");
@@ -900,7 +960,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
         speedSlider.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 int thumb = speedSlider.getThumb();
-                speedText.setText("" + (speedSlider.getSelection() / thumb) * thumb);
+                speedText.setText(
+                        "" + (speedSlider.getSelection() / thumb) * thumb);
             }
         });
 
@@ -917,10 +978,12 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
                         speedSlider.setSelection(value);
                         speedText.setToolTipText("");
                     } else {
-                        speedText.setToolTipText("Only integer values between 0 and 400 are accepted.");
+                        speedText.setToolTipText(
+                                "Only integer values between 0 and 400 are accepted.");
                     }
                 } catch (NumberFormatException e1) {
-                    speedText.setToolTipText("Only integer values between 0 and 400 are accepted.");
+                    speedText.setToolTipText(
+                            "Only integer values between 0 and 400 are accepted.");
                 }
             }
         });
@@ -936,7 +999,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
 
         this.create();
 
-        if (PgenSession.getInstance().getPgenPalette().getCurrentAction().equalsIgnoreCase("MultiSelect")) {
+        if (PgenSession.getInstance().getPgenPalette().getCurrentAction()
+                .equalsIgnoreCase("MultiSelect")) {
             enableChkBoxes(true);
             enableAllWidgets(false);
         } else {
@@ -990,14 +1054,17 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
         setAttributeComponentsEnabled(widthLabel, widthText, widthSlider, flag);
         setAttributeComponentsEnabled(widthLabel, widthText, widthSlider, flag);
         setAttributeComponentsEnabled(sizeLabel, sizeText, sizeSlider, flag);
-        setAttributeComponentsEnabled(directionLabel, directionText, directionSlider, flag);
+        setAttributeComponentsEnabled(directionLabel, directionText,
+                directionSlider, flag);
         setAttributeComponentsEnabled(speedLabel, speedText, speedSlider, flag);
-        setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText, arrowheadSizeSlider, flag);
+        setAttributeComponentsEnabled(arrowheadSizeLabel, arrowheadSizeText,
+                arrowheadSizeSlider, flag);
 
     }
 
     /**
-     * Enable or disable widgets (Label, Text, Slider) that make up an attribute.
+     * Enable or disable widgets (Label, Text, Slider) that make up an
+     * attribute.
      * 
      * @param label
      *            - the attribute Label
@@ -1008,7 +1075,8 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
      * @param enable
      *            - true to enable, false to disable
      */
-    protected void setAttributeComponentsEnabled(Label label, Text text, Slider slider, Boolean enable) {
+    protected void setAttributeComponentsEnabled(Label label, Text text,
+            Slider slider, Boolean enable) {
 
         if (enable == true) {
 
@@ -1042,6 +1110,17 @@ public class VectorAttrDlg extends AttrDlg implements IVector {
     @Override
     public Color getColor() {
         return this.getColors()[0];
+    }
+
+    /*
+     * Gets an enum indicating whether the arrow head should be OPEN or FILLED
+     * for Vector arrows.
+     * 
+     * @return enum indicating the arrow head should be OPEN or FILLED.
+     */
+    public ArrowHead.ArrowHeadType getArrowHeadType() {
+        return this.arrowHeadType;
+
     }
 
 }

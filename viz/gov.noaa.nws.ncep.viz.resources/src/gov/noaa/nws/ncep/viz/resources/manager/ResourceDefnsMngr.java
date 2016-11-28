@@ -1,13 +1,6 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
 import static java.lang.System.out;
-import gov.noaa.nws.ncep.viz.common.SelectableFrameTimeMatcher;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup.RscAndGroupName;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinitionFilters.ResourceDefinitionFilter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +39,14 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.RecordFactory;
 import com.raytheon.uf.viz.core.exception.VizException;
+
+import gov.noaa.nws.ncep.viz.common.SelectableFrameTimeMatcher;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.AttrSetGroup.RscAndGroupName;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinitionFilters.ResourceDefinitionFilter;
 
 /**
  * `
@@ -112,6 +114,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                        and attribute set groups. Replaced 
  *                                        deprecated calls to LocalizationFile.save 
  *                                        method.  Cleanup.
+ *  11/25/2016    R17956     E. Brown     Modifications to method getAllResourceParameters(). If the rscImplementation is PGEN then get the string subType
+ *                                        (e.g. "14-CCFP.21112016.08.xml ebrown OAX” and parse into subTypeParamsArr[]. Use that and subTypeGenParams 
+ *                                        (e.g. "activityLabel”, “forecaster”, and “site”) to build paramsMap and return it
  * 
  * </pre>
  * 
@@ -153,6 +158,7 @@ public class ResourceDefnsMngr {
     private static Map<String, LocalizationFile> refdParamFilesMap;
 
     public static final HashMap<String, String> paramInfoForRscDefnParamsMap = new HashMap<>();
+
     {
         paramInfoForRscDefnParamsMap.put("frameSpan", "Integer");
         paramInfoForRscDefnParamsMap.put("timeMatchMethod", "TimeMatchMethod");
@@ -247,8 +253,8 @@ public class ResourceDefnsMngr {
             Boolean dfltEnableState = true;
 
             // gets the lowest level Resource filter
-            LocalizationFile filtFile = pathMngr
-                    .getStaticLocalizationFile(NcPathConstants.RESOURCE_FILTERS);
+            LocalizationFile filtFile = pathMngr.getStaticLocalizationFile(
+                    NcPathConstants.RESOURCE_FILTERS);
 
             // if there is no filter files then display a warning and continue
             if (filtFile == null) {
@@ -270,7 +276,8 @@ public class ResourceDefnsMngr {
                             rscFiltersMap = new HashMap<>();
 
                             LocalizationFile filtFile = pathMngr
-                                    .getStaticLocalizationFile(NcPathConstants.RESOURCE_FILTERS);
+                                    .getStaticLocalizationFile(
+                                            NcPathConstants.RESOURCE_FILTERS);
 
                             try {
                                 readRscFilter(filtFile);
@@ -291,10 +298,14 @@ public class ResourceDefnsMngr {
                 readRscFilter(rscFiltersLFile);
             } catch (LocalizationException e) {
                 rscDefnsWarningsList.add(new VizException(e));
-                statusHandler.handle(Priority.PROBLEM,
-                        ("error serializing"
-                                + rscFiltersLFile.getFile().getAbsolutePath()
-                                + " : " + e.getMessage()));
+
+                statusHandler
+                        .handle(Priority.PROBLEM,
+                                ("error serializing"
+                                        + rscFiltersLFile.getFile()
+                                                .getAbsolutePath()
+                                        + " : " + e.getMessage()));
+
             }
 
             // loop thru all the RDs and if there is no entry in the filters
@@ -310,11 +321,13 @@ public class ResourceDefnsMngr {
                 if (filterTreeMap == null) {
                     filterTreeMap = new TreeMap<>(
                             LocalizationLevel.REVERSE_COMPARATOR);
-                    filterTreeMap.put(rd.getLocalizationFile().getContext()
-                            .getLocalizationLevel(),
+
+                    filterTreeMap.put(
+                            rd.getLocalizationFile().getContext()
+                                    .getLocalizationLevel(),
                             new ResourceDefinitionFilter(rdName,
-                                    dfltEnableState, null, rd
-                                            .getLocalizationFile().getContext()
+                                    dfltEnableState, null,
+                                    rd.getLocalizationFile().getContext()
                                             .getLocalizationLevel()));
                     rscFiltersMap.put(rdName, filterTreeMap);
 
@@ -393,11 +406,11 @@ public class ResourceDefnsMngr {
                     @Override
                     public void fileUpdated(FileUpdatedMessage message) {
 
-                        statusHandler
-                                .handle(Priority.INFO,
-                                        ("Localization File for RD, "
-                                                + message.getFileName()
-                                                + " has been updated.\n" + "To get these changes you will need to restart cave."));
+                        statusHandler.handle(Priority.INFO,
+                                ("Localization File for RD, "
+                                        + message.getFileName()
+                                        + " has been updated.\n"
+                                        + "To get these changes you will need to restart cave."));
                     }
                 });
             } catch (VizException e) {
@@ -459,28 +472,26 @@ public class ResourceDefnsMngr {
 
             if (!ResourceExtPointMngr.getInstance().getAvailResources()
                     .contains(rscImpl)) {
-                throw new VizException("The Resource implementation: "
-                        + rscImpl + " for " + rscDefn.getResourceDefnName()
-                        + " is not "
+
+                throw new VizException("The Resource implementation: " + rscImpl
+                        + " for " + rscDefn.getResourceDefnName() + " is not "
                         + "specified in a NC-Resource extention point");
             } else {
                 rscDefn.validateResourceParameters();
 
-                if (resourceDefnsMap.containsKey(rscDefn.getResourceDefnName())) {
-                    throw new VizException(
-                            "Failed to create Rsc Defn '"
-                                    + rscDefn.getResourceDefnName()
-                                    + "' from file: "
-                                    + rscDefnFile.getAbsolutePath()
-                                    + " because there is another Rsc Defn with this name.");
+                if (resourceDefnsMap
+                        .containsKey(rscDefn.getResourceDefnName())) {
+                    throw new VizException("Failed to create Rsc Defn '"
+                            + rscDefn.getResourceDefnName() + "' from file: "
+                            + rscDefnFile.getAbsolutePath()
+                            + " because there is another Rsc Defn with this name.");
                 }
 
                 if (rscDefn.isRequestable()) {
                     if (rscDefn.getPluginName() == null) {
-                        throw new VizException(
-                                "Failed to create Rsc Defn "
-                                        + rscDefn.getResourceDefnName()
-                                        + ": Requestable Resource is missing required pluginName parameter");
+                        throw new VizException("Failed to create Rsc Defn "
+                                + rscDefn.getResourceDefnName()
+                                + ": Requestable Resource is missing required pluginName parameter");
                     }
 
                     if (!RecordFactory.getInstance().getSupportedPlugins()
@@ -538,8 +549,9 @@ public class ResourceDefnsMngr {
                             refdParamFilesMap.remove(fName);
                             // if reverted. (ie DELETED and there is a lower
                             // level file available)
-                            lFile = pathMngr.getStaticLocalizationFile(fumsg
-                                    .getFileName());
+
+                            lFile = pathMngr.getStaticLocalizationFile(
+                                    fumsg.getFileName());
                         } else {
                             // get the ADDED, UPDATED file
                             lFile = pathMngr.getLocalizationFile(
@@ -618,8 +630,9 @@ public class ResourceDefnsMngr {
             // validate that there is a resourceImpl for this attrSetGroup
             if (!asg.getRscAndGroupName().isPGEN()) {
 
-                ResourceDefinition asgRscDefn = getResourceDefinition(asg
-                        .getResource());
+                ResourceDefinition asgRscDefn = getResourceDefinition(
+                        asg.getResource());
+
                 if (asgRscDefn == null) {
                     out.println("AttrSetGroup file " + asgFile.getName()
                             + " has a unknown resource:" + asg.getResource());
@@ -630,11 +643,14 @@ public class ResourceDefnsMngr {
 
                 if (!ResourceExtPointMngr.getInstance().getAvailResources()
                         .contains(rscImpl)) {
-                    out.println("Can't  find Resource Implementation (class) for "
-                            + "attrSetGroup : " + rscImpl);
 
-                    out.println("The Resource implementation should be specified in "
-                            + "a NC-Resource extention point");
+                    out.println(
+                            "Can't  find Resource Implementation (class) for "
+                                    + "attrSetGroup : " + rscImpl);
+
+                    out.println(
+                            "The Resource implementation should be specified in "
+                                    + "a NC-Resource extention point");
                     // don't fail; go ahead and put the attrset in the map
                 }
 
@@ -656,11 +672,11 @@ public class ResourceDefnsMngr {
                 }
             }
 
-            if (attrSetGroupsMap.containsKey(asg.getRscAndGroupName()
-                    .toString())) {
-                statusHandler.handle(Priority.INFO, (asg.getRscAndGroupName()
-                        .toString() + " already in the map"));
-
+            if (attrSetGroupsMap
+                    .containsKey(asg.getRscAndGroupName().toString())) {
+                statusHandler.handle(Priority.INFO,
+                        (asg.getRscAndGroupName().toString()
+                                + " already in the map"));
             }
 
             attrSetGroupsMap.put(asg.getRscAndGroupName().toString(), asg);
@@ -700,8 +716,8 @@ public class ResourceDefnsMngr {
 
                 attrSetMap.get(rscImpl).put(aSet.getName(), aSet);
             } catch (VizException e) {
-                out.println("Error Creating AttributeSet "
-                        + asLclFile.getName() + ": " + e.getMessage());
+                out.println("Error Creating AttributeSet " + asLclFile.getName()
+                        + ": " + e.getMessage());
             }
         }
 
@@ -738,9 +754,12 @@ public class ResourceDefnsMngr {
 
                 attrSetMap.get(rscType).put(aSet.getName(), aSet);
             } catch (VizException e) {
-                statusHandler.handle(Priority.PROBLEM,
-                        ("Error Creating AttributeSet " + asLclFile.getName()
-                                + ": " + e.getMessage()));
+
+                statusHandler
+                        .handle(Priority.PROBLEM,
+                                ("Error Creating AttributeSet "
+                                        + asLclFile.getName() + ": "
+                                        + e.getMessage()));
             }
         }
 
@@ -769,18 +788,17 @@ public class ResourceDefnsMngr {
                     /*
                      * If an XML file has an empty <name> element, then we log a
                      * DEBUG message to say so. We will use
-                     * "XML <name> element is empty" rather than
-                     * "doesn't exist". Then, we send the message to the System
-                     * Log, not the AlertViz Popup. We do this by using
-                     * Priority.DEBUG instead of Priority.PROBLEM in
-                     * statusHandler.
+                     * "XML <name> element is empty" rather than "doesn't exist"
+                     * . Then, we send the message to the System Log, not the
+                     * AlertViz Popup. We do this by using Priority.DEBUG
+                     * instead of Priority.PROBLEM in statusHandler.
                      */
-                    statusHandler
-                            .handle(Priority.DEBUG,
-                                    ("attrSet " + asName + " in attrSetGroup "
-                                            + asg.getResource()
-                                            + File.separator
-                                            + asg.getAttrSetGroupName() + " XML <name> element is empty."));
+
+                    statusHandler.handle(Priority.DEBUG,
+                            ("attrSet " + asName + " in attrSetGroup "
+                                    + asg.getResource() + File.separator
+                                    + asg.getAttrSetGroupName()
+                                    + " XML <name> element is empty."));
                 }
             }
         }
@@ -805,16 +823,18 @@ public class ResourceDefnsMngr {
 
         // if there is a generating type then check for a ':'
         if (!rd.getRscTypeGenerator().isEmpty()) {
-            if (rscName.getRscType().indexOf(
-                    ResourceName.generatedTypeDelimiter) == -1) {
+            if (rscName.getRscType()
+                    .indexOf(ResourceName.generatedTypeDelimiter) == -1) {
                 return false;
             }
         }
         // if there is no group/subType, make sure there isn't supposed to be
         // one.
-        if ((rscName.getRscGroup() == null) || rscName.getRscGroup().isEmpty()) {
+        if ((rscName.getRscGroup() == null)
+                || rscName.getRscGroup().isEmpty()) {
 
-            if (rd.applyAttrSetGroups() || !rd.getSubTypeGenerator().isEmpty()) {
+            if (rd.applyAttrSetGroups()
+                    || !rd.getSubTypeGenerator().isEmpty()) {
                 return false;
             }
         }
@@ -864,9 +884,8 @@ public class ResourceDefnsMngr {
             NcDisplayType[] matchingDispTypes) {
 
         if (matchingDispTypes.length != 1) {
-            statusHandler
-                    .handle(Priority.PROBLEM,
-                            ("getResourceCategories called with more than one display type. Only matching the first one"));
+            statusHandler.handle(Priority.PROBLEM,
+                    ("getResourceCategories called with more than one display type. Only matching the first one"));
         }
 
         ArrayList<ResourceCategory> catsList = new ArrayList<>();
@@ -919,9 +938,9 @@ public class ResourceDefnsMngr {
         if (!rscImplName.endsWith(".xml")) {
             rscImplName = rscImplName + ".xml";
         }
-        File rscTemplateFile = pathMngr
-                .getStaticFile(NcPathConstants.RSC_TMPLTS_DIR + File.separator
-                        + rscImplName);
+
+        File rscTemplateFile = pathMngr.getStaticFile(
+                NcPathConstants.RSC_TMPLTS_DIR + File.separator + rscImplName);
 
         return (rscTemplateFile.exists() ? rscTemplateFile : null);
     }
@@ -934,7 +953,9 @@ public class ResourceDefnsMngr {
 
     public String getDefaultFrameTimesSelections(ResourceName rscName)
             throws VizException {
-        ResourceDefinition rscDefn = getResourceDefinition(rscName.getRscType());
+
+        ResourceDefinition rscDefn = getResourceDefinition(
+                rscName.getRscType());
 
         if (rscDefn == null) {
             return null;
@@ -974,10 +995,12 @@ public class ResourceDefnsMngr {
     // Get all parameters needed to instantiate the bundle template
     // This includes parameters from the ResourceDefinition, attributes and
     // timeMatching/frameCount...
-    public HashMap<String, String> getAllResourceParameters(ResourceName rscName)
-            throws VizException {
 
-        ResourceDefinition rscDefn = getResourceDefinition(rscName.getRscType());
+    public HashMap<String, String> getAllResourceParameters(
+            ResourceName rscName) throws VizException {
+
+        ResourceDefinition rscDefn = getResourceDefinition(
+                rscName.getRscType());
 
         if (rscDefn == null) {
             return null;
@@ -1001,21 +1024,22 @@ public class ResourceDefnsMngr {
 
         // and now create the parameters from the rscDefinitions file.
         // (frameInterval, timeMatchMethod)
-        if (rscDefn.getResourceCategory() != ResourceCategory.OverlayRscCategory) {
+        if (rscDefn
+                .getResourceCategory() != ResourceCategory.OverlayRscCategory) {
 
-            paramsMap
-                    .put("frameSpan", Integer.toString(rscDefn.getFrameSpan()));
-            paramsMap.put("timeMatchMethod", rscDefn.getTimeMatchMethod()
-                    .toString());
+            paramsMap.put("frameSpan",
+                    Integer.toString(rscDefn.getFrameSpan()));
+            paramsMap.put("timeMatchMethod",
+                    rscDefn.getTimeMatchMethod().toString());
             paramsMap.put("dfltNumFrames",
                     Integer.toString(rscDefn.getDfltFrameCount()));
             paramsMap.put("dfltTimeRange",
                     Integer.toString(rscDefn.getDfltTimeRange()));
-            paramsMap.put("timelineGenMethod", rscDefn.getTimelineGenMethod()
-                    .toString());
+            paramsMap.put("timelineGenMethod",
+                    rscDefn.getTimelineGenMethod().toString());
 
-            paramsMap.put("isForecast", (rscDefn.isForecast() ? "true"
-                    : "false"));
+            paramsMap.put("isForecast",
+                    (rscDefn.isForecast() ? "true" : "false"));
         }
 
         // if this is a generated type get the parameter value from the type in
@@ -1055,12 +1079,12 @@ public class ResourceDefnsMngr {
             if (subTypeParamsArr != null) {
                 for (int i = 0; i < subTypeParamsArr.length; i++) {
 
-                    if (subTypeGenParams[i].toString().equalsIgnoreCase(
-                            "resolution")) {
-                        if (subTypeParamsArr[i].toLowerCase().endsWith(("km"))) {
-                            subTypeParamsArr[i] = subTypeParamsArr[i]
-                                    .substring(0,
-                                            subTypeParamsArr[i].length() - 2);
+                    if (subTypeGenParams[i].toString()
+                            .equalsIgnoreCase("resolution")) {
+                        if (subTypeParamsArr[i].toLowerCase()
+                                .endsWith(("km"))) {
+                            subTypeParamsArr[i] = subTypeParamsArr[i].substring(
+                                    0, subTypeParamsArr[i].length() - 2);
                         }
                         if (subTypeParamsArr[i].equals("native")) {
                             subTypeParamsArr[i] = "0";
@@ -1073,7 +1097,57 @@ public class ResourceDefnsMngr {
                 }
             }
 
-        } else if (subTypeGenParams.length == 1) {
+        } else if (rscDefn.getRscImplementation().equals("PGEN")) {
+            // Build paramsMap based on the implementation being PGEN
+
+            String subType = rscName.getRscGroup();
+
+            String subTypeParamsArr[] = subType.split(" ");
+
+            // If there's a space in one of the subTypes, there's going to be a
+            // parsing problem. If the 2 arrays are different lengths it results
+            // in an array index out of bounds when it tries to create
+            // paramsMap. For example, it happened when
+            // forecaster "John Doe" was split into 2
+            // different params so one array was size 4 and the other size 5. It
+            // assigned "John" as forecaster and Doe as site.
+            if (subTypeGenParams.length < subTypeParamsArr.length) {
+                String errorMessage = "Looks like there was a space in one of the subType parameters, so one subType got parsed into two. subTypeGenParams array: "
+                        + Arrays.toString(subTypeGenParams)
+                        + " subTypeParamsArr array: "
+                        + Arrays.toString(subTypeParamsArr);
+                statusHandler.handle(Priority.PROBLEM, (errorMessage));
+
+                // Fail gracefully and just return a blank paramsMap
+                return paramsMap;
+            }
+
+            // If there's a blank subType (e.g. site), there might be a problem
+            // so give a
+            // warning
+            if (subTypeParamsArr.length > 1) { // There's always going to be an
+                                               // activityLabel, but if there's
+                                               // no data it will be blank
+                for (int i = 0; i < subTypeParamsArr.length; i++) {
+                    if (subTypeParamsArr[i].isEmpty()) {
+                        statusHandler.handle(Priority.PROBLEM,
+                                ("The subType parameter '" + subTypeGenParams[i]
+                                        + "' is blank, so the name is not parsing correctly."));
+                    }
+                }
+            }
+
+            if (subTypeParamsArr != null) {
+                for (int i = 0; i < subTypeParamsArr.length; i++) {
+                    // Build the return value paramsMap using the two arrays
+                    paramsMap.put(subTypeGenParams[i], subTypeParamsArr[i]);
+                }
+            }
+        }
+
+        else if (subTypeGenParams.length == 1)
+
+        {
             paramsMap.put(subTypeGenParams[0], rscName.getRscGroup());
         }
 
@@ -1082,15 +1156,17 @@ public class ResourceDefnsMngr {
         // resolution)
         // A trailing 'km' which means this parsing code is not generic
 
-        else if (subTypeGenParams.length == 2) {
+        else if (subTypeGenParams.length == 2)
+
+        {
 
             String subType = rscName.getRscGroup();
             int indx = subType.lastIndexOf('_');
             if (indx != -1) {
                 String paramVal1 = subType.substring(0, indx);
-                String paramVal2 = subType.endsWith("km") ? subType.substring(
-                        indx + 1, subType.length() - 2) // NOTE;
-                                                        // "km"
+
+                String paramVal2 = subType.endsWith("km")
+                        ? subType.substring(indx + 1, subType.length() - 2)
                         : subType.substring(indx + 1, subType.length());
                 // TODO : get rid of these hacks and redesign the resoureName
                 // <-> parameter value mapping
@@ -1155,9 +1231,9 @@ public class ResourceDefnsMngr {
 
                 int eq_indx = prmStr.indexOf('=');
                 if (eq_indx == -1) {
-                    throw new VizException("The resource prm file, "
-                            + asFile.getName()
-                            + ", has a non-comment line with no '='");
+                    throw new VizException(
+                            "The resource prm file, " + asFile.getName()
+                                    + ", has a non-comment line with no '='");
 
                 } else {
                     String prmKey = prmStr.substring(0, eq_indx).trim();
@@ -1173,11 +1249,11 @@ public class ResourceDefnsMngr {
                                     + prmVal.substring(1);
 
                             if (!refdParamFilesMap.containsKey(refdLclName)) {
-                                throw new VizException(
-                                        "Error reading file: "
-                                                + asFile.getAbsolutePath()
-                                                + " : Unable to find file for parameter reference "
-                                                + prmVal + "'.");
+                                throw new VizException("Error reading file: "
+                                        + asFile.getAbsolutePath()
+                                        + " : Unable to find file for parameter reference "
+                                        + prmVal + "'.");
+
                             }
                             File lFile = refdParamFilesMap.get(refdLclName)
                                     .getFile(true);
@@ -1198,8 +1274,9 @@ public class ResourceDefnsMngr {
                             // remove the xml header
                             if (prmVal.startsWith("<?xml")) {
                                 if (prmVal.indexOf("?>") != -1) {
-                                    prmVal = prmVal.substring(
-                                            prmVal.indexOf("?>") + 2).trim();
+                                    prmVal = prmVal
+                                            .substring(prmVal.indexOf("?>") + 2)
+                                            .trim();
                                 }
                             }
                         } catch (FileNotFoundException fnf) {
@@ -1221,12 +1298,12 @@ public class ResourceDefnsMngr {
             breader.close();
 
         } catch (FileNotFoundException fnf) {
-            throw new VizException("Can't find referenced file: "
-                    + asFile.getAbsolutePath());
+            throw new VizException(
+                    "Can't find referenced file: " + asFile.getAbsolutePath());
 
         } catch (IOException fnf) {
-            throw new VizException("Can't open referenced file: "
-                    + asFile.getAbsolutePath());
+            throw new VizException(
+                    "Can't open referenced file: " + asFile.getAbsolutePath());
 
         }
 
@@ -1252,27 +1329,31 @@ public class ResourceDefnsMngr {
                 // order them differently
                 // based on the category
                 // for Surf or UAIR, Obs before Fcst
-                if ((rscDefn1.getResourceCategory() == ResourceCategory.SurfaceRscCategory)
-                        || (rscDefn1.getResourceCategory() == ResourceCategory.UpperAirRscCategory)) {
+                if ((rscDefn1
+                        .getResourceCategory() == ResourceCategory.SurfaceRscCategory)
+                        || (rscDefn1
+                                .getResourceCategory() == ResourceCategory.UpperAirRscCategory)) {
 
                     if ((!rscDefn1.isForecast() && rscDefn2.isForecast())
-                            || (rscDefn1.isForecast() && !rscDefn2.isForecast())) {
+                            || (rscDefn1.isForecast()
+                                    && !rscDefn2.isForecast())) {
 
                         return (rscDefn1.isForecast() ? 1 : -1);
                     }
                 }
                 // for Radar, Mosaics before Local Radar
-                else if (rscDefn1.getResourceCategory() == ResourceCategory.RadarRscCategory) {
+                else if (rscDefn1
+                        .getResourceCategory() == ResourceCategory.RadarRscCategory) {
                     if (rscDefn1.getRscImplementation().equals("RadarMosaic")) {
                         return -1;
-                    } else if (rscDefn2.getRscImplementation().equals(
-                            "RadarMosaic")) {
+                    } else if (rscDefn2.getRscImplementation()
+                            .equals("RadarMosaic")) {
                         return 1;
                     }
                 }
 
-                return rscDefn1.getResourceDefnName().compareToIgnoreCase(
-                        rscDefn2.getResourceDefnName());
+                return rscDefn1.getResourceDefnName()
+                        .compareToIgnoreCase(rscDefn2.getResourceDefnName());
             }
         };
     }
@@ -1292,10 +1373,9 @@ public class ResourceDefnsMngr {
 
         synchronized (rscFiltersMap) {
             if (!rscFiltersMap.containsKey(rscType)) {
-                rscFiltersMap
-                        .put(rscType,
-                                new TreeMap<LocalizationLevel, ResourceDefinitionFilter>(
-                                        LocalizationLevel.REVERSE_COMPARATOR));
+                rscFiltersMap.put(rscType,
+                        new TreeMap<LocalizationLevel, ResourceDefinitionFilter>(
+                                LocalizationLevel.REVERSE_COMPARATOR));
             }
 
             // get the highest priority filters. (stored in reverse order)
@@ -1339,8 +1419,8 @@ public class ResourceDefnsMngr {
                     false);
 
             for (ResourceDefinition rd : rdList) {
-                ResourceDefinitionFilter rdFilt = getResourceDefnFilter(rd
-                        .getResourceDefnName());
+                ResourceDefinitionFilter rdFilt = getResourceDefnFilter(
+                        rd.getResourceDefnName());
 
                 for (String filtStr : rdFilt.getFilters()) {
                     if (!filterLabelsList.contains(filtStr)) {
@@ -1366,7 +1446,7 @@ public class ResourceDefnsMngr {
     public List<ResourceDefinition> getResourceDefnsForCategory(
             ResourceCategory rscCat, String filterStr, NcDisplayType dispType,
             Boolean includeGeneratedTypes, Boolean includeDisabledRscDefns)
-            throws VizException {
+                    throws VizException {
         List<ResourceDefinition> resourceDefnsList = new ArrayList<>();
 
         // for other resources, get all of the resources in the given category.
@@ -1376,8 +1456,7 @@ public class ResourceDefnsMngr {
                 continue;
             }
 
-            if ((filterStr == null)
-                    || filterStr.isEmpty()
+            if ((filterStr == null) || filterStr.isEmpty()
                     || getResourceDefnFilter(rscDefn.getResourceDefnName())
                             .testFilter(filterStr)) {
 
@@ -1491,8 +1570,9 @@ public class ResourceDefnsMngr {
     public AttributeSet getAttrSet(ResourceDefinition rscDefn, String asgName,
             String asName) {
 
-        String asMapKey = (rscDefn.applyAttrSetGroups() ? rscDefn
-                .getRscImplementation() : rscDefn.getResourceDefnName());
+        String asMapKey = (rscDefn.applyAttrSetGroups()
+                ? rscDefn.getRscImplementation()
+                : rscDefn.getResourceDefnName());
 
         Map<String, AttributeSet> attrSetFiles = attrSetMap.get(asMapKey);
 
@@ -1510,8 +1590,8 @@ public class ResourceDefnsMngr {
             AttrSetGroup asg = getAttrSetGroupForResource(rscGrpName);
 
             if ((asg == null) || !asg.getAttrSetNames().contains(asName)) {
-                out.println("Warning: AttrSet, " + asName
-                        + ", is not in group " + asgName);
+                out.println("Warning: AttrSet, " + asName + ", is not in group "
+                        + asgName);
                 return null;
             }
         }
@@ -1523,8 +1603,9 @@ public class ResourceDefnsMngr {
     // get a list of all the available attribute sets for this resource defn.
     public ArrayList<String> getAvailAttrSets(ResourceDefinition rscDefn) {
 
-        String asMapKey = (rscDefn.applyAttrSetGroups() ? rscDefn
-                .getRscImplementation() : rscDefn.getResourceDefnName());
+        String asMapKey = (rscDefn.applyAttrSetGroups()
+                ? rscDefn.getRscImplementation()
+                : rscDefn.getResourceDefnName());
         if (!attrSetMap.containsKey(asMapKey)) {
             return new ArrayList<>();
         }
@@ -1545,7 +1626,8 @@ public class ResourceDefnsMngr {
 
     public List<AttributeSet> getAttrSetsForResource(ResourceName rscName,
             boolean matchGroup) {
-        ResourceDefinition rscDefn = getResourceDefinition(rscName.getRscType());
+        ResourceDefinition rscDefn = getResourceDefinition(
+                rscName.getRscType());
         List<AttributeSet> asList = new ArrayList<>();
 
         if (rscDefn == null) {
@@ -1654,7 +1736,8 @@ public class ResourceDefnsMngr {
         }
 
         // sanity check (button should be disabled if BASE/SITE context)
-        if (lFile.getContext().getLocalizationLevel() != LocalizationLevel.USER) {
+        if (lFile.getContext()
+                .getLocalizationLevel() != LocalizationLevel.USER) {
             throw new VizException(
                     "Can't Remove Base or Site Level Resource Types.");
         }
@@ -1673,8 +1756,8 @@ public class ResourceDefnsMngr {
             Thread.sleep(500);
 
             // get the BASE, SITE or DESK level file to replace the deleted one.
-            lFile = NcPathManager.getInstance().getStaticLocalizationFile(
-                    lFileName);
+            lFile = NcPathManager.getInstance()
+                    .getStaticLocalizationFile(lFileName);
 
             if (lFile != null) {
                 readResourceDefn(lFile);
@@ -1689,16 +1772,17 @@ public class ResourceDefnsMngr {
                     filtMap.remove(LocalizationLevel.USER);
                     saveResourceDefnFiltersFile();
                 } else {
-                    statusHandler
-                            .handle(Priority.INFO,
-                                    ("sanity check: removing RD "
-                                            + rscDefn.getResourceDefnName() + ". Missing USER level in the filtersTreeMap."));
+                    statusHandler.handle(Priority.INFO,
+                            ("sanity check: removing RD "
+                                    + rscDefn.getResourceDefnName()
+                                    + ". Missing USER level in the filtersTreeMap."));
                 }
             } else {
-                statusHandler
-                        .handle(Priority.INFO,
-                                ("sanity check: removing RD "
-                                        + rscDefn.getResourceDefnName() + ". Missing entry in the filtersMap."));
+                statusHandler.handle(Priority.INFO,
+                        ("sanity check: removing RD "
+                                + rscDefn.getResourceDefnName()
+                                + ". Missing entry in the filtersMap."));
+
             }
 
         } catch (LocalizationException e) {
@@ -1713,7 +1797,8 @@ public class ResourceDefnsMngr {
     }
 
     // add/replace the given attrSetGroup in the map.
-    public void saveAttrSetGroup(AttrSetGroup attrSetGroup) throws VizException {
+    public void saveAttrSetGroup(AttrSetGroup attrSetGroup)
+            throws VizException {
         if (attrSetGroup == null) {
             throw new VizException("null attr set group");
         }
@@ -1723,11 +1808,11 @@ public class ResourceDefnsMngr {
         String lFileName = null;
 
         // other wise create a new name
-        ResourceDefinition rscDefn = getResourceDefinition(attrSetGroup
-                .getResource());
+        ResourceDefinition rscDefn = getResourceDefinition(
+                attrSetGroup.getResource());
         if (rscDefn == null) {
-            throw new VizException("Unknown resource "
-                    + attrSetGroup.getResource());
+            throw new VizException(
+                    "Unknown resource " + attrSetGroup.getResource());
         }
 
         lFileName = NcPathConstants.ATTR_SET_GROUPS_DIR + File.separator
@@ -1737,8 +1822,8 @@ public class ResourceDefnsMngr {
 
         // if this is not a USER level file, we need to create another
         // Localization File at the USER Level
-        if ((asgLclContext == null)
-                || (asgLclContext.getLocalizationLevel() != LocalizationLevel.USER)) {
+        if ((asgLclContext == null) || (asgLclContext
+                .getLocalizationLevel() != LocalizationLevel.USER)) {
 
             asgLclContext = pathMngr.getContext(LocalizationType.CAVE_STATIC,
                     LocalizationLevel.USER);
@@ -1761,8 +1846,8 @@ public class ResourceDefnsMngr {
 
         attrSetGroup.setLocalizationFile(asgLclFile);
 
-        if (attrSetGroupsMap.containsKey(attrSetGroup.getRscAndGroupName()
-                .toString())) {
+        if (attrSetGroupsMap
+                .containsKey(attrSetGroup.getRscAndGroupName().toString())) {
 
         }
 
@@ -1782,19 +1867,21 @@ public class ResourceDefnsMngr {
             throw new VizException("Unable to find rscDefn " + rscType);
         }
 
-        AttrSetGroup asg = getAttrSetGroupForResource(new RscAndGroupName(
-                rscType, asgName));
+        AttrSetGroup asg = getAttrSetGroupForResource(
+                new RscAndGroupName(rscType, asgName));
 
         if (asg == null) {
-            throw new VizException("Unable to find attrSetGroup " + rscType
-                    + "/" + asgName);
+            throw new VizException(
+                    "Unable to find attrSetGroup " + rscType + "/" + asgName);
         }
 
         LocalizationFile lFile = asg.getLocalizationFile();
 
         if (lFile == null) {
-            throw new VizException("Error Removing AttrSetGroup: LFile is null");
-        } else if (lFile.getContext().getLocalizationLevel() != LocalizationLevel.USER) {
+            throw new VizException(
+                    "Error Removing AttrSetGroup: LFile is null");
+        } else if (lFile.getContext()
+                .getLocalizationLevel() != LocalizationLevel.USER) {
             throw new VizException(
                     "Can't Remove Base or Site Level Attribute Set Groups.");
         }
@@ -1837,8 +1924,8 @@ public class ResourceDefnsMngr {
                 asg.setLocalizationFile(lFile);
 
                 String rscImpl = "";
-                ResourceDefinition asgRscDefn = getResourceDefinition(asg
-                        .getResource());
+                ResourceDefinition asgRscDefn = getResourceDefinition(
+                        asg.getResource());
 
                 if (asgRscDefn == null) {
                     throw new VizException("AttrSetGroup file "
@@ -1856,9 +1943,9 @@ public class ResourceDefnsMngr {
                             .contains(rscImpl)) {
                         throw new VizException(
                                 ("Can't  find Resource Implementation (class) for "
-                                        + "attrSetGroup : "
-                                        + rscImpl
-                                        + "\nThe Resource implementation should be specified in " + "a NC-Resource extention point"));
+                                        + "attrSetGroup : " + rscImpl
+                                        + "\nThe Resource implementation should be specified in "
+                                        + "a NC-Resource extention point"));
                         // don't fail; go ahead and put the attrset in the map
                     }
                 }
@@ -1877,8 +1964,9 @@ public class ResourceDefnsMngr {
     public void saveAttrSet(ResourceDefinition rscDefn, String asName,
             String attrsStr) throws VizException {
 
-        String applicableRsc = (rscDefn.applyAttrSetGroups() ? rscDefn
-                .getRscImplementation() : rscDefn.getResourceDefnName());
+        String applicableRsc = (rscDefn.applyAttrSetGroups()
+                ? rscDefn.getRscImplementation()
+                : rscDefn.getResourceDefnName());
 
         AttributeSet aSet = getAttrSet(rscDefn, asName);
         LocalizationFile lFile = null;
@@ -1911,10 +1999,11 @@ public class ResourceDefnsMngr {
         } else { // if the aSet exists check that the context level is USER and
                  // change if needed
             lFile = aSet.getFile();
-            if (lFile.getContext().getLocalizationLevel() != LocalizationLevel.USER) {
+            if (lFile.getContext()
+                    .getLocalizationLevel() != LocalizationLevel.USER) {
 
-                lFile = NcPathManager.getInstance().getLocalizationFile(
-                        userCntxt, lFile.getName());
+                lFile = NcPathManager.getInstance()
+                        .getLocalizationFile(userCntxt, lFile.getName());
 
                 aSet.setFile(lFile);
             }
@@ -1934,8 +2023,10 @@ public class ResourceDefnsMngr {
             outstream.save();
             outstream.close();
         } catch (LocalizationException e) {
-            MessageDialog errDlg = new MessageDialog(PlatformUI.getWorkbench()
-                    .getActiveWorkbenchWindow().getShell(), "Error", null,
+            MessageDialog errDlg = new MessageDialog(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getShell(),
+                    "Error", null,
                     "Error saving attribute set localization file: "
                             + lFile.getName() + e.getMessage(),
                     MessageDialog.ERROR, new String[] { "OK" }, 0);
@@ -1969,8 +2060,8 @@ public class ResourceDefnsMngr {
 
         ResourceDefinition rscDefn = getResourceDefinition(rscName);
         if (rscDefn == null) {
-            throw new VizException("can't find rscDefn for "
-                    + rscName.toString());
+            throw new VizException(
+                    "can't find rscDefn for " + rscName.toString());
         }
 
         String attrSetName = rscName.getRscAttrSetName();
@@ -1979,12 +2070,13 @@ public class ResourceDefnsMngr {
         LocalizationFile asLclFile = getAttrSet(rscName).getFile();
 
         if (asLclFile == null) {
-            throw new VizException("Attr Set File: " + rscName.toString()
-                    + " not found");
+            throw new VizException(
+                    "Attr Set File: " + rscName.toString() + " not found");
         }
 
         // sanity check (button should be disabled if BASE/SITE context)
-        if (asLclFile.getContext().getLocalizationLevel() != LocalizationLevel.USER) {
+        if (asLclFile.getContext()
+                .getLocalizationLevel() != LocalizationLevel.USER) {
             throw new VizException(
                     "Can't Remove Base or Site Level Attribute Sets.");
         }
@@ -1993,8 +2085,8 @@ public class ResourceDefnsMngr {
             String lFileName = asLclFile.getName();
 
             if (attrSetMap.containsKey(rscDefn.getResourceDefnName())) {
-                attrSetMap.get(rscDefn.getResourceDefnName()).remove(
-                        attrSetName);
+                attrSetMap.get(rscDefn.getResourceDefnName())
+                        .remove(attrSetName);
             }
 
             asLclFile.delete();
@@ -2004,20 +2096,20 @@ public class ResourceDefnsMngr {
             Thread.sleep(500);
 
             // get the BASE, SITE or DESK level file to replace the deleted one.
-            asLclFile = NcPathManager.getInstance().getStaticLocalizationFile(
-                    lFileName);
+            asLclFile = NcPathManager.getInstance()
+                    .getStaticLocalizationFile(lFileName);
 
             if (asLclFile != null) {
 
                 String rscImpl = asLclFile.getFile().getParentFile().getName();
 
                 if (!attrSetMap.containsKey(rscImpl)) {
-                    attrSetMap
-                            .put(rscImpl, new HashMap<String, AttributeSet>());
+                    attrSetMap.put(rscImpl,
+                            new HashMap<String, AttributeSet>());
                 }
                 try {
-                    AttributeSet aSet = AttributeSet.createAttributeSet(
-                            rscImpl, asLclFile);
+                    AttributeSet aSet = AttributeSet.createAttributeSet(rscImpl,
+                            asLclFile);
 
                     attrSetMap.get(rscImpl).put(aSet.getName(), aSet);
                 } catch (VizException e) {
@@ -2043,8 +2135,8 @@ public class ResourceDefnsMngr {
                 // a user-defined attrSet.
                 if ((asg.getLocalizationFile().getContext()
                         .getLocalizationLevel() == LocalizationLevel.USER)
-                        && asg.getResource().equals(
-                                rscDefn.getResourceDefnName())) {
+                        && asg.getResource()
+                                .equals(rscDefn.getResourceDefnName())) {
 
                     if (asg.getAttrSetNames().contains(attrSetName)) {
                         asg.removeAttrSet(attrSetName);
@@ -2128,8 +2220,8 @@ public class ResourceDefnsMngr {
         LocalizationContext context = pathMngr.getContext(
                 LocalizationType.CAVE_STATIC, LocalizationLevel.USER);
 
-        LocalizationFile rscFiltersLFile = pathMngr.getLocalizationFile(
-                context, NcPathConstants.RESOURCE_FILTERS);
+        LocalizationFile rscFiltersLFile = pathMngr.getLocalizationFile(context,
+                NcPathConstants.RESOURCE_FILTERS);
 
         try {
             SaveableOutputStream outstream = rscFiltersLFile.openOutputStream();
@@ -2137,12 +2229,12 @@ public class ResourceDefnsMngr {
             outstream.save();
             outstream.close();
         } catch (LocalizationException | IOException e) {
-            statusHandler.error(
-                    "Error saving resource definitions filters file  "
+            statusHandler
+                    .error("Error saving resource definitions filters file  "
                             + rscFiltersLFile.getPath(), e);
         } catch (SerializationException e) {
-            statusHandler.error(
-                    "Error marshalling esource definitions filters", e);
+            statusHandler.error("Error marshalling esource definitions filters",
+                    e);
         }
 
     }
@@ -2155,8 +2247,8 @@ public class ResourceDefnsMngr {
 
         rscDefn.validateResourceParameters();
 
-        boolean createRscDefn = (getResourceDefinition(rscDefn
-                .getResourceDefnName()) == null);
+        boolean createRscDefn = (getResourceDefinition(
+                rscDefn.getResourceDefnName()) == null);
 
         LocalizationFile lFile;
         LocalizationContext userContext = NcPathManager.getInstance()
@@ -2166,14 +2258,15 @@ public class ResourceDefnsMngr {
         // if this is a new rsc the LocalizationFile should not be set but the
         // name should be.
         if (createRscDefn) {
-            lFile = NcPathManager.getInstance().getLocalizationFile(
-                    userContext, rscDefn.getLocalizationName());
+            lFile = NcPathManager.getInstance().getLocalizationFile(userContext,
+                    rscDefn.getLocalizationName());
         } else {
             lFile = rscDefn.getLocalizationFile();
 
-            if (lFile.getContext().getLocalizationLevel() != LocalizationLevel.USER) {
-                lFile = NcPathManager.getInstance().getLocalizationFile(
-                        userContext, lFile.getName());
+            if (lFile.getContext()
+                    .getLocalizationLevel() != LocalizationLevel.USER) {
+                lFile = NcPathManager.getInstance()
+                        .getLocalizationFile(userContext, lFile.getName());
             }
         }
 
@@ -2197,10 +2290,9 @@ public class ResourceDefnsMngr {
             resourceDefnsMap.put(rscDefn.getResourceDefnName(), rscDefn);
 
         } catch (LocalizationException | IOException e) {
-            statusHandler.error(
-                    "Error saving file " + lFile.getPath()
-                            + " for resource definition "
-                            + rscDefn.getResourceDefnName(), e);
+            statusHandler.error("Error saving file " + lFile.getPath()
+                    + " for resource definition "
+                    + rscDefn.getResourceDefnName(), e);
         } catch (SerializationException e) {
             statusHandler.error("Error marshalling resource definition "
                     + rscDefn.getResourceDefnName(), e);

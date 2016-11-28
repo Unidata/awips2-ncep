@@ -1,17 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
-import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -40,6 +28,18 @@ import com.raytheon.uf.common.util.CollectionUtil;
 import com.raytheon.uf.viz.core.catalog.CatalogQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
+
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
+import gov.noaa.nws.ncep.common.dataplugin.pgen.PgenRecord;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.DayReference;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
 
 /**
  * 
@@ -90,6 +90,9 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  *  06/02/2016    RM18743    rjpeter      Fix Radar generatedTypes.
  *  06/06/2016    R15945     RCReynolds   Using McidasConstants instead of SatelliteConstants
  *  07/29/2016    R17936     mkean        null in legendString for unaliased satellite.
+ *  11/25/2016    R17956     E. Brown     Facilitate multiple subtype generators. Modification to queryGeneratedTypes(), and addition
+ *                                        of methods getSubTypesForPgenRec(PgenRecord pgenRec) and 
+ *                                        ResourceDefinition.appendSubType(StringBuilder builtString, String subType)
  * </pre>
  * 
  * @author ghull
@@ -403,7 +406,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     }
 
     // resourceParameters includes the comments but don't return them.
-    public HashMap<String, String> getResourceParameters(boolean includeDefaults) {
+    public HashMap<String, String> getResourceParameters(
+            boolean includeDefaults) {
         HashMap<String, String> prmsWithoutComments = new HashMap<>();
 
         for (String prmName : resourceParameters.keySet()) {
@@ -445,8 +449,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             if (prmName.startsWith("!")) {
                 strBuf.append(prmName + "\n");
             } else {
-                strBuf.append(prmName + "=" + resourceParameters.get(prmName)
-                        + "\n");
+                strBuf.append(
+                        prmName + "=" + resourceParameters.get(prmName) + "\n");
             }
         }
         return strBuf.toString();
@@ -526,13 +530,17 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         + rscImplementation + "has non-NC resource class"));
             }
         } catch (InstantiationException e) {
-            statusHandler.handle(Priority.PROBLEM,
-                    ("Error instantiating class (" + implClass.getName()
-                            + ") for resource: " + rscImplementation), e);
+            statusHandler
+                    .handle(Priority.PROBLEM,
+                            ("Error instantiating class (" + implClass.getName()
+                                    + ") for resource: " + rscImplementation),
+                            e);
         } catch (IllegalAccessException e) {
-            statusHandler.handle(Priority.PROBLEM,
-                    ("Error instantiating class (" + implClass.getName()
-                            + ") for resource: " + rscImplementation), e);
+            statusHandler
+                    .handle(Priority.PROBLEM,
+                            ("Error instantiating class (" + implClass.getName()
+                                    + ") for resource: " + rscImplementation),
+                            e);
         }
 
         return new NcDisplayType[0];
@@ -541,7 +549,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     public boolean isForecast() {
         // @formatter:off
         return ((timelineGenMethod == TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS)
-                || (timelineGenMethod == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME) || (timelineGenMethod == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION));
+                || (timelineGenMethod == TimelineGenMethod.USE_FCST_FRAME_INTERVAL_FROM_REF_TIME)
+                || (timelineGenMethod == TimelineGenMethod.DETERMINE_FROM_RSC_IMPLEMENTATION));
         // @formatter:on
 
     }
@@ -733,7 +742,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             // if it has a non-wildcard value, then create a inventory
             // constraint for it
             //
-            if (prmInfo.getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
+            if (prmInfo
+                    .getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
 
                 String prmName = prmInfo.getParamName();
                 String cnstrName = prmInfo.getConstraintName();
@@ -742,8 +752,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                     // if the constraint value is a wildcard then don't add this
                     // to the list since it will fail in the case where the
                     // DB value is a null.
-                    RequestConstraint reqConstr = getConstraintFromParamValue(paramValues
-                            .get(prmName));
+                    RequestConstraint reqConstr = getConstraintFromParamValue(
+                            paramValues.get(prmName));
 
                     if (includeWildcard
                             || (reqConstr != RequestConstraint.WILDCARD)) {
@@ -792,12 +802,14 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             } catch (InstantiationException e) {
                 statusHandler.handle(Priority.PROBLEM,
                         ("Error instantiating class (" + implClass.getName()
-                                + ") for resource: " + rscImplementation), e);
+                                + ") for resource: " + rscImplementation),
+                        e);
 
             } catch (IllegalAccessException e) {
                 statusHandler.handle(Priority.PROBLEM,
                         ("Error instantiating class (" + implClass.getName()
-                                + ") for resource: " + rscImplementation), e);
+                                + ") for resource: " + rscImplementation),
+                        e);
             }
         }
         return (isRequestable == null ? false : isRequestable);
@@ -831,9 +843,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         // sanity check on timelineGen
         if ((rscImplementation == "ModelFcstGridContours")
                 && (timelineGenMethod != TimelineGenMethod.USE_CYCLE_TIME_FCST_HOURS)) {
-            statusHandler
-                    .handle(Priority.PROBLEM,
-                            ("Sanity Check: GRID rsc has a non-forecast timelineGenMethod???"));
+            statusHandler.handle(Priority.PROBLEM,
+                    ("Sanity Check: GRID rsc has a non-forecast timelineGenMethod???"));
         }
 
         // check that all of the paramValues are specified for the rsc
@@ -843,10 +854,10 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
             if (!prm.equals("pluginName") && !rscImplParams.containsKey(prm)) {
 
-                throw new VizException(getResourceDefnName()
-                        + " has a parameter, " + prm
-                        + ", that is not recognized by its implementation: "
-                        + getRscImplementation());
+                throw new VizException(
+                        getResourceDefnName() + " has a parameter, " + prm
+                                + ", that is not recognized by its implementation: "
+                                + getRscImplementation());
             }
         }
 
@@ -864,12 +875,15 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             String implPrm = implPrmInfo.getParamName();
             String constraintName = implPrmInfo.getConstraintName();
 
-            if ((implPrmInfo.getParamType() == ResourceParamType.EDITABLE_ATTRIBUTE)
-                    || (implPrmInfo.getParamType() == ResourceParamType.NON_EDITABLE_ATTRIBUTE)) {
+            if ((implPrmInfo
+                    .getParamType() == ResourceParamType.EDITABLE_ATTRIBUTE)
+                    || (implPrmInfo
+                            .getParamType() == ResourceParamType.NON_EDITABLE_ATTRIBUTE)) {
 
                 // if checking for attributes...
                 continue;
-            } else if (implPrmInfo.getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
+            } else if (implPrmInfo
+                    .getParamType() == ResourceParamType.REQUEST_CONSTRAINT) {
 
                 // if this param will be generated.
                 if (genParamsList.contains(constraintName)) {
@@ -946,25 +960,28 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     // Return the latest time or if there either is NoData or if the time
     // hasn't been set yet, return a Null DataTime.
 
-    public DataTime getLatestDataTime(ResourceName rscName) throws VizException {
+    public DataTime getLatestDataTime(ResourceName rscName)
+            throws VizException {
         if (!isRequestable()) {
             return null;
         }
 
-        Map<String, RequestConstraint> resourceConstraints = getConstraintsFromParameters(ResourceDefnsMngr
-                .getInstance().getAllResourceParameters(rscName));
+        Map<String, RequestConstraint> resourceConstraints = getConstraintsFromParameters(
+                ResourceDefnsMngr.getInstance()
+                        .getAllResourceParameters(rscName));
 
         /*
          * if times are cached for these constraints, and if the times haven't
          * expired, then just return the cached times.
          */
-        DataTimesCacheEntry cacheEntry = addTimesCacheEntry(resourceConstraints);
+        DataTimesCacheEntry cacheEntry = addTimesCacheEntry(
+                resourceConstraints);
         DataTime latestTime = cacheEntry.getLatestTime();
 
         if (latestTime == null) {
             /* Get just the latest time only */
-            DataTime[] dataTimeArr = CatalogQuery.performTimeQuery(
-                    resourceConstraints, true, null);
+            DataTime[] dataTimeArr = CatalogQuery
+                    .performTimeQuery(resourceConstraints, true, null);
             if (!CollectionUtil.isNullOrEmpty(dataTimeArr)) {
                 latestTime = dataTimeArr[0];
                 cacheEntry.setLatestTime(latestTime);
@@ -979,15 +996,17 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     // times
     public List<DataTime> getDataTimes(ResourceName rscName)
             throws VizException {
-        Map<String, RequestConstraint> resourceConstraints = getConstraintsFromParameters(ResourceDefnsMngr
-                .getInstance().getAllResourceParameters(rscName));
+        Map<String, RequestConstraint> resourceConstraints = getConstraintsFromParameters(
+                ResourceDefnsMngr.getInstance()
+                        .getAllResourceParameters(rscName));
 
-        DataTimesCacheEntry cacheEntry = addTimesCacheEntry(resourceConstraints);
+        DataTimesCacheEntry cacheEntry = addTimesCacheEntry(
+                resourceConstraints);
         List<DataTime> rval = cacheEntry.getAvailableTimes();
         if (rval == null) {
             try {
-                DataTime[] dataTimeArr = CatalogQuery.performTimeQuery(
-                        resourceConstraints, false, null);
+                DataTime[] dataTimeArr = CatalogQuery
+                        .performTimeQuery(resourceConstraints, false, null);
                 Arrays.sort(dataTimeArr);
                 rval = Arrays.asList(dataTimeArr);
                 cacheEntry.setAvailableTimes(rval);
@@ -1017,8 +1036,10 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     }
 
     protected void queryGeneratedTypes() throws VizException {
-        if (!isRequestable()
-                || (System.currentTimeMillis() < lastTypeQueryCacheExpireTime)) {
+
+        // Determine whether or not to use cache and bail out of this method
+        if (!isRequestable() || (System
+                .currentTimeMillis() < lastTypeQueryCacheExpireTime)) {
             return;
         }
 
@@ -1027,10 +1048,11 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         // bypassing its original CatalogQuery.performQuery.
 
         if (localRadarResourceDefnName.equals(getResourceDefnName())) {
+            // LocalRadar - looping through the station IDs
             if (!isLocalRadarProcessed) {
                 generatedTypesList.clear();
-                List<String> stationIDs = LocalRadarStationManager
-                        .getInstance().getStationIDs();
+                List<String> stationIDs = LocalRadarStationManager.getInstance()
+                        .getStationIDs();
 
                 if (stationIDs != null) {
                     generatedTypesList.addAll(stationIDs);
@@ -1052,7 +1074,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             // parameters that are specified in an attribute set. (ex. radar
             // product codes and satellite imageTypes.)
 
-            HashMap<String, RequestConstraint> requestConstraints = getConstraintsFromParameters(getResourceParameters(false));
+            HashMap<String, RequestConstraint> requestConstraints = getConstraintsFromParameters(
+                    getResourceParameters(false));
             String rscTypeGenerator = getRscTypeGenerator();
 
             if (!rscTypeGenerator.isEmpty()) {
@@ -1078,7 +1101,6 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 DbQueryRequest request = new DbQueryRequest(requestConstraints);
 
                 if (!(getResourceCategory() == ResourceCategory.PGENRscCategory)) {
-
                     request.addFields(subParams);
                     request.setDistinct(true);
                 }
@@ -1091,11 +1113,11 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                     String subType = null;
                     StringBuilder sb = new StringBuilder();
 
-                    if (getRscImplementation().equals(
-                            McidasConstants.MCIDAS_SATELLITE)) {
+                    if (getRscImplementation()
+                            .equals(McidasConstants.MCIDAS_SATELLITE)) {
 
-                        SatelliteAreaManager.getInstance().setSubParams(
-                                subParams);
+                        SatelliteAreaManager.getInstance()
+                                .setSubParams(subParams);
 
                         areaId = (String) result.get("areaId");
                         // if (areaId.contains("335"))
@@ -1107,19 +1129,21 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         satelliteId = (String) result
                                 .get(McidasConstants.SATELLITE_ID);
 
-                        SatelliteNameManager.getInstance().setSatelliteId(
-                                satelliteId);
+                        SatelliteNameManager.getInstance()
+                                .setSatelliteId(satelliteId);
 
-                        SatelliteAreaManager.getInstance().satelliteId = satelliteId;
+                        SatelliteAreaManager
+                                .getInstance().satelliteId = satelliteId;
 
-                        SatelliteAreaManager.getInstance().satelliteName = SatelliteNameManager
-                                .getInstance()
-                                .getDisplayedNameByID(satelliteId);
+                        SatelliteAreaManager
+                                .getInstance().satelliteName = SatelliteNameManager
+                                        .getInstance()
+                                        .getDisplayedNameByID(satelliteId);
 
                         for (String subParam : subParams) {
 
-                            if (subParam
-                                    .equalsIgnoreCase(McidasConstants.RESOLUTION)) {
+                            if (subParam.equalsIgnoreCase(
+                                    McidasConstants.RESOLUTION)) {
                                 if (resolution == 0) {
                                     sb.append("native");
                                 } else {
@@ -1128,16 +1152,16 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                                 }
                                 sb.append('_');
 
-                            } else if (subParam
-                                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
+                            } else if (subParam.equalsIgnoreCase(
+                                    McidasConstants.AREA_ID)) {
                                 sb.append(areaId);
                                 sb.append('_');
-                            } else if (subParam
-                                    .equalsIgnoreCase(McidasConstants.PROJECTION)) {
+                            } else if (subParam.equalsIgnoreCase(
+                                    McidasConstants.PROJECTION)) {
                                 sb.append(projection);
                                 sb.append('_');
-                            } else if (subParam
-                                    .equalsIgnoreCase(McidasConstants.SATELLITE_ID)) {
+                            } else if (subParam.equalsIgnoreCase(
+                                    McidasConstants.SATELLITE_ID)) {
                                 sb.append(satelliteId);
                                 sb.append('_');
                             }
@@ -1157,41 +1181,23 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         }
                     }
 
+                    // While looping through DB records in queryGenTypes found
+                    // that resource category is PGEN
                     if (getResourceCategory() == ResourceCategory.PGENRscCategory) {
 
+                        // Build the subTypes string using the PgenRecord
                         for (Object pdo : result.values()) {
                             PgenRecord pgenRec = (PgenRecord) pdo;
-                            if (subTypeGenerator.indexOf("dataTime") > -1) {
-                                subType = pgenRec.getDataTime().toString();
-                            } else if (subTypeGenerator
-                                    .indexOf("activitySubtype") > -1) {
-                                subType = pgenRec.getActivitySubtype();
-                            } else if (subTypeGenerator
-                                    .indexOf("activityLabel") > -1) {
-                                subType = pgenRec.getActivityLabel();
-                            } else if (subTypeGenerator.indexOf("activityName") > -1) {
-                                subType = pgenRec.getActivityName();
-                            } else if (subTypeGenerator.indexOf("activityType") > -1) {
-                                subType = pgenRec.getActivityType();
-                            } else if (subTypeGenerator.indexOf("site") > -1) {
-                                subType = pgenRec.getSite();
-                            } else if (subTypeGenerator.indexOf("desk") > -1) {
-                                subType = pgenRec.getDesk();
-                            } else if (subTypeGenerator.indexOf("forecaster") > -1) {
-                                subType = pgenRec.getForecaster();
-                            } else {
-                                statusHandler
-                                        .handle(Priority.PROBLEM,
-                                                ("Unrecognized PGEN rsc generating subType" + subTypeGenerator));
-                            }
 
-                            if ((subType != null) && !subType.trim().isEmpty()) {
-                                if (!generatedSubTypesList.contains(subType)) {
-                                    generatedSubTypesList.add(subType);
-                                }
-                            }
+                            // Get the subType string using the pgenRec
+                            subType = getSubTypesForPgenRec(pgenRec);
                         }
 
+                        if ((subType != null) && !subType.trim().isEmpty()) {
+                            if (!generatedSubTypesList.contains(subType)) {
+                                generatedSubTypesList.add(subType);
+                            }
+                        }
                     } else {
 
                         subType = sb.toString();
@@ -1223,28 +1229,88 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 + TYPE_QUERY_CACHE_TIME;
     }
 
+    // Using the PgenRecord passed in, use the subTypeGenerator (e.g.
+    // "activityLabel, site, forecaster") to build a subType string (e.g.
+    // 10-Volcano.21112016.08.xml OAX jsmith) and return it
+    private String getSubTypesForPgenRec(PgenRecord pgenRec) {
+        StringBuilder subType = new StringBuilder();
+        String stringToAppend = "";
+
+        // Breaks up the subTypeGenerator string into an array
+        String[] subTypeGenerators = getSubTypeGenParamsList();
+
+        // Looping through the generators and and building the subType string
+        // using the PgenRec i.e. the subTypeGenerators are activityLabel, site,
+        // forecaster and it
+        // builds the subType string "14-CCFP.21112016.08.xml OAX jsmith"
+        // Note: I could catch if there's a blank parameter below
+        for (String str : subTypeGenerators) {
+
+            // Note: DataTime is not a field of Pgen, will cause errors, so skip
+            // it
+            stringToAppend = "";
+            if (str.indexOf("activitySubtype") > -1) {
+                stringToAppend = pgenRec.getActivitySubtype();
+            } else if (str.indexOf("activityLabel") > -1) {
+                stringToAppend = pgenRec.getActivityLabel();
+            } else if (str.indexOf("activityName") > -1) {
+                stringToAppend = pgenRec.getActivityName();
+            } else if (str.indexOf("activityType") > -1) {
+                stringToAppend = pgenRec.getActivityType();
+            } else if (str.indexOf("site") > -1) {
+                stringToAppend = pgenRec.getSite();
+            } else if (str.indexOf("desk") > -1) {
+                stringToAppend = pgenRec.getDesk();
+            } else if (str.indexOf("forecaster") > -1) {
+                stringToAppend = pgenRec.getForecaster();
+            } else { // If none of the above were found in the subTypeGenerator
+                     // then:
+                statusHandler.handle(Priority.INFO,
+                        ("Unrecognized PGEN rsc generating subType"
+                                + subTypeGenerator));
+            }
+            subType = appendSubType(subType, stringToAppend);
+        }
+
+        return subType.toString();
+    }
+
+    // Used by getSubTypesForPgenRec(). Appends a string to the end of the
+    // current subType string
+    private StringBuilder appendSubType(StringBuilder builtString,
+            String subType) {
+
+        if (builtString.length() > 0) {
+            // builtString already has at least one subType in it, put a space
+            // between it and the next one
+            builtString.append(" ");
+        }
+
+        builtString.append(subType);
+
+        return builtString;
+    }
+
     @Override
     public int compareTo(ResourceDefinition o) {
-        return this.getResourceDefnName().compareToIgnoreCase(
-                o.getResourceDefnName());
+        return this.getResourceDefnName()
+                .compareToIgnoreCase(o.getResourceDefnName());
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = (prime * result)
-                + ((resourceDefnName == null) ? 0 : resourceDefnName.hashCode());
-        result = (prime * result)
-                + ((resourceParameters == null) ? 0 : resourceParameters
-                        .hashCode());
-        result = (prime * result)
-                + ((rscImplementation == null) ? 0 : rscImplementation
-                        .hashCode());
-        result = (prime * result)
-                + ((rscTypeGenerator == null) ? 0 : rscTypeGenerator.hashCode());
-        result = (prime * result)
-                + ((subTypeGenerator == null) ? 0 : subTypeGenerator.hashCode());
+        result = (prime * result) + ((resourceDefnName == null) ? 0
+                : resourceDefnName.hashCode());
+        result = (prime * result) + ((resourceParameters == null) ? 0
+                : resourceParameters.hashCode());
+        result = (prime * result) + ((rscImplementation == null) ? 0
+                : rscImplementation.hashCode());
+        result = (prime * result) + ((rscTypeGenerator == null) ? 0
+                : rscTypeGenerator.hashCode());
+        result = (prime * result) + ((subTypeGenerator == null) ? 0
+                : subTypeGenerator.hashCode());
         return result;
     }
 
@@ -1264,7 +1330,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             if (other.applicableDisplayTypes != null) {
                 return false;
             }
-        } else if (!applicableDisplayTypes.equals(other.applicableDisplayTypes)) {
+        } else if (!applicableDisplayTypes
+                .equals(other.applicableDisplayTypes)) {
             return false;
         }
         if (attrSetOrg != other.attrSetOrg) {
@@ -1289,8 +1356,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             if (other.resourceCategory.getCategoryName() != null) {
                 return false;
             }
-        } else if (!resourceCategory.getCategoryName().equals(
-                other.resourceCategory.getCategoryName())) {
+        } else if (!resourceCategory.getCategoryName()
+                .equals(other.resourceCategory.getCategoryName())) {
             return false;
         }
         if (resourceDefnName == null) {
@@ -1379,8 +1446,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 }
                 System.out.println("*displayName.length =" + str.length);
                 for (int k = 0; k < str.length; k++) {
-                    System.out.println("displayName[" + k + "] = "
-                            + str[k].toString());
+                    System.out.println(
+                            "displayName[" + k + "] = " + str[k].toString());
                 }
                 displayName = originalDisplayName;
             }
@@ -1398,8 +1465,8 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
         String displayName = EMPTY_STRING;
         for (int k = 0; k < subParams.length; k++) {
 
-            if (subParams[k].toString().equalsIgnoreCase(
-                    McidasConstants.RESOLUTION)) {
+            if (subParams[k].toString()
+                    .equalsIgnoreCase(McidasConstants.RESOLUTION)) {
 
                 if (!subParams[k].contains(KILOMETER_UNIT)) {
                     str[k] += KILOMETER_UNIT;
@@ -1409,13 +1476,13 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                         + McidasConstants.RESOLUTION + DELIMITER_COLON + str[k]
                         + DELIMITER_COMMA;
 
-            } else if (subParams[k].toString().equalsIgnoreCase(
-                    McidasConstants.PROJECTION)) {
+            } else if (subParams[k].toString()
+                    .equalsIgnoreCase(McidasConstants.PROJECTION)) {
 
                 displayName = displayName + BLANK_SPACE + str[k];
 
-            } else if (subParams[k].toString().equalsIgnoreCase(
-                    McidasConstants.AREA_ID)) {
+            } else if (subParams[k].toString()
+                    .equalsIgnoreCase(McidasConstants.AREA_ID)) {
 
                 SatelliteAreaManager satAreaMgr = SatelliteAreaManager
                         .getInstance();
@@ -1430,12 +1497,11 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
                 }
 
                 displayName = displayName + BLANK_SPACE + areaIdName;
-                mcidasAliasedValues = mcidasAliasedValues
-                        + McidasConstants.AREA + DELIMITER_COLON + areaIdName
-                        + DELIMITER_COMMA;
+                mcidasAliasedValues = mcidasAliasedValues + McidasConstants.AREA
+                        + DELIMITER_COLON + areaIdName + DELIMITER_COMMA;
 
-            } else if (subParams[k].toString().equalsIgnoreCase(
-                    McidasConstants.SATELLITE_ID)) {
+            } else if (subParams[k].toString()
+                    .equalsIgnoreCase(McidasConstants.SATELLITE_ID)) {
 
                 String value = SatelliteNameManager.getInstance()
                         .getDisplayedNameByID(str[k]);
@@ -1512,8 +1578,9 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
             attrSetName = atrSet.get(McidasConstants.IMAGE_TYPE_ID
                     + McidasConstants.CUSTOM_NAME);
 
-            satImMan.setAttributeNamesAndAliases(satId + DELIMITER_COLON
-                    + attributeSet.getName().toString(), attrSetName);
+            satImMan.setAttributeNamesAndAliases(
+                    satId + DELIMITER_COLON + attributeSet.getName().toString(),
+                    attrSetName);
 
         }
 

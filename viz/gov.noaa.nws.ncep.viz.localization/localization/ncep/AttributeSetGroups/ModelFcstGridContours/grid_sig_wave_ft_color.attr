@@ -7,18 +7,18 @@
 !
 GLEVEL = 0
 GVCORD = none
-SKIP   = 
+SKIP   =
 SCALE  = 0
 GDPFUN = mul(htsgw,3.28)//w!sbtw(w,0.0,2.999)!sbtw(w,3.0,5.999)!sbtw(w,6.0,8.999)!sbtw(w,9.0,11.999)!sbtw(w,12.0,14.999)!sbtw(w,15.0,17.999)!sbtw(w,18.0,20.999)!sbtw(w,21.0,23.999)!sbtw(w,24.0,26.999)!sbtw(w,27.0,29.999)!sbtw(w,30.0,35.999)!sbtw(w,36.0,44.999)!sgt(w,45.0)
 TYPE   = p
 CINT   = 0
-LINE   = 
-FINT   = 
-FLINE  = 
+LINE   =
+FINT   =
+FLINE  =
 HILO   = 0
 HLSYM  = 0
-WIND   = 
-TITLE  = 5/-1/?~^  COLOR GRD SIG WAVE HEIGHT (3 FT)!0
+WIND   =
+TITLE  = 5/-1/COLOR GRD SIG WAVE HEIGHT (3 FT) ?^!0
 TEXT   = .7/21/1/hw
 COLORS = 0!1!6!26!24!21!23!20!8!17!8!14!30!2
 MARKER = 0

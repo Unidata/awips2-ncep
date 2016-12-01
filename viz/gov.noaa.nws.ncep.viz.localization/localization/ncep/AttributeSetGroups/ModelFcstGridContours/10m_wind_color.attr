@@ -6,7 +6,7 @@
 ! J.M.Sienkiewicz/OPC    5/03   Adapted to display wind barbs in color
 !
 GLEVEL=  0 !0 !0 !0 !0 !0 !0 !0 !0 !0 !0 !0
-GVCORD=  none !none !none !none !none !none !none !none !none !none !none !none 
+GVCORD=  none !none !none !none !none !none !none !none !none !none !none !none
 PANEL=   0
 SKIP=    0
 SCALE=   0
@@ -22,7 +22,7 @@ HLSYM=
 CLRBAR=
 WIND=    bk0! bk1/0.7/1.5/112     !bk6/0.7/1.5/112     !bk26/0.7/1.5/112      !bk24/0.7/1.5/112      !bk21/0.7/1.5/112     !bk23/0.7/1.5/112      !bk5/0.7/1.5/112       !bk17/0.7/1.5/112     !bk8/0.7/1.5/112 !bk14/0.7/1.5/112 !bk2/0.7/1.5/112
 REFVEC=
-TITLE=   1/-1/~ ? 10m BL WIND (10m; KTS)
+TITLE=   1/-1/10m BL WIND (10m; KTS) ?~
 TEXT=    1/22/2/hw
 CLEAR=   yes
 DEVICE=  xw

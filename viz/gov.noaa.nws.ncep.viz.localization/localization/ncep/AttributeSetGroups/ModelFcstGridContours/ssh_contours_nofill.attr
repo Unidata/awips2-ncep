@@ -2,10 +2,10 @@
 ! Restore File : ssh_contours
 !
 ! Log:
-! Y.Hao		       01/09/08 
+! Y.Hao		       01/09/08
 !
 !FINT    0.03/-0.15/0.06       METER
-!FINT    -4;-3;-2;-1;-0.5;-0.3;-0.1;0;0.3;0.5;1;2;3;4;5          
+!FINT    -4;-3;-2;-1;-0.5;-0.3;-0.1;0;0.3;0.5;1;2;3;4;5
 !FLINE   24;25;26;27;23;22;3;21;5;19;17;16;15;14;7;28
 GLEVEL=  0
 GVCORD=  none
@@ -15,23 +15,23 @@ SCALE=   0
 GDPFUN=  mul(ETSRG,3.281)
 TYPE=    c
 CONTUR=  0
-CINT=    -4;-3;-2;-1;-0.5;-0.3;-0.1;0;0.3;0.5;1;2;3;4;5 
-LINE=    24;25;26;27;23;22;3;5;19;17;16;15;14;7;28//2//2 
+CINT=    -4;-3;-2;-1;-0.5;-0.3;-0.1;0;0.3;0.5;1;2;3;4;5
+LINE=    24;25;26;27;23;22;3;5;19;17;16;15;14;7;28//2//2
 FINT=
 FLINE=
-HILO=    
-HLSYM=   
+HILO=
+HLSYM=
 CLRBAR=  1/v/ll
-WIND=    
-REFVEC=  
-TITLE=   5/-2/~ Extra Tropical Surge Height (feet)
+WIND=
+REFVEC=
+TITLE=   5/-2/Extra Tropical Surge Height (feet) ~
 TEXT=    1/21/1.4/hw
 CLEAR=   yes
-STNPLT=  
-SATFIL=  
-RADFIL=  
-LUTFIL=  
-STREAM=  
+STNPLT=
+SATFIL=
+RADFIL=
+LUTFIL=
+STREAM=
 POSN=    0
 COLORS=  1
 MARKER=  0

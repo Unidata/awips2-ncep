@@ -9,18 +9,18 @@
 !
 GLEVEL = 0
 GVCORD = none
-SKIP   = 
+SKIP   =
 SCALE  = 0
 GDPFUN = mask(htsgw,sea)//w!sbtw(w,0.000,0.490)!sbtw(w,0.500,1.490)!sbtw(w,1.500,2.490)!sbtw(w,2.500,3.490)!sbtw(w,3.500,4.490)!sbtw(w,4.500,5.490)!sbtw(w,5.500,6.490)!sbtw(w,6.500,7.490)!sbtw(w,7.500,8.490)!sbtw(w,8.500,9.490)!sbtw(w,9.500,10.490)!sbtw(w,10.500,33)
 TYPE   = p
 CINT   = 0
-LINE   = 
-FINT   = 
-FLINE  = 
+LINE   =
+FINT   =
+FLINE  =
 HILO   = 0
 HLSYM  = 0
-WIND   = 
-TITLE  = 5/-1/?~^  COLOR GRD SIG WAVE HEIGHT (M)!0
+WIND   =
+TITLE  = 5/-1/COLOR GRD SIG WAVE HEIGHT (M) ?^!0
 TEXT   = .7/21/1/hw
 COLORS = 0!1!6!26!24!21!23!20!8!17!8!14!30!2
 MARKER = 0

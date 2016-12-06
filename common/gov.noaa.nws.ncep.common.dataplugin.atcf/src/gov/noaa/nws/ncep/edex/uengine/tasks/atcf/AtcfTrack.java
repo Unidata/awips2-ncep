@@ -18,8 +18,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.atcf.AtcfRecord;
 

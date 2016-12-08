@@ -192,9 +192,12 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *                                       Auto selects the new group when creating a new resource group
  *                                       Renamed variables to be CamelCase
  * 08/25/2016     R15518    Jeff Beck    Added check for isDisposed() before calling refresh() in editResourceData()
+ * 10/20/2016     R17365    K.Bugenhagen Added call to SpfsManager method to remember
+ *                                       selected spf group/name and RBD
+ *                                       name in between calls to save RBD dialogue.  
+ *                                       Cleanup.
  * 11/14/2016     R17362    Jeff Beck    Added functionality to remove user defined resources from the dominant resource combo
  *                                       when clicking the "X" on the GUI.
- * 
  * </pre>
  * 
  * @author ghull
@@ -335,6 +338,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     private String savedSpfGroup = null;
 
     private String savedSpfName = null;
+
+    private String savedRbdName;
 
     private Point initDlgSize = new Point(750, 860);
 
@@ -1093,8 +1098,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
                 if (ungrouped != null) {
                     if (groups != null) {
-                        List<ResourceSelection> list = new ArrayList<ResourceSelection>(
-                                Arrays.asList(groups));
+                        List<ResourceSelection> list = new ArrayList<>(Arrays
+                                .asList(groups));
                         list.add(0, ungrouped);
                         groups1 = list
                                 .toArray(new ResourceSelection[list.size()]);
@@ -2864,7 +2869,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
             selectedResourceViewer.refresh(true);
 
-            List<ResourceSelection> newSeldRscsList = new ArrayList<ResourceSelection>();
+            List<ResourceSelection> newSeldRscsList = new ArrayList<>();
 
             // create a new list of selected elements
             for (Object object : origSeldRscsList) {
@@ -3386,10 +3391,14 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             boolean saveTimeAsConstant = false; // TODO -- how should this be
                                                 // set???
 
+            SpfsManager spfsMgr = SpfsManager.getInstance();
+            savedSpfGroup = spfsMgr.getLatestSpfGroup();
+            savedSpfName = spfsMgr.getLatestSpfName();
+            savedRbdName = spfsMgr.getLatestRbdName();
+
             // get the filename to save to.
             SaveRbdDialog saveDlg = new SaveRbdDialog(shell, savedSpfGroup,
-                    savedSpfName, rbdNameText.getText(), saveRefTime,
-                    saveTimeAsConstant);
+                    savedSpfName, savedRbdName, saveRefTime, saveTimeAsConstant);
 
             if ((Boolean) saveDlg.open() == false) {
                 return;
@@ -3397,23 +3406,22 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             savedSpfGroup = saveDlg.getSeldSpfGroup();
             savedSpfName = saveDlg.getSeldSpfName();
+            savedRbdName = saveDlg.getSeldRbdName();
 
             saveRefTime = saveDlg.getSaveRefTime();
             saveTimeAsConstant = saveDlg.getSaveTimeAsConstant();
 
             // Set the name to the name that was actually used to save the RBD.
-            // TODO : we could store a list of the RBDNames and load these
-            // as items in the combo.
-            rbdNameText.setText(saveDlg.getSeldRbdName());
+            rbdNameText.setText(savedRbdName);
 
             rbdMngr.setGeoSyncPanes(geoSyncPanesToggle.getSelection());
             rbdMngr.setAutoUpdate(autoUpdateButton.getSelection());
 
-            AbstractRBD<?> rbdBndl = rbdMngr
-                    .createRbdBundle(saveDlg.getSeldRbdName(), timeMatcher);
+            AbstractRBD<?> rbdBndl = rbdMngr.createRbdBundle(savedRbdName,
+                    timeMatcher);
 
-            SpfsManager.getInstance().saveRbdToSpf(savedSpfGroup, savedSpfName,
-                    rbdBndl, saveRefTime, saveTimeAsConstant);
+            spfsMgr.saveRbdToSpf(savedSpfGroup, savedSpfName, rbdBndl,
+                    saveRefTime, saveTimeAsConstant);
 
             VizApp.runSync(new Runnable() {
                 @Override

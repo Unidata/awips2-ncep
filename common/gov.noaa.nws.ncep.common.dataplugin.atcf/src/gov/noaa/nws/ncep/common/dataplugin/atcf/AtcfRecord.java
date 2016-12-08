@@ -43,6 +43,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *                                     PluginDataObject.
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Jun 11, 2014 2061       bsteffen    Remove IDecoderGettable
+ * 11/01/2016   R22939     B. Hebbard  Add method toDeckString() for deck file export
  * </pre>
  * 
  * @author F. J. Yen, SIB
@@ -735,5 +736,113 @@ public class AtcfRecord extends PluginDataObject {
     @Override
     public String getPluginName() {
         return "atcf";
+    }
+
+    /**
+     *  Constructs a CSV string representation of the data in the AtcfRecord
+     *  compatible with ATCF "deck" files. Sample B-deck line (wrapped):
+     *  
+     *  AL, 01, 2015050912,   , BEST,   0, 325N,  778W,  50, 1001, TS,  50, NEQ, 
+     *   50,   50,    0,    0, 1016,  150,  40,  60,   0,   L,   0,    ,   0,   0, 
+     *          ANA, M, 12, NEQ,  180,  120,   90,  120, genesis-num, 001, 
+     */
+    public String toDeckString() {
+        final String sep = ", ";
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%2s", basin));
+        sb.append(sep);
+        sb.append(String.format("%02d", cycloneNum)); // use leading zero
+        sb.append(sep);
+        sb.append(warnTime.get(Calendar.YEAR));
+        sb.append(String.format("%02d", warnTime.get(Calendar.MONTH) + 1));
+        sb.append(String.format("%02d", warnTime.get(Calendar.DAY_OF_MONTH)));
+        sb.append(String.format("%02d", warnTime.get(Calendar.HOUR_OF_DAY)));
+        sb.append(sep);
+        sb.append(techniqueNum == IMISSD ? "  " : String.format("%02d",
+                techniqueNum));
+        sb.append(sep);
+        sb.append(String.format("%4s", technique));
+        sb.append(sep);
+        sb.append(String.format("%3s", fcstHour));
+        sb.append(sep);
+        sb.append(String.format("%3s", (int) (Math.abs(clat) * 10))); // 26.800001
+                                                                      // ->
+                                                                      // "268N"
+        sb.append(clat >= 0.0f ? "N" : "S");
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) (Math.abs(clon) * 10))); // -79.200005
+                                                                      // ->
+                                                                      // " 792W"
+        sb.append(((int) (clon * 10)) > 0
+                || (((int) (clon * 10)) == 0 && (technique.equals("DSHP") || technique
+                        .equals("SHIP"))) ? "E" : "W");
+        sb.append(sep);
+        sb.append(String.format("%3s", (int) windMax)); // 25.0 -> " 25"
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) mslp)); // 992.0 -> " 992"
+        sb.append(sep);
+        sb.append(String.format("%2s", intensity));
+        sb.append(sep);
+        sb.append(String.format("%3s", (int) radWind)); // 0.0 -> "  0"
+        sb.append(sep);
+        sb.append(String.format("%3s", radWindQuad));
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) quad1WindRad)); // 0.0 -> "   0"
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) quad2WindRad)); // "
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) quad3WindRad)); // "
+        sb.append(sep);
+        sb.append(String.format("%4s", (int) quad4WindRad)); // "
+        sb.append(sep);
+        if (closedP != RMISSD) {
+            sb.append(String.format("%4s", (int) closedP)); // 998.0 -> " 998"
+            sb.append(sep);
+            sb.append(String.format("%4s", (int) radClosedP));
+            sb.append(sep);
+            sb.append(String.format("%3s", (int) maxWindRad));
+            sb.append(sep);
+            sb.append(String.format("%3s", (int) gust));
+            sb.append(sep);
+            sb.append(String.format("%3s", (int) eyeSize));
+            sb.append(sep);
+            if (maxSeas != RMISSD) {
+                sb.append(String.format("%3s", subRegion));
+                sb.append(sep);
+                sb.append(String.format("%3s", (int) maxSeas));
+                sb.append(sep);
+                sb.append(String.format("%3s", forecaster));
+                sb.append(sep);
+                sb.append(String.format("%3s", (int) stormDrct));
+                sb.append(sep);
+                sb.append(String.format("%3s", (int) stormSped));
+                sb.append(sep);
+                sb.append(String.format("%10s", stormName));
+                sb.append(sep);
+                sb.append(String.format("%1s", stormDepth));
+                sb.append(sep);
+                if ((int) radWave != RMISSD) {
+                    sb.append(String.format("%2s", (int) radWave));
+                    sb.append(sep);
+                    sb.append(String.format("%3s", radWaveQuad));
+                    sb.append(sep);
+                    sb.append(String.format("%4s", (int) quad1WaveRad));
+                    sb.append(sep);
+                    sb.append(String.format("%4s", (int) quad2WaveRad));
+                    sb.append(sep);
+                    sb.append(String.format("%4s", (int) quad3WaveRad));
+                    sb.append(sep);
+                    sb.append(String.format("%4s", (int) quad4WaveRad));
+                    sb.append(sep);
+                    if (!userDefined.isEmpty()) {
+                        sb.append(userDefined);
+                        sb.append(sep);
+                        sb.append(userData);
+                        sb.append(sep);
+                    }
+                }
+            }
+        }
+        return sb.toString();
     }
 }

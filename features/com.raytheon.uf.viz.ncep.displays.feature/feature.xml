@@ -30,6 +30,7 @@
       <import feature="com.raytheon.viz.text.feature" version="1.0.0.qualifier"/>
       <import feature="com.raytheon.uf.viz.cots.feature" version="1.0.0.qualifier"/>
       <import feature="com.raytheon.uf.viz.aviation.advisory.feature" version="1.14.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.vtec.feature" version="1.0.0.qualifier"/>
    </requires>
 
    <plugin
@@ -327,7 +328,7 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
+
    <plugin
          id="gov.noaa.nws.ncep.viz.soundingrequest"
          download-size="0"

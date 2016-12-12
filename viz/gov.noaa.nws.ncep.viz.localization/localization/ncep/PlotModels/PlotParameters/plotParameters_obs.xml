@@ -2,7 +2,7 @@
 <PlotParameterDefns>
   <plugin>obs</plugin>
 
-   <!-- TODO : ceil cldb clds cldt p01i*100 p03i*100 p06i*100 p24i*100 -->
+  <!-- TODO: p01i*100 p03i*100 p06i*100 p24i*100 dmax dmin -->
 
   <PlotParameterDefn plotParamName="ALTI"
     metParamName="SeaLevelPressure" dbParamName="altimeter" plotUnit="inHg"
@@ -60,11 +60,20 @@
 
   <PlotParameterDefn plotParamName="CLDT"
     metParamName="CombinedCloudMaxCoverage" deriveParams="SkyCoverage,CloudLayerBase" />
+    
+  <!-- m*762/25 equals the unit "hundreds of feet" -->
+  <PlotParameterDefn plotParamName="CMSL"
+    metParamName="CeilingFromSeaLevel" deriveParams="all" plotUnit="m*762/25"
+    plotFormat="%3.0f" />
 
   <PlotParameterDefn plotParamName="DPDC"
     metParamName="DewPointDepression" deriveParams="AirTemperature,DewPointTemp"
     plotUnit="°C" plotFormat="%3.0f" />
-
+       
+  <PlotParameterDefn plotParamName="DDEN"
+    metParamName="DryAirDensity" deriveParams="all"
+    plotUnit="kg/m^3" plotFormat="%3.0f" />   
+    
   <PlotParameterDefn plotParamName="DPDF"
     metParamName="DewPointDepression" deriveParams="AirTemperature,DewPointTemp"
     plotUnit="°F" plotFormat="%3.0f" />
@@ -107,6 +116,10 @@
   <PlotParameterDefn plotParamName="HEAT"
     metParamName="HeatIndex" deriveParams="all" plotUnit="°F"
     plotFormat="%3.0f" />
+
+   <PlotParameterDefn plotParamName="HMTR"
+    metParamName="HumitureIndex" deriveParams="AirTemperature,DewPointTemp"
+    plotFormat="%3.0f" />  
 
   <PlotParameterDefn plotParamName="LTMP"
     metParamName="LiftedSurfaceAirTempAt500mb" deriveParams="all"
@@ -159,13 +172,25 @@
     metParamName="SurfacePressure" deriveParams="all" plotUnit="hPa"
     plotFormat="%3.0f" />
 
+  <PlotParameterDefn plotParamName="PKNT"
+    metParamName="PackedWindSpeedAndDirection" deriveParams="windDir,windSpeed" plotUnit="kts"
+    plotFormat="%3.0f" />   
+
   <PlotParameterDefn plotParamName="PMSL"
     metParamName="MeanSeaLevelPres" dbParamName="seaLevelPress"
     plotUnit="mb" plotFormat="PMSL" />
-
+  
   <PlotParameterDefn plotParamName="PTND"
     metParamName="PressureChange3HrAndTendency" deriveParams="pressChange3Hour,pressChangeChar"
     plotUnit="Pa" plotFormat="%+3.0f" />
+    
+   <PlotParameterDefn plotParamName="P03D"
+    metParamName="PressureTendencyNumber" deriveParams="pressChangeChar"
+    plotUnit="Pa" plotFormat="%+3.0f" />
+ 
+  <PlotParameterDefn plotParamName="PSPD"
+    metParamName="PackedWindSpeedAndDirection" deriveParams="windDir,windSpeed" plotUnit="m/s"
+    plotFormat="%3.0f" />   
 
   <PlotParameterDefn plotParamName="PTSY"
     metParamName="PressureTendencySymbol" dbParamName="pressChangeChar"
@@ -204,7 +229,7 @@
   <PlotParameterDefn plotParamName="SKYC"
     metParamName="SkyCoverage" plotMode="table" dbParamName="skyCover"
     prioritySelectTable="cloud_select.txt" plotLookupTable="pgen_skyc.txt" />
-
+    
   <PlotParameterDefn plotParamName="SKYCHAR"
     metParamName="SkyCoverage" plotMode="text" dbParamName="skyCover"
     prioritySelectTable="cloud_select.txt" />
@@ -320,6 +345,30 @@
   <PlotParameterDefn plotParamName="TMWK"
     metParamName="WetBulbTemp" deriveParams="all" plotUnit="K"
     plotFormat="%3.0f" />
+    
+   <PlotParameterDefn plotParamName="TVRC"
+    metParamName="VirtualTemp" deriveParams="all" plotUnit="C"
+    plotFormat="%3.0f" />  
+    
+   <PlotParameterDefn plotParamName="TVRF"
+    metParamName="VirtualTemp" deriveParams="all" plotUnit="F"
+    plotFormat="%3.0f" />  
+    
+   <PlotParameterDefn plotParamName="TVRK"
+    metParamName="VirtualTemp" deriveParams="all" plotUnit="K"
+    plotFormat="%3.0f" />    
+    
+   <PlotParameterDefn plotParamName="VSBC"
+    metParamName="Visibility" dbParamName="visibility" plotUnit="mi"
+    plotFormat="VSBC" />
+    
+   <PlotParameterDefn plotParamName="VSBF"
+    metParamName="Visibility" dbParamName="visibility" plotUnit="mi"
+    plotFormat="VSBF" />   
+    
+   <PlotParameterDefn plotParamName="VSBY"
+    metParamName="Visibility" dbParamName="visibility" plotUnit="mi"
+    plotFormat="%3.1f" /> 
 
   <!-- WCEQ is the old (deprecated pre-2001 ) version of wind chill.
        WCHT is now more widely reported -->
@@ -344,9 +393,5 @@
   <PlotParameterDefn plotParamName="XVFR"
     metParamName="FlightRulesID" plotMode="text" deriveParams="all"
     plotFormat="%3.0f" />
-
-  <PlotParameterDefn plotParamName="VSBY"
-    metParamName="Visibility" dbParamName="visibility" plotUnit="mi"
-    plotFormat="%3.1f" />
 
 </PlotParameterDefns>

@@ -5,9 +5,9 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.airmet
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.11.1",
  org.geotools,
  javax.persistence,
- javax.measure
-Export-Package: gov.noaa.nws.ncep.common.dataplugin.airmet,
- gov.noaa.nws.ncep.common.dataplugin.airmet.dao
+ javax.measure,
+ com.raytheon.uf.common.dataplugin;bundle-version="1.14.0",
+ com.raytheon.uf.common.serialization;bundle-version="1.15.1"
+Export-Package: gov.noaa.nws.ncep.common.dataplugin.airmet

@@ -1,6 +1,4 @@
-package gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.nonconvsigmet.NonConvSigmetRecord;
+package gov.noaa.nws.ncep.edex.plugin.airmet.dao;
 
 import java.util.List;
 
@@ -9,6 +7,8 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
 
 /**
  * TODO Add Description
@@ -20,21 +20,22 @@ import com.raytheon.uf.edex.database.plugin.PluginDao;
  * ------------ ---------- ----------- --------------------------
  * Sep 23, 2009            jkorman     Initial creation
  * 09/2011                 Chin Chen   changed to improve purge performance and
- * 							           removed xml serialization as well
+ *                                     removed xml serialization as well
+ * Dec 14, 2016  5934      njensen     Moved to edex airmet plugin                                    
+ * 
  * </pre>
  * 
  * @author jkorman
- * @version 1.0
  */
 
-public class NonConvSigmetDao extends PluginDao {
+public class AirmetDao extends PluginDao {
 
     /**
      * Creates a new ReccoDao
      * 
      * @throws PluginException
      */
-    public NonConvSigmetDao(String pluginName) throws PluginException {
+    public AirmetDao(String pluginName) throws PluginException {
         super(pluginName);
     }
 
@@ -45,8 +46,8 @@ public class NonConvSigmetDao extends PluginDao {
      *            The dataURI to match against.
      * @return The report record if it exists.
      */
-    public NonConvSigmetRecord queryByDataURI(String dataURI) {
-        NonConvSigmetRecord report = null;
+    public AirmetRecord queryByDataURI(String dataURI) {
+        AirmetRecord report = null;
         List<?> obs = null;
         try {
             obs = queryBySingleCriteria("dataURI", dataURI);
@@ -54,7 +55,7 @@ public class NonConvSigmetDao extends PluginDao {
             e.printStackTrace();
         }
         if ((obs != null) && (obs.size() > 0)) {
-            report = (NonConvSigmetRecord) obs.get(0);
+            report = (AirmetRecord) obs.get(0);
         }
         return report;
     }
@@ -69,7 +70,7 @@ public class NonConvSigmetDao extends PluginDao {
      */
     public Object[] queryDataUriColumn(final String dataUri) {
 
-        String sql = "select datauri from awips.nonconvsigmet where datauri='"
+        String sql = "select datauri from awips.airmet where datauri='"
                 + dataUri + "';";
 
         Object[] results = executeSQLQuery(sql);

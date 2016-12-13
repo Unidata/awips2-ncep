@@ -1,6 +1,5 @@
-package gov.noaa.nws.ncep.common.dataplugin.airmet.dao;
+package gov.noaa.nws.ncep.edex.plugin.intlsigmet.dao;
 
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
 import java.util.List;
 
 import com.raytheon.uf.common.dataplugin.PluginException;
@@ -9,32 +8,33 @@ import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 
+import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetRecord;
+
 /**
- * TODO Add Description
+ * Set of DAO methods for AIREP Observation data.
  * 
  * <pre>
  * 
  * SOFTWARE HISTORY
+ * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 23, 2009            jkorman     Initial creation
+ * 20080103            384 jkorman     Initial Coding.
  * 09/2011                 Chin Chen   changed to improve purge performance and
- * 									   removed xml serialization as well
- * 
+ *                                     removed xml serialization as well
+ * Dec 14, 2016  5934      njensen     Moved to edex intlsigmet plugin
  * </pre>
  * 
  * @author jkorman
- * @version 1.0
  */
-
-public class AirmetDao extends PluginDao {
+public class IntlSigmetDao extends PluginDao {
 
     /**
      * Creates a new ReccoDao
      * 
      * @throws PluginException
      */
-    public AirmetDao(String pluginName) throws PluginException {
+    public IntlSigmetDao(String pluginName) throws PluginException {
         super(pluginName);
     }
 
@@ -45,8 +45,8 @@ public class AirmetDao extends PluginDao {
      *            The dataURI to match against.
      * @return The report record if it exists.
      */
-    public AirmetRecord queryByDataURI(String dataURI) {
-        AirmetRecord report = null;
+    public IntlSigmetRecord queryByDataURI(String dataURI) {
+        IntlSigmetRecord report = null;
         List<?> obs = null;
         try {
             obs = queryBySingleCriteria("dataURI", dataURI);
@@ -54,7 +54,7 @@ public class AirmetDao extends PluginDao {
             e.printStackTrace();
         }
         if ((obs != null) && (obs.size() > 0)) {
-            report = (AirmetRecord) obs.get(0);
+            report = (IntlSigmetRecord) obs.get(0);
         }
         return report;
     }
@@ -69,7 +69,7 @@ public class AirmetDao extends PluginDao {
      */
     public Object[] queryDataUriColumn(final String dataUri) {
 
-        String sql = "select datauri from awips.airmet where datauri='"
+        String sql = "select datauri from awips.intlsigmet where datauri='"
                 + dataUri + "';";
 
         Object[] results = executeSQLQuery(sql);

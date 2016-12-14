@@ -1,5 +1,3 @@
-package gov.noaa.nws.ncep.common.dataplugin.pirep;
-
 /**
  * This software was developed and / or modified by Raytheon Company,
  * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
@@ -20,7 +18,7 @@ package gov.noaa.nws.ncep.common.dataplugin.pirep;
  * further licensing information.
  **/
 
-import gov.noaa.nws.ncep.common.dataplugin.pirep.dao.PirepDao;
+package gov.noaa.nws.ncep.edex.plugin.pirep;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,6 +38,10 @@ import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.time.DataTime;
 
+import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepLayerData;
+import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepRecord;
+import gov.noaa.nws.ncep.edex.plugin.pirep.dao.PirepDao;
+
 /**
  * Provides a transform from PirepRecords to PointDataContainer and vice versa.
  * 
@@ -48,18 +50,18 @@ import com.raytheon.uf.common.time.DataTime;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 04/27/2011				F. J. Yen	Initial creation
- * 08/30/2011    286        qzhou       Added fields for TB, IC, SK. Remove general fields.
- * 08/31/2011    286        qzhou       Created project and moved this from ~edex.plugin.pirep    
- * 09/27/2011    286        qzhou       Make TB, IC, SK records all start from 0 in the arrays. 
- * 										Fixed visibility  .
- * Sep 05, 2013 2316        bsteffen    Unify pirep and ncpirep.
- * Jan 20, 2014             njensen     Fix storage of turbulence top height
- * Jul 30, 2014 3410       bclement     lat, lon moved to database point data desc
+ * 04/27/2011              F. J. Yen   Initial creation
+ * 08/30/2011    286       qzhou       Added fields for TB, IC, SK. Remove general fields.
+ * 08/31/2011    286       qzhou       Created project and moved this from ~edex.plugin.pirep    
+ * 09/27/2011    286       qzhou       Make TB, IC, SK records all start from 0 in the arrays. 
+ *                                      Fixed visibility  .
+ * Sep 05, 2013 2316       bsteffen    Unify pirep and ncpirep.
+ * Jan 20, 2014            njensen     Fix storage of turbulence top height
+ * Jul 30, 2014 3410       bclement    lat, lon moved to database point data desc
+ * Dec 14, 2016 5934       njensen     Moved to edex pirep plugin
  * </pre>
  * 
  * @author qzhou
- * @version 1.0
  */
 
 public class PirepPointDataTransform {
@@ -210,9 +212,9 @@ public class PirepPointDataTransform {
         pdv.setLong(TIME_OBS, record.getDataTime().getRefTime().getTime());
         //pdv.setString(DATAURI, record.getDataURI());
         pdv.setString(REPORT_TYPE, "PIREP");  //record.getReportType());
-        pdv.setFloat(TEMPERATURE,(float) record.getTemp());
-        pdv.setFloat(WIND_DIR, (float) record.getWindDirection());
-        pdv.setFloat(WIND_SPEED, (float) record.getWindSpeed());
+        pdv.setFloat(TEMPERATURE,record.getTemp());
+        pdv.setFloat(WIND_DIR, record.getWindDirection());
+        pdv.setFloat(WIND_SPEED, record.getWindSpeed());
         pdv.setString(OBS_TEXT, record.getObsText());
         pdv.setInt(HORZ_VISIBILITY, record.getHorzVisibility());
         pdv.setString(WEATHER_GROUP, record.getWeatherGroup());

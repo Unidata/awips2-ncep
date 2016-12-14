@@ -1,5 +1,3 @@
-package gov.noaa.nws.ncep.common.dataplugin.airep;
-
 /**
  * This software was developed and / or modified by Raytheon Company,
  * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
@@ -20,7 +18,7 @@ package gov.noaa.nws.ncep.common.dataplugin.airep;
  * further licensing information.
  **/
 
-import gov.noaa.nws.ncep.common.dataplugin.airep.dao.AirepDao;
+package gov.noaa.nws.ncep.edex.plugin.airep;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,6 +33,9 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.AircraftObsLocation;
 import com.raytheon.uf.common.time.DataTime;
+
+import gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord;
+import gov.noaa.nws.ncep.edex.plugin.airep.dao.AirepDao;
 
 /**
  * Provides a transform from AirepRecords to PointDataContainer and vice versa.
@@ -52,10 +53,10 @@ import com.raytheon.uf.common.time.DataTime;
  * Oct 18, 2011 286        Q.Zhou      Fixed datarui in db
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
  * Sep 05, 2013 2316       bsteffen    Unify airep and ncairep.
+ * Dec 14, 2016 5934       njensen     Moved to edex airep plugin
  * </pre>
  * 
  * @author f j yen
- * @version 1.0
  */
 
 public class AirepPointDataTransform {

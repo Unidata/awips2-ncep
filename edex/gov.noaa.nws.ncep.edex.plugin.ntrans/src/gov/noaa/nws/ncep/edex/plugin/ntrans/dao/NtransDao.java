@@ -5,19 +5,18 @@
  * 
  * HISTORY
  *
- * Date     	Author		Description
- * ------------	----------	-----------	--------------------------
- * 11/2009		Uma Josyula	Initial creation	
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 11/2009                 Uma Josyula Initial creation
+ * Dec 14, 2016 5934       njensen     Moved to edex ntrans plugin
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
  */
-package gov.noaa.nws.ncep.common.dataplugin.ntrans.dao;
+package gov.noaa.nws.ncep.edex.plugin.ntrans.dao;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-import gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
@@ -28,6 +27,8 @@ import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
 import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord;
 
 public class NtransDao extends PluginDao{
 	public NtransDao(String pluginName) throws PluginException {

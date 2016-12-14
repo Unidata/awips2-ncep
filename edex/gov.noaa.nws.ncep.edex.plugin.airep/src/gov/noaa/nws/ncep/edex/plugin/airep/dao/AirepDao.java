@@ -1,12 +1,4 @@
-package gov.noaa.nws.ncep.common.dataplugin.pirep.dao;
-
-/**
- * This software was modified from Raytheon's pirep plugin by
- * NOAA/NWS/NCEP/NCO to order to output point data in HDF5.
- **/
-//uf.common.status.IUFStatusHandler cannot be resolved. It is indirectly 
-//referenced from required .class files
-import gov.noaa.nws.ncep.common.dataplugin.pirep.PirepRecord;
+package gov.noaa.nws.ncep.edex.plugin.airep.dao;
 
 import java.util.List;
 
@@ -19,6 +11,13 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
 
 /**
+ * This software was modified from Raytheon's pirep plugin by
+ * NOAA/NWS/NCEP/NCO to order to output point data in HDF5.
+ **/
+
+import gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord;
+
+/**
  * Set of DAO methods for Surface Observation data.
  * 
  * <pre>
@@ -27,25 +26,25 @@ import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 04/28/2011              F. J. Yen   Initial creation from pirep
+ * 04/28/2011              F. J. Yen   Initial creation from airep
  * 08/31/2011    286       qzhou       Moved this from ~edex.plugin.pirep
- * Sep 05, 2013  2316      bsteffen    Unify pirep and ncpirep.
+ * Sep 05, 2013 2316       bsteffen    Unify airep and ncairep.
+ * Dec 14, 2016 5934       njensen     Moved to edex airep plugin
  * </pre>
  * 
  * @author qzhou
- * @version 1.0
  */
 
-public class PirepDao extends PointDataPluginDao<PirepRecord> {
+public class AirepDao extends PointDataPluginDao<AirepRecord> {
 
     private PointDataDescription pdd;
 
     /**
-     * Creates a new PirepDao
+     * Creates a new AirepDao
      * 
      * @throws PluginException
      */
-    public PirepDao(String pluginName) throws PluginException {
+    public AirepDao(String pluginName) throws PluginException {
         super(pluginName);
     }
 
@@ -56,14 +55,14 @@ public class PirepDao extends PointDataPluginDao<PirepRecord> {
     }
 
     /**
-     * Retrieves an Pirep report using the datauri .
+     * Retrieves an Airep report using the datauri .
      * 
      * @param dataURI
      *            The dataURI to match against.
      * @return The report record if it exists.
      */
-    public PirepRecord queryByDataURI(String dataURI) {
-        PirepRecord report = null;
+    public AirepRecord queryByDataURI(String dataURI) {
+        AirepRecord report = null;
         List<?> obs = null;
         try {
             obs = queryBySingleCriteria("dataURI", dataURI);
@@ -71,7 +70,7 @@ public class PirepDao extends PointDataPluginDao<PirepRecord> {
             e.printStackTrace();
         }
         if ((obs != null) && (obs.size() > 0)) {
-            report = (PirepRecord) obs.get(0);
+            report = (AirepRecord) obs.get(0);
         }
         return report;
     }
@@ -86,7 +85,7 @@ public class PirepDao extends PointDataPluginDao<PirepRecord> {
      */
     public Object[] queryDataUriColumn(final String dataUri) {
 
-        String sql = "select datauri from awips.pirep where datauri='"
+        String sql = "select datauri from awips.airep where datauri='"
                 + dataUri + "';";
 
         Object[] results = executeSQLQuery(sql);
@@ -100,13 +99,13 @@ public class PirepDao extends PointDataPluginDao<PirepRecord> {
     }
 
     @Override
-    public PirepRecord newObject() {
-        return new PirepRecord();
+    public AirepRecord newObject() {
+        return new AirepRecord();
     }
 
     @Override
-    public String getPointDataFileName(PirepRecord p) {
-        return "pirep.h5";
+    public String getPointDataFileName(AirepRecord p) {
+        return "airep.h5";
     }
 
     /*
@@ -123,9 +122,8 @@ public class PirepDao extends PointDataPluginDao<PirepRecord> {
         if (pdd == null) {
 
             pdd = PointDataDescription.fromStream(this.getClass()
-                    .getResourceAsStream("/res/pointdata/pirep.xml"));
+                    .getResourceAsStream("/res/pointdata/airep.xml"));
         }
         return pdd;
     }
-
 }

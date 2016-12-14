@@ -7,7 +7,7 @@
         <constructor-arg ref="airepPluginName" />   
     </bean>
     
-    <bean id="airepPointData" class="gov.noaa.nws.ncep.common.dataplugin.airep.AirepPointDataTransform"/>
+    <bean id="airepPointData" class="gov.noaa.nws.ncep.edex.plugin.airep.AirepPointDataTransform"/>
     
 	<bean id="airepSeparator" class="gov.noaa.nws.ncep.edex.plugin.airep.AirepSeparator" />
 

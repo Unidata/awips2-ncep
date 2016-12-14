@@ -8,7 +8,7 @@
     	<constructor-arg ref="pirepPluginName" />
     </bean>
 
-    <bean id="pirepPointData" class="gov.noaa.nws.ncep.common.dataplugin.pirep.PirepPointDataTransform"/>
+    <bean id="pirepPointData" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepPointDataTransform"/>
     
     <bean id="pirepSeparator" class="gov.noaa.nws.ncep.edex.plugin.pirep.PirepSeparator"/>
 

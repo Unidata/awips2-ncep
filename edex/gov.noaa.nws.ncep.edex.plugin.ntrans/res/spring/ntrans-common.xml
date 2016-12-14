@@ -13,7 +13,7 @@
 		<property name="pluginName" ref="ntransPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ntrans" />
 		<property name="dao"
-			value="gov.noaa.nws.ncep.common.dataplugin.ntrans.dao.NtransDao" />
+			value="gov.noaa.nws.ncep.edex.plugin.ntrans.dao.NtransDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.ntrans.NtransRecord" />
         <property name="pathProvider">

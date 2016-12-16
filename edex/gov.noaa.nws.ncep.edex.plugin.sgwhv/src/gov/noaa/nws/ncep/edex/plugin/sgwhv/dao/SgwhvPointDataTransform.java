@@ -7,17 +7,15 @@
  * 
  * SOFTWARE HISTORY
  * 
- * Date			Ticket#		Engineer	Description
- * ------------ -----------	----------- --------------------------
- * Aug23 2011	   		    Chin Chen	Initial Coding 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------- ----------- --------------------------
+ * Aug23 2011               Chin Chen   Initial Coding 
+ * Dec 16, 2016  5934       njensen     Moved to edex sgwhv plugin
  * </pre>
  * 
  * @author chin chen
- * @version 1.0
  */
-package gov.noaa.nws.ncep.common.dataplugin.sgwhv.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.sgwhv.SgwhvRecord;
+package gov.noaa.nws.ncep.edex.plugin.sgwhv.dao;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,12 +23,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.edex.decodertools.time.TimeTools;
+
+import gov.noaa.nws.ncep.common.dataplugin.sgwhv.SgwhvRecord;
 
 
 

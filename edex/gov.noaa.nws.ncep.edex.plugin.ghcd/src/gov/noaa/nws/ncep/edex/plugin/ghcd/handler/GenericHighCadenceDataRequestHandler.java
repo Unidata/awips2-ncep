@@ -9,12 +9,12 @@
 package gov.noaa.nws.ncep.edex.plugin.ghcd.handler;
 
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataConstants;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.dao.GenericHighCadenceDataDao;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataContainer;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataItem;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataTypeInfo;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.query.GenericHighCadenceDataReqMsg;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.query.GenericHighCadenceDataReqMsg.GenericHighCadenceDataReqType;
+import gov.noaa.nws.ncep.edex.plugin.ghcd.dao.GenericHighCadenceDataDao;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Date;

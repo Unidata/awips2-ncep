@@ -12,13 +12,13 @@ package gov.noaa.nws.ncep.edex.plugin.ghcd.decoder;
 
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataConstants;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataRecord;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.dao.GenericHighCadenceDataDao;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataContainer;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataField;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataFieldDefinition;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataItem;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataRange;
 import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataTypeInfo;
+import gov.noaa.nws.ncep.edex.plugin.ghcd.dao.GenericHighCadenceDataDao;
 
 import java.io.File;
 import java.io.FileInputStream;

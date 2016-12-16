@@ -1,23 +1,20 @@
 /**
- * Set of DAO methods for SGWH data.
+ * Set of DAO methods for SGWHV data.
  *
  * <pre>
  * 
  * SOFTWARE HISTORY
  * 
- * Date			Ticket#		Engineer	Description
- * ------------ -----------	----------- --------------------------
- * Aug17 2011	   		    Chin Chen	Initial Coding (Following BufrsgwhDao to refactor for 
- * 										saving data to HDF5)
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------- ----------- --------------------------
+ * 8/23/2011                Chin Chen   Initial Coding (Following BufrsgwhvDao to refactor for 
+ *                                      saving data to HDF5)
+ * Dec 16, 2016  5934       njensen     Moved to edex sgwhv plugin
  * </pre>
  * 
  * @author chin chen
- * @version 1.0
  **/
-package gov.noaa.nws.ncep.common.dataplugin.sgwh.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.sgwh.SgwhRecord;
-import gov.noaa.nws.ncep.edex.common.dao.NcepPointDataPluginDao;
+package gov.noaa.nws.ncep.edex.plugin.sgwhv.dao;
 
 import java.util.List;
 
@@ -26,8 +23,10 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 
-public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
+import gov.noaa.nws.ncep.common.dataplugin.sgwhv.SgwhvRecord;
+import gov.noaa.nws.ncep.edex.common.dao.NcepPointDataPluginDao;
 
+public class SgwhvDao extends NcepPointDataPluginDao<SgwhvRecord> {
     private PointDataDescription pdd;
 
     /**
@@ -35,19 +34,19 @@ public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
      * 
      * @throws PluginException
      */
-    public SgwhDao(String pluginName) throws PluginException {
+    public SgwhvDao(String pluginName) throws PluginException {
         super(pluginName);
     }
 
     /**
-     * Retrieves a SGWH report using the datauri .
+     * Retrieves a BUFRSGWHV report using the datauri .
      * 
-     * @param dataURIqueryBySingleCriteria
+     * @param dataURI
      *            The dataURI to match against.
      * @return The report record if it exists.
      */
-    public SgwhRecord queryByDataURI(String dataURI) {
-        SgwhRecord report = null;
+    public SgwhvRecord queryByDataURI(String dataURI) {
+        SgwhvRecord report = null;
         List<?> obs = null;
         try {
             obs = queryBySingleCriteria("dataURI", dataURI);
@@ -55,13 +54,14 @@ public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
             e.printStackTrace();
         }
         if ((obs != null) && (obs.size() > 0)) {
-            report = (SgwhRecord) obs.get(0);
+            report = (SgwhvRecord) obs.get(0);
         }
         return report;
     }
 
     /**
-     * Queries for to determine if a given data uri exists on the sgwh table.
+     * Queries for to determine if a given data uri exists on the Bufrsgwhv
+     * table.
      * 
      * @param dataUri
      *            The DataURI to find.
@@ -70,8 +70,8 @@ public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
      */
     public Object[] queryDataUriColumn(final String dataUri) {
 
-        String sql = "select datauri from awips.sgwh where datauri='" + dataUri
-                + "';";
+        String sql = "select datauri from awips.sgwhv where datauri='"
+                + dataUri + "';";
 
         Object[] results = executeSQLQuery(sql);
 
@@ -82,7 +82,7 @@ public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
             throws SerializationException {
         if (pdd == null) {
             pdd = PointDataDescription.fromStream(this.getClass()
-                    .getResourceAsStream("/res/pointdata/sgwh.xml"));
+                    .getResourceAsStream("/res/pointdata/sgwhv.xml"));
         }
         return pdd;
     }
@@ -93,12 +93,12 @@ public class SgwhDao extends NcepPointDataPluginDao<SgwhRecord> {
     }
 
     @Override
-    public String getPointDataFileName(SgwhRecord p) {
-        return "sgwh.h5";
+    public String getPointDataFileName(SgwhvRecord p) {
+        return "sgwhv.h5";
     }
 
     @Override
-    public SgwhRecord newObject() {
-        return new SgwhRecord();
+    public SgwhvRecord newObject() {
+        return new SgwhvRecord();
     }
 }

@@ -8,18 +8,7 @@
  * 
  **/
 
-package gov.noaa.nws.ncep.common.dataplugin.ghcd.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataConstants;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataRecord;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataContainer;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataField;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataFieldDefinition;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataItem;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataResolution;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataTypeInfo;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.query.GenericHighCadenceDataQuery;
-import gov.noaa.nws.ncep.common.dataplugin.ghcd.query.GenericHighCadenceDataReqMsg.GenericHighCadenceDataReqType;
+package gov.noaa.nws.ncep.edex.plugin.ghcd.dao;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -50,6 +39,16 @@ import com.raytheon.uf.edex.database.purge.PurgeLogger;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
 import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
 
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataConstants;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.GenericHighCadenceDataRecord;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataContainer;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataField;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataFieldDefinition;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataItem;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataResolution;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.product.GenericHighCadenceDataTypeInfo;
+import gov.noaa.nws.ncep.common.dataplugin.ghcd.query.GenericHighCadenceDataReqMsg.GenericHighCadenceDataReqType;
+
 /**
  * 
  * DAO for high cadence data plugin.
@@ -61,11 +60,11 @@ import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
  * -------      -------     --------    -----------
  * 01/22/2014   1100        sgurung     Initial creation
  * 07/15/2014   1100        sgurung     Modified methods to include GenericHighCadenceDataTypeInfo.datatype
+ * 12/16/2016   5934        njensen     Moved to edex ghcd plugin
  * 
  * </pre>
  * 
  * @author sgurung
- * @version 1.0
  */
 
 public class GenericHighCadenceDataDao extends
@@ -133,7 +132,7 @@ public class GenericHighCadenceDataDao extends
                 .get(GenericHighCadenceDataConstants.DB_DATA_TYPE);
         String dataResolUnits = (String) dbResults
                 .get(GenericHighCadenceDataConstants.DB_DATA_RESOLUTION_UNITS);
-        String dataResolVal = (String) dbResults.get(
+        String dataResolVal = dbResults.get(
                 GenericHighCadenceDataConstants.DB_DATA_RESOLUTION_VALUE)
                 .toString();
 
@@ -169,7 +168,7 @@ public class GenericHighCadenceDataDao extends
                 + File.separator + rec.getDataResolUnits() + File.separator
                 + rec.getDataResolVal();
 
-        Date refTime = ((PluginDataObject) persistable).getDataTime()
+        Date refTime = persistable.getDataTime()
                 .getRefTime();
         String dateStr = hdfFileDateFormat.format(refTime);
 

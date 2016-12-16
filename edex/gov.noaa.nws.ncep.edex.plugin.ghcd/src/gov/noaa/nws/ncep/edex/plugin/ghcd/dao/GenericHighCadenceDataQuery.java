@@ -8,7 +8,7 @@
  * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
  * 
  */
-package gov.noaa.nws.ncep.common.dataplugin.ghcd.query;
+package gov.noaa.nws.ncep.edex.plugin.ghcd.dao;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.edex.uengine.tasks.query.TableQuery;
 import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
@@ -41,16 +40,14 @@ import com.raytheon.uf.edex.pointdata.PointDataQuery;
  * Date         Ticket#     Engineer    Description
  * -------      -------     --------    -----------
  * 01/22/2014   1100        sgurung     Initial creation
+ * 12/16/2016   5934        njensen     Moved to edex ghcd plugin
  * 
  * </pre>
  * 
  * @author sgurung
- * @version 1.0
  * 
  */
 public class GenericHighCadenceDataQuery extends PointDataQuery {
-
-    protected TableQuery tq;
 
     public GenericHighCadenceDataQuery(String plugin)
             throws DataAccessLayerException, PluginException {

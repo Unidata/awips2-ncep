@@ -9,32 +9,18 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 05/30/2013				Chin J. Chen	Initial coding
- * Aug 05, 2015 4486        rjpeter       Changed Timestamp to Date . < This is 16.2.1 code
- * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * Date         Ticket#     Engineer     Description
+ * -------      -------     --------     -----------
+ * 05/30/2013               Chin J. Chen Initial coding
+ * Aug 05, 2015 4486        rjpeter      Changed Timestamp to Date . < This is 16.2.1 code
+ * 07/02/2015   RM#8107     Chin Chen    change lat/lon data type from double to float to reflect its data type changes starting 14.4.1
+ * Dec 16, 2016 5934        njensen      Moved to edex gpd plugin 
  *
  * </pre>
  * 
  * @author Chin J. Chen
- * @version 1.0
  */
-package gov.noaa.nws.ncep.common.dataplugin.gpd.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataConstants;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataRecord;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataLevel;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataParameter;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataProductContainer;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataProductInfo;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataStationProduct;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataQuery;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataQueryKey;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataReqType;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
+package gov.noaa.nws.ncep.edex.plugin.gpd.dao;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -69,6 +55,19 @@ import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.purge.PurgeLogger;
 import com.raytheon.uf.edex.database.query.DatabaseQuery;
 import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataConstants;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataRecord;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataLevel;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataParameter;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataProductContainer;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataProductInfo;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataStationProduct;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataQueryKey;
+import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataReqType;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfo;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingStnInfoCollection;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTimeLines;
 
 public class GenericPointDataDao extends
         PointDataPluginDao<GenericPointDataRecord> {
@@ -172,9 +171,9 @@ public class GenericPointDataDao extends
                                             */
                 + rec.getProductInfo().getName();
 
-        Date refTime = ((PluginDataObject) persistable).getDataTime()
+        Date refTime = persistable.getDataTime()
                 .getRefTime();
-        int forecasttime = ((PluginDataObject) persistable).getDataTime()
+        int forecasttime = persistable.getDataTime()
                 .getFcstTime();
         String dateStr = hdfFileDateFormat.format(refTime) + "-f"
                 + forecasttime;
@@ -1613,7 +1612,7 @@ public class GenericPointDataDao extends
         queryStr = new String(
                 "Select Distinct reftime FROM gpd where productinfo_name='"
                         + prodName + "' ORDER BY reftime DESC");
-        synopTimeAry = (Object[]) executeSQLQuery(queryStr);
+        synopTimeAry = executeSQLQuery(queryStr);
         tl.setTimeLines(synopTimeAry);
         return tl;
     }
@@ -1632,7 +1631,7 @@ public class GenericPointDataDao extends
                 "Select Distinct rangestart FROM gpd where productinfo_name='"
                         + prodName + "' AND reftime='" + refTimeStr + ":00:00'"
                         + " ORDER BY rangestart");
-        refTimeAry = (Object[]) executeSQLQuery(queryStr);
+        refTimeAry = executeSQLQuery(queryStr);
         tl.setTimeLines(refTimeAry);
 
         return tl;
@@ -1679,7 +1678,7 @@ public class GenericPointDataDao extends
             stn.setStationLatitude(slat);
             stn.setSynopTime(synoptictime);
             stn.setRangeStartTime(rsTime);
-            stationInfoList.add((NcSoundingStnInfo) stn);
+            stationInfoList.add(stn);
         }
         NcSoundingStnInfo[] stationInfoAry = new NcSoundingStnInfo[stationInfoList
                 .size()];

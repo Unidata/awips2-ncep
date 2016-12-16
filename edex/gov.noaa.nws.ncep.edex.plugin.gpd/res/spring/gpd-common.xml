@@ -10,7 +10,7 @@
 	<bean id="gpdProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="gpdPluginName"  />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.gpd" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.gpd.dao.GenericPointDataDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.gpd.dao.GenericPointDataDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataRecord" />
 		<property name="dependencyFQNs">

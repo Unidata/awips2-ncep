@@ -2,9 +2,7 @@
  * This software was modified from Raytheon's taf plugin by
  * NOAA/NWS/NCEP/NCO in order to output point data in HDF5.
  **/
-package gov.noaa.nws.ncep.common.dataplugin.nctaf.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
+package gov.noaa.nws.ncep.edex.plugin.nctaf.dao;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -25,6 +23,8 @@ import com.raytheon.uf.edex.pointdata.PointDataDbDescription;
 import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
 import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
 
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
+
 /**
  * Set of DAO methods for TAF data.
  * 
@@ -34,13 +34,13 @@ import com.raytheon.uf.edex.pointdata.spatial.ObStationDao;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 09/09/2011   458			sgurung	   Initial Creation from Raytheon's taf plugin
- * 09/23/2011   458			sgurung	   Converted to HDF5
+ * 09/09/2011   458        sgurung     Initial Creation from Raytheon's taf plugin
+ * 09/23/2011   458        sgurung     Converted to HDF5
+ * 12/16/2016   5934       njensen     Moved to edex nctaf plugin
  * 
  * </pre>
  * 
  * @author sgurung
- * @version 1.0
  */
 
 public class NcTafDao extends PointDataPluginDao<NcTafRecord> {

@@ -7,31 +7,25 @@
  * <pre>
  * 
  * SOFTWARE HISTORY
- * Date         Ticket#    	Engineer    	Description
- * ------------ ---------- 	----------- 	--------------------------
- * 4/2011				   	T. Lee			Created
- * 7/2011					T. Lee			
- * 09/2011      457         S. Gurung       Renamed H5 to Nc and h5 to nc
- * 09/2011                  Chin Chen       support batch decoding methods for better performance and
- * 											remove xml serialization as well * 
- * 10/2011                  S. Gurung       Added changes related to getting stid/lat/lon/elev 
- * 										    from database instead of snstns.xml file
- *  6/2014                  T.Lee        Added support XXAA, XXBB, XXCC, XXDD
- * Jul 30, 2014 3410        bclement        dataURI no longer stored in hdf5
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 4/2011                   T. Lee      Created
+ * 7/2011                   T. Lee
+ * 09/2011      457         S. Gurung   Renamed H5 to Nc and h5 to nc
+ * 09/2011                  Chin Chen   support batch decoding methods for better performance and
+ *                                      remove xml serialization as well
+ * 10/2011                  S. Gurung   Added changes related to getting stid/lat/lon/elev 
+ *                                      from database instead of snstns.xml file
+ *  6/2014                  T.Lee       Added support XXAA, XXBB, XXCC, XXDD
+ * Jul 30, 2014 3410        bclement    dataURI no longer stored in hdf5
+ * Dec 16, 2016 5934        njensen     Moved to edex ncuair plugin
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system. 
  * @author T. Lee
- * @version 1.0
  */
 
-package gov.noaa.nws.ncep.common.dataplugin.ncuair.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairLiftedIndex;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairMaxWind;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairObsLevels;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
+package gov.noaa.nws.ncep.edex.plugin.ncuair.dao;
 
 import java.io.File;
 import java.util.HashMap;
@@ -43,6 +37,12 @@ import com.raytheon.uf.common.pointdata.Dimension;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairLiftedIndex;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairMaxWind;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairObsLevels;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairTropopause;
 
 public class NcUairToPointData {
     private static final String RAW_DATA = "RAWDATA";
@@ -361,7 +361,7 @@ public class NcUairToPointData {
             pdv.setFloat(LATITUDE, (float) record.getLatitude());
             pdv.setFloat(LONGITUDE, (float) record.getLongitude());
             if (record.getElevation() != null)
-                pdv.setFloat(ELEVATION, (float) record.getElevation());
+                pdv.setFloat(ELEVATION, record.getElevation());
         }
         if (record.getObsTime() != null)
             pdv.setLong(OBS_TIME, record.getObsTime().getTime().getTime());

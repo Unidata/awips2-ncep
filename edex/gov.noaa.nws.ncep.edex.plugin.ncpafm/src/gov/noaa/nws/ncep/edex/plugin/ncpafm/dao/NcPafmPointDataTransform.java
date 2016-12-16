@@ -1,6 +1,4 @@
-package gov.noaa.nws.ncep.common.dataplugin.ncpafm;
-
-import gov.noaa.nws.ncep.common.dataplugin.ncpafm.dao.NcPafmDao;
+package gov.noaa.nws.ncep.edex.plugin.ncpafm.dao;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,6 +12,9 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
 //import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmLayerData;
 
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmParameters;
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord;
+
 /**
  * Provides a transform from NcPafmRecords to PointDataContainer and vice versa.
  * 
@@ -25,11 +26,11 @@ import com.raytheon.uf.common.pointdata.PointDataView;
  * 30 Sep 2011  126        B. Hebbard  Initial creation (from ncpirep)
  * 14 Oct 2011  126        B. Hebbard  Change windDir and pwindDir from String to Float;
  *                                     decoder will do conversion (vs. resource) per GH/SJ
- * Jul 30, 2014 3410        bclement   dataURI no longer stored in hdf5
+ * Jul 30, 2014 3410       bclement    dataURI no longer stored in hdf5
+ * Dec 16, 2016 5934       njensen     Moved to edex ncpafm plugin
  * </pre>
  * 
  * @author bhebbard
- * @version 1.0
  */
 
 public class NcPafmPointDataTransform {

@@ -10,7 +10,7 @@
 	<bean id="nctafProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="nctafPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.nctaf" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.nctaf.dao.NcTafDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.nctaf.dao.NcTafDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord" />
 	</bean>
 

@@ -5,7 +5,7 @@
 
 	<bean id="nctafDecoder" class="gov.noaa.nws.ncep.edex.plugin.nctaf.decoder.NcTafDecoder" />
 
-    <bean id="nctafToPointData" class="gov.noaa.nws.ncep.common.dataplugin.nctaf.dao.NcTafToPointData" />
+    <bean id="nctafToPointData" class="gov.noaa.nws.ncep.edex.plugin.nctaf.dao.NcTafToPointData" />
 	
 	<bean id="nctafSeparator" class="gov.noaa.nws.ncep.edex.plugin.nctaf.decoder.NcTafSeparator" />
 

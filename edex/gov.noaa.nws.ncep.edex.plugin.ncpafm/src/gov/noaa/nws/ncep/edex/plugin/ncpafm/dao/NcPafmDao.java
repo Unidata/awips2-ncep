@@ -5,17 +5,15 @@
  * 
  * SOFTWARE HISTORY
  * 
- * Date			Ticket#		Engineer	Description
- * ------------ -----------	----------- --------------------------
- * 23 Sep 2011				B. Hebbard	Initial Coding (Following NcUairDao and FJY's instructions)
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------- ----------- --------------------------
+ * 23 Sep 2011              B. Hebbard  Initial Coding (Following NcUairDao and FJY's instructions)
+ * 16 Dec 2016   5934       njensen     Moved to edex ncpafm plugin
  * </pre>
  * 
  * @author fjyen
- * @version 1.0
  **/
-package gov.noaa.nws.ncep.common.dataplugin.ncpafm.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord;
+package gov.noaa.nws.ncep.edex.plugin.ncpafm.dao;
 
 import java.util.List;
 
@@ -24,6 +22,8 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.pointdata.PointDataPluginDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord;
 
 public class NcPafmDao extends PointDataPluginDao<NcPafmRecord> {
 

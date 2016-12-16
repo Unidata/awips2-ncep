@@ -7,31 +7,23 @@
  * <pre>
  * 
  * SOFTWARE HISTORY
- * Date         Ticket#    	Engineer    	Description
- * ------------ ---------- 	----------- 	--------------------------
+ * Date         Ticket#     Engineer        Description
+ * ------------ ----------  -----------     --------------------------
  * 09/23/2011   458         S. Gurung       Initial Creation
  * 09/29/2011               sgurung         Added REPORT_TYPE
  * 10/26/2011               sgurung         Added probable parameters (for TEMPO/PROB)
  * 11/03/2011               sgurung         Added additional parameters
  * 11/07/2011               sgurung         Added LOW_LEVEL_WIND_SHEAR
  * Jul 30, 2014 3410        bclement        dataURI no longer stored in hdf5
+ * Dec 16, 2016 5934        njensen         Moved to edex nctaf plugin
  * 
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system. 
  * @author S. Gurung
- * @version 1.0
  */
 
-package gov.noaa.nws.ncep.common.dataplugin.nctaf.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafIcingLayer;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafSkyCover;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafTemperatureForecast;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafTurbulenceLayer;
-import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafWeatherCondition;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+package gov.noaa.nws.ncep.edex.plugin.nctaf.dao;
 
 import java.io.File;
 import java.util.HashMap;
@@ -43,6 +35,14 @@ import com.raytheon.uf.common.pointdata.Dimension;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
 import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.pointdata.PointDataView;
+
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafIcingLayer;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafRecord;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafSkyCover;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafTemperatureForecast;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafTurbulenceLayer;
+import gov.noaa.nws.ncep.common.dataplugin.nctaf.NcTafWeatherCondition;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 
 public class NcTafToPointData {
 	private static final String DATAURI = "DATAURI";

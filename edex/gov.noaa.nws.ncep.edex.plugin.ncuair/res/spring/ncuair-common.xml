@@ -11,7 +11,7 @@
 	<bean id="ncuairProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="ncuairPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ncuair" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.ncuair.dao.NcUairDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.ncuair.dao.NcUairDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord" />
 	</bean>
 

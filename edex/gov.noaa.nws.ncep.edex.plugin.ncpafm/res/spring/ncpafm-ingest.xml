@@ -8,7 +8,7 @@
 		<constructor-arg ref="ncpafmPluginName" />
 	</bean>
 
-	<bean id="ncpafmPointDataTransform" class="gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmPointDataTransform" />
+	<bean id="ncpafmPointDataTransform" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.dao.NcPafmPointDataTransform" />
 
 	<bean id="ncpafmSeparator" class="gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder.NcPafmSeparator" />
 

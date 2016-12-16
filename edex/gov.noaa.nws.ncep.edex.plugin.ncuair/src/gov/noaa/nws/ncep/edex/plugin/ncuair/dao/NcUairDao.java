@@ -7,13 +7,14 @@
  * <pre>
  * 
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    	Description
- * ------------ ---------- ----------- 	--------------------------
- * 4/2011				   T. Lee		Persisted to HDF5
+ * Date         Ticket#    Engineer     Description
+ * ------------ ---------- -----------  --------------------------
+ * 4/2011                  T. Lee       Persisted to HDF5
  * 09/2011      457        S. Gurung    Renamed H5 to Nc and h5 to nc
  * 09/2011                 Chin Chen    support batch decoding methods for better performance and
- * 											remove xml serialization as well * 
+ *                                      remove xml serialization as well
  * 10/2011                 S. Gurung    Added method to get dbDataDescription file ncuairdb.xml
+ * Dec 16, 2016  5934      njensen      Moved to edex ncuair plugin
  * 
  * </pre>
  * 
@@ -22,10 +23,7 @@
  * @version 1.0 
  */
 
-package gov.noaa.nws.ncep.common.dataplugin.ncuair.dao;
-
-import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
-import gov.noaa.nws.ncep.edex.common.dao.NcepPointDataPluginDao;
+package gov.noaa.nws.ncep.edex.plugin.ncuair.dao;
 
 import java.io.InputStream;
 import java.util.List;
@@ -37,6 +35,9 @@ import com.raytheon.uf.common.pointdata.PointDataDescription;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.pointdata.PointDataDbDescription;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncuair.NcUairRecord;
+import gov.noaa.nws.ncep.edex.common.dao.NcepPointDataPluginDao;
 
 public class NcUairDao extends NcepPointDataPluginDao<NcUairRecord> {
 

@@ -1,22 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
-import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
-import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
-import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
-import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
-import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +36,23 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.NcUnits;
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
+import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
+import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
+import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+
 /**
  * Provides Mcidas satellite raster rendering support.
  * 
@@ -84,6 +84,8 @@ import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
  *                                        Updated FrameData.updateFramData(),
  *                                        Extended getGridGeometry method(),
  *                                        Updated isCloudHeightCapable() method
+ *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow 
+ *                                        for override of colormap name in SPF.
  * 
  * </pre>
  * 
@@ -91,8 +93,8 @@ import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
  * @version 1
  */
 
-public class McidasSatResource extends NcSatelliteResource implements
-        ICloudHeightCapable {
+public class McidasSatResource extends NcSatelliteResource
+        implements ICloudHeightCapable {
 
     private int numLevels;
 
@@ -133,8 +135,7 @@ public class McidasSatResource extends NcSatelliteResource implements
             for (int k = 0; k < subtypeParam.length; k++) {
                 legendString += resourceData.getMetadataMap()
                         .get(subtypeParam[k].toString()).getConstraintValue()
-                        .toString()
-                        + "_";
+                        .toString() + "_";
             }
             legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
             // what's in subType generators
@@ -148,11 +149,11 @@ public class McidasSatResource extends NcSatelliteResource implements
             for (int i = 0; i < keysValues.length; i++) {
                 value = keysValues[i].split(":")[1];
                 if (value != null && !value.isEmpty()) {
-                    if (keysValues[i].startsWith(McidasConstants.SATELLLITE
-                            + ":")) {
+                    if (keysValues[i]
+                            .startsWith(McidasConstants.SATELLLITE + ":")) {
                         variables.put(McidasConstants.SATELLLITE, value);
-                    } else if (keysValues[i].startsWith(McidasConstants.AREA
-                            + ":")) {
+                    } else if (keysValues[i]
+                            .startsWith(McidasConstants.AREA + ":")) {
                         variables.put(McidasConstants.AREA, value);
                     } else if (keysValues[i]
                             .startsWith(McidasConstants.RESOLUTION + ":")) {
@@ -223,8 +224,8 @@ public class McidasSatResource extends NcSatelliteResource implements
                             // initialize colormap
                             initializeFirstFrame(satRec);
                         } catch (Exception e) {
-                            statusHandler.error(
-                                    "Error initializing against SatelliteRecord "
+                            statusHandler
+                                    .error("Error initializing against SatelliteRecord "
                                             + satRec, e);
                             return false;
                         }
@@ -238,7 +239,8 @@ public class McidasSatResource extends NcSatelliteResource implements
                         .getDataTime();
 
                 // new record not a better match
-                if (timeMatch(newTileTime) >= timeMatch(tileTimePrevAddedRecord)) {
+                if (timeMatch(newTileTime) >= timeMatch(
+                        tileTimePrevAddedRecord)) {
                     return false;
                 } else {
                     // new record is a better match, so dispose of old tile
@@ -249,7 +251,8 @@ public class McidasSatResource extends NcSatelliteResource implements
             Collections.sort(McidasSatResource.this.dataTimes);
             int imageTypeNumber = getImageTypeNumber(satRec);
 
-            generateAndStoreColorBarLabelingInformation(satRec, imageTypeNumber);
+            generateAndStoreColorBarLabelingInformation(satRec,
+                    imageTypeNumber);
 
             tileTimePrevAddedRecord = ((PluginDataObject) satRec).getDataTime();
             coveragePrevAddedRecord = ((McidasRecord) satRec).getCoverage();
@@ -261,14 +264,14 @@ public class McidasSatResource extends NcSatelliteResource implements
         }
     }
 
-    protected class McidasSatRenderable extends
-            NcSatelliteResource.SatRenderable<McidasMapCoverage> {
+    protected class McidasSatRenderable
+            extends NcSatelliteResource.SatRenderable<McidasMapCoverage> {
 
         /*
          * (non-Javadoc)
          * 
-         * @see
-         * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource.SatRenderable
+         * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource.
+         * SatRenderable
          * #addRecord(com.raytheon.uf.common.dataplugin.persist.IPersistable)
          */
         @Override
@@ -307,13 +310,26 @@ public class McidasSatResource extends NcSatelliteResource implements
         ColorMapParameters colorMapParameters = new ColorMapParameters();
 
         ColorMap colorMap;
+        String colorMapName = resourceData.getColorMapName();
+
         try {
+
+            // default to colormap name from attribute file
+
+            // colormap name from SPF can override default
+            String spfColorMapName = getCapability(ColorMapCapability.class)
+                    .getColorMapParameters().getColorMapName();
+            if (spfColorMapName != null
+                    && !spfColorMapName.equals(DEFAULT_COLORMAP_NAME)
+                    && !spfColorMapName.equals(colorMapName)) {
+                colorMapName = spfColorMapName;
+            }
+
             colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
                     .getResourceName().getRscCategory().getCategoryName(),
-                    resourceData.getColorMapName());
+                    colorMapName);
         } catch (VizException e) {
-            throw new VizException("Error loading colormap: "
-                    + resourceData.getColorMapName());
+            throw new VizException("Error loading colormap: " + colorMapName);
         }
 
         colorMapParameters.setDisplayUnit(resourceData.getDisplayUnit());
@@ -321,8 +337,8 @@ public class McidasSatResource extends NcSatelliteResource implements
         colorMapParameters.setColorMapMax(255.0f);
 
         colorMapParameters.setColorMap(colorMap);
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                colorMapParameters);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
 
         getCapability(ImagingCapability.class).setSuppressingMenuItems(true);
         getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
@@ -330,12 +346,12 @@ public class McidasSatResource extends NcSatelliteResource implements
         McidasRecord mcidas = (McidasRecord) record;
         McidasMapCoverage cov = mcidas.getCoverage();
         try {
-            Rectangle[] downscaleSizes = GridDownscaler.getDownscaleSizes(cov
-                    .getGridGeometry());
+            Rectangle[] downscaleSizes = GridDownscaler
+                    .getDownscaleSizes(cov.getGridGeometry());
             numLevels = downscaleSizes.length;
         } catch (Exception e) {
-            throw new VizException("Unable to get grid geometry for record: "
-                    + record);
+            throw new VizException(
+                    "Unable to get grid geometry for record: " + record);
         }
     }
 
@@ -347,8 +363,8 @@ public class McidasSatResource extends NcSatelliteResource implements
      * (com.raytheon.uf.common.dataplugin.persist.IPersistable, int)
      */
     @Override
-    public void generateAndStoreColorBarLabelingInformation(
-            IPersistable record, int imageTypeNumber) {
+    public void generateAndStoreColorBarLabelingInformation(IPersistable record,
+            int imageTypeNumber) {
 
         double minPixVal = Double.NaN;
         double maxPixVal = Double.NaN;
@@ -362,9 +378,9 @@ public class McidasSatResource extends NcSatelliteResource implements
         ColorBarFromColormap colorBar = (ColorBarFromColormap) this.cbarResource
                 .getResourceData().getColorbar();
         if (colorBar.getColorMap() == null) {
-            colorBar.setColorMap((ColorMap) getCapability(
-                    ColorMapCapability.class).getColorMapParameters()
-                    .getColorMap());
+            colorBar.setColorMap(
+                    (ColorMap) getCapability(ColorMapCapability.class)
+                            .getColorMapParameters().getColorMap());
         }
         matchCriteria.setParameterName(parameterList);
 
@@ -376,7 +392,8 @@ public class McidasSatResource extends NcSatelliteResource implements
 
             if (sr != null) {
                 AbstractStylePreferences stylePref = sr.getPreferences();
-                if (stylePref != null && stylePref instanceof ImagePreferences) {
+                if (stylePref != null
+                        && stylePref instanceof ImagePreferences) {
                     imgPref = (ImagePreferences) stylePref;
 
                     // Might need to change this if/when we use the data-scaling
@@ -394,8 +411,8 @@ public class McidasSatResource extends NcSatelliteResource implements
 
                     colorBar.setImagePreferences(imgPref);
                     if (imgPref.getDisplayUnitLabel() != null) {
-                        colorBar.setDisplayUnitStr(imgPref
-                                .getDisplayUnitLabel());
+                        colorBar.setDisplayUnitStr(
+                                imgPref.getDisplayUnitLabel());
                     }
                 }
             }
@@ -541,9 +558,8 @@ public class McidasSatResource extends NcSatelliteResource implements
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#createNewFrame
-     * (com.raytheon.uf.common.time.DataTime, int)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * createNewFrame (com.raytheon.uf.common.time.DataTime, int)
      */
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
@@ -571,9 +587,9 @@ public class McidasSatResource extends NcSatelliteResource implements
             }
 
         } catch (Exception e) {
-            statusHandler
-                    .error("Did not obtain a unit for temperature for a McidasSatResource",
-                            e);
+            statusHandler.error(
+                    "Did not obtain a unit for temperature for a McidasSatResource",
+                    e);
         }
 
         return isCldHtCmptble;
@@ -599,9 +615,8 @@ public class McidasSatResource extends NcSatelliteResource implements
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getParameterList
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getParameterList (com.raytheon.uf.common.dataplugin.persist.IPersistable)
      */
     @Override
     protected List<String> getParameterList(IPersistable pdo) {

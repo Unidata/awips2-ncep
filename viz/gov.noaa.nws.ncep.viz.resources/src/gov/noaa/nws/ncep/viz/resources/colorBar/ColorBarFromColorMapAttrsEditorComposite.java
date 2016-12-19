@@ -4,19 +4,6 @@
 
 package gov.noaa.nws.ncep.viz.resources.colorBar;
 
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-import gov.noaa.nws.ncep.viz.ui.display.IColorBar;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -76,6 +63,19 @@ import com.raytheon.viz.core.imagery.ImageCombiner.IImageCombinerListener;
 import com.raytheon.viz.ui.dialogs.colordialog.ColorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarAnchorLocation;
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import gov.noaa.nws.ncep.viz.ui.display.IColorBar;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * 
  * Creates the widgets that constitute the dialogs for editing the color bar
@@ -93,6 +93,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *                                        ColorBarAnchorLocation and ColorBarOrientation                                              
  * 02/09/2013    972        Greg Hull     ResourceCategory class
  * 04/05/2016    R15715     dgilling      Rewrite to fix bugs with Capabilities handling.
+ * 01/25/2017    R20988     K.Bugenhagen  Updated constructor to check for 
+ *                                        correct colormap name.
  * </pre>
  * 
  * @author archana
@@ -102,8 +104,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
 public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
     private static final ColorBarAnchorLocation[] AVAIL_ANCHOR_LOCS = new ColorBarAnchorLocation[] {
-            ColorBarAnchorLocation.UpperLeft,
-            ColorBarAnchorLocation.UpperRight,
+            ColorBarAnchorLocation.UpperLeft, ColorBarAnchorLocation.UpperRight,
             ColorBarAnchorLocation.LowerLeft,
             ColorBarAnchorLocation.LowerRight, };
 
@@ -189,37 +190,53 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
     private Color labelColor;
 
-    public ColorBarFromColorMapAttrsEditorComposite(Composite parent,
-            int style, INatlCntrsResourceData resourceData,
-            Capabilities capabilities) {
+    public ColorBarFromColorMapAttrsEditorComposite(Composite parent, int style,
+            INatlCntrsResourceData resourceData, Capabilities capabilities) {
         super(parent, style);
 
         this.theResourceData = resourceData;
         this.cMapCapability = (capabilities
-                .hasCapability(ColorMapCapability.class)) ? capabilities
-                .getCapability((AbstractResourceData) this.theResourceData,
-                        ColorMapCapability.class) : null;
+                .hasCapability(ColorMapCapability.class))
+                        ? capabilities.getCapability(
+                                (AbstractResourceData) this.theResourceData,
+                                ColorMapCapability.class)
+                        : null;
         this.imgCapability = (capabilities
-                .hasCapability(ImagingCapability.class)) ? capabilities
-                .getCapability((AbstractResourceData) this.theResourceData,
-                        ImagingCapability.class) : null;
+                .hasCapability(ImagingCapability.class))
+                        ? capabilities.getCapability(
+                                (AbstractResourceData) this.theResourceData,
+                                ImagingCapability.class)
+                        : null;
 
         imageResources = new ArrayList<>();
         ResourceAttrSet resAttrSet = theResourceData.getRscAttrSet();
         colorMapCategory = theResourceData.getResourceName().getRscCategory();
+
         colorMapName = resAttrSet.getRscAttr("colorMapName").getAttrValue()
                 .toString();
-        editedColorBar = (ColorBarFromColormap) resAttrSet.getRscAttr(
-                "colorBar").getAttrValue();
+
+        String colorMapNameFromCapabilities = capabilities
+                .getCapability((AbstractResourceData) resourceData,
+                        ColorMapCapability.class)
+                .getColorMapParameters().getColorMapName();
+
+        /*
+         * For some resources (e.g. Gini satellite), the colormap name obtained
+         * from the ResourceAttrSet does not reflect the correct name. Compare
+         * it to the colormap name found in the capabilities and use that if
+         * they differ.
+         */
+        if (!colorMapNameFromCapabilities.equals(colorMapName)) {
+            colorMapName = colorMapNameFromCapabilities;
+        }
+
+        editedColorBar = (ColorBarFromColormap) resAttrSet
+                .getRscAttr("colorBar").getAttrValue();
 
         labelColor = new Color(getDisplay(), editedColorBar.getLabelColor());
         currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
 
         if (currEditor != null) {
-            /*
-             * TODO: might need to remove if we decide that we don't need the
-             * interpolation/image combiner
-             */
             ResourceList resList = currEditor.getActiveDisplayPane()
                     .getRenderableDisplay().getDescriptor().getResourceList();
             if (resList != null && resList.size() > 0) {
@@ -227,8 +244,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                     AbstractVizResource<?, ?> resource = rp.getResource();
                     if (resource instanceof AbstractNatlCntrsResource<?, ?>) {
                         if (resource.hasCapability(ImagingCapability.class)) {
-                            imageResources
-                                    .add((AbstractNatlCntrsResource<?, ?>) resource);
+                            imageResources.add(
+                                    (AbstractNatlCntrsResource<?, ?>) resource);
                         }
                     }
                 }
@@ -281,7 +298,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         colorBarLocOptionsGroup.setText("Edit Color Bar Options");
 
         colorBarLocOptionsGroup.setLayout(new FormLayout());
-        createColorBarLocationDimensionAndLabelDisplayControls(colorBarLocOptionsGroup);
+        createColorBarLocationDimensionAndLabelDisplayControls(
+                colorBarLocOptionsGroup);
         showColorBarEditOptionsBtn.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -290,16 +308,14 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
                 if (((Button) e.widget).getText().startsWith("Edit")) {
                     ((Button) e.widget).setText("Hide ...");
-                    shell.setSize(new Point(shell.getSize().x,
-                            shell.getSize().y
-                                    + colorBarLocOptionsGroup.getSize().y + 30));
+                    shell.setSize(new Point(shell.getSize().x, shell.getSize().y
+                            + colorBarLocOptionsGroup.getSize().y + 30));
                     colorBarLocOptionsGroup.setVisible(true);
                 } else {
                     ((Button) e.widget).setText("Edit Color Bar Options ...");
                     colorBarLocOptionsGroup.setVisible(false);
-                    shell.setSize(new Point(shell.getSize().x,
-                            shell.getSize().y
-                                    - colorBarLocOptionsGroup.getSize().y - 30));
+                    shell.setSize(new Point(shell.getSize().x, shell.getSize().y
+                            - colorBarLocOptionsGroup.getSize().y - 30));
                 }
 
             }
@@ -358,8 +374,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         fd.left = new FormAttachment(lengthLabel, 10, SWT.RIGHT);
         fd.top = new FormAttachment(newComp, 20, SWT.BOTTOM);
         lenSpinner.setLayoutData(fd);
-        lenSpinner
-                .setToolTipText("ColorBar length as a percentage of the screen size");
+        lenSpinner.setToolTipText(
+                "ColorBar length as a percentage of the screen size");
 
         lenSpinner.setMinimum(10);
         lenSpinner.setMaximum(100);
@@ -369,7 +385,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         lenSpinner.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                editedColorBar.setLengthAsRatio((lenSpinner.getSelection()) / 100f);
+                editedColorBar
+                        .setLengthAsRatio((lenSpinner.getSelection()) / 100f);
                 refreshColorBar();
 
             }
@@ -446,8 +463,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                 if (labelColor != null) {
                     labelColor.dispose();
                 }
-                labelColor = new Color(getDisplay(), labelColorSelector
-                        .getColorValue());
+                labelColor = new Color(getDisplay(),
+                        labelColorSelector.getColorValue());
                 editedColorBar.setLabelColor(labelColor.getRGB());
                 refreshColorBar();
 
@@ -464,16 +481,17 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         orientationCombo.add(ColorBarOrientation.Vertical.name());
         orientationCombo.add(ColorBarOrientation.Horizontal.name());
 
-        orientationCombo
-                .select(editedColorBar.getOrientation() == ColorBarOrientation.Vertical ? 0
-                        : 1);
+        orientationCombo.select(
+                editedColorBar.getOrientation() == ColorBarOrientation.Vertical
+                        ? 0 : 1);
 
         orientationCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                editedColorBar.setOrientation((orientationCombo
-                        .getSelectionIndex() == 0 ? ColorBarOrientation.Vertical
-                        : ColorBarOrientation.Horizontal));
+                editedColorBar.setOrientation(
+                        (orientationCombo.getSelectionIndex() == 0
+                                ? ColorBarOrientation.Vertical
+                                : ColorBarOrientation.Horizontal));
                 refreshColorBar();
             }
         });
@@ -491,8 +509,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         anchorCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                editedColorBar.setAnchorLoc(AVAIL_ANCHOR_LOCS[anchorCombo
-                        .getSelectionIndex()]);
+                editedColorBar.setAnchorLoc(
+                        AVAIL_ANCHOR_LOCS[anchorCombo.getSelectionIndex()]);
                 refreshColorBar();
             }
         });
@@ -517,7 +535,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
     }
 
-    private void createColorMapRangeControlSliders(Composite theColorRangeGroup) {
+    private void createColorMapRangeControlSliders(
+            Composite theColorRangeGroup) {
         buildColorMapData();
 
         Composite minMaxValues = new Composite(theColorRangeGroup, SWT.NONE);
@@ -536,8 +555,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
         GridData labelLayoutData = new GridData(SWT.FILL, SWT.DEFAULT, false,
                 false);
-        maxValueText = new Text(minMaxValues, SWT.SINGLE | SWT.BORDER
-                | SWT.RIGHT);
+        maxValueText = new Text(minMaxValues,
+                SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
         maxValueText.setLayoutData(labelLayoutData);
         maxValueText.setText(cmapToText(currentMax));
 
@@ -555,8 +574,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
 
         labelLayoutData = new GridData(SWT.FILL, SWT.DEFAULT, false, false);
 
-        minValueText = new Text(minMaxValues, SWT.SINGLE | SWT.BORDER
-                | SWT.RIGHT);
+        minValueText = new Text(minMaxValues,
+                SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
         minValueText.setLayoutData(labelLayoutData);
         minValueText.setText(cmapToText(currentMin));
 
@@ -611,8 +630,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         fd.top = new FormAttachment(colorMapComp, 20, SWT.BOTTOM);
         selectColorMapLabel.setLayoutData(fd);
         selectColorMapLabel.setVisible(true);
-        final Combo colorMapNamesCombo = new Combo(colorMapComp, SWT.READ_ONLY
-                | SWT.DROP_DOWN);
+        final Combo colorMapNamesCombo = new Combo(colorMapComp,
+                SWT.READ_ONLY | SWT.DROP_DOWN);
         fd = new FormData();
         fd.left = new FormAttachment(selectColorMapLabel, 20, SWT.RIGHT);
         fd.top = new FormAttachment(colorMapComp, 17, SWT.BOTTOM);
@@ -628,7 +647,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                 int seldColorMapIndx = -1;
                 if (colorMapName != null) {
                     for (int c = 0; c < listOfColorMapNames.length; c++) {
-                        if (listOfColorMapNames[c].compareTo(colorMapName) == 0) {
+                        if (listOfColorMapNames[c]
+                                .compareTo(colorMapName) == 0) {
                             colorMapNamesCombo.select(c);
                             selectedColorMapName = listOfColorMapNames[c];
                             seldColorMapIndx = c;
@@ -655,8 +675,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                                 && (colorMapName != null)) {
                             ResourceAttrSet resAttrSet = theResourceData
                                     .getRscAttrSet();
-                            resAttrSet.getRscAttr("colorMapName").setAttrValue(
-                                    selectedColorMapName);
+                            resAttrSet.getRscAttr("colorMapName")
+                                    .setAttrValue(selectedColorMapName);
                             theResourceData.setRscAttrSet(resAttrSet);
                             setColorBarFromColorMap(selectedColorMapName);
                             refreshColorBar();
@@ -689,8 +709,9 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                                     params, null, null);
                             cmd.executeWithChecks(exec);
                         } catch (Exception ex) {
-                            statusHandler.error("Error executing cmd: "
-                                    + cmapEditorCmdStr, ex);
+                            statusHandler.error(
+                                    "Error executing cmd: " + cmapEditorCmdStr,
+                                    ex);
                         }
                     }
 
@@ -751,8 +772,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         initializeAlphaScale(body);
 
         Composite checkBoxComp = new Composite(body, SWT.NONE);
-        checkBoxComp.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true,
-                true, 3, 1));
+        checkBoxComp.setLayoutData(
+                new GridData(SWT.CENTER, SWT.CENTER, true, true, 3, 1));
         checkBoxComp.setLayout(new GridLayout(2, false));
 
         interpolationChk = new Button(checkBoxComp, SWT.CHECK);
@@ -776,14 +797,13 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                         .getWorkbench().getActiveWorkbenchWindow()
                         .getService(IHandlerService.class);
                 try {
-                    handlerService
-                            .executeCommand(
-                                    "com.raytheon.uf.viz.d2d.ui.actions.imageCombination",
-                                    null);
+                    handlerService.executeCommand(
+                            "com.raytheon.uf.viz.d2d.ui.actions.imageCombination",
+                            null);
                 } catch (Exception ex) {
-                    statusHandler
-                            .error("Error changing setting for 'Combine Next Image Load'",
-                                    ex);
+                    statusHandler.error(
+                            "Error changing setting for 'Combine Next Image Load'",
+                            ex);
                 }
                 combineNextImage.setSelection(ImageCombiner.isCombineImages());
                 if (currEditor != null) {
@@ -801,19 +821,24 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                 brightnessText.setText(brightnessScale.getSelection() + "%");
 
                 if ((imgCapability != null) && (theResourceData != null)) {
-                    float brightnessValue = brightnessScale.getSelection() / 100.0f;
+                    float brightnessValue = brightnessScale.getSelection()
+                            / 100.0f;
                     ResourceAttrSet resAttrSet = theResourceData
                             .getRscAttrSet();
-                    resAttrSet.getRscAttr("brightness").setAttrValue(
-                            brightnessValue);
+                    resAttrSet.getRscAttr("brightness")
+                            .setAttrValue(brightnessValue);
                     theResourceData.setRscAttrSet(resAttrSet);
 
-                    imgCapability.setContrast(
-                            ((Number) resAttrSet.getRscAttr("contrast")
-                                    .getAttrValue()).floatValue(), false);
-                    imgCapability.setAlpha(
-                            ((Number) resAttrSet.getRscAttr("alpha")
-                                    .getAttrValue()).floatValue(), false);
+                    imgCapability
+                            .setContrast(
+                                    ((Number) resAttrSet.getRscAttr("contrast")
+                                            .getAttrValue()).floatValue(),
+                                    false);
+                    imgCapability
+                            .setAlpha(
+                                    ((Number) resAttrSet.getRscAttr("alpha")
+                                            .getAttrValue()).floatValue(),
+                                    false);
                     imgCapability.setBrightness(brightnessValue);
                 }
             }
@@ -832,12 +857,17 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                     resAttrSet.getRscAttr("contrast").setAttrValue(cValue);
                     theResourceData.setRscAttrSet(resAttrSet);
 
-                    imgCapability.setBrightness(((Number) resAttrSet
-                            .getRscAttr("brightness").getAttrValue())
-                            .floatValue(), false);
-                    imgCapability.setAlpha(
-                            ((Number) resAttrSet.getRscAttr("alpha")
-                                    .getAttrValue()).floatValue(), false);
+                    imgCapability
+                            .setBrightness(
+                                    ((Number) resAttrSet
+                                            .getRscAttr("brightness")
+                                            .getAttrValue()).floatValue(),
+                                    false);
+                    imgCapability
+                            .setAlpha(
+                                    ((Number) resAttrSet.getRscAttr("alpha")
+                                            .getAttrValue()).floatValue(),
+                                    false);
                     imgCapability.setContrast(cValue);
                 }
             }
@@ -854,8 +884,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                         if (rscCat == colorMapCategory) {
                             ImagingCapability imgcap = rsc
                                     .getCapability(ImagingCapability.class);
-                            imgcap.setInterpolationState(interpolationChk
-                                    .getSelection());
+                            imgcap.setInterpolationState(
+                                    interpolationChk.getSelection());
                         }
                     }
 
@@ -908,12 +938,17 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                     resAttrSet.getRscAttr("alpha").setAttrValue(alphaValue);
                     theResourceData.setRscAttrSet(resAttrSet);
 
-                    imgCapability.setBrightness(((Number) resAttrSet
-                            .getRscAttr("brightness").getAttrValue())
-                            .floatValue(), false);
-                    imgCapability.setContrast(
-                            ((Number) resAttrSet.getRscAttr("contrast")
-                                    .getAttrValue()).floatValue(), false);
+                    imgCapability
+                            .setBrightness(
+                                    ((Number) resAttrSet
+                                            .getRscAttr("brightness")
+                                            .getAttrValue()).floatValue(),
+                                    false);
+                    imgCapability
+                            .setContrast(
+                                    ((Number) resAttrSet.getRscAttr("contrast")
+                                            .getAttrValue()).floatValue(),
+                                    false);
                     imgCapability.setAlpha(alphaValue);
                 }
             }
@@ -995,11 +1030,12 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
                     if (cMapParam.getColorMapMax() >= 0
                             && cMapParam.getColorMapMin() >= 0) {
                         double index = (i) / ColorUtil.MAX_VALUE;
-                        value = Math
-                                .pow(Math.E, (Math.log(cMapParam
-                                        .getColorMapMin()) + (index * (Math
-                                        .log(cMapParam.getColorMapMax()) - Math
-                                        .log(cMapParam.getColorMapMin())))));
+                        value = Math.pow(Math.E,
+                                (Math.log(cMapParam
+                                        .getColorMapMin())
+                                + (index * (Math.log(cMapParam.getColorMapMax())
+                                        - Math.log(
+                                                cMapParam.getColorMapMin())))));
                     }
                     if (format == null) {
                         format = new DecimalFormat("0.000");
@@ -1076,8 +1112,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
         try {
             return Float.valueOf(userEntry);
         } catch (NumberFormatException ex) {
-            statusHandler.error("Cannot parse new colormap range value: "
-                    + userEntry, ex);
+            statusHandler.error(
+                    "Cannot parse new colormap range value: " + userEntry, ex);
         } catch (ConversionException ex) {
             statusHandler.error("Unit converter error.", ex);
         }
@@ -1151,8 +1187,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
             newMaxValue = currentMax;
         } else if (currentMin >= newMaxValue) {
             newMaxValue = currentMax;
-            statusHandler
-                    .error("Maximum of colormap range cannot be below the minimum.");
+            statusHandler.error(
+                    "Maximum of colormap range cannot be below the minimum.");
         } else if (newMaxValue >= cmapMax) {
             newMaxValue = cmapMax;
         }
@@ -1167,8 +1203,8 @@ public class ColorBarFromColorMapAttrsEditorComposite extends Composite {
             newMinValue = currentMin;
         } else if (newMinValue >= currentMax) {
             newMinValue = currentMin;
-            statusHandler
-                    .error("Minimum of colormap range cannot exceed the maximum.");
+            statusHandler.error(
+                    "Minimum of colormap range cannot exceed the maximum.");
         } else if (cmapMin >= newMinValue) {
             newMinValue = cmapMin;
         }

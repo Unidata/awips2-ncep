@@ -3,37 +3,38 @@ package gov.noaa.nws.ncep.edex.plugin.mosaic.uengine;
 
 import javax.measure.converter.UnitConverter;
 
-import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
-import gov.noaa.nws.ncep.edex.plugin.mosaic.uengine.MosaicTiler;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.raytheon.edex.uengine.tasks.ScriptTask;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.datastorage.records.ShortDataRecord;
 
+import gov.noaa.nws.ncep.edex.plugin.mosaic.common.MosaicRecord;
+
 /**
  * Derived from original uEngine DecodeMosaicImage task.
  * 
- * Date         Ticket#         Engineer    	Description
- * ------------ ----------      ----------- 	--------------------------
- * 09/2009      143				L. Lin     		Initial creation
- * 12/2009		143				mgamazaychikov	Added constructor for GEMPAK client;
- * 												Changed the size of mosaicTiler from fixed
- * 												to data-dependent
+ * <pre>
+ * 
+ * Date         Ticket#         Engineer        Description
+ * ------------ ----------      -----------     --------------------------
+ * 09/2009      143             L. Lin          Initial creation
+ * 12/2009      143             mgamazaychikov  Added constructor for GEMPAK client;
+ *                                              Changed the size of mosaicTiler from fixed
+ *                                              to data-dependent
+ * Dec 16, 2016 5934            njensen         Removed extending deprecated ScriptTask
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
+ * 
  * @author L. Lin
- * @version 1.0
  */
 
-public class DecodeMosaicImage extends ScriptTask {
+public class DecodeMosaicImage {
 
     private final Log theLogger = LogFactory.getLog(getClass());
 
@@ -89,12 +90,6 @@ public class DecodeMosaicImage extends ScriptTask {
         geometry = mosaicTiler.constructGridGeometry();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.edex.uengine.js.tasks.ScriptTask#execute()
-     */
-    @Override
     public Object execute() {
         byte[] bi = null;
         // get the mosaic file

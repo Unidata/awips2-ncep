@@ -10,17 +10,17 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------      -------         --------    -----------
- * 05/30/2013                   Chin J. Chen Initial coding
- * 04/14/2014      2984         njensen      Remove unused uengine dependency
+ * Date         Ticket#     Engineer     Description
+ * -------      -------     --------     -----------
+ * 05/30/2013               Chin J. Chen Initial coding
+ * 04/14/2014      2984     njensen      Remove unused uengine dependency
+ * 12/16/2016      5934     njensen      Moved to edex gpd plugin
  *
  * </pre>
  * 
  * @author Chin J. Chen
- * @version 1.0
  */
-package gov.noaa.nws.ncep.common.dataplugin.gpd.query;
+package gov.noaa.nws.ncep.edex.plugin.gpd.dao;
 
 import java.io.File;
 import java.util.ArrayList;

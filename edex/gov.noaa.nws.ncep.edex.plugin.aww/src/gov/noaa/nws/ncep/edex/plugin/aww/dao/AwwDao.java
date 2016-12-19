@@ -3,19 +3,23 @@
  * 
  * This java class represents the county FIPS for an AWW record.
  * 
+ * <pre>
+ * 
  * HISTORY
  *
- * Date     	Author		Description
- * ------------	----------	-----------	--------------------------
- * 05/2010		L. Lin		Initial creation	
- * 09/2011      Chin Chen   changed to improve purge performance and
- * 							removed xml serialization as well
+ * Date         Author     Description
+ * ------------ ---------- -------------------------------------
+ * 05/2010      L. Lin     Initial creation
+ * 09/2011      Chin Chen  changed to improve purge performance and
+ *                         removed xml serialization as well
+ * Dec 19, 2016 njensen    Moved to edex aww plugin 
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
+ * 
+ * </pre>
  */
-package gov.noaa.nws.ncep.common.dataplugin.aww.dao;
+package gov.noaa.nws.ncep.edex.plugin.aww.dao;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
 import java.util.List;
 
 import com.raytheon.uf.common.dataplugin.PluginException;
@@ -23,6 +27,8 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
 
 public class AwwDao extends PluginDao {
 

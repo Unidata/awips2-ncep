@@ -38,7 +38,7 @@
 
   <PlotParameterDefn plotParamName="BRBS"
     metParamName="WindDirection,WindSpeed" plotMode="barb" symbolFont="WindSymbolFont"
-    plotUnit="mi*hr^-1" />
+    plotUnit="mph" />
 
   <PlotParameterDefn plotParamName="BRGK"
     metParamName="WindDirection,WindGust" plotMode="barb" symbolFont="WindSymbolFont"
@@ -220,7 +220,7 @@
     metParamName="StationLongitude" dbParamName="longitude" plotUnit="°" />
 
   <PlotParameterDefn plotParamName="SMPH"
-    metParamName="WindSpeed" dbParamName="windSpeed" plotUnit="mi*hr^-1"
+    metParamName="WindSpeed" dbParamName="windSpeed" plotUnit="mph"
     plotFormat="%3.0f" />
 
   <PlotParameterDefn plotParamName="SMSL"

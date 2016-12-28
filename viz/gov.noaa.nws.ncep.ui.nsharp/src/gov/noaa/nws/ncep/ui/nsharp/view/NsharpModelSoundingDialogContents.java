@@ -188,6 +188,7 @@ public class NsharpModelSoundingDialogContents {
                     .sendRequest(dbQuery);
             Date[] reftimes = response.getFieldObjects(timeField, Date.class);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
             // format and dup elim
             Set<String> formattedTimesSet = new HashSet<>(reftimes.length, 1);
             for (Date reftime : reftimes) {

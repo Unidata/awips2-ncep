@@ -435,17 +435,17 @@ public class NsharpNativeConstants {
      */
     public static final String CONVECTIVE_INITIATION_STR = "\t\t\t\tCONVECTIVE INITIATION    \r\n";
 
-    public static final String CONVECTIVE_CINH_LINE = "CINH_=    %6.0f J/Kg";
+    public static final String CONVECTIVE_CINH_LINE = "CINH_= %6.0f J/Kg";
 
-    public static final String CONVECTIVE_KINDEX_LINE = "K-Index_=    %6.0f";
+    public static final String CONVECTIVE_KINDEX_LINE = "K-Index_= %6.0f";
 
     public static final String CONVECTIVE_CINH_MISSING = "CINH_=    M";
 
     public static final String CONVECTIVE_KINDEX_MISSING = "K-Index_=    M";
 
-    public static final String CONVECTIVE_CAP_LINE = "Cap_=    %.0fC / %.0fmb\n";
+    public static final String CONVECTIVE_CAP_LINE = "Cap_=  %.0fC / %.0fmb\n";
 
-    public static final String CONVECTIVE_MEANRH_LINE = "Mean RH_=    %.0f %c";
+    public static final String CONVECTIVE_MEANRH_LINE = "Mean RH_=  %.0f %c";
 
     public static final String CONVECTIVE_CAP_MISSING = "Cap_=    M / M\r\n";
 
@@ -464,11 +464,11 @@ public class NsharpNativeConstants {
      */
     public static final String STORM_TYPE_STR = "\t\t\t\t    STORM TYPE    \r\n";
 
-    public static final String STORM_TYPE_CAPE_LINE = "CAPE _=    %6.0f  J/Kg\t";
+    public static final String STORM_TYPE_CAPE_LINE = "CAPE _= %6.0f J/Kg\t";
 
-    public static final String STORM_TYPE_EHI_LINE = "EHI  _=    %6.1f     \t";
+    public static final String STORM_TYPE_EHI_LINE = "EHI  _= %6.1f     \t";
 
-    public static final String STORM_TYPE_BRN_LINE = "BRN  _=    %6.0f     \t";
+    public static final String STORM_TYPE_BRN_LINE = "BRN  _= %6.0f     \t";
 
     public static final String STORM_TYPE_CAPE_MISSING = "CAPE _=        M";
 
@@ -476,15 +476,15 @@ public class NsharpNativeConstants {
 
     public static final String STORM_TYPE_BRN_MISSING = "BRN  _=        M";
 
-    public static final String STORM_TYPE_EFF_LINE = "Eff. SREH _=    %.0f m%c/s%c\r\n";
+    public static final String STORM_TYPE_EFF_LINE = "Eff. SREH _=  %.0f m%c/s%c\r\n";
 
     public static final String STORM_TYPE_EFF_MISSING = "Eff. SREH _=    M\r\n";
 
-    public static final String STORM_TYPE_3KM_LINE = "3km Shear _=    %.0f m/s\r\n";
+    public static final String STORM_TYPE_3KM_LINE = "3km Shear _=  %.0f m/s\r\n";
 
     public static final String STORM_TYPE_3KM_MISSING = "3km Shear _=    M\r\n";
 
-    public static final String STORM_TYPE_BRNSHEAR_LINE = "BRN Shear _=    %.0f m%c/s%c\r\n";
+    public static final String STORM_TYPE_BRNSHEAR_LINE = "BRN Shear _=  %.0f m%c/s%c\r\n";
 
     public static final String STORM_TYPE_BRNSHEAR_MISSING = "BRN Shear _=    M\r\n";
 

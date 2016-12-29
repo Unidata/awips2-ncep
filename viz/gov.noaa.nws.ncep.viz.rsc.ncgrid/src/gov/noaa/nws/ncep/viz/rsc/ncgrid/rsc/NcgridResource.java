@@ -186,6 +186,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                          Removed short title string from the legend.
  * 11/18/2016    R23069     A. Su           Added a null check in fixVectorSpatialData() for
  *                                          no Y data, such as directional arrows.
+ * 12/05/2016    R26247     A. Su           Removed the setting of NcGridDataProxy object to currentFrame 
+ *                                          in updateFrameData().
  * </pre>
  * 
  * @author mli
@@ -867,13 +869,6 @@ public class NcgridResource
                             hasData = false;
                             if (gdPrxy != null
                                     && gdPrxy.getNewSpatialObject() != null) {
-
-                                // Set the proxy for this frame. Gets used in
-                                // ContourSupport to get imageGridGeometry.
-                                FrameData frame = (FrameData) getCurrentFrame();
-                                if (frame != null) {
-                                    frame.setProxy(gdPrxy);
-                                }
 
                                 contourRenderable[i] = new ContourRenderable(
                                         gridData, getNcMapDescriptor(),

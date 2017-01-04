@@ -81,6 +81,7 @@ import gov.noaa.nws.ncep.ui.pgen.palette.PgenPaletteWindow;
  * 11/13		 #1081		B. Yin		Removed prevDe and added getSelectedDE method.  
  * May 16, 2016 5640        bsteffen    Access triggering component using PgenUtil.
  * 06/15/2016     R13559    bkowal      File cleanup. No longer simulate mouse clicks.
+ * 11/30/2016     R17954    bugenhagen  Check for null palette in deactivateTool.
  * 
  * </pre>
  * 
@@ -146,7 +147,11 @@ public class PgenSelectingTool extends AbstractPgenDrawingTool
     public void deactivateTool() {
 
         super.deactivateTool();
-        PgenSession.getInstance().getPgenPalette().setCurrentAction("");
+
+        PgenPaletteWindow palette = PgenSession.getInstance().getPgenPalette();
+        if (palette != null) {
+            palette.setCurrentAction("");
+        }
         if (mouseHandler != null && mouseHandler instanceof PgenSelectHandler) {
             ((PgenSelectHandler) mouseHandler).closeDlg();
         }

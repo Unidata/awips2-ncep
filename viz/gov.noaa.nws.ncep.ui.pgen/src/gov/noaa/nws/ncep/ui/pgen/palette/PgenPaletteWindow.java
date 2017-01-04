@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
@@ -87,6 +88,7 @@ import gov.noaa.nws.ncep.ui.pgen.PgenUtil.PgenMode;
 import gov.noaa.nws.ncep.ui.pgen.controls.CommandStackListener;
 import gov.noaa.nws.ncep.ui.pgen.controls.StoreActivityDialog;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
+import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
 import gov.noaa.nws.ncep.ui.pgen.filter.CategoryFilter;
 import gov.noaa.nws.ncep.ui.pgen.gfa.PreloadGfaDataThread;
@@ -148,6 +150,9 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *                                      possible null pointer situation
  * 06/30/2016   R17964      J. Wu       Update filter after setting category.
  * 08/05/2016   R17973      B. Yin      Added setCurrentAction method.
+ * 07/28/2016   R17954      B. Yin      handle CANCEL status of the SAVE dialog.
+ * 11/30/2016   R17954      Bugenhagen  Changed promptToSaveOnClose to only prompt
+ *                                      if editor has any elements drawn.
  * 
  * </pre>
  * 
@@ -1014,6 +1019,10 @@ public class PgenPaletteWindow extends ViewPart
 
                         // R8354.
                         deactivatePGENContext();
+
+                    } else if (PgenUtil.getPgenMode() == PgenMode.MULTIPLE
+                            && PgenUtil.getActiveEditor() != null) {
+                        unloadPgenResource(PgenUtil.getActiveEditor());
                     }
 
                     if (currentIsMultiPane != null) {
@@ -1094,15 +1103,17 @@ public class PgenPaletteWindow extends ViewPart
             if (pgen != null) {
                 pgen.closeDialogs();
                 pgen.deactivatePgenTools();
-
-                // R8354
                 deactivatePGENContext();
                 ((AbstractEditor) part).refresh();
             }
-        } else if (part instanceof PgenPaletteWindow) { // R8354
-            deactivatePGENContext();
+        } else if (part instanceof PgenPaletteWindow) {
+            PgenResource pgen = PgenSession.getInstance().getCurrentResource();
+            if (pgen != null) {
+                pgen.closeDialogs();
+                pgen.deactivatePgenTools();
+                deactivatePGENContext();
+            }
         }
-
     }
 
     @Override
@@ -1593,8 +1604,12 @@ public class PgenPaletteWindow extends ViewPart
             statusHandler.error("ERROR",
                     "Failure To Save PGen Activty Upon Closing PGen", e);
         }
-        if (storeDialog != null)
-            storeDialog.open();
+        if (storeDialog != null) {
+            storeDialog.setBlockOnOpen(true);
+            if (storeDialog.open() == Window.CANCEL) {
+                monitor.setCanceled(true);
+            }
+        }
     }
 
     /*
@@ -1636,15 +1651,28 @@ public class PgenPaletteWindow extends ViewPart
     public int promptToSaveOnClose() {
 
         int returnCode = 0;
+        AbstractEditor editor = PgenUtil.getActiveEditor();
 
-        BufferedImage screenshot = PgenUtil.getActiveEditor()
-                .getActiveDisplayPane().getTarget().screenshot();
+        BufferedImage screenshot = editor.getActiveDisplayPane().getTarget()
+                .screenshot();
 
         PgenResourceData prd = PgenSession.getInstance().getPgenResource()
                 .getResourceData();
 
-        if (prd != null) {
+        // if this editor actually has any elements drawn, need to save
+        boolean needToSave = false;
+        if (prd != null && !prd.getActiveLayer().isEmpty()) {
+            Layer layer = prd.getActiveLayer();
+            if (!layer.getDrawables().isEmpty()) {
+                needToSave = true;
+            }
+        }
+
+        if (prd != null && needToSave) {
             returnCode = prd.promptToSave(screenshot);
+        } else {
+            // do not prompt for save if nothing to save
+            returnCode = IDialogConstants.NO_ID;
         }
 
         /*-
@@ -1727,4 +1755,4 @@ public class PgenPaletteWindow extends ViewPart
         return listWthAllClassList;
     }
 
-}// end class PgenPaletteWindow
+}

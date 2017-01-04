@@ -35,6 +35,7 @@ import com.raytheon.uf.common.time.DataTime;
  * ------------ ---------- ----------- --------------------------
  * 08/24/2016    R18194    RReynolds    Added Ceiling parameters
  * 07/20/2016    R15950      J.Huber    Added Snowfall, AirTemperatureTenths, and DewPointTempTenths
+ * 12/13/2016    R27046    S.Russell    Added PackedWindSpeedAndDirection
  * 
  * </pre>
  * 
@@ -48,8 +49,8 @@ import com.raytheon.uf.common.time.DataTime;
 public class MetParameterFactory {
 
     /**
-	 * 
-	 */
+     * 
+     */
     @DynamicSerializeElement
     private static final long serialVersionUID = 5589025391819288854L;
 
@@ -85,8 +86,7 @@ public class MetParameterFactory {
                     new Avg3HrShipSpeed());
             ncParamsMap.put(Avg1HrHeatFlux.class.getSimpleName(),
                     new Avg1HrHeatFlux());
-            ncParamsMap.put(
-                    Avg1HrSnowPhaseChangeHeatFlux.class.getSimpleName(),
+            ncParamsMap.put(Avg1HrSnowPhaseChangeHeatFlux.class.getSimpleName(),
                     new Avg1HrSnowPhaseChangeHeatFlux());
             ncParamsMap.put(Avg1HrSubSurfaceHeatFlux.class.getSimpleName(),
                     new Avg1HrSubSurfaceHeatFlux());
@@ -281,8 +281,7 @@ public class MetParameterFactory {
                     new LiftedIndex());
             ncParamsMap.put(LiftedSurfaceAirTempAt500mb.class.getSimpleName(),
                     new LiftedSurfaceAirTempAt500mb());
-            ncParamsMap.put(
-                    Lowest01MinAvgPressInPastHour.class.getSimpleName(),
+            ncParamsMap.put(Lowest01MinAvgPressInPastHour.class.getSimpleName(),
                     new Lowest01MinAvgPressInPastHour());
             ncParamsMap.put(Max24HrTemp.class.getSimpleName(),
                     new Max24HrTemp());
@@ -337,6 +336,8 @@ public class MetParameterFactory {
             ncParamsMap.put(Omega.class.getSimpleName(), new Omega());
             ncParamsMap.put(PeakWindDir.class.getSimpleName(),
                     new PeakWindDir());
+            ncParamsMap.put(PackedWindSpeedAndDirection.class.getSimpleName(),
+                    new PackedWindSpeedAndDirection());
             ncParamsMap.put(PeakWindSpeed.class.getSimpleName(),
                     new PeakWindSpeed());
             ncParamsMap.put(PeakWindSpeedTime.class.getSimpleName(),
@@ -413,10 +414,9 @@ public class MetParameterFactory {
                     new QuantPrecipFcstBestCat12Hr());
             ncParamsMap.put(QuantPrecipFcstBestCat24Hr.class.getSimpleName(),
                     new QuantPrecipFcstBestCat24Hr());
-            ncParamsMap
-                    .put(RateOfIceAccretionOnVesselInSaltWater.class
-                            .getSimpleName(),
-                            new RateOfIceAccretionOnVesselInSaltWater());
+            ncParamsMap.put(
+                    RateOfIceAccretionOnVesselInSaltWater.class.getSimpleName(),
+                    new RateOfIceAccretionOnVesselInSaltWater());
             ncParamsMap.put(RelativeHumidity.class.getSimpleName(),
                     new RelativeHumidity());
             ncParamsMap.put(RelFreqPrecip24HrsClim.class.getSimpleName(),
@@ -494,13 +494,13 @@ public class MetParameterFactory {
                     new TempLapseRate());
             ncParamsMap.put(ProbableCeiling.class.getSimpleName(),
                     new ProbableCeiling());
-            ncParamsMap.put(
-                    ProbableCeilingAsMeanSeaLevel.class.getSimpleName(),
+            ncParamsMap.put(ProbableCeilingAsMeanSeaLevel.class.getSimpleName(),
                     new ProbableCeilingAsMeanSeaLevel());
             ncParamsMap.put(ProbableFlightRuleIdentifier.class.getSimpleName(),
                     new ProbableFlightRuleIdentifier());
-            ncParamsMap.put(ProbableMountainObscThreshMetIndicator.class
-                    .getSimpleName(),
+            ncParamsMap.put(
+                    ProbableMountainObscThreshMetIndicator.class
+                            .getSimpleName(),
                     new ProbableMountainObscThreshMetIndicator());
             ncParamsMap.put(ProbableVisibility.class.getSimpleName(),
                     new ProbableVisibility());
@@ -538,14 +538,11 @@ public class MetParameterFactory {
                     new EstStormDirectionUComp());
             ncParamsMap.put(UCompAt10Meters.class.getSimpleName(),
                     new UCompAt10Meters());
-            ncParamsMap.put(
-                    UncondProbOf06HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf06HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf06HrSevereWeather());
-            ncParamsMap.put(
-                    UncondProbOf12HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf12HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf12HrSevereWeather());
-            ncParamsMap.put(
-                    UncondProbOf24HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf24HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf24HrSevereWeather());
 
             ncParamsMap.put(UncondProbOfTstorms2hr.class.getSimpleName(),
@@ -599,8 +596,9 @@ public class MetParameterFactory {
                     new CeilingFromSeaLevelWorstCase());
             ncParamsMap.put(FlightRulesIdWorstCase.class.getSimpleName(),
                     new FlightRulesIdWorstCase());
-            ncParamsMap.put(MountainObscThreshMetIndicatorWorstCase.class
-                    .getSimpleName(),
+            ncParamsMap.put(
+                    MountainObscThreshMetIndicatorWorstCase.class
+                            .getSimpleName(),
                     new MountainObscThreshMetIndicatorWorstCase());
             ncParamsMap.put(Probability.class.getSimpleName(),
                     new Probability());
@@ -656,7 +654,8 @@ public class MetParameterFactory {
     // u is the expected units and must be compatible with the units for the
     // implemented
     // Quantity.
-    public AbstractMetParameter createParameter(String prmName, String unitName) {
+    public AbstractMetParameter createParameter(String prmName,
+            String unitName) {
         Unit<?> units;
 
         if (unitName == null) {
@@ -723,8 +722,7 @@ public class MetParameterFactory {
         }
     }
 
-    public @Retention(RetentionPolicy.RUNTIME)
-    @interface DeriveMethod {
+    public @Retention(RetentionPolicy.RUNTIME) @interface DeriveMethod {
     }
 
 }

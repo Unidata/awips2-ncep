@@ -1,7 +1,7 @@
 INSERT INTO awips.nctext_inputfile_type VALUES (1,'hrly','O');
 INSERT INTO awips.nctext_inputfile_type VALUES (2,'snd','O');
 INSERT INTO awips.nctext_inputfile_type VALUES (3,'syn','O');
-INSERT INTO awips.nctext_inputfile_type VALUES (4,'taf','O');
+INSERT INTO awips.nctext_inputfile_type VALUES (4,'taf','RFTS');
 INSERT INTO awips.nctext_inputfile_type VALUES (5,'AGO','W');
 INSERT INTO awips.nctext_inputfile_type VALUES (6,'FZL','B');
 INSERT INTO awips.nctext_inputfile_type VALUES (7,'AFD','B');

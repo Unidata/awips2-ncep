@@ -12,14 +12,14 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.GiniSatResource"
             name="GiniSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource"
             name="HimawariSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>

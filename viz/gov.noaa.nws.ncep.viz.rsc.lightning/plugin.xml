@@ -6,7 +6,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.lightning.rsc.LightningResource"
             name="Lightning"
-            recordClass="com.raytheon.edex.plugin.binlightning.BinLightningRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.binlightning.BinLightningRecord"
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW"/>
    </extension>

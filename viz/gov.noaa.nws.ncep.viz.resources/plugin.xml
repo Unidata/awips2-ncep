@@ -13,12 +13,6 @@
             sortID="11">
       </contextualMenu>
       <contextualMenu
-            actionClass="gov.noaa.nws.ncep.viz.tools.predefinedArea.AreaFromResourceRightClickAction"
-            capabilityInterface="gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable"
-            name="Change Area to Fit Image"
-            sortID="13">
-      </contextualMenu>
-      <contextualMenu
             actionClass="gov.noaa.nws.ncep.viz.resources.misc.NCMoveUpAction"
             capabilityInterface="gov.noaa.nws.ncep.viz.resources.INatlCntrsResource"
             name="NC Move Up"
@@ -38,12 +32,6 @@
             capabilityInterface="gov.noaa.nws.ncep.viz.resources.INatlCntrsResource"
             name="NC Move to Bottom"
             sortID="893"/>
-      <contextualMenu
-            actionClass="gov.noaa.nws.ncep.viz.tools.panZoom.ZoomToResourceRightClickAction"
-            capabilityInterface="gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable"
-            name="Zoom To Size of Image"
-            sortID="15">
-      </contextualMenu>
    </extension>   
    <extension
           point="com.raytheon.uf.viz.localization.perspective.localizationpath">

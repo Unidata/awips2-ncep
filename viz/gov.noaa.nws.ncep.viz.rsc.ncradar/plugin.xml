@@ -3,16 +3,10 @@
    <extension
          point="com.raytheon.uf.viz.core.resource">
       <resource
-            class="gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.image.RadarImageResource"
+            class="gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.RadarImageResource"
             name="LocalRadar"
             recordClass="com.raytheon.uf.common.dataplugin.radar.RadarRecord"
             renderingOrderId="IMAGE_LOCAL"/>
-        <resource
-            class="gov.noaa.nws.ncep.viz.rsc.ncradar.rsc.graphic.RadarGraphicsResource"
-            name="LocalRadar"
-            recordClass="com.raytheon.uf.common.dataplugin.radar.RadarRecord"
-            renderingOrderId="PLOT"
-            resourceType="PLAN_VIEW"/>
    </extension>
    <!-- <extension
          point="com.raytheon.uf.viz.core.units">

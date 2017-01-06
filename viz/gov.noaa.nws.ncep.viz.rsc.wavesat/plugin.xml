@@ -11,15 +11,6 @@
             resourceType="PLAN_VIEW"/>
    </extension>
    <extension
-         point="com.raytheon.uf.viz.core.resource">
-      <resource
-            class="gov.noaa.nws.ncep.viz.rsc.wavesatv.rsc.WaveSatVResource"
-            name="WaveSatV"
-            recordClass="gov.noaa.nws.ncep.common.dataplugin.sgwhv.SgwhvRecord"
-            renderingOrderId="PLOT"
-            resourceType="PLAN_VIEW"/>
-   </extension>
-   <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-Resource">
       <nc-resource
             class="gov.noaa.nws.ncep.viz.rsc.wavesat.rsc.WaveSatResourceData"

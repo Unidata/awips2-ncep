@@ -10,8 +10,8 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * 
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
- * 04/23/2012	229			Chin Chen	Initial coding
- * May 08, 2013 1847        bsteffen	Allow painting with no Wind Data.
+ * 04/23/2012	229         Chin Chen   Initial coding
+ * May 08, 2013 1847        bsteffen    Allow painting with no Wind Data.
  * 02/03/2014   1106        Chin Chen   Need to be able to use clicking on the Src,Time, or StnId to select display 
  * 08/04/2014               Chin Chen   fixed effective level line drawing, height marker drawing
  * 01/27/2015   DR#17006,
@@ -19,8 +19,9 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  *                                      in Volume Browser
  * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites                                     
  * 02/05/2015   DR16888     Chin Chen   fixed issue that "Comp(Src) button not functioning properly in NSHARP display"
- *									    merged 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
+ *                                      merged 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 01/06/2017   RM#21993    Chin Chen   fixed "Text attached to the mouse covers up edit points in Edit Graph mode"
  * 
  * </pre>
  * 
@@ -220,7 +221,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     private static int CURSER_STRING_OFF = CURSER_FONT_10 + 5
             * CURSER_FONT_INC_STEP;
 
-    private int curseToggledFontLevel = 15;
+    private int curseToggledFontLevel = 12;
 
     private String myPerspective = NmapCommon.NatlCntrsPerspectiveID;
 
@@ -231,6 +232,8 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     private boolean cursorTopWindBarb = false;
 
     private boolean windBarbMagnify = false;
+
+    private boolean adjustCursorText = false;
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(NsharpSkewTPaneResource.class);
@@ -893,21 +896,45 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 tempF, dpF, NsharpConstants.DEGREE_SYMBOL, temp, dp,
                 NsharpConstants.DEGREE_SYMBOL);
 
+        double x, y;
         // Adjust string plotting position
         if (cursorCor.x < skewtXOrig + (200 / currentZoomLevel) * xRatio) {
             hAli = HorizontalAlignment.LEFT;
+            if (adjustCursorText == true) {
+                defineCharHeight(font10);
+                x = cursorCor.x + charWidth * 5;
+            } else {
+                x = cursorCor.x;
+            }
         } else {
             hAli = HorizontalAlignment.RIGHT;
+            if (adjustCursorText == true) {
+                defineCharHeight(font10);
+                x = cursorCor.x - charWidth * 5;
+            } else {
+                x = cursorCor.x;
+            }
         }
         if (cursorCor.y > skewtYOrig + (50 / currentZoomLevel) * yRatio) {
             vAli = VerticalAlignment.BOTTOM;
+            if (adjustCursorText == true) {
+                y = cursorCor.y - charHeight * 2;
+            } else {
+                y = cursorCor.y;
+            }
+
         } else {
             vAli = VerticalAlignment.TOP;
+            if (adjustCursorText == true) {
+                y = cursorCor.y + charHeight * 2;
+            } else {
+                y = cursorCor.y;
+            }
         }
 
-        target.drawString(myFont, curStr + curStr1/* +curStr2+curStr3 */,
-                cursorCor.x, cursorCor.y, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, hAli, vAli, null);
+        target.drawString(myFont, curStr + curStr1, x, y, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, hAli, vAli,
+                null);
         myFont.dispose();
     }
 
@@ -1087,13 +1114,13 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                                 .getLongitude() * 100) / 100;
                 DrawableString str = new DrawableString(stnInfoStr,
                         pickedStnColor);
-                str.font = font20;
+                str.font = font12;
                 str.setCoordinates(dispX + 300 * zoomLevel * xRatio, dispY);
                 str.horizontalAlignment = HorizontalAlignment.LEFT;
                 str.verticallAlignment = VerticalAlignment.TOP;
                 DrawableString latlonstr = new DrawableString(latlon,
                         pickedStnColor);
-                latlonstr.font = font20;
+                latlonstr.font = font12;
                 latlonstr.setCoordinates(dispX + 300 * zoomLevel * xRatio,
                         dispY + target.getStringsBounds(str).getHeight()
                                 * vRatio);
@@ -1117,12 +1144,12 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
 
         DrawableString str = new DrawableString(pickedStnInfoStr,
                 pickedStnColor);
-        str.font = font20;
+        str.font = font12;
         str.setCoordinates(dispX, dispY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
         str.verticallAlignment = VerticalAlignment.TOP;
         DrawableString latlonstr = new DrawableString(latlon, pickedStnColor);
-        latlonstr.font = font20;
+        latlonstr.font = font12;
         latlonstr.setCoordinates(dispX, dispY
                 + target.getStringsBounds(str).getHeight() * vRatio);
         latlonstr.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -1137,21 +1164,21 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             // Column 1: pressure, C and F
             DrawableString str1 = new DrawableString(sPressure + "     ",
                     NsharpConstants.color_white);
-            str1.font = font20;
+            str1.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str1.setCoordinates(dispX, dispY);
             str1.horizontalAlignment = HorizontalAlignment.LEFT;
             str1.verticallAlignment = VerticalAlignment.TOP;
             DrawableString str2 = new DrawableString(sTemperatureC,
                     NsharpConstants.color_red);
-            str2.font = font20;
+            str2.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str2.setCoordinates(dispX, dispY);
             str2.horizontalAlignment = HorizontalAlignment.LEFT;
             str2.verticallAlignment = VerticalAlignment.TOP;
             DrawableString str3 = new DrawableString(sTemperatureF,
                     NsharpConstants.color_red);
-            str3.font = font20;
+            str3.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str3.setCoordinates(dispX, dispY);
             str3.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -1166,7 +1193,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     * target.getStringsBounds(str).getHeight() * vRatio;
             DrawableString str4 = new DrawableString(sHeightM,
                     NsharpConstants.color_cyan);
-            str4.font = font20;
+            str4.font = font12;
             str4.setCoordinates(dispX, dispY);
             str4.horizontalAlignment = HorizontalAlignment.LEFT;
             str4.verticallAlignment = VerticalAlignment.TOP;
@@ -1174,14 +1201,14 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     NsharpConstants.metersToFeet.convert(heightM));
             DrawableString str5 = new DrawableString(sHeightFt + "     ",
                     NsharpConstants.color_cyan);
-            str5.font = font20;
+            str5.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str5.setCoordinates(dispX, dispY);
             str5.horizontalAlignment = HorizontalAlignment.LEFT;
             str5.verticallAlignment = VerticalAlignment.TOP;
             DrawableString str6 = new DrawableString(sMixingRatio,
                     NsharpConstants.color_green);
-            str6.font = font20;
+            str6.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str6.setCoordinates(dispX, dispY);
             str6.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -1193,20 +1220,20 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                     * target.getStringsBounds(str).getHeight() * vRatio;
             DrawableString str7 = new DrawableString(sThetaInK,
                     NsharpConstants.color_yellow);
-            str7.font = font20;
+            str7.font = font12;
             str7.setCoordinates(dispX, dispY);
             str7.horizontalAlignment = HorizontalAlignment.LEFT;
             str7.verticallAlignment = VerticalAlignment.TOP;
             DrawableString str8 = new DrawableString(sWThetaInK,
                     NsharpConstants.color_yellow);
-            str8.font = font20;
+            str8.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str8.setCoordinates(dispX, dispY);
             str8.horizontalAlignment = HorizontalAlignment.LEFT;
             str8.verticallAlignment = VerticalAlignment.TOP;
             DrawableString str9 = new DrawableString(sEThetaInK,
                     NsharpConstants.color_yellow);
-            str9.font = font20;
+            str9.font = font12;
             dispY = dispY + target.getStringsBounds(str).getHeight() * vRatio;
             str9.setCoordinates(dispX, dispY);
             str9.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -2993,6 +3020,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
                 // if both dis is not witin editing distance, ie. 4 degree, then
                 // return with (0,0);
                 if (disTemp > 4 && disDew > 4) {
+                    adjustCursorText = false;
                     return closeptC;
                 }
 
@@ -3017,7 +3045,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
             prevT = t;
             prevD = d;
         }
-
+        adjustCursorText = true;
         return closeptC;
     }
 

@@ -122,6 +122,9 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  *                                       times which contain seconds and
  *                                       milliseconds (e.g. PGEN activities
  *                                       created with storeActivity script).
+ * 12/22/2016     R27583    K.Bugenhagen Create mapKey with cycle time containing 
+ *                                       only hours and minutes in 
+ *                                       removeAvailDomResource.
  * 
  * </pre>
  * 
@@ -643,12 +646,16 @@ public class TimelineControl extends Composite {
             mapKey = rsc.getResourceName().toString();
         }
 
+        if (rsc.getResourceName().getCycleTime() != null) {
+            mapKey = resourceNameWithCycleTimeInHoursAndMinutes(mapKey);
+        }
+
         ArrayList<AbstractNatlCntrsRequestableResourceData> rscList = availDomResourcesMap
                 .get(mapKey);
 
         if (rscList == null || rscList.isEmpty()) {
-            System.out.println("removeAvailDomResource: " + mapKey
-                    + " is not in the availDomResourcesMap??");
+            statusHandler
+                    .error(mapKey + " is not in the availDomResourcesMap??");
             return false;
         }
 

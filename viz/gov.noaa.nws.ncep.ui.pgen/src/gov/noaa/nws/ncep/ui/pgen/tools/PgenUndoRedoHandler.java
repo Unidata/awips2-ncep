@@ -32,6 +32,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * 12/09   R5197/TTR1056   J. Wu        Reset to the last action after Undo/Redo.
  * May 16, 2016 5640        bsteffen    Access button name through command parameter.
  * Nov 18, 2016 25955      astrakovsky  Fixed null pointer exception by adding an empty string check.
+ * 12/27/2016   R27572     B. Yin       Removed object handle-bars for Ctrl-Z.
  * 
  * </pre>
  * 
@@ -77,7 +78,11 @@ public class PgenUndoRedoHandler extends AbstractTool {
                     session.getCommandManager().redo();
                 }
             }
-
+            
+            /*
+             * Remove handle bars.
+             */
+            resource.removeSelected();
             PgenUtil.refresh();
 
             // Reset to the previous command.

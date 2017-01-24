@@ -34,6 +34,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.alerts.observers.ProductAlertObserver;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.VizWorkbenchManager;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
@@ -124,6 +125,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * 03/15/2016   R16112      E. Brown    Opening resource manager by right clicking goes to correct "Create RBD" tab
  * 04/04/2016   R17317      A. Su       Added to close resource manager by right mouse click if dialog is open.
  * 04/05/2016   RM#10435    rjpeter     Removed Inventory usage.
+ * 01/17/2017   RM#15784    Chin Chen   Fixed bug that cause error when attempting to open editor from NSHARP editor
  * </pre>
  * 
  * @author
@@ -161,14 +163,12 @@ public class NCPerspectiveManager extends AbstractCAVEPerspectiveManager {
     @Override
     public AbstractEditor openNewEditor() {
 
-        AbstractEditor curEd = NcDisplayMngr.getActiveNatlCntrsEditor();
+        AbstractEditor curEd = (AbstractEditor)EditorUtil.getActiveEditor();
 
-        NcDisplayType dt = NcEditorUtil.getNcDisplayType(curEd);
-
-        if (dt == NcDisplayType.NSHARP_DISPLAY) {
+        if(curEd == null){
+        	statusHandler.handle(Priority.PROBLEM, "Error getting current editor ");
             return null;
         }
-
         ICommandService service = (ICommandService) curEd.getSite()
                 .getService(ICommandService.class);
         IHandlerService handlerService = curEd.getSite()

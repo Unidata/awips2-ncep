@@ -14,6 +14,12 @@ package gov.noaa.nws.ncep.ui.nsharp;
  * -------      -------     --------    -----------
  * 05/23/2010   229         Chin Chen   Initial coding
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and 
+ *                                      the "modified SHERBE" parameter,..etc.
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  *
  * </pre>
  * 
@@ -211,19 +217,19 @@ public class NsharpConstants {
 
     public static double center = (left + right) / 2;
 
-    public static RGB color_vanilla = new RGB(255, 239, 206);
+    public static RGB color_vanilla = new RGB(255, 228, 196);
 
     public static RGB color_red = new RGB(255, 0, 0);// red
 
     public static RGB color_green = new RGB(0, 255, 0);// green
 
-    public static RGB color_darkgreen = new RGB(0, 153, 0);// green
+    public static RGB color_darkgreen = new RGB(0, 139, 0);// green4
 
-    public static RGB color_mdgreen = new RGB(0, 204, 0);// green
+    public static RGB color_mdgreen = new RGB(0, 205, 0);// green3
 
     public static RGB color_coral = new RGB(0xf0, 0x80, 0x80);
 
-    public static RGB color_lawngreen = new RGB(119, 255, 0);// green
+    public static RGB color_lawngreen = new RGB(127, 255, 0);// chartreuse1
 
     public static RGB color_yellow_green = new RGB(154, 205, 50);// green
 
@@ -255,17 +261,19 @@ public class NsharpConstants {
 
     public static RGB color_black = new RGB(0, 0, 0);// black
 
-    public static RGB color_orangered = new RGB(255, 0x45, 0);// orangered
+    public static RGB color_orangered = new RGB(238, 64, 0);// OrangeRed2
 
-    public static RGB color_orange = new RGB(255, 122, 66);// orange
+    public static RGB color_orange = new RGB(255, 127, 0);// darkorange1
 
-    public static RGB color_darkorange = new RGB(255, 140, 0);// orange
+    public static RGB color_darkorange = new RGB(205, 133, 0);// orange3
 
-    public static RGB color_babypink = new RGB(249, 207, 221);//
+    public static RGB color_babypink = new RGB(249, 207, 221);
 
-    public static RGB color_deeppink = new RGB(255, 20, 147);//
+    public static RGB color_deeppink = new RGB(255, 20, 147);
+    
+    public static RGB color_dkpink = new RGB(255, 106, 106); // dk pink or indian red 1
 
-    public static RGB color_hotpink = new RGB(255, 105, 180);//
+    public static RGB color_hotpink = new RGB(255, 105, 180);
 
     public static RGB color_pink = new RGB(255, 192, 203);
 
@@ -280,6 +288,8 @@ public class NsharpConstants {
     public static RGB color_lightblue = new RGB(173, 223, 255);
 
     public static RGB color_dodgerblue = new RGB(30, 144, 255);
+    
+    public static RGB color_dodgerblue4 = new RGB(16, 78, 139);
 
     public static RGB color_chocolate = new RGB(210, 105, 30);
 
@@ -1340,7 +1350,7 @@ public class NsharpConstants {
     }
 
     public enum SPCGraph {
-        EBS, STP, SHIP, WINTER, FIRE, HAIL, SARS
+        EBS, STP, SHIP, WINTER, FIRE, HAIL, SARS, VROT, CONDTOR
     }
 
     public static final int MAX_SOUNDING_SOURCE_STR_LENGTH = 8;

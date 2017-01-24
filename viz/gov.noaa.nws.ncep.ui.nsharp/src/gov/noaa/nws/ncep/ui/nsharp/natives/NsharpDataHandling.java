@@ -12,7 +12,8 @@
  * -------		------- 	-------- 	-----------
  * 03/23/2010	229			Chin Chen	Initial coding
  * 10/20/2015   R12599      Chin Chen   negative PWAT value when surface layer dew point is missing 
- *
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 
  * </pre>
  * 
  * @author Chin Chen
@@ -21,6 +22,7 @@
 
 package gov.noaa.nws.ncep.ui.nsharp.natives;
 
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 
 import java.util.ArrayList;
@@ -29,536 +31,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class NsharpDataHandling {
-
-    private static float MISSING_DATA = -9999f;
-    private static float IMPOSSIBLE_BIG_DATA = 2.0E+05F;
-
-    public static short qc(float value)
-    /*************************************************************/
-    /*                                                           */
-    /* Quality control of sndg data. Searches for missing */
-    /*
-     * data (-9999) or too big data and returns (1 = OK), (0 = missing or too
-     * big)
-     */
-    /*************************************************************/
-    {
-        if ((value <= MISSING_DATA) || (value > IMPOSSIBLE_BIG_DATA)) {
-            return 0;
-        }
-        return 1;
-    }
-
-    public static float vcomp(float wdir, float wspd)
-    /*************************************************************/
-    /*                                                           */
-    /* Calculates a v-component of the wind (kt), given */
-    /* a direction and speed. */
-    /*                                                           */
-    /* wdir - Wind Direction (deg) */
-    /* wspd - Wind Speed (kt) */
-    /*************************************************************/
-    {
-        while (wdir > 360) {
-            wdir = wdir - 360;
-        }
-        wdir = wdir * NsharpNativeConstants.PI / 180.0F;
-        return wspd * (float) Math.cos(wdir);
-    }
-
-    public static float ucomp(float wdir, float wspd)
-    /*************************************************************/
-    /* UCOMP */
-    /* John Hart NSSFC KCMO */
-    /*                                                           */
-    /* Calculates a u-component of the wind (kt), given */
-    /* a direction and speed. */
-    /*                                                           */
-    /* wdir - Wind Direction (deg) */
-    /* wspd - Wind Speed (kt) */
-    /*************************************************************/
-    {
-        while (wdir > 360) {
-            wdir = wdir - 360;
-        }
-        wdir = wdir * NsharpNativeConstants.PI / 180F;
-        return wspd * (float) Math.sin(wdir);
-    }
-
-    public static float i_wndu(float pres, List<NcSoundingLayer> sndLys)
-    /*************************************************************/
-    /* Chin: port it from */
-    /* I_WNDU basics.c */
-    /* John Hart NSSFC KCMO */
-    /*                                                           */
-    /* Interpolates the given data to calculate a */
-    /* u-component to the wind at pressure level (pres). */
-    /*                                                           */
-    /* pres - Level(mb) to compute a U-Component */
-    /*************************************************************/
-    {
-        int below, above, i;
-        float utop, ubot, nm1;
-        boolean ok;
-
-        below = 0;
-        above = 0;
-
-        /* ----- Find Wind Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            if ((sndLys.get(i).getPressure() == pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
-                    && (sndLys.get(i).getWindSpeed() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA))
-                return ucomp(sndLys.get(i).getWindDirection(), sndLys.get(i)
-                        .getWindSpeed());
-            if ((sndLys.get(i).getPressure() < pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Wind Immediately Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getPressure() >= pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            return ucomp(sndLys.get(above).getWindDirection(), sndLys
-                    .get(above).getWindSpeed());
-        }
-
-        /* ----- Now we need to interpolate to get the Wind ----- */
-        nm1 = sndLys.get(below).getPressure() - pres;
-        ubot = ucomp(sndLys.get(below).getWindDirection(), sndLys.get(below)
-                .getWindSpeed());
-        utop = ucomp(sndLys.get(above).getWindDirection(), sndLys.get(above)
-                .getWindSpeed());
-        return ubot
-                - (nm1 / (sndLys.get(below).getPressure() - sndLys.get(above)
-                        .getPressure())) * (ubot - utop);
-    }
-
-    public static float i_wndv(float pres, List<NcSoundingLayer> sndLys)
-    /*************************************************************/
-    /* Chin: port it from */
-    /* I_WNDV basics.c */
-    /* John Hart NSSFC KCMO */
-    /*                                                           */
-    /* Interpolates the given data to calculate a */
-    /* v-component to the wind at pressure level (pres). */
-    /*                                                           */
-    /* pres - Level(mb) to compute a V-Component */
-    /*************************************************************/
-    {
-        int below, above, i;
-        float vtop, vbot, nm1;
-        boolean ok;
-        below = 0;
-        above = 0;
-
-        /* ----- Find Wind Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            if ((sndLys.get(i).getPressure() == pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
-                    && (sndLys.get(i).getWindSpeed() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA))
-                return vcomp(sndLys.get(i).getWindDirection(), sndLys.get(i)
-                        .getWindSpeed());
-            if ((sndLys.get(i).getPressure() < pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Wind Immediately Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getPressure() >= pres)
-                    && (sndLys.get(i).getWindDirection() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            return vcomp(sndLys.get(above).getWindDirection(), sndLys
-                    .get(above).getWindSpeed());
-        }
-
-        /* ----- Now we need to interpolate to get the Wind ----- */
-        nm1 = sndLys.get(below).getPressure() - pres;
-        vbot = vcomp(sndLys.get(below).getWindDirection(), sndLys.get(below)
-                .getWindSpeed());
-        vtop = vcomp(sndLys.get(above).getWindDirection(), sndLys.get(above)
-                .getWindSpeed());
-        return vbot
-                - ((nm1 / (sndLys.get(below).getPressure() - sndLys.get(above)
-                        .getPressure())) * (vbot - vtop));
-    }
-
-    public static float angle(float u, float v)
-    /*************************************************************/
-    /* Chin: port it from */
-    /* ANGLE winds.c */
-    /* John Hart NSSFC KCMO */
-    /*                                                           */
-    /* Calculates an angle (deg) of the wind (u,v). */
-    /*                                                           */
-    /* u - U-Component (kt) */
-    /* v - V-Component (kt) */
-    /*************************************************************/
-    {
-        double sc, t1;
-        sc = NsharpNativeConstants.PI / 180;
-        if ((u == 0) && (v == 0))
-            return 0;
-        if ((u == 0) && (v > 0))
-            return 360;
-        if ((u == 0) && (v < 0))
-            return 180;
-        t1 = Math.atan(v / u) / sc;
-        if (u >= 0) {
-            return (float) (90 - t1);
-        } else {
-            return (float) (270 - t1);
-        }
-    }
-
-    public static float i_wdir(float pres, List<NcSoundingLayer> sndLys)
-    /*************************************************************/
-    /* Chin: port it from */
-    /* I_WDIR basics.c */
-    /* John Hart NSSFC KCMO */
-    /*                                                           */
-    /* Interpolates the given data to calculate a wind */
-    /* direction (deg) at pressure level (pres). */
-    /*                                                           */
-    /* pres - Level(mb) to compute a Wind */
-    /*************************************************************/
-    {
-        float u, v;
-
-        if (qc(i_wndu(pres, sndLys)) == 0 || qc(i_wndv(pres, sndLys)) == 0) {
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-        }
-        u = i_wndu(pres, sndLys);
-        v = i_wndv(pres, sndLys);
-        return angle(u, v);
-    }
-
-    public static float i_wspd(float pres, List<NcSoundingLayer> sndLys) {
-        /*************************************************************/
-        /* Chin: port it from */
-        /* I_WSPD basics.c */
-        /* John Hart NSSFC KCMO */
-        /*                                                           */
-        /* Interpolates the given data to calculate a wind */
-        /* magnitude (kt) at pressure level (pres). */
-        /*                                                           */
-        /* pres - Level(mb) to compute a Wind */
-        /*************************************************************/
-
-        float u, v;
-
-        if (qc(i_wndu(pres, sndLys)) == 0 || qc(i_wndv(pres, sndLys)) == 0) {
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-        }
-
-        u = i_wndu(pres, sndLys);
-        v = i_wndv(pres, sndLys);
-        return (float) (Math.sqrt((u * u) + (v * v)));
-    }
-
-    public static float i_temp(float pres, List<NcSoundingLayer> sndLys) {
-        /*************************************************************/
-        /* Chin: port it from */
-        /* I_TEMP basics.c */
-        /* John Hart NSSFC KCMO */
-        /*                                                           */
-        /* Interpolates the given data to calculate a temperature. */
-        /* at pressure level (pres). */
-        /*                                                           */
-        /* pres - Level(mb) to compute a temperature */
-        /*************************************************************/
-
-        int below, above, i;
-        double nm1, nm2, nm4;
-        boolean ok;
-        below = 0;
-        above = 0;
-
-        /* ----- Find Temperature Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            if ((sndLys.get(i).getPressure() == pres)
-                    && (sndLys.get(i).getTemperature() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                /*
-                 * if pressure level exists, and temp exists, no need to
-                 * interpolate
-                 */
-                return sndLys.get(i).getTemperature();
-            }
-            if ((sndLys.get(i).getPressure() < pres)
-                    && (sndLys.get(i).getTemperature() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Temperature Immediately Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getPressure() >= pres)
-                    && (sndLys.get(i).getTemperature() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            return sndLys.get(above).getTemperature();
-        }
-
-        /* ----- Now we need to interpolate to get the temperature ----- */
-
-        nm1 = sndLys.get(above).getTemperature()
-                - sndLys.get(below).getTemperature();
-        nm2 = Math.log(sndLys.get(below).getPressure()
-                / sndLys.get(above).getPressure());
-        nm4 = Math.log(sndLys.get(below).getPressure() / pres);
-        return (float) (sndLys.get(below).getTemperature() + ((nm4 / nm2) * nm1));
-    }
-
-    public static float i_dwpt(float pres, List<NcSoundingLayer> sndLys) {
-        /*************************************************************/
-        /* Chin: port it from */
-        /* I_DWPT basics.c */
-        /* John Hart NSSFC KCMO */
-        /*                                                           */
-        /* Interpolates the given data to calculate a dew point */
-        /* at pressure level (pres). */
-        /*                                                           */
-        /* pres - Level(mb) to compute a Dew Point */
-        /*************************************************************/
-
-        int below, above, i;
-        double nm1, nm2, nm4;
-        boolean ok;
-        below = 0;
-        above = 0;
-
-        /* ----- Find Dew Point Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            if ((sndLys.get(i).getPressure() == pres)
-                    && (sndLys.get(i).getDewpoint() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
-                    && (sndLys.get(i).getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                /*
-                 * no need to interpolate if we have the level and dewpoint
-                 * exists
-                 */
-                return sndLys.get(i).getDewpoint();
-            }
-            if ((sndLys.get(i).getPressure() < pres)
-                    && (sndLys.get(i).getDewpoint() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Dew Point Immediately Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getPressure() >= pres)
-                    && (sndLys.get(i).getDewpoint() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            return sndLys.get(above).getDewpoint();
-        }
-
-        /* ----- Now we need to interpolate to get the dew point ----- */
-        nm1 = sndLys.get(above).getDewpoint() - sndLys.get(below).getDewpoint();
-        nm2 = Math.log(sndLys.get(below).getPressure()
-                / sndLys.get(above).getPressure());
-        nm4 = Math.log(sndLys.get(below).getPressure() / pres);
-        return (float) (sndLys.get(below).getDewpoint() + ((nm4 / nm2) * nm1));
-    }
-
-    public static float i_pres(float hght, List<NcSoundingLayer> sndLys,
-            int index) {
-        /*************************************************************/
-        /* Chin: port it from */
-        /* I_PRES basics.c */
-        /* John Hart NSSFC KCMO */
-        /*                                                           */
-        /* Interpolates the given data to calculate a pressure(mb) */
-        /* at height (hght). */
-        /*                                                           */
-        /* hght - Height(m) of level */
-        /*************************************************************/
-
-        int below, above, i;
-        double nm1, nm2, nm3;
-        boolean ok;
-        below = 0;
-        above = 0;
-
-        /* ----- Find Pressure Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            /* if we have the level, no need to interpolate pressure */
-            if ((sndLys.get(i).getGeoHeight() == hght)
-                    && (sndLys.get(i).getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                index = i;
-                return (sndLys.get(i).getPressure());
-            }
-            if ((sndLys.get(i).getGeoHeight() > hght)
-                    && (sndLys.get(i).getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Pressure Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getGeoHeight() <= hght)
-                    && (sndLys.get(i).getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            index = below;
-            return sndLys.get(above).getPressure();
-        }
-
-        /* ----- Now we need to interpolate to get the Pressure ----- */
-        nm1 = hght - sndLys.get(below).getGeoHeight();
-        nm2 = sndLys.get(above).getGeoHeight()
-                - sndLys.get(below).getGeoHeight();
-        nm3 = Math.log(sndLys.get(above).getPressure()
-                / sndLys.get(below).getPressure());
-        index = below;
-        return (float) (sndLys.get(below).getPressure() * Math.exp((nm1 / nm2)
-                * nm3));
-    }
-
-    public static float i_hght(float pres, List<NcSoundingLayer> sndLys,
-            int index) {
-        /*************************************************************/
-        /* Chin: port it from */
-        /* I_HGHT basics.c */
-        /* John Hart NSSFC KCMO */
-        /*                                                           */
-        /* Interpolates the given data to calculate a height */
-        /* at pressure level (pres). */
-        /*                                                           */
-        /* pres - Level(mb) to compute a Height */
-        /*************************************************************/
-
-        int below, above, i;
-        double nm1, nm2, nm4;
-        boolean ok;
-        below = 0;
-        above = 0;
-
-        /* ----- Find Height Immediately Above level ----- */
-        ok = false;
-        for (i = 0; i < sndLys.size(); i++) {
-            if ((sndLys.get(i).getPressure() == pres)
-                    && (sndLys.get(i).getGeoHeight() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                /* no need to interpolate if we have the level!!! */
-                index = i;
-                return sndLys.get(i).getGeoHeight();
-            }
-            if ((sndLys.get(i).getPressure() < pres)
-                    && (sndLys.get(i).getGeoHeight() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
-                    && (sndLys.get(i).getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                above = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- Find Height Immediately Below level ----- */
-        ok = false;
-        for (i = sndLys.size() - 1; i > -1; i--) {
-            if ((sndLys.get(i).getPressure() >= pres)
-                    && (sndLys.get(i).getGeoHeight() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)) {
-                below = i;
-                ok = true;
-                break;
-            }
-        }
-        if (ok == false)
-            return NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
-
-        /* ----- If both levels are the same, return them ---- */
-        if (above == below) {
-            index = below;
-            return sndLys.get(above).getGeoHeight();
-        }
-
-        /* ----- Now we need to interpolate to get the height ----- */
-        nm1 = sndLys.get(above).getGeoHeight()
-                - sndLys.get(below).getGeoHeight();
-        nm2 = Math.log(sndLys.get(below).getPressure()
-                / sndLys.get(above).getPressure());
-        nm4 = Math.log(sndLys.get(below).getPressure() / pres);
-        index = below;
-        return (float) (sndLys.get(below).getGeoHeight() + ((nm4 / nm2) * nm1));
-    }
 
     // compare two layers based on reverse height, pressure, then wind
     public static Comparator<NcSoundingLayer> reverseHeightPressureWindComparator() {
@@ -672,7 +144,7 @@ public class NsharpDataHandling {
     public static List<NcSoundingLayer> removeInvalidSoundingData(
             List<NcSoundingLayer> soundingLys) {
         List<NcSoundingLayer> sndLysLst = soundingLys;
-        List<Integer> removingItemList = new ArrayList<Integer>();
+        List<Integer> removingItemList = new ArrayList<>();
         int i = 0;
         sndLysLst = replaceNanSoundingData(sndLysLst);
         for (NcSoundingLayer layer : sndLysLst) {
@@ -695,7 +167,7 @@ public class NsharpDataHandling {
     public static List<NcSoundingLayer> updateObsSoundingDataForShow(
             List<NcSoundingLayer> soundingLys, float stnElv) {
         List<NcSoundingLayer> sndLysLst = soundingLys;
-        List<Integer> removingItemList = new ArrayList<Integer>();
+        List<Integer> removingItemList = new ArrayList<>();
         int i = 0;
         // reset missing data to NSHARP_NATIVE_UNVALID_DATA
         for (NcSoundingLayer layer : sndLysLst) {
@@ -756,9 +228,9 @@ public class NsharpDataHandling {
         }
 
         // create 3 layer list for interpolation.
-        List<NcSoundingLayer> finalLst = new ArrayList<NcSoundingLayer>();
-        List<NcSoundingLayer> presLst = new ArrayList<NcSoundingLayer>();
-        List<NcSoundingLayer> heightLst = new ArrayList<NcSoundingLayer>();
+        List<NcSoundingLayer> finalLst = new ArrayList<>();
+        List<NcSoundingLayer> presLst = new ArrayList<>();
+        List<NcSoundingLayer> heightLst = new ArrayList<>();
         for (NcSoundingLayer layer : sndLysLst) {
             // List one, layer with both pressure and height
             if ((layer.getPressure() != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
@@ -783,7 +255,8 @@ public class NsharpDataHandling {
             soundingLy
                     .setGeoHeight((float) Math.rint(soundingLy.getGeoHeight()));
             int index = 0;
-            float pressure = i_pres(soundingLy.getGeoHeight(), finalLst, index);
+            float pressure = NsharpLibBasics.i_pres(finalLst,
+                    soundingLy.getGeoHeight());
             if (pressure != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
                 soundingLy.setPressure(pressure);
                 finalLst.add(index, soundingLy);
@@ -795,7 +268,8 @@ public class NsharpDataHandling {
         // Interpolates pressure layer with missing height.
         for (NcSoundingLayer soundingLy : presLst) {
             int index = 0;
-            float ht = i_hght(soundingLy.getPressure(), finalLst, index);
+            float ht = NsharpLibBasics.i_hght(finalLst,
+                    soundingLy.getPressure());
             if (ht != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
                 soundingLy.setGeoHeight(ht);
                 finalLst.add(index, soundingLy);
@@ -846,7 +320,8 @@ public class NsharpDataHandling {
 
             if (soundingLy.getTemperature() == NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
 
-                interpolatedValue = i_temp(soundingLy.getPressure(), finalLst);
+                interpolatedValue = NsharpLibBasics.i_temp(finalLst,
+                        soundingLy.getPressure());
                 if (interpolatedValue != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
                     soundingLy.setTemperature(interpolatedValue);
                 else {
@@ -857,7 +332,8 @@ public class NsharpDataHandling {
                 }
             }
             if (soundingLy.getDewpoint() == NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
-                interpolatedValue = i_dwpt(soundingLy.getPressure(), finalLst);
+                interpolatedValue = NsharpLibBasics.i_dwpt(finalLst,
+                        soundingLy.getPressure());
                 if (interpolatedValue != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
                     soundingLy.setDewpoint(interpolatedValue);
                 else {
@@ -870,7 +346,8 @@ public class NsharpDataHandling {
             // because of i_wndu() and i_wndv() algorithm..we should call
             // i_wspd() first, then i_wdir()
             if (soundingLy.getWindSpeed() == NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
-                interpolatedValue = i_wspd(soundingLy.getPressure(), finalLst);
+                interpolatedValue = NsharpLibBasics.i_wspd(finalLst,
+                        soundingLy.getPressure());
                 if (interpolatedValue != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
                     soundingLy.setWindSpeed(interpolatedValue);
                 else {
@@ -882,7 +359,8 @@ public class NsharpDataHandling {
                 }
             }
             if (soundingLy.getWindDirection() == NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA) {
-                interpolatedValue = i_wdir(soundingLy.getPressure(), finalLst);
+                interpolatedValue = NsharpLibBasics.i_wdir(finalLst,
+                        soundingLy.getPressure());
                 if (interpolatedValue != NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA)
                     soundingLy.setWindDirection(interpolatedValue);
 
@@ -917,10 +395,12 @@ public class NsharpDataHandling {
 
                 soundingLy = new NcSoundingLayer();
                 soundingLy.setPressure(75);
-                soundingLy.setTemperature(i_temp(150, finalLst));
-                soundingLy.setDewpoint(i_dwpt(150, finalLst));
-                soundingLy.setWindDirection(i_wdir(150, finalLst));
-                soundingLy.setWindSpeed(i_wspd(150, finalLst));
+                soundingLy
+                        .setTemperature(NsharpLibBasics.i_temp(finalLst, 150));
+                soundingLy.setDewpoint(NsharpLibBasics.i_dwpt(finalLst, 150));
+                soundingLy.setWindDirection(NsharpLibBasics.i_wdir(finalLst,
+                        150));
+                soundingLy.setWindSpeed(NsharpLibBasics.i_wspd(finalLst, 150));
                 soundingLy
                         .setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
                 // interpolate height for 75mb layer
@@ -945,10 +425,12 @@ public class NsharpDataHandling {
 
                 soundingLy = new NcSoundingLayer();
                 soundingLy.setPressure(50);
-                soundingLy.setTemperature(i_temp(150, finalLst));
-                soundingLy.setDewpoint(i_dwpt(150, finalLst));
-                soundingLy.setWindDirection(i_wdir(150, finalLst));
-                soundingLy.setWindSpeed(i_wspd(150, finalLst));
+                soundingLy
+                        .setTemperature(NsharpLibBasics.i_temp(finalLst, 150));
+                soundingLy.setDewpoint(NsharpLibBasics.i_dwpt(finalLst, 150));
+                soundingLy.setWindDirection(NsharpLibBasics.i_wdir(finalLst,
+                        150));
+                soundingLy.setWindSpeed(NsharpLibBasics.i_wspd(finalLst, 150));
                 soundingLy
                         .setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
                 // interpolate height for 50mb layer
@@ -972,7 +454,7 @@ public class NsharpDataHandling {
     public static List<NcSoundingLayer> sortObsSoundingDataForShow(
             List<NcSoundingLayer> soundingLys, float stnElv) {
         List<NcSoundingLayer> sndLysLst = soundingLys;
-        List<Integer> removingItemList = new ArrayList<Integer>();
+        List<Integer> removingItemList = new ArrayList<>();
         int i = 0;
         // reset missing data to NSHARP_NATIVE_UNVALID_DATA
         for (NcSoundingLayer layer : sndLysLst) {
@@ -1032,7 +514,7 @@ public class NsharpDataHandling {
         // get rid of layers with invalid data
         soundingLys = removeInvalidSoundingData(soundingLys);
 
-        List<Integer> removingItemList = new ArrayList<Integer>();
+        List<Integer> removingItemList = new ArrayList<>();
 
         // remove under ground layer(s). Note: There may be more than one
         // under ground layer.
@@ -1073,10 +555,14 @@ public class NsharpDataHandling {
 
                 soundingLy = new NcSoundingLayer();
                 soundingLy.setPressure(75);
-                soundingLy.setTemperature(i_temp(150, soundingLys));
-                soundingLy.setDewpoint(i_dwpt(150, soundingLys));
-                soundingLy.setWindDirection(i_wdir(150, soundingLys));
-                soundingLy.setWindSpeed(i_wspd(150, soundingLys));
+                soundingLy.setTemperature(NsharpLibBasics.i_temp(soundingLys,
+                        150));
+                soundingLy
+                        .setDewpoint(NsharpLibBasics.i_dwpt(soundingLys, 150));
+                soundingLy.setWindDirection(NsharpLibBasics.i_wdir(soundingLys,
+                        150));
+                soundingLy.setWindSpeed(NsharpLibBasics
+                        .i_wspd(soundingLys, 150));
                 soundingLy
                         .setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
                 // interpolate height for 75mb layer
@@ -1101,10 +587,14 @@ public class NsharpDataHandling {
 
                 soundingLy = new NcSoundingLayer();
                 soundingLy.setPressure(50);
-                soundingLy.setTemperature(i_temp(150, soundingLys));
-                soundingLy.setDewpoint(i_dwpt(150, soundingLys));
-                soundingLy.setWindDirection(i_wdir(150, soundingLys));
-                soundingLy.setWindSpeed(i_wspd(150, soundingLys));
+                soundingLy.setTemperature(NsharpLibBasics.i_temp(soundingLys,
+                        150));
+                soundingLy
+                        .setDewpoint(NsharpLibBasics.i_dwpt(soundingLys, 150));
+                soundingLy.setWindDirection(NsharpLibBasics.i_wdir(soundingLys,
+                        150));
+                soundingLy.setWindSpeed(NsharpLibBasics
+                        .i_wspd(soundingLys, 150));
                 soundingLy
                         .setOmega(NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA);
                 // interpolate height for 50mb layer

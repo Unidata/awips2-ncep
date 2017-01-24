@@ -1,15 +1,22 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData.SatelliteType;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
@@ -20,12 +27,13 @@ import java.io.File;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Temperature;
@@ -41,18 +49,18 @@ import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingEntry;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataplugin.persist.IPersistable;
+import com.raytheon.uf.common.dataplugin.persist.PersistableDataObject;
 import com.raytheon.uf.common.dataplugin.satellite.SatMapCoverage;
 import com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord;
 import com.raytheon.uf.common.dataplugin.satellite.units.goes.PolarPrecipWaterPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.ir.IRPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.water.BlendedTPWPixel;
-import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.jaxb.JAXBClassLocator;
 import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
-import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.AbstractStylePreferences;
@@ -69,12 +77,15 @@ import com.raytheon.uf.common.style.image.SamplePreferences;
 import com.raytheon.uf.common.style.level.Level;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableImage;
+import com.raytheon.uf.viz.core.IDisplayPaneContainer;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.IRenderable;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.reflect.SubClassLocator;
+import com.raytheon.uf.viz.core.rsc.IInputHandler;
+import com.raytheon.uf.viz.core.rsc.IInputHandler.InputPriority;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
@@ -94,10 +105,6 @@ import com.vividsolutions.jts.geom.Coordinate;
  * TODO: The Raytheon SatRenderable and/or SatTileSetRenderable should become
  * more reusable and/or extendable to eliminate duplicate code.
  * 
- * TODO: The NCEP AbstractSatelliteResource and/or GiniSatResource should be
- * slimmed down or joined to this class's type hierarchy to eliminate duplicate
- * code.
- * 
  * <pre>
  * 
  *  SOFTWARE HISTORY
@@ -106,22 +113,37 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  ------------ ---------- ----------- --------------------------
  *  09/28/2015   R11385     njensen     Initial creation
  *  10/28/2015   R11385     kbugenhagen Updated to use stylerules to generate colormap
+ *  04/12/2016   R16367     kbugenhagen Added support for SIMGOESR
+ *  04/15/2016   R15954     SRussell    Updated FrameData.updateFrameData()
+ *                                      Integrated class with IDataLoader design
+ *  04/12/2016   R15945     RCReynolds  Added code to build custom string for input to getLegendString for GINI and HIMAWARI
+ *  06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
+ *  06/01/2016   R18511     kbugenhagen Refactored to support Modis, Viirs and
+ *                                      Mcidas satellite viz resources and remove
+ *                                      need for AbstractSatelliteResource class.
+ *  07/01/2016   R17376     kbugenhagen Added getColorMapName method to allow
+ *                                      different satellite resources to use
+ *                                      different methods for getting the colormap 
+ *                                      name (i.e. via stylerules or attribute files.
+ *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
+ *  09/16/2016   R15716     SRussell    Added a new FrameData constructor,
+ *                                      Added method getLastRecordAdded()
+ * 
  * 
  * </pre>
  * 
  */
 public class NcSatelliteResource extends
-        AbstractNatlCntrsResource<SatelliteResourceData, NCMapDescriptor>
+        AbstractNatlCntrsResource2<SatelliteResourceData, NCMapDescriptor>
         implements IResourceDataChanged, IAreaProviderCapable {
-
-    private static IUFStatusHandler logger = UFStatus
-            .getHandler(NcSatelliteResource.class);
 
     private static final String CREATING_ENTITY_KEY = "creatingEntity";
 
     private static final String SECTOR_ID_KEY = "sectorID";
 
-    static final String DEFAULT_COLORMAP_NAME = "colorMapName";
+    protected final static String COLORBAR_STRING_FORMAT = "%.1f";
+
+    protected static final String DEFAULT_COLORMAP_NAME = "colorMapName";
 
     private static JAXBManager jaxb;
 
@@ -131,35 +153,71 @@ public class NcSatelliteResource extends
 
     protected ColorBarResource cbarResource;
 
+    protected ImagePreferences imagePreferences;
+
+    private SatelliteResourceData satelliteResourceData = null;
+
+    // for sampling
+    private final IInputHandler inputAdapter = getInputHandler();
+
     protected volatile boolean initialized = false;
 
     // slimmed down variation on what was in AbstractSatelliteResource
     protected class FrameData extends AbstractFrameData {
 
+        DataTime tileTimePrevAddedRecord = null;
+
+        IPersistable last_record_added = null;
+
+        protected RecordTileSetRenderable tileSet;
+
         // one renderable per frame, each renderable may have multiple tiles
-        SatRenderable renderable;
+        // protected SatRenderable<SatMapCoverage> renderable;
+        protected SatRenderable renderable;
 
         protected FrameData(DataTime time, int interval) {
-            super(time, interval);
-            renderable = new SatRenderable();
+            super(time, interval, satelliteResourceData);
+            setRenderable(new SatRenderable<SatMapCoverage>());
         }
 
+        protected FrameData(DataTime time, int interval,
+                SatRenderable<?> childClassRndble) {
+            super(time, interval, satelliteResourceData);
+            setRenderable(childClassRndble);
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.
+         * AbstractFrameData#dispose()
+         */
         @Override
         public void dispose() {
             renderable.dispose();
         }
 
+        /*
+         * (non-Javadoc)
+         * 
+         * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.
+         * AbstractFrameData#updateFrameData(gov.noaa.nws.ncep.viz.resources.
+         * AbstractNatlCntrsResource.IRscDataObject)
+         */
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
-            SatelliteRecord satRec = (SatelliteRecord) ((DfltRecordRscDataObj) rscDataObj)
+            IPersistable satRec = (IPersistable) ((DfltRecordRscDataObj) rscDataObj)
                     .getPDO();
+
+            setRenderable(renderable);
             if (!initialized) {
                 synchronized (NcSatelliteResource.this) {
                     if (!initialized) {
                         try {
+                            // initialize colormap
                             initializeFirstFrame(satRec);
                         } catch (Exception e) {
-                            logger.error(
+                            statusHandler.error(
                                     "Error initializing against SatelliteRecord "
                                             + satRec, e);
                             return false;
@@ -169,12 +227,72 @@ public class NcSatelliteResource extends
             }
 
             Collections.sort(NcSatelliteResource.this.dataTimes);
-            int imgNum = -1;
-            generateAndStoreColorBarLabelingInformation(satRec, imgNum);
-            renderable.addRecord(satRec);
+            int imageTypeNumber = getImageTypeNumber(satRec);
+
+            if (isExistingDataBetterTimeMatch(satRec)) {
+                return false;
+            }
+
+            generateAndStoreColorBarLabelingInformation(satRec, imageTypeNumber);
+
+            if (satRec != null) {
+                tileTimePrevAddedRecord = ((PluginDataObject) satRec)
+                        .getDataTime();
+                last_record_added = satRec;
+                getRenderable().addRecord(satRec);
+
+            }
 
             return true;
         }
+
+        /**
+         * Determine if the previously added satellite record's timestamp is a
+         * closer time match than the current record's.
+         * 
+         * @param newSatRec
+         *            current satellite record
+         * @return true if previous timestamp is closer
+         */
+        boolean isExistingDataBetterTimeMatch(IPersistable newSatRec) {
+            boolean oldDataBetterTimeMatch = false;
+
+            if (tileTimePrevAddedRecord == null) {
+                oldDataBetterTimeMatch = false;
+                return oldDataBetterTimeMatch;
+            } else if (newSatRec == null) {
+                oldDataBetterTimeMatch = true;
+                return oldDataBetterTimeMatch;
+            }
+
+            DataTime newDataTime = ((PluginDataObject) newSatRec).getDataTime();
+
+            // Existing data is a better time match
+            if (timeMatch(newDataTime) >= timeMatch(tileTimePrevAddedRecord)) {
+                oldDataBetterTimeMatch = true;
+            }
+
+            return oldDataBetterTimeMatch;
+        }
+
+        public SatRenderable<?> getRenderable() {
+            return renderable;
+        }
+
+        public void setRenderable(SatRenderable<?> renderable) {
+            this.renderable = (SatRenderable<SatMapCoverage>) renderable;
+        }
+
+        public IPersistable getLastRecordAdded() {
+            return last_record_added;
+        }
+
+    } // FrameData class
+
+    public IPersistable getRecord() {
+        FrameData fd = (FrameData) this.getCurrentFrame();
+        IPersistable record = fd.getLastRecordAdded();
+        return record;
     }
 
     /**
@@ -184,11 +302,23 @@ public class NcSatelliteResource extends
      * This class is almost an exact copy of
      * com.raytheon.viz.satellite.rsc.SatResource.SatRenderable. The differences
      * are only in addRecord() and interrogate(). See TODO above.
+     * 
+     * @param <T>
+     *            satellite spatial coverage
      */
-    protected class SatRenderable implements IRenderable {
+    protected class SatRenderable<T extends PersistableDataObject<?>>
+            implements IRenderable {
 
-        private final Map<SatMapCoverage, RecordTileSetRenderable> tileMap = new HashMap<>();
+        protected Map<T, RecordTileSetRenderable> tileMap = new HashMap<>();
 
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * com.raytheon.uf.viz.core.drawables.IRenderable#paint(com.raytheon
+         * .uf.viz.core.IGraphicsTarget,
+         * com.raytheon.uf.viz.core.drawables.PaintProperties)
+         */
         @Override
         public void paint(IGraphicsTarget target, PaintProperties paintProps)
                 throws VizException {
@@ -200,10 +330,20 @@ public class NcSatelliteResource extends
             }
         }
 
+        /**
+         * Get DrawableImages for rendering.
+         * 
+         * @param target
+         *            graphics target
+         * @param paintProps
+         *            screen painting properties
+         * @return list of images
+         * @throws VizException
+         */
         public Collection<DrawableImage> getImagesToRender(
                 IGraphicsTarget target, PaintProperties paintProps)
                 throws VizException {
-            List<DrawableImage> images = new ArrayList<DrawableImage>();
+            List<DrawableImage> images = new ArrayList<>();
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
                     images.addAll(renderable.getImagesToRender(target,
@@ -213,21 +353,41 @@ public class NcSatelliteResource extends
             return images;
         }
 
-        public void addRecord(SatelliteRecord record) {
+        /**
+         * Create a tileset from a satellite data record and add it to the
+         * collection of tilesets.
+         * 
+         * @param record
+         *            satellite data record
+         */
+        @SuppressWarnings("unchecked")
+        public void addRecord(IPersistable record) {
             synchronized (tileMap) {
-                RecordTileSetRenderable tileSet = tileMap.get(record
-                        .getCoverage());
+
+                RecordTileSetRenderable tileSet = tileMap
+                        .get(((SatelliteRecord) record).getCoverage());
+                SatelliteRecord satRecord = (SatelliteRecord) record;
+
+                if (tileSet != null) {
+                    // Get rid of it to make way for the new one
+                    tileSet.dispose();
+                    tileSet = null;
+                    tileMap.clear();
+                }
                 if (tileSet == null) {
                     tileSet = new RecordTileSetRenderable(
-                            NcSatelliteResource.this, record,
-                            record.getGridGeometry(),
-                            record.getInterpolationLevels() + 1);
+                            NcSatelliteResource.this, satRecord,
+                            satRecord.getGridGeometry(),
+                            satRecord.getInterpolationLevels() + 1);
                     tileSet.project(descriptor.getGridGeometry());
-                    tileMap.put(record.getCoverage(), tileSet);
+                    tileMap.put((T) satRecord.getCoverage(), tileSet);
                 }
             }
         }
 
+        /**
+         * Project the tile set for use with the target geometry.
+         */
         public void project() {
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
@@ -236,6 +396,9 @@ public class NcSatelliteResource extends
             }
         }
 
+        /**
+         * Dispose renderable objects.
+         */
         public void dispose() {
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
@@ -245,6 +408,16 @@ public class NcSatelliteResource extends
             }
         }
 
+        /**
+         * Interrogate to get the data value at a lat/lon.
+         * 
+         * @param latLon
+         *            lat/long coordiate
+         * @param requestUnit
+         *            unit the result will be returned in
+         * @return
+         * @throws VizException
+         */
         public Double interrogate(Coordinate latLon, Unit<?> requestUnit)
                 throws VizException {
             synchronized (tileMap) {
@@ -257,73 +430,228 @@ public class NcSatelliteResource extends
             }
             return null;
         }
-    }
+
+        public Map<T, RecordTileSetRenderable> getTileMap() {
+            return tileMap;
+        }
+
+    } // SatRenderable class
 
     /**
      * NOTE: logic copied from GiniSatResource constructor
      */
     public NcSatelliteResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
+        this.resourceData = data;
+        this.satelliteResourceData = data;
+
         resourceData.addChangeListener(this);
 
-        if (resourceData.getMetadataMap().containsKey(CREATING_ENTITY_KEY)
-                && resourceData.getMetadataMap().containsKey(SECTOR_ID_KEY)) {
+        legendStr = createLegendString();
 
-            legendStr = resourceData.getMetadataMap().get(CREATING_ENTITY_KEY)
-                    .getConstraintValue()
-                    + " "
-                    + resourceData.getMetadataMap().get(SECTOR_ID_KEY)
-                            .getConstraintValue()
-                    + " "
-                    + resourceData.getRscAttrSet().getRscAttrSetName();
-
-            legendStr = legendStr.replace('%', ' ');
-        }
     }
 
+    // return input handler for sampling
+    public IInputHandler getInputHandler() {
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.raytheon.uf.viz.core.rsc.AbstractVizResource#getName()
+     */
     @Override
     public String getName() {
+
         FrameData fd = (FrameData) getCurrentFrame();
+
         if (fd == null || fd.getFrameTime() == null
                 || descriptor.getFramesInfo().getFrameCount() == 0) {
             return legendStr + "-No Data";
 
         }
-
         return legendStr + " "
                 + NmapCommon.getTimeStringFromDataTime(fd.getFrameTime(), "/");
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#createNewFrame
+     * (com.raytheon.uf.common.time.DataTime, int)
+     */
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
             int frameInterval) {
-        return new FrameData(frameTime, frameInterval);
+        return (AbstractFrameData) new FrameData(frameTime, frameInterval);
     }
 
-    private void initializeFirstFrame(SatelliteRecord record)
+    /**
+     * One-time initialization to set up colormap.
+     * 
+     * @param record
+     *            satellite data record
+     * @throws VizException
+     */
+    protected void initializeFirstFrame(IPersistable record)
             throws VizException {
         initialized = true;
 
-        physicalElement = record.getPhysicalElement();
+        if (record instanceof SatelliteRecord) {
+            physicalElement = ((SatelliteRecord) (record)).getPhysicalElement();
+        }
 
         // create the colorMap and set it in the colorMapParameters
-        ImagePreferences preferences = getStyleRulePreferences(record);
-        ColorMapParameters colorMapParameters = loadColorMapParameters(record,
-                preferences);
+        imagePreferences = getStyleRulePreferences(record);
+        ColorMapParameters colorMapParameters = loadColorMapParameters(record);
         getCapability(ColorMapCapability.class).setColorMapParameters(
                 colorMapParameters);
     }
 
     /**
-     * Retrieves style rule matching data record parameters
+     * Create legend string from subtypes
+     * 
+     * @return
+     */
+    private String createLegendString() {
+
+        String legendString = "";
+        String area = "";
+        String satellite = "";
+        String channel = "";
+        String rd = "";
+        String customizedLegendString = "";
+
+        try {
+
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+            ResourceName rscName = resourceData.getResourceName();
+            Map<String, String> variables = new HashMap<>();
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+            HashMap<String, String> attributes = rscDefnsMngr.getAttrSet(
+                    rscName).getAttributes();
+
+            // legendString can be assigned by the user in the attribute set,
+            // if it does not exist.. legendStringAttribute will be null
+            String legendStringAttribute = attributes.get("legendString");
+
+            channel = resourceData.getRscAttrSet().getRscAttrSetName();
+            rd = rscDefn.getResourceDefnName();
+            final boolean gotEntity = resourceData.getMetadataMap()
+                    .containsKey(CREATING_ENTITY_KEY);
+            final boolean gotSector = resourceData.getMetadataMap()
+                    .containsKey(SECTOR_ID_KEY);
+
+            if (gotEntity) {
+                satellite = resourceData.getMetadataMap()
+                        .get(CREATING_ENTITY_KEY).getConstraintValue();
+                if (satellite != null && !satellite.isEmpty()) {
+                    variables.put(McidasConstants.SATELLLITE, satellite);
+                }
+            }
+            if (gotSector) {
+                area = resourceData.getMetadataMap().get(SECTOR_ID_KEY)
+                        .getConstraintValue();
+                if (area != null && !area.isEmpty()) {
+                    variables.put(McidasConstants.AREA, area);
+                }
+            }
+            if (rd != null && !rd.isEmpty()) {
+                variables.put(McidasConstants.RESOURCE_DEFINITION, rd);
+            }
+            if (channel != null && !channel.isEmpty()) {
+                variables.put(McidasConstants.CHANNEL, channel);
+            }
+
+            // process legendStringAttribute if assignment exist
+            if (legendStringAttribute != null) {
+
+                customizedLegendString = constructCustomLegendString(variables,
+                        legendStringAttribute);
+            }
+
+            /*
+             * standard, original legend string
+             */
+            if (gotEntity && gotSector) {
+                legendString = satellite + " " + area + " " + channel;
+                legendString = legendString.replace('%', ' ');
+            }
+            legendString = (customizedLegendString.isEmpty()) ? legendString
+                    : customizedLegendString;
+
+        } catch (Exception ex) {
+            statusHandler.error("Error creating legend string", ex);
+        }
+
+        return legendString;
+    }
+
+    /**
+     * This method will construct the custom legend string. The variable maps in
+     * the legendStringAttribute will be processed.
+     */
+    public String constructCustomLegendString(Map<String, String> variables,
+            String legendStringAttribute) throws VizException {
+
+        StringBuffer sb = new StringBuffer("");
+        String customizedLegendString;
+        String value = "";
+        char x;
+
+        /*
+         * "variables map" now contains keywords/values available for building
+         * the custom legend string. Examine marked-up legend string looking for
+         * {keyword} that matches in "variables". If it doesn't then remove it
+         * from legendString.
+         */
+        Pattern p = Pattern.compile("\\{(.*?)\\}");
+        Matcher m = p.matcher(legendStringAttribute.toString());
+        while (m.find()) {
+            value = variables.get(m.group(1));
+            if (value == null || value.isEmpty()) {
+                legendStringAttribute = legendStringAttribute.replace(
+                        "{" + m.group(1) + "}", "");
+            }
+        }
+
+        /*
+         * change all occurrences of '{' to "${" because thats what
+         * VariableSubstituterNCEP expects
+         */
+        for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+            x = legendStringAttribute.charAt(ipos);
+            sb.append(x == '{' ? "${" : x);
+        }
+        customizedLegendString = VariableSubstitutorNCEP.processVariables(
+                sb.toString(), variables);
+
+        /*
+         * If user coded legendString properly there shoulden't be any "${"
+         * present, but if there are then change them back to "{"
+         */
+        sb.setLength(0);
+        for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
+            x = customizedLegendString.charAt(ipos);
+            sb.append(x == '$' ? "{" : x);
+        }
+        customizedLegendString = sb.toString();
+        return customizedLegendString;
+    }
+
+    /**
+     * Retrieves preferences specified in style rule
      * 
      * @param dataRecord
-     *            MODIS data record
-     * @return The preferences
+     *            satellite data record
+     * @return The preferences specified in the style rule file
      * @throws VizException
      */
-    protected ImagePreferences getStyleRulePreferences(
-            SatelliteRecord dataRecord) throws VizException {
+    protected ImagePreferences getStyleRulePreferences(IPersistable dataRecord)
+            throws VizException {
         ImagePreferences preferences = null;
         String styleRuleFile = getLocFilePathForImageryStyleRule(getResourceData()
                 .getSatelliteType());
@@ -334,11 +662,8 @@ public class NcSatelliteResource extends
         matchCriteria.setParameterName(paramList);
 
         try {
-            // Using old method of getting style rules since himawari style
-            // rules file already exists in D2D and its values do not work
-            // in NCP perspective.
-            StyleRuleset styleSet = (StyleRuleset) getJaxbManager()
-                    .unmarshalFromXmlFile(StyleRuleset.class, file);
+            StyleRuleset styleSet = getJaxbManager().unmarshalFromXmlFile(
+                    StyleRuleset.class, file);
             if (styleSet != null) {
                 List<StyleRule> styleRuleList = styleSet.getStyleRules();
                 for (StyleRule sr : styleRuleList) {
@@ -355,33 +680,21 @@ public class NcSatelliteResource extends
             statusHandler.handle(UFStatus.Priority.PROBLEM,
                     e.getLocalizedMessage(), e);
         }
-
         if (styleRule != null) {
             preferences = (ImagePreferences) styleRule.getPreferences();
         }
-
         return preferences;
-    }
-
-    protected List<String> getParameterList(PluginDataObject pdo) {
-        List<String> paramList = new ArrayList<String>(0);
-        String paramStr = ((SatelliteRecord) pdo).getPhysicalElement();
-        paramList.add(paramStr);
-        return paramList;
     }
 
     /**
      * Loads color map parameters from preferences.
      * 
      * @param dataRecord
-     *            MODIS data record
-     * @param preferences
-     *            preferences read from style rule
+     *            satellite data record
      * @return colormap parameters
      * @throws VizException
      */
-    private ColorMapParameters loadColorMapParameters(
-            SatelliteRecord dataRecord, ImagePreferences preferences)
+    protected ColorMapParameters loadColorMapParameters(IPersistable dataRecord)
             throws VizException {
         ColorMapParameters colorMapParameters = getCapability(
                 ColorMapCapability.class).getColorMapParameters();
@@ -389,23 +702,15 @@ public class NcSatelliteResource extends
             colorMapParameters = new ColorMapParameters();
         }
         if (colorMapParameters.getColorMap() == null) {
-            String name = colorMapParameters.getColorMapName();
-            if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                if (preferences != null) {
-                    name = preferences.getDefaultColormap();
-                }
-                if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
-                    name = "IR Default";
-                }
-            }
+            String colorMapName = getColorMapName(colorMapParameters);
+            // load colormap by name
             ColorMap colorMap = (ColorMap) ColorMapUtil.loadColorMap(
                     resourceData.getResourceName().getRscCategory()
-                            .getCategoryName(), resourceData.getColorMapName());
+                            .getCategoryName(), colorMapName);
             colorMapParameters.setColorMap(colorMap);
         }
-
         try {
-            setColorMapUnits(dataRecord, preferences, colorMapParameters);
+            setColorMapUnits(dataRecord, colorMapParameters);
         } catch (StyleException e) {
             throw new VizException(e.getLocalizedMessage(), e);
         }
@@ -413,13 +718,40 @@ public class NcSatelliteResource extends
         return colorMapParameters;
     }
 
-    private void setColorMapUnits(SatelliteRecord record,
-            ImagePreferences preferences, ColorMapParameters colorMapParameters)
-            throws StyleException {
+    /**
+     * Gets the colormap name from the image preferences
+     * 
+     * @param colorMapParameters
+     * @return name of colormap
+     */
+    protected String getColorMapName(ColorMapParameters colorMapParameters) {
+        String name = colorMapParameters.getColorMapName();
+        if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
+            name = resourceData.getColorMapName();
+            if (imagePreferences != null) {
+                name = imagePreferences.getDefaultColormap();
+            }
+            if (name == null || name.equals(DEFAULT_COLORMAP_NAME)) {
+                name = "IR Default";
+            }
+        }
+        return name;
+    }
+
+    /**
+     * Set color map attributes
+     * 
+     * @param record
+     *            satellite data record
+     * @param colorMapParameters
+     * @throws StyleException
+     */
+    protected void setColorMapUnits(IPersistable record,
+            ColorMapParameters colorMapParameters) throws StyleException {
 
         Unit<?> colorMapUnit = null;
         try {
-            colorMapUnit = preferences.getColorMapUnitsObject();
+            colorMapUnit = imagePreferences.getColorMapUnitsObject();
         } catch (StyleException e) {
             statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
         }
@@ -427,7 +759,7 @@ public class NcSatelliteResource extends
             colorMapUnit = getRecordUnit(record);
         }
 
-        Unit<?> displayUnit = preferences.getDisplayUnits();
+        Unit<?> displayUnit = imagePreferences.getDisplayUnits();
         if (displayUnit == null) {
             displayUnit = colorMapUnit;
         } else if (colorMapUnit == null) {
@@ -436,11 +768,12 @@ public class NcSatelliteResource extends
 
         colorMapParameters.setColorMapUnit(new IRPixel());
         colorMapParameters.setDisplayUnit(displayUnit);
-        colorMapParameters.setDataMapping(preferences.getDataMapping());
-        colorMapParameters.setColorMapName(preferences.getDefaultColormap());
+        colorMapParameters.setDataMapping(imagePreferences.getDataMapping());
+        colorMapParameters.setColorMapName(imagePreferences
+                .getDefaultColormap());
 
         Float displayMin = null, displayMax = null;
-        DataScale scale = preferences.getDataScale();
+        DataScale scale = imagePreferences.getDataScale();
         boolean mirrored = false;
         Type scaleType = Type.LINEAR;
 
@@ -509,7 +842,7 @@ public class NcSatelliteResource extends
         colorMapParameters.setColorMapMin(colorMapMin);
         colorMapParameters.setColorMapMax(colorMapMax);
 
-        LabelingPreferences labeling = preferences.getColorbarLabeling();
+        LabelingPreferences labeling = imagePreferences.getColorbarLabeling();
         if (labeling != null) {
             if (labeling.getValues() != null) {
                 colorMapParameters.setColorBarIntervals(labeling.getValues());
@@ -527,8 +860,41 @@ public class NcSatelliteResource extends
         }
     }
 
-    public static Unit<?> getRecordUnit(SatelliteRecord record) {
+    /**
+     * Get parameters used in matching criteria used to locate style rule.
+     * 
+     * @param dataRecord
+     *            satellite data record
+     * @return parameters
+     */
+    protected List<String> getParameterList(IPersistable dataRecord) {
+        List<String> paramList = new ArrayList<>(0);
+        String paramStr = ((SatelliteRecord) dataRecord).getPhysicalElement();
+        paramList.add(paramStr);
+        return paramList;
+    }
+
+    /**
+     * Get image type number used to generate color bar.
+     * 
+     * @param dataRecord
+     *            satellite data record
+     * @return image type number
+     */
+    protected int getImageTypeNumber(IPersistable dataRecord) {
+        return -1;
+    }
+
+    /**
+     * Get the record unit associated with the satellite data record.
+     * 
+     * @param dataRecord
+     *            satellite data record0
+     * @return record unit
+     */
+    public Unit<?> getRecordUnit(IPersistable dataRecord) {
         Unit<?> recordUnit = null;
+        SatelliteRecord record = (SatelliteRecord) dataRecord;
         String physicalElement = record.getPhysicalElement();
 
         if (record.getUnits() != null && record.getUnits().isEmpty() == false) {
@@ -556,44 +922,33 @@ public class NcSatelliteResource extends
         return recordUnit;
     }
 
-    public static Unit<?> getDataUnit(Unit<?> recordUnit, IDataRecord dataRecord) {
-        Unit<?> units = recordUnit != null ? recordUnit : Unit.ONE;
-        Map<String, Object> attrs = dataRecord.getDataAttributes();
-        if (attrs != null) {
-            Number offset = (Number) attrs.get(SatelliteRecord.SAT_ADD_OFFSET);
-            Number scale = (Number) attrs.get(SatelliteRecord.SAT_SCALE_FACTOR);
-
-            if (offset != null) {
-                double offsetVal = offset.doubleValue();
-                if (offsetVal != 0.0) {
-                    units = units.plus(offsetVal);
-                }
-            }
-            if (scale != null) {
-                double scaleVal = scale.doubleValue();
-                if (scaleVal != 0.0) {
-                    units = units.times(scaleVal);
-                }
-            }
-        }
-        return units;
-    }
-
-    protected List<String> getParameterList(SatelliteRecord dataRecord) {
-        List<String> paramList = Arrays
-                .asList(new String[] { physicalElement });
-
-        return paramList;
-    }
-
+    /**
+     * Get the file path for a satellite type
+     * 
+     * @param type
+     *            satellite type
+     * @return file path
+     */
     protected String getLocFilePathForImageryStyleRule(SatelliteType type) {
         if (type == SatelliteType.HIMAWARI) {
             return NcPathConstants.HIMAWARI_IMG_STYLE_RULES;
+        } else if (type == SatelliteType.SIMGOESR) {
+            return NcPathConstants.SIMGOESR_IMG_STYLE_RULES;
+        } else if (type == SatelliteType.MODIS) {
+            return NcPathConstants.MODIS_IMG_STYLE_RULES;
+        } else if (type == SatelliteType.MCIDAS) {
+            return NcPathConstants.MCIDAS_IMG_STYLE_RULES;
         } else {
             return NcPathConstants.GINI_IMG_STYLE_RULES;
         }
     }
 
+    /**
+     * Get JAXB manager used in style rule lookup.
+     * 
+     * @return JAXBManager
+     * @throws JAXBException
+     */
     public static synchronized JAXBManager getJaxbManager()
             throws JAXBException {
 
@@ -621,6 +976,13 @@ public class NcSatelliteResource extends
         return jaxb;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#disposeInternal
+     * ()
+     */
     @Override
     public void disposeInternal() {
         super.disposeInternal(); // dispose of the frameData
@@ -635,8 +997,21 @@ public class NcSatelliteResource extends
             descriptor.getResourceList().remove(cbarPair);
         }
         cbarResource.dispose();
+
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null && inputAdapter != null) {
+            container.unregisterMouseHandler(inputAdapter);
+        }
+
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#initResource
+     * (com.raytheon.uf.viz.core.IGraphicsTarget)
+     */
     @Override
     public void initResource(IGraphicsTarget target) throws VizException {
 
@@ -650,20 +1025,31 @@ public class NcSatelliteResource extends
                 true);
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
 
-        queryRecords();
+        IDisplayPaneContainer container = getResourceContainer();
+        if (container != null && inputAdapter != null) {
+            container
+                    .registerMouseHandler(inputAdapter, InputPriority.RESOURCE);
+        }
+
+        dataLoader.loadData();
     }
 
-    @Override
     /*
-     * Everything after this point is an exact copy or almost an exact copy of
-     * code from AbstractSatelliteResource. isCloudHeightCompatible() comes from
-     * GiniSatResource
+     * (non-Javadoc)
+     * 
+     * @see
+     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#paintFrame(
+     * gov.noaa
+     * .nws.ncep.viz.resources.AbstractNatlCntrsResource.AbstractFrameData,
+     * com.raytheon.uf.viz.core.IGraphicsTarget,
+     * com.raytheon.uf.viz.core.drawables.PaintProperties)
      */
-    public void paintFrame(AbstractFrameData frmData, IGraphicsTarget target,
-            PaintProperties paintProps) throws VizException {
+    @Override
+    protected void paintFrame(AbstractFrameData frmData,
+            IGraphicsTarget target, PaintProperties paintProps)
+            throws VizException {
         FrameData currFrame = (FrameData) frmData;
-
-        SatRenderable satr = currFrame.renderable;
+        SatRenderable<SatMapCoverage> satr = currFrame.renderable;
 
         if (satr != null) {
             ImagingCapability imgCap = new ImagingCapability();
@@ -671,23 +1057,17 @@ public class NcSatelliteResource extends
             imgCap.setContrast(resourceData.getContrast());
             imgCap.setAlpha(resourceData.getAlpha());
             paintProps.setAlpha(resourceData.getAlpha());
-
-            ColorMapParameters params = getCapability(ColorMapCapability.class)
-                    .getColorMapParameters();
-            if (params.getColorMap() == null) {
-                String colorMapName = params.getColorMapName();
-                if (colorMapName == null) {
-                    colorMapName = "Sat/VIS/ZA (Vis Default)";
-                }
-                params.setColorMap(ColorMapUtil.loadColorMap(
-                        ResourceCategory.SatelliteRscCategory.getCategoryName(),
-                        colorMapName));
-            }
-
             satr.paint(target, paintProps);
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#project(org.opengis.
+     * referencing.crs.CoordinateReferenceSystem)
+     */
     @Override
     public void project(CoordinateReferenceSystem mapData) throws VizException {
         for (AbstractFrameData frm : frameDataMap.values()) {
@@ -698,6 +1078,13 @@ public class NcSatelliteResource extends
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#inspect(com.raytheon
+     * .uf.common.geospatial.ReferencedCoordinate)
+     */
     @Override
     public String inspect(ReferencedCoordinate coord) throws VizException {
         Double value = inspectValue(coord);
@@ -725,6 +1112,14 @@ public class NcSatelliteResource extends
                 unit == null ? "" : unit.toString());
     }
 
+    /**
+     * Look up the data value for a lat/lon
+     * 
+     * @param coord
+     *            lat/lon coordinate
+     * @return data value
+     * @throws VizException
+     */
     public Double inspectValue(ReferencedCoordinate coord) throws VizException {
         FrameData currFrame = (FrameData) getCurrentFrame();
         if (currFrame == null) {
@@ -739,13 +1134,20 @@ public class NcSatelliteResource extends
                     e);
         }
 
-        return currFrame.renderable.interrogate(latlon,
+        return currFrame.getRenderable().interrogate(
+                latlon,
                 getCapability(ColorMapCapability.class).getColorMapParameters()
                         .getDisplayUnit());
     }
 
+    /**
+     * Determine whether this satellite resource is compatible with cloud height
+     * tool
+     * 
+     * @return
+     */
     public boolean isCloudHeightCompatible() {
-        return "Imager 11 micron IR".equals(physicalElement);
+        return false;
     }
 
     public Double getRawIRImageValue(Coordinate latlon) {
@@ -759,7 +1161,7 @@ public class NcSatelliteResource extends
         }
 
         try {
-            return currFrame.renderable.interrogate(latlon, null);
+            return currFrame.getRenderable().interrogate(latlon, null);
         } catch (VizException e) {
             return null;
         }
@@ -770,6 +1172,7 @@ public class NcSatelliteResource extends
      * parameters.
      * 
      * @param latlon
+     *            coordinate
      * @return the temperature
      */
     public Double getSatIRTemperature(Coordinate latlon) {
@@ -778,37 +1181,51 @@ public class NcSatelliteResource extends
         }
 
         FrameData currFrame = (FrameData) getCurrentFrame();
+        Unit<?> unit = null;
 
         if (currFrame == null) {
             return null;
         }
         try {
-            return currFrame.renderable.interrogate(latlon,
-                    getCapability(ColorMapCapability.class)
-                            .getColorMapParameters().getDisplayUnit());
+
+            SatRenderable<?> sr = currFrame.getRenderable();
+            return sr.interrogate(latlon, unit);
+
         } catch (VizException e) {
-            e.printStackTrace();
+            statusHandler.error("Error getting temperature", e);
             return null;
         }
 
     }
 
+    /**
+     * This is an ICloudHeightCapable Interface method Get the display Units. If
+     * it is Celsius, the resource is usable with the Cloud Height Tool which
+     * calculates the height of clouds from temperature data
+     * 
+     * @return Unit
+     */
+
     @SuppressWarnings("unchecked")
     public Unit<Temperature> getTemperatureUnits() {
-        if (isCloudHeightCompatible()) {
-            if (resourceData.getDisplayUnit() == null) {
-                return SI.CELSIUS;
-            } else {
-                return (Unit<Temperature>) resourceData.getDisplayUnit();
-            }
+
+        if (resourceData.getDisplayUnit() == null) {
+            return SI.CELSIUS;
         } else {
-            return null;
+            return (Unit<Temperature>) resourceData.getDisplayUnit();
         }
     }
 
     // the colorBar and/or the colormap may have changed so update the
     // colorBarPainter and the colorMapParametersCapability which holds
     // the instance of the colorMap that Raytheon's code needs
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
+     * resourceAttrsModified()
+     */
     @Override
     public void resourceAttrsModified() {
         // update the colorbarPainter with a possibly new colorbar
@@ -830,6 +1247,14 @@ public class NcSatelliteResource extends
         return legendStr;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.uf.viz.core.rsc.IResourceDataChanged#resourceChanged(com
+     * .raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType,
+     * java.lang.Object)
+     */
     @Override
     public void resourceChanged(ChangeType type, Object object) {
         if (type != null && type == ChangeType.CAPABILITY) {
@@ -853,8 +1278,8 @@ public class NcSatelliteResource extends
                 String colorMapName = colorMapCap.getColorMapParameters()
                         .getColorMapName();
                 resourceData.setColorMapName(colorMapName);
-                resourceData.getRscAttrSet().setAttrValue("colorMapName",
-                        colorMapName);
+                resourceData.getRscAttrSet().setAttrValue(
+                        DEFAULT_COLORMAP_NAME, colorMapName);
 
                 ColorBarFromColormap cBar = resourceData.getColorBar();
                 cBar.setColorMap(theColorMap);
@@ -878,19 +1303,18 @@ public class NcSatelliteResource extends
         }
     }
 
+    /**
+     * Create color bar.
+     * 
+     * @param record
+     *            satellite data record
+     * @param imageTypeNumber
+     *            satellite image type
+     */
     public void generateAndStoreColorBarLabelingInformation(
-            SatelliteRecord record, int imageTypeNumber) {
+            IPersistable record, int imageTypeNumber) {
 
-        ImagePreferences imgPref = new ImagePreferences();
-
-        try {
-            imgPref = getStyleRulePreferences(record);
-        } catch (VizException e1) {
-            statusHandler
-                    .handle(Priority.PROBLEM, e1.getLocalizedMessage(), e1);
-        }
-
-        String dataUnitString = record.getUnits();
+        String dataUnitString = getUnits(record);
         double minPixVal = Double.NaN;
         double maxPixVal = Double.NaN;
 
@@ -904,12 +1328,12 @@ public class NcSatelliteResource extends
 
         try {
             // Might need to change this if/when we use the data-scaling
-            SamplePreferences samplePref = imgPref.getSamplePrefs();
+            SamplePreferences samplePref = imagePreferences.getSamplePrefs();
             if (samplePref != null) {
-                minPixVal = imgPref.getSamplePrefs().getMinValue();
-                maxPixVal = imgPref.getSamplePrefs().getMaxValue();
-            } else if (imgPref.getDataScale() != null) {
-                DataScale ds = imgPref.getDataScale();
+                minPixVal = imagePreferences.getSamplePrefs().getMinValue();
+                maxPixVal = imagePreferences.getSamplePrefs().getMaxValue();
+            } else if (imagePreferences.getDataScale() != null) {
+                DataScale ds = imagePreferences.getDataScale();
                 if (ds.getMaxValue() != null) {
                     maxPixVal = ds.getMaxValue().doubleValue();
                 }
@@ -918,19 +1342,21 @@ public class NcSatelliteResource extends
                 }
             }
 
-            colorBar.setImagePreferences(imgPref);
-            if (imgPref.getDisplayUnitLabel() != null) {
-                colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
+            colorBar.setImagePreferences(imagePreferences);
+            if (imagePreferences.getDisplayUnitLabel() != null) {
+                colorBar.setDisplayUnitStr(imagePreferences
+                        .getDisplayUnitLabel());
             }
         } catch (Exception e) {
-            logger.error("Error generating colorbar data", e);
+            statusHandler.error("Error generating colorbar data", e);
         }
 
         // these label value calculations are from legacy imlabl.f
         if ((dataUnitString != null) && (dataUnitString.equals("BRIT"))
                 && ((imageTypeNumber == 8) || (imageTypeNumber == 128))
                 && (minPixVal != Double.NaN) && (maxPixVal != Double.NaN)
-                && (colorBar != null) && (imgPref.getDataMapping() == null))
+                && (colorBar != null)
+                && (imagePreferences.getDataMapping() == null))
 
         {
             int imndlv = (int) Math.min(256, (maxPixVal - minPixVal + 1));
@@ -978,18 +1404,19 @@ public class NcSatelliteResource extends
                 tmpc += 10;
             }
 
-            imgPref.setDataMapping(dmPref);
-            colorBar.setImagePreferences(imgPref);
+            imagePreferences.setDataMapping(dmPref);
+            colorBar.setImagePreferences(imagePreferences);
             if (!colorBar.isScalingAttemptedForThisColorMap()) {
                 colorBar.scalePixelValues();
             }
 
-            colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
+            colorBar.setDisplayUnitStr(imagePreferences.getDisplayUnitLabel());
 
-        } else if (imgPref.getDataMapping() == null) {
+        } else if (imagePreferences.getDataMapping() == null) {
             // no existing data mapping, so we generate it
-            if (imgPref.getDisplayUnitLabel() != null)
-                colorBar.setDisplayUnitStr(imgPref.getDisplayUnitLabel());
+            if (imagePreferences.getDisplayUnitLabel() != null)
+                colorBar.setDisplayUnitStr(imagePreferences
+                        .getDisplayUnitLabel());
             else
                 colorBar.setDisplayUnitStr(dataUnitString);
 
@@ -1020,13 +1447,13 @@ public class NcSatelliteResource extends
             dmPref.addEntry(dmEntry);
 
             if (!colorBar.isScalingAttemptedForThisColorMap()) {
-                imgPref = new ImagePreferences();
-                imgPref.setDataMapping(dmPref);
+                imagePreferences = new ImagePreferences();
+                imagePreferences.setDataMapping(dmPref);
                 SamplePreferences sPref = new SamplePreferences();
                 sPref.setMaxValue(255);
                 sPref.setMinValue(0);
-                imgPref.setSamplePrefs(sPref);
-                colorBar.setImagePreferences(imgPref);
+                imagePreferences.setSamplePrefs(sPref);
+                colorBar.setImagePreferences(imagePreferences);
                 colorBar.scalePixelValues();
             }
 
@@ -1036,6 +1463,17 @@ public class NcSatelliteResource extends
             resourceData.setColorBar(colorBar);
     }
 
+    protected String getUnits(IPersistable record) {
+        return ((SatelliteRecord) record).getUnits();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#propertiesChanged(com
+     * .raytheon.uf.viz.core.rsc.ResourceProperties)
+     */
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
         if (cbarResource != null && cbarResource.getProperties() != null) {
@@ -1054,14 +1492,26 @@ public class NcSatelliteResource extends
     /*
      * for IAreaProviderCapable which triggers the Fit To Screen and Size Of
      * Image context menus
+     * 
+     * (non-Javadoc)
+     * 
+     * @see
+     * gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getSourceProvider
+     * ()
      */
     @Override
     public AreaSource getSourceProvider() {
         return resourceData.getSourceProvider();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getAreaName()
+     */
     @Override
     public String getAreaName() {
         return resourceData.getAreaName();
     }
+
 }

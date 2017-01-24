@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MRF204
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

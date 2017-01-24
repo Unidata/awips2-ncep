@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.area;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.viz.common.area.AreaName;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
@@ -14,16 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GeneralGridGeometry;
-import org.geotools.coverage.grid.GridGeometry2D;
-import org.geotools.geometry.GeneralEnvelope;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
-import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -42,6 +37,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
  * 12/14          R5413     B. Yin      Remove Script Creator and use Thrift Client
  * Nov 04, 2015   10436     njensen     Corrected request constraint keys, formatted file
  * 12/05/2015     R12953    R Reynolds  replaced with (merged) njensen version
+ * 07/26/2016     R19277    bsteffen    Move redundant code into McidasRecord.getGridGeometry()
  * 
  * </pre>
  */
@@ -105,34 +101,7 @@ public class McIdasAreaProviderFactory implements INcAreaProviderFactory {
 
                 McidasRecord satRec = (McidasRecord) satRecList[0];
 
-                if (satRec.getProjection().equalsIgnoreCase("STR")
-                        || satRec.getProjection().equalsIgnoreCase("MER")
-                        || satRec.getProjection().equalsIgnoreCase("LCC")) {
-
-                    // for remapped projections such as MER, LCC, STR
-                    gridGeom = MapUtil.getGridGeometry(satRec
-                            .getSpatialObject());
-                } else {
-                    McidasMapCoverage coverage = satRec.getCoverage();
-
-                    GeneralEnvelope env = new GeneralEnvelope(2);
-                    env.setCoordinateReferenceSystem(satRec.getCoverage()
-                            .getCrs());
-
-                    int minX = coverage.getUpperLeftElement();
-                    int maxX = coverage.getUpperLeftElement()
-                            + (coverage.getNx() * coverage.getElementRes());
-                    int minY = coverage.getUpperLeftLine()
-                            + (coverage.getNy() * coverage.getLineRes());
-                    minY = -minY;
-                    int maxY = -1 * coverage.getUpperLeftLine();
-                    env.setRange(0, minX, maxX);
-                    env.setRange(1, minY, maxY);
-
-                    gridGeom = new GridGeometry2D(new GeneralGridEnvelope(
-                            new int[] { 0, 0 }, new int[] { coverage.getNx(),
-                                    coverage.getNy() }, false), env);
-                }
+                gridGeom = satRec.getGridGeometry();
             } catch (VizException e) {
 
                 statusHandler.handle(Priority.ERROR,

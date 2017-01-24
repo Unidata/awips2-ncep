@@ -18,7 +18,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.rsc.aww.query.FfaZoneQueryResult;
+import gov.noaa.nws.ncep.viz.rsc.aww.query.AwwQueryResult;
 import gov.noaa.nws.ncep.viz.rsc.aww.utils.AwwImmediateCauseUtil;
 import gov.noaa.nws.ncep.viz.rsc.aww.utils.FFAConstant;
 import gov.noaa.nws.ncep.viz.rsc.aww.utils.StringUtil;
@@ -33,6 +33,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,8 +43,6 @@ import org.eclipse.swt.graphics.RGB;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
-import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
@@ -63,7 +62,6 @@ import com.raytheon.uf.viz.core.drawables.IWireframeShape;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.PointStyle;
@@ -79,22 +77,24 @@ import com.vividsolutions.jts.io.WKBReader;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 21 June 2010  254        M. Gao  	Initial creation.
- * 04 Oct  2010  307        G. Hull     timeMatch FfaRscDataObjs
- * 10 Jan. 2011  N/A        M. Gao      Event Time display includes date + time now since some 
+ * Date         Ticket#    Engineer         Description
+ * ------------ ---------- -----------      --------------------------
+ * 21 June 2010  254    M. Gao  	    Initial creation.
+ * 04 Oct  2010  307    G. Hull         timeMatch FfaRscDataObjs
+ * 10 Jan. 2011  N/A    M. Gao          Event Time display includes date + time now since some 
  *                                      events start and then end in different dates    
- * 16 Feb 2012    555       S. Gurung   Added call to setAllFramesAsPopulated() in queryRecords()                                 
- * 05/23/12       785       Q. Zhou     Added getName for legend.
- * 17 Aug 2012    655       B. Hebbard  Added paintProps as parameter to IDisplayable draw
- * 09/11/12      852        Q. Zhou     Modified time string and alignment in drawLabel().
- * 02/01/13      972        G. Hull     define on NcMapDescriptor instead of IMapDescriptor
- * 08/14/13     1028        G. Hull     Move to aww project. Use AwwReportType enum.
- * 12/14              ?      B. Yin       Remove ScriptCreator, use Thrift Client.
- * 1/15/2015     5770       Kris K      Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
+ * 16 Feb 2012    555   S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()                                 
+ * 05/23/12       785   Q. Zhou         Added getName for legend.
+ * 17 Aug 2012    655   B. Hebbard      Added paintProps as parameter to IDisplayable draw
+ * 09/11/12      852    Q. Zhou         Modified time string and alignment in drawLabel().
+ * 02/01/13      972    G. Hull         define on NcMapDescriptor instead of IMapDescriptor
+ * 08/14/13     1028    G. Hull         Move to aww project. Use AwwReportType enum.
+ * 12/14                B. Yin          Remove ScriptCreator, use Thrift Client.
+ * 1/15/2015     5770   Kris K          Code cleaned and FFA display issues with issuestime, start tiem and end times are fixed.
  * 11/05/2015    5070       randerso    Adjust font sizes for dpi scaling
- * 
+ * 03/15/2016   R15560  K. Bugenhagen   Refactored common code into AwwQueryResult 
+ *                                      class, removing need for FfaZoneQueryResult 
+ *                                      class.  Also cleanup.
  * </pre>
  * 
  * @author mgao
@@ -107,14 +107,31 @@ public class FFAResource extends
 
     private Logger logger = Logger.getLogger(this.getClass());
 
+    private final static String QUERY_PREFIX = "select AsBinary(the_geom) G, AsBinary(the_geom_0_001) G1, state,name,state_zone from mapdata.zonelowres where ";
+
+    private final static String QUERY_COLUMN_NAME = "state_zone";
+
     private IFont font;
 
     private StationTable countyStationTable, zoneStationTable;
 
     private FFAResourceData ffaRscData;
 
+    // for pre-query the database
+    private AwwQueryResult queryResult = new AwwQueryResult();
+
+    // for storing result of pre-calculation
+    private IWireframeShape outlineShape;
+
+    // for pre-calculate the IWiredframeShape
+    private ZoneResultJob zrJob = new ZoneResultJob("");
+
+    // Area change flag
+    private boolean areaChangeFlag = false;
+
     public class FfaRscDataObj implements IRscDataObject {
-        String dataUri, vtecline; // used as a key string //T456 vtecline
+
+        String dataUri, vtecline; // used as a key string
 
         DataTime issueTime; // issue time from bulletin
 
@@ -123,9 +140,9 @@ public class FFAResource extends
         DataTime endTime; // Event end time of of Vtec
 
         String reportType, actionType, officeId, eTrackingNo, phenomena,
-                significance; // T456: last five
+                significance;
 
-        int polyNumPoints; // ,countyOrZoneNumPoints;
+        int polyNumPoints;
 
         int ugcIndicator;
 
@@ -138,9 +155,9 @@ public class FFAResource extends
         List<LatLonPoint> countyOrZoneOrStateOrLakeLatLonPointList;
 
         Set<String> ugcCodeStringSet, allStateAbbreviationSet,
-                greatLakeNameSet; // countyOrZoneAndStateNameSet,
+                greatLakeNameSet;
 
-        List<String> countyOrZoneOrStateOrLakeNameList;// T456: last one;
+        List<String> countyOrZoneOrStateOrLakeNameList; // last one;
 
         public List<String> fips;
 
@@ -168,10 +185,9 @@ public class FFAResource extends
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof FfaRscDataObj)) {
-                System.out
-                        .println("FFAResource:updateFrameData() processing.....\n"
-                                + "Data belongs to a different class :"
-                                + rscDataObj.getClass().toString());
+                logger.error("FFAResource:updateFrameData() processing.....\n"
+                        + "Data belongs to a different class :"
+                        + rscDataObj.getClass().toString());
                 return false;
             }
             FfaRscDataObj ffaRscDataObj = (FfaRscDataObj) rscDataObj;
@@ -238,7 +254,7 @@ public class FFAResource extends
     @Override
     public IRscDataObject[] processRecord(Object awwObj) {
         if (!(awwObj instanceof AwwRecord)) {
-            System.out.println("FFAResource.processRecord: object is not a "
+            logger.error("FFAResource.processRecord: object is not a "
                     + "AwwRecord: " + awwObj.getClass().getName());
             return new IRscDataObject[] {};
         }
@@ -271,18 +287,14 @@ public class FFAResource extends
         ffaData.dataUri = awwRecord.getDataURI();
 
         Set<AwwUgc> awwUgcSet = awwRecord.getAwwUGC();
-        // logger.debug("The retrieved total number of AWWUGCRecord for FFA is:"+awwUgcSet.size());
         for (AwwUgc eachAwwUgc : awwUgcSet) {
-            if (eachAwwUgc.getAwwVtecLine() != null) { // TO OBTAIN THE EVENT
-                                                       // START AND END TIME
-                for (AwwVtec awwVtec : eachAwwUgc.getAwwVtecLine()) {// This
-                                                                     // will be
-                                                                     // looped
-                                                                     // only
-                                                                     // once
-                                                                     // since
-                                                                     // the
-                    // relationship between tables is one to one
+            if (eachAwwUgc.getAwwVtecLine() != null) {
+                /*
+                 * To obtain the event start and end time. This will be looped
+                 * only once since the relationship between tables is one to
+                 * one.
+                 */
+                for (AwwVtec awwVtec : eachAwwUgc.getAwwVtecLine()) {
                     fillEventStartAndEndTime(awwVtec, awwRecord, ffaData);
                     /*
                      * retrieve and then set ImmediateCause value to FFAData
@@ -291,7 +303,7 @@ public class FFAResource extends
                 }
             }
 
-            ffaData.fips = getFips(eachAwwUgc);// 2011-10-05
+            ffaData.fips = getFips(eachAwwUgc);
 
             String ugcLine = eachAwwUgc.getUgc();
             if (!StringUtil.isStringEmpty(ugcLine)) {
@@ -305,7 +317,7 @@ public class FFAResource extends
                 ffaData.polygonLatLonPointArray = new LatLonPoint[ffaData.polyNumPoints];
                 ffaData.polyLatArray = new float[ffaData.polyNumPoints];
                 ffaData.polyLonArray = new float[ffaData.polyNumPoints];
-                int index;// =warnStatusData.polyNumPoints;
+                int index;
                 for (AwwLatlons awwLatLon : eachAwwUgc.getAwwLatLon()) {
                     LatLonPoint point = new LatLonPoint(awwLatLon.getLat(),
                             awwLatLon.getLon(), LatLonPoint.INDEGREES);
@@ -338,15 +350,6 @@ public class FFAResource extends
         if (eventStartCalendar == null && awwRecord.getIssueTime() != null)
             eventStartCalendar = awwRecord.getIssueTime();
 
-        /*
-         * R5770 - Start Commenting Code TEST OLD CODE if (eventStartCalendar !=
-         * null && eventEndCalendar != null) { ffaData.eventTime = new
-         * DataTime(eventStartCalendar, new TimeRange( eventStartCalendar,
-         * eventEndCalendar)); ffaData.endTime = new DataTime(eventEndCalendar);
-         * } R5770 - End Commenting Code
-         */
-
-        // R5770 Start NEW CODE
         Calendar issueTime = awwRecord.getIssueTime();
 
         if (issueTime != null && eventEndCalendar != null) {
@@ -381,14 +384,6 @@ public class FFAResource extends
                 countyUgcSet.add(eachFips);
             }
         }
-
-        /*
-         * The following line is for testing purpose only. The reason we add
-         * some fake data is our test data is not sufficient to cover all of
-         * scenarios of UGC (county, zone, all states, great lakes and new UGC
-         * patterns. after test, the line of code needs to be commented out.
-         */
-        // countyUgcSet = addTestUgcCodeString(countyUgcSet);
 
         return countyUgcSet;
     }
@@ -429,10 +424,8 @@ public class FFAResource extends
                     List<Object[]> objectArrayList = getGreatLakeInfo(greatLakeAbbreviation);
                     if (!objectArrayList.isEmpty()) {
                         Object[] objectArray = objectArrayList.get(0);
-
                         String lakeAreaName = (String) objectArray[0];
                         String greatLakeName = getGreatLakeName(lakeAreaName);
-
                         Double[] latLonArrayOfLake = getLatLonArrayOfLake((String) objectArray[1]);
                         if (latLonArrayOfLake != null) {
                             ffaData.greatLakeNameSet.add(greatLakeAbbreviation);
@@ -644,6 +637,19 @@ public class FFAResource extends
                 .getStaticFile(NcPathConstants.FFG_ZONES_STN_TBL)
                 .getAbsolutePath());
         queryRecords();
+        populateQueryResultMap();
+    }
+
+    private void populateQueryResultMap() {
+
+        Iterator<IRscDataObject> iter = newRscDataObjsQueue.iterator();
+        while (iter.hasNext()) {
+            IRscDataObject dataObject = (IRscDataObject) iter.next();
+            FfaRscDataObj ffaRscDataObj = (FfaRscDataObj) dataObject;
+            queryResult.buildQueryPart(ffaRscDataObj.fips, QUERY_COLUMN_NAME);
+        }
+        queryResult.populateMap(QUERY_PREFIX);
+        setAllFramesAsPopulated();
     }
 
     @Override
@@ -661,7 +667,7 @@ public class FFAResource extends
         if (areaChangeFlag) {
             areaChangeFlag = false;
             postProcessFrameUpdate();
-        }// T456: dispose old outlineShape? TODO
+        } // TODO: dispose old outlineShape
 
         FrameData currFrameData = (FrameData) frameData;
 
@@ -722,30 +728,11 @@ public class FFAResource extends
         } catch (Exception e) {
             throw new VizException("Error transforming extent", e);
         }
-
         /*
          * draw county outline if there is any
          */
-        /* if(isFirstRound) */
         drawZoneOutline2(ffaData, target, color, outlineWidth, lineStyle,
-                paintProps, env); // isFirstRound=false;
-        /*
-         * draw zone outline if there is any
-         */
-        // drawZoneOutline(ffaData, target, color, outlineWidth, lineStyle,
-        // paintProps);
-
-        /*
-         * draw all state outline if there is any
-         */
-        // drawStateOutline(ffaData, target, color, outlineWidth, lineStyle,
-        // paintProps);
-
-        /*
-         * draw great lakes outline if there is any
-         */
-        // drawGreatLakeOutline(ffaData, target, color, outlineWidth, lineStyle,
-        // paintProps);
+                paintProps, env);
 
     }
 
@@ -852,7 +839,7 @@ public class FFAResource extends
 
     private String convertToOldUgcStringPattern(String newUgcStringPattern) {
         /*
-         * we convert the new string pattern to old county pattern
+         * Convert the new string pattern to old county pattern
          */
         StringBuilder builder = new StringBuilder();
         if (!StringUtil.isStringEmpty(newUgcStringPattern)
@@ -944,53 +931,6 @@ public class FFAResource extends
         return isValid;
     }
 
-    // for pre-query the database
-    private FfaZoneQueryResult queryResult;
-
-    // for storing result of pre-calculation
-    private IWireframeShape outlineShape;
-
-    // for pre-calculate the IWiredframeShape
-    private ZoneResultJob zrJob = new ZoneResultJob("");
-
-    // //if it is 1st round in the loop then draw outline since it
-    // pre-calculated for all zones
-    // private boolean isFirstRound = true;
-
-    // Area change flag
-    private boolean areaChangeFlag = false;
-
-	@Override
-	public void queryRecords() throws VizException {
-		// this method is almost similar to its super class's queryRecords(), may need to be modified later
-		// to use the super class's version for the common part
-		
-		HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint> queryList = 
-			new HashMap<String, com.raytheon.uf.common.dataquery.requests.RequestConstraint>(resourceData.getMetadataMap());
-		
-
-        DbQueryRequest request = new DbQueryRequest();
-        request.setConstraints(queryList);
-      
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
-       
-        queryResult = new FfaZoneQueryResult();
-        
-        for (Map<String, Object> result : response.getResults()) {
-            for (Object pdo : result.values()) {
-                for( IRscDataObject dataObject : processRecord( pdo ) )	{	
-                    newRscDataObjsQueue.add(dataObject);
-                    queryResult.buildQueryPart2(dataObject);
-                }
-            }
-        }
-
-        // TODO: handle EXA, EXB here: add newly extended areas
-
-        queryResult.populateMap();
-        setAllFramesAsPopulated();
-    }
-
     @Override
     protected boolean postProcessFrameUpdate() {
 
@@ -1005,7 +945,7 @@ public class FFAResource extends
     public String getFfaRscDataObjKey(FfaRscDataObj f) {
         if (f == null)
             return "";
-        return f.dataUri;/* 2011-10-05 */
+        return f.dataUri;
 
     }
 
@@ -1100,53 +1040,41 @@ public class FFAResource extends
 
                 FrameData fd = (FrameData) afd;
 
-                /**
+                /*
                  * list elements FfaRscDataObj.getKey() are all the same since
                  * they are just different action types: NEW, EXA/EXB
                  */
                 for (FfaRscDataObj frdo : fd.ffaDataMap.values()) {// list){
                     Collection<Geometry> gw = new ArrayList<Geometry>();
                     for (int i = 0; i < frdo.fips.size(); i++) {
-
                         for (ArrayList<Object[]> zones : queryResult
                                 .getZoneResult(frdo.fips.get(i))) {
-
                             if (zones == null)
                                 continue;
                             WKBReader wkbReader = new WKBReader();
-
                             for (Object[] result : zones) {
-
                                 int k = 0;
                                 byte[] wkb1 = (byte[]) result[k];
-
                                 com.vividsolutions.jts.geom.MultiPolygon countyGeo = null;
-
                                 try {
-
                                     countyGeo = (com.vividsolutions.jts.geom.MultiPolygon) wkbReader
                                             .read(wkb1);
-
                                     if (countyGeo != null
                                             && !countyGeo.isEmpty()) {
                                         gw.add(countyGeo);
                                     }
-
                                 } catch (Exception e) {
                                     logger.info("Exception: " + e.getMessage());
                                 }
                             }
-
                         }
 
                     }
                     if (gw.size() == 0)
                         continue;
                     else
-                        keyResultMap.put(
-                                frdo.getKey()/* list.get(0).getKey() */,
-                                new Result(getEachWrdoShape(gw), null, null,
-                                        null));
+                        keyResultMap.put(frdo.getKey(), new Result(
+                                getEachWrdoShape(gw), null, null, null));
                 }
             }
 
@@ -1201,14 +1129,9 @@ public class FFAResource extends
                         lineStyle);
             } catch (VizException e) {
                 logger.info("VizException in drawCountyOutline2() of FFAResource");
-                // e.printStackTrace();
             }
 
-        } else if (outlineShape == null) {
-
-            // target.setNeedsRefresh(true);
         }
-
     }
 
     @Override

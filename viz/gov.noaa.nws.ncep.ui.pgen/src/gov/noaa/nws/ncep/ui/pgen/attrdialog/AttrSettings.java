@@ -25,8 +25,11 @@ import gov.noaa.nws.ncep.ui.pgen.file.FileTools;
 import gov.noaa.nws.ncep.ui.pgen.file.ProductConverter;
 import gov.noaa.nws.ncep.ui.pgen.file.Products;
 import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.tca.TCAElement;
+import gov.noaa.nws.ncep.ui.pgen.tca.TropicalCycloneAdvisory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,6 +59,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 01/15        R5199/T1058 J. Wu       Load/Save settings for different settings tables.
  * 12/15        R12990      J. Wu       Added default spacing for contour symbols and their labels.
  * 12/15        R12989      P. Moyer    Prior text attribute tracking via pgenTypeLabels HashMap
+ * 01/27/2016   R13166      J. Wu       Add symbol only & label only for Contours Min/Max.
+ * 06/20/2016   R8305       B. Yin      Remove TCA advisory.
  * </pre>
  * 
  * @author J. Wu
@@ -184,8 +189,16 @@ public class AttrSettings {
     public void setSettings(AbstractDrawableComponent de) {
 
         String pgenID = de.getPgenType();
-
-        settings.put(pgenID, de);
+        if (de instanceof TCAElement) {
+            /*
+             * Remove TCA advisories. Save attributes only.
+             */
+            TCAElement tca = (TCAElement) de.copy();
+            tca.setAdvisories(new ArrayList<TropicalCycloneAdvisory>());
+            settings.put(pgenID, tca);
+        } else {
+            settings.put(pgenID, de);
+        }
     }
 
     /**
@@ -432,7 +445,8 @@ public class AttrSettings {
                             .getContourMinmaxs();
                     if (csymbols != null && csymbols.size() > 0) {
                         for (ContourMinmax cmx : csymbols) {
-                            if (cmx.getLabel() != null) {
+                            if (cmx.getLabel() != null
+                                    && cmx.getSymbol() != null) {
                                 contourSymbolSpacing.put(cmx.getSymbol()
                                         .getPgenType(), new Coordinate(cmx
                                         .getLabel().getXOffset(), cmx

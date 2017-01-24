@@ -1,0 +1,25 @@
+!
+! Restore File : grid_sig_wave_ft
+!
+! Log:
+! M.Mainelli/TPC   09/2004 Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   =
+SCALE  = 0
+GDPFUN = mask(mul(HTSGW,3.28),sea)
+TYPE   = p
+CINT   = 0
+LINE   =
+FINT   =
+FLINE  =
+HILO   = 0
+HLSYM  = 0
+WIND   =
+TITLE  = 5/-1/GRD SIG WAVE HEIGHT (FT) ?^!0
+TEXT   = 1/21/1/hw
+COLORS = 1
+MARKER = 0
+GRDLBL = 5
+FILTER = yes

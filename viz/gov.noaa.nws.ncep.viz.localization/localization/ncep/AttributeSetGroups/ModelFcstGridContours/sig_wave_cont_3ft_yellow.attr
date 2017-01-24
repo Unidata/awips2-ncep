@@ -1,0 +1,25 @@
+!
+! Restore File : sig_wave_cont_3ft_yel
+!
+! Log:
+! M.Mainelli/TPC       09/2004  Inital creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0
+GDPFUN = mul(HTSGW,3.28)
+TYPE   = c
+CINT   = 3;6;9;12;15;18;21;24;27;30;33;36;39;42;45;48;51;54;57;60
+LINE   = 5/1/2/1/2
+FINT   = 0
+FLINE  = 0
+HILO   = 0
+HLSYM  = 0
+WIND   =
+TITLE  = 5/-2/CNTR SIG WAVE HEIGHT (3 FT) ?^!0
+TEXT   = 1/21/1/hw
+COLORS = 2
+MARKER = 0
+GRDLBL = 0
+FILTER = yes

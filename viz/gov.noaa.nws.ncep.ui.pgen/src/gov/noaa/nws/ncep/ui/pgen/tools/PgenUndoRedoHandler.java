@@ -31,6 +31,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * 04/10        ?          S. Gilbert   Created.
  * 12/09   R5197/TTR1056   J. Wu        Reset to the last action after Undo/Redo.
  * May 16, 2016 5640        bsteffen    Access button name through command parameter.
+ * Nov 18, 2016 25955      astrakovsky  Fixed null pointer exception by adding an empty string check.
  * 
  * </pre>
  * 
@@ -53,7 +54,7 @@ public class PgenUndoRedoHandler extends AbstractTool {
         PgenPaletteWindow palette = session.getPgenPalette();
 
         String activeIcon = palette.getCurrentAction();
-        if (activeIcon != null && !activeIcon.equals("Undo")
+        if (activeIcon != null && activeIcon.length() > 0 && !activeIcon.equals("Undo")
                 && !activeIcon.equals("Redo")) {
             lastActionIcon = activeIcon;
         }

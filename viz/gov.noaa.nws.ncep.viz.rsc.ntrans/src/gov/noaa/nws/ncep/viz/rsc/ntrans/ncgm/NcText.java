@@ -3,27 +3,30 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm;
 
-import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Text;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
-
 import java.io.DataInput;
 import java.io.IOException;
 
 import com.raytheon.uf.viz.core.DrawableString;
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.Text;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
+
 /**
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------
+ * Oct 24, 2016  R22550   bsteffen  Simplify INcCommand
+ * 
+ * </pre>
+ * 
  * @author bhebbard
  * 
  */
 public class NcText extends Text implements INcCommand {
-
-    // private final Log logger = LogFactory.getLog(this.getClass());
-
-    static boolean flipflop = true;
 
     public NcText(int ec, int eid, int l, DataInput in) throws IOException {
         // To handle little-endian strings, we need to bump an odd length
@@ -39,35 +42,23 @@ public class NcText extends Text implements INcCommand {
     }
 
     @Override
-    public void contributeToPaintableImage(ImageBuilder ib, IGraphicsTarget target,
-            PaintProperties paintProps, IDescriptor descriptor) throws VizException {
+    public void contributeToPaintableImage(ImageBuilder ib)
+            throws VizException {
 
         // TODO: Why currentLineColor and not currentTextColor? Legacy quirk?
-        DrawableString ds = new DrawableString(this.string, ib.currentLineColor);
+        DrawableString ds = new DrawableString(this.string,
+                ib.getCurrentLineColor());
         double[] newpoint = new double[] { 0.0, 0.0 };
 
-        // Following "flipflop" is experimental code to alternate between
-        // normal scaling and alternate scaling which holds the screen
-        // location of the text invariant under zoom. The latter could be
-        // used to keep NTRANS frame title strings always in view.
-        if (flipflop) // TODO test code
-        {
-            newpoint = ib.scalePoint(this.position.x, this.position.y);
-        } else {
-            newpoint = ib.scalePointNoZoom(this.position.x, this.position.y);
-        }
-        // flipflop = ! flipflop ;
+        newpoint = ib.scalePoint(this.position.x, this.position.y);
 
         ds.setCoordinates(newpoint[0], newpoint[1]);
 
-        ds.font = ib.currentFont;
-        ds.textStyle = ib.textStyle;
-        ds.horizontalAlignment = ib.horizontalAlignment;
-        ds.verticallAlignment = ib.verticalAlignment;
+        ds.font = ib.getCurrentFont();
+        ds.horizontalAlignment = ib.getHorizontalAlignment();
+        ds.verticallAlignment = ib.getVerticalAlignment();
 
-        // Don't draw the string right now; just add it to list of
-        // strings in the image to be drawn later -- all at once.
-        ib.strings.add(ds);
+        ib.addString(ds);
 
     }
 

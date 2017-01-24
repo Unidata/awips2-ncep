@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-FWR
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

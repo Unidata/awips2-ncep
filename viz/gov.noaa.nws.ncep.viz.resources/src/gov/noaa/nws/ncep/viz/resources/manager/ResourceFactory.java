@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringReader;
@@ -23,6 +17,12 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceGroup;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
+
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 
 /**
  * Class used by the content providers for Resources and Overlays. This stores
@@ -47,8 +47,10 @@ import com.raytheon.uf.viz.core.rsc.ResourceList;
  * 02/10/13     #972        Greg Hull       getSupportedDisplayTypes
  * 10/29/13     #2491       bsteffen        Use AbstratRBD JAXBManager instead of SerializationUtil.
  * 05/14/14     #1048       Bruce Hebbard   Before substituting string variables into XML, encode special characters as XML predefined entities
- * 11/12/2015     #8829       B. Yin          Generate rendering order when creating a resource selection.
- * 
+ * 11/12/2015   #8829       B. Yin          Generate rendering order when creating a resource selection.
+ * 11/04/2016   R23113      K.Bugenhagen    Truncate seconds and milliseconds 
+ *                                          from resource label for resources 
+ *                                          that have them.
  * </pre>
  * 
  * @author
@@ -126,7 +128,8 @@ public class ResourceFactory {
                 return "???";
             }
 
-            String rsc_label = rscData.getResourceName().toString();
+            String rsc_label = rscData.getResourceName()
+                    .toStringNoSecsNoMillisecs();
 
             if (rscData.getIsEdited()) {
                 rsc_label = rsc_label + " (E)";
@@ -188,8 +191,8 @@ public class ResourceFactory {
             bundleStr = new String(b);
 
         } catch (Exception e) {
-            throw new VizException("Error opening  Resource Template file "
-                    + bndlFile, e);
+            throw new VizException(
+                    "Error opening  Resource Template file " + bndlFile, e);
         }
 
         try {
@@ -217,8 +220,8 @@ public class ResourceFactory {
                     .getJaxbManager().unmarshalFromXml(substStr);
 
             if (rscGroup == null) {
-                throw new VizException("Error unmarshalling Resource: "
-                        + rscName.toString());
+                throw new VizException(
+                        "Error unmarshalling Resource: " + rscName.toString());
             }
             ResourceList bndl_rscs = rscGroup.getResourceList();
 
@@ -228,7 +231,8 @@ public class ResourceFactory {
             }
 
             if (bndl_rscs.size() >= 1) {
-                if (!(bndl_rscs.get(0).getResourceData() instanceof INatlCntrsResourceData)) {
+                if (!(bndl_rscs.get(0)
+                        .getResourceData() instanceof INatlCntrsResourceData)) {
                     statusHandler.handle(Priority.INFO,
                             "Bundle file contains non-NatlCntrs Resource?");
                     return null;
@@ -237,9 +241,10 @@ public class ResourceFactory {
                 ResourcePair rscPair = bndl_rscs.get(0);
 
                 if (rscPair.getProperties().getRenderingOrderId() != null) {
-                    rscPair.getProperties().setRenderingOrder(
-                            RenderingOrderFactory.getRenderingOrder(rscPair
-                                    .getProperties().getRenderingOrderId()));
+                    rscPair.getProperties()
+                            .setRenderingOrder(RenderingOrderFactory
+                                    .getRenderingOrder(rscPair.getProperties()
+                                            .getRenderingOrderId()));
                 }
 
                 INatlCntrsResourceData rscData = (INatlCntrsResourceData) rscPair

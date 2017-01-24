@@ -4,10 +4,10 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv;
  * 
  */
 
-import gov.noaa.nws.ncep.edex.common.dataRecords.NcFloatDataRecord;
 import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
 import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,7 +32,6 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.comm.Connector;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
@@ -482,7 +481,7 @@ public class TestDgdriv {
         }
     }
 
-    public NcFloatDataRecord execute() throws DgdrivException {
+    public FloatGridData execute() throws DgdrivException {
 
         /*
          * Tag the gdfile string for ncgrib dataSource
@@ -741,7 +740,7 @@ public class TestDgdriv {
          * Compute the scaling factor and scale the grid data.
          */
         if (proces) {
-            NcFloatDataRecord fds = new NcFloatDataRecord();
+            FloatGridData fds = new FloatGridData();
             IntByReference ix12 = new IntByReference(1);
             IntByReference iy12 = new IntByReference(1);
             gd.gem.grc_sscl(iscale, igx, igy, ix12, iy12, igx, igy, ugrid,
@@ -1321,10 +1320,12 @@ public class TestDgdriv {
 
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(queryList);
-      
-        DbQueryResponse response = (DbQueryResponse) ThriftClient.sendRequest(request);
 
-        GridRecord rec = (GridRecord) ((Map<String, Object>)response.getResults().get(0)).values().iterator().next();
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
+
+        GridRecord rec = (GridRecord) ((Map<String, Object>) response
+                .getResults().get(0)).values().iterator().next();
         long t1 = System.currentTimeMillis();
         System.out.println("\tgetDataURI took: " + (t1 - t0));
         // logger.info("getDataURI took: " + (t1-t0));

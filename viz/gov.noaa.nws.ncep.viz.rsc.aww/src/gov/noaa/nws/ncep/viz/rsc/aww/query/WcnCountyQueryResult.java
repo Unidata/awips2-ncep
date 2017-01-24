@@ -26,10 +26,11 @@ import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 09/28/11       #456      G. Zhang   Initial Creation        
- * 08/15/13      #1028      G. Hull  don't add duplicate fips to the query
+ * Date         Ticket#  Engineer       Description
+ * ------------ ------- -----------     ---------------------------------------
+ * 09/28/11     #456    G. Zhang        Initial Creation        
+ * 08/15/13     #1028   G. Hull         don't add duplicate fips to the query
+ * 03/15/2016   R15560  K. Bugenhagen   Cleanup and refactoring.
  * 
  * </pre>
  * 
@@ -39,28 +40,12 @@ import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
 
 public class WcnCountyQueryResult {
 
-    private static final double ENV_MIN_X = -180.0;
-
-    private static final double ENV_MAX_X = 180.0;
-
-    private static final double ENV_MIN_Y = -90;
-
-    private static final double ENV_MAX_Y = 90.0;
-
     private static Logger logger = Logger.getLogger(WcnCountyQueryResult.class
             .getCanonicalName());
 
-    private String geoConstraint = String.format(
-            "the_geom_0_001 && ST_SetSrid('BOX3D(%f %f, %f %f)'::box3d,4326)",
-            ENV_MIN_X, ENV_MIN_Y, ENV_MAX_X, ENV_MAX_Y);
+    private StringBuilder queryCounty = new StringBuilder();
 
-    private StringBuilder query = new StringBuilder();
-
-    private StringBuilder queryMZ = new StringBuilder();
-
-    private String queryPrefix = "select AsBinary(the_geom), AsBinary(the_geom_0_001), state,countyname, fips from mapdata.county where ";
-
-    private String queryPrefixMZ = "select AsBinary(the_geom), AsBinary(the_geom_0_001), wfo,name,id from mapdata.marinezones where ";
+    private StringBuilder queryMarineZone = new StringBuilder();
 
     private Map<String, ArrayList<ArrayList<Object[]>>> fipsMultiResultMap = new HashMap<String, ArrayList<ArrayList<Object[]>>>();
 
@@ -72,25 +57,23 @@ public class WcnCountyQueryResult {
 
     /**
      * Build query using fips
-     * 
      */
-    public void buildQueryPart2(IRscDataObject dataObject) {
+    public void buildQueryPart(IRscDataObject dataObject) {
         WcnResource.WcnRscDataObj wData = (WcnResource.WcnRscDataObj) dataObject;
 
         if (wData == null || wData.countyFips == null) {
             return;
         }
-
         for (String fips : wData.countyFips) {
             if (!fipsList.contains(fips)) {
                 fipsList.add(fips);
-
                 if (wData.isCounty) {
-                    query.append(" ( fips ='");
-                    query.append(fips);
-                    query.append("' ) OR  ");
+                    queryCounty.append(" ( fips ='");
+                    queryCounty.append(fips);
+                    queryCounty.append("' ) OR  ");
                 } else {
-                    queryMZ.append(" ( id ='").append(fips).append("' ) OR  ");
+                    queryMarineZone.append(" ( id ='").append(fips)
+                            .append("' ) OR  ");
                 }
             }
         }
@@ -99,69 +82,37 @@ public class WcnCountyQueryResult {
     /**
      * store query result into a map.
      */
-    public void populateMap() {
+    public void populateMap(String queryPrefix) {
 
         List<Object[]> results = null;
+        StringBuilder query = new StringBuilder();
 
-        List<Object[]> resultsMZ = null;
-
+        String wholeQuery = "";
         try {
-
-            if (query.length() > 0) {
-                String wholeQuery = queryPrefix + geoConstraint + " AND ("
-                        + query.substring(0, query.lastIndexOf("OR")) + " );";
-                // System.out.println("last index of OR is : "
-                // + query.lastIndexOf("OR"));
-                // String wholeQueryEnd = wholeQuery.substring(query
-                // .lastIndexOf("OR") - 50);
-                // System.out.println("len is " + wholeQuery.length() + " "
-                // + wholeQueryEnd);
-                results = DirectDbQuery.executeQuery(wholeQuery, "maps",
-                        QueryLanguage.SQL);
+            if (queryPrefix.equals(WcnResource.QUERY_PREFIX_COUNTY)) {
+                query = queryCounty;
+            } else if (queryPrefix.equals(WcnResource.QUERY_PREFIX_MARINE_ZONE)) {
+                query = queryMarineZone;
             }
-
-            if (queryMZ.length() > 0) {
-                String wholeQueryMZ = queryPrefixMZ + geoConstraint + " AND ("
-                        + queryMZ.substring(0, queryMZ.lastIndexOf("OR"))
-                        + " );";
-                resultsMZ = DirectDbQuery.executeQuery(wholeQueryMZ, "maps",
+            if (query.length() > 0) {
+                wholeQuery = queryPrefix + AwwQueryResult.GEO_CONSTRAINT
+                        + " AND ("
+                        + query.substring(0, query.lastIndexOf("OR")) + " );";
+            }
+            if (!wholeQuery.isEmpty()) {
+                results = DirectDbQuery.executeQuery(wholeQuery, "maps",
                         QueryLanguage.SQL);
             }
         } catch (Exception e) {
             logger.log(
                     Level.SEVERE,
                     "_____ Exception in query string or result: "
-                            + e.getMessage());
+                            + e.getMessage() + ": query = " + wholeQuery);
             return;
         }
 
         if (results != null) {
             for (Object[] o : results) {
-                if (o == null || o.length != 5 || o[2] == null || o[3] == null
-                        || o[4] == null) {
-                    logger.log(Level.WARNING,
-                            "DirectDBQuery results had nulls or wrong size");
-                    continue;
-                }
-
-                ArrayList<Object[]> obs = new ArrayList<Object[]>();
-                obs.add(new Object[] { o[0], o[1] });
-
-                String key = (String) o[4];
-
-                if (fipsMultiResultMap.containsKey(key)) {
-                    fipsMultiResultMap.get(key).add(obs);
-                } else {
-                    ArrayList<ArrayList<Object[]>> list = new ArrayList<ArrayList<Object[]>>();
-                    list.add(obs);
-                    fipsMultiResultMap.put(key, list);
-                }
-
-            }
-        }
-
-        if (resultsMZ != null) {
-            for (Object[] o : resultsMZ) {
                 if (o == null || o.length != 5 || o[2] == null || o[3] == null
                         || o[4] == null) {
                     logger.log(Level.WARNING,
@@ -193,11 +144,11 @@ public class WcnCountyQueryResult {
      * 
      * TODO: move this handling to the query place?
      */
-    public ArrayList<ArrayList<Object[]>> getStateCountyResult2(String fips) {
+    public ArrayList<ArrayList<Object[]>> getStateCountyResult(String fips) {
 
         ArrayList<ArrayList<Object[]>> list = fipsMultiResultMap.get(fips);
 
-        if (list == null) {// mute? clouds output when CAVE is on during ingest
+        if (list == null) {
             logger.log(Level.FINEST, "_______ No result for fips: " + fips);
 
             return new ArrayList<ArrayList<Object[]>>();

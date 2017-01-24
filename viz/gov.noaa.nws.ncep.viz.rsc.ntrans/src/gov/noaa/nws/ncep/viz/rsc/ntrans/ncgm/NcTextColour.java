@@ -3,19 +3,26 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm;
 
+import java.io.DataInput;
+import java.io.IOException;
+
+import com.raytheon.uf.viz.core.exception.VizException;
+
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.TextColour;
 import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
 
-import java.io.DataInput;
-import java.io.IOException;
-
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.exception.VizException;
-
 /**
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------
+ * Oct 24, 2016  R22550   bsteffen  Simplify INcCommand
+ * 
+ * </pre>
+ * 
  * @author bhebbard
  * 
  */
@@ -27,9 +34,9 @@ public class NcTextColour extends TextColour implements INcCommand {
     }
 
     @Override
-    public void contributeToPaintableImage(ImageBuilder ib, IGraphicsTarget target,
-            PaintProperties paintProps, IDescriptor descriptor) throws VizException {
-        ib.currentTextColor = GempakColor.convertToRGB(this.colorIndex);
+    public void contributeToPaintableImage(ImageBuilder ib)
+            throws VizException {
+        ib.setCurrentTextColor(GempakColor.convertToRGB(this.colorIndex));
     }
 
 }

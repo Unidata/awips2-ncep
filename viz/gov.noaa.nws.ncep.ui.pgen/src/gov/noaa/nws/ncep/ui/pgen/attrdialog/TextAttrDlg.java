@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
 import gov.noaa.nws.ncep.ui.pgen.display.IText;
@@ -49,8 +50,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
+ * Date         Ticket#     Engineer        Description
+ * ----------------------------------------------------------
  * 04/09                    J. Wu           Initial Creation.
  * 09/09        #149        B. Yin          Added check boxes for multi-selection
  * 03/10        #231        Archana         Altered the dialog for text 
@@ -62,6 +63,9 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 07/15        R8903       J. Lopez        Creates a pop up if the text field is left blank
  * 08/15        R8553       B. Yin          Remember last text per box type
  * 12/22/2015   R13545      K. Bugenhagen   Remember all attributes per box type
+ * 06/30/2016   R17980      B. Yin          Fixed error dialog issue in multi-select mode.
+ * 07/27/2016   R17378      J. Wu           Set cursor at end of the text string.
+ * 
  * </pre>
  * 
  * @author J. Wu
@@ -448,7 +452,12 @@ public class TextAttrDlg extends AttrDlg implements IText {
             result.delete(length - 1, length - 1);
         }
 
-        text.setText(result.toString());
+        // Set text and then the cursor at the end of the string.
+        String str = result.toString();
+        text.setText(str);
+        if ( str.length() > 0 ) {
+            text.setSelection(str.length() - 1);
+        }
     }
 
     /**
@@ -667,7 +676,7 @@ public class TextAttrDlg extends AttrDlg implements IText {
         this.create();
 
         if (PgenSession.getInstance().getPgenPalette().getCurrentAction()
-                .equalsIgnoreCase("MultiSelect")) {
+                .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT)) {
             enableChkBoxes(true);
             enableAllWidgets(false);
         } else {
@@ -1298,8 +1307,14 @@ public class TextAttrDlg extends AttrDlg implements IText {
         /*
          * An error will pop up if the user leaves the text field blank. This
          * prevents errors in DisplayElementsFactory.java when bounds is null
+         * Don't open error dialog in multi-select mode when checkbox is 
+         * unchecked.
          */
-        if (text.getText().length() == 0 || text.getText().matches("^[ \n]*$")) {
+        if (!(PgenSession.getInstance().getPgenPalette().getCurrentAction()
+                .equalsIgnoreCase(PgenConstant.ACTION_MULTISELECT) && !chkBox[ChkBox.TEXT
+                .ordinal()].getSelection())
+                && (text.getText().length() == 0 || text.getText().matches(
+                        "^[ \n]*$"))) {
 
             MessageDialog.openError(null, "Warning!", "No text entered");
 

@@ -1,0 +1,25 @@
+!
+! Restore File : sig_wave_cont_fill_drk_m
+!
+! Log:
+! M.Mainelli/TPC  09/2004 Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0            !0
+GDPFUN = HTSGW        !HTSGW
+TYPE   = c/f          !c
+CINT   = 1/1/1000     !0.5;1.5
+LINE   = 31/1/1/1     !31/2/1/1
+FINT   = 2;4;6;8;10
+FLINE  = 0;24;25;30;14;2
+HILO   = 0
+HLSYM  = 0
+WIND   = 0
+TITLE  = 5/-1/DARK CNTR FILL SIG WAVE HEIGHT (M) ?^!0
+TEXT   = 1/21/1/hw
+COLORS = 2
+MARKER = 2
+GRDLBL = 5
+FILTER = yes

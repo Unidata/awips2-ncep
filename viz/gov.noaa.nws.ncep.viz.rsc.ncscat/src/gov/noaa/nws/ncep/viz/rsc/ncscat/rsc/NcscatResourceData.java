@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 import gov.noaa.nws.ncep.common.dataplugin.ncscat.NcscatMode;
 import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.IDataLoader;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.attributes.RGBColorAdapter;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
@@ -24,22 +25,23 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
 /**
- * NcscatResourceData - Class for display of all types of satellite
+ * NcscatResourceData - ResourceData class for display of all types of satellite
  * scatterometer/radiometer data to showing ocean surface winds.
  * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
+ * This code has been developed by NCEP for use in the AWIPS2 system.
  * 
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 30 Oct 2009  176        B. Hebbard  Initial creation (as QuikSCAT).
- * 14 Feb 2010  235A       B. Hebbard  Convert from QuikSCAT (@D3) to NCSCAT (@D6)
- * 11 Jun 2010  235B       B. Hebbard  Expand for all Ocean Winds data types
- * 14 Jul 2010  235C       B. Hebbard  Use common NC ColorBar
- * 14 Jan 2011  235D       B. Hebbard  Add densityValue (for progressive disclosure)
- * 03 Feb 2011  235E       B. Hebbard  Add support for ambiguity variants
+ * 10/30/2009   176        B. Hebbard  Initial creation (as QuikSCAT).
+ * 02/14/2010   235A       B. Hebbard  Convert from QuikSCAT (@D3) to NCSCAT (@D6)
+ * 06/11/2010   235B       B. Hebbard  Expand for all Ocean Winds data types
+ * 07/14/2010   235C       B. Hebbard  Use common NC ColorBar
+ * 01/14/2011   235D       B. Hebbard  Add densityValue (for progressive disclosure)
+ * 02/03/2011   235E       B. Hebbard  Add support for ambiguity variants
  * 01/08/2016   R10434     RReynolds   Added code to distinguish incoming ascatb/ascatd Metop ID's.
+ * 01/27/2016   R10155     B. Hebbard  Header cleanups only
  * 
  * 
  * </pre>
@@ -81,10 +83,11 @@ public class NcscatResourceData extends
 
     public static enum ArrowStyle {
         // menu display name PGEN VectorType PGEN directionOnly pgenType
-        DIRECTIONAL_ARROW("Directional Arrows", VectorType.ARROW, true,
-                "Directional"), REGULAR_ARROW("Regular Arrows",
-                VectorType.ARROW, false, "Arrow"), WIND_BARB("Wind Barbs",
-                VectorType.WIND_BARB, false, "Barb");
+        // @formatter:off
+        DIRECTIONAL_ARROW ("Directional Arrows", VectorType.ARROW,     true,  "Directional"),
+        REGULAR_ARROW     ("Regular Arrows",     VectorType.ARROW,     false, "Arrow"),
+        WIND_BARB         ("Wind Barbs",         VectorType.WIND_BARB, false, "Barb");
+        // @formatter:on
         private String displayName;
 
         private VectorType vectorType;
@@ -391,6 +394,10 @@ public class NcscatResourceData extends
 
     public void setPlotCirclesForRainEnable(boolean plotCirclesForRainEnable) {
         this.plotCirclesForRainEnable = plotCirclesForRainEnable;
+    }
+
+    public IDataLoader getDataLoader() {
+        return new NcscatDataLoader(this);
     }
 
     @Override

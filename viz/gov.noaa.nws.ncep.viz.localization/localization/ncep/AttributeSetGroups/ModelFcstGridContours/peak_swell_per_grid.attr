@@ -1,0 +1,25 @@
+!
+! Restore File : peak_swell_per_gridded
+!
+! Log:
+! M.Mainelli/TPC   09/2004 Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0
+GDPFUN = mask(perpw,sea)
+TYPE   = p
+CINT   = 0
+LINE   =
+FINT   =
+FLINE  =
+HILO   = 0
+HLSYM  =
+WIND   =
+TITLE  = 5/-1/GRIDPOINT PEAK SWELL PERIOD (sec) ?^!0
+TEXT   = .9/21/.9/hw
+COLORS = 1
+MARKER = 0
+GRDLBL = 5
+FILTER = yes

@@ -31,7 +31,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +39,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-
-import java.util.Date;
 
 import com.vividsolutions.jts.geom.Coordinate;
 

@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=ECMF5
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

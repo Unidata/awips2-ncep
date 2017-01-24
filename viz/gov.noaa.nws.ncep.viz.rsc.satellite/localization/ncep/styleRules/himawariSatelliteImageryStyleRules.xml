@@ -11,7 +11,7 @@
         <minValue>-100</minValue>
         <maxValue>1200</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -24,7 +24,7 @@
         <minValue>-100</minValue>
         <maxValue>800</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
   
@@ -37,7 +37,7 @@
         <minValue>-100</minValue>
         <maxValue>800</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>  
 
@@ -50,7 +50,7 @@
         <minValue>-100</minValue>
         <maxValue>800</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -63,7 +63,7 @@
         <minValue>-100</minValue>
         <maxValue>800</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -76,7 +76,7 @@
         <minValue>-100</minValue>
         <maxValue>800</maxValue>
       </range>
-      <defaultColormap>Sat/VIS/ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -93,7 +93,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
         <values>40 20 0 -20 -40 -60 -80</values>
       </colorbarLabeling>
@@ -111,7 +111,7 @@
         <minValue>-1400</minValue>
         <maxValue>-800</maxValue>      
       </range>
-      <defaultColormap>Sat/WV/CIMSS_WV</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
         <values>40 20 0 -20 -40 -60 -80</values>
       </colorbarLabeling>
@@ -129,7 +129,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>      
       </range>
-      <defaultColormap>Sat/WV/CIMSS_WV</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
         <values>40 20 0 -20 -40 -60 -80</values>
       </colorbarLabeling>
@@ -147,7 +147,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>      
       </range>
-      <defaultColormap>Sat/WV/CIMSS_WV</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
         <values>40 20 0 -20 -40 -60 -80</values>
       </colorbarLabeling>
@@ -165,7 +165,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>            
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -180,7 +180,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>            
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -195,7 +195,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>            
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -210,7 +210,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>            
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -225,7 +225,7 @@
         <minValue>-1500</minValue>
         <maxValue>-400</maxValue>            
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
   </styleRule>
 
@@ -240,7 +240,26 @@
         <minValue>-1500</minValue>
         <maxValue>-800</maxValue>
       </range>
-      <defaultColormap>Sat/IR/CIMSS_IR</defaultColormap>
+      <defaultColormap>lingray</defaultColormap>      
+      <colorbarLabeling>
+        <values>40 20 0 -20 -40 -60 -80</values>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+
+<!-- TO test SIMGOESR - REMOVE -->
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>CH-09-6.95um</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <colorMapUnits>IRPixel</colorMapUnits>
+      <range scale="LINEAR">
+        <minValue>-1500</minValue>
+        <maxValue>-800</maxValue>
+      </range>
+      <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
         <values>40 20 0 -20 -40 -60 -80</values>
       </colorbarLabeling>

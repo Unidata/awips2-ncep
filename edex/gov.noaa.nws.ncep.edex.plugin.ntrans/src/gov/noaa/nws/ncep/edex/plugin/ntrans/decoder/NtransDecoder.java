@@ -68,7 +68,7 @@ public class NtransDecoder {
 
     private final static String REGEX_ALPHA_NUMERIC = "^[a-zA-Z0-9]*$";
 
-    private Pattern pattern_all_alphaNumberic = Pattern
+    private final Pattern pattern_all_alphaNumberic = Pattern
             .compile(REGEX_ALPHA_NUMERIC);
 
     private final String FILENAME_DELIM = ".";
@@ -77,17 +77,27 @@ public class NtransDecoder {
 
     private final String FILENAME_DELIM_2 = "_";
 
-    Calendar decodeTime = null;
+    private final static String REGEX_SHORT_FORM = "((\\d\\d){1,4})/(\\d\\d)";
+
+    private final static String REGEX_LONG_FORM = "((\\d\\d){1,4})/(\\d\\d)(F|V)(\\d{1,3})";
+
+    private final static String REGEX_DATETIME_FORM = "((\\d\\d){1,4})/(\\d\\d)(F|V)(\\d{1,4})";
+
+    private final Pattern pattern_longForm = Pattern.compile(REGEX_LONG_FORM);
+
+    private final Pattern pattern_shortForm = Pattern.compile(REGEX_SHORT_FORM);
+
+    private Calendar decodeTime = null;
 
     private String normalizedMetafileName;
 
-    Integer yearFromFileName = null;
+    private Integer yearFromFileName = null;
 
-    Integer monthFromFileName = null;
+    private Integer monthFromFileName = null;
 
-    Integer dateFromFileName = null;
+    private Integer dateFromFileName = null;
 
-    Integer hourFromFileName = null;
+    private Integer hourFromFileName = null;
 
     // The file name to parse
     private String fileName;
@@ -121,8 +131,7 @@ public class NtransDecoder {
      * @throws PluginException
      * 
      */
-    public// synchronized
-    PluginDataObject[] decode(File inputFile) throws DecoderException,
+    public PluginDataObject[] decode(File inputFile) throws DecoderException,
             PluginException {
         InputStream inputStream = null;
         int fileMaxFrame = 0;
@@ -207,16 +216,11 @@ public class NtransDecoder {
                     break;
                 }
 
+                // frame header processing - split Timestamp and Product Name
+                // add start and end positions of associated frame in the file
+
                 FrameHeader fh = new FrameHeader();
-                if (labelTitle.length() < NTRANS_FRAME_LABEL_TIME_SUBSTRING_SIZE) {
-                    fh.frameHeaderTimeString = labelTitle;
-                    fh.productNameString = null;
-                } else {
-                    fh.frameHeaderTimeString = labelTitle.substring(0,
-                            NTRANS_FRAME_LABEL_TIME_SUBSTRING_SIZE);
-                    fh.productNameString = labelTitle
-                            .substring(NTRANS_FRAME_LABEL_TIME_SUBSTRING_SIZE);
-                }
+                createHeaderTimeAndNameString(labelTitle, fh);
                 fh.startPos = startPos;
                 fh.endPos = endPos;
                 frameHeaders.add(fh);
@@ -295,7 +299,47 @@ public class NtransDecoder {
     }
 
     /**
-     * Reduce the size of (the raw) fileName.
+     * <<<<<<< Updated upstream ======= Splits the labelTile into
+     * frameHeaderTimeString and productNameString so that they can be properly
+     * parsed during frame processing. Values are returned via the updated
+     * FrameHeader object.
+     * 
+     * @param labelTitle
+     *            The label title string read from the frame header in the file.
+     * @param fh
+     *            the FrameHeader object that's being filled with data.
+     * @throws DecoderException
+     *             In the case of an unknown time stamp format, throw exception
+     *             up the chain. This will stop the processing of the file and
+     *             drop it before any frames can be processed.
+     */
+    private void createHeaderTimeAndNameString(String labelTitle, FrameHeader fh)
+            throws DecoderException {
+        // patterns for matching time stamps
+        // maximum expected is "DD/HHVnnn", which is 9 characters long
+        // minimum expected is "DD/HH" which is 5 characters long.
+        Matcher longMatch = pattern_longForm.matcher(labelTitle);
+        Matcher shortMatch = pattern_shortForm.matcher(labelTitle);
+
+        if (longMatch.find()) {
+            fh.frameHeaderTimeString = longMatch.group(0);
+            fh.productNameString = labelTitle.substring(longMatch.end(0))
+                    .trim();
+        } else if (shortMatch.find()) {
+            fh.frameHeaderTimeString = shortMatch.group(0) + "V000";
+            fh.productNameString = labelTitle.substring(shortMatch.end(0))
+                    .trim();
+        } else {
+            throw new DecoderException(
+                    "Input file not read correctly/completely! "
+                            + "Frame Header " + labelTitle
+                            + " has unknown date format.");
+        }
+
+    }
+
+    /**
+     * >>>>>>> Stashed changes Reduce the size of (the raw) fileName.
      * 
      * 1. If the file name does not have periods: do nothing
      * 
@@ -435,14 +479,12 @@ public class NtransDecoder {
         // 1-based months (like the rest of the world) instead
         // of 0-based ones. (We're 0-based [array] here, too, but
         // WE control the order, and shield it from the caller.)
-        // @formatter:off
         final int[] CalendarMonthConstants = { Calendar.JANUARY,
                 Calendar.FEBRUARY, Calendar.MARCH, Calendar.APRIL,
                 Calendar.MAY, Calendar.JUNE, Calendar.JULY, Calendar.AUGUST,
                 Calendar.SEPTEMBER, Calendar.OCTOBER, Calendar.NOVEMBER,
                 Calendar.DECEMBER, };
         return CalendarMonthConstants[goodOldMonthNumber - 1];
-        // @formatter:on
     }
 
     private void getTimeFromMetafileName(String fileName) {
@@ -550,8 +592,7 @@ public class NtransDecoder {
         // any number of digits? 2-3? 1-6?
         // NOT with intervening spaces?
 
-        final Pattern p = Pattern
-                .compile("((\\d\\d){1,4})/(\\d\\d)(F|V)(\\d{1,4})");
+        final Pattern p = Pattern.compile(REGEX_DATETIME_FORM);
         Matcher m = p.matcher(frameHeaderTimeString);
 
         boolean isV = false;
@@ -571,7 +612,13 @@ public class NtransDecoder {
             fOrV = m.group(4);
             fcstHourString = m.group(5);
         } else {
-            return new DataTime(decodeTime, 0); // should be error indication
+            decodeTime.set(Calendar.SECOND, 0);
+            decodeTime.set(Calendar.MILLISECOND, 0);
+            // log error, but do not throw an exception
+            logger.error("Error : "
+                    + frameHeaderTimeString
+                    + " is not a valid frame header time string.  DataTime being set to decode time.");
+            return new DataTime(decodeTime, 0);
         }
 
         try {
@@ -610,7 +657,7 @@ public class NtransDecoder {
             isV = fOrV.equalsIgnoreCase("V");
             fcstHour = Integer.parseInt(fcstHourString);
         } catch (Exception e) {
-            // TODO
+            logger.error("DataTime parsing error. Replacing with current GMT.");
             return new DataTime(Calendar.getInstance(TimeZone
                     .getTimeZone("GMT")), 0);
         }
@@ -748,7 +795,8 @@ public class NtransDecoder {
         // @formatter:off
         OPC_ENS, 
         CMCE_AVGSPR, 
-        CMCE, CMCVER, 
+        CMCE, 
+        CMCVER, 
         CMC, 
         CPC, 
         DGEX, 
@@ -756,11 +804,13 @@ public class NtransDecoder {
         ECENS, 
         ECMWFVER, 
         ECMWF_HR, 
-        ECMWF, ENSVER, 
+        ECMWF, 
+        ENSVER, 
         FNMOCWAVE, 
         GDAS, 
         GEFS_AVGSPR, 
-        GEFS, GFSP, 
+        GEFS, 
+        GFSP,
         GFSVERP, 
         GFSVER, 
         GFS, 
@@ -777,7 +827,7 @@ public class NtransDecoder {
         NAM44, 
         NAMVER, 
         NAM, 
-        NAVGEM, 
+        NAVGEM,
         NOGAPS, 
         NWW3P, 
         NWW3, 

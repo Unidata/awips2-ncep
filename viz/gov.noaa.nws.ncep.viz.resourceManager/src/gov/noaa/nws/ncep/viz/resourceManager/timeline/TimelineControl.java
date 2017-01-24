@@ -68,7 +68,8 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME_SELECTION;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.FORECAST_REF_TIME_SELECTION;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME_SELECTION;;
 
 /**
  * Timeline: A graphical view of available data times, that allows users to
@@ -125,35 +126,15 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  * 12/22/2016     R27583    K.Bugenhagen Create mapKey with cycle time containing 
  *                                       only hours and minutes in 
  *                                       removeAvailDomResource.
+ * 01/24/2017     R17975    K.Bugenhagen Add widgets to support time selection
+ *                                       for forecast resources.
  * 
  * </pre>
  * 
- * @author 
+ * @author
  * @version 1
  */
 
-/**
- * Timeline: A graphical view of available data times, that allows users to
- * select any or all data times from the available list.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	    Description
- * ------------	----------	---------------	--------------------------
- *                          Steve Gilbert   created
- * 09/06/10       #307      Greg Hull       added range, frame Interval, refTime,
- * 											and timelineStateMessage
- * 02/11/11       #408      Greg Hull       combine with previous TimelineControl 
- * 02/14/11       #408      Greg Hull       add Ref. Time Selection 
- * 02/22/11       #408      Greg Hull       update timeMatcher with frameTimes and 
- * 	                                        numFrames to keep them in sync.
- * 
->>>>>>> VLab Issue #23113 - PGEN_Static_displays_are_time_matched
- * </pre>
- * 
- * @author sgilbert
- * @version 1
- */
 public class TimelineControl extends Composite {
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -220,6 +201,10 @@ public class TimelineControl extends Composite {
 
     private Combo refTimeCombo;
 
+    private Combo forecastRefTimeCombo;
+
+    private Label forecastRefTimeLbl;
+
     private Label refTimeLbl;
 
     private int timeRangeHrs = 0; //
@@ -234,6 +219,10 @@ public class TimelineControl extends Composite {
     // keep this in order since code is referencing the index into this list.
     protected String refTimeSelectionOptions[] = { "Current", "Latest ",
             "Calendar ..." };
+
+    // keep this in order since code is referencing the index into this list.
+    protected String forecastRefTimeSelectionOptions[] = { "Cycle Time",
+            "Calendar" };
 
     protected Font canvasFont;
 
@@ -394,7 +383,7 @@ public class TimelineControl extends Composite {
         return timeMatcher;
     }
 
-    protected ArrayList<DataTime> toDataTimes(List<Calendar> times) {
+    public ArrayList<DataTime> toDataTimes(List<Calendar> times) {
         ArrayList<DataTime> dlist = new ArrayList<>();
         for (Calendar cal : times) {
             DataTime dtime = new DataTime(cal);
@@ -423,22 +412,23 @@ public class TimelineControl extends Composite {
                     .get(seldRscName);
 
             if (seldRscsList == null || seldRscsList.isEmpty()) {
-                System.out.println("Sanity Check: seld Rsc " + seldRscName
+                statusHandler.warn("Sanity Check: seld Rsc " + seldRscName
                         + " not found.");
                 domRscData = null;
                 return domRscData;
             }
 
-            // TODO : There is a small hole in the design here in the case where
-            // Manual Timeline is selected for the EVENT type resources and
-            // there are more than one EVENT resource available. The dominant
-            // will be the first in the list. But the since the user will need
-            // to manually select a frame interval the only real problem is that
-            // the latest data will reference this resource. If the user needed
-            // the latest data of the second or other EVENT resource then they
-            // wouldn't be able to unless they removed the resources and
-            // re-selected in a new order.
-            //
+            /*
+             * There is a small hole in the design here in the case where Manual
+             * Timeline is selected for the EVENT type resources and there are
+             * more than one EVENT resource available. The dominant will be the
+             * first in the list. But the since the user will need to manually
+             * select a frame interval the only real problem is that the latest
+             * data will reference this resource. If the user needed the latest
+             * data of the second or other EVENT resource then they wouldn't be
+             * able to unless they removed the resources and re-selected in a
+             * new order.
+             */
             if (seldRscsList.size() == 1) {
                 domRscData = seldRscsList.get(0);
             } else {
@@ -519,19 +509,35 @@ public class TimelineControl extends Composite {
         if (cachedSettings != null) {
             timeMatcher.update(cachedSettings);
             int index = -1;
-            if (cachedSettings.getRefTimeSelection() != null) {
-                switch (cachedSettings.getRefTimeSelection()) {
-                case CALENDAR:
-                    index = 2;
-                    break;
-                case CURRENT:
-                    index = 0;
-                    break;
-                case LATEST:
-                    index = 1;
-                    break;
+            // non-forecast
+            if (!timeMatcher.isForecast()) {
+                if (cachedSettings.getRefTimeSelection() != null) {
+                    switch (cachedSettings.getRefTimeSelection()) {
+                    case CALENDAR:
+                        index = 2;
+                        break;
+                    case CURRENT:
+                        index = 0;
+                        break;
+                    case LATEST:
+                        index = 1;
+                        break;
+                    }
+                    refTimeCombo.select(index);
                 }
-                refTimeCombo.select(index);
+            } else { // forecast
+                if (cachedSettings.getForecastRefTimeSelection() != null) {
+                    switch (cachedSettings.getForecastRefTimeSelection()) {
+                    case CYCLE_TIME:
+                        index = FORECAST_REF_TIME_SELECTION.CYCLE_TIME
+                                .ordinal();
+                        break;
+                    case CALENDAR:
+                        index = FORECAST_REF_TIME_SELECTION.CALENDAR.ordinal();
+                        break;
+                    }
+                    forecastRefTimeCombo.select(index);
+                }
             }
             updateTimeline(replace);
         } else {
@@ -548,11 +554,11 @@ public class TimelineControl extends Composite {
     public void addAvailDomResource(
             AbstractNatlCntrsRequestableResourceData rsc) {
 
-        String mapKey; // the key for the map and the entry in the combo box
+        // the key for the map and the entry in the combo box
+        String mapKey;
 
         // for 'event' resources which requires a manual timeline then
         // add "Manual" as a selection option
-        //
         if (rsc.getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
             mapKey = manualTimelineStr;
         } else {
@@ -629,12 +635,11 @@ public class TimelineControl extends Composite {
         return resourceNameStr;
     }
 
-    // TODO : implement ; this is complicated by the fact that there may be
-    // another
-    // resource in another pane to 'replace' this one so we will need to save
-    // all
-    // the possible resources and only present the unique ones to the user.
-    //
+    /*
+     * There may be another resource in another pane to 'replace' this one so we
+     * will need to save all the possible resources and only present the unique
+     * ones to the user.
+     */
     public boolean removeAvailDomResource(
             AbstractNatlCntrsRequestableResourceData rsc) {
 
@@ -661,9 +666,10 @@ public class TimelineControl extends Composite {
 
         rscList.remove(rsc);
 
-        // if this was the last resource with this name in the list and if it is
-        // currently selected
-        // then change the dominant resource.
+        /*
+         * if this was the last resource with this name in the list and if it is
+         * currently selected then change the dominant resource.
+         */
         if (rscList.isEmpty()) {
 
             // if currently selected,
@@ -681,9 +687,10 @@ public class TimelineControl extends Composite {
                 dom_rsc_combo.remove(mapKey);
             }
         }
-        // if this is an event type then force the next event type resource to
-        // be the
-        // dominant.
+        /*
+         * if this is an event type then force the next event type resource to
+         * be the dominant.
+         */
         else if (rsc
                 .getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
             selectDominantResource(false);
@@ -712,15 +719,64 @@ public class TimelineControl extends Composite {
         canvas.redraw();
     }
 
+    /*
+     * This gets called during initial resource load and when Data button is
+     * clicked
+     */
     public void updateTimeline(NCTimeMatcher tm) {
         timeMatcher = tm;
 
-        if (timeMatcher.isCurrentRefTime()) {
-            refTimeCombo.select(0);
-        } else if (timeMatcher.isLatestRefTime()) {
-            refTimeCombo.select(1);
+        /*-
+         * for non-forecast resources: 
+         *    0 : Current 
+         *    1 : Latest 
+         *    2 : Calendar
+         */
+        if (!timeMatcher.isForecast()) {
+            if (timeMatcher.isCurrentRefTime()) {
+                refTimeCombo.select(0);
+            } else if (timeMatcher.isLatestRefTime()) {
+                refTimeCombo.select(1);
+            } else {
+                refTimeCombo.select(2);
+            }
         } else {
-            refTimeCombo.select(2);
+            /*- forecast resource
+             *     0 : Cycle Time
+             *     1 : Calendar
+             */
+            boolean useCachedTime = false;
+            NCTimeMatcherSettings settings = TimeSettingsCacheManager
+                    .getInstance()
+                    .getCachedSettings(timeMatcher.getDominantResourceName());
+            /*
+             * Use the cached time if the current refTime selection is Cycle
+             * Time and generate the timeline, so that it displays correctly
+             * (i.e. starting with the earliest forecast time) and the refTime
+             * selection displays correctly (should be Cycle Time).
+             */
+            if (settings != null) {
+                FORECAST_REF_TIME_SELECTION refTimeSelection = settings
+                        .getForecastRefTimeSelection();
+                if (refTimeSelection != null && refTimeSelection
+                        .equals(FORECAST_REF_TIME_SELECTION.CYCLE_TIME)) {
+                    if (timeMatcher.getRefTime() != null) {
+                        useCachedTime = true;
+                        List<Calendar> selectedTimes = getSelectedTimes();
+                        timeMatcher.setFrameTimes(toDataTimes(selectedTimes));
+                        timeMatcher.generateTimeline();
+                    }
+                }
+            }
+
+            if (timeMatcher.isCurrentRefTime() || timeMatcher.isLatestRefTime()
+                    || useCachedTime) {
+                forecastRefTimeCombo.select(
+                        FORECAST_REF_TIME_SELECTION.CYCLE_TIME.ordinal());
+            } else {
+                forecastRefTimeCombo
+                        .select(FORECAST_REF_TIME_SELECTION.CALENDAR.ordinal());
+            }
         }
 
         updateTimeline();
@@ -740,8 +796,10 @@ public class TimelineControl extends Composite {
                 if (dom_rsc_combo.getItems().length > 0 && !dom_rsc_combo
                         .getItem(0).equals(noResourcesList[0])) {
 
-                    // When the dominant resource is unloaded,
-                    // set the first resource in dom_rsc_combo as dominant.
+                    /*
+                     * When the dominant resource is unloaded, set the first
+                     * resource in dom_rsc_combo as dominant.
+                     */
                     String rscNameString = dom_rsc_combo.getItem(0);
                     ResourceName rscName = new ResourceName(rscNameString);
                     try {
@@ -752,8 +810,10 @@ public class TimelineControl extends Composite {
                                         .getResourceData(),
                                 true);
                     } catch (VizException ve) {
-                        // This should not happen
-                        // because this resource has been previously created.
+                        /*
+                         * This should not happen because this resource has been
+                         * previously created.
+                         */
                         statusHandler.handle(Priority.ERROR,
                                 "Error Creating a resource", ve);
                     }
@@ -806,10 +866,10 @@ public class TimelineControl extends Composite {
             timeData = new TimelineData(availTimes);
 
             /*
-             * TTR 1034+: Force the timeline to start from a given time and
-             * extend backward to with a time range, regardless of the actual
-             * data availability - only for obs. For forecast data, always use
-             * actually data time (cycle time).
+             * Force the timeline to start from a given time and extend backward
+             * to with a time range, regardless of the actual data availability
+             * - only for obs. For forecast data, always use actually data time
+             * (cycle time).
              */
             if (!timeMatcher.isForecast()) {
                 long refTimeMillisecs;
@@ -832,26 +892,30 @@ public class TimelineControl extends Composite {
                 timeData.setStartTime(startRefTime.getValidTime());
                 timeData.setEndTime(endRefTime.getValidTime());
             }
-            // End of TTR1034+ change.
 
             removeSpinnerListeners();
 
             List<Calendar> seldTimes = toCalendar(timeMatcher.getFrameTimes());
             NCTimeMatcherSettings cachedSettings = null;
-            if (replace && this.getDominantResource() != null) {
+
+            if (this.getDominantResource() != null) {
                 cachedSettings = TimeSettingsCacheManager.getInstance()
                         .getCachedSettings(this.domRscData.getResourceName());
-                if (cachedSettings != null && CollectionUtils
-                        .isNotEmpty(cachedSettings.getSelectedFrameTimes())) {
-                    List<Calendar> alreadySelectedTimes = new ArrayList<>(
-                            cachedSettings.getSelectedFrameTimes());
-                    /*
-                     * We only want to retain selection of the frames that are
-                     * actually still available.
-                     */
-                    seldTimes = ListUtils.intersection(
-                            toCalendar(timeMatcher.getSelectableDataTimes()),
-                            alreadySelectedTimes);
+                if (cachedSettings != null && cachedSettings
+                        .getForecastRefTimeSelection() != FORECAST_REF_TIME_SELECTION.CALENDAR) {
+                    if (CollectionUtils.isNotEmpty(
+                            cachedSettings.getSelectedFrameTimes())) {
+                        List<Calendar> alreadySelectedTimes = new ArrayList<>(
+                                cachedSettings.getSelectedFrameTimes());
+                        /*
+                         * We only want to retain selection of the frames that
+                         * are actually still available.
+                         */
+                        seldTimes = ListUtils.intersection(
+                                toCalendar(
+                                        timeMatcher.getSelectableDataTimes()),
+                                alreadySelectedTimes);
+                    }
                 }
             }
 
@@ -879,7 +943,11 @@ public class TimelineControl extends Composite {
         timeRangeDaysSpnr.setEnabled(enable);
         timeRangeHrsSpnr.setEnabled(enable);
         frameIntervalCombo.setEnabled(enable);
-        refTimeCombo.setEnabled(enable);
+        if (!timeMatcher.isForecast()) {
+            refTimeCombo.setEnabled(enable);
+        } else {
+            forecastRefTimeCombo.setEnabled(enable);
+        }
         canvas.setEnabled(enable);
     }
 
@@ -1037,6 +1105,7 @@ public class TimelineControl extends Composite {
         NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
         settings.setTimeRange(timeRangeHrs);
         settings.setSelectedFrameTimes(new HashSet<>(getSelectedTimes()));
+
         TimeSettingsCacheManager.getInstance()
                 .cacheSettings(timeMatcher.getDominantResourceName(), settings);
     }
@@ -1330,7 +1399,6 @@ public class TimelineControl extends Composite {
                     settings.setRefTimeSelection(REF_TIME_SELECTION.CALENDAR);
                     CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
                             shell);
-
                     DataTime newRefTime = calSelDlg
                             .open(timeMatcher.getRefTime());
                     if (newRefTime != null) {
@@ -1342,6 +1410,70 @@ public class TimelineControl extends Composite {
                     }
                 }
 
+                timeMatcher.generateTimeline();
+                updateTimeline();
+
+                TimeSettingsCacheManager.getInstance().cacheSettings(
+                        timeMatcher.getDominantResourceName(), settings);
+            }
+        });
+
+        forecastRefTimeCombo.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
+                DataTime newRefTimeFromCalendar = null;
+
+                // Calendar selected
+
+                if (forecastRefTimeCombo
+                        .getSelectionIndex() == FORECAST_REF_TIME_SELECTION.CALENDAR
+                                .ordinal()) {
+                    settings.setForecastRefTimeSelection(
+                            FORECAST_REF_TIME_SELECTION.CALENDAR);
+                    // Open calendar dialog
+                    CalendarSelectDialog calSelDlg = new CalendarSelectDialog(
+                            shell);
+                    newRefTimeFromCalendar = calSelDlg
+                            .open(timeMatcher.getRefTime());
+                    if (newRefTimeFromCalendar != null) {
+                        timeMatcher.setRefTime(newRefTimeFromCalendar);
+                        settings.setSelectedRefTime(
+                                newRefTimeFromCalendar.getRefTimeAsCalendar());
+                    } else {
+                        return;
+                    }
+
+                    // Cycle time selected
+
+                } else if (forecastRefTimeCombo
+                        .getSelectionIndex() == FORECAST_REF_TIME_SELECTION.CYCLE_TIME
+                                .ordinal()) {
+                    /*
+                     * calling setCurrentRefTime sets refTime to null and
+                     * retains Cycle Time selection in combo box
+                     */
+                    timeMatcher.setCurrentRefTime();
+                    settings = TimeSettingsCacheManager.getInstance()
+                            .getCachedSettings(
+                                    timeMatcher.getDominantResourceName());
+                    if (settings != null) {
+                        // use cached reftime from calendar select if set
+                        Calendar cachedRefTimeCalendar = settings
+                                .getSelectedRefTime();
+                        DataTime cachedRefTime = null;
+                        if (cachedRefTimeCalendar != null) {
+                            cachedRefTime = new DataTime(cachedRefTimeCalendar);
+                            settings.setSelectedRefTime(
+                                    cachedRefTime.getRefTimeAsCalendar());
+                        }
+                        settings.setForecastRefTimeSelection(
+                                FORECAST_REF_TIME_SELECTION.CYCLE_TIME);
+                    }
+                }
+
+                List<Calendar> selectedTimes = getSelectedTimes();
+                timeMatcher.setFrameTimes(toDataTimes(selectedTimes));
+                settings.setSelectedFrameTimes(new HashSet<>(selectedTimes));
                 timeMatcher.generateTimeline();
                 updateTimeline();
 
@@ -1445,8 +1577,22 @@ public class TimelineControl extends Composite {
         fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
         fd.left = new FormAttachment(80, 0);
         refTimeCombo.setLayoutData(fd);
-
         refTimeCombo.setItems(refTimeSelectionOptions);
+
+        forecastRefTimeCombo = new Combo(top_form,
+                SWT.DROP_DOWN | SWT.READ_ONLY);
+        fd = new FormData();
+        fd.top = new FormAttachment(numFramesSpnr, 0, SWT.TOP);
+        fd.left = new FormAttachment(80, 0);
+        forecastRefTimeCombo.setLayoutData(fd);
+        forecastRefTimeCombo.setItems(forecastRefTimeSelectionOptions);
+
+        forecastRefTimeLbl = new Label(top_form, SWT.NONE);
+        forecastRefTimeLbl.setText("Ref. Time");
+        fd = new FormData();
+        fd.bottom = new FormAttachment(forecastRefTimeCombo, -3, SWT.TOP);
+        fd.left = new FormAttachment(forecastRefTimeCombo, 0, SWT.LEFT);
+        forecastRefTimeLbl.setLayoutData(fd);
 
         refTimeLbl = new Label(top_form, SWT.NONE);
         refTimeLbl.setText("Ref. Time");
@@ -2030,6 +2176,7 @@ public class TimelineControl extends Composite {
 
         NCTimeMatcherSettings settings = new NCTimeMatcherSettings();
         settings.setSelectedFrameTimes(new HashSet<>(getSelectedTimes()));
+
         TimeSettingsCacheManager.getInstance()
                 .cacheSettings(timeMatcher.getDominantResourceName(), settings);
     }
@@ -2118,12 +2265,15 @@ public class TimelineControl extends Composite {
     private void updateTimelineWidgets(NCTimeMatcher tm) {
 
         if (tm.getDominantResource() != null && tm.isForecast()) {
+            forecastRefTimeCombo.setVisible(true);
+            forecastRefTimeLbl.setVisible(true);
             refTimeCombo.setVisible(false);
-
             refTimeLbl.setVisible(false);
         } else {
             refTimeCombo.setVisible(true);
             refTimeLbl.setVisible(true);
+            forecastRefTimeCombo.setVisible(false);
+            forecastRefTimeLbl.setVisible(false);
         }
 
         setNumberofFrames(tm.getNumFrames());

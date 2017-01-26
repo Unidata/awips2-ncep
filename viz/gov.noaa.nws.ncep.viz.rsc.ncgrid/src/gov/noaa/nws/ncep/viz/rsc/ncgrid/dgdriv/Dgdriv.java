@@ -1,24 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv;
 
-/**
- * 
- */
-
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLambertConformalCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLatLonCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomMercatorCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomPolarStereoCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache.NcgridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
-
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +23,7 @@ import com.raytheon.uf.common.comm.CommunicationException;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.grid.dataquery.GridQueryAssembler;
 import com.raytheon.uf.common.dataplugin.grid.datastorage.GridDataRetriever;
+import com.raytheon.uf.common.dataplugin.grid.mapping.DatasetIdMapper;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
@@ -65,6 +48,25 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
+
+/**
+ * 
+ */
+
+import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
+import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
+import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLambertConformalCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLatLonCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomMercatorCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomPolarStereoCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache.NcgridData;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
 
 /**
  * The Dgdriv class provides setters GEMPAK for grid diagnostic parameters and
@@ -126,6 +128,9 @@ import com.sun.jna.ptr.IntByReference;
  * 04/26/2016    R17741     S. Gilbert      Change to use FloatGridData, and replace NcepLogger
  * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
  *                                          since they are no longer static.
+ * 01/25/2017    R14071     P. Moyer        Modified getTaggedGDfile to use new method shortAliasLookup 
+ *                                          to use the DatasetIdMapper to retrieve a short-form dataset ID if
+ *                                          it is available (to circumvent issues with dgcnfil.c)
  * </pre>
  * 
  * @author tlee
@@ -237,8 +242,8 @@ public class Dgdriv {
     public void setGdfile(String gdfile) {
         if (gridRscData.isEnsemble()) {
             gdfile = ((NcEnsembleResourceData) gridRscData)
-                    .convertGdfileToCycleTimeString(gdfile, gridRscData
-                            .getResourceName().getCycleTime());
+                    .convertGdfileToCycleTimeString(gdfile,
+                            gridRscData.getResourceName().getCycleTime());
         }
         this.gdfile = gdfile;
         this.gdfileOriginal = gdfile;
@@ -456,8 +461,9 @@ public class Dgdriv {
                                 errorURI = msg;
                                 proces = false;
                                 if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.debug("??? retrieveDataFromRetriever return NULL for dataURI("
-                                            + dataURI + ")");
+                                    logger.debug(
+                                            "??? retrieveDataFromRetriever return NULL for dataURI("
+                                                    + dataURI + ")");
                                 }
                                 return true;
                             }
@@ -465,9 +471,8 @@ public class Dgdriv {
                             if (ncgribLogger.enableDiagnosticLogs()) {
                                 long t00 = System.currentTimeMillis();
                                 logger.debug("++++ retrieve data (nx:"
-                                        + gData.getNx() + "-ny:"
-                                        + gData.getNy() + ") from cache took: "
-                                        + (t00 - t0));
+                                        + gData.getNx() + "-ny:" + gData.getNy()
+                                        + ") from cache took: " + (t00 - t0));
                             }
                             rData = gData.getData();
                         }
@@ -513,8 +518,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnNavigationCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnNavigationCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -534,7 +539,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnDataURICallback implements gempak.DbCallbackWithMessage {
+    private class ReturnDataURICallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -543,7 +549,8 @@ public class Dgdriv {
                 String dataURI = getDataURIFromAssembler(msg);
                 gd.gem.db_returnduri(dataURI);
                 long t1 = System.currentTimeMillis();
-                logger.debug("return dataURI " + dataURI + " took " + (t1 - t0));
+                logger.debug(
+                        "return dataURI " + dataURI + " took " + (t1 - t0));
                 return true;
             } catch (VizException e) {
                 errorURI = msg;
@@ -553,8 +560,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnSubgridCRSCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnSubgridCRSCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -566,13 +573,14 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnCycleForecastHoursCallback implements
-            gempak.DbCallbackWithoutMessage {
+    private class ReturnCycleForecastHoursCallback
+            implements gempak.DbCallbackWithoutMessage {
 
         @Override
         public boolean callback() {
             long t0 = System.currentTimeMillis();
-            String cycleFcstHrsString = getCycleFcstHrsString(dataForecastTimes);
+            String cycleFcstHrsString = getCycleFcstHrsString(
+                    dataForecastTimes);
             gd.gem.db_returnfhrs(cycleFcstHrsString);
             long t1 = System.currentTimeMillis();
             logger.debug("return cycle forecast hours string "
@@ -581,8 +589,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnFileNameCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnFileNameCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -638,7 +646,8 @@ public class Dgdriv {
 
         gd.gem.in_bdta_(iret);
         if (iret.getValue() != 0) {
-            throw new DgdrivException("From in_bdta: error initializing GEMPAK");
+            throw new DgdrivException(
+                    "From in_bdta: error initializing GEMPAK");
         }
 
         gd.gem.gd_init_(iret);
@@ -842,8 +851,8 @@ public class Dgdriv {
                         parmu, parmv, iret);
             }
             if (!proces) {
-                throw new DgdrivException("Error retrieving data record "
-                        + errorURI);
+                throw new DgdrivException(
+                        "Error retrieving data record " + errorURI);
             }
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, Native.toString(pfunc), ier);
@@ -882,7 +891,8 @@ public class Dgdriv {
                             vgrid, rmin, rmax, iret);
                 }
                 if (flop) {
-                    fds.setYdata(flopData(vgrid, igx.getValue(), igy.getValue()));
+                    fds.setYdata(
+                            flopData(vgrid, igx.getValue(), igy.getValue()));
                 } else {
                     fds.setYdata(revertGempakData2CAVE(vgrid));
                 }
@@ -925,8 +935,7 @@ public class Dgdriv {
         String template = this.gdfileOriginal + "_db";
         if (this.gdfileOriginal.contains(":")) {
             template = this.gdfileOriginal.substring(0,
-                    this.gdfileOriginal.indexOf(":"))
-                    + "_db";
+                    this.gdfileOriginal.indexOf(":")) + "_db";
         }
         IntByReference iret = new IntByReference(0);
 
@@ -939,9 +948,10 @@ public class Dgdriv {
         StringBuilder sba = new StringBuilder();
         StringBuilder sbp = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
-        String[] gdfileArray = this.gdfileOriginal.substring(
-                this.gdfileOriginal.indexOf("{") + 1,
-                this.gdfileOriginal.indexOf("}")).split(",");
+        String[] gdfileArray = this.gdfileOriginal
+                .substring(this.gdfileOriginal.indexOf("{") + 1,
+                        this.gdfileOriginal.indexOf("}"))
+                .split(",");
         for (int igd = 0; igd < gdfileArray.length; igd++) {
             sbp.append(thePath);
             sbp.append("|");
@@ -1031,14 +1041,19 @@ public class Dgdriv {
              */
             if (this.gdfileOriginal.startsWith("{")
                     && this.gdfileOriginal.endsWith("}")) {
-                String[] gdfileArray = this.gdfileOriginal.substring(
-                        this.gdfileOriginal.indexOf("{") + 1,
-                        this.gdfileOriginal.indexOf("}")).split(",");
+                String[] gdfileArray = this.gdfileOriginal
+                        .substring(this.gdfileOriginal.indexOf("{") + 1,
+                                this.gdfileOriginal.indexOf("}"))
+                        .split(",");
                 StringBuilder strb = new StringBuilder();
 
                 for (int igd = 0; igd < gdfileArray.length; igd++) {
                     strb.append(tag);
-                    strb.append(gdfileArray[igd]);
+
+                    String shortName = shortAliasLookup(gdfileArray[igd],
+                            "GEMPAK");
+
+                    strb.append(shortName);
                     strb.append(",");
 
                 }
@@ -1046,10 +1061,31 @@ public class Dgdriv {
                         strb.toString().length() - 1);
                 return "{" + retStr + "}";
             }
-            return tag + this.gdfile;
+
+            String shortName = shortAliasLookup(this.gdfile, "GEMPAK");
+
+            return tag + shortName;
         } else {
             return this.gdfile;
         }
+    }
+
+    /**
+     * 
+     * retrieve the short form if it exists and take the first match
+     * 
+     * @return String short name alias.
+     */
+    private String shortAliasLookup(String base, String baseNamespace) {
+        Set<String> shortNameSet = DatasetIdMapper.getInstance()
+                .lookupAliases(base, baseNamespace);
+        String shortName = "";
+        if (shortNameSet.size() >= 1) {
+            shortName = shortNameSet.iterator().next();
+        } else {
+            shortName = base;
+        }
+        return shortName;
     }
 
     /**
@@ -1061,7 +1097,8 @@ public class Dgdriv {
     private void createNewISpatialObj(String subgGempakFormat) {
         String[] gareaStr = subgGempakFormat.split(";");
 
-        if (subgSpatialObj == null && gareaStr != null && gareaStr.length >= 7) {
+        if (subgSpatialObj == null && gareaStr != null
+                && gareaStr.length >= 7) {
             if (gareaStr[0].equalsIgnoreCase("CED")) {
                 createLatlonISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
@@ -1070,8 +1107,7 @@ public class Dgdriv {
                         Double.parseDouble(gareaStr[5]),
                         Double.parseDouble(gareaStr[6]));
             } else if (gareaStr[0].equalsIgnoreCase("LCC")) {
-                createLambertConformalISPatialObj(
-                        Integer.parseInt(gareaStr[1]),
+                createLambertConformalISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
                         Double.parseDouble(gareaStr[3]),
                         Double.parseDouble(gareaStr[4]));
@@ -1107,8 +1143,8 @@ public class Dgdriv {
      * @param lo2
      *            - Longitude of the last grid point
      */
-    private void createLatlonISPatialObj(int nx, int ny, double la1,
-            double lo1, double la2, double lo2) {
+    private void createLatlonISPatialObj(int nx, int ny, double la1, double lo1,
+            double la2, double lo2) {
 
         logger.debug("nx:" + nx + " ny:" + ny + " la1:" + la1 + " lo1:" + lo1
                 + " la2:" + la2 + " lo2:" + lo2);
@@ -1242,7 +1278,8 @@ public class Dgdriv {
         }
     }
 
-    private String getCycleFcstHrsString(ArrayList<DataTime> dataForecastTimes) {
+    private String getCycleFcstHrsString(
+            ArrayList<DataTime> dataForecastTimes) {
         // TODO Auto-generated method stub
         StringBuilder resultsBuf = new StringBuilder();
         for (DataTime dt : dataForecastTimes) {
@@ -1359,8 +1396,8 @@ public class Dgdriv {
         try {
             String gempakParm = cacheData.getGempakParam(dataURI);
             if (gempakParm != null) {
-                dataRetriever.setUnit(UnitConv.deserializer(gempakParmInfo
-                        .getParmUnit(gempakParm)));
+                dataRetriever.setUnit(UnitConv
+                        .deserializer(gempakParmInfo.getParmUnit(gempakParm)));
             }
         } catch (ConversionException | ParseException e) {
             logger.info("Problem with dataRetriever setUnit.", e);
@@ -1432,7 +1469,7 @@ public class Dgdriv {
         // + File.separator + path + File.separator + sb.toString());
         // } else if (DataMode.getSystemMode() == DataMode.PYPIES) {
         file = new File(
-        // TODO--OK?? VizApp.getServerDataDir() + File.separator +
+                // TODO--OK?? VizApp.getServerDataDir() + File.separator +
                 dataURI.split("/")[1] + File.separator + path + File.separator
                         + sb.toString());
         // } else {
@@ -1691,13 +1728,13 @@ public class Dgdriv {
         Pattern p = Pattern.compile(tmStr);
 
         HashMap<String, RequestConstraint> rcMap = new HashMap<>();
-        rcMap.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
-                GridDBConstants.GRID_TBL_NAME));
-        rcMap.put(GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint(
-                modelName, ConstraintType.EQUALS));
+        rcMap.put(GridDBConstants.PLUGIN_NAME,
+                new RequestConstraint(GridDBConstants.GRID_TBL_NAME));
+        rcMap.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(modelName, ConstraintType.EQUALS));
         if (!eventName.equalsIgnoreCase("null")) {
-            rcMap.put(GridDBConstants.ENSEMBLE_ID_QUERY, new RequestConstraint(
-                    eventName, ConstraintType.EQUALS));
+            rcMap.put(GridDBConstants.ENSEMBLE_ID_QUERY,
+                    new RequestConstraint(eventName, ConstraintType.EQUALS));
         }
 
         try {
@@ -1732,10 +1769,10 @@ public class Dgdriv {
 
             String prefix = modelName + "_" + dbTag + "_" + eventName + "_";
             for (int i = 0; i < responseList.size(); i++) {
-                Object fSecValue = responseList.get(i).get(
-                        GridDBConstants.FORECAST_TIME_QUERY);
-                Object refValue = responseList.get(i).get(
-                        GridDBConstants.REF_TIME_QUERY);
+                Object fSecValue = responseList.get(i)
+                        .get(GridDBConstants.FORECAST_TIME_QUERY);
+                Object refValue = responseList.get(i)
+                        .get(GridDBConstants.REF_TIME_QUERY);
                 if (fSecValue != null && fSecValue instanceof Integer
                         && refValue != null && refValue instanceof Date) {
 
@@ -1758,11 +1795,7 @@ public class Dgdriv {
                         retFileNames = retFileNames + "|";
                     }
 
-                    retFileNames = retFileNames
-                            + prefix
-                            + dt
-                            + hh
-                            + "f"
+                    retFileNames = retFileNames + prefix + dt + hh + "f"
                             + CommonDateFormatUtil
                                     .getForecastTimeString(fcstTimeInSec);
                 }
@@ -1830,14 +1863,15 @@ public class Dgdriv {
         if (ncgribLogger.enableDiagnosticLogs()) {
             String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
                     .getConstraintValue();
-            int fcstTime = Integer.parseInt(rcMap.get(
-                    GridDBConstants.FORECAST_TIME_QUERY).getConstraintValue());
+            int fcstTime = Integer
+                    .parseInt(rcMap.get(GridDBConstants.FORECAST_TIME_QUERY)
+                            .getConstraintValue());
             String fcstTimeg = CommonDateFormatUtil
                     .getForecastColonTimeString(fcstTime);
             if (datauri != null) {
-                logger.debug("### getDataURIFromAssembler(" + datauri
-                        + ") for(" + parameters + ") reftime:" + refTime + "("
-                        + fcstTimeg + ") took: " + (t1 - t0));
+                logger.debug("### getDataURIFromAssembler(" + datauri + ") for("
+                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
+                        + ") took: " + (t1 - t0));
             } else {
                 logger.debug("??? getDataURIFromAssembler(null) for("
                         + parameters + ") reftime:" + refTime + "(" + fcstTimeg
@@ -1875,8 +1909,8 @@ public class Dgdriv {
         Map<String, RequestConstraint> queryList = new HashMap<>();
         queryList.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
                 GridDBConstants.GRID_TBL_NAME, ConstraintType.EQUALS));
-        queryList.put(GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint(
-                tmpAttrs[0], ConstraintType.EQUALS));
+        queryList.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(tmpAttrs[0], ConstraintType.EQUALS));
         if (tmpAttrs[1] != null && tmpAttrs[1].length() > 0
                 && (!tmpAttrs[1].equalsIgnoreCase("null"))) {
             queryList.put(GridDBConstants.ENSEMBLE_ID_QUERY,
@@ -1910,9 +1944,10 @@ public class Dgdriv {
 
             ISpatialObject cov = null;
             if (responseList.size() > 0) {
-                Object spatialObj = responseList.get(0).get(
-                        GridDBConstants.NAVIGATION_QUERY);
-                if (spatialObj != null && spatialObj instanceof ISpatialObject) {
+                Object spatialObj = responseList.get(0)
+                        .get(GridDBConstants.NAVIGATION_QUERY);
+                if (spatialObj != null
+                        && spatialObj instanceof ISpatialObject) {
                     cov = (ISpatialObject) spatialObj;
                 }
             }
@@ -1955,8 +1990,8 @@ public class Dgdriv {
         GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
         String[] parmList = parameters.split("\\|");
         if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("enter getRequestConstraint - parameters:"
-                    + parameters);
+            logger.debug(
+                    "enter getRequestConstraint - parameters:" + parameters);
         }
         qAssembler.setDatasetId(parmList[0]);
 
@@ -2031,16 +2066,16 @@ public class Dgdriv {
         }
         String refTimeg = parmList[5].toUpperCase().split("F")[0];
         String refTime = CommonDateFormatUtil.dattimToDbtime(refTimeg);
-        String fcstTimeInSec = Integer.toString(CommonDateFormatUtil
-                .getForecastTimeInSec(parmList[5]));
+        String fcstTimeInSec = Integer.toString(
+                CommonDateFormatUtil.getForecastTimeInSec(parmList[5]));
 
         rcMap.put(GridDBConstants.REF_TIME_QUERY,
                 new RequestConstraint(refTime));
-        rcMap.put(GridDBConstants.FORECAST_TIME_QUERY, new RequestConstraint(
-                fcstTimeInSec));
+        rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
+                new RequestConstraint(fcstTimeInSec));
         if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("exit getRequestConstraint - rcMap:"
-                    + rcMap.toString());
+            logger.debug(
+                    "exit getRequestConstraint - rcMap:" + rcMap.toString());
         }
         return rcMap;
     }

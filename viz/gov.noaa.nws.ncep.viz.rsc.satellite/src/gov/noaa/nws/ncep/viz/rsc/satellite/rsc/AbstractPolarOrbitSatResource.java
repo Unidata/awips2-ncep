@@ -65,9 +65,10 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *                                       specified in attribute set files.
  *  12/14/2016   R20988     kbugenhagen  Update getColorMapName to allow for 
  *                                       override of colormap name in SPF.
+ *  01/30/2017    R17933     R Reynolds   Build legendString from DB query parameters                                       
  *  02/14/2017   R21492     kbugenhagen  Added call to suppress "Change Colormap"
  *                                       menu item in setColorMapUnits method.
- *
+ *                                       
  * </pre>
  * 
  * @author kbugenhagen
@@ -98,6 +99,8 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
     public AbstractPolarOrbitSatResource(SatelliteResourceData data,
             LoadProperties props) {
         super(data, props);
+
+        legendStr = createLegendString(null);
     }
 
     /**
@@ -171,7 +174,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
 
         RecordData recordData;
 
-        protected String legendStr = "No Data";
+        protected String legendStr = null; // "No Data";
 
         // Map of frametimes to RecordData records, which contain images.
         // Each record that matches a frame's time is used to create a
@@ -227,6 +230,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
 
                 }
             }
+
             return true;
         }
 
@@ -254,8 +258,12 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
 
         @Override
         public void dispose() {
-            recordData.dispose();
-            recordDataMap.clear();
+            try {
+                recordData.dispose();
+                recordDataMap.clear();
+            } catch (Exception ex) {
+                statusHandler.error("Error:  Exception in dispose", ex);
+            }
         }
 
     }

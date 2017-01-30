@@ -1,12 +1,9 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +20,7 @@ import com.raytheon.uf.common.datastorage.DataStoreFactory;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IDataRecord;
+import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -30,6 +28,13 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
+
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
+import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 
 /**
  * Class for display of the MODIS satellite data. Also provides the capability
@@ -42,13 +47,14 @@ import com.raytheon.uf.viz.core.tile.TileSetRenderable;
  *  Date         Ticket#    Engineer     Description
  *  ------------ --------   -----------  --------------------------
  *  05/17/2016   R18511     kbugenhagen  Refactored to use a common base class
+ *  01/30/2017   R17933     R Reynolds   Build legendString from DB query parameters
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1
  */
-public class ModisSatResource extends
-        AbstractPolarOrbitSatResource<ModisRecord> {
+public class ModisSatResource
+        extends AbstractPolarOrbitSatResource<ModisRecord> {
 
     public static final String MODIS_LEGEND_NAME = "MODIS";
 
@@ -61,10 +67,13 @@ public class ModisSatResource extends
     public ModisSatResource(SatelliteResourceData data, LoadProperties props) {
         super(data, props);
         dataRecordMap = new LinkedHashMap<>();
+        resourceData = data;
+        legendStr = createLegendString(null);
+
     }
 
-    private class ModisDataRetriever extends
-            AbstractPolarOrbitSatDataRetriever<ModisRecord> {
+    private class ModisDataRetriever
+            extends AbstractPolarOrbitSatDataRetriever<ModisRecord> {
 
         public ModisDataRetriever(ModisRecord record, int level,
                 Rectangle dataSetBounds) {
@@ -96,9 +105,8 @@ public class ModisSatResource extends
          * 
          * @see
          * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource
-         * .
-         * SatTileImageCreator#getDataRetriever(com.raytheon.uf.viz.core.tile.Tile
-         * )
+         * . SatTileImageCreator#getDataRetriever(com.raytheon.uf.viz.core.tile.
+         * Tile )
          */
         @Override
         protected ModisDataRetriever getDataRetriever(Tile tile) {
@@ -107,8 +115,8 @@ public class ModisSatResource extends
         }
     }
 
-    protected class RecordData extends
-            AbstractPolarOrbitSatResource<ModisRecord>.RecordData {
+    protected class RecordData
+            extends AbstractPolarOrbitSatResource<ModisRecord>.RecordData {
 
         private final static int TILE_SIZE = 2048;
 
@@ -132,8 +140,8 @@ public class ModisSatResource extends
 
     }
 
-    protected class FrameData extends
-            AbstractPolarOrbitSatResource<ModisRecord>.FrameData {
+    protected class FrameData
+            extends AbstractPolarOrbitSatResource<ModisRecord>.FrameData {
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
@@ -145,15 +153,75 @@ public class ModisSatResource extends
             DataTime dateTime = rec.getDataTime();
             String refTime = dateTime.getDisplayString().split("\\[")[0];
             String[] timeParts = refTime.split(":");
-            StringBuilder builder = new StringBuilder(name);
-            builder.append(" ");
-            builder.append(rec.getParameter());
-            builder.append(" ");
-            builder.append(timeParts[0]);
-            builder.append(":");
-            builder.append(timeParts[1]);
-            legendStr = builder.toString();
+
+            legendStr = createLegendString(rec) + " " + timeParts[0] + ":"
+                    + timeParts[1];
+
         }
+    }
+
+    @Override
+    public String createLegendString(IPersistable rec) {
+
+        ModisRecord modisSatRec = (ModisRecord) rec;
+        String satellite = "";
+        String resolution = "";
+        String legendStr = "";
+        String rd = "";
+        String channel = "";
+
+        try {
+
+            ResourceName rscName = resourceData.getResourceName();
+
+            Map<String, String> recordElements = new HashMap<>();
+
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+
+            HashMap<String, String> attributes = rscDefnsMngr
+                    .getAttrSet(rscName).getAttributes();
+
+            String legendStringAttribute = attributes
+                    .get(LEGEND_STRING_ATTRIBUTE_NAME);
+
+            if (legendStringAttribute == null
+                    || legendStringAttribute.trim().isEmpty()) {
+                legendStringAttribute = DEFAULT_LEGEND_STRING_ATTRIBUTE;
+            }
+
+            if (rec != null) {
+
+                satellite = modisSatRec.getCreatingEntity();
+
+                resolution = "(" + "DX:"
+                        + modisSatRec.getCoverage().getDx().toString() + ","
+                        + "DY:" + modisSatRec.getCoverage().getDy() + ")";
+
+                recordElements.put(SATELLITE, satellite);
+
+                recordElements.put(RESOLUTION, resolution);
+            }
+
+            channel = resourceData.getRscAttrSet().getRscAttrSetName();
+
+            rd = rscDefn.getResourceDefnName();
+
+            recordElements.put(RESOURCE_DEFINITION, rd);
+
+            recordElements.put(CHANNEL, channel);
+
+            legendStr = constructCustomLegendString(recordElements,
+                    legendStringAttribute);
+
+        } catch (Exception ex) {
+            statusHandler.handle(Priority.ERROR,
+                    "Error in MODIS building legend string ",
+                    ex.getStackTrace().toString());
+        }
+        return legendStr;
     }
 
     /**
@@ -189,15 +257,15 @@ public class ModisSatResource extends
         try {
             File hdf5File = HDF5Util.findHDF5Location(dataRecord);
             IDataStore dataStore = DataStoreFactory.getDataStore(hdf5File);
-            IDataRecord[] dataRecords = dataStore.retrieve(dataRecord
-                    .getDataURI());
+            IDataRecord[] dataRecords = dataStore
+                    .retrieve(dataRecord.getDataURI());
             for (IDataRecord rec : dataRecords) {
                 if (rec instanceof FloatDataRecord) {
                     if (rec.getName().equals(ModisDao.LATITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLatitudes(
                                 ((FloatDataRecord) rec).getFloatData());
-                    } else if (rec.getName().equals(
-                            ModisDao.LONGITUDE_DATASET_NAME)) {
+                    } else if (rec.getName()
+                            .equals(ModisDao.LONGITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLongitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     }
@@ -232,9 +300,8 @@ public class ModisSatResource extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#createNewFrame
-     * (com.raytheon.uf.common.time.DataTime, int)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * createNewFrame (com.raytheon.uf.common.time.DataTime, int)
      */
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
@@ -251,12 +318,13 @@ public class ModisSatResource extends
     @Override
     public String getName() {
         FrameData currFrame = (FrameData) getCurrentFrame();
+
         if (currFrame != null) {
             name = currFrame.getLegendForFrame();
         }
-        if (name == null) {
-            return MODIS_LEGEND_NAME;
-        }
+        if (name == null || name.trim().isEmpty())
+            name = createLegendString(null) + " -NO DATA";
+
         return name;
     }
 
@@ -290,9 +358,8 @@ public class ModisSatResource extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getParameterList
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getParameterList (com.raytheon.uf.common.dataplugin.persist.IPersistable)
      */
     @Override
     protected List<String> getParameterList(IPersistable pdo) {

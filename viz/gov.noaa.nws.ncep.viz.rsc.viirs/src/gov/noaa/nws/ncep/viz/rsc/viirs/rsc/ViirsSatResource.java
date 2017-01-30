@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.viz.rsc.viirs.rsc;
 import java.awt.Rectangle;
 import java.text.ParsePosition;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,9 @@ import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
 
 import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatDataRetriever;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
 
@@ -68,8 +72,10 @@ import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
  *  07/01/2016   R17376     kbugenhagen  Updated to use colormap name in 
  *                                       attribute set file.  Removed overloaded
  *                                       loadColorMapParameters method.
+ *  01/30/2017   R17933     R Reynolds   Build legendString from DB query parameters
  *  02/14/2017   R21492     kbugenhagen  Added call to suppress "Change Colormap"
  *                                       menu item in setColorMapUnits method.
+ *                                       
  * </pre>
  * 
  * @author kbugenhagen
@@ -92,6 +98,74 @@ public class ViirsSatResource
         super(data, props);
         resourceData = data;
         dataRecordMap = new LinkedHashMap<>();
+
+        legendStr = createLegendString(null);
+
+        name = legendStr;
+    }
+
+    @Override
+    public String createLegendString(IPersistable satRec) {
+
+        VIIRSDataRecord viirsDataRecord = (VIIRSDataRecord) satRec;
+        String resolution = "";
+        String legendStr = "";
+        String channel = "";
+        String rd = "";
+        String area = "";
+
+        try {
+
+            ResourceName rscName = resourceData.getResourceName();
+
+            Map<String, String> recordElements = new HashMap<>();
+
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+
+            HashMap<String, String> attributes = rscDefnsMngr
+                    .getAttrSet(rscName).getAttributes();
+
+            String legendStringAttribute = attributes
+                    .get(LEGEND_STRING_ATTRIBUTE_NAME);
+            if (legendStringAttribute == null
+                    || legendStringAttribute.trim().isEmpty()) {
+                legendStringAttribute = DEFAULT_LEGEND_STRING_ATTRIBUTE;
+
+            }
+
+            if (satRec != null) {
+
+                resolution = "(" + "DX:"
+                        + viirsDataRecord.getCoverage().getDx().toString() + ","
+                        + "DY:" + viirsDataRecord.getCoverage().getDy() + ")";
+
+                area = viirsDataRecord.getRegion();
+
+                recordElements.put(AREA, area);
+                recordElements.put(RESOLUTION, resolution);
+
+            }
+
+            channel = resourceData.getRscAttrSet().getRscAttrSetName();
+
+            rd = rscDefn.getResourceDefnName();
+
+            recordElements.put(RESOURCE_DEFINITION, rd);
+
+            recordElements.put(CHANNEL, channel);
+
+            legendStr = constructCustomLegendString(recordElements,
+                    legendStringAttribute);
+
+            if (satRec == null)
+                legendStr += " -NO DATA";
+
+        } catch (Exception ex) {
+            statusHandler.error("Error building legend string in VIIRS ", ex);
+        }
+        return legendStr;
     }
 
     private class ViirsDataRetriever
@@ -181,22 +255,17 @@ public class ViirsSatResource
 
         @Override
         public void setLegendForFrame(VIIRSDataRecord rec) {
-            name = VIIRS_LEGEND_NAME;
+            name = "";
             DataTime dateTime = rec.getDataTime();
             String refTime = dateTime.getDisplayString().split("\\[")[0];
             String[] timeParts = refTime.split(":");
-            StringBuilder builder = new StringBuilder(name);
-            builder.append(" ");
-            builder.append(rec.getParameter());
-            builder.append(" ");
-            builder.append(rec.getWavelength());
-            builder.append(" ");
-            builder.append(timeParts[0]);
-            builder.append(":");
-            builder.append(timeParts[1]);
-            legendStr = builder.toString();
+
+            legendStr = createLegendString(rec) + " " + timeParts[0] + ":"
+                    + timeParts[1];
             name = legendStr;
+
         }
+
     }
 
     /**
@@ -287,7 +356,7 @@ public class ViirsSatResource
                         dataUnit = UnitFormat.getUCUMInstance()
                                 .parseObject(unitStr, new ParsePosition(0));
                     } catch (Exception e) {
-                        statusHandler.error("Error parsinging dataUnit", e);
+                        statusHandler.error("Error parsing dataUnit", e);
                     }
                 }
                 if (offset != null && offset != 0.0) {
@@ -362,13 +431,15 @@ public class ViirsSatResource
      */
     @Override
     public String getName() {
+
         FrameData currFrame = (FrameData) getCurrentFrame();
         if (currFrame != null) {
             name = currFrame.getLegendForFrame();
         }
-        if (name == null) {
-            return VIIRS_LEGEND_NAME;
+        if (name == null || name.isEmpty()) {
+            name = createLegendString(null);
         }
+
         return name;
     }
 

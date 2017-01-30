@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import org.eclipse.swt.widgets.Event;
 
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
@@ -15,6 +13,8 @@ import com.raytheon.viz.ui.input.InputAdapter;
 import com.raytheon.viz.ui.panes.VizDisplayPane;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * Default input handler for polar-orbiting satellite sampling.
  * 
@@ -25,6 +25,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Date         Ticket# Engineer        Description
  * ------------ ------- -----------     --------------------------
  * 05/24/2016   R18511  kbugenhagen     Initial creation.
+ * 01/30/2017   R17933  R. Reynolds     Handle situation where no subTypeGen are specified in resource file.
+ * 
  * 
  * </pre>
  * 
@@ -68,9 +70,7 @@ public class PolarOrbitSatInputAdapter<R extends AbstractPolarOrbitSatResource<?
 
             if (activeRsc != null
                     && activeRsc instanceof AbstractPolarOrbitSatResource<?>
-                    && rp.getProperties().isVisible()
-                    && !((AbstractPolarOrbitSatResource<?>) activeRsc)
-                            .getLegendStr().equals("No Data")) {
+                    && rp.getProperties().isVisible()) {
                 if (activeRsc.equals(resource)) {
                     isActiveResource = true;
                 }

@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +30,11 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
+
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 
 /**
  * Common class for constants, utility methods ... *
@@ -84,6 +84,8 @@ import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
  *                                       latest selected spf group, spf name and
  *                                       rbd name in between calls
  *                                       to save RBD dialogue.
+ * 01/23/2017     R27165    A. Su        Assigned sequential funcKeyNum's to group resources 
+ *                                       if their funcKeyNum's are all one's before an RBD is saved.
  * 
  * </pre>
  * 
@@ -459,6 +461,8 @@ public class SpfsManager implements ILocalizationFileObserver {
             // For each display pane
             for (AbstractRenderableDisplay display : rbd.getDisplays()) {
 
+                boolean isFuncKeyNumSet = false;
+
                 // For each resource in the display
                 for (ResourcePair rp : display.getDescriptor()
                         .getResourceList()) {
@@ -471,7 +475,14 @@ public class SpfsManager implements ILocalizationFileObserver {
                         allResourcesList.add(
                                 (AbstractNatlCntrsRequestableResourceData) ard);
                     } else if (ard instanceof GroupResourceData) {
+
                         GroupResourceData grpResourceData = (GroupResourceData) ard;
+
+                        if (!isFuncKeyNumSet
+                                && grpResourceData.getFuncKeyNum() != 1) {
+                            isFuncKeyNumSet = true;
+                        }
+
                         for (ResourcePair singlePair : grpResourceData
                                 .getResourceList()) {
                             AbstractResourceData singleAbstractData = singlePair
@@ -508,6 +519,21 @@ public class SpfsManager implements ILocalizationFileObserver {
                     dominantResourceName.setCycleTimeLatest();
                     resourceNameToCycleTimeMap.put(
                             dominantResourceName.toString(), savedCycleTime);
+                }
+
+                // Assign sequential funcKeyNum's if not assigned yet.
+                if (!isFuncKeyNumSet) {
+                    int funcKeyNum = 1;
+                    for (ResourcePair rp : display.getDescriptor()
+                            .getResourceList()) {
+
+                        AbstractResourceData ard = rp.getResourceData();
+                        if (ard instanceof GroupResourceData) {
+                            GroupResourceData grpResourceData = (GroupResourceData) ard;
+                            grpResourceData.setFuncKeyNum(funcKeyNum);
+                            funcKeyNum++;
+                        }
+                    }
                 }
             }
         }
@@ -562,6 +588,7 @@ public class SpfsManager implements ILocalizationFileObserver {
                                     (AbstractNatlCntrsRequestableResourceData) ard);
                         } else if (ard instanceof GroupResourceData) {
                             GroupResourceData grpResourceData = (GroupResourceData) ard;
+
                             for (ResourcePair singlePair : grpResourceData
                                     .getResourceList()) {
                                 AbstractResourceData singleAbstractData = singlePair
@@ -963,25 +990,21 @@ public class SpfsManager implements ILocalizationFileObserver {
         String disallowedChars = findDisallowedCharsInName(name);
 
         if (!disallowedChars.isEmpty()) {
-            String errorMessage = "Error "
-                    + messageTitle
-                    + ": "
-                    + "characters <"
-                    + disallowedChars
-                    + "> "
-                    + ((nameCategory != null && !nameCategory.isEmpty()) ? "in "
-                            + nameCategory
-                            : "") + " are not allowed";
+            String errorMessage = "Error " + messageTitle + ": "
+                    + "characters <" + disallowedChars + "> "
+                    + ((nameCategory != null && !nameCategory.isEmpty())
+                            ? "in " + nameCategory : "")
+                    + " are not allowed";
 
-            MessageDialog errDlg = new MessageDialog(dialogShell, "Error",
-                    null, errorMessage, MessageDialog.ERROR,
-                    new String[] { "OK" }, 0);
+            MessageDialog errDlg = new MessageDialog(dialogShell, "Error", null,
+                    errorMessage, MessageDialog.ERROR, new String[] { "OK" },
+                    0);
             errDlg.open();
             return false;
         }
         return true;
     }
-    
+
     public String getLatestRbdName() {
         return latestRbdName;
     }

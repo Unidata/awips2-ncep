@@ -1,12 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.satellite.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
-import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
-import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
-import gov.noaa.nws.ncep.viz.resources.util.Sampler;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -50,6 +43,13 @@ import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
+import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
+import gov.noaa.nws.ncep.viz.resources.util.Sampler;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+
 /**
  * Abstract class for display of polar-orbiting (MODIS/VIIRS) satellite data.
  * 
@@ -63,7 +63,9 @@ import com.vividsolutions.jts.geom.Point;
  *  07/01/2016   R17376     kbugenhagen  Overloaded getColorMapName method to allow
  *                                       Modis/Viirs to use colormap names
  *                                       specified in attribute set files.
- * 
+ *  12/14/2016    R20988    kbugenhagen  Update getColorMapName to allow for 
+ *                                       override of colormap name in SPF.
+ *                                       
  * </pre>
  * 
  * @author kbugenhagen
@@ -125,11 +127,10 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
         public DrawableImage createTileImage(IGraphicsTarget target, Tile tile,
                 GeneralGridGeometry targetGeometry) throws VizException {
 
-            dataRetriever = (AbstractPolarOrbitSatDataRetriever<R>) getDataRetriever(tile);
-            IImage image = target
-                    .getExtension(IColormappedImageExtension.class)
-                    .initializeRaster(
-                            dataRetriever,
+            dataRetriever = (AbstractPolarOrbitSatDataRetriever<R>) getDataRetriever(
+                    tile);
+            IImage image = target.getExtension(IColormappedImageExtension.class)
+                    .initializeRaster(dataRetriever,
                             getCapability(ColorMapCapability.class)
                                     .getColorMapParameters());
             IMesh mesh = target.getExtension(IMapMeshExtension.class)
@@ -187,9 +188,8 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
          * 
          * @see
          * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource.FrameData
-         * #
-         * updateFrameData(gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource
-         * .IRscDataObject)
+         * # updateFrameData(gov.noaa.nws.ncep.viz.resources.
+         * AbstractNatlCntrsResource .IRscDataObject)
          */
         @Override
         public boolean updateFrameData(IRscDataObject rscDataObj) {
@@ -199,8 +199,8 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
 
             synchronized (this) {
                 try {
-                    boolean match = timeMatch(((PluginDataObject) record)
-                            .getDataTime()) > -1;
+                    boolean match = timeMatch(
+                            ((PluginDataObject) record).getDataTime()) > -1;
                     if (match) {
                         List<RecordData> recordDataList = recordDataMap
                                 .get(frameTime);
@@ -218,10 +218,10 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
                     }
 
                 } catch (VizException e) {
-                    statusHandler.handle(
-                            Priority.PROBLEM,
+                    statusHandler.handle(Priority.PROBLEM,
                             "Error adding record from update: "
-                                    + e.getLocalizedMessage(), e);
+                                    + e.getLocalizedMessage(),
+                            e);
 
                 }
             }
@@ -277,20 +277,22 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
      */
     protected void createColorMap(R dataRecord) throws VizException {
         imagePreferences = getStyleRulePreferences(dataRecord);
-        ColorMapParameters colorMapParameters = loadColorMapParameters(dataRecord);
+        ColorMapParameters colorMapParameters = loadColorMapParameters(
+                dataRecord);
         setColorBar(imagePreferences, colorMapParameters);
         if (colorMapParameters.getPersisted() != null) {
-            colorMapParameters.applyPersistedParameters(colorMapParameters
-                    .getPersisted());
+            colorMapParameters.applyPersistedParameters(
+                    colorMapParameters.getPersisted());
         }
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                colorMapParameters);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
         resourceChanged(ChangeType.CAPABILITY,
                 getCapability(ColorMapCapability.class));
     }
 
     /**
-     * Gets the colormap name from the resource data (attributes file)
+     * Gets the colormap name. Defaults to name in resource data (attributes
+     * file) but this can be overridden by the name in an SPF file.
      * 
      * (non-Javadoc)
      * 
@@ -298,7 +300,22 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
      */
     @Override
     protected String getColorMapName(ColorMapParameters colorMapParameters) {
-        return resourceData.getColorMapName();
+
+        // default to colormap name from attribute file
+        String colorMapName = resourceData.getColorMapName();
+        // colormap name from SPF can override default
+        String colorMapNameFromParams = colorMapParameters.getColorMapName();
+
+        if (colorMapNameFromParams != null
+                && !colorMapNameFromParams.equals(DEFAULT_COLORMAP_NAME)
+                && !colorMapNameFromParams.equals(colorMapName)) {
+            colorMapName = colorMapNameFromParams;
+        }
+
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
+
+        return colorMapName;
     }
 
     /**
@@ -318,16 +335,16 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
         ColorBarFromColormap colorBar = (ColorBarFromColormap) this.cbarResource
                 .getResourceData().getColorbar();
         if (colorBar.getColorMap() == null) {
-            colorBar.setColorMap((ColorMap) getCapability(
-                    ColorMapCapability.class).getColorMapParameters()
-                    .getColorMap());
+            colorBar.setColorMap(
+                    (ColorMap) getCapability(ColorMapCapability.class)
+                            .getColorMapParameters().getColorMap());
         }
         colorBar.setIsScalingAttemptedForThisColorMap(true);
         colorBar.scalePixelValues();
         colorBar.setNumPixelsToReAlignLabel(true);
         colorBar.setImagePreferences(preferences);
-        colorBar.setDisplayUnitStr(colorMapParameters.getDisplayUnit()
-                .toString());
+        colorBar.setDisplayUnitStr(
+                colorMapParameters.getDisplayUnit().toString());
     }
 
     /**
@@ -386,7 +403,7 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
     @Override
     protected void paintFrame(AbstractFrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
+                    throws VizException {
 
         FrameData currFrame = (FrameData) frameData;
         RecordData recordData = currFrame.getRecordData();
@@ -435,9 +452,9 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
      */
     public List<Collection<DrawableImage>> getAllImages(FrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
-        List<RecordData> recordDataList = frameData.getRecordDataMap().get(
-                frameData.getFrameTime());
+                    throws VizException {
+        List<RecordData> recordDataList = frameData.getRecordDataMap()
+                .get(frameData.getFrameTime());
         List<Collection<DrawableImage>> images = new ArrayList<>();
 
         if (recordDataList != null) {
@@ -510,7 +527,8 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
         double noDataValue = colorMapParameters.getNoDataValue();
         double bestValue = Double.NaN;
         R bestRecord = null;
-        List<AbstractPolarOrbitSatResource<R>.RecordData> recordDataList = getRecordDataList((FrameData) getCurrentFrame());
+        List<AbstractPolarOrbitSatResource<R>.RecordData> recordDataList = getRecordDataList(
+                (FrameData) getCurrentFrame());
 
         if (recordDataList != null) {
             for (AbstractPolarOrbitSatResource<R>.RecordData data : recordDataList) {
@@ -526,15 +544,16 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
         }
         double dataValue = Double.NaN;
         if (Double.isNaN(bestValue) == false) {
-            dataValue = colorMapParameters.getDataToDisplayConverter().convert(
-                    bestValue);
+            dataValue = colorMapParameters.getDataToDisplayConverter()
+                    .convert(bestValue);
             dataValue = convertDataValue(dataValue);
         }
         if (bestRecord != null) {
             interMap.put(IGridGeometryProvider.class.toString(), bestRecord);
         }
         interMap.put(AbstractSatelliteRecordData.SATELLITE_DATA_INTERROGATE_ID,
-                Measure.valueOf(dataValue, colorMapParameters.getDisplayUnit()));
+                Measure.valueOf(dataValue,
+                        colorMapParameters.getDisplayUnit()));
 
         return interMap;
     }

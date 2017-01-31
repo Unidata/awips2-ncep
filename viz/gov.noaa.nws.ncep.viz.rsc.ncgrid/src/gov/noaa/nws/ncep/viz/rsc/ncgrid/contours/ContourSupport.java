@@ -166,6 +166,9 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *    10/31/2016 R16586  RCReynolds    Fix grid color fill when number of colors does not match number of increments
  *                                     In general fix/verify that map/scalebar are correct when number of colors
  *                                     are less than, equal too or greater than number of increments
+ *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
+ *                                     be limiting the number of rendered contours, not the number or intervals between the 
+ *                                     min and the max
  * 
  * </pre>
  * 
@@ -201,6 +204,9 @@ public class ContourSupport {
     private float zoom;
 
     private String text;
+
+    /** Maximum number of contour levels */
+    private final static int MAX_CONTOUR_LEVELS = 100;
 
     // calculated values
     private ContourGroup contourGroup = null;
@@ -593,7 +599,12 @@ public class ContourSupport {
                  */
                 if (!contourGroup.cvalues.equals(cvalues)) {
                     contourGroup.latlonContours.clear();
+                    /*
+                     * This feeds all of the geometries/contours (with
+                     * associated key cvalue) into hash map latlonContours
+                     */
                     genContour(cvalues);
+
                     if (!isCntrsCreated)
                         return;
                     contourGroup.cvalues.clear();
@@ -973,6 +984,8 @@ public class ContourSupport {
 
             long elapsedTime = -System.nanoTime();
 
+            int contourCount = 0;
+
             for (Double cval : contourGroup.cvalues) {
                 float fval = (float) (cval * 1.0f);
                 boolean toLabel = false;
@@ -993,8 +1006,16 @@ public class ContourSupport {
                 }
 
                 Geometry g = contourGroup.latlonContours.get(cval.toString());
-                if (g == null)
+                if (g == null) {
                     continue;
+                }
+
+                contourCount++;
+                // If we've reached over the max allowed rendered contours for
+                // this pass then break out of for loop
+                if (contourCount > MAX_CONTOUR_LEVELS) {
+                    break;
+                }
 
                 // force packed w/ no SoftReference
                 Geometry gcopy = (Geometry) g.clone();
@@ -1029,6 +1050,7 @@ public class ContourSupport {
                         long tl0 = System.currentTimeMillis();
                         createContourLabel(extent, contourGroup, fval,
                                 gn.getCoordinates(), descriptor);
+
                         long tl1 = System.currentTimeMillis();
                         total_labeling_time += (tl1 - tl0);
                     }

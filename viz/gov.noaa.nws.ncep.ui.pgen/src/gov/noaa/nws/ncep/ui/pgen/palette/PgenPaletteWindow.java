@@ -153,6 +153,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * 07/28/2016   R17954      B. Yin      handle CANCEL status of the SAVE dialog.
  * 11/30/2016   R17954      Bugenhagen  Changed promptToSaveOnClose to only prompt
  *                                      if editor has any elements drawn.
+ * 12/27/2016   R27572      B. Yin      Fixed an undo/redo exception.
  * 
  * </pre>
  * 
@@ -814,7 +815,14 @@ public class PgenPaletteWindow extends ViewPart
 
                     exeCommand(elem);
 
-                    if (point.equals(ACTION_SECTION)) {
+                    /*
+                     * Sets current action. 
+                     * Don't set current action to undo/redo. Undo/redo button never 
+                     * gets highlighted. 
+                     */
+                    if (point.equals(ACTION_SECTION) 
+                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.UNDO)
+                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.REDO)) {
                         currentAction = elem.getAttribute(PgenConstant.NAME);
                     }
                 }

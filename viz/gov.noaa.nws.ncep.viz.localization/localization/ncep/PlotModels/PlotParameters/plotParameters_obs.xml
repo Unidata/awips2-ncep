@@ -67,9 +67,9 @@
   <PlotParameterDefn plotParamName="CLDT"
     metParamName="CombinedCloudMaxCoverage" deriveParams="SkyCoverage,CloudLayerBase" />
     
-  <!-- m*762/25 equals the unit "hundreds of feet" -->
+  <!-- m*762/25 equals the unit "hundreds of feet" so does hecto_ft -->
   <PlotParameterDefn plotParamName="CMSL"
-    metParamName="CeilingFromSeaLevel" deriveParams="all" plotUnit="m*762/25"
+    metParamName="CeilingFromSeaLevel" deriveParams="all" plotUnit="hecto_ft"
     plotFormat="%3.0f" />
     
    <PlotParameterDefn plotParamName="DARR"
@@ -163,6 +163,10 @@
   <PlotParameterDefn plotParamName="P03C"
     metParamName="PressChange3Hr" deriveParams="pressChange3Hour,pressChangeChar"
     plotUnit="Pa" plotFormat="%+3.0f" />
+    
+   <PlotParameterDefn plotParamName="P03D"
+    metParamName="PressureTendencyAndChangeGroup" deriveParams="all"/>
+
 
   <PlotParameterDefn plotParamName="P03I"
     metParamName="Precip03Hr" dbParamName="precip3Hour" plotUnit="in"
@@ -200,6 +204,10 @@
   <PlotParameterDefn plotParamName="PALT"
     metParamName="SurfacePressure" deriveParams="all" plotUnit="hPa"
     plotFormat="%3.0f" />
+    
+   <PlotParameterDefn plotParamName="PANY"
+    metParamName="SeaLevelPressureOrAltimeterSetting" deriveParams="seaLevelPress,altimeter"
+    plotUnit="mb" plotFormat="PANY" />     
 
   <PlotParameterDefn plotParamName="PKNT"
     metParamName="PackedWindSpeedAndDirection" deriveParams="windDir,windSpeed" plotUnit="kts"
@@ -208,15 +216,15 @@
   <PlotParameterDefn plotParamName="PMSL"
     metParamName="MeanSeaLevelPres" dbParamName="seaLevelPress"
     plotUnit="mb" plotFormat="PMSL" />
-  
+
+  <PlotParameterDefn plotParamName="PSPD"
+    metParamName="PackedWindSpeedAndDirection" deriveParams="windDir,windSpeed" plotUnit="m/s"
+    plotFormat="%3.0f" /> 
+
   <PlotParameterDefn plotParamName="PTND"
     metParamName="PressureChange3HrAndTendency" deriveParams="pressChange3Hour,pressChangeChar"
     plotUnit="Pa" plotFormat="%+3.0f" />
-    
-   <PlotParameterDefn plotParamName="P03D"
-    metParamName="PressureTendencyNumber" deriveParams="pressChangeChar"
-    plotUnit="Pa" plotFormat="%+3.0f" />
- 
+
   <PlotParameterDefn plotParamName="PSPD"
     metParamName="PackedWindSpeedAndDirection" deriveParams="windDir,windSpeed" plotUnit="m/s"
     plotFormat="%3.0f" />   
@@ -224,6 +232,10 @@
   <PlotParameterDefn plotParamName="PTSY"
     metParamName="PressureTendencySymbol" dbParamName="pressChangeChar"
     plotMode="table" symbolFont="WxSymbolFont" plotLookupTable="pgen_pressure_tendency.txt" />
+
+  <PlotParameterDefn plotParamName="RANY"
+    metParamName="SeaLevelPressureOrAltimeterSetting" deriveParams="seaLevelPress,altimeter"
+    plotUnit="mb" plotFormat="RANY" />    
 
   <PlotParameterDefn plotParamName="RELH"
     metParamName="RelativeHumidity" deriveParams="all" plotUnit="%"
@@ -247,6 +259,10 @@
   <PlotParameterDefn plotParamName="SALI"
     metParamName="SeaLevelPressure" dbParamName="altimeter" plotUnit="inHg"
     plotFormat="SALI" />
+    
+  <PlotParameterDefn plotParamName="SANY"
+    metParamName="SeaLevelPressureOrAltimeterSetting" deriveParams="seaLevelPress,altimeter"
+    plotUnit="mb" plotFormat="SANY" />    
 
   <PlotParameterDefn plotParamName="SALT"
     metParamName="SeaLevelPressure" dbParamName="altimeter" plotUnit="mb"
@@ -309,15 +325,12 @@
 
    <PlotParameterDefn plotParamName="STHE"
     metParamName="SurfaceEquivPotentialTemp" deriveParams="all"
-    plotUnit="K" plotFormat="%3.0f" />    
+    plotUnit="K" plotFormat="%3.0f" />       
+    
     
    <PlotParameterDefn plotParamName="STHK"
     metParamName="SurfacePotentialTemp" deriveParams="all" plotUnit="K"
     plotFormat="%3.0f" />
-
-  <PlotParameterDefn plotParamName="STHE"
-    metParamName="SurfaceEquivPotentialTemp" deriveParams="all"
-    plotUnit="K" plotFormat="%3.0f" />
     
   <PlotParameterDefn plotParamName="STHS"
     metParamName="SurfaceSatEquivPotentialTemp" deriveParams="all"

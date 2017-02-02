@@ -1,17 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.wavesat.rsc;
 
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
-import gov.noaa.nws.ncep.viz.resources.IDataLoader;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.geom.Rectangle2D;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,6 +38,18 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.viz.pointdata.PointDataRequest;
 
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.IDataLoader;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
+
 /**
  * AbstractWaveSatResource - Display SGWH(V) data.
  * 
@@ -77,14 +77,15 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  *                                      update/refresh on area change, and
  *                                      condition to normalize longitude due
  *                                      to missing data point issue
+ *  12/29/2016  R11514     A. Su        Added code to avoid the displaying of missing values from CryoSat-2.
  * 
  * </pre>
  * 
  * @author bhebbard
  * @version 1.0
  */
-public class WaveSatResource extends
-        AbstractNatlCntrsResource2<WaveSatResourceData, NCMapDescriptor>
+public class WaveSatResource
+        extends AbstractNatlCntrsResource2<WaveSatResourceData, NCMapDescriptor>
         implements INatlCntrsResource {
 
     private static final IUFStatusHandler logger = UFStatus
@@ -153,7 +154,9 @@ public class WaveSatResource extends
         }
     }
 
-    private final static Double MissingValue = -9999998.0;
+    private final static Double MISSING_VALUE_NEGATIVE = -9999998.0;
+
+    private final static Double MISSING_VALUE_POSITIVE = 999999.0;
 
     class FrameData extends AbstractFrameData {
 
@@ -193,8 +196,8 @@ public class WaveSatResource extends
             String[] constraintList = { startTime.toString(),
                     endTime.toString() };
             timeConstraint.setBetweenValueList(constraintList);
-            timeConstraint
-                    .setConstraintType(RequestConstraint.ConstraintType.BETWEEN);
+            timeConstraint.setConstraintType(
+                    RequestConstraint.ConstraintType.BETWEEN);
             reqConstraints.put("dataTime", timeConstraint);
             queryData(reqConstraints);
         }
@@ -231,7 +234,8 @@ public class WaveSatResource extends
                 pdc.setCurrentSz(pdc.getAllocatedSz());
             }
 
-            for (int uriCounter = 0; uriCounter < pdc.getAllocatedSz(); uriCounter++) {
+            for (int uriCounter = 0; uriCounter < pdc
+                    .getAllocatedSz(); uriCounter++) {
                 PointDataView pdv = pdc.readRandom(uriCounter);
                 if (pdv != null) {
                     for (IRscDataObject dataObject : processRecord(pdv)) {
@@ -257,14 +261,13 @@ public class WaveSatResource extends
             while (!autoUpdateList.isEmpty()) {
                 int i = 0, maxQueryTimes = 500;
 
-                timeConstraint
-                        .setConstraintValue(autoUpdateList.get(0).dataTime
-                                .toString());
+                timeConstraint.setConstraintValue(
+                        autoUpdateList.get(0).dataTime.toString());
                 autoUpdateList.remove(0);
 
                 while (!autoUpdateList.isEmpty() && i < maxQueryTimes) {
-                    timeConstraint.addToConstraintValueList(autoUpdateList
-                            .get(0).dataTime.toString());
+                    timeConstraint.addToConstraintValueList(
+                            autoUpdateList.get(0).dataTime.toString());
                     autoUpdateList.remove(0);
                     i++;
                 }
@@ -292,8 +295,9 @@ public class WaveSatResource extends
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             if (!(rscDataObj instanceof WaveSatRscDataObj)) {
 
-                logger.debug("WaveSat:updateFrameData expecting WaveSatRscDataObj instead of: "
-                        + rscDataObj.getClass().getName());
+                logger.debug(
+                        "WaveSat:updateFrameData expecting WaveSatRscDataObj instead of: "
+                                + rscDataObj.getClass().getName());
                 return false;
             }
 
@@ -305,8 +309,9 @@ public class WaveSatResource extends
             if (waveSatRscDataObj.createdFromAutoUpdate) {
                 autoUpdateList.add(waveSatRscDataObj);
             } else {
-                waveSatDataMap.put(waveSatRscDataObj.dataTime.getRefTime()
-                        .getTime(), waveSatRscDataObj);
+                waveSatDataMap.put(
+                        waveSatRscDataObj.dataTime.getRefTime().getTime(),
+                        waveSatRscDataObj);
             }
 
             needsUpdate = true;
@@ -369,8 +374,9 @@ public class WaveSatResource extends
             return new WaveSatRscDataObj[] { waveSatData };
         }
         if (!(pdo instanceof PointDataView)) {
-            logger.debug("WaveSat processRecord() : Expecting PointDataView object instead of: "
-                    + pdo.getClass().getName());
+            logger.debug(
+                    "WaveSat processRecord() : Expecting PointDataView object instead of: "
+                            + pdo.getClass().getName());
             return new WaveSatRscDataObj[] {};
         }
 
@@ -387,10 +393,10 @@ public class WaveSatResource extends
             return new WaveSatRscDataObj[] {};
         }
 
-        waveSatData.dataTime = new DataTime(new Date(
-                (Long) pdv.getNumber(REFTIME_PARAM)));
-        waveSatData.satelliteId = Long.toString((Long) pdv
-                .getNumber(satIdParam).longValue());
+        waveSatData.dataTime = new DataTime(
+                new Date((Long) pdv.getNumber(REFTIME_PARAM)));
+        waveSatData.satelliteId = Long
+                .toString((Long) pdv.getNumber(satIdParam).longValue());
         waveSatData.lat = pdv.getNumber(latParam).doubleValue();
         waveSatData.lon = pdv.getNumber(lonParam).doubleValue();
         waveSatData.waveHeight = pdv.getNumber(waveHeightParam).doubleValue();
@@ -411,13 +417,14 @@ public class WaveSatResource extends
 
         setNeedsUpdateAllFrames(true);
 
-        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters() ? waveSatResourceData
-                .getColorBarForFeet() : waveSatResourceData
-                .getColorBarForMeters();
-        colorBar.setReverseOrder(colorBar.getOrientation() == ColorBarOrientation.Vertical);
+        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters()
+                ? waveSatResourceData.getColorBarForFeet()
+                : waveSatResourceData.getColorBarForMeters();
+        colorBar.setReverseOrder(
+                colorBar.getOrientation() == ColorBarOrientation.Vertical);
 
-        colorBarResourcePair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(colorBar));
+        colorBarResourcePair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(colorBar));
 
         getDescriptor().getResourceList().add(colorBarResourcePair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
@@ -480,7 +487,7 @@ public class WaveSatResource extends
     @Override
     public void paintFrame(AbstractFrameData frameData,
             IGraphicsTarget grphTarget, PaintProperties paintProps)
-            throws VizException {
+                    throws VizException {
 
         FrameData currFrameData = (FrameData) frameData;
 
@@ -492,10 +499,11 @@ public class WaveSatResource extends
 
         IExtent extent = paintProps.getView().getExtent();
 
-        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters() ? waveSatResourceData
-                .getColorBarForFeet() : waveSatResourceData
-                .getColorBarForMeters();
-        colorBar.setReverseOrder(colorBar.getOrientation() == ColorBarOrientation.Vertical);
+        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters()
+                ? waveSatResourceData.getColorBarForFeet()
+                : waveSatResourceData.getColorBarForMeters();
+        colorBar.setReverseOrder(
+                colorBar.getOrientation() == ColorBarOrientation.Vertical);
         colorBar.setNumDecimals(1);
 
         if (!currFrameData.needsUpdate
@@ -507,7 +515,8 @@ public class WaveSatResource extends
                     waveSatResourceData.getTimeDisplayColor(), 1.0f,
                     LineStyle.SOLID, font);
 
-            for (int s = currFrameData.waveHeightWireframes.size() - 1; s >= 0; s--) {
+            for (int s = currFrameData.waveHeightWireframes.size()
+                    - 1; s >= 0; s--) {
                 grphTarget.drawWireframeShape(
                         currFrameData.waveHeightWireframes.get(s),
                         colorBar.getRGB(s), 1.0f, LineStyle.SOLID, font);
@@ -525,8 +534,8 @@ public class WaveSatResource extends
      * update wave data points on the map, for the current frame
      */
     private void paintCurrentFrame(IGraphicsTarget grphTarget,
-            PaintProperties paintProps, FrameData currFrameData,
-            IExtent extent, ColorBar colorBar) throws VizException {
+            PaintProperties paintProps, FrameData currFrameData, IExtent extent,
+            ColorBar colorBar) throws VizException {
 
         currFrameData.needsUpdate = false;
 
@@ -553,8 +562,8 @@ public class WaveSatResource extends
 
         for (int i = 0; i < colorBar.getNumIntervals(); i++) {
             if (i >= currFrameData.waveHeightWireframes.size()) {
-                currFrameData.waveHeightWireframes.add(grphTarget
-                        .createWireframeShape(true, this.descriptor));
+                currFrameData.waveHeightWireframes.add(
+                        grphTarget.createWireframeShape(true, this.descriptor));
             } else {
                 currFrameData.waveHeightWireframes.get(i).reset();
             }
@@ -589,6 +598,15 @@ public class WaveSatResource extends
 
             if (waveHeightPixLoc != null) {
                 Double waveHeight = waveSatData.waveHeight;
+
+                // if the value of wave height equals positive or negative
+                // missing value, the satellite is not sending any meaningful
+                // information. So, we stop drawing it.
+                if (waveHeight.equals(MISSING_VALUE_POSITIVE)
+                        || waveHeight.equals(MISSING_VALUE_NEGATIVE)) {
+                    continue;
+                }
+
                 if (waveSatResourceData.getUseFeetInsteadOfMeters()) {
                     waveHeight *= METERS_TO_FEET;
                 }
@@ -619,40 +637,39 @@ public class WaveSatResource extends
 
                 double minX = waveHeightPixLoc[0] - scale * bnds.getWidth() / 2;
                 double maxX = waveHeightPixLoc[0] + scale * bnds.getWidth() / 2;
-                double minY = waveHeightPixLoc[1] - scale * bnds.getHeight()
-                        / 2;
-                double maxY = waveHeightPixLoc[1] + scale * bnds.getHeight()
-                        / 2;
+                double minY = waveHeightPixLoc[1]
+                        - scale * bnds.getHeight() / 2;
+                double maxY = waveHeightPixLoc[1]
+                        + scale * bnds.getHeight() / 2;
 
                 PixelExtent pixelExtent = new PixelExtent(minX, maxX, minY,
                         maxY);
 
-                if (!waveHeight.equals(MissingValue)) {
-                    if (prevPixExtent == null
-                            || !prevPixExtent.intersect(pixelExtent)) {
+                if (prevPixExtent == null
+                        || !prevPixExtent.intersect(pixelExtent)) {
 
-                        for (int i = 0; i < colorBar.getNumIntervals(); i++) {
-                            if (colorBar.isValueInInterval(i,
-                                    waveHeight.floatValue(),
-                                    // currently ignored
-                                    waveHeightUnits)) {
+                    for (int i = 0; i < colorBar.getNumIntervals(); i++) {
+                        if (colorBar.isValueInInterval(i,
+                                waveHeight.floatValue(),
+                                // currently ignored
+                                waveHeightUnits)) {
 
-                                IWireframeShape wf = currFrameData.waveHeightWireframes
-                                        .get(i);
-                                wf.addLineSegment(line);
+                            IWireframeShape wf = currFrameData.waveHeightWireframes
+                                    .get(i);
+                            wf.addLineSegment(line);
 
-                                wf.addLabel(waveHeightStr, waveHeightPixLoc);
-                                prevPixExtent = pixelExtent;
-                                break;
-                            }
+                            wf.addLabel(waveHeightStr, waveHeightPixLoc);
+                            prevPixExtent = pixelExtent;
+                            break;
                         }
                     }
                 }
 
                 DataTime waveTime = waveSatData.getDataTime();
 
-                if (waveTime.getRefTime().getTime() - prevDisplayedTime > waveSatResourceData
-                        .getTimeDisplayInterval() * 1000 * 60) {
+                if (waveTime.getRefTime().getTime()
+                        - prevDisplayedTime > waveSatResourceData
+                                .getTimeDisplayInterval() * 1000 * 60) {
 
                     // Create a time for this
 
@@ -668,8 +685,8 @@ public class WaveSatResource extends
                     int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
                     int minuteOfHour = cal.get(Calendar.MINUTE);
                     int minuteOfDay = hourOfDay * 60 + minuteOfHour;
-                    if (minuteOfDay
-                            % waveSatResourceData.getTimeDisplayInterval() != 0) {
+                    if (minuteOfDay % waveSatResourceData
+                            .getTimeDisplayInterval() != 0) {
                         continue;
                     }
 
@@ -680,20 +697,20 @@ public class WaveSatResource extends
 
                     double[][] timeLine = new double[2][2];
                     timeLine[0][0] = pixelExtent.getMaxX() + 5 * scale;
-                    timeLine[0][1] = waveHeightPixLoc[1] - timeBnds.getHeight()
-                            / 2 * scale;
+                    timeLine[0][1] = waveHeightPixLoc[1]
+                            - timeBnds.getHeight() / 2 * scale;
                     timeLine[1][0] = pixelExtent.getMaxX() + 40 * scale;
-                    timeLine[1][1] = waveHeightPixLoc[1] - timeBnds.getHeight()
-                            / 2 * scale;
+                    timeLine[1][1] = waveHeightPixLoc[1]
+                            - timeBnds.getHeight() / 2 * scale;
 
                     currFrameData.timeDisplayWireframe.addLineSegment(timeLine);
 
                     double[] timeLoc = new double[2];
-                    timeLoc[0] = pixelExtent.getMaxX() + scale
-                            * (timeBnds.getWidth() + 40) / 2;
+                    timeLoc[0] = pixelExtent.getMaxX()
+                            + scale * (timeBnds.getWidth() + 40) / 2;
                     timeLoc[1] = waveHeightPixLoc[1];
-                    currFrameData.timeDisplayWireframe.addLabel(timeString
-                            .toUpperCase().trim(), timeLoc);
+                    currFrameData.timeDisplayWireframe
+                            .addLabel(timeString.toUpperCase().trim(), timeLoc);
 
                     prevDisplayedTime = waveTime.getRefTime().getTime();
                 }
@@ -718,9 +735,8 @@ public class WaveSatResource extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2#disposeInternal
-     * ()
+     * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2#
+     * disposeInternal ()
      */
     @Override
     public void disposeInternal() {
@@ -745,15 +761,16 @@ public class WaveSatResource extends
 
         setNeedsUpdateAllFrames(true);
 
-        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters() ? waveSatResourceData
-                .getColorBarForFeet() : waveSatResourceData
-                .getColorBarForMeters();
-        colorBar.setReverseOrder(colorBar.getOrientation() == ColorBarOrientation.Vertical);
+        ColorBar colorBar = waveSatResourceData.getUseFeetInsteadOfMeters()
+                ? waveSatResourceData.getColorBarForFeet()
+                : waveSatResourceData.getColorBarForMeters();
+        colorBar.setReverseOrder(
+                colorBar.getOrientation() == ColorBarOrientation.Vertical);
 
         getDescriptor().getResourceList().remove(colorBarResourcePair);
 
-        colorBarResourcePair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(colorBar));
+        colorBarResourcePair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(colorBar));
 
         getDescriptor().getResourceList().add(colorBarResourcePair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
@@ -776,7 +793,8 @@ public class WaveSatResource extends
      * (com.raytheon.uf.common.time.DataTime, int)
      */
     @Override
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
         return new FrameData(frameTime, timeInt);
     }
 
@@ -790,8 +808,8 @@ public class WaveSatResource extends
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
         if (colorBarResourcePair != null) {
-            colorBarResourcePair.getProperties().setVisible(
-                    updatedProps.isVisible());
+            colorBarResourcePair.getProperties()
+                    .setVisible(updatedProps.isVisible());
         }
     }
 

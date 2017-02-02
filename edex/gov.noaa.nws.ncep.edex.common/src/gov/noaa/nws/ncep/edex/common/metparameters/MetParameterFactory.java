@@ -37,6 +37,9 @@ import com.raytheon.uf.common.time.DataTime;
  * 08/24/2016    R18194    RReynolds    Added Ceiling parameters
  * 11/17/2016    R26156     J. Huber    Added CloudFractionMax and CloudFractionMaxLowMidLayer  
  * 12/13/2016    R27046    S.Russell    Added PackedWindSpeedAndDirection
+ * 01/09/2017    R27759    S.Russell    Added SeaLevelPressureOrAltimeterSetting to ncParamsMap
+ * 01/13/2017    R27759    S.Russell    Added PressureTendencyAndChangeGroup to
+ *                                      ncParamsMap
  * 
  * </pre>
  * 
@@ -117,16 +120,12 @@ public class MetParameterFactory {
                     new CatFcstVisibilityCond());
             ncParamsMap.put(CeilingFromSurface.class.getSimpleName(),
                     new CeilingFromSurface());
-
             ncParamsMap.put(CeilingOrLowestLayer.class.getSimpleName(),
                     new CeilingOrLowestLayer());
-
             ncParamsMap.put(CombinedCloudMaxCoverage.class.getSimpleName(),
                     new CombinedCloudMaxCoverage());
-
             ncParamsMap.put(CombinedCloud.class.getSimpleName(),
                     new CombinedCloud());
-
             ncParamsMap.put(CeilingFromSeaLevel.class.getSimpleName(),
                     new CeilingFromSeaLevel());
             ncParamsMap.put(CloudCover.class.getSimpleName(), new CloudCover());
@@ -347,6 +346,12 @@ public class MetParameterFactory {
                     new PeakWindSpeed());
             ncParamsMap.put(PeakWindSpeedTime.class.getSimpleName(),
                     new PeakWindSpeedTime());
+            ncParamsMap.put(
+                    SeaLevelPressureOrAltimeterSetting.class.getSimpleName(),
+                    new SeaLevelPressureOrAltimeterSetting());
+            ncParamsMap.put(
+                    PressureTendencyAndChangeGroup.class.getSimpleName(),
+                    new PressureTendencyAndChangeGroup());
             ncParamsMap.put(InstrumentWavePeriod.class.getSimpleName(),
                     new InstrumentWavePeriod());
             ncParamsMap.put(PredomSwellWavePeriod.class.getSimpleName(),

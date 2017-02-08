@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AttributeSetGroup xmlns:ns2="http://www.example.org/productType">
-    <resource>NAMNEST_HI</resource>
+    <resource>NAM_SJU</resource>
     <attrSetGroupName>standard</attrSetGroupName>
     
     <attrSetLabels>

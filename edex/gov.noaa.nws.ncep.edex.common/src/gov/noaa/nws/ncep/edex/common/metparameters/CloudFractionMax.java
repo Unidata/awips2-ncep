@@ -18,9 +18,10 @@ import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary
  * 
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 11/17/2016   R26156      J. Huber    Initial creation
+ * <pre>
+ * Date          Ticket#   Engineer   Description 
+ * ----------    -------   --------   -----------
+ * 11/17/2016    R26156    J. Huber   Initial creation
  * </pre>
  * 
  * @author Joshua Huber
@@ -97,4 +98,31 @@ public class CloudFractionMax extends AbstractMetParameter
         return this;
 
     }
+
+    @Override
+    public String getFormattedString(String formatStr) {
+
+        String returnValue = "";
+        Double val = this.doubleValue();
+
+        if (formatStr == null || formatStr.isEmpty()
+                || formatStr.startsWith("%")) {
+            returnValue = String.valueOf(val);
+
+        } else if (formatStr.equals("TCLO")) {
+
+            val = val / 8;
+            if (val >= 1) {
+                val = 1.0;
+            }
+            val = val * 1000;
+
+            returnValue = String.format("%1$.0f", val);
+
+        }
+
+        return returnValue;
+
+    }
+
 }

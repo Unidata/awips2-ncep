@@ -1,15 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.aww.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
-import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
-import gov.noaa.nws.ncep.edex.plugin.aww.exception.AwwDecoderException;
-import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwLatLonUtil;
-import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwParser;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
-import gov.noaa.nws.ncep.edex.util.UtilN;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -24,6 +14,16 @@ import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwLatlons;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwUgc;
+import gov.noaa.nws.ncep.common.dataplugin.aww.AwwVtec;
+import gov.noaa.nws.ncep.edex.plugin.aww.exception.AwwDecoderException;
+import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwLatLonUtil;
+import gov.noaa.nws.ncep.edex.plugin.aww.util.AwwParser;
+import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
+import gov.noaa.nws.ncep.edex.util.UtilN;
 
 /**
  * 
@@ -60,8 +60,10 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  * Aug 30, 2013 2298            rjpeter     Make getPluginName abstract
  * Mar 21, 2103 1112            S. Russell  *.WCN files, get the watch number
  * Aug 13, 2014 (none?)         D. Sushon   refactor to be sure all bulletins get decoded, removed some dead code, marked possibly dead code as such
- * Nov 7, 2014 5125             J. Huber    Cleaned up unneeded logic and deprecated method calls.
+ * Nov 7, 2014  5125            J. Huber    Cleaned up unneeded logic and deprecated method calls.
  * Aug 17, 2015 R8881			J. Huber	Fixed bug which prevented WCN ugc/vtec/fips information from being processed.
+ * 11/22/2017   R28361          R Reynolds  Handle new mixed-case formatting of the bulletin. Convert to upper case for processing
+ *                                          but store mixed case bulletin in bullmessage field of AWW table.
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -104,6 +106,7 @@ public class AwwDecoder extends AbstractDecoder {
 
         byte[] messageData = null;
         String theBulletin = null;
+        String mixedCaseBulletin = null;
 
         // Check if there are more bulletins
         AwwSeparator sep = AwwSeparator.separate(data, headers);
@@ -116,6 +119,8 @@ public class AwwDecoder extends AbstractDecoder {
         } else {
             theBulletin = theMessage;
         }
+        mixedCaseBulletin = theBulletin;
+        theBulletin = theBulletin.toUpperCase();
 
         do {
 
@@ -128,10 +133,10 @@ public class AwwDecoder extends AbstractDecoder {
             AwwRecord record = AwwParser.processWMO(theBulletin, mndTime);
             if (record == null) {
                 throw new AwwDecoderException("Error on decoding Aww Record");
-            }  else {
-            	// Set MND remark before the URI is constructed
+            } else {
+                // Set MND remark before the URI is constructed
                 if ((mt.getMndTimeString() == null)
-                		|| mt.getMndTimeString().trim().isEmpty()) {
+                        || mt.getMndTimeString().trim().isEmpty()) {
                     record.setMndTime("unknown");
                 } else {
                     record.setMndTime(mt.getMndTimeString());
@@ -145,24 +150,25 @@ public class AwwDecoder extends AbstractDecoder {
                 segmentList.clear();
 
                 // Break the bulletin message into segments by a "$$"
-                Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
+                Scanner sc = new Scanner(theBulletin)
+                        .useDelimiter(segmentDelim);
 
                 boolean isWCN = false;
                 String wcnLbl = AwwRecord.AwwReportType.WATCH_COUNTY_NOTIFICATION
-                		.name();
+                        .name();
                 wcnLbl = wcnLbl.replace("_", " ");
                 if (reportType.equals(wcnLbl)) {
-                	isWCN = true;
+                    isWCN = true;
                 }
 
                 while (sc.hasNext()) {
-                	String segment = sc.next();
-                	Matcher ugcMatcher = ugcPattern.matcher(segment);
-                	boolean ugcMatch = ugcMatcher.find();
-                	// discard if the segment did not have an UGC line.
-                	if (ugcMatch || isWtchFlag || isWCN) {
-                		segmentList.add(segment);
-                	}
+                    String segment = sc.next();
+                    Matcher ugcMatcher = ugcPattern.matcher(segment);
+                    boolean ugcMatch = ugcMatcher.find();
+                    // discard if the segment did not have an UGC line.
+                    if (ugcMatch || isWtchFlag || isWCN) {
+                        segmentList.add(segment);
+                    }
                 }
 
                 try {
@@ -172,7 +178,7 @@ public class AwwDecoder extends AbstractDecoder {
                         Matcher ugcMatcher = ugcPattern.matcher(segment);
                         boolean ugcMatch = ugcMatcher.find();
                         AwwUgc ugc = null;
-                                            
+
                         if (isWCN) {
                             String watchNumber = AwwParser
                                     .retrieveWatchNumberFromWCN(segment);
@@ -193,7 +199,8 @@ public class AwwDecoder extends AbstractDecoder {
                                     watchesList);
 
                             String watchNumber = AwwParser
-                                    .processUgcToRetrieveWatchNumberForThunderstormOrTornado(segment);
+                                    .processUgcToRetrieveWatchNumberForThunderstormOrTornado(
+                                            segment);
                             record.setWatchNumber(watchNumber);
 
                         } else if (ugcMatch) {
@@ -210,7 +217,8 @@ public class AwwDecoder extends AbstractDecoder {
                                  * Status Report
                                  */
                                 String watchNumber = AwwParser
-                                        .processUgcToRetrieveWatchNumberForStatusReport(segment);
+                                        .processUgcToRetrieveWatchNumberForStatusReport(
+                                                segment);
                                 record.setWatchNumber(watchNumber);
 
                                 AwwVtec awwVtec = AwwParser
@@ -226,8 +234,8 @@ public class AwwDecoder extends AbstractDecoder {
                                  * to ugc
                                  */
                                 List<AwwLatlons> pointAwwLatLonsList = AwwLatLonUtil
-                                        .getAwwLatLonsListBySereveWeatherStatusPointLine(awwVtec
-                                                .getVtecLine());
+                                        .getAwwLatLonsListBySereveWeatherStatusPointLine(
+                                                awwVtec.getVtecLine());
                                 for (AwwLatlons eachAwwLatlons : pointAwwLatLonsList) {
                                     ugc.addAwwLatLon(eachAwwLatlons);
                                 }
@@ -237,29 +245,31 @@ public class AwwDecoder extends AbstractDecoder {
                     }
                     record.setReportType(reportType.trim());
                     record.setTraceId(traceId);
-                    
 
                 } catch (Exception e) {
                     logger.error("Error processing decoded segment", e);
                     record = null;
-            }
+                }
 
-            // Decode and set attention line
-            record.setAttentionWFO(AwwParser.processATTN(theBulletin));
+                // Decode and set attention line
+                record.setAttentionWFO(AwwParser.processATTN(theBulletin));
 
-            // Replace special characters to a blank so that it may be readable.
-            if (theBulletin.length() < 40000) {
-                record.setBullMessage(UtilN
-                        .removeLeadingWhiteSpaces(theBulletin
-                                .replace('\r', ' ').replace('\003', ' ')
-                                .replace('\000', ' ').replace('\001', ' ')
-                                .replace('\036', ' ')));
-            }
+                // Replace special characters to a blank so that it may be
+                // readable.
+                if (theBulletin.length() < 40000) {
+                    record.setBullMessage(
+                            UtilN.removeLeadingWhiteSpaces(mixedCaseBulletin
+                                    .replace('\r', ' ').replace('\003', ' ')
+                                    .replace('\000', ' ').replace('\001', ' ')
+                                    .replace('\036', ' ')));
+                }
 
-            outPdo.add(record);
-            if (cc.hasNext()) {
-                theBulletin = cc.next();
-            }
+                outPdo.add(record);
+                if (cc.hasNext()) {
+                    theBulletin = cc.next();
+                    mixedCaseBulletin = theBulletin;
+                    theBulletin = theBulletin.toUpperCase();
+                }
             }
         } while (cc.hasNext());
 
@@ -278,5 +288,5 @@ public class AwwDecoder extends AbstractDecoder {
         }
         return ("WWUS30".equalsIgnoreCase(ar.getWmoHeader()));
     }
- 
+
 }

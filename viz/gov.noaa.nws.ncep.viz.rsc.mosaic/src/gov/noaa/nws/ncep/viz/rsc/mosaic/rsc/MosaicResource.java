@@ -15,17 +15,18 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import javax.measure.converter.MultiplyConverter;
-import javax.measure.converter.UnitConverter;
 import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 
 import org.eclipse.swt.graphics.RGB;
+import org.geotools.coverage.grid.GridGeometry2D;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -34,9 +35,14 @@ import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingEntry;
 import com.raytheon.uf.common.dataplugin.HDF5Util;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.datastorage.DataStoreFactory;
 import com.raytheon.uf.common.datastorage.IDataStore;
+import com.raytheon.uf.common.datastorage.Request;
 import com.raytheon.uf.common.datastorage.StorageException;
+import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
+import com.raytheon.uf.common.datastorage.records.IDataRecord;
+import com.raytheon.uf.common.datastorage.records.ShortDataRecord;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -45,18 +51,23 @@ import com.raytheon.uf.common.style.image.ImagePreferences;
 import com.raytheon.uf.common.style.image.SamplePreferences;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.units.PiecewisePixel;
+import com.raytheon.uf.viz.core.DrawableImage;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
+import com.raytheon.uf.viz.core.IMesh;
+import com.raytheon.uf.viz.core.PixelCoverage;
+import com.raytheon.uf.viz.core.data.IColorMapDataRetrievalCallback;
+import com.raytheon.uf.viz.core.drawables.IColormappedImage;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
+import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormappedImageExtension;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.map.IMapMeshExtension;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
-import com.raytheon.viz.core.rsc.hdf5.AbstractTileSet;
-import com.vividsolutions.jts.geom.Coordinate;
 
 /**
  * Provide Radar Mosaic raster rendering support
@@ -67,7 +78,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  *  Date         Ticket#     Engineer     Description
  *  ------------ ----------  -----------  --------------------------
- *  01/2010	  	   204 	 	  M. Li       Initial Creation.
+ *  01/2010	       204        M. Li       Initial Creation.
  *  03/2010                   B. Hebbard  Port TO11D6->TO11DR3; add localization
  *  04/2010        259        Greg Hull   Added Colorbar
  *  09/2010        307        Greg Hull   move getName to resourceData and base on 
@@ -75,9 +86,11 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  07/11/11                  Greg Hull   ColorBarResource 
  *  06-07-2012     717         Archana	  Updated setColorMapParameters() to store label information
  *                                        for the colorbar                                     
- *  06/21/2012     #825	      Greg Hull   rm mosaicInfo.txt; get legend info from the Record.
+ *  06/21/2012     #825       Greg Hull   rm mosaicInfo.txt; get legend info from the Record.
  *  07/18/12       717        Archana     Refactored a field used to align the label data
  * 12/19/2012     #960        Greg Hull   override propertiesChanged() to update colorBar.
+ * 06/15/2016     R19647      bsteffen    Improve performance
+ * 10/20/2016     R20700      pmoyer      Added image brightness adjustment to paintFrame
  * 
  * </pre>
  * 
@@ -92,153 +105,183 @@ public class MosaicResource extends
     private static final IUFStatusHandler statusHandler = UFStatus.getHandler(
             MosaicResource.class, "Mosaic");
 
-    MosaicResourceData radarRscData;
-
-    protected String baseFileName;
-
-    protected IGraphicsTarget grphTarget;
-
-    protected int numLevels;
-
-    protected String viewType;
-
     /** The line color */
     private static final RGB DEFAULT_COLOR = new RGB(255, 255, 255);
 
-    protected RadarTileSet baseTile;
-
-    private ColorMapParameters colorMapParameters = null;
-
     protected ColorBarResource cbarResource;
-
-    protected ResourcePair cbarRscPair;
 
     protected class FrameData extends AbstractFrameData {
 
-        RadarTileSet tileSet;
+        DrawableImage image;
 
-        DataTime tileTime; // the time of the data used to create the tileset
-                           // used to determine if we need to replace the tile
-                           // with a better timematch.
-
-        public int prodCode;
-
-        public String prodName;
-
-        public String unitName;
-
-        public int numLevels;
-
-        public String legendStr = "";
+        MosaicRecord mosaicRecord;
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
-            tileTime = null;
         }
 
         public boolean updateFrameData(IRscDataObject rscDataObj) {
             PluginDataObject pdo = ((DfltRecordRscDataObj) rscDataObj).getPDO();
-            MosaicRecord radarRecord = (MosaicRecord) pdo;
-
-            prodCode = radarRecord.getProductCode();
-            prodName = radarRecord.getProdName();
-            numLevels = radarRecord.getNumLevels();
-            unitName = radarRecord.getUnit();
-            legendStr = createLegend(prodCode, prodName, numLevels, unitName);
-
-            synchronized (this) {
-                try {
-                    if (!(pdo instanceof MosaicRecord)) {
-                        statusHandler
-                                .handle(Priority.PROBLEM,
-                                        "" + this.getClass().getName()
-                                                + " expected : "
-                                                + MosaicRecord.class.getName()
-                                                + " Got: " + pdo);
-                        return false;
-                    }
-
-                    if (radarRscData.getProductCode().intValue() != prodCode) {
-                        System.out
-                                .println("??? radar product code in data Record doesn't match"
-                                        + " the requested product code???");
-                        radarRscData.setProductCode(radarRecord
-                                .getProductCode());
-                    }
-
-                    if (baseTile == null) {
-                        try {
-                            setColorMapParameters(radarRecord);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (StorageException e) {
-                            e.printStackTrace();
-                        } catch (VizException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (baseTile == null) {
-                        tileSet = baseTile = createTile(radarRecord, false);
-                        tileTime = radarRecord.getDataTime();
-                    } else { // if the tileset is already set, and the new
-                             // record is
-                             // is not a better match then return
-                        if (tileSet != null && tileTime != null) {
-                            if (timeMatch(radarRecord.getDataTime()) >= timeMatch(tileTime)) {
-                                return false;
-                            } else { // if this is a better match, we need to
-                                     // create a new tile.
-                                if (tileSet == baseTile) {
-                                    tileSet = null;
-                                } else {
-                                    tileSet.dispose();
-                                    tileSet = null;
-                                }
-                            }
-                        }
-
-                        tileSet = createTile(radarRecord, true);
-                        tileTime = radarRecord.getDataTime();
-                    }
-
-                    if (grphTarget != null) {
-                        tileSet.init(grphTarget);
-                    }
-
-                    Collections.sort(MosaicResource.this.dataTimes);
-                } catch (VizException e) {
-                    System.out.println("Error processing MosaicRecord. "
-                            + e.getMessage());
+            MosaicRecord mosaicRecord = (MosaicRecord) pdo;
+            if (this.mosaicRecord != null) {
+                if (timeMatch(mosaicRecord.getDataTime()) >= timeMatch(this.mosaicRecord
+                        .getDataTime())) {
                     return false;
+                } else if (image != null) {
+                    /* if this is a better match, we need to create a new image. */
+                    image.dispose();
+                    image = null;
                 }
             }
+            ColorMapParameters colorMapParameters = getCapability(
+                    ColorMapCapability.class).getColorMapParameters();
+            if (colorMapParameters == null
+                    || colorMapParameters.getColorMap() == null) {
+                try {
+                    setColorMapParameters(mosaicRecord);
+                } catch (FileNotFoundException | StorageException
+                        | VizException e) {
+                    statusHandler.error("Error initializing color map.", e);
+                }
+            }
+
+            this.mosaicRecord = mosaicRecord;
             return true;
         }
 
+        public DataTime getRecordTime() {
+            if (mosaicRecord == null) {
+                return null;
+            } else {
+                return mosaicRecord.getDataTime();
+            }
+        }
+
+        public String getLegendString() {
+            if (mosaicRecord == null) {
+                return "";
+            } else {
+                String prodName = mosaicRecord.getProdName();
+                Integer numLevels = mosaicRecord.getNumLevels();
+                String unitName = mosaicRecord.getUnit();
+                return createLegend(prodName, numLevels, unitName);
+            }
+        }
+
+        public DrawableImage getImage(IGraphicsTarget target)
+                throws VizException {
+            if (image == null) {
+                IColormappedImageExtension cmapExtension = target
+                        .getExtension(IColormappedImageExtension.class);
+                IColorMapDataRetrievalCallback callback = new MosaicColorMapDataRetrievalCallback(
+                        mosaicRecord);
+                ColorMapParameters colorMapParameters = getCapability(
+                        ColorMapCapability.class).getColorMapParameters();
+                IColormappedImage cmapImage = cmapExtension.initializeRaster(
+                        callback, colorMapParameters);
+
+                IMapMeshExtension meshExtension = target
+                        .getExtension(IMapMeshExtension.class);
+                GridGeometry2D imageGeometry = new MosaicTiler(mosaicRecord)
+                        .constructGridGeometry();
+                IMesh mesh = meshExtension.constructMesh(imageGeometry,
+                        descriptor.getGridGeometry());
+                PixelCoverage coverage = new PixelCoverage(mesh);
+                image = new DrawableImage(cmapImage, coverage);
+            }
+            return image;
+        }
+
+        public void reproject() throws VizException {
+            if (image != null) {
+                PixelCoverage coverage = image.getCoverage();
+                IMesh oldMesh = coverage.getMesh();
+                IMesh newMesh = oldMesh.clone(descriptor.getGridGeometry());
+                coverage.setMesh(newMesh);
+                oldMesh.dispose();
+            }
+        }
+
+        @Override
         public void dispose() {
-            if (tileSet != baseTile && tileSet != null) {
-                tileSet.dispose();
-                tileSet = null;
+            if (image != null) {
+                image.dispose();
+                image = null;
             }
         }
     }
 
-    public MosaicResource(MosaicResourceData rrd, LoadProperties loadProps)
-            throws VizException {
+    public MosaicResource(MosaicResourceData rrd, LoadProperties loadProps) {
         super(rrd, loadProps);
         rrd.addChangeListener(this);
 
-        this.radarRscData = rrd;
+        this.dataTimes = new ArrayList<>();
 
-        grphTarget = null;
-        this.dataTimes = new ArrayList<DataTime>();
-        // this.productCode = 0;
-
-        if (this.getCapability(ColorableCapability.class).getColor() == null) {
-            this.getCapability(ColorableCapability.class).setColor(
-                    DEFAULT_COLOR);
+        ColorableCapability colorCap = getCapability(ColorableCapability.class);
+        if (colorCap.getColor() == null) {
+            colorCap.setColor(DEFAULT_COLOR);
         }
+    }
+
+    @Override
+    protected boolean postProcessFrameUpdate() {
+        /*
+         * This method will perform a bulk hdf5 request for all the data for all
+         * frames.
+         */
+        Map<String, MosaicRecord> mosaicRecordMap = new HashMap<>();
+        Map<File, Set<String>> datasetGroupPaths = new HashMap<>();
+
+        for (AbstractFrameData afd : frameDataMap.values()) {
+            FrameData frame = (FrameData) afd;
+            MosaicRecord mosaicRecord = frame.mosaicRecord;
+            if (mosaicRecord.getRawData() == null) {
+                String dataURI = mosaicRecord.getDataURI();
+                mosaicRecordMap.put(dataURI, mosaicRecord);
+                File loc = HDF5Util.findHDF5Location(mosaicRecord);
+                Set<String> paths = datasetGroupPaths.get(loc);
+                if (paths == null) {
+                    paths = new HashSet<>();
+                    datasetGroupPaths.put(loc, paths);
+                }
+                paths.add(dataURI + DataURI.SEPARATOR
+                        + MosaicRecord.DATA_DATASET_NAME);
+                paths.add(dataURI + DataURI.SEPARATOR
+                        + MosaicRecord.THRESHOLD_DATASET_NAME);
+            }
+        }
+        for (Entry<File, Set<String>> entry : datasetGroupPaths.entrySet()) {
+            IDataStore dataStore = DataStoreFactory
+                    .getDataStore(entry.getKey());
+            try {
+                IDataRecord[] dataRecords = dataStore.retrieveDatasets(entry
+                        .getValue().toArray(new String[0]), Request.ALL);
+                for (IDataRecord dataRecord : dataRecords) {
+                    String dataURI = dataRecord.getGroup();
+                    MosaicRecord mosaicRecord = mosaicRecordMap.get(dataURI);
+                    if (dataRecord.getName().equals(
+                            MosaicRecord.DATA_DATASET_NAME)) {
+                        ByteDataRecord byteData = (ByteDataRecord) dataRecord;
+                        mosaicRecord.setRawData(byteData.getByteData());
+                    } else if (dataRecord.getName().equals(
+                            MosaicRecord.THRESHOLD_DATASET_NAME)) {
+                        ShortDataRecord shortData = (ShortDataRecord) dataRecord;
+                        mosaicRecord.setThresholds(shortData.getShortData());
+                    }
+                }
+            } catch (StorageException | FileNotFoundException e) {
+                /*
+                 * This is only a debug because the individual records will be
+                 * requested when they are needed and the specific mosaic record
+                 * that is having problems will be able to log a more
+                 * descriptive error at that time.
+                 */
+                statusHandler.handle(Priority.DEBUG,
+                        "Bulk mosaic retrieval has failed.", e);
+            }
+
+        }
+        return true;
     }
 
     @Override
@@ -247,15 +290,13 @@ public class MosaicResource extends
         return new FrameData(frameTime, frameInterval);
     }
 
-    private String createLegend(int prodCode, String prodName, int numLevels,
+    private static String createLegend(String prodName, int numLevels,
             String unitName) {
         if (unitName == null) {
             unitName = " ";
         } else {
             if (!unitName.contains("(")) {
-                String temp = " (";
-                temp += unitName + ") ";
-                unitName = temp;
+                unitName = " (" + unitName + ") ";
             }
             if (unitName.contains("/10")) {
                 unitName = unitName.replace("/10", "");
@@ -265,9 +306,8 @@ public class MosaicResource extends
             }
         }
 
-        String legendString = new String(prodName + unitName
-                + (int) (Math.log(numLevels) / Math.log(2)) + "-bit ");
-        return legendString;
+        int bitDepth = (int) (Math.log(numLevels) / Math.log(2));
+        return prodName + unitName + bitDepth + "-bit ";
     }
 
     @Override
@@ -277,51 +317,40 @@ public class MosaicResource extends
 
         if (fd == null) {
             return "Natl Mosaic-No Data";
-        } else if (fd.tileTime == null
-                || fd.tileSet.getMapDescriptor().getFrameCount() == 0) {
+        } else if (fd.getRecordTime() == null
+                || descriptor.getFramesInfo().getFrameCount() == 0) {
 
-            return fd.legendStr + "-No Data";
+            return fd.getLegendString() + "-No Data";
         } else {
-            return fd.legendStr
-                    + NmapCommon.getTimeStringFromDataTime(fd.tileTime, "/");
+            return fd.getLegendString()
+                    + NmapCommon.getTimeStringFromDataTime(fd.getRecordTime(),
+                            "/");
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.raytheon.viz.core.rsc.IVizResource#dispose()
-     */
     @Override
     public void disposeInternal() {
         super.disposeInternal();
 
-        getDescriptor().getResourceList().remove(cbarRscPair);
+        descriptor.getResourceList().removeRsc(cbarResource);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seecom.raytheon.viz.core.rsc.IVizResource#init(com.raytheon.viz.core.
-     * IGraphicsTarget)
-     */
+    @Override
     public void initResource(IGraphicsTarget target) throws VizException {
         synchronized (this) {
-            this.viewType = target.getViewType();
-            this.grphTarget = target;
-
-            // create the colorBar Resource and add it to the resourceList for
-            // this descriptor.
-            cbarRscPair = ResourcePair
+            /*
+             * create the colorBar Resource and add it to the resourceList for
+             * this descriptor.
+             */
+            ResourcePair cbarRscPair = ResourcePair
                     .constructSystemResourcePair(new ColorBarResourceData(
-                            radarRscData.getColorBar()));
+                            resourceData.getColorBar()));
 
-            getDescriptor().getResourceList().add(cbarRscPair);
-            getDescriptor().getResourceList().instantiateResources(
-                    getDescriptor(), true);
+            descriptor.getResourceList().add(cbarRscPair);
+            descriptor.getResourceList().instantiateResources(descriptor, true);
 
             cbarResource = (ColorBarResource) cbarRscPair.getResource();
-            // cbarResource.setColorBar( radarRscData.getColorBar() );
+
             getCapability(ImagingCapability.class)
                     .setSuppressingMenuItems(true);
             getCapability(ColorMapCapability.class).setSuppressingMenuItems(
@@ -330,26 +359,10 @@ public class MosaicResource extends
                     true);
             queryRecords();
 
-            if (this.baseTile != null) {
-                this.baseTile.init(target);
-            }
-
-            for (AbstractFrameData frm : frameDataMap.values()) {
-                AbstractTileSet ts = ((FrameData) frm).tileSet;
-                if (ts != null)
-                    ts.init(target);
-            }
-
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seecom.raytheon.viz.core.rsc.IVizResource#paint(com.raytheon.viz.core.
-     * IGraphicsTarget, com.raytheon.viz.core.PixelExtent, double, float)
-     */
-    // @Override
+    @Override
     public void paintFrame(AbstractFrameData frmData, IGraphicsTarget target,
             PaintProperties paintProps) throws VizException {
         if (paintProps == null || paintProps.getDataTime() == null) {
@@ -357,28 +370,50 @@ public class MosaicResource extends
         }
 
         FrameData currFrame = (FrameData) frmData;
-        RadarTileSet tileSet = currFrame.tileSet;
+        DrawableImage image = currFrame.image;
+
+        ColorMapParameters colorMapParameters = getCapability(
+                ColorMapCapability.class).getColorMapParameters();
 
         try {
-            if (tileSet != null) {
-                ImagingCapability imgCap = new ImagingCapability();
-                imgCap.setBrightness(radarRscData.getBrightness());
-                imgCap.setContrast(radarRscData.getContrast());
-                imgCap.setAlpha(radarRscData.getAlpha());
-                paintProps.setAlpha(radarRscData.getAlpha());
-                radarRscData.fireChangeListeners(ChangeType.CAPABILITY, imgCap);
-                colorMapParameters = getCapability(ColorMapCapability.class)
-                        .getColorMapParameters();
-                // TODO: Suggest making the following more resilient to errors
-                // -- handle case where
-                // "params" is null, which does occur if colormap file was not
-                // found.
-                if (colorMapParameters.getColorMap() == null) {
-                    throw new VizException("ColorMap not specified");
-                }
+            if (image == null) {
+                IColormappedImage cmapImage = target.getExtension(
+                        IColormappedImageExtension.class).initializeRaster(
+                        new MosaicColorMapDataRetrievalCallback(
+                                currFrame.mosaicRecord), colorMapParameters);
 
-                tileSet.paint(target, paintProps);
+                IMesh mesh = target
+                        .getExtension(IMapMeshExtension.class)
+                        .constructMesh(
+                                new MosaicTiler(currFrame.mosaicRecord)
+                                        .constructGridGeometry(),
+                                descriptor.getGridGeometry());
+                PixelCoverage coverage = new PixelCoverage(mesh);
+                image = new DrawableImage(cmapImage, coverage);
+
+                currFrame.image = image;
             }
+            ImagingCapability imgCap = new ImagingCapability();
+            imgCap.setBrightness(resourceData.getBrightness());
+            imgCap.setContrast(resourceData.getContrast());
+            imgCap.setAlpha(resourceData.getAlpha());
+
+            image.getImage().setBrightness(resourceData.getBrightness());
+            image.getImage().setContrast(resourceData.getContrast());
+            image.getImage().setInterpolated(imgCap.isInterpolationState());
+
+            paintProps.setAlpha(resourceData.getAlpha());
+            resourceData.fireChangeListeners(ChangeType.CAPABILITY, imgCap);
+
+            // TODO: Suggest making the following more resilient to errors
+            // -- handle case where
+            // "params" is null, which does occur if colormap file was not
+            // found.
+            if (colorMapParameters.getColorMap() == null) {
+                throw new VizException("ColorMap not specified");
+            }
+
+            target.drawRasters(paintProps, image);
 
         } catch (Exception e) {
             String msg = e.getMessage();
@@ -390,15 +425,8 @@ public class MosaicResource extends
 
     }
 
-    @SuppressWarnings("unchecked")
     private void setColorMapParameters(MosaicRecord radarRecord)
             throws FileNotFoundException, StorageException, VizException {
-
-        File loc = HDF5Util.findHDF5Location(radarRecord);
-
-        IDataStore dataStore = DataStoreFactory.getDataStore(loc);
-
-        radarRecord.retrieveFromDataStore(dataStore);
 
         Unit<?> dataUnit = null;
         if (radarRecord.getUnit() != null) {
@@ -411,16 +439,20 @@ public class MosaicResource extends
         } else {
             dataUnit = Unit.ONE;
         }
-        int numLevels = radarRecord.getNumLevels();
         Object[] thresholds = radarRecord.getDecodedThresholds();
+        if (thresholds[0] == null) {
+            File loc = HDF5Util.findHDF5Location(radarRecord);
+            IDataStore dataStore = DataStoreFactory.getDataStore(loc);
+            radarRecord.retrieveFromDataStore(dataStore);
+            thresholds = radarRecord.getDecodedThresholds();
+        }
         DataMappingPreferences dmPref = new DataMappingPreferences();
         DataMappingEntry dmEntry;
-        List<DataMappingEntry> dmEntriesList = new ArrayList<DataMappingEntry>(
-                0);
-        if (numLevels <= 16) {
-
-            ArrayList<Integer> pixel = new ArrayList<Integer>();
-            ArrayList<Float> real = new ArrayList<Float>();
+        List<DataMappingEntry> dmEntriesList = new ArrayList<>(0);
+        if (radarRecord.isFourBit()) {
+            int numLevels = radarRecord.getNumLevels();
+            ArrayList<Integer> pixel = new ArrayList<>();
+            ArrayList<Float> real = new ArrayList<>();
             for (int i = 0; i < numLevels; i++) {
                 dmEntry = new DataMappingEntry();
                 dmEntry.setPixelValue(new Double(i));
@@ -467,15 +499,15 @@ public class MosaicResource extends
 
         ColorMap colorMap;
         try {
-            colorMap = (ColorMap) ColorMapUtil.loadColorMap(radarRscData
+            colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
                     .getResourceName().getRscCategory().getCategoryName(),
-                    radarRscData.getColorMapName());
+                    resourceData.getColorMapName());
         } catch (VizException e) {
             throw new VizException("Error loading colormap: "
-                    + radarRscData.getColorMapName());
+                    + resourceData.getColorMapName());
         }
 
-        colorMapParameters = new ColorMapParameters();
+        ColorMapParameters colorMapParameters = new ColorMapParameters();
         if (colorMapParameters.getDisplayUnit() == null) {
             colorMapParameters.setDisplayUnit(dataUnit);
 
@@ -516,154 +548,29 @@ public class MosaicResource extends
                 cBar.setAlignLabelInTheMiddleOfInterval(true);
                 cBar.setColorMap(colorMap);
 
-                this.radarRscData.setColorBar(cBar);
+                resourceData.setColorBar(cBar);
             }
 
         }
 
     }
 
-    private RadarTileSet createTile(MosaicRecord radarRecord,
-            boolean hasBasetile) throws VizException {
-        File loc = HDF5Util.findHDF5Location(radarRecord);
-
-        IDataStore dataStore = DataStoreFactory.getDataStore(loc);
-
-        try {
-            radarRecord.retrieveFromDataStore(dataStore);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (StorageException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        RadarTileSet tileSet = null;
-
-        int numLevels = radarRecord.getNumLevels();
-        UnitConverter dataToImage = null;
-        if (numLevels <= 16) {
-            dataToImage = new MultiplyConverter(16);
-        } else {
-            dataToImage = colorMapParameters.getDataToImageConverter();
-        }
-
-        MosaicTiler tiler = new MosaicTiler(radarRecord, 1,
-                radarRecord.getNx(), dataToImage);
-
-        if (hasBasetile) {
-            tileSet = new RadarTileSet(tiler, baseTile, this,
-                    grphTarget.getViewType());
-        } else {
-            tileSet = new RadarTileSet(tiler, this, grphTarget.getViewType());
-        }
-
-        if (grphTarget != null)
-            tileSet.setMapDescriptor(this.getNcMapDescriptor());
-
-        return tileSet;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.viz.core.rsc.capabilities.IInspectableResource#inspect(com
-     * .vividsolutions.jts.geom.Coordinate)
-     */
     @Override
     public String inspect(ReferencedCoordinate latLon) throws VizException {
-
-        Map<String, String> dataMap;
-        try {
-            dataMap = interrogate(latLon.asLatLon());
-        } catch (Exception e) {
-            throw new VizException("Error converting coordinate for hover", e);
-        }
-
-        if (dataMap == null) {
-            return "NO DATA";
-        }
-
-        StringBuffer displayedData = new StringBuffer();
-        // displayedData.append(dataMap.get("ICAO") + " ");
-
-        displayedData.append(dataMap.get("Value"));
-
-        if (dataMap.containsKey("Shear")) {
-            displayedData.append(" " + dataMap.get("Shear"));
-        }
-
-        if (dataMap.containsKey("Azimuth")) {
-            displayedData.append(" " + dataMap.get("MSL") + "MSL");
-            displayedData.append(" " + dataMap.get("AGL") + "AGL");
-            displayedData.append(" " + dataMap.get("Range"));
-            displayedData.append("@" + dataMap.get("Azimuth"));
-        }
-
-        return displayedData.toString();
+        return "NO DATA";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#interrogate(com.raytheon
-     * .uf.viz.core.geospatial.ReferencedCoordinate)
-     */
     @Override
     public Map<String, Object> interrogate(ReferencedCoordinate coord)
             throws VizException {
-        Map<String, String> smap;
-        try {
-            smap = this.interrogate(coord.asLatLon());
-        } catch (Exception e) {
-            throw new VizException("Error transforming", e);
-        }
-        Map<String, Object> rmap = new HashMap<String, Object>();
-
-        if (smap == null)
-            return rmap;
-
-        for (String smapKey : smap.keySet()) {
-            String value = smap.get(smapKey);
-            rmap.put(smapKey, value);
-        }
-        return rmap;
+        return new HashMap<>();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.viz.core.rsc.capabilities.IInspectableResource#interrogate
-     * (com.vividsolutions.jts.geom.Coordinate)
-     */
-    public Map<String, String> interrogate(Coordinate latLon)
-            throws VizException {
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.raytheon.viz.core.rsc.capabilities.IProjectableResource#project(org
-     * .opengis.referencing.crs.CoordinateReferenceSystem)
-     */
     @Override
     public void project(CoordinateReferenceSystem mapData) throws VizException {
-
-        if (this.baseTile != null)
-            this.baseTile.reproject();
-
-        for (AbstractFrameData frm : frameDataMap.values()) {
-            AbstractTileSet ts = ((FrameData) frm).tileSet;
-            if (ts != null)
-                ts.reproject();
-            else
-                System.out.println("ERROR reproject tiles");
+        for (AbstractFrameData afd : frameDataMap.values()) {
+            FrameData frame = (FrameData) afd;
+            frame.reproject();
         }
     }
 
@@ -676,9 +583,9 @@ public class MosaicResource extends
                 imgCap.setBrightness(newImgCap.getBrightness(), false);
                 imgCap.setContrast(newImgCap.getContrast(), false);
                 imgCap.setAlpha(newImgCap.getAlpha(), false);
-                radarRscData.setAlpha(imgCap.getAlpha());
-                radarRscData.setBrightness(imgCap.getBrightness());
-                radarRscData.setContrast(imgCap.getContrast());
+                resourceData.setAlpha(imgCap.getAlpha());
+                resourceData.setBrightness(imgCap.getBrightness());
+                resourceData.setContrast(imgCap.getContrast());
                 issueRefresh();
 
             } else if (object instanceof ColorMapCapability) {
@@ -691,13 +598,13 @@ public class MosaicResource extends
                         .getColorMapParameters().getColorMap();
                 String colorMapName = colorMapCap.getColorMapParameters()
                         .getColorMapName();
-                radarRscData.setColorMapName(colorMapName);
-                radarRscData.getRscAttrSet().setAttrValue("colorMapName",
+                resourceData.setColorMapName(colorMapName);
+                resourceData.getRscAttrSet().setAttrValue("colorMapName",
                         colorMapName);
-                ColorBarFromColormap cBar = radarRscData.getColorBar();
+                ColorBarFromColormap cBar = resourceData.getColorBar();
                 cBar.setColorMap(theColorMap);
-                radarRscData.getRscAttrSet().setAttrValue("colorBar", cBar);
-                radarRscData.setIsEdited(true);
+                resourceData.getRscAttrSet().setAttrValue("colorBar", cBar);
+                resourceData.setIsEdited(true);
                 issueRefresh();
 
             }
@@ -709,8 +616,8 @@ public class MosaicResource extends
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
 
-        if (cbarRscPair != null) {
-            cbarRscPair.getProperties().setVisible(updatedProps.isVisible());
+        if (cbarResource != null) {
+            cbarResource.getProperties().setVisible(updatedProps.isVisible());
         }
     }
 
@@ -720,7 +627,7 @@ public class MosaicResource extends
     @Override
     public void resourceAttrsModified() {
         // update the colorbarPainter with a possibly new colorbar
-        ColorBarFromColormap colorBar = radarRscData.getColorBar();
+        ColorBarFromColormap colorBar = resourceData.getColorBar();
         // ColorBarFromColormap colorBar = (ColorBarFromColormap)
         // radarRscData.getRscAttrSet().getRscAttr("colorBar").getAttrValue();
         cbarResource.setColorBar(colorBar);
@@ -728,7 +635,7 @@ public class MosaicResource extends
         ColorMapParameters cmapParams = getCapability(ColorMapCapability.class)
                 .getColorMapParameters();
         cmapParams.setColorMap(colorBar.getColorMap());
-        cmapParams.setColorMapName(radarRscData.getColorMapName());
+        cmapParams.setColorMapName(resourceData.getColorMapName());
 
         getCapability(ColorMapCapability.class).setColorMapParameters(
                 cmapParams);

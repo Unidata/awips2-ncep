@@ -1,8 +1,9 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -50,6 +51,9 @@ import org.eclipse.swt.widgets.Text;
  * 05/02/12      #585       S. Gurung    Commented out unwanted options ("Sort Alphabetically" and "Sort By Date")
  * 11/18/15      #12852     bkowal       Ensure that the dialog does not recursively reset its state
  *                                       when nothing has actually changed.
+ * 10/11/2016    R17032     A. Su        Disallowed some chars in naming SPF Group, SPF Name and RBD Name.
+ * 10/20/2016    R17365     K.Bugenhagen Update selectionListener for rbd_combo
+ *                                       to remember selected rbd name at save.
  * 
  * </pre>
  * 
@@ -219,6 +223,7 @@ public class SaveRbdDialog extends Dialog {
         save_time_as_constant.setLayoutData(fd);
         save_time_as_constant.setSelection(saveTimeAsConstant);
         save_time_as_constant.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveTimeAsConstant = save_time_as_constant.getSelection();
             }
@@ -232,6 +237,7 @@ public class SaveRbdDialog extends Dialog {
         save_time_as_latest.setLayoutData(fd);
         save_time_as_latest.setSelection(!saveTimeAsConstant);
         save_time_as_latest.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveTimeAsConstant = !save_time_as_latest.getSelection();
 
@@ -262,6 +268,7 @@ public class SaveRbdDialog extends Dialog {
         save_ref_time_btn.setSelection(saveRefTime);
 
         save_ref_time_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveRefTime = save_ref_time_btn.getSelection();
             }
@@ -283,6 +290,7 @@ public class SaveRbdDialog extends Dialog {
         can_btn.setLayoutData(fd);
 
         can_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 saveRbdOkd = false;
                 shell.dispose();
@@ -297,11 +305,34 @@ public class SaveRbdDialog extends Dialog {
         save_btn.setLayoutData(fd);
 
         save_btn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
-                seldSpfGroup = spf_group_combo.getText();
-                seldSpfName = spf_name_txt.getText();
 
+                SpfsManager manager = SpfsManager.getInstance();
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
+                seldSpfGroup = spf_group_combo.getText();
+                if (!manager.validateName(shell, seldSpfGroup, "Saving RBD",
+                        "SPF Group")) {
+                    return;
+                }
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
+                seldSpfName = spf_name_txt.getText();
+                if (!manager.validateName(shell, seldSpfName, "Saving RBD",
+                        "SPF Name")) {
+                    return;
+                }
+
+                // If not a valid name, pop up an MessageDialog to alert the
+                // user.
                 seldRbdName = rbd_name_combo.getText();
+                if (!manager.validateName(shell, seldRbdName, "Saving RBD",
+                        "RBD Name")) {
+                    return;
+                }
 
                 if (seldRbdName == null || seldRbdName.isEmpty()) {
                     System.out.println("RBD name is not selected.");
@@ -349,6 +380,7 @@ public class SaveRbdDialog extends Dialog {
     private void initWidgets() {
 
         spf_group_combo.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (seldSpfGroup != null
                         && seldSpfGroup.equals(spf_group_combo.getText())) {
@@ -394,6 +426,7 @@ public class SaveRbdDialog extends Dialog {
                 }
                 seldSpfGroup = spf_group_combo.getText();
                 spf_name_lviewer.setInput(seldSpfGroup);
+
                 newRbd = true;
             }
         });
@@ -442,12 +475,6 @@ public class SaveRbdDialog extends Dialog {
         spf_name_lviewer.setContentProvider(new IStructuredContentProvider() {
             @Override
             public Object[] getElements(Object inputElement) {
-
-                // TODO : check display_by_name selection and order
-                // appropriately.
-                // (add support in SpfsManager to get the time. Not sure how to
-                // do this
-                // now that it is possible to have the SPF in 2 contexts?)
                 return SpfsManager.getInstance().getSpfNamesForGroup(
                         (String) inputElement);
             }
@@ -464,6 +491,7 @@ public class SaveRbdDialog extends Dialog {
 
         spf_name_lviewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         StructuredSelection seldSpfs = (StructuredSelection) spf_name_lviewer
                                 .getSelection();
@@ -482,14 +510,34 @@ public class SaveRbdDialog extends Dialog {
         spf_group_combo.setItems(SpfsManager.getInstance().getAvailSPFGroups());
 
         rbd_name_combo.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                newRbd = false;
+                if (seldRbdName != null
+                        && seldRbdName.equals(rbd_name_combo.getText())) {
+                    /*
+                     * Do not alter anything if the selection has not actually
+                     * changed because the form would no longer be in sync with
+                     * what is actually selected.
+                     */
+                    return;
+                }
+                setSelectedRbd(rbd_name_combo.getText());
             }
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                newRbd = false;
+                if (seldRbdName != null
+                        && seldRbdName.equals(rbd_name_combo.getText())) {
+                    /*
+                     * Do not alter anything if the selection has not actually
+                     * changed because the form would no longer be in sync with
+                     * what is actually selected.
+                     */
+                    return;
+                }
+                setSelectedRbd(rbd_name_combo.getText());
             }
+
         });
 
         // if the user has pre selected a group then select it
@@ -512,9 +560,20 @@ public class SaveRbdDialog extends Dialog {
             setSeldSpfName(spf_name_lviewer.getList().getItem(0));
         }
 
-        if (seldRbdName != null) {
-            rbd_name_combo.setText(seldRbdName);
+        if (StringUtils.isNotBlank(seldRbdName)) {
+            int rbdIndex = rbd_name_combo.indexOf(seldRbdName);
+            if (rbdIndex != -1) {
+                rbd_name_combo.select(rbdIndex);
+                setSelectedRbd(seldRbdName);
+            }
+        } else if (rbd_name_combo.getItemCount() > 0) {
+            rbd_name_combo.select(0);
+            setSelectedRbd(seldRbdName);
         }
+    }
+
+    private void setSelectedRbd(String rbdName) {
+        seldRbdName = rbdName;
     }
 
     private void setSeldSpfGroup(String spfGroup) {
@@ -539,12 +598,22 @@ public class SaveRbdDialog extends Dialog {
 
     public void updateRbdNames(String spfGroup, String spfName) {
 
-        String saveRbdName = rbd_name_combo.getText();
+        String savedRbdName = rbd_name_combo.getText();
 
         rbd_name_combo.setItems(SpfsManager.getInstance().getRbdNamesForSPF(
                 spfGroup, spfName));
 
-        rbd_name_combo.setText(saveRbdName);
+        if (StringUtils.isNotBlank(seldRbdName)) {
+            int rbdIndex = rbd_name_combo.indexOf(seldRbdName);
+            if (rbdIndex != -1) {
+                rbd_name_combo.select(rbdIndex);
+                setSelectedRbd(seldRbdName);
+            }
+        } else if (rbd_name_combo.getItemCount() > 0) {
+            rbd_name_combo.select(0);
+            setSelectedRbd(savedRbdName);
+        }
+
     }
 
     public boolean isOpen() {

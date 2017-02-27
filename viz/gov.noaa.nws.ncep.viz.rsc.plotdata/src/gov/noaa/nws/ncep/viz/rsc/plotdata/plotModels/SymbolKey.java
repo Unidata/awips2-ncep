@@ -17,6 +17,7 @@ import org.eclipse.swt.graphics.RGB;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 11/18/2015    R9579     bhebbard    Initial creation
+ * 11/25/2016    R21762    P. Moyer    Implemented alpha transparency for colors
  * 
  * </pre>
  * 
@@ -25,11 +26,12 @@ import org.eclipse.swt.graphics.RGB;
  */
 class SymbolKey {
 
-    public SymbolKey(String symbolPatternName, boolean symbolIsAMarker,
-            RGB rgb, float size, float width) {
+    public SymbolKey(String symbolPatternName, boolean symbolIsAMarker, RGB rgb,
+            Integer alpha, float size, float width) {
         this.symbolPatternName = symbolPatternName;
         this.symbolIsAMarker = symbolIsAMarker;
         this.rgb = rgb;
+        this.alpha = alpha;
         this.size = size;
         this.width = width;
     }
@@ -39,6 +41,8 @@ class SymbolKey {
     boolean symbolIsAMarker = false;
 
     RGB rgb = null;
+
+    Integer alpha = null;
 
     float size = 0.0f;
 
@@ -58,12 +62,11 @@ class SymbolKey {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((rgb == null) ? 0 : rgb.hashCode());
+        result = prime * result + ((alpha == null) ? 0 : alpha.hashCode());
         result = prime * result + Float.floatToIntBits(size);
         result = prime * result + (symbolIsAMarker ? 1231 : 1237);
-        result = prime
-                * result
-                + ((symbolPatternName == null) ? 0 : symbolPatternName
-                        .hashCode());
+        result = prime * result + ((symbolPatternName == null) ? 0
+                : symbolPatternName.hashCode());
         result = prime * result + Float.floatToIntBits(width);
         return result;
     }
@@ -90,6 +93,13 @@ class SymbolKey {
                 return false;
             }
         } else if (!rgb.equals(other.rgb)) {
+            return false;
+        }
+        if (alpha == null) {
+            if (other.alpha != null) {
+                return false;
+            }
+        } else if (!alpha.equals(other.alpha)) {
             return false;
         }
         if (Float.floatToIntBits(size) != Float.floatToIntBits(other.size)) {

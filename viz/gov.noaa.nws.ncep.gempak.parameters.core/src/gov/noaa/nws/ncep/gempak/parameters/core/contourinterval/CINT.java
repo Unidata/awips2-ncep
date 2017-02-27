@@ -40,15 +40,18 @@ import java.util.Set;
  * 11-Jun-2010    174        Archana.S   Added method addLeadingZeros() and 
  *                                                           updated generateContourValueListAsString() accordingly
  * 14-Jun-2010    174        Archana.S   Redesigned class to support multiple zoom levels                                          
- *  30-Jul-2010    174      Archana.S     Added the zoom-level as an enum. Updated design to
+ *  30-Jul-2010    174       Archana.S   Added the zoom-level as an enum. Updated design to
  *                                                          access the list of contour values, the contour interval, 
  *                                                          min and max contour values separately from each zoom level.
  *                                                          Implemented each zoom level as a CNT object in a list of CINT objects.
- * 17-May-2011				M. Li		 Created a parseCINT to simplify CINT parsing.
- * 07-Apr-2014   TTR-938   D.Sushon      Added check for null string to constructor, fixing NullPointerException
+ * 17-May-2011               M. Li       Created a parseCINT to simplify CINT parsing.
+ * 07-Apr-2014   TTR-938     D.Sushon    Added check for null string to constructor, fixing NullPointerException
  *                                       thrown when attempting to initialize with null String.
  * 09-Sep-2014   TTR-852     A.Yuk       remove restriction of contour lines =50 and make it unlimited contour lines.
  * 02-Apr-2015   R7134       J. Wu       Add MAX_CONTOUR_LEVELS and set it to 100.
+ * 01/17/2017     R19643      Edwin Brown Moved the check of MAX_CONTOUR_LEVELS from here to ContourSupport.java because it should
+ *                                       be limiting the number of rendered contours, not the number or intervals between the 
+ *                                       min and the max
  * 
  * </pre>
  * 
@@ -57,9 +60,6 @@ import java.util.Set;
  * @see $GEMPAK/help/hlx/cint.hl2
  */
 public class CINT {
-
-    /** Maximum number of contour levels */
-    private final static int MAX_CONTOUR_LEVELS = 100;
 
     /** The object responsible for parsing the CINT string */
     private ContourStringParser cintParser;
@@ -96,7 +96,9 @@ public class CINT {
         this.userInputString = new String(userInputString);
     }
 
-    /** A list of CINT objects where each CINT object represents one zoom level */
+    /**
+     * A list of CINT objects where each CINT object represents one zoom level
+     */
     private List<CINT> listOfCINTObjects = new ArrayList<CINT>(0);
 
     /** The list of contour values */
@@ -122,7 +124,9 @@ public class CINT {
     /** A HashMap of the contour values and their labels */
     private Map<Double, String> cintHashMap;
 
-    /** @return a list of CINT objects, each of which represents one zoom level */
+    /**
+     * @return a list of CINT objects, each of which represents one zoom level
+     */
     public List<CINT> getListOfCINTObjects() {
         return (new ArrayList<CINT>(listOfCINTObjects));
     }
@@ -136,12 +140,13 @@ public class CINT {
      * @return The {@code HashMap<Double, String>} of the contour values and
      *         labels for the input zoom level if the CINT object for that zoom
      *         level exists or an empty map otherwise.
-     * */
+     */
     public Map<Double, String> getCintHashMap(ZoomLevel zLevel) {
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
             Map<Double, String> thisMap = new HashMap<Double, String>(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).cintHashMap);
+                    this.listOfCINTObjects
+                            .get(zLevel.zoomLevel - 1).cintHashMap);
             if (thisMap.size() > 0) {
                 return (thisMap);
             }
@@ -166,13 +171,13 @@ public class CINT {
      * @return The {@code List<Double>} of the contour values for the input zoom
      *         level if the CINT object for that zoom level exists or an empty
      *         list otherwise.
-     * */
+     */
     public List<Double> getContourValuesListAsDouble(ZoomLevel zLevel) {
         int listSize = this.listOfCINTObjects.size();
 
         if (listSize >= zLevel.zoomLevel) {
-            List<Double> cList = new ArrayList<Double>(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).contourValuesList);
+            List<Double> cList = new ArrayList<Double>(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).contourValuesList);
             if (cList.size() > 0) {
                 return (new ArrayList<Double>(cList));
             }
@@ -238,13 +243,13 @@ public class CINT {
      * @return The {@code List<String>} of the contour values for the input zoom
      *         level if the CINT object for that zoom level exists or an empty
      *         list otherwise.
-     * */
+     */
     public List<String> getContourValuesListAsString(ZoomLevel zLevel) {
         List<String> cvList = Collections.emptyList();
         int listSize = this.listOfCINTObjects.size();
         if (listSize > 0 && listSize >= zLevel.zoomLevel) {
-            cvList = new ArrayList<String>(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).contourValuesListAsString);
+            cvList = new ArrayList<String>(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).contourValuesListAsString);
         }
         return cvList;
     }
@@ -258,13 +263,13 @@ public class CINT {
      * @return The {@code List<String>} of the contour labels for the input zoom
      *         level if the CINT object for that zoom level exists or an empty
      *         list otherwise.
-     * */
+     */
     public List<String> getContourLabelsForZoomLevel(ZoomLevel zLevel) {
         List<String> cintLabelList = new ArrayList<String>(0);
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            cintLabelList = new ArrayList<String>(this.listOfCINTObjects.get(
-                    zLevel.zoomLevel - 1).getContourLabelList());
+            cintLabelList = new ArrayList<String>(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).getContourLabelList());
         }
         return cintLabelList;
     }
@@ -382,11 +387,11 @@ public class CINT {
             CINT contourInfo = new CINT(cint);
             cvalues = contourInfo.getContourValuesListAsDouble(zoomLevel);
 
-            if (cvalues == null || cvalues.size() < 1 /*
-                                                       * || contourInfo.
-                                                       * getContourInterval
-                                                       * (zoomLevel) == 0.0
-                                                       */) {
+            if (cvalues == null
+                    || cvalues.size() < 1 /*
+                                           * || contourInfo. getContourInterval
+                                           * (zoomLevel) == 0.0
+                                           */) {
 
                 cmin = contourInfo.getMinContourValue(zoomLevel);
                 if (cmin == null || cmin.isNaN())
@@ -416,14 +421,6 @@ public class CINT {
             }
         }
 
-        /*
-         * Limit contour levels up to MAX_CONTOUR_LEVELS to avoid potential
-         * memory and/or performance issues.
-         */
-        while (cvalues.size() > MAX_CONTOUR_LEVELS) {
-            cvalues.remove(MAX_CONTOUR_LEVELS);
-        }
-
         return cvalues;
     }
 
@@ -436,13 +433,13 @@ public class CINT {
      * @return The portion of the parsed CINT string specific to a zoom level if
      *         the CINT object for that zoom level exists or an empty String
      *         otherwise.
-     * */
+     */
     public String getCINTString(ZoomLevel zLevel) {
         String currentCINTString = "";
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            currentCINTString = new String(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).contourIntervalString);
+            currentCINTString = new String(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).contourIntervalString);
         }
         return currentCINTString;
     }
@@ -450,13 +447,13 @@ public class CINT {
     /**
      * @return The contour interval specific to a zoom level if the CINT object
      *         for that zoom level exists or NaN otherwise.
-     * */
+     */
     public Double getContourInterval(ZoomLevel zLevel) {
         Double currentContourInterval = Double.NaN;
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            currentContourInterval = new Double(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).contourInterval);
+            currentContourInterval = new Double(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).contourInterval);
         }
         return currentContourInterval;
     }
@@ -464,13 +461,13 @@ public class CINT {
     /**
      * @return The minimum contour value specific to a zoom level if the CINT
      *         object for that zoom level exists or NaN otherwise.
-     * */
+     */
     public Double getMinContourValue(ZoomLevel zLevel) {
         Double currentMinContourValue = Double.NaN;
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            currentMinContourValue = new Double(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).minContourValue);
+            currentMinContourValue = new Double(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).minContourValue);
         }
         return currentMinContourValue;
     }
@@ -478,13 +475,13 @@ public class CINT {
     /**
      * @return The maximum contour value specific to a zoom level if the CINT
      *         object for that zoom level exists or NaN otherwise.
-     * */
+     */
     public Double getMaxContourValue(ZoomLevel zLevel) {
         Double currentMaxContourValue = Double.NaN;
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            currentMaxContourValue = new Double(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).maxContourValue);
+            currentMaxContourValue = new Double(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).maxContourValue);
         }
         return currentMaxContourValue;
     }
@@ -493,13 +490,13 @@ public class CINT {
      * @return The minimum digits in the label for contour values specific to a
      *         zoom level if the CINT object for that zoom level exists or 0
      *         otherwise.
-     * */
+     */
     public Integer getNumPaddingDigits(ZoomLevel zLevel) {
         Integer currentNumPaddingDigits = new Integer(0);
         int listSize = this.listOfCINTObjects.size();
         if (listSize >= zLevel.zoomLevel) {
-            currentNumPaddingDigits = new Integer(
-                    this.listOfCINTObjects.get(zLevel.zoomLevel - 1).numPaddingDigits);
+            currentNumPaddingDigits = new Integer(this.listOfCINTObjects
+                    .get(zLevel.zoomLevel - 1).numPaddingDigits);
         }
         return currentNumPaddingDigits;
     }
@@ -545,7 +542,10 @@ public class CINT {
         this.contourValuesListAsString = contourValuesListAsString;
     }
 
-    /** @param boolean isCINTStringParsed */
+    /**
+     * @param boolean
+     *            isCINTStringParsed
+     */
     private void setCINTStringParsed(boolean isCINTStringParsed) {
         this.isCINTStringParsed = isCINTStringParsed;
     }
@@ -613,8 +613,8 @@ public class CINT {
 
                 // create the CINT object for the current zoom level
                 CINT currentCINTObj = new CINT();
-                currentCINTObj.setCINTStringParsed(cintParser
-                        .isContourStringParsed());
+                currentCINTObj.setCINTStringParsed(
+                        cintParser.isContourStringParsed());
 
                 /*
                  * If the parse operation was successful, extract the numeric
@@ -625,22 +625,22 @@ public class CINT {
                 if (currentCINTObj.isCINTStringParsed()) {
                     currentCINTObj
                             .setCINTString(contourLevelStringsArray[index]);
-                    currentCINTObj.setContourInterval(cintParser
-                            .getContourInterval());
-                    currentCINTObj.setMinContourValue(cintParser
-                            .getMinContourLevel());
-                    currentCINTObj.setMaxContourValue(cintParser
-                            .getMaxContourLevel());
-                    currentCINTObj.setNumPaddingDigits(cintParser
-                            .getNumPaddingDigits());
-                    currentCINTObj.setContourValuesList(cintParser
-                            .getContourValuesList());
-                    currentCINTObj.setCintHashMap(cintParser
-                            .getLabeledContourValuesHashMap());
+                    currentCINTObj.setContourInterval(
+                            cintParser.getContourInterval());
+                    currentCINTObj.setMinContourValue(
+                            cintParser.getMinContourLevel());
+                    currentCINTObj.setMaxContourValue(
+                            cintParser.getMaxContourLevel());
+                    currentCINTObj.setNumPaddingDigits(
+                            cintParser.getNumPaddingDigits());
+                    currentCINTObj.setContourValuesList(
+                            cintParser.getContourValuesList());
+                    currentCINTObj.setCintHashMap(
+                            cintParser.getLabeledContourValuesHashMap());
                     Set<Double> tempKeySet = new LinkedHashSet<Double>(
                             currentCINTObj.cintHashMap.keySet());
-                    currentCINTObj.setContourValuesList(new ArrayList<Double>(
-                            tempKeySet));
+                    currentCINTObj.setContourValuesList(
+                            new ArrayList<Double>(tempKeySet));
                     for (Double contourValue : tempKeySet) {
                         currentCINTObj.contourValuesListAsString
                                 .add(contourValue.toString());

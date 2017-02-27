@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AttributeSetGroup xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
+    <resource>GHM0P16</resource>
+    <attrSetGroupName>hurricane</attrSetGroupName>
+    
+    <attrSetLabels>
+         <attrSetLabel>
+              <name>200mb_absv_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>500mb_absv_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>700mb_absv_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>850mb_absv_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>minpres_1000mb_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>minpres_35m_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000mb_wind</name>
+              <alias></alias>
+         </attrSetLabel>
+         <attrSetLabel>
+              <name>pmsl_1000-500thk</name>
+              <alias></alias>
+         </attrSetLabel>
+    </attrSetLabels>
+
+</AttributeSetGroup>
+

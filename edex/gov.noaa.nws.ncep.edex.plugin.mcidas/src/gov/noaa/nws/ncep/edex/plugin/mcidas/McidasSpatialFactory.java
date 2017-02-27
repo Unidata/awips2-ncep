@@ -15,6 +15,7 @@
  * 10/15/2015   R7190       RC Reynolds Added support for mcidas area header data
  * Nov 05, 2015 10436       njensen     Updated import of McidasCRSBuilder
  *                                       Switched to slf4j logger
+ * Jul 26, 2016 R19277      bsteffen    Support Equidistant Cylindrical projection.
  * 
  * </pre>
  * 
@@ -28,6 +29,7 @@ package gov.noaa.nws.ncep.edex.plugin.mcidas;
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasMapCoverage;
 import gov.noaa.nws.ncep.edex.plugin.mcidas.dao.McidasMapCoverageDao;
 import gov.noaa.nws.ncep.edex.util.McidasCRSBuilder;
+
 import org.apache.commons.codec.binary.Base64;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.operation.DefaultMathTransformFactory;
@@ -37,6 +39,7 @@ import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.edex.database.DataAccessLayerException;
 import com.vividsolutions.jts.geom.Geometry;
@@ -181,13 +184,19 @@ public class McidasSpatialFactory {
         } else if (mapProjection == 3) {
             crs = MapUtil.constructLambertConformal(earthRadius, earthRadius,
                     stdlat1, stdlat2, clon, stdlat1);
-        } else {
+        } else if (mapProjection == 5) {
             if (stdlat1 >= 0.)
                 crs = MapUtil.constructNorthPolarStereo(earthRadius,
                         earthRadius, stdlat1, clon);
             else
                 crs = constructSouthPolarStereo(earthRadius, earthRadius,
                         stdlat1, clon);
+        } else if (mapProjection == 7) {
+            crs = MapUtil.constructEquidistantCylindrical(earthRadius,
+                    earthRadius, clon, stdlat1);
+        } else {
+            throw new DecoderException("Unknown projection type "
+                    + mapProjection);
         }
 
         DirectPosition2D firstPosition = null;
@@ -203,8 +212,8 @@ public class McidasSpatialFactory {
          * Projection is Mercator. Determine corner points from
          * lllat,lllon,urlat,urlon provided in the satellite file
          */
-        if (mapProjection == 1) {
-            logger.debug("Determining corner points for Mercator projection");
+        if (mapProjection == 1 || mapProjection == 7) {
+            logger.debug("Determining corner points for Mercator or Equidistant Cylindrical projection");
             corner1.x = lllon;
             corner1.y = lllat;
 

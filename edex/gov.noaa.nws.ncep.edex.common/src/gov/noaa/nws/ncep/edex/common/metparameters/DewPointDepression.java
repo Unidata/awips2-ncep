@@ -1,83 +1,82 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
 import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.parameterconversion.PRLibrary;
 
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.units.UnitAdapter;
+
 /**
- * Maps to any of  the GEMPAK parameters DPDC or DPDK or DPDF 
- * depending on the unit used to measure the dewpoint depression.
+ * Maps to any of the GEMPAK parameters DPDC or DPDK or DPDF depending on the
+ * unit used to measure the dewpoint depression.
+ * 
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
- * 22 Oct 2014   R4979      Dr. A Yuk   Correct Depression Temperature.
+ * 07/20/2016    R15950      J.Huber     Reverted to previous version and added conversion 
+ *                                       to proper units.
+ * </pre>
+ * 
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-
-public class DewPointDepression extends AbstractMetParameter 
-implements javax.measure.quantity.Temperature , ISerializableObject {
-	/**
+public class DewPointDepression extends AbstractMetParameter implements
+        javax.measure.quantity.Temperature {
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = -8246047973579792393L;
+    private static final long serialVersionUID = -8246047973579792393L;
 
-	public DewPointDepression() throws Exception {
-		 super( UNIT );
-	}
-	
-	@DeriveMethod
-	public DewPointDepression derive( AirTemperature t, DewPointTemp d) throws Exception {
-// Dr. Yuk  R4947  Oct. 20, 2014
-   double offSetK=0; // R4947 inserted
-		if ( t.hasValidValue() &&  d.hasValidValue() ){
-			String unitStrNeeded = getUnitStr();
-			
-           if (unitStrNeeded.equalsIgnoreCase("Fahrenheit"))  { unitStrNeeded="C";} // R4947 inserted
-            
-			UnitAdapter ua = new UnitAdapter();
+    private final double THRESHOLD_FROM_NMAP_THAT_WORKS = 30.0d;
 
-			Unit<?> unit = ua.unmarshal(unitStrNeeded);
-
-			Amount tempAmount = new Amount(t.getValueAs( unit ), unit );
-
-			Amount dewPointAmount = new Amount(d.getValueAs( unit ), unit );
-
-			if (unitStrNeeded.equalsIgnoreCase("K") && tempAmount.doubleValue() > 200 ) offSetK= 273.15; // R4947 inserted
-      
-			Amount dwdpFinal = new Amount(tempAmount.doubleValue() - dewPointAmount.doubleValue()+offSetK,unit);    // R4947 inserted
-			setValue(dwdpFinal );
-			setUnit(unit);
-		}
-		return this;
+    public DewPointDepression() throws Exception {
+        super(UNIT);
     }
-	
-	// TODO : could change this to pass along the threshhold instead of hardcoding 30.
-	@Override
-	public String getFormattedString( String formatStr ) {
-		
-		if( formatStr == null || formatStr.isEmpty() ||
-			formatStr.startsWith("%" ) ) {
-			return super.getFormattedString( formatStr );
-		}
-		else if ( ( formatStr.compareToIgnoreCase("DPDX") == 0 ) ){			
-			if( getValueAs( SI.CELSIUS ).doubleValue() >= 30.0 ) {
-				return "X";
-			}
-			else {
-				return super.getFormattedString( "%3.0f" );
-			}
-	    }
-		else {
-			return getValue().toString();
-		}
-	}
-}
 
+    @DeriveMethod
+    public DewPointDepression derive(AirTemperature t, DewPointTemp d)
+            throws Exception {
+        if (t.hasValidValue() && d.hasValidValue()) {
+            // For some reason T and DpT do not come in with the correct units.
+            // In order for the calculation to be correct, the units have to be
+            // converted prior to going to the PR library to be calculated.
+
+            // TODO: Determine why units are not proper when they get here.
+            Amount tCorrected = PRLibrary
+                    .checkAndConvertInputAmountToExpectedUnits(t, getUnit());
+            Amount dCorrected = PRLibrary
+                    .checkAndConvertInputAmountToExpectedUnits(d, getUnit());
+            Amount dwdp = PRLibrary.prDdep(tCorrected, dCorrected);
+            setValue(dwdp);
+        } else {
+            setValueToMissing();
+        }
+        return this;
+    }
+
+    // TODO : could change this to pass along the threshhold instead of
+    // hardcoding 30.
+    @Override
+    public String getFormattedString(String formatStr) {
+
+        if (formatStr == null || formatStr.isEmpty()
+                || formatStr.startsWith("%")) {
+            return super.getFormattedString(formatStr);
+        } else if (formatStr.equalsIgnoreCase("DPDX")) {
+            if (getValueAs(SI.CELSIUS).doubleValue() >= this.THRESHOLD_FROM_NMAP_THAT_WORKS) {
+                return "X";
+            } else {
+                return super.getFormattedString("%3.0f");
+            }
+        } else {
+            return getValue().toString();
+        }
+    }
+}

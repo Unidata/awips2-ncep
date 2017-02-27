@@ -1,0 +1,26 @@
+!
+! Restore file: 850mb_absv_wind
+!
+! Log:
+! S. Jacobs/NCEP	 6/01	Created
+! S Russell     07/27/2016  R8514     Update SCALE,CINT, FINT
+!
+GLEVEL=850
+GVCORD=pres
+SKIP=
+FILTER=y
+SCALE=4                  !4             !-1
+GDPFUN=abs(avor(wnd))  !abs(avor(wnd))             !kntv(wnd)
+TYPE=c/f                !c             !b
+CINT=2/10            !2/4/8
+LINE=7/5/1/2            !29/5/1/2
+FINT=4/2
+FLINE=0;23;22;21;20;19;18;17;16
+HILO=2;6/X;N/10-99;10-99!0
+HLSYM=
+CLRBAR=1
+WIND=
+TITLE=5/-1/@ WINDS and VORTICITY ~!0
+COLORS=2
+MARKER=2
+GRDLBL=5

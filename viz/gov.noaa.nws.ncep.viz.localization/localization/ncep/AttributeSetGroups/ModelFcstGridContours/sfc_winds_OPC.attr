@@ -1,0 +1,34 @@
+!
+! Restore File : sfc_winds_OPC
+!
+! Log:
+! D.W.Plummer/NCEP       2/97   Initial creation
+! J. Carr/HPC         5/19/97   Changed hilo ranges
+! D.W.Plummer/NCEP       8/97   Added FILTER parameter and changed TEXT value
+! J.M.Sienkiewicz/OPC    2/03   changed color contour scheme to qscat default
+! J.N.Sienkiewicz/OPC    3/03   adapted to show streamlines
+! J.M.Sienkiewicz/OPC   12/03   change to 30m winds
+! M.Mainelli/TPC        09/04   updated for surface winds
+!
+GLEVEL=  0
+GVCORD=  none
+SKIP=    0
+SCALE=   0
+GDPFUN=  mag(kntv(wnd))
+TYPE=    c/f
+CINT=    5/20
+LINE=    32/1/2/2
+FINT=    20;35;50;65
+FLINE=   0;24;25;30;15
+HILO=    0
+HLSYM=   0
+CLRBAR=  1/V/LL!0
+WIND=    9/0.7/2/112
+REFVEC=
+TITLE=   1/-1/SURFACE WINDS (KTS) ?~
+STREAM=  1
+POSN=    4
+COLORS=  2
+MARKER=  2
+GRDLBL=  5
+FILTER=  yes

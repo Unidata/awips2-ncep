@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=GFSLAMPTstorm
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

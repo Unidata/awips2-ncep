@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=ENPWAVE253
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

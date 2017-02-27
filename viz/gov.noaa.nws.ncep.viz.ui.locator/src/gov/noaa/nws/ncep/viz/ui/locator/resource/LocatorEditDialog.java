@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
 /**
  * This class displays the Locator Edit dialog.
@@ -28,11 +29,12 @@ import org.eclipse.swt.widgets.Shell;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 02/2009  	64        	M. Li    	Initial creation 
- * 03/2009		65			M. Li		Add multiple locators
+ * 02/2009      64          M. Li       Initial creation 
+ * 03/2009      65          M. Li       Add multiple locators
  * 11/2009      138         Greg Hull   location Options
  * 12/10/2011   #561        Greg Hull   rework to actually edit the resource attributes
  * 12/14/2012   #903        G. Hull     add the font size
+ * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -40,389 +42,417 @@ import org.eclipse.swt.widgets.Shell;
  * @version 1.0
  * 
  */
-public class LocatorEditDialog extends AbstractEditResourceAttrsDialog { 
+public class LocatorEditDialog extends AbstractEditResourceAttrsDialog {
 
-	private Combo fontSizeCombo;
-	
-	private Combo positionCombo;
-	private Combo dataSourceCombo;	
+    private Combo fontSizeCombo;
+
+    private Combo positionCombo;
+
+    private Combo dataSourceCombo;
+
     private Combo roundingCombo;
-    private Combo unitsCombo;
-	private Combo directionCombo;
 
-	private int   seldPosition = 0;
-	private LocatorDataSource seldDataSource = null;
-	private HashMap<String,LocatorDataSource> availDataSources = null;
-	
-	private static final Integer fontSizes[] = { 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 32 };
-    
-    public static final String ROUNDING_OPTIONS[] = {"1", "5", "10"};
-    
-    public static final String DISTANCEUNIT_OPTIONS[] = {"omit", "NM", "SM", "KM"};
-    public static final String LATLONUNIT_OPTIONS[] = {"degrees","decimal/minutes"};
-    
-    public static final String DIRECTIONUNIT_OPTIONS[] = {"omit", "16 point", "degrees"};
-    
-//    public static final String STATIONDISPLAY_OPTIONS[] = {"name", "ID"};
-    
+    private Combo unitsCombo;
+
+    private Combo directionCombo;
+
+    private int seldPosition = 0;
+
+    private LocatorDataSource seldDataSource = null;
+
+    private HashMap<String, LocatorDataSource> availDataSources = null;
+
+    private static final Integer fontSizes[] = { 8, 10, 12, 14, 16, 18, 20, 22,
+            24, 28, 32 };
+
+    public static final String ROUNDING_OPTIONS[] = { "1", "5", "10" };
+
+    public static final String DISTANCEUNIT_OPTIONS[] = { "omit", "NM", "SM",
+            "KM" };
+
+    public static final String LATLONUNIT_OPTIONS[] = { "degrees",
+            "decimal/minutes" };
+
+    public static final String DIRECTIONUNIT_OPTIONS[] = { "omit", "16 point",
+            "degrees" };
+
+    // public static final String STATIONDISPLAY_OPTIONS[] = {"name", "ID"};
+
     public static final String NO_SOURCE = "None";
-    
-    private RscAttrValue   fontSizeAttr    = null;
-    
+
+    private RscAttrValue fontSizeAttr = null;
+
     private RscAttrValue[] sourceNameAttrs = new RscAttrValue[LocatorResourceData.MAX_NUM_SOURCES];
-    private RscAttrValue[] roundToAttrs     = new RscAttrValue[LocatorResourceData.MAX_NUM_SOURCES];
+
+    private RscAttrValue[] roundToAttrs = new RscAttrValue[LocatorResourceData.MAX_NUM_SOURCES];
+
     private RscAttrValue[] displayUnitAttrs = new RscAttrValue[LocatorResourceData.MAX_NUM_SOURCES];
+
     private RscAttrValue[] directionUnitAttrs = new RscAttrValue[LocatorResourceData.MAX_NUM_SOURCES];
 
-    
-	//----------------------------created for pop-up this dialog: 2011-04-18    
-	public LocatorEditDialog( Shell parentShell, INatlCntrsResourceData r, Boolean apply) {
-		super(parentShell,r,apply); 
-		
-	}
+    public LocatorEditDialog(Shell parentShell, INatlCntrsResourceData r,
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
+    }
 
-	@Override
-	public Composite createDialog( Composite topComp ) {
-		
-		fontSizeAttr    = editedRscAttrSet.getRscAttr("fontSize");
+    @Override
+    public Composite createDialog(Composite topComp) {
 
-		sourceNameAttrs[0] = editedRscAttrSet.getRscAttr( "pos1LocatorSource" );
-		sourceNameAttrs[1] = editedRscAttrSet.getRscAttr( "pos2LocatorSource" );
-		sourceNameAttrs[2] = editedRscAttrSet.getRscAttr( "pos3LocatorSource" );
-		sourceNameAttrs[3] = editedRscAttrSet.getRscAttr( "pos4LocatorSource" );
-		sourceNameAttrs[4] = editedRscAttrSet.getRscAttr( "pos5LocatorSource" );
-		
-		roundToAttrs[0] = editedRscAttrSet.getRscAttr( "pos1RoundToNearest" );
-		roundToAttrs[1] = editedRscAttrSet.getRscAttr( "pos2RoundToNearest" );
-		roundToAttrs[2] = editedRscAttrSet.getRscAttr( "pos3RoundToNearest" );
-		roundToAttrs[3] = editedRscAttrSet.getRscAttr( "pos4RoundToNearest" );
-		roundToAttrs[4] = editedRscAttrSet.getRscAttr( "pos5RoundToNearest" );
+        fontSizeAttr = editedRscAttrSet.getRscAttr("fontSize");
 
-		displayUnitAttrs[0] = editedRscAttrSet.getRscAttr( "pos1DisplayUnit" );
-		displayUnitAttrs[1] = editedRscAttrSet.getRscAttr( "pos2DisplayUnit" );
-		displayUnitAttrs[2] = editedRscAttrSet.getRscAttr( "pos3DisplayUnit" );
-		displayUnitAttrs[3] = editedRscAttrSet.getRscAttr( "pos4DisplayUnit" );
-		displayUnitAttrs[4] = editedRscAttrSet.getRscAttr( "pos5DisplayUnit" );
+        sourceNameAttrs[0] = editedRscAttrSet.getRscAttr("pos1LocatorSource");
+        sourceNameAttrs[1] = editedRscAttrSet.getRscAttr("pos2LocatorSource");
+        sourceNameAttrs[2] = editedRscAttrSet.getRscAttr("pos3LocatorSource");
+        sourceNameAttrs[3] = editedRscAttrSet.getRscAttr("pos4LocatorSource");
+        sourceNameAttrs[4] = editedRscAttrSet.getRscAttr("pos5LocatorSource");
 
-		directionUnitAttrs[0] = editedRscAttrSet.getRscAttr( "pos1DirectionUnit" );
-		directionUnitAttrs[1] = editedRscAttrSet.getRscAttr( "pos2DirectionUnit" );
-		directionUnitAttrs[2] = editedRscAttrSet.getRscAttr( "pos3DirectionUnit" );
-		directionUnitAttrs[3] = editedRscAttrSet.getRscAttr( "pos4DirectionUnit" );
-		directionUnitAttrs[4] = editedRscAttrSet.getRscAttr( "pos5DirectionUnit" );
+        roundToAttrs[0] = editedRscAttrSet.getRscAttr("pos1RoundToNearest");
+        roundToAttrs[1] = editedRscAttrSet.getRscAttr("pos2RoundToNearest");
+        roundToAttrs[2] = editedRscAttrSet.getRscAttr("pos3RoundToNearest");
+        roundToAttrs[3] = editedRscAttrSet.getRscAttr("pos4RoundToNearest");
+        roundToAttrs[4] = editedRscAttrSet.getRscAttr("pos5RoundToNearest");
 
-		if( fontSizeAttr == null || 
-				fontSizeAttr.getAttrClass() != Integer.class ) {
-        	System.out.println("fontSizeAttr  is null or not of expected class Integer?");				
-		}
-		
-		for( int p=0 ; p< LocatorResourceData.MAX_NUM_SOURCES ; p++ ) {
-			if( sourceNameAttrs[p] == null || 
-					sourceNameAttrs[p].getAttrClass() != String.class ) {
-	        	System.out.println("sourceNameAttrs["+p+"] is null or not of expected class String?");				
-			}
-			if( roundToAttrs[p] == null || 
-				roundToAttrs[p].getAttrClass() != Integer.class ) {
-	        	System.out.println("roundToAttrs["+p+"] is null or not of expected class Integer?");				
-			}
-			if( displayUnitAttrs[p] == null || 
-				displayUnitAttrs[p].getAttrClass() != String.class ) {
-	        	System.out.println("displayUnitAttrs["+p+"] is null or not of expected class String?");				
-			}
-			if( directionUnitAttrs[p] == null || 
-				directionUnitAttrs[p].getAttrClass() != String.class ) {
-	        	System.out.println("directionUnitAttrs["+p+"] is null or not of expected class String?");				
-			}
-		}
-		
+        displayUnitAttrs[0] = editedRscAttrSet.getRscAttr("pos1DisplayUnit");
+        displayUnitAttrs[1] = editedRscAttrSet.getRscAttr("pos2DisplayUnit");
+        displayUnitAttrs[2] = editedRscAttrSet.getRscAttr("pos3DisplayUnit");
+        displayUnitAttrs[3] = editedRscAttrSet.getRscAttr("pos4DisplayUnit");
+        displayUnitAttrs[4] = editedRscAttrSet.getRscAttr("pos5DisplayUnit");
+
+        directionUnitAttrs[0] = editedRscAttrSet
+                .getRscAttr("pos1DirectionUnit");
+        directionUnitAttrs[1] = editedRscAttrSet
+                .getRscAttr("pos2DirectionUnit");
+        directionUnitAttrs[2] = editedRscAttrSet
+                .getRscAttr("pos3DirectionUnit");
+        directionUnitAttrs[3] = editedRscAttrSet
+                .getRscAttr("pos4DirectionUnit");
+        directionUnitAttrs[4] = editedRscAttrSet
+                .getRscAttr("pos5DirectionUnit");
+
+        if (fontSizeAttr == null
+                || fontSizeAttr.getAttrClass() != Integer.class) {
+            System.out
+                    .println("fontSizeAttr  is null or not of expected class Integer?");
+        }
+
+        for (int p = 0; p < LocatorResourceData.MAX_NUM_SOURCES; p++) {
+            if (sourceNameAttrs[p] == null
+                    || sourceNameAttrs[p].getAttrClass() != String.class) {
+                System.out.println("sourceNameAttrs[" + p
+                        + "] is null or not of expected class String?");
+            }
+            if (roundToAttrs[p] == null
+                    || roundToAttrs[p].getAttrClass() != Integer.class) {
+                System.out.println("roundToAttrs[" + p
+                        + "] is null or not of expected class Integer?");
+            }
+            if (displayUnitAttrs[p] == null
+                    || displayUnitAttrs[p].getAttrClass() != String.class) {
+                System.out.println("displayUnitAttrs[" + p
+                        + "] is null or not of expected class String?");
+            }
+            if (directionUnitAttrs[p] == null
+                    || directionUnitAttrs[p].getAttrClass() != String.class) {
+                System.out.println("directionUnitAttrs[" + p
+                        + "] is null or not of expected class String?");
+            }
+        }
+
         FormLayout layout0 = new FormLayout();
-        topComp.setLayout( layout0 );
+        topComp.setLayout(layout0);
 
-        Label fontSizeLbl = new Label( topComp, SWT.NONE  );
+        Label fontSizeLbl = new Label(topComp, SWT.NONE);
         fontSizeLbl.setText("Font Size");
         FormData fd = new FormData();
-        fd.left = new FormAttachment( 10, 0 );
-        fd.top = new FormAttachment( 0, 20 );
+        fd.left = new FormAttachment(10, 0);
+        fd.top = new FormAttachment(0, 20);
         fontSizeLbl.setLayoutData(fd);
 
         fontSizeCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment( 40, 0 );
-        fd.top = new FormAttachment( fontSizeLbl, -2, SWT.TOP );
-        fontSizeCombo.setLayoutData(fd);       
+        fd.left = new FormAttachment(40, 0);
+        fd.top = new FormAttachment(fontSizeLbl, -2, SWT.TOP);
+        fontSizeCombo.setLayoutData(fd);
 
-        Integer curFontSize = (Integer)fontSizeAttr.getAttrValue();
-        for( int f=0 ; f<fontSizes.length ; f++ ) {
-        	fontSizeCombo.add( fontSizes[f].toString() );
+        Integer curFontSize = (Integer) fontSizeAttr.getAttrValue();
+        for (int f = 0; f < fontSizes.length; f++) {
+            fontSizeCombo.add(fontSizes[f].toString());
 
-        	if( curFontSize == fontSizes[f] ) {
-        		fontSizeCombo.select( f );
-        	}
+            if (curFontSize == fontSizes[f]) {
+                fontSizeCombo.select(f);
+            }
         }
-        
-        Label posLbl = new Label( topComp, SWT.NONE  );
+
+        Label posLbl = new Label(topComp, SWT.NONE);
         posLbl.setText("Position");
         fd = new FormData();
-        fd.left = new FormAttachment( fontSizeLbl, 0, SWT.LEFT );
-        fd.top = new FormAttachment( fontSizeLbl, 35, SWT.BOTTOM );        
+        fd.left = new FormAttachment(fontSizeLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(fontSizeLbl, 35, SWT.BOTTOM);
         posLbl.setLayoutData(fd);
 
         positionCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
 
         fd = new FormData();
-        fd.left = new FormAttachment( 40, 0 );
-        fd.top = new FormAttachment( posLbl, -2, SWT.TOP );
-        positionCombo.setLayoutData(fd);       
+        fd.left = new FormAttachment(40, 0);
+        fd.top = new FormAttachment(posLbl, -2, SWT.TOP);
+        positionCombo.setLayoutData(fd);
 
-        for( int p=1 ; p <= LocatorResourceData.MAX_NUM_SOURCES ; p++ ) { 
-        	positionCombo.add( Integer.toString(p) );
+        for (int p = 1; p <= LocatorResourceData.MAX_NUM_SOURCES; p++) {
+            positionCombo.add(Integer.toString(p));
         }
-        
+
         positionCombo.select(0);
-                        
+
         Label sourceNameLbl = new Label(topComp, SWT.NONE);
         sourceNameLbl.setText("Locator");
         fd = new FormData();
-        fd.left = new FormAttachment( posLbl, 0, SWT.LEFT );
-        fd.top = new FormAttachment( posLbl, 25, SWT.BOTTOM );        
+        fd.left = new FormAttachment(posLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(posLbl, 25, SWT.BOTTOM);
         sourceNameLbl.setLayoutData(fd);
 
         dataSourceCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment( positionCombo, 0, SWT.LEFT );
-        fd.right = new FormAttachment( 90, 0 );
-        fd.top = new FormAttachment( sourceNameLbl, -3, SWT.TOP );        
+        fd.left = new FormAttachment(positionCombo, 0, SWT.LEFT);
+        fd.right = new FormAttachment(90, 0);
+        fd.top = new FormAttachment(sourceNameLbl, -3, SWT.TOP);
         dataSourceCombo.setLayoutData(fd);
-  
+
         Label roundingLbl = new Label(topComp, SWT.NONE);
         roundingLbl.setText("Round To ");
         fd = new FormData();
-        fd.left = new FormAttachment(  posLbl, 0, SWT.LEFT );
-        fd.top = new FormAttachment( sourceNameLbl, 25, SWT.BOTTOM );        
+        fd.left = new FormAttachment(posLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(sourceNameLbl, 25, SWT.BOTTOM);
         roundingLbl.setLayoutData(fd);
 
-        roundingCombo = new Combo( topComp, SWT.DROP_DOWN | SWT.READ_ONLY );
+        roundingCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment( positionCombo, 0, SWT.LEFT );
-        fd.top = new FormAttachment( roundingLbl, -3, SWT.TOP );
-        roundingCombo.setLayoutData( fd );
+        fd.left = new FormAttachment(positionCombo, 0, SWT.LEFT);
+        fd.top = new FormAttachment(roundingLbl, -3, SWT.TOP);
+        roundingCombo.setLayoutData(fd);
 
-        roundingCombo.setItems( ROUNDING_OPTIONS);
-        
+        roundingCombo.setItems(ROUNDING_OPTIONS);
+
         Label distUnitsLbl = new Label(topComp, SWT.NONE);
         distUnitsLbl.setText("Units");
         fd = new FormData();
-        fd.left = new FormAttachment(  posLbl, 0, SWT.LEFT );
-        fd.top = new FormAttachment( roundingLbl, 25, SWT.BOTTOM );        
+        fd.left = new FormAttachment(posLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(roundingLbl, 25, SWT.BOTTOM);
         distUnitsLbl.setLayoutData(fd);
 
         unitsCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
         fd.width = 140;
-        fd.left = new FormAttachment( positionCombo, 0, SWT.LEFT );
-        fd.top = new FormAttachment( distUnitsLbl, 0, SWT.TOP );
+        fd.left = new FormAttachment(positionCombo, 0, SWT.LEFT);
+        fd.top = new FormAttachment(distUnitsLbl, 0, SWT.TOP);
         unitsCombo.setLayoutData(fd);
-       
+
         Label dirUnitsLbl = new Label(topComp, SWT.NONE);
         dirUnitsLbl.setText("Direction\nUnits");
         fd = new FormData();
-        fd.left = new FormAttachment( posLbl, 0, SWT.LEFT );
-        fd.top = new FormAttachment( distUnitsLbl, 20, SWT.BOTTOM );        
+        fd.left = new FormAttachment(posLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(distUnitsLbl, 20, SWT.BOTTOM);
         dirUnitsLbl.setLayoutData(fd);
 
         directionCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment( positionCombo, 0, SWT.LEFT );
-        fd.top = new FormAttachment( dirUnitsLbl, 0, SWT.TOP );
+        fd.left = new FormAttachment(positionCombo, 0, SWT.LEFT);
+        fd.top = new FormAttachment(dirUnitsLbl, 0, SWT.TOP);
         directionCombo.setLayoutData(fd);
-        directionCombo.setItems( DIRECTIONUNIT_OPTIONS );
-       
-        
-        fontSizeCombo.addSelectionListener(new SelectionAdapter() {			
-			@Override	public void widgetSelected(SelectionEvent e) {							
-				
-            	fontSizeAttr.setAttrValue(  
-            		fontSizes[ fontSizeCombo.getSelectionIndex() ] );
-			}        	
-        });
-        
-        positionCombo.addSelectionListener(new SelectionAdapter() {			
-			@Override	public void widgetSelected(SelectionEvent e) {							
-				seldPosition = positionCombo.getSelectionIndex();
-            	String seldDataSrcName = (String)sourceNameAttrs[seldPosition].getAttrValue();
+        directionCombo.setItems(DIRECTIONUNIT_OPTIONS);
 
-            	if( seldDataSrcName.isEmpty() ) {
-            		seldDataSource = null;
-            		setCombo( dataSourceCombo, NO_SOURCE );
-            	}
-            	else {
-            		seldDataSource = availDataSources.get( seldDataSrcName );
-            		setCombo( dataSourceCombo, seldDataSrcName );
-            	}
+        fontSizeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
 
-				updateForSelectedDataSource();
-			}        	
+                fontSizeAttr.setAttrValue(fontSizes[fontSizeCombo
+                        .getSelectionIndex()]);
+            }
         });
-        
+
+        positionCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                seldPosition = positionCombo.getSelectionIndex();
+                String seldDataSrcName = (String) sourceNameAttrs[seldPosition]
+                        .getAttrValue();
+
+                if (seldDataSrcName.isEmpty()) {
+                    seldDataSource = null;
+                    setCombo(dataSourceCombo, NO_SOURCE);
+                } else {
+                    seldDataSource = availDataSources.get(seldDataSrcName);
+                    setCombo(dataSourceCombo, seldDataSrcName);
+                }
+
+                updateForSelectedDataSource();
+            }
+        });
+
         dataSourceCombo.addSelectionListener(new SelectionAdapter() {
-        	@Override	
-        	public void widgetSelected(SelectionEvent e) {
-            	String seldDataSrcName = dataSourceCombo.getText();
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String seldDataSrcName = dataSourceCombo.getText();
 
-            	if( seldDataSrcName.equals( NO_SOURCE ) ) {
-            		seldDataSource = null;
-            		sourceNameAttrs[seldPosition].setAttrValue( "" );
-            	}
-            	else {
-            		seldDataSource = availDataSources.get( seldDataSrcName );
-            		sourceNameAttrs[seldPosition].setAttrValue( seldDataSrcName );
-            	}
+                if (seldDataSrcName.equals(NO_SOURCE)) {
+                    seldDataSource = null;
+                    sourceNameAttrs[seldPosition].setAttrValue("");
+                } else {
+                    seldDataSource = availDataSources.get(seldDataSrcName);
+                    sourceNameAttrs[seldPosition].setAttrValue(seldDataSrcName);
+                }
 
-        		updateForSelectedDataSource();
-        	}        	
-        });        
-    	    	
-        roundingCombo.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-        		roundToAttrs[seldPosition].setAttrValue(
-        				(Integer)Integer.parseInt( roundingCombo.getText() ) );
-			}        	
+                updateForSelectedDataSource();
+            }
         });
-        
+
+        roundingCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                roundToAttrs[seldPosition].setAttrValue(Integer
+                        .parseInt(roundingCombo.getText()));
+            }
+        });
 
         unitsCombo.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// 
-				displayUnitAttrs[seldPosition].setAttrValue( unitsCombo.getText() );
-			}        	
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                //
+                displayUnitAttrs[seldPosition].setAttrValue(unitsCombo
+                        .getText());
+            }
         });
-        
+
         directionCombo.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				directionUnitAttrs[seldPosition].setAttrValue( directionCombo.getText() );
-			}        	
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                directionUnitAttrs[seldPosition].setAttrValue(directionCombo
+                        .getText());
+            }
         });
 
-        availDataSources = LocatorDataSourceMngr.getInstance().getAvailLocatorDataSources();
-        
-    	String[] sortList = availDataSources.keySet().toArray( new String[0] );
-    	
-    	Arrays.sort( sortList,  new Comparator<String>() {
-    		public int compare(String l1, String l2) {
-    			if( l1.equals(l2) ) {
-    				return 0;
-    			}
-    			LocatorDataSource lds1 = availDataSources.get( l1 );
-    			LocatorDataSource lds2 = availDataSources.get( l2 );
-    			
-    			if( lds1.getLocatorType() == LocatorType.LATLON ) {
-    				return -1;
-    			}
-    			else if( lds2.getLocatorType() == LocatorType.LATLON ) {
-    				return 1;
-    			}
-    			else return lds1.getSourceName().compareToIgnoreCase(
-    					        lds2.getSourceName() );
-    		}
-		}); 
-    	
-    	dataSourceCombo.setItems( sortList );
-    	dataSourceCombo.add( NO_SOURCE, 0 ); // None
-        
-    	String seldDataSrcName = (String)sourceNameAttrs[seldPosition].getAttrValue();
-        
-        for( int indx=1 ; indx<dataSourceCombo.getItemCount()-1 ; indx++ ) {
-        	if( dataSourceCombo.getItem(indx).equals( seldDataSrcName ) ) {
-        		dataSourceCombo.select( indx );
-        	}
-        }
-        
-        if( dataSourceCombo.getSelectionIndex() == -1 ) {
-        	seldDataSource = null;
-        }
-        
-    	if( seldDataSrcName.equals( NO_SOURCE ) ) {
-    		seldDataSource = null;
-    	}
-    	else {
-    		seldDataSource = availDataSources.get( seldDataSrcName );
-    	}
+        availDataSources = LocatorDataSourceMngr.getInstance()
+                .getAvailLocatorDataSources();
 
-		updateForSelectedDataSource();
-        
-    	return topComp;
+        String[] sortList = availDataSources.keySet().toArray(new String[0]);
+
+        Arrays.sort(sortList, new Comparator<String>() {
+            @Override
+            public int compare(String l1, String l2) {
+                if (l1.equals(l2)) {
+                    return 0;
+                }
+                LocatorDataSource lds1 = availDataSources.get(l1);
+                LocatorDataSource lds2 = availDataSources.get(l2);
+
+                if (lds1.getLocatorType() == LocatorType.LATLON) {
+                    return -1;
+                } else if (lds2.getLocatorType() == LocatorType.LATLON) {
+                    return 1;
+                } else {
+                    return lds1.getSourceName().compareToIgnoreCase(
+                            lds2.getSourceName());
+                }
+            }
+        });
+
+        dataSourceCombo.setItems(sortList);
+        dataSourceCombo.add(NO_SOURCE, 0); // None
+
+        String seldDataSrcName = (String) sourceNameAttrs[seldPosition]
+                .getAttrValue();
+
+        for (int indx = 1; indx < dataSourceCombo.getItemCount() - 1; indx++) {
+            if (dataSourceCombo.getItem(indx).equals(seldDataSrcName)) {
+                dataSourceCombo.select(indx);
+            }
+        }
+
+        if (dataSourceCombo.getSelectionIndex() == -1) {
+            seldDataSource = null;
+        }
+
+        if (seldDataSrcName.equals(NO_SOURCE)) {
+            seldDataSource = null;
+        } else {
+            seldDataSource = availDataSources.get(seldDataSrcName);
+        }
+
+        updateForSelectedDataSource();
+
+        return topComp;
     }
-    
-    
+
     private void updateForSelectedDataSource() {
-    	
-    	if( seldDataSource == null ) {
-    		
-        	roundingCombo.setEnabled( false );
-        	unitsCombo.setEnabled( false );
-        	directionCombo.setEnabled( false );        	
-    	}
-    	else {
-    		if( seldDataSource.getLocatorType() == LocatorType.LATLON ) {    			
-            	roundingCombo.setEnabled( false );
-            	directionCombo.setEnabled( false );        	
-            	
-            	unitsCombo.setEnabled( true );
-            	unitsCombo.setItems( LATLONUNIT_OPTIONS);
-        	}
-    		else if( seldDataSource.getLocatorType() == LocatorType.POINT ) {
-    			roundingCombo.setEnabled( true );
-    			unitsCombo.setEnabled( true );
-            	directionCombo.setEnabled( true );
-            	
-            	unitsCombo.setItems( DISTANCEUNIT_OPTIONS );
-    		}
-    		else if( seldDataSource.getLocatorType() == LocatorType.BOUNDED_AREA ) {
-    			roundingCombo.setEnabled( false );
-    			unitsCombo.setEnabled( false );
-            	directionCombo.setEnabled( false );
-            	
-            	unitsCombo.setItems( DISTANCEUNIT_OPTIONS );
-    		}
-    		
-    		// if the data source has changed to or from a LATLON then reset the units
-    		// to a valid value
-    		//
-    		String seldUnits = (String)displayUnitAttrs[seldPosition].getAttrValue();
 
-    		if( !Arrays.asList( unitsCombo.getItems() ).contains(  seldUnits ) ) {
-    			unitsCombo.select(0);
-    			displayUnitAttrs[seldPosition].setAttrValue( unitsCombo.getText() );
-    		}
+        if (seldDataSource == null) {
 
-    		setCombo( roundingCombo, ((Integer)roundToAttrs[seldPosition].getAttrValue()).toString() );
-    		setCombo( unitsCombo, (String)displayUnitAttrs[seldPosition].getAttrValue() );
-    		setCombo( directionCombo, (String)directionUnitAttrs[seldPosition].getAttrValue() );
-    	}    	
+            roundingCombo.setEnabled(false);
+            unitsCombo.setEnabled(false);
+            directionCombo.setEnabled(false);
+        } else {
+            if (seldDataSource.getLocatorType() == LocatorType.LATLON) {
+                roundingCombo.setEnabled(false);
+                directionCombo.setEnabled(false);
+
+                unitsCombo.setEnabled(true);
+                unitsCombo.setItems(LATLONUNIT_OPTIONS);
+            } else if (seldDataSource.getLocatorType() == LocatorType.POINT) {
+                roundingCombo.setEnabled(true);
+                unitsCombo.setEnabled(true);
+                directionCombo.setEnabled(true);
+
+                unitsCombo.setItems(DISTANCEUNIT_OPTIONS);
+            } else if (seldDataSource.getLocatorType() == LocatorType.BOUNDED_AREA) {
+                roundingCombo.setEnabled(false);
+                unitsCombo.setEnabled(false);
+                directionCombo.setEnabled(false);
+
+                unitsCombo.setItems(DISTANCEUNIT_OPTIONS);
+            }
+
+            // if the data source has changed to or from a LATLON then reset the
+            // units
+            // to a valid value
+            //
+            String seldUnits = (String) displayUnitAttrs[seldPosition]
+                    .getAttrValue();
+
+            if (!Arrays.asList(unitsCombo.getItems()).contains(seldUnits)) {
+                unitsCombo.select(0);
+                displayUnitAttrs[seldPosition].setAttrValue(unitsCombo
+                        .getText());
+            }
+
+            setCombo(roundingCombo,
+                    ((Integer) roundToAttrs[seldPosition].getAttrValue())
+                            .toString());
+            setCombo(unitsCombo,
+                    (String) displayUnitAttrs[seldPosition].getAttrValue());
+            setCombo(directionCombo,
+                    (String) directionUnitAttrs[seldPosition].getAttrValue());
+        }
     }
-    
-    private void setCombo( Combo combo, String sel ) {
-    	
-    	for(  int i=0 ; i<combo.getItemCount() ; i++ ) {
-    		String s = combo.getItem(i);
-    		if( sel.equals( s ) ) {
-    			combo.select( i );
-    			return;
-    		}
-    	}
-    	combo.select(0);
+
+    private void setCombo(Combo combo, String sel) {
+
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String s = combo.getItem(i);
+            if (sel.equals(s)) {
+                combo.select(i);
+                return;
+            }
+        }
+        combo.select(0);
     }
-        
-	@Override
-	public void initWidgets() {
-	}
-    
-	// allow to override	
-	@Override
-	protected void dispose() {
-		super.dispose();
-	}
+
+    @Override
+    public void initWidgets() {
+    }
+
+    // allow to override
+    @Override
+    protected void dispose() {
+        super.dispose();
+    }
 
 }

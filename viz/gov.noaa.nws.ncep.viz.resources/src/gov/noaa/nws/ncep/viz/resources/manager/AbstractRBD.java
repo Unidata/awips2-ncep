@@ -12,17 +12,22 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
 import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
@@ -50,6 +55,7 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.reflect.SubClassLocator;
+import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
@@ -77,7 +83,11 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *    10/29/13       #2491     bsteffen    Use custom JAXB context instead of SerializationUtil.
  *    05/15/2014     #1131     Quan Zhou   Added GRAPH_DISPLAY.
  *    05/24/14       R4078     S. Gurung   Added NMAP_RTKP_WORLD_DISPLAY in getDefaultRBD().
- *    11/12/2015       R8829     B. Yin      Sort resources in RBD by rendering order.
+ *    11/12/2015     R8829     B. Yin      Sort resources in RBD by rendering order.
+ *    03/10/2016     R16237    B. Yin      Get dominant resource within a group resource.
+ *    09/23/2016     R21176    J.Huber     Resolve latest cycle time for grouped gridded resources in SPF.
+ *    10/07/2016     R21481    Bugenhagen  Replaced use of temp file with ByteArrayOutputStream 
+ *                                         in getRbd method.
  *    11/08/16       5976      bsteffen    Update deprecated method calls.
  * 
  * </pre>
@@ -191,6 +201,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         this.paneLayout = paneLayout;
     }
 
+    @Override
     public NcPaneLayout getPaneLayout() {
         return paneLayout;
     }
@@ -266,8 +277,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         try {
             NCTimeMatcher tm = new NCTimeMatcher(rbdBndl.getTimeMatcher());
 
-            File tempRbdFile = File.createTempFile("tempRBD-", ".xml");
-
             // HACK Alert ; for Mcidas GVAR projections, the NAV_BLOCK_BASE64
             // parameter is a String, but since the wkt format is assuming all
             // projection params are doubles, the CRS string will throw an error
@@ -275,8 +284,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             // projection and save off the wkt for the GVARs and then call the
             // McidasSpatialFactory to handle the parsing.
 
-            Map<String, GridGeometrySerialized> ggsMap = new HashMap<String, GridGeometrySerialized>();
-            Map<String, AbstractRenderableDisplay> dispMap = new HashMap<String, AbstractRenderableDisplay>();
+            Map<String, GridGeometrySerialized> ggsMap = new HashMap<>();
+            Map<String, AbstractRenderableDisplay> dispMap = new HashMap<>();
 
             NcGridGeometryAdapter geomAdapter = new NcGridGeometryAdapter();
 
@@ -302,10 +311,9 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 }
             }
 
-            getJaxbManager().marshalToXmlFile(rbdBndl,
-                    tempRbdFile.getAbsolutePath());
-
-            AbstractRBD<?> clonedRbd = getRbd(tempRbdFile);
+            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+            getJaxbManager().marshalToStream(rbdBndl, outstream);
+            AbstractRBD<?> clonedRbd = getRbd(outstream);
 
             for (AbstractRenderableDisplay disp : clonedRbd.getDisplays()) {
                 String ggsKey = ((INatlCntrsRenderableDisplay) disp)
@@ -329,8 +337,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             clonedRbd.setTimeMatcher(tm);
 
             clonedRbd.setLocalizationFile(rbdBndl.getLocalizationFile());
-
-            tempRbdFile.delete();
 
             // set the RbdName inside the renderable display panes
             clonedRbd.setRbdName(clonedRbd.getRbdName());
@@ -471,7 +477,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     public abstract boolean addDisplayPane(T dispPane, NcPaneID pid);
-    
+
     public T[] getDisplays() {
         return displays;
     }
@@ -532,7 +538,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
 
         try {
-            AbstractRBD<?> dfltRbd = AbstractRBD.unmarshalRBD(rbdFile, null);
+            AbstractRBD<?> dfltRbd = AbstractRBD.unmarshalRBDFromFile(rbdFile,
+                    null);
 
             // shouldn't need this but just in case the user creates a default
             // with real resources in it
@@ -540,6 +547,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             dfltRbd.setIsDefaultRbd(true);
 
             return clone(dfltRbd);
+
         } catch (Exception ve) {
             throw new VizException("Error getting default RBD: "
                     + ve.getMessage());
@@ -548,7 +556,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
     public static AbstractRBD<?> getRbd(File rbdFile) throws VizException {
 
-        AbstractRBD<?> rbd = unmarshalRBD(rbdFile, null);
+        AbstractRBD<?> rbd = unmarshalRBDFromFile(rbdFile, null);
 
         // check for any required data that may be null or not set.
         // This shouldn't happen except possibly from an out of date RBD. (ie
@@ -563,7 +571,31 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
     }
 
     /**
-     * Unmarshal a bundle
+     * Get RBD from output stream
+     * 
+     * @param outstream
+     * @return
+     * @throws VizException
+     */
+    public static AbstractRBD<?> getRbd(ByteArrayOutputStream outstream)
+            throws VizException {
+
+        AbstractRBD<?> rbd = unmarshalRBD(outstream, null);
+
+        // check for any required data that may be null or not set.
+        // This shouldn't happen except possibly from an out of date RBD. (ie
+        // older version)
+        //
+        if (rbd.displays == null || rbd.displays.length == 0) {
+            throw new VizException(
+                    "Error unmarshalling RBD: the renderable display list is null");
+        }
+
+        return rbd;
+    }
+
+    /**
+     * Unmarshal a bundle from a file
      * 
      * @param fileName
      *            the bundle to load
@@ -576,7 +608,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
      * 
      * @throws VizException
      */
-    private static AbstractRBD<?> unmarshalRBD(File fileName,
+    private static AbstractRBD<?> unmarshalRBDFromFile(File fileName,
             Map<String, String> variables) throws VizException {
         String s = null;
         try {
@@ -591,6 +623,47 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
 
         return unmarshalRBD(s, variables);
+
+    }
+
+    /**
+     * Unmarshal a bundle from an output stream
+     * 
+     * @param outstream
+     *            the output stream to load
+     * 
+     * @param variables
+     *            Optional: A map containing key value pairs to be used to
+     *            perform variable substitution.
+     * 
+     * @return bundle loaded
+     * 
+     * @throws VizException
+     */
+    private static AbstractRBD<?> unmarshalRBD(ByteArrayOutputStream outstream,
+            Map<String, String> variables) throws VizException {
+
+        byte[] bytes = outstream.toByteArray();
+        ByteArrayInputStream instream = new ByteArrayInputStream(bytes);
+
+        try {
+            AbstractRBD<?> rbd = (AbstractRBD<?>) getJaxbManager()
+                    .unmarshalFromInputStream(instream);
+            if (rbd == null) {
+                statusHandler.handle(Priority.INFO,
+                        "Unmarshalled stream is not a valid RBD.");
+                return null;
+            }
+
+            rbd.sortResourcesAndSetTimeMatcher();
+
+            return rbd;
+
+        } catch (SerializationException e) {
+            throw new VizException("Error unmarshalling RBD", e);
+        } catch (JAXBException e) {
+            throw new VizException("JAXB error for RBD", e);
+        }
 
     }
 
@@ -624,21 +697,31 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                 return null;
             }
 
-            b.sortResourcesByRenderingOrder();
-
-            if (b.getTimeMatcher() == null) {
-                b.setTimeMatcher(new NCTimeMatcher());
-            }
-
-            // This will make sure that all descriptors use the same timeMatcher
-            // instance. All the timeMatchers should be the same but we need to
-            // share them.
-            b.setTimeMatcher(b.getTimeMatcher());
+            b.sortResourcesAndSetTimeMatcher();
 
             return b;
+
         } catch (Exception e) {
             throw new VizException("Error loading bundle", e);
         }
+    }
+
+    /**
+     * Sort all resources for this RBD and set its time matcher.
+     */
+    private void sortResourcesAndSetTimeMatcher() {
+
+        sortResourcesByRenderingOrder();
+
+        if (getTimeMatcher() == null) {
+            setTimeMatcher(new NCTimeMatcher());
+        }
+
+        // This will make sure that all descriptors use the same timeMatcher
+        // instance. All the timeMatchers should be the same but we need to
+        // share them.
+        setTimeMatcher(getTimeMatcher());
+
     }
 
     /*
@@ -709,25 +792,63 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         }
     }
 
-    // After and Rbd is unmarshalled it is possible for forecast resources
+    // After an Rbd is unmarshalled it is possible for forecast resources
     // to have a cycle time of LATEST. We don't always want to resolve the
     // Rbd after unmarshalling it so we do this as a separate step here.
     //
+    // We also need to unpack any grouped resources and make sure that any
+    // non-dominant resources have the latest string replaced with the latest
+    // cycle time.
     public boolean resolveLatestCycleTimes() {
         for (T disp : getDisplays()) {
-            ResourceList rl = disp.getDescriptor().getResourceList();
-            for (int r = 0; r < rl.size(); r++) {
-                ResourcePair rp = rl.get(r);
-                if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                    AbstractNatlCntrsRequestableResourceData rscData = (AbstractNatlCntrsRequestableResourceData) rp
+            ResourceList displayResourceList = disp.getDescriptor()
+                    .getResourceList();
+            for (int r = 0; r < displayResourceList.size(); r++) {
+                ResourcePair rp = displayResourceList.get(r);
+                List<AbstractNatlCntrsRequestableResourceData> allResourcesList = new ArrayList<>();
+                if (rp.getResourceData() instanceof GroupResourceData) {
+                    GroupResourceData grpResourceData = (GroupResourceData) rp
                             .getResourceData();
+                    for (ResourcePair singlePair : grpResourceData
+                            .getResourceList()) {
+                        AbstractResourceData singleAbstractData = singlePair
+                                .getResourceData();
+                        if (singleAbstractData instanceof AbstractNatlCntrsRequestableResourceData) {
+                            allResourcesList
+                                    .add((AbstractNatlCntrsRequestableResourceData) singleAbstractData);
+                        }
+                    }
+                } else if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+                    allResourcesList
+                            .add((AbstractNatlCntrsRequestableResourceData) rp
+                                    .getResourceData());
+                }
+                for (AbstractNatlCntrsRequestableResourceData singleAbstractData : allResourcesList) {
+                    AbstractNatlCntrsRequestableResourceData rscData = singleAbstractData;
                     ResourceName rscName = rscData.getResourceName();
 
                     if (rscName.isForecastResource()
                             && rscName.isLatestCycleTime()) {
 
-                        rscData.getAvailableDataTimes();
+                        // The rscData comes in with the ResourceName variable
+                        // still including "LATEST". The getAvailableDataTimes()
+                        // changes the ResourceName but does not reset the
+                        // timeMatcher's ResourceName to match. So if the
+                        // incoming ResourceName (which still has "LATEST") is
+                        // the dominant resource we set a flag to reset the
+                        // dominant resource's ResourceData to refresh it which
+                        // in turn resets the ResourceName to have the proper
+                        // latest cycle time instead of "LATEST".
 
+                        boolean refreshResourceData = false;
+                        if (timeMatcher.getDominantResourceName().equals(
+                                rscData.getResourceName())) {
+                            refreshResourceData = true;
+                        }
+                        rscData.getAvailableDataTimes();
+                        if (refreshResourceData) {
+                            timeMatcher.setDominantResourceData(rscData);
+                        }
                         // TODO : do we leave as Latest, or flag
                         // as NoDataAvailable? Either way the resource is going
                         // to have to be able to handle this case.
@@ -757,21 +878,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
             // loop thru the displays looking for the dominant resource
             for (T disp : getDisplays()) {
-                ResourceList rl = disp.getDescriptor().getResourceList();
-                for (int r = 0; r < rl.size(); r++) {
-                    ResourcePair rp = rl.get(r);
-                    if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rp
-                                .getResourceData();
-
-                        if (domRscName.toString().equals(
-                                rdata.getResourceName().toString())) {
-
-                            timeMatcher.setDominantResourceData(rdata);
-                            return;
-                        }
-                    }
-                }
+                setDominantResourceData(disp.getDescriptor().getResourceList(),
+                        domRscName);
             }
         }
 
@@ -793,6 +901,37 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         } else {
             return rbdSequence - rbd.rbdSequence;
         }
+    }
+
+    /**
+     * Sets the dominant resource data from a resource list.
+     * 
+     * @param rscList
+     *            - a resource list.
+     * @param domRscName
+     *            - name of the dominant resource.
+     */
+    private void setDominantResourceData(ResourceList rscList,
+            ResourceName domRscName) {
+        for (ResourcePair rscPair : rscList) {
+            AbstractResourceData rscPairResourceData = rscPair
+                    .getResourceData();
+            if (rscPairResourceData instanceof AbstractNatlCntrsRequestableResourceData) {
+                AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rscPair
+                        .getResourceData();
+                if (domRscName.toString().equals(
+                        rdata.getResourceName().toString())) {
+                    timeMatcher.setDominantResourceData(rdata);
+                    return;
+                }
+            } else if (rscPairResourceData instanceof GroupResourceData) {
+                setDominantResourceData(
+                        ((GroupResourceData) rscPairResourceData)
+                                .getResourceList(),
+                        domRscName);
+            }
+        }
+
     }
 
 }

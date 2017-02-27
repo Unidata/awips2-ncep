@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=DGEX186
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

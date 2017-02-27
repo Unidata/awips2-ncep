@@ -72,6 +72,7 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * 06/24/2015   R7806       A. Su       Added two pull-down menus (site & desk), and a list (subtype).
  *                                      Rearranged three sets of two-choice radio buttons.
  *                                      Implemented new logic for selecting activity labels.
+ * 04/14/2016   R13245      B. Yin      Changed the format of date/time string.
  * 
  * </pre>
  * 
@@ -142,6 +143,11 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
      */
     private final static int heightForListArea = 200;
 
+    /**
+     * The separator between the label and the date string.
+     */
+    private final static String DATE_STRING_SEPARATOR = "    ";
+    
     /**
      * The last selected Site.
      */
@@ -1142,7 +1148,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                     // Remove time stamps resulting from "All"
                     java.util.List<String> actLbls = new ArrayList<String>();
                     for (ActivityElement ae : elems) {
-                        int indx = ae.activityLabel.indexOf("$");
+                        int indx = ae.activityLabel.indexOf(DATE_STRING_SEPARATOR);
                         if (indx >= 0) {
                             ae.activityLabel = ae.activityLabel.substring(0,
                                     indx);
@@ -1167,7 +1173,7 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                         for (ActivityElement ae1 : elems) {
                             if (ae1 != ae) {
                                 String aLbl = ae1.activityLabel;
-                                int loc = aLbl.indexOf("$");
+                                int loc = aLbl.indexOf(DATE_STRING_SEPARATOR);
                                 if (loc >= 0) {
                                     aLbl = aLbl.substring(0, loc);
                                 }
@@ -1182,9 +1188,9 @@ public class RetrieveActivityDialog extends CaveJFACEDialog {
                         // Note, we are using "GMT" time zone when we save.
                         if (attachReftime) {
                             DateFormat fmt = new SimpleDateFormat(
-                                    "yy-MM-dd:HH:mm");
+                                    "yyyy-MM-dd   HH:mm:ss");
                             fmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-                            ae.activityLabel = ae.activityLabel + "$"
+                            ae.activityLabel = ae.activityLabel + DATE_STRING_SEPARATOR
                                     + fmt.format(ae.refTime);
                         }
 

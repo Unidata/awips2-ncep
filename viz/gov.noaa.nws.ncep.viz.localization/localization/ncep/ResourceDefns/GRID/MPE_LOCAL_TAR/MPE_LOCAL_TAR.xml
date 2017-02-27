@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-TAR
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

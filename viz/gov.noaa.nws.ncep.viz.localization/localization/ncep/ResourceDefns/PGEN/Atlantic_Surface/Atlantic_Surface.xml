@@ -14,7 +14,7 @@ desk=%
 forecaster=%
     </resourceParameters>
     <rscImplementation>PGEN</rscImplementation>
-    <subTypeGenerator>dataTime</subTypeGenerator>
+    <subTypeGenerator>activityLabel</subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
     <timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
     <frameSpan>2147483647</frameSpan>
@@ -22,4 +22,5 @@ forecaster=%
     <dfltFrameCount>1</dfltFrameCount>
     <dfltTimeRange>24</dfltTimeRange>
     <dfltGeogArea>BasicWX_US</dfltGeogArea>
-</ResourceDefinition>
+</ResourceDefinition>         
+          

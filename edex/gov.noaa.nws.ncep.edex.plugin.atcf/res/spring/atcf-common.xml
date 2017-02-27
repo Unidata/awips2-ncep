@@ -15,7 +15,7 @@
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.atcf.AtcfRecord" />
 	</bean>
 
-	<bean factory-bean="pluginRegistry" factory-method="register">
+	<bean id="atcfRegistered" factory-bean="pluginRegistry" factory-method="register">
 		<constructor-arg ref="atcfPluginName"/>
 		<constructor-arg ref="atcfProperties"/>
 	</bean>

@@ -21,6 +21,8 @@
  *                                      PluginDataObject.
  * Aug 30, 2013 2298        rjpeter     Make getPluginName abstract
  * Jun 11, 2014 2061        bsteffen    Remove IDecoderGettable
+ * Jul 26, 2016 R19277      bsteffen    Added getGridGeometry to consolidate
+ *                                      duplicated code.
  * 
  * </pre>
  * 
@@ -46,6 +48,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.geotools.coverage.grid.GeneralGridEnvelope;
+import org.geotools.coverage.grid.GridGeometry2D;
+import org.geotools.geometry.GeneralEnvelope;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Index;
@@ -55,6 +60,7 @@ import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
+import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
@@ -333,5 +339,32 @@ public class McidasRecord extends PersistablePluginDataObject implements
     @Override
     public String getPluginName() {
         return "mcidas";
+    }
+
+    public GridGeometry2D getGridGeometry() {
+        if (projection.equalsIgnoreCase("STR")
+                || projection.equalsIgnoreCase("MER")
+                || projection.equalsIgnoreCase("LCC")
+                || projection.equalsIgnoreCase("RECT")) {
+            return MapUtil.getGridGeometry(coverage);
+        } else {
+
+            GeneralEnvelope env = new GeneralEnvelope(2);
+            env.setCoordinateReferenceSystem(coverage.getCrs());
+
+            int minX = coverage.getUpperLeftElement();
+            int maxX = coverage.getUpperLeftElement()
+                    + (coverage.getNx() * coverage.getElementRes());
+            int minY = coverage.getUpperLeftLine()
+                    + (coverage.getNy() * coverage.getLineRes());
+            minY = -minY;
+            int maxY = -1 * coverage.getUpperLeftLine();
+            env.setRange(0, minX, maxX);
+            env.setRange(1, minY, maxY);
+
+            return new GridGeometry2D(new GeneralGridEnvelope(
+                    new int[] { 0, 0 }, new int[] { coverage.getNx(),
+                            coverage.getNy() }, false), env);
+        }
     }
 }

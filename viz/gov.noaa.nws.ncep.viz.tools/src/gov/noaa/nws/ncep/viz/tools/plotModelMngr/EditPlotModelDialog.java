@@ -18,6 +18,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
@@ -38,6 +40,11 @@ import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel
  * 06/12/2015   8051        Jonas Okwara    Add a "Save" Button and its functionality
  * 10/01/2015   R8051       Edwin Brown     Added Save button
  *                                          Clean up work
+ * 03/29/2016   R7567       A. Su           Added localization info to dialog title.
+ *                                          Added a new open() method to allow this dialog to access its parent
+ *                                            so that this dialog can be brought to front, and
+ *                                            be able to clear the selection of Plot Model Manager dialog's Plot Model list.
+ *                                          Handled the event for the window close button to clear the above selection.
  * </pre>
  * 
  * @author mli
@@ -73,10 +80,33 @@ public class EditPlotModelDialog extends Dialog {
 
     private PlotModel editedPlotModel = null;
 
+    private EditPlotModelDialogManager manager = EditPlotModelDialogManager
+            .getInstance();
+
+    /**
+     * This Plot Model Manager dialog as input to initiate this Edit Plot Model
+     * dialog.
+     */
+    private PlotModelMngrDialog parent = null;
+
+    /**
+     * This plugin name as the input to initiate this Edit Plot Model.
+     */
+    private String savedPluginName = null;
+
+    /**
+     * This plot model name as the input to initiate this Edit Plot Model.
+     */
+    private String savedPlotModelName = null;
+
     public EditPlotModelDialog(Shell parentShell, PlotModel pm) {
         super(parentShell);
+
+        // Set title with the info of localization.
+        String localizationInfo = manager.getLocalizationString(pm);
         DIALOG_TITLE = EDIT_PLOT_MODEL + " - " + pm.getPlugin() + "/"
-                + pm.getName();
+                + pm.getName() + localizationInfo;
+
         editedPlotModel = new PlotModel(pm);
     }
 
@@ -88,6 +118,13 @@ public class EditPlotModelDialog extends Dialog {
         mainLayout.marginWidth = 1;
         shell.setLayout(mainLayout);
         shell.setLocation(x, y);
+
+        // Handle the event for the window close button.
+        shell.addListener(SWT.Close, new Listener() {
+            public void handleEvent(Event event) {
+                handleDialogClosing();
+            }
+        });
 
         Composite editPlotModelComp = new EditPlotModelComposite(shell,
                 SWT.NONE, editedPlotModel, null);
@@ -112,6 +149,7 @@ public class EditPlotModelDialog extends Dialog {
 
         canBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+                handleDialogClosing();
                 ok = false;
                 shell.dispose();
             }
@@ -128,6 +166,8 @@ public class EditPlotModelDialog extends Dialog {
         saveBtn.setLayoutData(fd);
         saveBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+                handleDialogClosing();
+
                 String newPltMdlName = editedPlotModel.getName();
                 LocalizationLevel lLevel = editedPlotModel
                         .getLocalizationFile().getContext()
@@ -152,13 +192,9 @@ public class EditPlotModelDialog extends Dialog {
                         shell.dispose();
                     } else {
                         return;
-
                     }
-
                 }
-
             }
-
         });
 
         // Enable "Save As" Button
@@ -172,6 +208,8 @@ public class EditPlotModelDialog extends Dialog {
 
         saveAsBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+                handleDialogClosing();
+
                 pltmdlnmsffx = "COPY";
                 String pmname = editedPlotModel.getName() + pltmdlnmsffx;
 
@@ -216,6 +254,9 @@ public class EditPlotModelDialog extends Dialog {
 
         initWidgets();
 
+        manager.addToActivelyEditedPlotModelList(savedPluginName,
+                savedPlotModelName, shell);
+
         shell.pack();
         shell.open();
 
@@ -224,9 +265,48 @@ public class EditPlotModelDialog extends Dialog {
                 display.sleep();
             }
         }
+
+        manager.removeFromActivelyEditedPlotModelList(savedPluginName,
+                savedPlotModelName);
+
         return (ok ? editedPlotModel : null);
     }
 
+    /**
+     * This open() method records its parent composite widget, and plot model
+     * before calling open(x, y).
+     * 
+     * @param parent
+     *            the parent dialog who initiates this dialog.
+     * @param pluginName
+     *            the plugin name associated with this dialog.
+     * @param plotModelName
+     *            the plot model name associated with this dialog.
+     * @param x
+     *            the x coordinate to open this dialog
+     * @param y
+     *            the y coordinate to open this dialog.
+     * @return the plot model to be edited.
+     */
+    public Object open(PlotModelMngrDialog parent, String pluginName,
+            String plotModelName, int x, int y) {
+
+        this.parent = parent;
+        savedPluginName = pluginName;
+        savedPlotModelName = plotModelName;
+
+        return open(x, y);
+    }
+
     public void initWidgets() {
+    }
+
+    /**
+     * Clean up work when this dialog is closing.
+     */
+    private void handleDialogClosing() {
+        if (parent != null) {
+            parent.clearPlotModelListSelections();
+        }
     }
 }

@@ -1,0 +1,39 @@
+!
+! Restore File : ssh_contours_positive
+!
+! Log:
+! Y.Hao		       01/09/08
+!
+!CINT    -3;-2;-1.5;-1;-0.7;-0.5;-0.2;0.0;0.2;0.5;0.7;1;1.5;2;3
+!LINE    24;25;26;27;23;22;3;29;5;19;17;16;15;14;7;28//2//2
+GLEVEL=  0
+GVCORD=  none
+PANEL=   0
+SKIP=    0
+SCALE=   0
+GDPFUN=  mul(ETSRG,3.281)
+TYPE=    c/f
+CONTUR=  0
+CINT=    0/0/0
+LINE=    29/2/2
+FINT=    0.0;0.1;0.3;0.5;1;2;3;4
+FLINE=   25;5;19;17;16;15;14;7;28
+HILO=
+HLSYM=
+CLRBAR=  1/v/ll
+WIND=
+REFVEC=
+TITLE=   5/-2/Extra Tropical Surge Height (feet) ~
+TEXT=    1/21/1.4/hw
+CLEAR=   yes
+STNPLT=
+SATFIL=
+RADFIL=
+LUTFIL=
+STREAM=
+POSN=    0
+COLORS=  1
+MARKER=  0
+GRDLBL=  0
+FILTER=  yes
+IJSKIP=  yes

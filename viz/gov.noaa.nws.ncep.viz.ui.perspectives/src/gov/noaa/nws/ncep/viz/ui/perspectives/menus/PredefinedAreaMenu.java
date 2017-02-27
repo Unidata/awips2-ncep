@@ -4,6 +4,7 @@ import gov.noaa.nws.ncep.viz.common.area.AreaMenus.AreaMenuItem;
 import gov.noaa.nws.ncep.viz.common.area.AreaMenusMngr;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
@@ -21,6 +22,7 @@ import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 
 import com.raytheon.uf.viz.core.IDisplayPane;
+import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -43,6 +45,8 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  *                                        dynamic MenuManagers here                               
  * 05/15/13       #862       G. Hull      support areaSources from new AreaMenus file.
  * 09/23/2015     R9397      N. Jensen    Changed command style to radio
+ * 09/29/2016     R17223     J Beck       Add functionality: when resources are in a user defined group, 
+ *                                        show them in the Area menu under "From Resource".
  * 
  * </pre>
  * 
@@ -51,21 +55,41 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  */
 public class PredefinedAreaMenu extends CompoundContributionItem {
 
-    private static String commandId = "gov.noaa.nws.ncep.viz.ui.actions.loadPredefinedArea";
+    private static final String COMMAND_ID = "gov.noaa.nws.ncep.viz.ui.actions.loadPredefinedArea";
 
+    private static final String AREA_MENU_ITEM_FROM_RESOURCE = "From Resource";
+
+    private static final String AREA_MENU_ITEM_FROM_DISPLAY = "From Display";
+
+    private static final String AREA_MENU_ITEM_AREAS = "Areas";
+
+    private static final String AREA_MENU_ITEM_AREA_NAME = "areaName";
+
+    private static final String AREA_MENU_ITEM_AREA_SOURCE = "areaSource";
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.eclipse.ui.actions.CompoundContributionItem#getContributionItems()
+     */
     @Override
     protected IContributionItem[] getContributionItems() {
-        IMenuManager areaMenuMngr = new MenuManager("Areas",
+        IMenuManager areaMenuMngr = new MenuManager(AREA_MENU_ITEM_AREAS,
                 PredefinedAreaMenu.class.getName());
 
         AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
+
         NcDisplayType displayType = NcEditorUtil.getNcDisplayType(editor);
+
         if (displayType != NcDisplayType.NMAP_DISPLAY) {
             return areaMenuMngr.getItems();
         }
 
         addResourceAreaMenuItems(areaMenuMngr);
+
         addOtherDisplayAreasMenuItems(areaMenuMngr);
+
         addAreaMenuItems(areaMenuMngr);
 
         return areaMenuMngr.getItems();
@@ -76,7 +100,7 @@ public class PredefinedAreaMenu extends CompoundContributionItem {
         Map<String, List<AreaMenuItem>> areaMenuItems = AreaMenusMngr
                 .getInstance().getPredefinedAreasForMenus();
 
-        List<String> subMenus = new ArrayList<String>(areaMenuItems.keySet());
+        List<String> subMenus = new ArrayList<>(areaMenuItems.keySet());
 
         for (String subMenuName : subMenus) {
             if (subMenuName.isEmpty()) {
@@ -105,10 +129,11 @@ public class PredefinedAreaMenu extends CompoundContributionItem {
                 + "." + subMenuName);
         menuMngr.add(subMenu);
 
-        List<AreaMenuItem> menuItemList = new ArrayList<AreaMenuItem>();
+        List<AreaMenuItem> menuItemList = new ArrayList<>();
         for (IAreaProviderCapable areaProvider : areaProvList) {
-            menuItemList.add(new AreaMenuItem(areaProvider.getAreaName(), subMenuName, areaProvider
-                    .getAreaName(), areaProvider.getSourceProvider().toString()));
+            menuItemList.add(new AreaMenuItem(areaProvider.getAreaName(),
+                    subMenuName, areaProvider.getAreaName(), areaProvider
+                            .getSourceProvider().toString()));
         }
 
         addAreaMenuItems(subMenu, menuItemList);
@@ -116,51 +141,110 @@ public class PredefinedAreaMenu extends CompoundContributionItem {
 
     private void addAreaMenuItems(IMenuManager subMenuMngr,
             List<AreaMenuItem> menuItems) {
-        Map<String, String> cmdParams = new HashMap<String, String>();
+
+        Map<String, String> cmdParams = new HashMap<>();
 
         for (AreaMenuItem menuItem : menuItems) {
-            cmdParams.put("areaName", menuItem.getAreaName());
-            cmdParams.put("areaSource", menuItem.getSource());
+
+            cmdParams.put(AREA_MENU_ITEM_AREA_NAME, menuItem.getAreaName());
+            cmdParams.put(AREA_MENU_ITEM_AREA_SOURCE, menuItem.getSource());
 
             subMenuMngr.add(new CommandContributionItem(
                     new CommandContributionItemParameter(PlatformUI
-                            .getWorkbench(), null, commandId, cmdParams, null,
+                            .getWorkbench(), null, COMMAND_ID, cmdParams, null,
                             null, null, menuItem.getMenuName(), null, null,
                             CommandContributionItem.STYLE_RADIO, null, true)));
         }
     }
 
+    /**
+     * Add items to the Area menu. Items are resources found in user defined and
+     * static groups.
+     * 
+     * Adds a menu item: "From Resource" to the Area menu. Resources are shown
+     * to the right of the "From Resource" menu item. The criteria for resources
+     * to be added is that they implement IAreaProviderCapable. Satellite
+     * resources are a prominent example. If the resource is a group, it has to
+     * be iterated over to get to the resources.
+     * 
+     * @param areaMenuMngr
+     *            an instance of IMenuManager
+     */
     private void addResourceAreaMenuItems(IMenuManager areaMenuMngr) {
+
+        AbstractResourceData resourceData = null;
+        AbstractResourceData data = null;
+        ResourceList resourceList = null;
+        IDisplayPane[] panes = null;
+        List<IAreaProviderCapable> areaCapableResourceList = new ArrayList<>();
+
         if (!AreaMenusMngr.getInstance().showImageBasedResourceAreas()) {
             return;
         }
 
         AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
+
         if (currEditor == null) {
             return;
         }
 
-        /*
-         * if geoSynced then let the user choose from all panes and otherwise
-         * only from the currently selected panes.
-         */
-        IDisplayPane[] panes = (NcEditorUtil.arePanesGeoSynced(currEditor) ? currEditor
-                .getDisplayPanes() : NcEditorUtil.getSelectedPanes(currEditor));
+        if ((NcEditorUtil.arePanesGeoSynced(currEditor))) {
+            panes = currEditor.getDisplayPanes();
 
-        List<IAreaProviderCapable> capableList = new ArrayList<IAreaProviderCapable>();
+        } else {
+            panes = NcEditorUtil.getSelectedPanes(currEditor);
+        }
 
+        if (panes == null) {
+            return;
+        }
+
+        // Build a list of qualifying resources, to add to the Area menu
         for (IDisplayPane pane : panes) {
-            ResourceList rscList = pane.getDescriptor().getResourceList();
-            for (int rsc = 0; rsc < rscList.size(); rsc++) {
-                if (rscList.get(rsc).getResourceData() instanceof IAreaProviderCapable) {
-                    capableList.add((IAreaProviderCapable) rscList.get(rsc)
-                            .getResourceData());
+
+            resourceList = pane.getDescriptor().getResourceList();
+
+            if (resourceList == null) {
+                // no resources to add for THIS pane
+                continue;
+            }
+
+            for (int i = 0; i < resourceList.size(); i++) {
+
+                resourceData = resourceList.get(i).getResourceData();
+
+                // Add qualifying resources from the static group
+                if (resourceData instanceof IAreaProviderCapable) {
+
+                    areaCapableResourceList
+                            .add((IAreaProviderCapable) resourceData);
+
+                } else if (resourceData instanceof GroupResourceData) {
+
+                    // Add qualifying resources from user defined group
+                    ResourceList groupResourceList = ((GroupResourceData) resourceData)
+                            .getResourceList();
+
+                    for (int j = 0; j < groupResourceList.size(); j++) {
+
+                        data = groupResourceList.get(j).getResourceData();
+
+                        if (data instanceof IAreaProviderCapable) {
+
+                            areaCapableResourceList
+                                    .add((IAreaProviderCapable) data);
+                        }
+                    }
                 }
             }
-        } // end loop thru panes
+        }
 
-        if (!capableList.isEmpty()) {
-            addAreaMenuItems(areaMenuMngr, "From Resource", capableList);
+        // Adds "From Resource" menu item to the Area menu, and adds resources
+        // as sub-menu items of "From Resource"
+        if (!areaCapableResourceList.isEmpty()) {
+
+            addAreaMenuItems(areaMenuMngr, AREA_MENU_ITEM_FROM_RESOURCE,
+                    areaCapableResourceList);
         }
     }
 
@@ -170,7 +254,7 @@ public class PredefinedAreaMenu extends CompoundContributionItem {
         }
 
         AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
-        List<IAreaProviderCapable> capableList = new ArrayList<IAreaProviderCapable>();
+        List<IAreaProviderCapable> capableList = new ArrayList<>();
 
         for (AbstractEditor editor : NcDisplayMngr.getAllNcDisplays()) {
             Boolean panesSynced = NcEditorUtil.arePanesGeoSynced(editor);
@@ -199,7 +283,8 @@ public class PredefinedAreaMenu extends CompoundContributionItem {
         }
 
         if (!capableList.isEmpty()) {
-            addAreaMenuItems(areaMenuMngr, "From Display", capableList);
+            addAreaMenuItems(areaMenuMngr, AREA_MENU_ITEM_FROM_DISPLAY,
+                    capableList);
         }
     }
 }

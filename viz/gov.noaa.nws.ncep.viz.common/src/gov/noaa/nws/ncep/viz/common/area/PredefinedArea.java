@@ -1,8 +1,5 @@
 package gov.noaa.nws.ncep.viz.common.area;
 
-import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -16,6 +13,9 @@ import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+
+import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
 
 /**
  * This is used as the initial area for a MapRenderableDisplay and is also
@@ -34,6 +34,8 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  *    04/16/13       #863       ghull       moved from display to common project       
  *    11/21/13       #1066      ghull       NcGridGeometryAdapter to handle Native CRSs
  *    07/15/15       #R8899     jlopez      added zoomDisable
+ *    02/27/17       #R21992    mkean       added fullAreaMenuName to save 
+ *                                          selected area String details
  * 
  * </pre>
  * 
@@ -42,11 +44,11 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
-public class PredefinedArea implements ISerializableObject,
-        IGridGeometryProvider {
+public class PredefinedArea
+        implements ISerializableObject, IGridGeometryProvider {
 
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(PredefinedArea.class);
+    private static final transient IUFStatusHandler statusHandler =
+            UFStatus.getHandler(PredefinedArea.class);
 
     @XmlElement
     protected NcDisplayType ncDisplayType = NcDisplayType.NMAP_DISPLAY;
@@ -76,6 +78,9 @@ public class PredefinedArea implements ISerializableObject,
     // Metadata. is the area a state, country.... (currently not used)
     @XmlElement
     protected String description = "N/A";
+
+    // full String for names including resource (Centered-LocalRadar)
+    private String fullAreaMenuName = "";
 
     public PredefinedArea(AreaSource type, String n, GeneralGridGeometry g,
             double[] c, String z, NcDisplayType dt) {
@@ -217,11 +222,20 @@ public class PredefinedArea implements ISerializableObject,
         }
 
         for (int i = 0; i < p1.getMapCenter().length; i++) {
-            if (Math.abs(p1.getMapCenter()[i] - p2.getMapCenter()[i]) > .00001) {
+            if (Math.abs(
+                    p1.getMapCenter()[i] - p2.getMapCenter()[i]) > .00001) {
                 return false;
             }
         }
 
         return p1.getGridGeometry().equals(p2.getGridGeometry());
+    }
+
+    public String getFullAreaMenuName() {
+        return fullAreaMenuName;
+    }
+
+    public void setFullAreaMenuName(String fullAreaMenuName) {
+        this.fullAreaMenuName = fullAreaMenuName;
     }
 }

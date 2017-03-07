@@ -3,7 +3,7 @@
     <resourceDefnName>GFS</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=GFS229
+GDFILE=GFS
 pluginName=grid
 inventoryParam=P
     </resourceParameters>

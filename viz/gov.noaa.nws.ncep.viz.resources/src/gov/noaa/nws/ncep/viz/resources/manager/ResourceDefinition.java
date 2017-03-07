@@ -90,6 +90,7 @@ import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceP
  *  06/02/2016    RM18743    rjpeter      Fix Radar generatedTypes.
  *  06/06/2016    R15945     RCReynolds   Using McidasConstants instead of SatelliteConstants
  *  07/29/2016    R17936     mkean        null in legendString for unaliased satellite.
+ *  09/09/2016    ----       M. James     Add resourceMapName.
  *  11/25/2016    R17956     E. Brown     Facilitate multiple subtype generators. Modification to queryGeneratedTypes(), and addition
  *                                        of methods getSubTypesForPgenRec(PgenRecord pgenRec) and 
  *                                        ResourceDefinition.appendSubType(StringBuilder builtString, String subType)
@@ -107,6 +108,9 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
 
     @XmlElement
     private String resourceDefnName;
+    
+    @XmlElement
+    private String resourceMapName;
 
     @XmlElement
     @XmlJavaTypeAdapter(ResourceCategory.ResourceCategoryAdapter.class)
@@ -396,6 +400,10 @@ public class ResourceDefinition implements Comparable<ResourceDefinition> {
     public String getResourceDefnName() {
         return resourceDefnName;
     }
+    
+    public String getMapName() {
+    	return resourceMapName;
+	}
 
     public Boolean getAddToURICatalog() {
         return addToURICatalog;

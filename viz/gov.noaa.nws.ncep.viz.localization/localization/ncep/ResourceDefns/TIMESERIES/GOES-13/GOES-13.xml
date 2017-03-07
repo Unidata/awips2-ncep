@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceDefinition xmlns:ns2="http://www.example.org/productType" xmlns:ns3="group">
+    <resourceDefnName>GOES-13</resourceDefnName>
+    <resourceCategory>TIMESERIES</resourceCategory>
+    <rscImplementation>GHCD</rscImplementation>
+    <subTypeGenerator>typeInfo.instrument,dataResolVal,dataResolUnits</subTypeGenerator>
+    <rscTypeGenerator></rscTypeGenerator>
+    <timeMatchMethod>EXACT</timeMatchMethod>
+    <dfltGraphRange>12</dfltGraphRange>
+    <dfltHourSnap>1</dfltHourSnap>
+    <frameSpan>1</frameSpan>
+    <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+    <dfltFrameCount>1</dfltFrameCount>
+    <dfltTimeRange>24</dfltTimeRange>
+    <dfltGeogArea>XY</dfltGeogArea>
+    <attrSetOrg>BY_RSC_DEFN</attrSetOrg>
+    <resourceParameters>
+pluginName=ghcd
+reportType=GHCD
+typeInfo.source=goes-13
+legendColor=RGB {200, 200, 200}
+</resourceParameters>
+</ResourceDefinition>

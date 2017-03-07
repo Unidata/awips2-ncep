@@ -3,7 +3,7 @@
     <resourceDefnName>CMC</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=cmc
+GDFILE=CMC
 pluginName=grid
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>

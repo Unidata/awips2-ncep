@@ -3,7 +3,7 @@
     <resourceDefnName>UKMET</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=ukmet
+GDFILE=UKMET-Global
 pluginName=grid
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <predefinedArea areaName="Alaska" mapCenter="-160.00 63.0 0.0">
  <zoomLevel>0.09</zoomLevel>
-  <gridGeometry envelopeMaxY="1.3E7" envelopeMinY="-1.3E7" envelopeMaxX="1.3E7" envelopeMinX="-1.3E7" rangeY="0 9999" rangeX="0 9999">
-                    <CRS>PROJCS["Polar_Stereographic",
-  GEOGCS["WGS84",
+<gridGeometry rangeX="0 575" rangeY="0 407" envelopeMinX="-2286012.153413964" envelopeMaxX="2285987.846586036" envelopeMinY="-4762525.18209333" envelopeMaxY="-1524025.1820933297">
+                            <CRS>PROJCS["AWIPS Polar Stereographic (SP: 60.0, CM: -150.0)",
+  GEOGCS["WGS84(DD)",
     DATUM["WGS84",
       SPHEROID["WGS84", 6378137.0, 298.257223563]],
     PRIMEM["Greenwich", 0.0],
     UNIT["degree", 0.017453292519943295],
     AXIS["Geodetic longitude", EAST],
     AXIS["Geodetic latitude", NORTH]],
-  PROJECTION["Polar_Stereographic"],
-  PARAMETER["semi_major", 6371200.0],
-  PARAMETER["semi_minor", 6371200.0],
-  PARAMETER["central_meridian", -147.7],
-  PARAMETER["latitude_of_origin", 90.0],
+  PROJECTION["Stereographic_North_Pole"],
+  PARAMETER["semi_major", 6371229.0],
+  PARAMETER["semi_minor", 6371229.0],
+  PARAMETER["central_meridian", -150.0],
+  PARAMETER["Standard_Parallel_1", 60.0],
   PARAMETER["scale_factor", 1.0],
   PARAMETER["false_easting", 0.0],
   PARAMETER["false_northing", 0.0],

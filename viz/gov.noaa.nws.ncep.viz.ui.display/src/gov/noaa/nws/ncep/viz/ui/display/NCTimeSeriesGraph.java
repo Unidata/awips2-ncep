@@ -143,9 +143,9 @@ public class NCTimeSeriesGraph extends AbstractGraph {
 
                 String value = df.format(xAxes[i].getDiscreteValue());
                 if (i == 0) {
-                    parameters.verticallAlignment = VerticalAlignment.BOTTOM;
+                    parameters.verticalAlignment = VerticalAlignment.BOTTOM;
                 } else {
-                    parameters.verticallAlignment = VerticalAlignment.MIDDLE;
+                    parameters.verticalAlignment = VerticalAlignment.MIDDLE;
                 }
                 parameters.setText(value, colorToUse);
                 parameters

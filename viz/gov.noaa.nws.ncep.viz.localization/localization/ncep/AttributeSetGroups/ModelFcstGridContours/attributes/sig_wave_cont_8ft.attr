@@ -1,0 +1,25 @@
+!
+! Restore File : sig_wave_cont_8ft
+!
+! Log:
+! M.Mainelli/TPC     09/2004  Initial creation
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0
+GDPFUN = mul(HTSGW,3.28)
+TYPE   = c
+CINT   = 4/8/1000
+LINE   = 31/1/1/1
+FINT   = 0
+FLINE  = 0
+HILO   = 0
+HLSYM  = 0
+WIND   = 0
+TITLE  = 31/-1/?~^  CNTR SIG WAVE HEIGHT (4 FT) !0
+TEXT   = 1/21/1/hw
+COLORS = 2
+MARKER = 2
+GRDLBL = 5
+FILTER = yes

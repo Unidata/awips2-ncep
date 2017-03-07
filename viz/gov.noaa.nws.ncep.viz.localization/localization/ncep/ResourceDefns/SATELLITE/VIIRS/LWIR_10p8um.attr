@@ -1,4 +1,4 @@
-colorMapName=IR Default
+colorMapName=lingray
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 wavelength=10.763
 displayUnitStr=C

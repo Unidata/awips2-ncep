@@ -3,8 +3,8 @@
     <resourceDefnName>NAM_00</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
         <resourceParameters>
-primaryModel=nam
-availableModels=nam;gefs:01,02,03,04,05,07,09;gfs;ruc80
+primaryModel=NAM12
+availableModels=NAM12;GEFS:01,02,03,04,05,07,09;GFS;ruc80
 pluginName=grid
 GDFILE=
     </resourceParameters>

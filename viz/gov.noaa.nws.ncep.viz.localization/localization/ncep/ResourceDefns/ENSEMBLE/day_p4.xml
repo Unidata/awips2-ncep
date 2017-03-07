@@ -3,10 +3,10 @@
     <resourceDefnName>day_p4</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=cmc;DGEX185;ecmwf;ece;gefs;gfs;GFS230;wpc;naefsbc_m;nam;namNestConus;nogaps;sref_m;UkmetHR-NorthernHemisphere
+primaryModel=GFS
+availableModels=CMC;DGEX185;ECMWF-Global;GEFS;GFS;wpc;NAM12;NAM12NestConus;NAVGEM;sref_m;UKMET-Global
 pluginName=grid
-GDFILE={gfs,cmc,DGEX185,ecmwf,ece,gefs,GFS230,wpc,naefsbc_m,nam,namNestConus,nogaps,sref_m,UkmetHR-NorthernHemisphere}
+GDFILE={GFS,CMC,DGEX185,ECMWF-Global,GEFS,wpc,NAM12,NAM12NestConus,NAVGEM,sref_m,UKMET-Global}
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

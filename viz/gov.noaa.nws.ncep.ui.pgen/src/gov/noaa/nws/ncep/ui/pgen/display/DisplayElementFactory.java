@@ -1581,7 +1581,7 @@ public class DisplayElementFactory {
         dstring.setCoordinates(loc[0], loc[1]);
         dstring.textStyle = TextStyle.NORMAL;
         dstring.horizontalAlignment = HorizontalAlignment.CENTER;
-        dstring.verticallAlignment = VerticalAlignment.MIDDLE;
+        dstring.verticalAlignment = VerticalAlignment.MIDDLE;
         dstring.rotation = rotation;
 
         Rectangle2D bounds = target.getStringsBounds(dstring);
@@ -5962,7 +5962,7 @@ public class DisplayElementFactory {
         dstring.setCoordinates(loc[0], loc[1]);
         dstring.textStyle = TextStyle.NORMAL;
         dstring.horizontalAlignment = HorizontalAlignment.CENTER;
-        dstring.verticallAlignment = VerticalAlignment.MIDDLE;
+        dstring.verticalAlignment = VerticalAlignment.MIDDLE;
         dstring.rotation = rotation;
 
         Rectangle2D bounds = target.getStringsBounds(dstring);

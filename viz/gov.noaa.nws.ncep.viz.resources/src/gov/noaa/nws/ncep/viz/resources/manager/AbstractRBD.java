@@ -353,7 +353,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         } catch (JAXBException e) {
             throw new VizException(e);
         } catch (VizException e) {
-            throw new VizException("Error loading rbd " + rbdBndl.rbdName
+            throw new VizException("Error loading bundle " + rbdBndl.rbdName
                     + " :" + e.getMessage());
         } catch (IOException e) {
             throw new VizException(e);
@@ -525,14 +525,14 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             break;
 
         default:
-            throw new VizException("Unable to find the default RBD name for "
+            throw new VizException("Unable to find the default bundle name for "
                     + displayType.toString());
         }
 
         File rbdFile = NcPathManager.getInstance().getStaticFile(dfltRbdName);
 
         if (rbdFile == null) {
-            throw new VizException("Unable to find the default RBD file for "
+            throw new VizException("Unable to find the default bundle file for "
                     + displayType.toString());
         }
 
@@ -548,7 +548,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return clone(dfltRbd);
 
         } catch (Exception ve) {
-            throw new VizException("Error getting default RBD: "
+            throw new VizException("Error getting default bundle: "
                     + ve.getMessage());
         }
     }
@@ -563,7 +563,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         //
         if (rbd.displays == null || rbd.displays.length == 0) {
             throw new VizException(
-                    "Error unmarshalling RBD: the renderable display list is null");
+                    "Error unmarshalling bundle: the renderable display list is null");
         }
 
         return rbd;
@@ -587,7 +587,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         //
         if (rbd.displays == null || rbd.displays.length == 0) {
             throw new VizException(
-                    "Error unmarshalling RBD: the renderable display list is null");
+                    "Error unmarshalling bundle: the renderable display list is null");
         }
 
         return rbd;
@@ -618,9 +618,10 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             s = new String(b);
 
         } catch (Exception e) {
-            throw new VizException("Error opening RBD file " + fileName, e);
+            throw new VizException("Error opening bundle " + fileName, e);
         }
-
+        statusHandler.handle(Priority.INFO,
+                "Attempting to unmarshall file " + fileName);
         return unmarshalRBD(s, variables);
 
     }
@@ -650,7 +651,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                     .unmarshalFromInputStream(instream);
             if (rbd == null) {
                 statusHandler.handle(Priority.INFO,
-                        "Unmarshalled stream is not a valid RBD.");
+                        "Unmarshalled stream is not a valid bundle.");
                 return null;
             }
 
@@ -659,9 +660,9 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return rbd;
 
         } catch (SerializationException e) {
-            throw new VizException("Error unmarshalling RBD", e);
+            throw new VizException("Error unmarshalling bundle", e);
         } catch (JAXBException e) {
-            throw new VizException("JAXB error for RBD", e);
+            throw new VizException("JAXB error for bundle", e);
         }
 
     }
@@ -692,7 +693,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
 
             if (b == null) {
                 statusHandler.handle(Priority.INFO,
-                        "Unmarshalled rbd file is not a valid RBD.");
+                        "Unmarshalled file is not a valid bundle.");
                 return null;
             }
 

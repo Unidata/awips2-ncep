@@ -1,6 +1,0 @@
-color= RGB {155,100,155}
-lineStyle=SOLID
-lineWidth=1
-! the distance in km of the screen width when the symbols/labels will be displayed.
-! maxSymbolDisplayWidth=10000
-! maxLabelDisplayWidth=700

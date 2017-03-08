@@ -100,31 +100,6 @@
 <!-- The following sources read from the common_obs_spatial db table.
   Others possible for NEXRAD, WFOID, PIREP, MESONET, BUOY_MOB, SHIP_MOB and other catalogtypes. 
   -->
-        <areaProviderSource
-               areaSourceName="METAR_STATION_ID"
-               sourceFactory="gov.noaa.nws.ncep.viz.common.area.StationDbAreaProviderFactory"
-               sourceLocation="common_obs_spatial"
-               configSourceData="1"/> <!-- the catalogtype for ICAO (ie. METAR) -->                
-        <areaProviderSource
-               areaSourceName="SYNOP_STATION_ID"
-               sourceFactory="gov.noaa.nws.ncep.viz.common.area.StationDbAreaProviderFactory"
-               sourceLocation="common_obs_spatial"
-               configSourceData="20"/> <!-- the catalogtype SFC_FXD-->
-        <areaProviderSource
-               areaSourceName="UAIR_STATION_ID"
-               sourceFactory="gov.noaa.nws.ncep.viz.common.area.StationDbAreaProviderFactory"
-               sourceLocation="common_obs_spatial"
-               configSourceData="22"/> <!-- the catalogtype for SRC_RAOB-->
-        <areaProviderSource
-               areaSourceName="FIXED_BOUY_ID"
-               sourceFactory="gov.noaa.nws.ncep.viz.common.area.StationDbAreaProviderFactory"
-               sourceLocation="common_obs_spatial"
-               configSourceData="32"/> <!-- the catalogtype SFC_FXD-->
-        <areaProviderSource
-               areaSourceName="CMAN_STATION_ID"
-               sourceFactory="gov.noaa.nws.ncep.viz.common.area.StationDbAreaProviderFactory"
-               sourceLocation="common_obs_spatial"
-               configSourceData="33"/> <!-- the catalogtype CMAN -->
-               
+  
    </extension>
 </plugin>

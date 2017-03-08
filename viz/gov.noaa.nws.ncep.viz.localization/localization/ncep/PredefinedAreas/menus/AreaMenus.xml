@@ -68,46 +68,4 @@
         <source>PREDEFINED_AREA</source>
         <areaName>N_Hemisphere</areaName>
     </AreaMenuItem>
-    <!-- 
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="synop">
-        <source>SYNOP_STATION_ID</source>
-        <areaName>72403</areaName>
-        -->
-<!--  TODO : add one or more elements that can override the projection and/or extents for a location-bases area. -->
-<!--     <recenterOnly>true</recenterOnly>  not implemented-->  
-<!--    <changeAreaMethod>RecenterAndReproject</changeAreaMethod>  --> 
-<!-- 
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="metar">
-        <source>METAR_STATION_ID</source>
-        <areaName>KIAD</areaName>
-    </AreaMenuItem>
-    -->
-    <!-- UAIR doesn't have the geom set in the db???
-    <AreaMenuItem subMenuName="Wash D.C (Dulles)" menuName="upper-air">
-        <source>UAIR_STATION_ID</source>
-        <areaName>72403</areaName>
-    </AreaMenuItem>   -->
-    <!--
-    <AreaMenuItem subMenuName="Stations" menuName="DYESS_AFB,ABILENE(DYS)">
-        <source>GEMPAK_SFC_STN_ID</source>
-        <areaName>DYS</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="METAR-KRZL">
-        <source>METAR_STATION_ID</source>
-        <areaName>KRZL</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="UAIR-21824">
-        <source>UAIR_STATION_ID</source>
-        <areaName>21824</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="BOUY-CapeHatt">
-        <source>FIXED_BOUY_ID</source>
-        <areaName>41001</areaName>
-    </AreaMenuItem>
-    <AreaMenuItem subMenuName="Stations" menuName="CMAN-AtlCity">
-        <source>CMAN_STATION_ID</source>
-        <areaName>ACMN4</areaName>
-    </AreaMenuItem>
-    -->
 </areaMenus>

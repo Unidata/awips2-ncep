@@ -85,6 +85,7 @@ import gov.noaa.nws.ncep.viz.resources.DfltRecordRscDataObj;
 import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;

@@ -103,7 +103,6 @@ import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.GraphTimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl;
 import gov.noaa.nws.ncep.viz.resourceManager.timeline.TimelineControl.IDominantResourceChangedListener;
-import gov.noaa.nws.ncep.viz.resourceManager.timeline.cache.TimeSettingsCacheManager;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.ResourceSelectionControl.IResourceSelectedListener;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
@@ -198,6 +197,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *                                       Cleanup.
  * 11/14/2016     R17362    Jeff Beck    Added functionality to remove user defined resources from the dominant resource combo
  *                                       when clicking the "X" on the GUI.
+ * 03/07/2017               mjames       Removed timeline caching.
  * </pre>
  * 
  * @author ghull
@@ -1870,10 +1870,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                         // select this one
                         if (timelineControl.getDominantResource() == null) {
                             timelineControl
-                                    .setDominantResource(
-                                            (AbstractNatlCntrsRequestableResourceData) rbt
-                                                    .getResourceData(),
-                                            replace);
+                                    .setDominantResource((AbstractNatlCntrsRequestableResourceData) rbt
+                                                    .getResourceData());
                         }
                     }
                 } catch (VizException e) {
@@ -2516,8 +2514,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
         }
 
-        TimeSettingsCacheManager.getInstance()
-                .updateCacheLookupKey(rbdMngr.getRbdName());
         if (importRbdCombo.getSelectionIndex() == -1) {
             importRbdCombo.select(importRbdCombo.getItemCount() - 1);
         }
@@ -2833,7 +2829,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             rbdMngr.init(curDispType);
         }
 
-        TimeSettingsCacheManager.getInstance().reset();
         updateGUI();
 
         curGrp = -1;

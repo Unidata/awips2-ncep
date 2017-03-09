@@ -1,0 +1,3084 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="Workspace5">
+    <displayType>NMAP_DISPLAY</displayType>
+    <paneLayout numRows="1" numColumns="1"/>
+    <selectedPaneId row="0" col="0"/>
+    <geoSyncedPanes>true</geoSyncedPanes>
+    <autoUpdate>true</autoUpdate>
+    <rbdSequence>0</rbdSequence>
+    <timeMatcher dominantResourceName="SATELLITE/GOES13/Atlantic_10km/IR" numFrames="10" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="-1"/>
+    <displayList>
+        <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="NC-MapRenderableDisplay" mapCenter="-96.5 38.5 0.0" zoomLevel="0.25">
+            <descriptor xsi:type="NCMapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-OverlayResourceGroupData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>World</mapName>
+<dbName>maps</dbName>
+<table>mapdata.world</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>State Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.states</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Canada</mapName>
+<dbName>maps</dbName>
+<table>mapdata.canada</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Mexico</mapName>
+<dbName>maps</dbName>
+<table>mapdata.mexico</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>County Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.county</table>
+<geomField>the_geom</geomField>
+<labelField>countyname</labelField>
+<displayLabelField>false</displayLabelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <mapName>Geo-Political</mapName>
+                        <color>RGB {255, 228, 220}</color>
+                        <lineWidth>1</lineWidth>
+                        <lineStyle>SOLID</lineStyle>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" isEdited="false" resourceName="OVERLAY/Locator/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                        <color>RGB {255, 255, 255}</color>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <groupName>WS1L1</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="ir_grb">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/METEOSAT10/Trop-NAtlantic_2km/SWIR_3.9" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="2"/>
+    </mapping>
+    <mapping key="areaName">
+        <constraint constraintType="EQUALS" constraintValue="Trop-NAtlantic"/>
+    </mapping>
+    <mapping key="imageType">
+        <constraint constraintType="EQUALS" constraintValue="SWIR-3.9"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="satelliteName">
+        <constraint constraintType="EQUALS" constraintValue="METEOSAT10"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>ir_grb</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {5, 5, 5}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {15, 15, 15}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {25, 25, 25}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {35, 35, 35}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {45, 45, 45}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {55, 55, 55}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {65, 65, 65}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {75, 75, 75}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {85, 85, 85}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {95, 95, 95}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {105, 105, 105}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {115, 115, 115}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {125, 125, 125}</pixelRGBs>
+    <pixelRGBs>RGB {130, 130, 130}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {140, 140, 140}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {150, 150, 150}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {160, 160, 160}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {170, 170, 170}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {180, 180, 180}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {190, 190, 190}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {200, 200, 200}</pixelRGBs>
+    <pixelRGBs>RGB {204, 204, 204}</pixelRGBs>
+    <pixelRGBs>RGB {208, 208, 208}</pixelRGBs>
+    <pixelRGBs>RGB {212, 212, 212}</pixelRGBs>
+    <pixelRGBs>RGB {216, 216, 216}</pixelRGBs>
+    <pixelRGBs>RGB {220, 220, 220}</pixelRGBs>
+    <pixelRGBs>RGB {224, 224, 224}</pixelRGBs>
+    <pixelRGBs>RGB {228, 228, 228}</pixelRGBs>
+    <pixelRGBs>RGB {232, 232, 232}</pixelRGBs>
+    <pixelRGBs>RGB {236, 236, 236}</pixelRGBs>
+    <pixelRGBs>RGB {240, 240, 240}</pixelRGBs>
+    <pixelRGBs>RGB {244, 244, 244}</pixelRGBs>
+    <pixelRGBs>RGB {248, 248, 248}</pixelRGBs>
+    <pixelRGBs>RGB {252, 252, 252}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 70, 10}</pixelRGBs>
+    <pixelRGBs>RGB {10, 100, 30}</pixelRGBs>
+    <pixelRGBs>RGB {30, 130, 50}</pixelRGBs>
+    <pixelRGBs>RGB {50, 160, 70}</pixelRGBs>
+    <pixelRGBs>RGB {70, 190, 90}</pixelRGBs>
+    <pixelRGBs>RGB {90, 220, 110}</pixelRGBs>
+    <pixelRGBs>RGB {110, 250, 130}</pixelRGBs>
+    <pixelRGBs>RGB {50, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {100, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {150, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {200, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {250, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 100}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 175}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {5, 5, 5}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {15, 15, 15}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {25, 25, 25}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {35, 35, 35}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {45, 45, 45}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {55, 55, 55}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {65, 65, 65}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {75, 75, 75}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {85, 85, 85}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {95, 95, 95}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {105, 105, 105}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {115, 115, 115}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {125, 125, 125}</pixelRGBs>
+    <pixelRGBs>RGB {130, 130, 130}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {140, 140, 140}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {150, 150, 150}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {160, 160, 160}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {170, 170, 170}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {180, 180, 180}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {190, 190, 190}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {200, 200, 200}</pixelRGBs>
+    <pixelRGBs>RGB {204, 204, 204}</pixelRGBs>
+    <pixelRGBs>RGB {208, 208, 208}</pixelRGBs>
+    <pixelRGBs>RGB {212, 212, 212}</pixelRGBs>
+    <pixelRGBs>RGB {216, 216, 216}</pixelRGBs>
+    <pixelRGBs>RGB {220, 220, 220}</pixelRGBs>
+    <pixelRGBs>RGB {224, 224, 224}</pixelRGBs>
+    <pixelRGBs>RGB {228, 228, 228}</pixelRGBs>
+    <pixelRGBs>RGB {232, 232, 232}</pixelRGBs>
+    <pixelRGBs>RGB {236, 236, 236}</pixelRGBs>
+    <pixelRGBs>RGB {240, 240, 240}</pixelRGBs>
+    <pixelRGBs>RGB {244, 244, 244}</pixelRGBs>
+    <pixelRGBs>RGB {248, 248, 248}</pixelRGBs>
+    <pixelRGBs>RGB {252, 252, 252}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 70, 10}</pixelRGBs>
+    <pixelRGBs>RGB {10, 100, 30}</pixelRGBs>
+    <pixelRGBs>RGB {30, 130, 50}</pixelRGBs>
+    <pixelRGBs>RGB {50, 160, 70}</pixelRGBs>
+    <pixelRGBs>RGB {70, 190, 90}</pixelRGBs>
+    <pixelRGBs>RGB {90, 220, 110}</pixelRGBs>
+    <pixelRGBs>RGB {110, 250, 130}</pixelRGBs>
+    <pixelRGBs>RGB {50, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {100, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {150, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {200, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {250, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 100}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 175}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>C</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/METEOSAT10/Trop-NAtlantic_2km/VIS_0.6" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="2"/>
+    </mapping>
+    <mapping key="areaName">
+        <constraint constraintType="EQUALS" constraintValue="Trop-NAtlantic"/>
+    </mapping>
+    <mapping key="imageType">
+        <constraint constraintType="EQUALS" constraintValue="VIS-0.6"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="satelliteName">
+        <constraint constraintType="EQUALS" constraintValue="METEOSAT10"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>BRIT</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/METAR/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="obs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="METAR"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Metar</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="standard" plugin="obs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="obs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SYNOP/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002,1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Reports)</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="synop_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTSY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LC</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SHIP/allreports" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>SHIP3</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="ship_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WHFT" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="185" green="174" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>TC</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SSTF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="255" green="255" red="0"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>12</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 0}</legendColor>
+                        <groupName>WS1L2</groupName>
+                        <funcKeyNum>2</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="colorMapName">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="false" resourceName="SATELLITE/GOES13/Atlantic_10km/IR" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="10"/>
+    </mapping>
+    <mapping key="areaName">
+        <constraint constraintType="EQUALS" constraintValue="Atlantic"/>
+    </mapping>
+    <mapping key="imageType">
+        <constraint constraintType="EQUALS" constraintValue="IR"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="satelliteName">
+        <constraint constraintType="EQUALS" constraintValue="GOES13"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>bd</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>C</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SHIP/allreports" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>SHIP3</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="ship_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WHFT" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="185" green="174" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>TC</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SSTF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="255" green="255" red="0"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>12</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/METAR/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="obs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="METAR"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Metar</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="standard" plugin="obs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="obs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SYNOP/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002,1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Reports)</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="synop_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTSY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LC</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 255, 0}</legendColor>
+                        <groupName>WS1L3</groupName>
+                        <funcKeyNum>3</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/GOES13/Atlantic_10km/VIS" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="10"/>
+    </mapping>
+    <mapping key="areaName">
+        <constraint constraintType="EQUALS" constraintValue="Atlantic"/>
+    </mapping>
+    <mapping key="imageType">
+        <constraint constraintType="EQUALS" constraintValue="VIS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="satelliteName">
+        <constraint constraintType="EQUALS" constraintValue="GOES13"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>BRIT</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SYNOP/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002,1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Reports)</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="synop_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTSY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LC</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SHIP/allreports" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>SHIP3</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="ship_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WHFT" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="185" green="174" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>TC</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SSTF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="255" green="255" red="0"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>12</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/METAR/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="obs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="METAR"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Metar</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="standard" plugin="obs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="obs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 0, 255}</legendColor>
+                        <groupName>WS1L4</groupName>
+                        <funcKeyNum>4</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/GOES15/EPac-MERC_4km/VIS" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="4"/>
+    </mapping>
+    <mapping key="areaName">
+        <constraint constraintType="EQUALS" constraintValue="EPac-MERC"/>
+    </mapping>
+    <mapping key="imageType">
+        <constraint constraintType="EQUALS" constraintValue="VIS"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="satelliteName">
+        <constraint constraintType="EQUALS" constraintValue="GOES15"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>BRIT</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/METAR/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="obs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="METAR"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Metar</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="standard" plugin="obs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="obs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SHIP/allreports" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>SHIP3</legendString>
+<spiFile>MTR.spi</spiFile>
+<plotModel name="ship_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WHFT" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="185" green="174" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>TC</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SSTF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="255" green="255" red="0"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>12</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/SYNOP/standard" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002,1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Reports)</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="synop_standard" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="DWPF" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LL</Position>
+        <Color blue="0" green="205" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>SC</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>WD</Position>
+        <Color blue="238" green="238" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>UR</Position>
+        <Color blue="255" green="144" red="30"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="STID" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>MR</Position>
+        <Color blue="0" green="133" red="205"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTSY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="VSBY" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>BC</Position>
+        <Color blue="139" green="78" red="16"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="P03C" textSize="12" textFont="Courier" textStyle="Bold" symbolSize="1.0">
+        <Position>LC</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>10</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 255, 0}</legendColor>
+                        <groupName>WS1L5</groupName>
+                        <funcKeyNum>5</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcscatResourceData" isEdited="false" resourceName="MISC/ASCT/default" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="ncscat"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="EQUALS" constraintValue="ascat"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>360</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<color>RGB {155, 155, 155}</color>
+<skipEnable>false</skipEnable>
+<skipValue>5</skipValue>
+<densityValue>50</densityValue>
+<timeStampEnable>true</timeStampEnable>
+<timeStampColor>RGB {255, 255, 255}</timeStampColor>
+<timeStampInterval>30</timeStampInterval>
+<timeStampLineWidth>1</timeStampLineWidth>
+<arrowStyle>WIND_BARB</arrowStyle>
+<arrowWidth>1</arrowWidth>
+<arrowSize>2</arrowSize>
+<headSize>4</headSize>
+<colorBar1>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {255, 228, 220}</IntervalColor>
+    <IntervalColor>RGB {0, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+    <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+    <IntervalColor>RGB {127, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+    <IntervalColor>RGB {139, 71, 38}</IntervalColor>
+    <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>false</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Horizontal</orientation>
+    <anchorLoc>UpperRight</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar1>
+<colorBar2>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>false</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Horizontal</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar2>
+<highWindSpeedEnable>true</highWindSpeedEnable>
+<lowWindSpeedEnable>true</lowWindSpeedEnable>
+<rainFlagEnable>true</rainFlagEnable>
+<availabilityFlagEnable>true</availabilityFlagEnable>
+<use2ndColorForRainEnable>false</use2ndColorForRainEnable>
+<plotCirclesForRainEnable>true</plotCirclesForRainEnable>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 255, 255}</legendColor>
+                        <groupName>WS1L6</groupName>
+                        <funcKeyNum>6</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcscatResourceData" isEdited="false" resourceName="MISC/ASCT/ambig1_hi" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="ncscat"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="EQUALS" constraintValue="ascat-hi-ambig1"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>360</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<color>RGB {155, 155, 155}</color>
+<skipEnable>false</skipEnable>
+<skipValue>5</skipValue>
+<densityValue>50</densityValue>
+<timeStampEnable>true</timeStampEnable>
+<timeStampColor>RGB {255, 255, 255}</timeStampColor>
+<timeStampInterval>30</timeStampInterval>
+<timeStampLineWidth>1</timeStampLineWidth>
+<arrowStyle>WIND_BARB</arrowStyle>
+<arrowWidth>1</arrowWidth>
+<arrowSize>2</arrowSize>
+<headSize>4</headSize>
+<colorBar1>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperRight</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar1>
+<colorBar2>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar2>
+<highWindSpeedEnable>true</highWindSpeedEnable>
+<lowWindSpeedEnable>true</lowWindSpeedEnable>
+<rainFlagEnable>true</rainFlagEnable>
+<availabilityFlagEnable>true</availabilityFlagEnable>
+<use2ndColorForRainEnable>false</use2ndColorForRainEnable>
+<plotCirclesForRainEnable>true</plotCirclesForRainEnable>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcscatResourceData" isEdited="false" resourceName="MISC/ASCT/ambig2_hi" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="ncscat"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="EQUALS" constraintValue="ascat-hi-ambig2"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>360</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<color>RGB {155, 155, 155}</color>
+<skipEnable>false</skipEnable>
+<skipValue>5</skipValue>
+<densityValue>50</densityValue>
+<timeStampEnable>true</timeStampEnable>
+<timeStampColor>RGB {255, 255, 255}</timeStampColor>
+<timeStampInterval>30</timeStampInterval>
+<timeStampLineWidth>1</timeStampLineWidth>
+<arrowStyle>WIND_BARB</arrowStyle>
+<arrowWidth>1</arrowWidth>
+<arrowSize>2</arrowSize>
+<headSize>4</headSize>
+<colorBar1>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Vertical</orientation>
+    <anchorLoc>LowerRight</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar1>
+<colorBar2>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>6.0</IntervalValue>
+    <IntervalValue>12.0</IntervalValue>
+    <IntervalValue>17.0</IntervalValue>
+    <IntervalValue>23.0</IntervalValue>
+    <IntervalValue>27.0</IntervalValue>
+    <IntervalValue>33.0</IntervalValue>
+    <IntervalValue>42.0</IntervalValue>
+    <IntervalValue>48.0</IntervalValue>
+    <IntervalValue>56.0</IntervalValue>
+    <IntervalValue>63.0</IntervalValue>
+    <IntervalValue>74.0</IntervalValue>
+    <IntervalValue>150.0</IntervalValue>
+    <IntervalValue>INF</IntervalValue>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Vertical</orientation>
+    <anchorLoc>LowerLeft</anchorLoc>
+    <lengthAsRatio>0.4</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar2>
+<highWindSpeedEnable>true</highWindSpeedEnable>
+<lowWindSpeedEnable>true</lowWindSpeedEnable>
+<rainFlagEnable>true</rainFlagEnable>
+<availabilityFlagEnable>true</availabilityFlagEnable>
+<use2ndColorForRainEnable>false</use2ndColorForRainEnable>
+<plotCirclesForRainEnable>true</plotCirclesForRainEnable>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="UNKNOWN">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 255}</legendColor>
+                        <groupName>WS1L7</groupName>
+                        <funcKeyNum>7</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="outlineCapability" outlineWidth="1" outlineOn="true" lineStyle="DEFAULT"/>
+    <capability xsi:type="colorableCapability" colorAsString="green"/>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="rangeRingsOverlayCapability"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="osf_ref16">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-RadarResourceData" pointID="" mode="" latest="false" rangeRings="true" isEdited="true" resourceName="RADAR/LocalRadar:keyx/BaseReflectivity/BREF1_1.00" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="format">
+        <constraint constraintType="IN" constraintValue="Radial,Raster"/>
+    </mapping>
+    <mapping key="productCode">
+        <constraint constraintType="EQUALS" constraintValue="19"/>
+    </mapping>
+    <mapping key="elevationNumber">
+        <constraint constraintType="EQUALS" constraintValue="1"/>
+    </mapping>
+    <mapping key="icao">
+        <constraint constraintType="EQUALS" constraintValue="keyx"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="radar"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>10</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>3</dfltTimeRange>
+<colorMapName>osf_ref16</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 236, 236}</pixelRGBs>
+    <pixelRGBs>RGB {1, 160, 246}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 246}</pixelRGBs>
+    <pixelRGBs>RGB {0, 255, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 200, 0}</pixelRGBs>
+    <pixelRGBs>RGB {0, 144, 0}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 0}</pixelRGBs>
+    <pixelRGBs>RGB {231, 192, 0}</pixelRGBs>
+    <pixelRGBs>RGB {255, 144, 0}</pixelRGBs>
+    <pixelRGBs>RGB {255, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {214, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {192, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {255, 0, 255}</pixelRGBs>
+    <pixelRGBs>RGB {153, 85, 201}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+                <gridGeometry rangeX="0 10000" rangeY="0 10000" envelopeMinX="-1.3E7" envelopeMaxX="1.3E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Polar_Stereographic&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Polar_Stereographic&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;central_meridian&quot;, -103.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 90.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+                <timeMatcher xsi:type="ncTimeMatcher" dominantResourceName="SATELLITE/GOES13/Atlantic_10km/IR" numFrames="10" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="-1"/>
+                <autoUpdate>true</autoUpdate>
+                <suspendZoom>false</suspendZoom>
+            </descriptor>
+            <paneId row="0" col="0"/>
+            <initialArea areaName="BasicWX_US" mapCenter="-96.5 38.5 0.0">
+                <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+                <areaSource>PREDEFINED_AREA</areaSource>
+                <zoomLevel>0.25</zoomLevel>
+                <description>N/A</description>
+                <gridGeometry rangeX="0 10000" rangeY="0 10000" envelopeMinX="-1.3E7" envelopeMaxX="1.3E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Polar_Stereographic&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Polar_Stereographic&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;central_meridian&quot;, -103.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 90.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+            </initialArea>
+        </displays>
+    </displayList>
+    <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

@@ -42,7 +42,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 02/22/13      #972        G. Hull      only for supported display types
  * 04/09/13      #864        G. Hull      add sub-menus for filters and isEnabled.
  * 01/21/14					 M. James	  reconfigured overlay menu to toggle/unload.
- * 09/09/16      ----        M. James     Update toggling of overlay menu with resourceMapName
+ * 09/09/16      ----        M. James     Update toggling of overlay menu with resourceMapName.
  * </pre>
  * 
  * @author ghull

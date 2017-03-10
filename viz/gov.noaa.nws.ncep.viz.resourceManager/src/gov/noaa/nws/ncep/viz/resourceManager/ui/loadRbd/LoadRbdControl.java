@@ -158,7 +158,7 @@ public class LoadRbdControl extends Composite {
     // one.
     // private HashMap<String, AbstractRBD<?>> editedRbdMap = null;
 
-    private Point initDlgSize = new Point(1050, 860);
+    private Point initDlgSize = new Point(850, 850);
 
     private EditRbdDialog editRbdDlg = null;
 
@@ -221,16 +221,16 @@ public class LoadRbdControl extends Composite {
         spf_name_lviewer.getList().setLayoutData(fd);
 
         Label spf_name_lbl = new Label(sel_rbds_grp, SWT.NONE);
-        spf_name_lbl.setText("Groups");
+        spf_name_lbl.setText("Bundle Groups");
         fd = new FormData();
         fd.bottom = new FormAttachment(spf_name_lviewer.getList(), -3, SWT.TOP);
         fd.left = new FormAttachment(spf_name_lviewer.getList(), 0, SWT.LEFT);
+        fd.right = new FormAttachment(spf_name_lviewer.getList(), 0, SWT.RIGHT);
         spf_name_lbl.setLayoutData(fd);
 
         rbd_lviewer = new ListViewer(sel_rbds_grp, SWT.MULTI | SWT.BORDER
                 | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();
-        fd.width = 222;
         fd.top = new FormAttachment(0, 30);
         fd.left = new FormAttachment(30, 7); // spf_name_lviewer.getList(), 15,
                                              // SWT.RIGHT );
@@ -325,14 +325,14 @@ public class LoadRbdControl extends Composite {
         load_form.setLayoutData(gd);
 
         load_and_close_btn = new Button(load_form, SWT.PUSH);
-        load_and_close_btn.setText(" Load and Close ");
+        load_and_close_btn.setText("Load and Close");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
         fd.right = new FormAttachment(100, -10);
         load_and_close_btn.setLayoutData(fd);
 
         load_btn = new Button(load_form, SWT.PUSH);
-        load_btn.setText("  Load Bundles  ");
+        load_btn.setText("  Load  ");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
         fd.right = new FormAttachment(load_and_close_btn, -20, SWT.LEFT);

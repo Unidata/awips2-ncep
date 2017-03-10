@@ -54,7 +54,7 @@
    <extension
          point="org.eclipse.ui.menus">
          <menuContribution
-            locationURI="menu:org.eclipse.ui.main.menu?after=CAVE">
+            locationURI="menu:org.eclipse.ui.main.menu">
            <menu
                 id="NCFile"
                 label="File"

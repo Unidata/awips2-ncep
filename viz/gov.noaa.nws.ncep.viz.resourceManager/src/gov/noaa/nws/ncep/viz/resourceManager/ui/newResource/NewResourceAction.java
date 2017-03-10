@@ -116,8 +116,7 @@ public class NewResourceAction extends AbstractHandler {
 				
    		rscSelDlg.addResourceSelectionListener( new IResourceSelectedListener() {
    			@Override
-   			public void resourceSelected( ResourceName rscName, 
-   								boolean replace, // ignore the replace option 
+   			public void resourceSelected( ResourceName rscName, boolean False, 
    							    boolean addAllPanes, boolean done ) {
    				try {
    					

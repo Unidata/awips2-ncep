@@ -88,7 +88,6 @@ public class ResourceSelectionDialog extends Dialog {
         shell.setLayout(mainLayout);
 
         Group sel_rscs_grp = new Group(shell, SWT.SHADOW_NONE);
-        sel_rscs_grp.setText("Select Resources");
         sel_rscs_grp.setLayout(new GridLayout(1, true));
 
         GridData gd = new GridData();
@@ -196,11 +195,6 @@ public class ResourceSelectionDialog extends Dialog {
 
     public void setMultiPaneEnabled(Boolean multPaneEnable) {
         sel_rsc_cntrl.setMultiPaneEnabled(multPaneEnable);
-    }
-
-    public void setReplaceEnabled(Boolean replaceEnabled) {
-        if (sel_rsc_cntrl != null)
-            sel_rsc_cntrl.setReplaceEnabled(replaceEnabled);
     }
 
     public ResourceName getPrevSelectedResource() {

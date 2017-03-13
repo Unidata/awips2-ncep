@@ -20,6 +20,7 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  *10/06/2011    465         Archana        Added a list of NcSoundingLayer2 objects to the sounding profile
  * 02/15/2012               Chin Chen      added fcsTime to support pfc sounding query
  * 07/23/2014              Chin Chen    Support PW
+ * 03/05/2017   18784      wkwock       Handle not integer stationNum(stationID in DB)
  * </pre>
  * 
  * @author Chin Chen
@@ -42,8 +43,8 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 @DynamicSerialize
 public class NcSoundingProfile implements ISerializableObject {
     /**
-	 * 
-	 */
+     * 
+     */
     private static final long serialVersionUID = 6858474095965608817L;
 
     @DynamicSerializeElement
@@ -96,9 +97,13 @@ public class NcSoundingProfile implements ISerializableObject {
 
     @DynamicSerializeElement
     private String stationId;
-
+    
+    @Deprecated
     @DynamicSerializeElement
     private int stationNum;
+
+    @DynamicSerializeElement
+    private String stationNumStr;
 
     @DynamicSerializeElement
     private long fcsTime;
@@ -132,6 +137,17 @@ public class NcSoundingProfile implements ISerializableObject {
 
     public void setStationNum(int stnNum) {
         this.stationNum = stnNum;
+    }
+
+    public String getStationNumStr() {
+        return stationNumStr;
+    }
+
+    public void setStationNumStr(String stnNumStr) {
+        if (stnNumStr.matches("^-?\\d+$")) {
+            this.stationNum = Integer.parseInt(stnNumStr);
+        }
+        this.stationNumStr = stnNumStr;
     }
 
     public long getFcsTime() {
@@ -205,7 +221,7 @@ public class NcSoundingProfile implements ISerializableObject {
     public NcSoundingProfile(List<NcSoundingLayer2> soundingLyLst2,
             List<NcSoundingLayer> soundingLyLst, float stationElevation,
             String stationId, float stationLatitude, float stationLongitude,
-            float sfcPress, int stnNum) {
+            float sfcPress, String stnNumStr) {
         super();
         this.soundingLyLst2 = soundingLyLst2;
         this.soundingLyLst = soundingLyLst;
@@ -214,7 +230,10 @@ public class NcSoundingProfile implements ISerializableObject {
         this.stationLatitude = stationLatitude;
         this.stationLongitude = stationLongitude;
         this.sfcPress = sfcPress;
-        this.stationNum = stnNum;
+        this.stationNumStr = stnNumStr;
+        if (stnNumStr.matches("^-?\\d+$")) {
+            this.stationNum = Integer.parseInt(stnNumStr);
+        }
     }
 
     public NcSoundingProfile() {
@@ -226,6 +245,7 @@ public class NcSoundingProfile implements ISerializableObject {
         this.stationLatitude = MISSING;
         this.stationLongitude = MISSING;
         this.sfcPress = MISSING;
+        this.stationNumStr = null;
         this.stationNum = 0;
     }
 
@@ -239,8 +259,8 @@ public class NcSoundingProfile implements ISerializableObject {
 
     /*
      * @Override protected AbstractStorageRecord cloneInternal() { // TODO
-     * Auto-generated method stub
-     * System.out.println("NcSoundingProfile cloneInternal()"); return null; }
+     * Auto-generated method stub System.out.println(
+     * "NcSoundingProfile cloneInternal()"); return null; }
      * 
      * @Override public Object getDataObject() { // TODO Auto-generated method
      * stub System.out.println("NcSoundingProfile getDataObject()"); return

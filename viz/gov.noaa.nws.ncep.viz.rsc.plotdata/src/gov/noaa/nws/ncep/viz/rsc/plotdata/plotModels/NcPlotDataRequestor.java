@@ -84,6 +84,7 @@ import com.raytheon.viz.pointdata.PointDataRequest;
  * 08/31/2015   R7757        B. Hebbard   Refactor so imageCreator belongs to resource (instead of this class) for better frame status tracking; other cleanups.
  * 11/17/2015   R9579        B. Hebbard   Fix synchronization problem (affecting conditional coloring) in requestSurfaceData; various cleanups
  * 12/17/2015   R9579        B. Hebbard   Guard against ConcurrentModificationException (parametersToPlot map) and NullPointerException (stationsWithData)
+ * 03/05/2017   18784        wkwock       Handle not integer stationNum(stationID in DB)
  * 
  */
 
@@ -1070,13 +1071,10 @@ public class NcPlotDataRequestor {
                                 } else {
                                     newInstance.setValueToMissing();
                                 }
-                                // TODO: check stationId handling
                             } else if (newInstance.getMetParamName().equals(
                                     StationNumber.class.getSimpleName())) {
-                                if (soundingProfile.getStationNum() != 0) {
-                                    newInstance.setStringValue(new Integer(
-                                            soundingProfile.getStationNum())
-                                            .toString());
+                                if (soundingProfile.getStationNumStr() != null) {
+                                    newInstance.setStringValue(soundingProfile.getStationNumStr());
                                 } else {
                                     newInstance.setValueToMissing();
                                 }

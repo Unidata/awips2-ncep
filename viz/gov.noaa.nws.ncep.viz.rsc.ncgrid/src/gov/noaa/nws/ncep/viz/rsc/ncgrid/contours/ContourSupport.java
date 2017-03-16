@@ -166,9 +166,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *    10/31/2016 R16586  RCReynolds    Fix grid color fill when number of colors does not match number of increments
  *                                     In general fix/verify that map/scalebar are correct when number of colors
  *                                     are less than, equal too or greater than number of increments
- *    01/17/2017  R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
+ *    01/17/2017 R19643  Edwin Brown   Moved the check of MAX_CONTOUR_LEVELS from CINT.java to here because it should
  *                                     be limiting the number of rendered contours, not the number or intervals between the 
  *                                     min and the max
+ *    02/24/2017 R27481  P. Moyer      Modified createRenderableImage so that the provided ColorMapCapability is cloned.
+ *                                     This prevents overwriting color changes for contour fills.
  * 
  * </pre>
  * 
@@ -1153,11 +1155,14 @@ public class ContourSupport {
     private TileSetRenderable createRenderableImage(IGraphicsTarget target,
             GeneralGridData data) {
 
-        ColorMapCapability colorMapCap = resource
+        ColorMapCapability colorMapCapOrig = resource
                 .getCapability(ColorMapCapability.class);
         ImagingCapability imagingCap = resource
                 .getCapability(ImagingCapability.class);
         imagingCap.setInterpolationState(true);
+
+        ColorMapCapability colorMapCap = cloneColorMapCapability(
+                colorMapCapOrig);
 
         ColorMapParameters params = null;
 
@@ -1228,6 +1233,30 @@ public class ContourSupport {
         createColorBar();
 
         return renderable;
+    }
+
+    /**
+     * cloning is performed here because ColorMapCapability is a Raytheon
+     * object. The ColorMapCapability is copied, but the resourceData is shared.
+     * 
+     * @param colorMapCapOrig
+     * @return
+     */
+    private ColorMapCapability cloneColorMapCapability(
+            ColorMapCapability colorMapCapOrig) {
+
+        ColorMapCapability colorMapCap = new ColorMapCapability();
+        if (colorMapCapOrig.getColorMapParameters() != null) {
+            colorMapCap.setColorMapParameters(
+                    colorMapCapOrig.getColorMapParameters().clone());
+        } else {
+            colorMapCap.setColorMapParameters(null);
+        }
+        colorMapCap.setSuppressingMenuItems(
+                colorMapCapOrig.isSuppressingMenuItems());
+        colorMapCap.setResourceData(colorMapCapOrig.getResourceData());
+
+        return colorMapCap;
     }
 
     private void createColorBar() {

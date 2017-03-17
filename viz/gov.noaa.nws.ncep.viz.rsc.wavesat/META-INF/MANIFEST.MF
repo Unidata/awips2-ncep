@@ -23,7 +23,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.viz.pointdata,
  com.raytheon.uf.common.pointdata
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.viz.rsc.wavesat,
  gov.noaa.nws.ncep.viz.rsc.wavesat.rsc
 Import-Package: com.raytheon.uf.viz.core.alerts,

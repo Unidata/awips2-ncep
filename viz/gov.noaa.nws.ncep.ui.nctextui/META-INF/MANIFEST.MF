@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.viz.datacube
 Eclipse-LazyStart: true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: SIB
 Import-Package: com.raytheon.uf.common.inventory.exception,
  com.raytheon.uf.common.dataplugin,

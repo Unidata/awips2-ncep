@@ -14,4 +14,4 @@ Import-Package: com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.edex.util,
  org.apache.commons.logging,
  org.apache.log4j
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -21,7 +21,7 @@ Require-Bundle: com.raytheon.viz.core,
  com.raytheon.uf.common.style;bundle-version="1.0.0",
  com.raytheon.uf.common.derivparam;bundle-version="1.14.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.viz.rsc.satellite.area,
  gov.noaa.nws.ncep.viz.rsc.satellite.rsc,
  gov.noaa.nws.ncep.viz.rsc.satellite.units

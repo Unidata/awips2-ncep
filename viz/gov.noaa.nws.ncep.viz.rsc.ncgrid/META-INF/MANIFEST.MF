@@ -25,7 +25,7 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.common.dataplugin.ncgrib,
  org.slf4j;bundle-version="1.7.5"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.viz.rsc.ncgrid,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.contours,
  gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc

@@ -58,7 +58,7 @@ public class FARegionProvider {
 
 		if ( !faRegionLoaded ) {
 			allFARegions = new ArrayList<FARegion>();
-			String sql = "select bid, region, numblocks, ctrloc, AsBinary(the_geom) from " + "bounds.fa_region";
+			String sql = "select bid, region, numblocks, ctrloc, ST_AsBinary(the_geom) from " + "bounds.fa_region";
 			List<Object[]> results;
 
 			try {

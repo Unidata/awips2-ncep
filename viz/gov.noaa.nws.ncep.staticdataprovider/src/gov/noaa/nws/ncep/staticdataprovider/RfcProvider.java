@@ -61,7 +61,7 @@ public class RfcProvider {
 
 			List<Object[]> rfcs;
 
-			String queryStates = "Select AsBinary(the_geom),site_id,state,rfc_name,rfc_city,basin_id FROM mapdata.rfc";
+			String queryStates = "Select ST_AsBinary(the_geom),site_id,state,rfc_name,rfc_city,basin_id FROM mapdata.rfc";
 
 			try {
 				rfcs = NcDirectDbQuery.executeQuery(

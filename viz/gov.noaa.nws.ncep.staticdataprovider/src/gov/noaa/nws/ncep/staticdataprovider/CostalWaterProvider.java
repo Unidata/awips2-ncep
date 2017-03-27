@@ -58,7 +58,7 @@ public class CostalWaterProvider {
 
 		if ( !costalWatersLoaded ) {
 			costalWaters = new ArrayList<CostalWater>();
-			String sql = "select bid, name, ctrloc, numblocks,id,AsBinary(the_geom) from " + "bounds.airmetcstlbnds";
+			String sql = "select bid, name, ctrloc, numblocks,id,ST_AsBinary(the_geom) from " + "bounds.airmetcstlbnds";
 			List<Object[]> results;
 
 			try {

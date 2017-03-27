@@ -70,7 +70,7 @@ public class GreatLakeProvider {
 
 		if ( !greatLakesLoaded ) {
 			greatLakes = new ArrayList<GreatLake>();
-			String sql = "select bid, name, ctrloc, numblocks,id,AsBinary(the_geom) from " + "bounds.greatlakesbnds";
+			String sql = "select bid, name, ctrloc, numblocks,id,ST_AsBinary(the_geom) from " + "bounds.greatlakesbnds";
 			List<Object[]> results;
 
 			try {
@@ -126,7 +126,7 @@ public class GreatLakeProvider {
 		greatLakes = new ArrayList<GreatLake>();
 
 		for ( String gls : lakeNames ) {
-			String sql = "select name, lat, lon, AsBinary(the_geom) from " + "mapdata.lake" + 
+			String sql = "select name, lat, lon, ST_AsBinary(the_geom) from " + "mapdata.lake" + 
 			" where name = '" + gls + "'";
 			List<Object[]> results;
 
@@ -186,7 +186,7 @@ public class GreatLakeProvider {
 		if ( !greatLakesLoaded ) {
 
 			greatLakes = new ArrayList<GreatLake>();
-			String sql = "select name, lat, lon, AsBinary(the_geom) from " + "mapdata.lake" ;
+			String sql = "select name, lat, lon, ST_AsBinary(the_geom) from " + "mapdata.lake" ;
 			List<Object[]> results;
 
 			try {

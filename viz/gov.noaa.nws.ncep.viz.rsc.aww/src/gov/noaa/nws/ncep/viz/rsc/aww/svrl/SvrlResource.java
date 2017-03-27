@@ -547,7 +547,7 @@ implements     INatlCntrsResource, IStationField  {
 				countyName=countyName.replace("_"," ");
 			}
 			StringBuilder query = new StringBuilder(
-					"select AsBinary(the_geom), AsBinary(the_geom_0_001) from mapdata.county where countyname ='");
+					"select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001) from mapdata.county where countyname ='");
 			query.append(countyName);
 			query.append("' AND  state ='");
 			query.append(stateName);

@@ -74,7 +74,7 @@ public class FAAreaProvider {
 	public static List<FAArea> loadFAAreaTable(String table){
 
 		ArrayList<FAArea> faa = new ArrayList<FAArea>();
-		String sql = "select bid, area, name, states, numblocks, ctrloc, AsBinary(the_geom) from " + "bounds." + table;
+		String sql = "select bid, area, name, states, numblocks, ctrloc, ST_AsBinary(the_geom) from " + "bounds." + table;
 		List<Object[]> results;
 
 		try {

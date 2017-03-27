@@ -123,7 +123,7 @@ public class BoundsProvider {
 	 * @return
 	 */
 	public static Polygon loadBounds( String boundsTable, String boundsName ){
-		String sql = "SELECT AsBinary(the_geom) FROM " + "bounds." + boundsTable  + " WHERE "
+		String sql = "SELECT ST_AsBinary(the_geom) FROM " + "bounds." + boundsTable  + " WHERE "
 		+ "name = '" +  boundsName + "'";
 
 		List<Object[]> results;

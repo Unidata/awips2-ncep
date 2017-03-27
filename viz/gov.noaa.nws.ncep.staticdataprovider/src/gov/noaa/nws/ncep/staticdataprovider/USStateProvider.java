@@ -59,7 +59,7 @@ public class USStateProvider {
 
 			List<Object[]> states;
 
-			String queryStates = "Select AsBinary(the_geom),state,name,fips,lat, lon FROM mapdata.states;";
+			String queryStates = "Select ST_AsBinary(the_geom),state,name,fips,lat, lon FROM mapdata.states;";
 
 			try {
 				states = NcDirectDbQuery.executeQuery(

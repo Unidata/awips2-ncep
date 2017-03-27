@@ -95,9 +95,9 @@ public class BoundsDataSource {
     	for( Envelope env : allEnvelopes ) {
 
     		StringBuilder query = new StringBuilder();
-    		query.append("Select AsBinary(the_geom), "+ 
+    		query.append("Select ST_AsBinary(the_geom), "+ 
     				dataSource.getDbFieldName()+ " FROM " + dataSource.getDbTableName() );
-    		//	query.append("Select AsBinary(the_geom), "+labelname + " ," +
+    		//	query.append("Select ST_AsBinary(the_geom), "+labelname + " ," +
     		//			labelid + " FROM " + filename);
     		String geoConstraint = String.format(
     				" WHERE the_geom && ST_SetSrid('BOX3D(%f %f, %f %f)'::box3d,4326);",

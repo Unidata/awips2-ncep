@@ -1026,7 +1026,7 @@ public class WouResource extends
                         env.getMaxY());
 
         StringBuilder query = new StringBuilder(
-                "select countyname, state, AsBinary(the_geom), AsBinary(the_geom_0_001) from mapdata.county where (");
+                "select countyname, state, ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001) from mapdata.county where (");
         int i = 0;
         for (WouCntyRscData wData : wouCntyDataValues) {
             if (!isDisplay(wData) || wData.g.size() > 0)

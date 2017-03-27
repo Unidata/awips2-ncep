@@ -173,7 +173,7 @@ public class StaticDataProvider implements IStaticDataProvider {
     @Override
     public List<Object[]> queryNcepDB(String field, String table) {
         List<Object[]> list = null;
-        String query = "Select AsBinary(the_geom_0_016), " + field + " FROM " + table;// mapdata.states";
+        String query = "Select ST_AsBinary(the_geom_0_016), " + field + " FROM " + table;// mapdata.states";
 
         try {
             list = NcDirectDbQuery.executeQuery(query, "ncep", QueryLanguage.SQL);

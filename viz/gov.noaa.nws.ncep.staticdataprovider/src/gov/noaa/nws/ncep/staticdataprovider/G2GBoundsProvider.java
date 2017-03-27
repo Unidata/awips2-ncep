@@ -71,7 +71,7 @@ public class G2GBoundsProvider {
 
 		// Query the bounds from the table
 		String queryBnds;
-		queryBnds = "SELECT AsBinary(t.the_geom) FROM " + "bounds" + "." + tableName;	    
+		queryBnds = "SELECT ST_AsBinary(t.the_geom) FROM " + "bounds" + "." + tableName;	    
 		if ( columnName != null  && columnValue != null ) {
 			//	    	queryBnds += " t" + " WHERE t." + columnName + " like '" + columnValue + "%'";
 			queryBnds += " t" + " WHERE t." + columnName.toUpperCase() + " = '" + 

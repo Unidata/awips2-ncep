@@ -90,22 +90,22 @@ public class SPCCountyProvider {
             String queryStnTbl = "Select station_number, station_id, state, country FROM stns.mzcntys";
             // R4862 - new point reduced table query
             // snaptogrid to prevent non-noded intersection exception
-            String queryCntyBnds = "Select AsBinary(snaptogrid(the_geom,0.0000000001)), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.countylowres";
-            String queryCntyBndsOld = "Select AsBinary(the_geom_0_064), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.county";
+            String queryCntyBnds = "Select ST_AsBinary(snaptogrid(the_geom,0.0000000001)), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.countylowres";
+            String queryCntyBndsOld = "Select ST_AsBinary(the_geom_0_064), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.county";
             boolean newCnty = true;
 
             boolean noFips4MarineZones = true;
             // R4862 - new point reduced table query
             // snaptogrid to prevent non-noded intersection exception
-            String queryZoneBnds = "Select AsBinary(snaptogrid(the_geom,0.0000000001)), id, name, wfo, lat, lon FROM mapdata.mzlowres";
-            String queryZoneBndsOld = "Select AsBinary(the_geom_0_064), id, name, wfo, lat, lon FROM mapdata.marinezones";
+            String queryZoneBnds = "Select ST_AsBinary(snaptogrid(the_geom,0.0000000001)), id, name, wfo, lat, lon FROM mapdata.mzlowres";
+            String queryZoneBndsOld = "Select ST_AsBinary(the_geom_0_064), id, name, wfo, lat, lon FROM mapdata.marinezones";
             boolean newMz = true;
             /*
              * boolean noFips4MarineZones = !marineZoneHasFips(); if (
              * noFips4MarineZones ) { queryZoneBnds =
-             * "Select AsBinary(the_geom_0_064), id, name, wfo, lat, lon FROM mapdata.marinezones"
+             * "Select ST_AsBinary(the_geom_0_064), id, name, wfo, lat, lon FROM mapdata.marinezones"
              * ; } else { queryZoneBnds =
-             * "Select AsBinary(the_geom_0_064), id, name, wfo, fips, lat, lon FROM mapdata.marinezones"
+             * "Select ST_AsBinary(the_geom_0_064), id, name, wfo, fips, lat, lon FROM mapdata.marinezones"
              * ; }
              */
             try {

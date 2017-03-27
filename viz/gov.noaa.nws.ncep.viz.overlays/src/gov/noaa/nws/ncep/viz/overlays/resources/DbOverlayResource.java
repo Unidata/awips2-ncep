@@ -399,7 +399,7 @@ public class DbOverlayResource extends
                 env.getMaxY());
 
         // get the geometry field
-        StringBuilder query = new StringBuilder("SELECT AsBinary(");
+        StringBuilder query = new StringBuilder("SELECT ST_AsBinary(");
         query.append(geometryField);
         query.append(")");
 

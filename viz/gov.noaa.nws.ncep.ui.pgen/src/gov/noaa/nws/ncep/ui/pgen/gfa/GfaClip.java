@@ -449,17 +449,17 @@ public class GfaClip {
     private void readStateBounds() throws VizException {
         // TODO change to use SCHEMA, DATABASE, and STATE_BNDS_TABLE
         // String sql =
-        // "select t.state, AsBinary(t.the_geom) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom) from mapdata.states t";
         // String sql =
-        // "select t.state, AsBinary(t.the_geom_0) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom_0) from mapdata.states t";
         // String sql =
-        // "select t.state, AsBinary(t.the_geom_0_001) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom_0_001) from mapdata.states t";
         // String sql =
-        // "select t.state, AsBinary(t.the_geom_0_004) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom_0_004) from mapdata.states t";
         // String sql =
-        // "select t.state, AsBinary(t.the_geom_0_016) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom_0_016) from mapdata.states t";
         // String sql =
-        // "select t.state, AsBinary(t.the_geom_0_064) from mapdata.states t";
+        // "select t.state, ST_AsBinary(t.the_geom_0_064) from mapdata.states t";
 
         // long l1 = System.currentTimeMillis();
         // stateBounds = readBounds( "maps", sql );

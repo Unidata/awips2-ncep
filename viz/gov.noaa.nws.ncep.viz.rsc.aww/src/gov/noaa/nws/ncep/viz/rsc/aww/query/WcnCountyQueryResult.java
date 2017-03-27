@@ -58,9 +58,9 @@ public class WcnCountyQueryResult {
 
     private StringBuilder queryMZ = new StringBuilder();
 
-    private String queryPrefix = "select AsBinary(the_geom), AsBinary(the_geom_0_001), state,countyname, fips from mapdata.county where ";
+    private String queryPrefix = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001), state,countyname, fips from mapdata.county where ";
 
-    private String queryPrefixMZ = "select AsBinary(the_geom), AsBinary(the_geom_0_001), wfo,name,id from mapdata.marinezones where ";
+    private String queryPrefixMZ = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001), wfo,name,id from mapdata.marinezones where ";
 
     private Map<String, ArrayList<ArrayList<Object[]>>> fipsMultiResultMap = new HashMap<String, ArrayList<ArrayList<Object[]>>>();
 

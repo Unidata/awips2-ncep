@@ -55,7 +55,7 @@ public class StationDbAreaProviderFactory implements INcAreaProviderFactory {
 			stnIdName = sid;
 			catType = cat;
 			
-			String sql = "SELECT AsBinary("+ (catType.equals("22") ? "upperairgeom" : "the_geom" ) + 
+			String sql = "SELECT ST_AsBinary("+ (catType.equals("22") ? "upperairgeom" : "the_geom" ) + 
 				") FROM "+dbTbl +" WHERE catalogtype = "+
 			   catType + " and stationid = '"+ stnIdName.getName() + "'";
 			   

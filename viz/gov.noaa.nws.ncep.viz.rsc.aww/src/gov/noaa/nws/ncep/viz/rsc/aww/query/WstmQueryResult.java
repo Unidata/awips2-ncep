@@ -54,7 +54,7 @@ public class WstmQueryResult {
 	
 	private StringBuilder query = new StringBuilder();	
 	
-	private	String queryPrefix = "select AsBinary(the_geom), AsBinary(the_geom_0_001), lat,lon,state_zone, shortname, name from mapdata.zone where ";	
+	private	String queryPrefix = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001), lat,lon,state_zone, shortname, name from mapdata.zone where ";	
 	
 	private Map<String,String>		 fipsNameMap   = new HashMap<String,String>();
 	private Map<String, LatLonPoint> fipsLatLonMap = new HashMap<String, LatLonPoint>();

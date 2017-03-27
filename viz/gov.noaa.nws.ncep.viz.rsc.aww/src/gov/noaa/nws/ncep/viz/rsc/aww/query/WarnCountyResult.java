@@ -60,7 +60,7 @@ public class WarnCountyResult {
     // much at all.
     // Could also do w/o the countyname if we stick with using the name from the
     // StationsTable.
-    private String queryPrefix = "select AsBinary(the_geom), AsBinary(the_geom_0_001), state,countyname,fips from mapdata.county where ";
+    private String queryPrefix = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001), state,countyname,fips from mapdata.county where ";
 
     private Map<String, ArrayList<ArrayList<Object[]>>> fipsMultiResultMap = new HashMap<String, ArrayList<ArrayList<Object[]>>>();
 

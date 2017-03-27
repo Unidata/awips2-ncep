@@ -45,7 +45,7 @@ public class CwaProvider {
 
 			List<Object[]> cwas;
 
-			String queryStates = "Select AsBinary(the_geom),cwa,wfo,lat, lon FROM mapdata.cwa;";
+			String queryStates = "Select ST_AsBinary(the_geom),cwa,wfo,lat, lon FROM mapdata.cwa;";
 
 			try {
 				cwas = NcDirectDbQuery.executeQuery(

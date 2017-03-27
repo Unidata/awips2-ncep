@@ -161,7 +161,7 @@ public class StationsDbTablePointDataSource extends AbstractPointDataSource {
 	public void loadData( ) throws VizException {
 		String geomField = (catType.equals("22") ? "upperairgeom" : "the_geom" );
 		
-		String sql = "SELECT AsBinary("+ geomField + "),"+dbFieldName+" FROM "+dbTableName+
+		String sql = "SELECT ST_AsBinary("+ geomField + "),"+dbFieldName+" FROM "+dbTableName+
 				     " WHERE catalogtype = "+ catType;
 
 		try {

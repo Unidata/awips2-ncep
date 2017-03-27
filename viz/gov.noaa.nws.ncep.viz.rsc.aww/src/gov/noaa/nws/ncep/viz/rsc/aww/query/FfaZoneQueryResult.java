@@ -54,7 +54,7 @@ public class FfaZoneQueryResult {
 	
 	private StringBuilder query = new StringBuilder();
 	
-	private	String queryPrefix = "select AsBinary(the_geom), AsBinary(the_geom_0_001), state,name,state_zone from mapdata.zone where ";
+	private	String queryPrefix = "select ST_AsBinary(the_geom), ST_AsBinary(the_geom_0_001), state,name,state_zone from mapdata.zone where ";
 	
 	//replaced by fipsMultiResultMap; keep for reference
 	private Map<String, List<Object[]>> fipsResultMap = new HashMap<String, List<Object[]>>();

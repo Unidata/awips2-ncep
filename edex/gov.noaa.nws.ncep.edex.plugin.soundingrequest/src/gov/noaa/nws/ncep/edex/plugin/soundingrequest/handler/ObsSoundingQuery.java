@@ -78,12 +78,15 @@ import com.vividsolutions.jts.geom.Coordinate;
  ***********************************************************************************************************
  *
  *
- * 05/20/2015	RM#8306	Chin Chen  eliminate NSHARP dependence on uEngine.
+ * 05/20/2015   RM#8306 Chin Chen  eliminate NSHARP dependence on uEngine.
  *                                 Copy whole file ObservedSoundingQuery.java from uEngine project to this serverRequestService project
  *                                 "refactor" and clean up unused code for this ticket.
- * 07/02/2015   RM#8107 Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
- * 07/21/2015   RM#9173 Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
- *  07/19/2016   5736    bsteffen   Handle prSigW data.
+ * 07/02/2015   RM#8107 Chin Chen  change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * 07/21/2015   RM#9173 Chin Chen  Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
+ *  07/19/2016  5736    bsteffen   Handle prSigW data.
+ * 03/05/2017   18784   wkwock     Handle not integer stationID.
+ * 
+ * </pre>
  * 
  * @author Chin Chen
  * @version 1.0
@@ -106,10 +109,10 @@ public class ObsSoundingQuery {
      * id/stn num/elevation key: stn's lat/lon or stn ( either stn id or stn
      * num)
      */
-    //checked used by handleBufruaDataRequest() 
+    // checked used by handleBufruaDataRequest()
     @SuppressWarnings("unchecked")
-    private static NcSoundingProfile getObservedSndStnInfo(Float lat,
-            Float lon, String stn, String obType, long refTimeL,
+    private static NcSoundingProfile getObservedSndStnInfo(Float lat, Float lon,
+            String stn, String obType, long refTimeL,
             SndQueryKeyType queryType) {
         NcSoundingProfile pf = new NcSoundingProfile();
         CoreDao dao;
@@ -141,26 +144,26 @@ public class ObsSoundingQuery {
             }
             fields.add("dataTime.refTime");// the synoptic time field name
                                            // defined in UAObs
-            //values.add(refTimeCal.getTime());
-            values.add(new Date(refTimeL)); //8306
+            // values.add(refTimeCal.getTime());
+            values.add(new Date(refTimeL)); // 8306
             dao = new CoreDao(DaoConfig.forClass(UAObs.class));
             try {
-                lUairRecords = (List<UAObs>) dao
-                        .queryByCriteria(fields, values);
+                lUairRecords = (List<UAObs>) dao.queryByCriteria(fields,
+                        values);
                 if (lUairRecords.size() > 0) {
-                    pf.setStationLatitude((float) lUairRecords.get(0)
-                            .getLatitude());
-                    pf.setStationLongitude((float) lUairRecords.get(0)
-                            .getLongitude());
+                    pf.setStationLatitude(
+                            (float) lUairRecords.get(0).getLatitude());
+                    pf.setStationLongitude(
+                            (float) lUairRecords.get(0).getLongitude());
                     pf.setStationElevation(lUairRecords.get(0).getElevation());
                     if ((lUairRecords.get(0).getStationId() != null)
-                            && (lUairRecords.get(0).getStationId().length() > 0)) {
-                        pf.setStationNum(Integer.parseInt(lUairRecords.get(0)
-                                .getStationId()));
+                            && (lUairRecords.get(0).getStationId()
+                                    .length() > 0)) {
+                        pf.setStationNumStr(lUairRecords.get(0).getStationId());
                     }
                     pf.setStationId(lUairRecords.get(0).getStationName());
-                    pf.setFcsTime(lUairRecords.get(0).getDataTime()
-                            .getRefTime().getTime());
+                    pf.setFcsTime(lUairRecords.get(0).getDataTime().getRefTime()
+                            .getTime());
                 }
             } catch (DataAccessLayerException e) {
                 // *System.out.println("obs sounding query exception");
@@ -170,9 +173,9 @@ public class ObsSoundingQuery {
         return pf;
     }
 
-    //checked 
+    // checked
     public static NcSoundingStnInfoCollection getObservedSndStnInfoCol(
-    		SoundingType sndType, String selectedSndTime) {
+            SoundingType sndType, String selectedSndTime) {
         NcSoundingStnInfoCollection stnInfoCol = new NcSoundingStnInfoCollection();
         List<NcSoundingStnInfo> stationInfoList = new ArrayList<NcSoundingStnInfo>();
         String queryStr, queryStr1;
@@ -182,16 +185,12 @@ public class ObsSoundingQuery {
             currentDBTblName = BURFUA_TBL_NAME;
             queryStr = new String(
                     "Select Distinct latitude, longitude, id, stationname, elevation, reftime FROM "
-                            + currentDBTblName
-                            + " where reftime='"
+                            + currentDBTblName + " where reftime='"
                             + selectedSndTime
                             + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
-            queryStr1 = new String(
-                    "Select Distinct latitude, longitude FROM "
-                            + currentDBTblName
-                            + " where reftime='"
-                            + selectedSndTime
-                            + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
+            queryStr1 = new String("Select Distinct latitude, longitude FROM "
+                    + currentDBTblName + " where reftime='" + selectedSndTime
+                    + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
             dao = new CoreDao(DaoConfig.forClass(UAObs.class));
 
         } else if (sndType == SoundingType.OBS_UAIR_SND) {
@@ -202,12 +201,10 @@ public class ObsSoundingQuery {
                             + " where nil='FALSE' AND reftime='"
                             + selectedSndTime
                             + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
-            queryStr1 = new String(
-                    "Select Distinct latitude, longitude FROM "
-                            + currentDBTblName
-                            + " where nil='FALSE' AND reftime='"
-                            + selectedSndTime
-                            + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
+            queryStr1 = new String("Select Distinct latitude, longitude FROM "
+                    + currentDBTblName + " where nil='FALSE' AND reftime='"
+                    + selectedSndTime
+                    + "' AND latitude BETWEEN -89.9 AND 89.9 AND longitude BETWEEN -179.9 AND 179.9");
             dao = new CoreDao(DaoConfig.forClass(NcUairRecord.class));
         } else {
             return stnInfoCol;
@@ -252,9 +249,11 @@ public class ObsSoundingQuery {
                 for (Object element2 : rtnobjArray) {
                     Object[] objArray = (Object[]) element2;
                     if ((sndType == SoundingType.OBS_UAIR_SND
-                            && (lat == (Float) objArray[0]) && (lon == (Float) objArray[1]))
+                            && (lat == (Float) objArray[0])
+                            && (lon == (Float) objArray[1]))
                             || ((sndType == SoundingType.OBS_BUFRUA_SND)
-                                    && (lat == (Float) objArray[0]) && (lon == (Float) objArray[1]))) {
+                                    && (lat == (Float) objArray[0])
+                                    && (lon == (Float) objArray[1]))) {
                         // ids.add(((Integer)objArray[2]));
                         // System.out.println("id=" + (Integer)objArray[2]);
                         if (stnInfo == "") {
@@ -276,7 +275,7 @@ public class ObsSoundingQuery {
                 stn.setStnId(stnInfo);
                 stn.setStationLongitude(lon);
                 stn.setStationLatitude(lat);
-                stn.setStationElevation( elv);
+                stn.setStationElevation(elv);
                 stn.setSynopTime(synoptictime);
                 stationInfoList.add(stn);
                 // System.out.println("stn "+ stnInfo + " lon "+ lon + " lat "+
@@ -292,8 +291,9 @@ public class ObsSoundingQuery {
         return stnInfoCol;
     }
 
-    //checked
-    public static NcSoundingTimeLines getObservedSndTimeLine(SoundingType sndType) {
+    // checked
+    public static NcSoundingTimeLines getObservedSndTimeLine(
+            SoundingType sndType) {
         Object[] synopTimeAry = null;
         NcSoundingTimeLines tl = new NcSoundingTimeLines();
         String queryStr;
@@ -306,9 +306,9 @@ public class ObsSoundingQuery {
 
         } else if (sndType == SoundingType.OBS_UAIR_SND) {
             currentDBTblName = NCUAIR_TBL_NAME;
-            queryStr = new String("Select Distinct reftime FROM "
-                    + currentDBTblName
-                    + " where nil='FALSE' ORDER BY reftime DESC");
+            queryStr = new String(
+                    "Select Distinct reftime FROM " + currentDBTblName
+                            + " where nil='FALSE' ORDER BY reftime DESC");
             dao = new CoreDao(DaoConfig.forClass(NcUairRecord.class));
         } else {
             return tl;
@@ -325,8 +325,6 @@ public class ObsSoundingQuery {
         return tl;
     }
 
-
-
     /*
      * Chin: 2/21/2012 Using Lat/lon array OR StnId array, AND soundingTimeAry
      * (fcst time array) as input. This function is to be generic for all cases.
@@ -334,11 +332,11 @@ public class ObsSoundingQuery {
      * other one should be null soundingTimeAry is a list of refer time (in
      * NCUair, only use refer time for query) should be not null
      */
-    //checked 
+    // checked
     public static List<NcUairRecord[]> getObservedSndNcUairDataGeneric(
             Coordinate[] coordArray, String[] stnIdArray,
-            String[] soundingTimeStrList, long[] soundTimeLongArr,
-            String level, boolean pwRequired) {
+            String[] soundingTimeStrList, long[] soundTimeLongArr, String level,
+            boolean pwRequired) {
         // List<NcSoundingProfile> soundingProfileList= new
         // ArrayList<NcSoundingProfile>();
         PointDataQuery request = null;
@@ -346,7 +344,7 @@ public class ObsSoundingQuery {
         // NcUairRecord[] h5Records=null;
         String stnStr = "";
         Coordinate coord = new Coordinate();
-        
+
         List<NcUairRecord> returnedDbRecords = new ArrayList<NcUairRecord>();
         List<NcUairRecord[]> finalRecordArrayList = new ArrayList<NcUairRecord[]>();
         boolean queryByStn;
@@ -360,7 +358,8 @@ public class ObsSoundingQuery {
             // types, OR (b) we're only requesting data for a single
             // station (as for Cloud Height) in which case performance
             // isn't an issue.
-            boolean multipleStationsRequested = (coordArray != null && coordArray.length > 1)
+            boolean multipleStationsRequested = (coordArray != null
+                    && coordArray.length > 1)
                     || (stnIdArray != null && stnIdArray.length > 1);
             if (isMandatoryLevel(level) && pwRequired == false
                     && multipleStationsRequested) {
@@ -419,8 +418,8 @@ public class ObsSoundingQuery {
             result = request.execute();
             long t002 = System.currentTimeMillis();
             // totalRqTime = totalRqTime + (t002 - t001);
-            System.out
-                    .println("getObservedSndNcUairDataGeneric data query alone took "
+            System.out.println(
+                    "getObservedSndNcUairDataGeneric data query alone took "
                             + (t002 - t001) + "ms");
 
             if (result != null) {
@@ -429,7 +428,9 @@ public class ObsSoundingQuery {
 
                 if ((returnedDbRecords != null)
                         && (returnedDbRecords.size() > 0)) {
-                    // System.out.println("getObservedSndNcUairDataGeneric Before loop: Number of records in returnedDbRecords="+returnedDbRecords.size());
+                    // System.out.println("getObservedSndNcUairDataGeneric
+                    // Before loop: Number of records in
+                    // returnedDbRecords="+returnedDbRecords.size());
                     // Chin: keep list of records for same station
                     // search through all returned records and keep same
                     // staion's records in one list
@@ -456,10 +457,12 @@ public class ObsSoundingQuery {
                             List<NcUairRecord> stnRecords = new ArrayList<NcUairRecord>();
                             stnRecordsList.add(stnRecords);
                         }
-                        for (int j = returnedDbRecords.size() - 1; j >= 0; j--) {
+                        for (int j = returnedDbRecords.size()
+                                - 1; j >= 0; j--) {
                             record = returnedDbRecords.get(j);
                             boolean goodRecord = false;
-                            // System.out.println("requesting stn="+stnStr+" returned rd stnId="+record.getStationId()+
+                            // System.out.println("requesting stn="+stnStr+"
+                            // returned rd stnId="+record.getStationId()+
                             // " stnNum="+record.getStnum());
                             if (queryByStn == true) {
                                 if (stnStr.equals(record.getStationId())) {
@@ -480,9 +483,10 @@ public class ObsSoundingQuery {
                                 // record lon=-114.4000015258789 record
                                 // lat=32.849998474121094
                                 // Therefore, do the following.
-                                if ((Math.abs(coord.x - record.getLongitude()) < 0.01)
-                                        && (Math.abs(coord.y
-                                                - record.getLatitude()) < 0.01)) {
+                                if ((Math.abs(
+                                        coord.x - record.getLongitude()) < 0.01)
+                                        && (Math.abs(coord.y - record
+                                                .getLatitude()) < 0.01)) {
                                     // remove this record from return list and
                                     // add it to this stn list
                                     // stnRecords.add(returnedDbRecords.remove(j));
@@ -502,7 +506,8 @@ public class ObsSoundingQuery {
                         }
                         for (List<NcUairRecord> recordList : stnRecordsList) {
                             if (recordList.size() > 0) {
-                                // System.out.println("Before  checking:stn lat="+lat
+                                // System.out.println("Before checking:stn
+                                // lat="+lat
                                 // +"stn record size="+stnRecords.size());
                                 List<NcUairRecord> pickedUairRecords = new ArrayList<NcUairRecord>();
                                 NcUairRecord orignalRd;
@@ -513,43 +518,43 @@ public class ObsSoundingQuery {
                                     for (NcUairRecord pickedRd : pickedUairRecords) {
                                         if (orignalRd.getDataType().equals(
                                                 pickedRd.getDataType())) {
-                                            // System.out.println("getObservedSndNcUairData: at lat="+
+                                            // System.out.println("getObservedSndNcUairData:
+                                            // at lat="+
                                             // lat+ " lon="+lon+
-                                            // " find a same datatype="+pickedRd.getDataType()+
-                                            // " orignalRd corr="+orignalRd.getCorr()+
-                                            // " pickedRd Corr="+pickedRd.getCorr());
+                                            // " find a same
+                                            // datatype="+pickedRd.getDataType()+
+                                            // " orignalRd
+                                            // corr="+orignalRd.getCorr()+
+                                            // " pickedRd
+                                            // Corr="+pickedRd.getCorr());
 
                                             // the two records have same data
                                             // type
                                             // this records will either replace
                                             // the one in list or be dropped
                                             addToList = false;
-                                            if ((pickedRd
-                                                    .getIssueTime()
-                                                    .compareTo(
-                                                            orignalRd
-                                                                    .getIssueTime()) < 0)
-                                                    || ((pickedRd
-                                                            .getIssueTime()
-                                                            .compareTo(
-                                                                    orignalRd
-                                                                            .getIssueTime()) == 0)
+                                            if ((pickedRd.getIssueTime()
+                                                    .compareTo(orignalRd
+                                                            .getIssueTime()) < 0)
+                                                    || ((pickedRd.getIssueTime()
+                                                            .compareTo(orignalRd
+                                                                    .getIssueTime()) == 0)
                                                             && (orignalRd
                                                                     .getCorr() != null)
                                                             && (pickedRd
-                                                                    .getCorr() != null) && (pickedRd
-                                                            .getCorr()
-                                                            .compareTo(
-                                                                    orignalRd
-                                                                            .getCorr()) < 0))
-                                                    || ((pickedRd
-                                                            .getIssueTime()
-                                                            .compareTo(
-                                                                    orignalRd
-                                                                            .getIssueTime()) == 0)
+                                                                    .getCorr() != null)
+                                                            && (pickedRd
+                                                                    .getCorr()
+                                                                    .compareTo(
+                                                                            orignalRd
+                                                                                    .getCorr()) < 0))
+                                                    || ((pickedRd.getIssueTime()
+                                                            .compareTo(orignalRd
+                                                                    .getIssueTime()) == 0)
                                                             && (orignalRd
-                                                                    .getCorr() != null) && (pickedRd
-                                                            .getCorr() == null))) {
+                                                                    .getCorr() != null)
+                                                            && (pickedRd
+                                                                    .getCorr() == null))) {
                                                 // decide to replace picked with
                                                 // original record, based on the
                                                 // following cases, in
@@ -563,18 +568,21 @@ public class ObsSoundingQuery {
                                                 // case 3: original record has
                                                 // correction "corr", picked
                                                 // record does not have
-                                                // System.out.println("getObservedSndNcUairData: at lat="+
+                                                // System.out.println("getObservedSndNcUairData:
+                                                // at lat="+
                                                 // lat+ " lon="+lon+ " ori= " +
                                                 // orignalRd.getDataURI()+
-                                                // "  picked="+
+                                                // " picked="+
                                                 // pickedRd.getDataURI());
                                                 int pickedIndex = pickedUairRecords
                                                         .indexOf(pickedRd);
                                                 pickedUairRecords.set(
                                                         pickedIndex, orignalRd);
-                                                // System.out.println("getObservedSndNcUairData: at lat="+
+                                                // System.out.println("getObservedSndNcUairData:
+                                                // at lat="+
                                                 // lat+ " lon="+lon+
-                                                // " afterreplaced picked record ="+pickedH5Records.get(pickedIndex).getDataURI());
+                                                // " afterreplaced picked record
+                                                // ="+pickedH5Records.get(pickedIndex).getDataURI());
                                             }
                                             break;
                                         }
@@ -583,20 +591,23 @@ public class ObsSoundingQuery {
                                         // add this original record to picked
                                         // list
                                         pickedUairRecords.add(orignalRd);
-                                        // System.out.println("getObservedSndNcUairData: at lat="+
+                                        // System.out.println("getObservedSndNcUairData:
+                                        // at lat="+
                                         // lat+ " lon="+lon+
-                                        // " add ori to picked record ="+orignalRd.getDataURI());
+                                        // " add ori to picked record
+                                        // ="+orignalRd.getDataURI());
 
                                     }
                                 }
                                 // pickedUairRecords.get(0).setNil(false); //
                                 // set for special handling for its caller
                                 finalRecordArrayList
-                                        .add(pickedUairRecords
-                                                .toArray(new NcUairRecord[pickedUairRecords
+                                        .add(pickedUairRecords.toArray(
+                                                new NcUairRecord[pickedUairRecords
                                                         .size()]));
                                 // System.out
-                                // .println("getObservedSndNcUairDataGeneric Number of records in PF="
+                                // .println("getObservedSndNcUairDataGeneric
+                                // Number of records in PF="
                                 // + pickedUairRecords.size());
                             }
                         }
@@ -604,15 +615,16 @@ public class ObsSoundingQuery {
 
                 }
                 long t004 = System.currentTimeMillis();
-                System.out.println(" sorting return records took "
-                        + (t004 - t003) + "ms");
+                System.out.println(
+                        " sorting return records took " + (t004 - t003) + "ms");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // System.out
-        // .println("getObservedSndNcUairDataGeneric Number profiles (record[]s) in finalRecordArrayList="
+        // .println("getObservedSndNcUairDataGeneric Number profiles (record[]s)
+        // in finalRecordArrayList="
         // + finalRecordArrayList.size());
         return finalRecordArrayList;
     }
@@ -624,8 +636,8 @@ public class ObsSoundingQuery {
         // alternate: final String mandatoryLevels =
         // ".surface.1000.925.850.700.500.400.300.250.200.150.100.mb";
         // return mandatoryLevels.contains/* IgnoreCase */("." + level + ".");
-        final String[] mandatoryLevels = { /* "surface", */"1000", "925",
-                "850", "700", "500", "400", "300", "250", "200", "150", "100" };
+        final String[] mandatoryLevels = { /* "surface", */"1000", "925", "850",
+                "700", "500", "400", "300", "250", "200", "150", "100" };
         for (String s : mandatoryLevels) {
             if (s.equals/* IgnoreCase */(level)) {
                 return true;
@@ -634,7 +646,6 @@ public class ObsSoundingQuery {
         return false;
     }
 
-
     /*
      * this api is provided for applications and for testing to retrieve
      * observed bufruair data from PostgreSql DB & HDF5 dataType should use
@@ -642,12 +653,11 @@ public class ObsSoundingQuery {
      * type only
      */
     public static NcSoundingProfile getObservedSndBufruaAllData(Float lat,
-            Float lon, String stn, long refTimeL,
-            SndQueryKeyType queryType) {
+            Float lon, String stn, long refTimeL, SndQueryKeyType queryType) {
         NcSoundingProfile pfAll = new NcSoundingProfile();
         List<NcSoundingLayer> soundingLyLst, finalsoundingLyLst;
-        NcSoundingProfile pf = getObservedSndBufruaData(lat, lon, stn,
-                refTimeL, "TTAA", queryType);
+        NcSoundingProfile pf = getObservedSndBufruaData(lat, lon, stn, refTimeL,
+                "TTAA", queryType);
         pfAll.setStationElevation(pf.getStationElevation());
         finalsoundingLyLst = pf.getSoundingLyLst();
         soundingLyLst = getObservedSndBufruaData(lat, lon, stn, refTimeL,
@@ -718,7 +728,7 @@ public class ObsSoundingQuery {
      * query now. Should be replaced by getObservedSndBufruaDataGeneric() when
      * point data query is implemented.
      */
-    //checked
+    // checked
     @SuppressWarnings("unchecked")
     public static NcSoundingProfile getObservedSndBufruaData(Float lat,
             Float lon, String stn, long refTime, String dataType,
@@ -730,7 +740,8 @@ public class ObsSoundingQuery {
         NcSoundingProfile pf = new NcSoundingProfile();
         List<NcSoundingLayer> soundLyList = new ArrayList<NcSoundingLayer>();
         if (dataType.equals(NcSoundingLayer.DataType.ALLDATA.toString())) {
-            // *System.out.println("request all data is not supported in this API");
+            // *System.out.println("request all data is not supported in this
+            // API");
             return pf;
         } else {
             List<String> fields = new ArrayList<String>();
@@ -764,8 +775,8 @@ public class ObsSoundingQuery {
                                            // defined in UAObs
             // fields.add("validTime");// the synoptic time field name defined
             // in UAObs
-            //values.add(refTimeCal.getTime());
-            values.add(new Date(refTime)); //8306
+            // values.add(refTimeCal.getTime());
+            values.add(new Date(refTime)); // 8306
             fields.add("reportType");// the record dataType field name defined
                                      // in UAObs
             int intDataType = NcSoundingLayer.dataTypeMap.get(dataType);
@@ -777,8 +788,8 @@ public class ObsSoundingQuery {
             // }
             CoreDao dao = new CoreDao(DaoConfig.forClass(UAObs.class));
             try {
-                lUairRecords = (List<UAObs>) dao
-                        .queryByCriteria(fields, values);
+                lUairRecords = (List<UAObs>) dao.queryByCriteria(fields,
+                        values);
                 if (lUairRecords.size() > 0) {
                     // set pf data
                     // System.out.println("record size = "+ lUairRecords.size()
@@ -811,8 +822,7 @@ public class ObsSoundingQuery {
                     pf.setStationElevation(uairRecord.getElevation());
                     if ((uairRecord.getStationId() != null)
                             && (uairRecord.getStationId().length() > 0)) {
-                        pf.setStationNum(Integer.parseInt(uairRecord
-                                .getStationId()));
+                        pf.setStationNumStr(uairRecord.getStationId());
                     }
                     pf.setStationId(uairRecord.getStationName());
                     int hdfIndex = uairRecord.getIdx();
@@ -828,10 +838,9 @@ public class ObsSoundingQuery {
                                 .getDataStore(hdf5loc);
 
                         FloatDataRecord sfcPressurefloatData = (FloatDataRecord) dataStore
-                                .retrieve(
-                                        "/",
-                                        "sfcPressure",
-                                        Request.buildYLineRequest(new int[] { hdfIndex }));
+                                .retrieve("/", "sfcPressure",
+                                        Request.buildYLineRequest(
+                                                new int[] { hdfIndex }));
                         float[] sfcPressuredata = sfcPressurefloatData
                                 .getFloatData();
                         if (sfcPressuredata.length > 0) {
@@ -843,84 +852,83 @@ public class ObsSoundingQuery {
                         // get temp, dew point, pressure, wind u/v components,
                         // and height
                         // they are 2-D tables
-                        if (dataType.equals(NcSoundingLayer.DataType.TTAA
-                                .toString())
-                                || dataType
-                                        .equals(NcSoundingLayer.DataType.TTCC
-                                                .toString())) {
+                        if (dataType
+                                .equals(NcSoundingLayer.DataType.TTAA
+                                        .toString())
+                                || dataType.equals(NcSoundingLayer.DataType.TTCC
+                                        .toString())) {
                             // get mandatory data size
                             IntegerDataRecord numManIntData = (IntegerDataRecord) dataStore
-                                    .retrieve(
-                                            "/",
-                                            "numMand",
-                                            Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    .retrieve("/", "numMand",
+                                            Request.buildYLineRequest(
+                                                    new int[] { hdfIndex }));
                             int[] sizes = numManIntData.getIntData();
                             // sizes is a 1x1 2d table. Only first (0) element
                             // is valid.
                             if (sizes[0] > 0) {
                                 FloatDataRecord pressurefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "prMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "prMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] pressuredata = pressurefloatData
                                         .getFloatData();
                                 FloatDataRecord temperaturefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tpMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tpMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] temperaturedata = temperaturefloatData
                                         .getFloatData();
                                 FloatDataRecord dewptfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tdMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tdMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] dewptdata = dewptfloatData
                                         .getFloatData();
                                 FloatDataRecord windDfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wdMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wdMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windDdata = windDfloatData
                                         .getFloatData();
                                 FloatDataRecord windSfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wsMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wsMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windSdata = windSfloatData
                                         .getFloatData();
                                 FloatDataRecord htfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "htMan",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "htMan",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] htdata = htfloatData.getFloatData();
                                 for (int i = 0; i < sizes[0]; i++) {
                                     soundingLy = new NcSoundingLayer();
                                     // if data is not available, dont convert it
                                     // and just use default setting data
                                     if (temperaturedata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setTemperature((float) kelvinToCelsius
-                                                        .convert(temperaturedata[i]));
+                                        soundingLy.setTemperature(
+                                                (float) kelvinToCelsius.convert(
+                                                        temperaturedata[i]));
                                     }
                                     if (pressuredata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setPressure(pressuredata[i] / 100F);
+                                        soundingLy.setPressure(
+                                                pressuredata[i] / 100F);
                                     }
                                     if (windSdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setWindSpeed((float) metersPerSecondToKnots
+                                        soundingLy.setWindSpeed(
+                                                (float) metersPerSecondToKnots
                                                         .convert(windSdata[i]));
                                     }
                                     soundingLy.setWindDirection(windDdata[i]);
                                     if (dewptdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setDewpoint((float) kelvinToCelsius
+                                        soundingLy.setDewpoint(
+                                                (float) kelvinToCelsius
                                                         .convert(dewptdata[i]));
                                     }
                                     soundingLy.setGeoHeight(htdata[i]);
@@ -935,45 +943,43 @@ public class ObsSoundingQuery {
                                 // ly.getWindDirection());
                                 // }
                             } else {
-                                System.out
-                                        .println("Mandatory data is not available! request data tye is "
+                                System.out.println(
+                                        "Mandatory data is not available! request data tye is "
                                                 + dataType);
                             }
                         } else if (dataType
                                 .equals(NcSoundingLayer.DataType.TTBB
                                         .toString())
-                                || dataType
-                                        .equals(NcSoundingLayer.DataType.TTDD
-                                                .toString())) {
+                                || dataType.equals(NcSoundingLayer.DataType.TTDD
+                                        .toString())) {
                             // get significantT data size
                             IntegerDataRecord numSigtIntData = (IntegerDataRecord) dataStore
-                                    .retrieve(
-                                            "/",
-                                            "numSigT",
-                                            Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    .retrieve("/", "numSigT",
+                                            Request.buildYLineRequest(
+                                                    new int[] { hdfIndex }));
                             int[] sizes = numSigtIntData.getIntData();
                             // sizes is a 1x1 2d table. Only first (0) element
                             // is valid.
                             if (sizes[0] > 0) {
                                 FloatDataRecord pressurefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "prSigT",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "prSigT",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] pressuredata = pressurefloatData
                                         .getFloatData();
                                 FloatDataRecord temperaturefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tpSigT",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tpSigT",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] temperaturedata = temperaturefloatData
                                         .getFloatData();
                                 FloatDataRecord dewptfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tdSigT",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tdSigT",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] dewptdata = dewptfloatData
                                         .getFloatData();
                                 for (int i = 0; i < sizes[0]; i++) {
@@ -981,17 +987,17 @@ public class ObsSoundingQuery {
                                     // if data is not available, dont convert it
                                     // and just use default setting data
                                     if (temperaturedata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setTemperature((float) kelvinToCelsius
-                                                        .convert(temperaturedata[i]));
+                                        soundingLy.setTemperature(
+                                                (float) kelvinToCelsius.convert(
+                                                        temperaturedata[i]));
                                     }
                                     if (pressuredata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setPressure(pressuredata[i] / 100F);
+                                        soundingLy.setPressure(
+                                                pressuredata[i] / 100F);
                                     }
                                     if (dewptdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setDewpoint((float) kelvinToCelsius
+                                        soundingLy.setDewpoint(
+                                                (float) kelvinToCelsius
                                                         .convert(dewptdata[i]));
                                     }
                                     soundLyList.add(soundingLy);
@@ -1003,40 +1009,38 @@ public class ObsSoundingQuery {
                                 // ly.getTemperature());
                                 // }
                             } else {
-                                System.out
-                                        .println("SigT data is not available! request data tye is "
+                                System.out.println(
+                                        "SigT data is not available! request data tye is "
                                                 + dataType);
                             }
 
                         } else if (dataType
                                 .equals(NcSoundingLayer.DataType.PPBB
                                         .toString())
-                                || dataType
-                                        .equals(NcSoundingLayer.DataType.PPDD
-                                                .toString())) {
+                                || dataType.equals(NcSoundingLayer.DataType.PPDD
+                                        .toString())) {
                             // get significantW data size
                             IntegerDataRecord numSigwIntData = (IntegerDataRecord) dataStore
-                                    .retrieve(
-                                            "/",
-                                            "numSigW",
-                                            Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    .retrieve("/", "numSigW",
+                                            Request.buildYLineRequest(
+                                                    new int[] { hdfIndex }));
                             int[] sizes = numSigwIntData.getIntData();
                             // sizes is a 1x1 2d table. Only first (0) element
                             // is valid.
                             if (sizes[0] > 0) {
                                 FloatDataRecord htfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "htSigW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "htSigW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] htdata = htfloatData.getFloatData();
                                 float[] prdata = null;
                                 try {
                                     FloatDataRecord prfloatData = (FloatDataRecord) dataStore
-                                            .retrieve(
-                                                    "/",
-                                                    "prSigW",
-                                                    Request.buildYLineRequest(new int[] { hdfIndex }));
+                                            .retrieve("/", "prSigW",
+                                                    Request.buildYLineRequest(
+                                                            new int[] {
+                                                                    hdfIndex }));
                                     prdata = prfloatData.getFloatData();
                                 } catch (StorageException e) {
                                     /*
@@ -1044,20 +1048,21 @@ public class ObsSoundingQuery {
                                      * so fill with MISSING.
                                      */
                                     prdata = new float[sizes[0]];
-                                    Arrays.fill(prdata, NcSoundingLayer.MISSING);
+                                    Arrays.fill(prdata,
+                                            NcSoundingLayer.MISSING);
                                 }
                                 FloatDataRecord windDfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wdSigW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wdSigW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windDdata = windDfloatData
                                         .getFloatData();
                                 FloatDataRecord windSfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wsSigW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wsSigW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windSdata = windSfloatData
                                         .getFloatData();
                                 for (int i = 0; i < sizes[0]; i++) {
@@ -1069,10 +1074,9 @@ public class ObsSoundingQuery {
                                         soundingLy
                                                 .setPressure(prdata[i] / 100F);
                                     }
-                                    soundingLy.setPressure(prdata[i]);
                                     if (windSdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setWindSpeed((float) metersPerSecondToKnots
+                                        soundingLy.setWindSpeed(
+                                                (float) metersPerSecondToKnots
                                                         .convert(windSdata[i]));
                                     }
                                     soundingLy.setWindDirection(windDdata[i]);
@@ -1085,8 +1089,8 @@ public class ObsSoundingQuery {
                                 // ly.getWindDirection());
                                 // }
                             } else {
-                                System.out
-                                        .println("SigW data is not available! request data tye is "
+                                System.out.println(
+                                        "SigW data is not available! request data tye is "
                                                 + dataType);
                             }
                         } else if (dataType
@@ -1097,33 +1101,32 @@ public class ObsSoundingQuery {
                                                 .toString())) {
                             // get max wind data size
                             IntegerDataRecord numMwndIntData = (IntegerDataRecord) dataStore
-                                    .retrieve(
-                                            "/",
-                                            "numMwnd",
-                                            Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    .retrieve("/", "numMwnd",
+                                            Request.buildYLineRequest(
+                                                    new int[] { hdfIndex }));
                             int[] sizes = numMwndIntData.getIntData();
                             // sizes is a 1x1 2d table. Only first (0) element
                             // is valid.
                             if (sizes[0] > 0) {
                                 FloatDataRecord pressurefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "prMaxW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "prMaxW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] pressuredata = pressurefloatData
                                         .getFloatData();
                                 FloatDataRecord windDfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wdMaxW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wdMaxW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windDdata = windDfloatData
                                         .getFloatData();
                                 FloatDataRecord windSfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wsMaxW",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wsMaxW",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windSdata = windSfloatData
                                         .getFloatData();
                                 for (int i = 0; i < sizes[0]; i++) {
@@ -1131,12 +1134,12 @@ public class ObsSoundingQuery {
                                     // if data is not available, dont convert it
                                     // and just use default setting data
                                     if (pressuredata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setPressure(pressuredata[i] / 100F);
+                                        soundingLy.setPressure(
+                                                pressuredata[i] / 100F);
                                     }
                                     if (windSdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setWindSpeed((float) metersPerSecondToKnots
+                                        soundingLy.setWindSpeed(
+                                                (float) metersPerSecondToKnots
                                                         .convert(windSdata[i]));
                                     }
                                     soundingLy.setWindDirection(windDdata[i]);
@@ -1149,8 +1152,8 @@ public class ObsSoundingQuery {
                                 // ly.getWindDirection());
                                 // }
                             } else {
-                                System.out
-                                        .println("max wind data is not available! request data tye is "
+                                System.out.println(
+                                        "max wind data is not available! request data tye is "
                                                 + dataType);
                             }
                         } else if (dataType
@@ -1161,47 +1164,46 @@ public class ObsSoundingQuery {
                                                 .toString())) {
                             // get troppause data size
                             IntegerDataRecord numTropIntData = (IntegerDataRecord) dataStore
-                                    .retrieve(
-                                            "/",
-                                            "numTrop",
-                                            Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    .retrieve("/", "numTrop",
+                                            Request.buildYLineRequest(
+                                                    new int[] { hdfIndex }));
                             int[] sizes = numTropIntData.getIntData();
                             // sizes is a 1x1 2d table. Only first (0) element
                             // is valid.
                             if (sizes[0] > 0) {
                                 FloatDataRecord pressurefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "prTrop",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "prTrop",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] pressuredata = pressurefloatData
                                         .getFloatData();
                                 FloatDataRecord temperaturefloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tpTrop",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tpTrop",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] temperaturedata = temperaturefloatData
                                         .getFloatData();
                                 FloatDataRecord dewptfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "tdTrop",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "tdTrop",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] dewptdata = dewptfloatData
                                         .getFloatData();
                                 FloatDataRecord windDfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wdTrop",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wdTrop",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windDdata = windDfloatData
                                         .getFloatData();
                                 FloatDataRecord windSfloatData = (FloatDataRecord) dataStore
-                                        .retrieve(
-                                                "/",
-                                                "wsTrop",
-                                                Request.buildYLineRequest(new int[] { hdfIndex }));
+                                        .retrieve("/", "wsTrop",
+                                                Request.buildYLineRequest(
+                                                        new int[] {
+                                                                hdfIndex }));
                                 float[] windSdata = windSfloatData
                                         .getFloatData();
                                 for (int i = 0; i < sizes[0]; i++) {
@@ -1209,23 +1211,23 @@ public class ObsSoundingQuery {
                                     // if data is not available, dont convert it
                                     // and just use default setting data
                                     if (temperaturedata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setTemperature((float) kelvinToCelsius
-                                                        .convert(temperaturedata[i]));
+                                        soundingLy.setTemperature(
+                                                (float) kelvinToCelsius.convert(
+                                                        temperaturedata[i]));
                                     }
                                     if (pressuredata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setPressure(pressuredata[i] / 100F);
+                                        soundingLy.setPressure(
+                                                pressuredata[i] / 100F);
                                     }
                                     if (windSdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setWindSpeed((float) metersPerSecondToKnots
+                                        soundingLy.setWindSpeed(
+                                                (float) metersPerSecondToKnots
                                                         .convert(windSdata[i]));
                                     }
                                     soundingLy.setWindDirection(windDdata[i]);
                                     if (dewptdata[i] != NcSoundingLayer.MISSING) {
-                                        soundingLy
-                                                .setDewpoint((float) kelvinToCelsius
+                                        soundingLy.setDewpoint(
+                                                (float) kelvinToCelsius
                                                         .convert(dewptdata[i]));
                                     }
                                     soundLyList.add(soundingLy);
@@ -1239,8 +1241,8 @@ public class ObsSoundingQuery {
                                 // ly.getWindDirection());
                                 // }
                             } else {
-                                System.out
-                                        .println("Troppause data is not available! request data tye is "
+                                System.out.println(
+                                        "Troppause data is not available! request data tye is "
                                                 + dataType);
                             }
                         }
@@ -1251,8 +1253,8 @@ public class ObsSoundingQuery {
                         return pf;
                     }
                 } else {
-                    System.out
-                            .println("buffrua (UAOb) record is not available!! request type "
+                    System.out.println(
+                            "buffrua (UAOb) record is not available!! request type "
                                     + dataType);
                     return pf;
                 }
@@ -1273,7 +1275,9 @@ public class ObsSoundingQuery {
     }
 
     private static List<NcSoundingProfile> processQueryReturnedNcUairData(
-            List<NcUairRecord[]> uairRecordArrList, /*boolean useNcSndLayer2,*/ boolean merge, String level, boolean pwRequired) {
+            List<NcUairRecord[]> uairRecordArrList,
+            /* boolean useNcSndLayer2, */ boolean merge, String level,
+            boolean pwRequired) {
         List<NcSoundingProfile> soundingProfileList = new ArrayList<NcSoundingProfile>(
                 0);
         for (NcUairRecord[] recordArray : uairRecordArrList) {
@@ -1285,112 +1289,127 @@ public class ObsSoundingQuery {
                 pf = null;
             } else {
                 pf = new NcSoundingProfile();
-//                if (useNcSndLayer2 == true) {
-                    // use NcSoundingLayer2
-//                    if (recordArray != null && recordArray.length > 0) {
-//                        MergeSounding2 ms2 = new MergeSounding2();
-//                        List<NcSoundingLayer2> sls = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ttaa = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ttbb = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ttcc = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ttdd = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ppaa = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ppbb = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ppcc = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> ppdd = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> trop_a = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> trop_c = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> wmax_a = new ArrayList<NcSoundingLayer2>();
-//                        List<NcSoundingLayer2> wmax_c = new ArrayList<NcSoundingLayer2>();
-//
-//                        for (int k = 0; k < recordArray.length; k++) {
-//                            NcUairRecord record = recordArray[k];
-//                            if (record.getDataType().equals("TTAA")
-//                                    || record.getDataType().equals("XXAA")) {
-//                                ttaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                                trop_a = getSoundingLayer2FromNcUairRecordTrop(record);
-//                                wmax_a = getSoundingLayer2FromNcUairRecordMaxw(record);
-//                            } else if (record.getDataType().equals("TTBB")
-//                                    || record.getDataType().equals("XXBB")) {
-//                                ttbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            } else if (record.getDataType().equals("TTCC")
-//                                    || record.getDataType().equals("XXCC")) {
-//                                ttcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                                trop_c = getSoundingLayer2FromNcUairRecordTrop(record);
-//                                wmax_c = getSoundingLayer2FromNcUairRecordMaxw(record);
-//                            } else if (record.getDataType().equals("TTDD")
-//                                    || record.getDataType().equals("XXDD")) {
-//                                ttdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            } else if (record.getDataType().equals("PPAA")) {
-//                                ppaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            } else if (record.getDataType().equals("PPBB")) {
-//                                ppbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            } else if (record.getDataType().equals("PPCC")) {
-//                                ppcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            } else if (record.getDataType().equals("PPDD")) {
-//                                ppdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
-//                            }
-//                        }
-//                        pf.setStationElevation((float) recordArray[0]
-//                                .getElevation());
-//                        pf.setStationId(recordArray[0].getStationId());
-//                        if (recordArray[0].getStnum() != null
-//                                && recordArray[0].getStnum().length() > 0)
-//                            pf.setStationNum(Integer.parseInt(recordArray[0]
-//                                    .getStnum()));
-//                        pf.setStationLatitude(recordArray[0].getLatitude());
-//                        pf.setStationLongitude(recordArray[0].getLongitude());
-//                        pf.setFcsTime(recordArray[0].getDataTime().getRefTime()
-//                                .getTime());
-//                        // System.out.println("m2 input lat=" + lat +
-//                        // " pf's lat="
-//                        // + pf.getStationLatitude() + " elv="
-//                        // + pf.getStationElevation() + " stnId="
-//                        // + pf.getStationId());
-//                        if (useNcSndLayer2)
-//                            sls = ms2.mergeUairSounding(level, ttaa, ttbb,
-//                                    ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a,
-//                                    trop_c, wmax_a, wmax_c,
-//                                    pf.getStationElevation());
-//
-//                        if(pwRequired){
-//                        	List<NcSoundingLayer2> sls2 = new ArrayList<NcSoundingLayer2>();
-//                            sls2 = ms2.mergeUairSounding("-1", ttaa, ttbb,
-//                                    ttcc, ttdd, ppaa, ppbb, ppcc, ppdd,
-//                                    trop_a, trop_c, wmax_a, wmax_c,
-//                                    pf.getStationElevation());
-//                            if (sls2 != null && sls2.size() > 0)
-//                                pf.setPw(NcSoundingTools
-//                                        .precip_water2(sls2));
-//                            else
-//                                pf.setPw(-1);
-//                        }
-//                        
-//                        if (level.toUpperCase().equalsIgnoreCase("MAN")) {
-//                            pf.setSoundingLyLst2(sls);
-//                            // System.out.println("sls set to the sounding profile");
-//                        } else if (ms2.isNumber(level) >= 0) {
-//                            if (sls.size() == 1) {
-//                                // System.out.println("NcUair get one layer using level = "+
-//                                // level);
-//                                pf.setSoundingLyLst2(sls);
-//                            } else {
-//                                pf = null;
-//                                // System.out.println("NcUair get 0 layer using level = "+
-//                                // level);
-//                            }
-//                        } else {
-//                            if (sls.isEmpty() || sls.size() <= 1) {
-//                                pf = null;
-//                                // System.out.println("not MAN level &  sls is empty or 1");
-//                            } else {
-//                                pf.setSoundingLyLst2(sls);
-//                                // System.out.println("sls set to the sounding profile for level = "
-//                                // + level);
-//                            }
-//                        }
-//                    }
-//                } else 
+                // if (useNcSndLayer2 == true) {
+                // use NcSoundingLayer2
+                // if (recordArray != null && recordArray.length > 0) {
+                // MergeSounding2 ms2 = new MergeSounding2();
+                // List<NcSoundingLayer2> sls = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ttaa = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ttbb = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ttcc = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ttdd = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ppaa = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ppbb = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ppcc = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> ppdd = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> trop_a = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> trop_c = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> wmax_a = new
+                // ArrayList<NcSoundingLayer2>();
+                // List<NcSoundingLayer2> wmax_c = new
+                // ArrayList<NcSoundingLayer2>();
+                //
+                // for (int k = 0; k < recordArray.length; k++) {
+                // NcUairRecord record = recordArray[k];
+                // if (record.getDataType().equals("TTAA")
+                // || record.getDataType().equals("XXAA")) {
+                // ttaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // trop_a = getSoundingLayer2FromNcUairRecordTrop(record);
+                // wmax_a = getSoundingLayer2FromNcUairRecordMaxw(record);
+                // } else if (record.getDataType().equals("TTBB")
+                // || record.getDataType().equals("XXBB")) {
+                // ttbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // } else if (record.getDataType().equals("TTCC")
+                // || record.getDataType().equals("XXCC")) {
+                // ttcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // trop_c = getSoundingLayer2FromNcUairRecordTrop(record);
+                // wmax_c = getSoundingLayer2FromNcUairRecordMaxw(record);
+                // } else if (record.getDataType().equals("TTDD")
+                // || record.getDataType().equals("XXDD")) {
+                // ttdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // } else if (record.getDataType().equals("PPAA")) {
+                // ppaa = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // } else if (record.getDataType().equals("PPBB")) {
+                // ppbb = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // } else if (record.getDataType().equals("PPCC")) {
+                // ppcc = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // } else if (record.getDataType().equals("PPDD")) {
+                // ppdd = getSoundingLayer2FromNcUairRecordObsLevel(record);
+                // }
+                // }
+                // pf.setStationElevation((float) recordArray[0]
+                // .getElevation());
+                // pf.setStationId(recordArray[0].getStationId());
+                // if (recordArray[0].getStnum() != null
+                // && recordArray[0].getStnum().length() > 0)
+                // pf.setStationNum(Integer.parseInt(recordArray[0]
+                // .getStnum()));
+                // pf.setStationLatitude(recordArray[0].getLatitude());
+                // pf.setStationLongitude(recordArray[0].getLongitude());
+                // pf.setFcsTime(recordArray[0].getDataTime().getRefTime()
+                // .getTime());
+                // // System.out.println("m2 input lat=" + lat +
+                // // " pf's lat="
+                // // + pf.getStationLatitude() + " elv="
+                // // + pf.getStationElevation() + " stnId="
+                // // + pf.getStationId());
+                // if (useNcSndLayer2)
+                // sls = ms2.mergeUairSounding(level, ttaa, ttbb,
+                // ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a,
+                // trop_c, wmax_a, wmax_c,
+                // pf.getStationElevation());
+                //
+                // if(pwRequired){
+                // List<NcSoundingLayer2> sls2 = new
+                // ArrayList<NcSoundingLayer2>();
+                // sls2 = ms2.mergeUairSounding("-1", ttaa, ttbb,
+                // ttcc, ttdd, ppaa, ppbb, ppcc, ppdd,
+                // trop_a, trop_c, wmax_a, wmax_c,
+                // pf.getStationElevation());
+                // if (sls2 != null && sls2.size() > 0)
+                // pf.setPw(NcSoundingTools
+                // .precip_water2(sls2));
+                // else
+                // pf.setPw(-1);
+                // }
+                //
+                // if (level.toUpperCase().equalsIgnoreCase("MAN")) {
+                // pf.setSoundingLyLst2(sls);
+                // // System.out.println("sls set to the sounding profile");
+                // } else if (ms2.isNumber(level) >= 0) {
+                // if (sls.size() == 1) {
+                // // System.out.println("NcUair get one layer using level = "+
+                // // level);
+                // pf.setSoundingLyLst2(sls);
+                // } else {
+                // pf = null;
+                // // System.out.println("NcUair get 0 layer using level = "+
+                // // level);
+                // }
+                // } else {
+                // if (sls.isEmpty() || sls.size() <= 1) {
+                // pf = null;
+                // // System.out.println("not MAN level & sls is empty or 1");
+                // } else {
+                // pf.setSoundingLyLst2(sls);
+                // // System.out.println("sls set to the sounding profile for
+                // level = "
+                // // + level);
+                // }
+                // }
+                // }
+                // } else
                 {
                     // use NcSoundingLayer
                     if (recordArray != null && recordArray.length > 0) {
@@ -1412,83 +1431,100 @@ public class ObsSoundingQuery {
                             NcUairRecord record = recordArray[k];
                             if (record.getDataType().equals("TTAA")
                                     || record.getDataType().equals("XXAA")) {
-                                ttaa = getSndLayersFromNcUairRecordObsLevel(record);
-                                trop_a = getSndLayersFromNcUairRecordTrop(record);
-                                wmax_a = getSndLayersFromNcUairRecordMaxw(record);
+                                ttaa = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
+                                trop_a = getSndLayersFromNcUairRecordTrop(
+                                        record);
+                                wmax_a = getSndLayersFromNcUairRecordMaxw(
+                                        record);
                             } else if (record.getDataType().equals("TTBB")
                                     || record.getDataType().equals("XXBB")) {
-                                ttbb = getSndLayersFromNcUairRecordObsLevel(record);
+                                ttbb = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             } else if (record.getDataType().equals("TTCC")
                                     || record.getDataType().equals("XXCC")) {
-                                ttcc = getSndLayersFromNcUairRecordObsLevel(record);
-                                trop_c = getSndLayersFromNcUairRecordTrop(record);
-                                wmax_c = getSndLayersFromNcUairRecordMaxw(record);
+                                ttcc = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
+                                trop_c = getSndLayersFromNcUairRecordTrop(
+                                        record);
+                                wmax_c = getSndLayersFromNcUairRecordMaxw(
+                                        record);
                             } else if (record.getDataType().equals("TTDD")
                                     || record.getDataType().equals("XXDD")) {
-                                ttdd = getSndLayersFromNcUairRecordObsLevel(record);
+                                ttdd = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             } else if (record.getDataType().equals("PPAA")) {
-                                ppaa = getSndLayersFromNcUairRecordObsLevel(record);
+                                ppaa = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             } else if (record.getDataType().equals("PPBB")) {
-                                ppbb = getSndLayersFromNcUairRecordObsLevel(record);
+                                ppbb = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             } else if (record.getDataType().equals("PPCC")) {
-                                ppcc = getSndLayersFromNcUairRecordObsLevel(record);
+                                ppcc = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             } else if (record.getDataType().equals("PPDD")) {
-                                ppdd = getSndLayersFromNcUairRecordObsLevel(record);
+                                ppdd = getSndLayersFromNcUairRecordObsLevel(
+                                        record);
                             }
                         }
                         pf = new NcSoundingProfile();
-                        pf.setStationElevation((float) recordArray[0]
-                                .getElevation());
+                        pf.setStationElevation(
+                                (float) recordArray[0].getElevation());
                         pf.setStationId(recordArray[0].getStationId());
                         if (recordArray[0].getStnum() != null
                                 && recordArray[0].getStnum().length() > 0)
-                            pf.setStationNum(Integer.parseInt(recordArray[0]
-                                    .getStnum()));
+                            pf.setStationNumStr(recordArray[0].getStnum());
                         pf.setStationLatitude(recordArray[0].getLatitude());
                         pf.setStationLongitude(recordArray[0].getLongitude());
                         pf.setFcsTime(recordArray[0].getDataTime().getRefTime()
                                 .getTime());
-                        // System.out.println(" input lat="+lat+" pf's lat="+pf.getStationLatitude()+" elv="+pf.getStationElevation()+" stnId="+pf.getStationId());
+                        // System.out.println(" input lat="+lat+" pf's
+                        // lat="+pf.getStationLatitude()+"
+                        // elv="+pf.getStationElevation()+"
+                        // stnId="+pf.getStationId());
                         sls = ms.mergeUairSounding(level, ttaa, ttbb, ttcc,
                                 ttdd, ppaa, ppbb, ppcc, ppdd, trop_a, trop_c,
                                 wmax_a, wmax_c, pf.getStationElevation());
                         // PW Support test
-                        if(pwRequired) {
-                        	if(level.equals("-1")){
-                        		float pw = NcSoundingTools.precip_water(sls);
-                        		pf.setPw(pw);
-                        	}
-                        	else{
-                        		List<NcSoundingLayer> sls2 = new ArrayList<NcSoundingLayer>();
+                        if (pwRequired) {
+                            if (level.equals("-1")) {
+                                float pw = NcSoundingTools.precip_water(sls);
+                                pf.setPw(pw);
+                            } else {
+                                List<NcSoundingLayer> sls2 = new ArrayList<NcSoundingLayer>();
                                 sls2 = ms.mergeUairSounding("-1", ttaa, ttbb,
                                         ttcc, ttdd, ppaa, ppbb, ppcc, ppdd,
                                         trop_a, trop_c, wmax_a, wmax_c,
                                         pf.getStationElevation());
                                 if (sls2 != null && sls2.size() > 0)
-                                    pf.setPw(NcSoundingTools
-                                            .precip_water(sls2));
-                        	}
+                                    pf.setPw(
+                                            NcSoundingTools.precip_water(sls2));
+                            }
                         }
                         // end PW Support test
-                        // System.out.println("NCUAIR Number of Layers after merge:"+sls.size()
+                        // System.out.println("NCUAIR Number of Layers after
+                        // merge:"+sls.size()
                         // + " level="+level +
                         // " ms.isNumber(level)="+ms.isNumber(level));
                         // for(NcSoundingLayer ly: sls){
                         // System.out.println("Pre= "+ly.getPressure()+
                         // " Dew= "+ ly.getDewpoint()+ " T= "+
-                        // ly.getTemperature()+" H="+ly.getGeoHeight()+" WSp="+ly.getWindSpeed());
+                        // ly.getTemperature()+" H="+ly.getGeoHeight()+"
+                        // WSp="+ly.getWindSpeed());
                         // }
 
                         if (level.toUpperCase().equalsIgnoreCase("MAN"))
                             pf.setSoundingLyLst(sls);
                         else if (ms.isNumber(level) >= 0) {
                             if (sls.size() == 1) {
-                                // System.out.println("NCUAIR get one layer using level = "+
+                                // System.out.println("NCUAIR get one layer
+                                // using level = "+
                                 // level);
                                 pf.setSoundingLyLst(sls);
                             } else {
                                 pf = null;
-                                // System.out.println("NCUAIR get 0 layer using level = "+
+                                // System.out.println("NCUAIR get 0 layer using
+                                // level = "+
                                 // level);
                             }
                         } else {
@@ -1500,10 +1536,10 @@ public class ObsSoundingQuery {
                     } else
                         pf = null;
                 }
-                if (pf != null
-                        && (pf.getSoundingLyLst2().size() > 0 || pf
-                                .getSoundingLyLst().size() > 0)) {
-                    // System.out.println(" pf is not null, so adding a profile to the list of NcSoundingProfiles ");
+                if (pf != null && (pf.getSoundingLyLst2().size() > 0
+                        || pf.getSoundingLyLst().size() > 0)) {
+                    // System.out.println(" pf is not null, so adding a profile
+                    // to the list of NcSoundingProfiles ");
                     soundingProfileList.add(pf);
                     pf = null;
                 }
@@ -1511,6 +1547,7 @@ public class ObsSoundingQuery {
         }
         return soundingProfileList;
     }
+
     private static List<NcSoundingLayer> getSndLayersFromNcUairRecordObsLevel(
             NcUairRecord record) {
         List<NcSoundingLayer> sndLayers = new ArrayList<NcSoundingLayer>();
@@ -1523,7 +1560,7 @@ public class ObsSoundingQuery {
                 sndLayer.setTemperature(obLev.getTemp());
                 sndLayer.setDewpoint(obLev.getDwpt());
                 sndLayer.setGeoHeight(obLev.getHght());
-                // System.out.println("Sounding layer height =  " +
+                // System.out.println("Sounding layer height = " +
                 // sndLayer.getGeoHeight() );
                 sndLayer.setPressure(obLev.getPres());
                 sndLayer.setWindDirection(obLev.getDrct());
@@ -1535,93 +1572,97 @@ public class ObsSoundingQuery {
                 sndLayers.add(sndLayer);
             }
         }
-        // System.out.println("ObsLevel="+obLevels.size()+" sndLayers="+sndLayers.size());
+        // System.out.println("ObsLevel="+obLevels.size()+"
+        // sndLayers="+sndLayers.size());
         return sndLayers;
     }
-//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordObsLevel(
-//            NcUairRecord record) {
-//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-//        Set<NcUairObsLevels> obLevels = record.getObsLevels();
-//
-//        // System.out.println("The datatype for this record is: " +
-//        // record.getDataType() );
-//        if (obLevels.size() > 0) {
-//            for (NcUairObsLevels obLev : obLevels) {
-//                // System.out.println("\n\nFrom NcUairObsLevel:");
-//                // System.out.println("Temperature = " + obLev.getTemp());
-//                // System.out.println("Pressure = " + obLev.getPres());
-//                // System.out.println("Dewpoint = " + obLev.getDwpt());
-//                // System.out.println("Height = " + obLev.getHght());
-//                // System.out.println("Wind direction = " + obLev.getDrct());
-//                // System.out.println("Wind speed in m/s= " + obLev.getSped());
-//                try {
-//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-//                    /*
-//                     * (Non-Javadoc) The units for each quantity are chosen
-//                     * based upon the units defined for these quantities in the
-//                     * pointdata description file for NcUair
-//                     */
-//                    AirTemperature airTemp = new AirTemperature();
-//                    airTemp.setValue(new Amount(obLev.getTemp(), SI.CELSIUS));
-//                    DewPointTemp dewPoint = new DewPointTemp();
-//                    dewPoint.setValue(new Amount(obLev.getDwpt(), SI.CELSIUS));
-//                    HeightAboveSeaLevel height = new HeightAboveSeaLevel();
-//                    height.setValue(obLev.getHght(), SI.METER);
-//
-//                    // System.out.println("Sounding layer height =  " +
-//                    // sndLayer.getGeoHeight().doubleValue() );
-//                    PressureLevel pressure = new PressureLevel();
-//                    pressure.setValue(new Amount(obLev.getPres(),
-//                            NcUnits.MILLIBAR));
-//
-//                    WindDirection windDirection = new WindDirection();
-//                    windDirection.setValue(obLev.getDrct(), NonSI.DEGREE_ANGLE);
-//                    WindSpeed windSpeed = new WindSpeed();
-//                    float speed = obLev.getSped();
-//
-//                    /*
-//                     * ( Non-Javadoc ) There are no negative speed values
-//                     * decoded except for either -999 or -9999 to indicate that
-//                     * the speed is missing. The check for the positive speed
-//                     * value ensures that the unit conversion happens for
-//                     * non-missing speed values.
-//                     */
-//                    if (speed >= 0) {
-//                        double convertedSpeed = metersPerSecondToKnots
-//                                .convert(speed);
-//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-//                    } else {
-//                        windSpeed.setValueToMissing();
-//                    }
-//
-//                    // System.out.println("\nFrom MetParameters:");
-//                    // System.out.println("Temperature = " +
-//                    // airTemp.getValue().floatValue());
-//                    // System.out.println("Pressure = " +
-//                    // pressure.getValue().floatValue());
-//                    // System.out.println("Dewpoint = " +
-//                    // dewPoint.getValue().floatValue());
-//                    // System.out.println("Height = " +
-//                    // height.getValue().floatValue());
-//                    // System.out.println("Wind direction = " +
-//                    // windDirection.getValue().floatValue());
-//                    // System.out.println("Wind speed = " +
-//                    // windSpeed.getValue().floatValue());
-//                    sndLayer.setTemperature(airTemp);
-//                    sndLayer.setPressure(pressure);
-//                    sndLayer.setDewpoint(dewPoint);
-//                    sndLayer.setGeoHeight(height);
-//                    sndLayer.setWindDirection(windDirection);
-//                    sndLayer.setWindSpeed(windSpeed);
-//                    sndLayers.add(sndLayer);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        // System.out.println("ObsLevel="+obLevels.size()+" sndLayers="+sndLayers.size());
-//        return sndLayers;
-//    }
+
+    // private static List<NcSoundingLayer2>
+    // getSoundingLayer2FromNcUairRecordObsLevel(
+    // NcUairRecord record) {
+    // List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+    // Set<NcUairObsLevels> obLevels = record.getObsLevels();
+    //
+    // // System.out.println("The datatype for this record is: " +
+    // // record.getDataType() );
+    // if (obLevels.size() > 0) {
+    // for (NcUairObsLevels obLev : obLevels) {
+    // // System.out.println("\n\nFrom NcUairObsLevel:");
+    // // System.out.println("Temperature = " + obLev.getTemp());
+    // // System.out.println("Pressure = " + obLev.getPres());
+    // // System.out.println("Dewpoint = " + obLev.getDwpt());
+    // // System.out.println("Height = " + obLev.getHght());
+    // // System.out.println("Wind direction = " + obLev.getDrct());
+    // // System.out.println("Wind speed in m/s= " + obLev.getSped());
+    // try {
+    // NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+    // /*
+    // * (Non-Javadoc) The units for each quantity are chosen
+    // * based upon the units defined for these quantities in the
+    // * pointdata description file for NcUair
+    // */
+    // AirTemperature airTemp = new AirTemperature();
+    // airTemp.setValue(new Amount(obLev.getTemp(), SI.CELSIUS));
+    // DewPointTemp dewPoint = new DewPointTemp();
+    // dewPoint.setValue(new Amount(obLev.getDwpt(), SI.CELSIUS));
+    // HeightAboveSeaLevel height = new HeightAboveSeaLevel();
+    // height.setValue(obLev.getHght(), SI.METER);
+    //
+    // // System.out.println("Sounding layer height = " +
+    // // sndLayer.getGeoHeight().doubleValue() );
+    // PressureLevel pressure = new PressureLevel();
+    // pressure.setValue(new Amount(obLev.getPres(),
+    // NcUnits.MILLIBAR));
+    //
+    // WindDirection windDirection = new WindDirection();
+    // windDirection.setValue(obLev.getDrct(), NonSI.DEGREE_ANGLE);
+    // WindSpeed windSpeed = new WindSpeed();
+    // float speed = obLev.getSped();
+    //
+    // /*
+    // * ( Non-Javadoc ) There are no negative speed values
+    // * decoded except for either -999 or -9999 to indicate that
+    // * the speed is missing. The check for the positive speed
+    // * value ensures that the unit conversion happens for
+    // * non-missing speed values.
+    // */
+    // if (speed >= 0) {
+    // double convertedSpeed = metersPerSecondToKnots
+    // .convert(speed);
+    // windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+    // } else {
+    // windSpeed.setValueToMissing();
+    // }
+    //
+    // // System.out.println("\nFrom MetParameters:");
+    // // System.out.println("Temperature = " +
+    // // airTemp.getValue().floatValue());
+    // // System.out.println("Pressure = " +
+    // // pressure.getValue().floatValue());
+    // // System.out.println("Dewpoint = " +
+    // // dewPoint.getValue().floatValue());
+    // // System.out.println("Height = " +
+    // // height.getValue().floatValue());
+    // // System.out.println("Wind direction = " +
+    // // windDirection.getValue().floatValue());
+    // // System.out.println("Wind speed = " +
+    // // windSpeed.getValue().floatValue());
+    // sndLayer.setTemperature(airTemp);
+    // sndLayer.setPressure(pressure);
+    // sndLayer.setDewpoint(dewPoint);
+    // sndLayer.setGeoHeight(height);
+    // sndLayer.setWindDirection(windDirection);
+    // sndLayer.setWindSpeed(windSpeed);
+    // sndLayers.add(sndLayer);
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // }
+    // // System.out.println("ObsLevel="+obLevels.size()+"
+    // sndLayers="+sndLayers.size());
+    // return sndLayers;
+    // }
     private static List<NcSoundingLayer> getSndLayersFromNcUairRecordTrop(
             NcUairRecord record) {
         List<NcSoundingLayer> sndLayers = new ArrayList<NcSoundingLayer>();
@@ -1641,62 +1682,65 @@ public class ObsSoundingQuery {
                 sndLayers.add(sndLayer);
             }
         }
-        // System.out.println("trops="+trops.size()+" sndLayers="+sndLayers.size());
+        // System.out.println("trops="+trops.size()+"
+        // sndLayers="+sndLayers.size());
         return sndLayers;
     }
 
-//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordTrop(
-//            NcUairRecord record) {
-//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-//        Set<NcUairTropopause> trops = record.getTropopause();
-//        if (trops.size() > 0) {
-//            for (NcUairTropopause trop : trops) {
-//                try {
-//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-//                    /*
-//                     * (Non-Javadoc) The units for each quantity are chosen
-//                     * based upon the units defined for these quantities in the
-//                     * pointdata description file for NcUair
-//                     */
-//                    AirTemperature airTemp = new AirTemperature();
-//                    airTemp.setValue(new Amount(trop.getTemp(), SI.CELSIUS));
-//                    DewPointTemp dewPoint = new DewPointTemp();
-//                    dewPoint.setValue(new Amount(trop.getDwpt(), SI.CELSIUS));
-//                    PressureLevel pressure = new PressureLevel();
-//                    pressure.setValue(new Amount(trop.getPres(),
-//                            NcUnits.MILLIBAR));
-//                    WindDirection windDirection = new WindDirection();
-//                    windDirection.setValue(trop.getDrct(), NonSI.DEGREE_ANGLE);
-//                    WindSpeed windSpeed = new WindSpeed();
-//                    float speed = trop.getSped();
-//                    /*
-//                     * ( Non-Javadoc ) There are no negative speed values
-//                     * decoded except for either -999 or -9999 to indicate that
-//                     * the speed is missing. The check for the positive speed
-//                     * value ensures that the unit conversion happens for
-//                     * non-missing speed values.
-//                     */
-//                    if (speed >= 0) {
-//                        double convertedSpeed = metersPerSecondToKnots
-//                                .convert(speed);
-//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-//                    } else {
-//                        windSpeed.setValueToMissing();
-//                    }
-//                    sndLayer.setTemperature(airTemp);
-//                    sndLayer.setPressure(pressure);
-//                    sndLayer.setDewpoint(dewPoint);
-//                    sndLayer.setWindDirection(windDirection);
-//                    sndLayer.setWindSpeed(windSpeed);
-//                    sndLayers.add(sndLayer);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        // System.out.println("trops="+trops.size()+" sndLayers="+sndLayers.size());
-//        return sndLayers;
-//    }
+    // private static List<NcSoundingLayer2>
+    // getSoundingLayer2FromNcUairRecordTrop(
+    // NcUairRecord record) {
+    // List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+    // Set<NcUairTropopause> trops = record.getTropopause();
+    // if (trops.size() > 0) {
+    // for (NcUairTropopause trop : trops) {
+    // try {
+    // NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+    // /*
+    // * (Non-Javadoc) The units for each quantity are chosen
+    // * based upon the units defined for these quantities in the
+    // * pointdata description file for NcUair
+    // */
+    // AirTemperature airTemp = new AirTemperature();
+    // airTemp.setValue(new Amount(trop.getTemp(), SI.CELSIUS));
+    // DewPointTemp dewPoint = new DewPointTemp();
+    // dewPoint.setValue(new Amount(trop.getDwpt(), SI.CELSIUS));
+    // PressureLevel pressure = new PressureLevel();
+    // pressure.setValue(new Amount(trop.getPres(),
+    // NcUnits.MILLIBAR));
+    // WindDirection windDirection = new WindDirection();
+    // windDirection.setValue(trop.getDrct(), NonSI.DEGREE_ANGLE);
+    // WindSpeed windSpeed = new WindSpeed();
+    // float speed = trop.getSped();
+    // /*
+    // * ( Non-Javadoc ) There are no negative speed values
+    // * decoded except for either -999 or -9999 to indicate that
+    // * the speed is missing. The check for the positive speed
+    // * value ensures that the unit conversion happens for
+    // * non-missing speed values.
+    // */
+    // if (speed >= 0) {
+    // double convertedSpeed = metersPerSecondToKnots
+    // .convert(speed);
+    // windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+    // } else {
+    // windSpeed.setValueToMissing();
+    // }
+    // sndLayer.setTemperature(airTemp);
+    // sndLayer.setPressure(pressure);
+    // sndLayer.setDewpoint(dewPoint);
+    // sndLayer.setWindDirection(windDirection);
+    // sndLayer.setWindSpeed(windSpeed);
+    // sndLayers.add(sndLayer);
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // }
+    // // System.out.println("trops="+trops.size()+"
+    // sndLayers="+sndLayers.size());
+    // return sndLayers;
+    // }
 
     private static List<NcSoundingLayer> getSndLayersFromNcUairRecordMaxw(
             NcUairRecord record) {
@@ -1715,80 +1759,91 @@ public class ObsSoundingQuery {
                 sndLayers.add(sndLayer);
             }
         }
-        // System.out.println("maxWinds="+maxWinds.size()+" sndLayers="+sndLayers.size());
+        // System.out.println("maxWinds="+maxWinds.size()+"
+        // sndLayers="+sndLayers.size());
         return sndLayers;
     }
 
-//    private static List<NcSoundingLayer2> getSoundingLayer2FromNcUairRecordMaxw(
-//            NcUairRecord record) {
-//        List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
-//        Set<NcUairMaxWind> maxWinds = record.getMaxWind();
-//        if (maxWinds.size() > 0) {
-//            /*
-//             * (Non-Javadoc) The units for each quantity are chosen based upon
-//             * the units defined for these quantities in the pointdata
-//             * description file for NcUair
-//             */
-//            for (NcUairMaxWind maxWind : maxWinds) {
-//                try {
-//                    NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
-//                    PressureLevel pressure = new PressureLevel();
-//                    // pressure.setValueAs(maxWind.getPres(), "hPa" );
-//                    pressure.setValue(new Amount(maxWind.getPres(),
-//                            NcUnits.MILLIBAR));
-//                    WindDirection windDirection = new WindDirection();
-//                    windDirection.setValue(maxWind.getDrct(),
-//                            NonSI.DEGREE_ANGLE);
-//                    WindSpeed windSpeed = new WindSpeed();
-//                    float speed = maxWind.getSped();
-//                    /*
-//                     * ( Non-Javadoc ) There are no negative speed values
-//                     * decoded except for either -999 or -9999 to indicate that
-//                     * the speed is missing. The check for the positive speed
-//                     * value ensures that the unit conversion happens for
-//                     * non-missing speed values.
-//                     */
-//                    if (speed >= 0) {
-//                        double convertedSpeed = metersPerSecondToKnots
-//                                .convert(speed);
-//                        windSpeed.setValue(convertedSpeed, NonSI.KNOT);
-//                    } else {
-//                        windSpeed.setValueToMissing();
-//                    }
-//                    sndLayer.setPressure(pressure);
-//                    sndLayer.setWindDirection(windDirection);
-//                    sndLayer.setWindSpeed(windSpeed);
-//                    sndLayers.add(sndLayer);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        // System.out.println("maxWinds="+maxWinds.size()+" sndLayers="+sndLayers.size());
-//        return sndLayers;
-//    }
-	
-    public static NcSoundingCube handleNcuairDataRequest(SoundingServiceRequest request){
-//		SoundingRequestType reqType = request.getReqType();
-//		SoundingType sndType = request.getSndType();
-		String[]  refTimeStrLst = request.getRefTimeStrAry();
-		if(refTimeStrLst == null)
-			refTimeStrLst =QueryMiscTools.convertTimeLongArrayToStrArray(request.getRefTimeAry());
-		List<NcUairRecord[]> uairRecordArrList = ObsSoundingQuery.getObservedSndNcUairDataGeneric(request.getLatLonAry(), request.getStnIdAry(),
-				refTimeStrLst, request.getRefTimeAry(), request.getLevel(), request.isPwRequired());
+    // private static List<NcSoundingLayer2>
+    // getSoundingLayer2FromNcUairRecordMaxw(
+    // NcUairRecord record) {
+    // List<NcSoundingLayer2> sndLayers = new ArrayList<NcSoundingLayer2>();
+    // Set<NcUairMaxWind> maxWinds = record.getMaxWind();
+    // if (maxWinds.size() > 0) {
+    // /*
+    // * (Non-Javadoc) The units for each quantity are chosen based upon
+    // * the units defined for these quantities in the pointdata
+    // * description file for NcUair
+    // */
+    // for (NcUairMaxWind maxWind : maxWinds) {
+    // try {
+    // NcSoundingLayer2 sndLayer = new NcSoundingLayer2();
+    // PressureLevel pressure = new PressureLevel();
+    // // pressure.setValueAs(maxWind.getPres(), "hPa" );
+    // pressure.setValue(new Amount(maxWind.getPres(),
+    // NcUnits.MILLIBAR));
+    // WindDirection windDirection = new WindDirection();
+    // windDirection.setValue(maxWind.getDrct(),
+    // NonSI.DEGREE_ANGLE);
+    // WindSpeed windSpeed = new WindSpeed();
+    // float speed = maxWind.getSped();
+    // /*
+    // * ( Non-Javadoc ) There are no negative speed values
+    // * decoded except for either -999 or -9999 to indicate that
+    // * the speed is missing. The check for the positive speed
+    // * value ensures that the unit conversion happens for
+    // * non-missing speed values.
+    // */
+    // if (speed >= 0) {
+    // double convertedSpeed = metersPerSecondToKnots
+    // .convert(speed);
+    // windSpeed.setValue(convertedSpeed, NonSI.KNOT);
+    // } else {
+    // windSpeed.setValueToMissing();
+    // }
+    // sndLayer.setPressure(pressure);
+    // sndLayer.setWindDirection(windDirection);
+    // sndLayer.setWindSpeed(windSpeed);
+    // sndLayers.add(sndLayer);
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // }
+    // // System.out.println("maxWinds="+maxWinds.size()+"
+    // sndLayers="+sndLayers.size());
+    // return sndLayers;
+    // }
+
+    public static NcSoundingCube handleNcuairDataRequest(
+            SoundingServiceRequest request) {
+        // SoundingRequestType reqType = request.getReqType();
+        // SoundingType sndType = request.getSndType();
+        String[] refTimeStrLst = request.getRefTimeStrAry();
+        if (refTimeStrLst == null)
+            refTimeStrLst = QueryMiscTools
+                    .convertTimeLongArrayToStrArray(request.getRefTimeAry());
+        List<NcUairRecord[]> uairRecordArrList = ObsSoundingQuery
+                .getObservedSndNcUairDataGeneric(request.getLatLonAry(),
+                        request.getStnIdAry(), refTimeStrLst,
+                        request.getRefTimeAry(), request.getLevel(),
+                        request.isPwRequired());
         if (uairRecordArrList != null && uairRecordArrList.size() > 0) {
-        	List<NcSoundingProfile> soundingProfileList = ObsSoundingQuery.processQueryReturnedNcUairData(
-                    uairRecordArrList, /*request.isUseNcSoundingLayer2()*/request.isMerge(),request.getLevel(),request.isPwRequired());
-        	NcSoundingCube cube = new NcSoundingCube();
-        	cube.setSoundingProfileList(soundingProfileList);
-        	cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
-        	return(cube);
-        }
-        else
-        	return null;
+            List<NcSoundingProfile> soundingProfileList = ObsSoundingQuery
+                    .processQueryReturnedNcUairData(uairRecordArrList,
+                            /* request.isUseNcSoundingLayer2() */request
+                                    .isMerge(),
+                            request.getLevel(), request.isPwRequired());
+            NcSoundingCube cube = new NcSoundingCube();
+            cube.setSoundingProfileList(soundingProfileList);
+            cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
+            return (cube);
+        } else
+            return null;
     }
 
-	public static NcSoundingCube handleBufruaDataRequest(SoundingServiceRequest request){
+    public static NcSoundingCube handleBufruaDataRequest(
+            SoundingServiceRequest request) {
         int arrLen = 0;
         SndQueryKeyType sndQuery;
         NcSoundingCube cube = new NcSoundingCube();
@@ -1801,149 +1856,152 @@ public class ObsSoundingQuery {
         } else if (stnIdArr != null) {
             arrLen = stnIdArr.length;
             sndQuery = SndQueryKeyType.STNID;
-        }
-        else 
-        	return null;
+        } else
+            return null;
         MergeSounding ms = new MergeSounding();
         float lat = 0, lon = 0;
         String stnId = "";
         for (int i = 0; i < arrLen; i++) {
-        	if (sndQuery == SndQueryKeyType.LATLON) {
-        		// make sure we have right precision...
-        		lat =(float) latLonArray[i].y;
-        		lon =(float) latLonArray[i].x;
-        	} else {
-        		stnId = stnIdArr[i];
-        	}
-        	/*
-        	 * Process sounding data.
-        	 */
-        	NcSoundingProfile pf = new NcSoundingProfile();
-        	List<NcSoundingLayer> sls = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ttaa = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ttbb = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ttcc = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ttdd = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ppaa = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ppbb = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ppcc = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> ppdd = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> trop_a = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> trop_c = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> wmax_a = new ArrayList<NcSoundingLayer>();
-        	List<NcSoundingLayer> wmax_c = new ArrayList<NcSoundingLayer>();
-        	long[] refTimeArray = request.getRefTimeAry();
-        	if(refTimeArray == null){
-        		if(request.getRefTimeStrAry() == null)
-        			return null;
-        		String[] refTimeStrArray = request.getRefTimeStrAry() ;
-        		refTimeArray = QueryMiscTools.convertTimeStrArrayToLongArray(refTimeStrArray);           	
-        	}
-        	for (long refLtime : refTimeArray) {
-        		if (request.isMerge() == false) {
-        			// *System.out.println ( " Request unmerged data");
-        			pf = ObsSoundingQuery.getObservedSndBufruaAllData(lat, lon,
-        					stnId, refLtime, sndQuery);
+            if (sndQuery == SndQueryKeyType.LATLON) {
+                // make sure we have right precision...
+                lat = (float) latLonArray[i].y;
+                lon = (float) latLonArray[i].x;
+            } else {
+                stnId = stnIdArr[i];
+            }
+            /*
+             * Process sounding data.
+             */
+            NcSoundingProfile pf = new NcSoundingProfile();
+            List<NcSoundingLayer> sls = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ttaa = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ttbb = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ttcc = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ttdd = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ppaa = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ppbb = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ppcc = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> ppdd = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> trop_a = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> trop_c = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> wmax_a = new ArrayList<NcSoundingLayer>();
+            List<NcSoundingLayer> wmax_c = new ArrayList<NcSoundingLayer>();
+            long[] refTimeArray = request.getRefTimeAry();
+            if (refTimeArray == null) {
+                if (request.getRefTimeStrAry() == null)
+                    return null;
+                String[] refTimeStrArray = request.getRefTimeStrAry();
+                refTimeArray = QueryMiscTools
+                        .convertTimeStrArrayToLongArray(refTimeStrArray);
+            }
+            for (long refLtime : refTimeArray) {
+                if (request.isMerge() == false) {
+                    // *System.out.println ( " Request unmerged data");
+                    pf = ObsSoundingQuery.getObservedSndBufruaAllData(lat, lon,
+                            stnId, refLtime, sndQuery);
 
-        		} else {
+                } else {
 
-        			// Get TTAA. If not existent, try ship data (UUAA). If
-        			// level is not null or missing,
-        			// the body of code will return a sounding list with MAN
-        			// data or single level data.
-        			// *System.out.println ( " Request merged data at lat="+
-        			// lat+" lon="+lon+ " refT="+
-        			// timeCal.getTime().toGMTString());
+                    // Get TTAA. If not existent, try ship data (UUAA). If
+                    // level is not null or missing,
+                    // the body of code will return a sounding list with MAN
+                    // data or single level data.
+                    // *System.out.println ( " Request merged data at lat="+
+                    // lat+" lon="+lon+ " refT="+
+                    // timeCal.getTime().toGMTString());
 
-        			ttaa = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "TTAA", sndQuery)
-        					.getSoundingLyLst();
-        			ttbb = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "TTBB", sndQuery)
-        					.getSoundingLyLst();
-        			ttcc = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "TTCC", sndQuery)
-        					.getSoundingLyLst();
-        			ttdd = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "TTDD", sndQuery)
-        					.getSoundingLyLst();
-        			// ppaa =
-        			// ObsSoundingQuery.getObservedSndBufruaData(lat,
-        			// lon, stnId, timeCal, "PPAA",
-        			// sndQuery).getSoundingLyLst();
-        			ppbb = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "PPBB", sndQuery)
-        					.getSoundingLyLst();
-        			// ppcc =
-        			// ObsSoundingQuery.getObservedSndBufruaData(lat,
-        			// lon, stnId, timeCal, "PPCC",
-        			// sndQuery).getSoundingLyLst();
-        			ppdd = ObsSoundingQuery.getObservedSndBufruaData(
-        					lat, lon, stnId, refLtime, "PPDD", sndQuery)
-        					.getSoundingLyLst();
-        			wmax_a = ObsSoundingQuery
-        					.getObservedSndBufruaData(lat, lon, stnId,
-        							refLtime, "MAXWIND_A", sndQuery)
-        							.getSoundingLyLst();
-        			wmax_c = ObsSoundingQuery
-        					.getObservedSndBufruaData(lat, lon, stnId,
-        							refLtime, "MAXWIND_C", sndQuery)
-        							.getSoundingLyLst();
-        			trop_a = ObsSoundingQuery
-        					.getObservedSndBufruaData(lat, lon, stnId,
-        							refLtime, "TROPOPAUSE_A", sndQuery)
-        							.getSoundingLyLst();
-        			trop_c = ObsSoundingQuery
-        					.getObservedSndBufruaData(lat, lon, stnId,
-        							refLtime, "TROPOPAUSE_C", sndQuery)
-        							.getSoundingLyLst();
-        			pf = ObsSoundingQuery.getObservedSndStnInfo(lat,
-        					lon, stnId, ObsSndType.BUFRUA.toString(), refLtime, sndQuery);
-        			sls = ms.mergeUairSounding(request.getLevel(), ttaa, ttbb, ttcc,
-        					ttdd, ppaa, ppbb, ppcc, ppdd, trop_a, trop_c,
-        					wmax_a, wmax_c, pf.getStationElevation());
+                    ttaa = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "TTAA", sndQuery)
+                            .getSoundingLyLst();
+                    ttbb = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "TTBB", sndQuery)
+                            .getSoundingLyLst();
+                    ttcc = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "TTCC", sndQuery)
+                            .getSoundingLyLst();
+                    ttdd = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "TTDD", sndQuery)
+                            .getSoundingLyLst();
+                    // ppaa =
+                    // ObsSoundingQuery.getObservedSndBufruaData(lat,
+                    // lon, stnId, timeCal, "PPAA",
+                    // sndQuery).getSoundingLyLst();
+                    ppbb = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "PPBB", sndQuery)
+                            .getSoundingLyLst();
+                    // ppcc =
+                    // ObsSoundingQuery.getObservedSndBufruaData(lat,
+                    // lon, stnId, timeCal, "PPCC",
+                    // sndQuery).getSoundingLyLst();
+                    ppdd = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "PPDD", sndQuery)
+                            .getSoundingLyLst();
+                    wmax_a = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "MAXWIND_A", sndQuery)
+                            .getSoundingLyLst();
+                    wmax_c = ObsSoundingQuery.getObservedSndBufruaData(lat, lon,
+                            stnId, refLtime, "MAXWIND_C", sndQuery)
+                            .getSoundingLyLst();
+                    trop_a = ObsSoundingQuery
+                            .getObservedSndBufruaData(lat, lon, stnId, refLtime,
+                                    "TROPOPAUSE_A", sndQuery)
+                            .getSoundingLyLst();
+                    trop_c = ObsSoundingQuery
+                            .getObservedSndBufruaData(lat, lon, stnId, refLtime,
+                                    "TROPOPAUSE_C", sndQuery)
+                            .getSoundingLyLst();
+                    pf = ObsSoundingQuery.getObservedSndStnInfo(lat, lon, stnId,
+                            ObsSndType.BUFRUA.toString(), refLtime, sndQuery);
+                    sls = ms.mergeUairSounding(request.getLevel(), ttaa, ttbb,
+                            ttcc, ttdd, ppaa, ppbb, ppcc, ppdd, trop_a, trop_c,
+                            wmax_a, wmax_c, pf.getStationElevation());
 
-        			// System.out.println("BUFRUA Number of Layers after merge:"+sls.size()
-        			// + " level="+level +
-        			// " ms.isNumber(level)="+ms.isNumber(level));
-        			// for(NcSoundingLayer ly: sls){
-        			// System.out.println("Pre= "+ly.getPressure()+
-        			// " Dew= "+ ly.getDewpoint()+ " T= "+
-        			// ly.getTemperature()+" H="+ly.getGeoHeight()+" WSp="+ly.getWindSpeed());
-        			// }
+                    // System.out.println("BUFRUA Number of Layers after
+                    // merge:"+sls.size()
+                    // + " level="+level +
+                    // " ms.isNumber(level)="+ms.isNumber(level));
+                    // for(NcSoundingLayer ly: sls){
+                    // System.out.println("Pre= "+ly.getPressure()+
+                    // " Dew= "+ ly.getDewpoint()+ " T= "+
+                    // ly.getTemperature()+" H="+ly.getGeoHeight()+"
+                    // WSp="+ly.getWindSpeed());
+                    // }
 
-        			if (request.getLevel().toUpperCase().equalsIgnoreCase("MAN"))
-        				pf.setSoundingLyLst(sls);
-        			else if (ms.isNumber(request.getLevel()) >= 0) {
-        				if (sls.size() == 1) {
-        					// System.out.println("NCUAIR get one layer using level = "+
-        					// level);
-        					pf.setSoundingLyLst(sls);
-        				} else {
-        					pf = null;
-        					// System.out.println("NCUAIR get 0 layer using level = "+
-        					// level);
-        				}
-        			} else {
-        				if (sls.isEmpty() || sls.size() <= 1)
-        					pf = null;
-        				else
-        					pf.setSoundingLyLst(sls);
-        			}
+                    if (request.getLevel().toUpperCase()
+                            .equalsIgnoreCase("MAN"))
+                        pf.setSoundingLyLst(sls);
+                    else if (ms.isNumber(request.getLevel()) >= 0) {
+                        if (sls.size() == 1) {
+                            // System.out.println("NCUAIR get one layer using
+                            // level = "+
+                            // level);
+                            pf.setSoundingLyLst(sls);
+                        } else {
+                            pf = null;
+                            // System.out.println("NCUAIR get 0 layer using
+                            // level = "+
+                            // level);
+                        }
+                    } else {
+                        if (sls.isEmpty() || sls.size() <= 1)
+                            pf = null;
+                        else
+                            pf.setSoundingLyLst(sls);
+                    }
 
-        		}
-        		if (pf != null && pf.getSoundingLyLst().size() > 0) {
-        			soundingProfileList.add(pf);
-        			pf = null;
-        		}
-        	}
+                }
+                if (pf != null && pf.getSoundingLyLst().size() > 0) {
+                    soundingProfileList.add(pf);
+                    pf = null;
+                }
+            }
         }
         if (soundingProfileList.size() == 0)
-        	cube.setRtnStatus(NcSoundingCube.QueryStatus.FAILED);
+            cube.setRtnStatus(NcSoundingCube.QueryStatus.FAILED);
         else
-        	cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
+            cube.setRtnStatus(NcSoundingCube.QueryStatus.OK);
 
         cube.setSoundingProfileList(soundingProfileList);
         return cube;
-	}
+    }
 }

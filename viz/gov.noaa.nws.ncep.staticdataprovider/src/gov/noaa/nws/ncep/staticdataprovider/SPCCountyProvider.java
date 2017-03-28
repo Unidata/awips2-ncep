@@ -90,14 +90,14 @@ public class SPCCountyProvider {
             String queryStnTbl = "Select station_number, station_id, state, country FROM stns.mzcntys";
             // R4862 - new point reduced table query
             // snaptogrid to prevent non-noded intersection exception
-            String queryCntyBnds = "Select ST_AsBinary(snaptogrid(the_geom,0.0000000001)), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.countylowres";
+            String queryCntyBnds = "Select ST_AsBinary(ST_SnapToGrid(the_geom,0,0,0.0000000001,0.0000000001)), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.countylowres";
             String queryCntyBndsOld = "Select ST_AsBinary(the_geom_0_064), countyname, state, fe_area, cwa, fips, lat, lon FROM mapdata.county";
             boolean newCnty = true;
 
             boolean noFips4MarineZones = true;
             // R4862 - new point reduced table query
             // snaptogrid to prevent non-noded intersection exception
-            String queryZoneBnds = "Select ST_AsBinary(snaptogrid(the_geom,0.0000000001)), id, name, wfo, lat, lon FROM mapdata.mzlowres";
+            String queryZoneBnds = "Select ST_AsBinary(ST_SnapToGrid(the_geom,0,0,0.0000000001,0.0000000001)), id, name, wfo, lat, lon FROM mapdata.mzlowres";
             String queryZoneBndsOld = "Select ST_AsBinary(the_geom_0_064), id, name, wfo, lat, lon FROM mapdata.marinezones";
             boolean newMz = true;
             /*

@@ -1104,7 +1104,7 @@ public class AwwParser {
                 reportType) == AwwReportType.UNKNOWN_AWW_REPORT_TYPE) {
 
             statusHandler.warn("Warning: decoded aww report type, " + reportType
-                    + ", not recogized.");
+                    + ", not recognized.");
 
         }
 

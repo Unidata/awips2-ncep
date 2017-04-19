@@ -128,10 +128,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
  *  09/16/2016   R15716     SRussell    Added a new FrameData constructor,
  *                                      Added method getLastRecordAdded()
- *  12/14/2016    R20988    kbugenhagen Remove setting colormap capability in 
+ *  12/14/2016   R20988     kbugenhagen Remove setting colormap capability in 
  *                                      setColorMapUnits so colormap name isn't
  *                                      overwritten.
- * 
+ *  02/14/2017   R21492     kbugenhagen Added call to suppress "Change Colormap"
+ *                                      menu item in setColorMapUnits method.
  * 
  * </pre>
  * 
@@ -846,6 +847,12 @@ public class NcSatelliteResource extends
 
         colorMapParameters.setColorMapMin(colorMapMin);
         colorMapParameters.setColorMapMax(colorMapMax);
+
+        /*
+         * suppresses the "Change colormap ..." menu item in legend right-click
+         * drop down
+         */
+        getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
 
         LabelingPreferences labeling = imagePreferences.getColorbarLabeling();
         if (labeling != null) {

@@ -117,6 +117,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                       when opening this Resource Selection Control. Include cycle times. 
  *                                       If there's unselected resource(s), display the most previous one, with cycle times.
  * 11/04/2016     R23113    K.Bugenhagen In updateCycletimes, get cycletime in milliseconds.
+ * 01/24/2017     R17975    K.Bugenhagen Added support for generating timeline
+ *                                       for forecast resources.
  * 
  * </pre>
  * 
@@ -1356,6 +1358,9 @@ public class ResourceSelectionControl extends Composite {
                 cycleTimeCombo.setEnabled(true);
                 cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
+
+                availDataTimeLbl.setVisible(true);
+                availDataTimeLbl.setText(availMsg);
 
                 if (!openingDialogWithResources) {
 

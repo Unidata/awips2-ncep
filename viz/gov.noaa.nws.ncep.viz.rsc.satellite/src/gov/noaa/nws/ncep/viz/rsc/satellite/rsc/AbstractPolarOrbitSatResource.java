@@ -63,9 +63,11 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *  07/01/2016   R17376     kbugenhagen  Overloaded getColorMapName method to allow
  *                                       Modis/Viirs to use colormap names
  *                                       specified in attribute set files.
- *  12/14/2016    R20988    kbugenhagen  Update getColorMapName to allow for 
+ *  12/14/2016   R20988     kbugenhagen  Update getColorMapName to allow for 
  *                                       override of colormap name in SPF.
- *                                       
+ *  02/14/2017   R21492     kbugenhagen  Added call to suppress "Change Colormap"
+ *                                       menu item in setColorMapUnits method.
+ *
  * </pre>
  * 
  * @author kbugenhagen
@@ -387,6 +389,13 @@ public abstract class AbstractPolarOrbitSatResource<R extends IPersistable>
                 }
             }
         }
+
+        /*
+         * suppresses the "Change colormap ..." menu item in legend right-click
+         * drop down
+         */
+        getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
+
     }
 
     /*

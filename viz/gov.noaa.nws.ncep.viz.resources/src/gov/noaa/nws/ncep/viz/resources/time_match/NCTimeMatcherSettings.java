@@ -33,6 +33,9 @@ import java.util.Set;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 02/11/2016   R15244     bkowal      Initial creation
+ * 02/01/2017   R17975     kbugenhagen Added FORECAST_REF_TIME_SELECTION enum
+ *                                     and modified update method to support
+ *                                     forecast time matching.
  * 
  * </pre>
  * 
@@ -46,6 +49,10 @@ public class NCTimeMatcherSettings {
         CURRENT, LATEST, CALENDAR
     }
 
+    public static enum FORECAST_REF_TIME_SELECTION {
+        CYCLE_TIME, CALENDAR
+    }
+
     private Integer numberFrames;
 
     private Integer timeRange;
@@ -55,6 +62,8 @@ public class NCTimeMatcherSettings {
     private Integer frameInterval;
 
     private REF_TIME_SELECTION refTimeSelection;
+
+    private FORECAST_REF_TIME_SELECTION forecastRefTimeSelection;
 
     /**
      * Defined when the {@link #refTimeSelection} is set to
@@ -93,7 +102,19 @@ public class NCTimeMatcherSettings {
             } else {
                 this.selectedRefTime = null;
             }
+        } else if (update.forecastRefTimeSelection != null) {
+            this.forecastRefTimeSelection = update.forecastRefTimeSelection;
+            if (this.forecastRefTimeSelection == FORECAST_REF_TIME_SELECTION.CALENDAR) {
+                this.selectedRefTime = update.selectedRefTime;
+                if (this.selectedRefTime == null) {
+                    throw new IllegalArgumentException(
+                            "An associated selectedRefTime must be specified when ref time selection is set to: CALENDAR.");
+                }
+            } else {
+                this.selectedRefTime = null;
+            }
         }
+
         if (update.selectedFrameTimes != null) {
             this.selectedFrameTimes = update.selectedFrameTimes;
         }
@@ -174,6 +195,15 @@ public class NCTimeMatcherSettings {
         this.refTimeSelection = refTimeSelection;
     }
 
+    public FORECAST_REF_TIME_SELECTION getForecastRefTimeSelection() {
+        return forecastRefTimeSelection;
+    }
+
+    public void setForecastRefTimeSelection(
+            FORECAST_REF_TIME_SELECTION forecastRefTimeSelection) {
+        this.forecastRefTimeSelection = forecastRefTimeSelection;
+    }
+
     /**
      * @return the selectedRefTime
      */
@@ -217,9 +247,9 @@ public class NCTimeMatcherSettings {
         comma = addField("refTimeSelection", this.refTimeSelection, comma, sb)
                 || comma;
         comma = addField("selectedRefTime",
-                (this.selectedRefTime == null) ? null : this.selectedRefTime
-                        .getTime().toString(), comma, sb)
-                || comma;
+                (this.selectedRefTime == null) ? null
+                        : this.selectedRefTime.getTime().toString(),
+                comma, sb) || comma;
         if (this.selectedFrameTimes != null) {
             if (comma) {
                 sb.append(", ");

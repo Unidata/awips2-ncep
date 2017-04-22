@@ -1,12 +1,10 @@
 package gov.noaa.nws.ncep.common.log.logger;
 
-import gov.noaa.nws.ncep.common.log.Activator;
 import gov.noaa.nws.ncep.common.log.impl.NcepLogCategory;
 import gov.noaa.nws.ncep.common.log.impl.NcepLoggerImpl;
 import gov.noaa.nws.ncep.common.log.util.StringUtil;
 
 import java.util.Hashtable;
-
 
 import org.apache.log4j.Logger;
 

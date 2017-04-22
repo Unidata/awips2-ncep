@@ -48,6 +48,8 @@ import gov.noaa.nws.ncep.viz.resources.manager.AttributeSet;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.manager.SatelliteAreaManager;
+import gov.noaa.nws.ncep.viz.resources.manager.SatelliteNameManager;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRTempToPixelConverter;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcSatelliteUnits;
@@ -86,6 +88,7 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *                                        Updated isCloudHeightCapable() method
  *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow 
  *                                        for override of colormap name in SPF.
+ *  01/30/2017    R17933     R Reynolds   Build legendString from DB query parameters
  * 
  * </pre>
  * 
@@ -105,7 +108,8 @@ public class McidasSatResource extends NcSatelliteResource
          * Get configuredLegendString (with aliases) from resourceDefinition. If
          * empty string is returned then get regular aliased legend.
          */
-        legendStr = createLegendString();
+
+        legendStr = createLegendString(null);
     }
 
     /**
@@ -113,83 +117,75 @@ public class McidasSatResource extends NcSatelliteResource
      * 
      * @return
      */
-    private String createLegendString() {
 
-        ResourceName rscName = resourceData.getResourceName();
+    @Override
+    public String createLegendString(IPersistable satRec) {
+
         String legendString = "";
 
         try {
+
+            ResourceName rscName = resourceData.getResourceName();
+
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
             ResourceDefinition rscDefn = rscDefnsMngr
                     .getResourceDefinition(rscName.getRscType());
+
             AttributeSet attributeSet = rscDefnsMngr.getAttrSet(rscName);
+
             rscDefn.setAttributeSet(attributeSet);
+
             HashMap<String, String> attributes = attributeSet.getAttributes();
-            Map<String, String> variables = new HashMap<>();
+
+            Map<String, String> recordElements = new HashMap<>();
 
             // legendString can be assigned by the user in the attribute set,
             // if it does not exist.. legendStringAttribute will be null
             String legendStringAttribute = attributes.get("legendString");
 
-            String[] subtypeParam = rscDefn.getSubTypeGenerator().split(",");
-            for (int k = 0; k < subtypeParam.length; k++) {
-                legendString += resourceData.getMetadataMap()
-                        .get(subtypeParam[k].toString()).getConstraintValue()
-                        .toString() + "_";
-            }
             legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
-            // what's in subType generators
-            String[] keysValues = rscDefn.getMcidasAliasedValues().split(",");
 
-            /**
-             * These are the keywords found in the legendString (built from
-             * subType generator content)
-             */
-            String value = "";
-            for (int i = 0; i < keysValues.length; i++) {
-                value = keysValues[i].split(":")[1];
-                if (value != null && !value.isEmpty()) {
-                    if (keysValues[i]
-                            .startsWith(McidasConstants.SATELLLITE + ":")) {
-                        variables.put(McidasConstants.SATELLLITE, value);
-                    } else if (keysValues[i]
-                            .startsWith(McidasConstants.AREA + ":")) {
-                        variables.put(McidasConstants.AREA, value);
-                    } else if (keysValues[i]
-                            .startsWith(McidasConstants.RESOLUTION + ":")) {
-                        variables.put(McidasConstants.RESOLUTION, value);
-                    }
-                }
+            String resolution;
+            String displayedName;
+            String areaName;
+            String additionalParams = "";
+
+            legendStringAttribute = attributes
+                    .get(LEGEND_STRING_ATTRIBUTE_NAME);
+
+            if (legendStringAttribute == null
+                    || legendStringAttribute.trim().isEmpty()) {
+                legendStringAttribute = DEFAULT_LEGEND_STRING_ATTRIBUTE;
+
             }
 
-            // Add in these last two.
-            value = rscDefn.getResourceDefnName();
-            if (value != null && !value.isEmpty()) {
-                variables.put(McidasConstants.RESOURCE_DEFINITION,
-                        rscDefn.getResourceDefnName());
-            }
-            value = rscDefnsMngr.getAttrSet(rscName).getName();
+            if (satRec != null) {
+                resolution = getResolution(satRec);
+                displayedName = getDisplayedName(satRec);
+                areaName = getAreaName(satRec);
 
-            if (value != null && !value.isEmpty()) {
-                variables.put(McidasConstants.CHANNEL,
-                        rscDefnsMngr.getAttrSet(rscName).getName());
+                recordElements.put(McidasConstants.AREA, areaName);
+                recordElements.put(McidasConstants.RESOLUTION, resolution);
+                recordElements.put(McidasConstants.SATELLLITE, displayedName);
             }
 
-            // Process legendStringAttribute if assignment exist
-            if (legendStringAttribute != null) {
+            additionalParams = rscDefn.getResourceDefnName();
+            recordElements.put(McidasConstants.RESOURCE_DEFINITION,
+                    additionalParams);
 
-                String customizedlegendString = constructCustomLegendString(
-                        variables, legendStringAttribute);
+            additionalParams = rscDefnsMngr.getAttrSet(rscName).getName();
+            recordElements.put(McidasConstants.CHANNEL, additionalParams);
 
-                legendString = (customizedlegendString.isEmpty()) ? legendString
-                        : customizedlegendString;
-            }
+            additionalParams = rscDefn.getRscAttributeDisplayName("");
+            recordElements.put(McidasConstants.ATTRIBUTE_SET_ALIAS,
+                    additionalParams);
 
-            legendString = rscDefn.getRscGroupDisplayName(legendString) + " ";
-            AttributeSet attSet = rscDefnsMngr.getAttrSet(rscName);
-            rscDefn.setAttributeSet(attSet);
-            legendString += rscDefn.getRscAttributeDisplayName("");
-            legendString.trim();
+            legendString = constructCustomLegendString(recordElements,
+                    legendStringAttribute);
+
+            if (satRec == null)
+                legendString += " -NO DATA";
 
         } catch (Exception ex) {
             statusHandler.error("Error building legend string ", ex);
@@ -249,6 +245,7 @@ public class McidasSatResource extends NcSatelliteResource
             }
 
             Collections.sort(McidasSatResource.this.dataTimes);
+
             int imageTypeNumber = getImageTypeNumber(satRec);
 
             generateAndStoreColorBarLabelingInformation(satRec,
@@ -259,6 +256,8 @@ public class McidasSatResource extends NcSatelliteResource
             last_record_added = satRec;
             McidasSatRenderable msr = (McidasSatRenderable) renderable;
             msr.addRecord(satRec);
+
+            legendStr = createLegendString(satRec);
 
             return true;
         }
@@ -328,6 +327,7 @@ public class McidasSatResource extends NcSatelliteResource
             colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
                     .getResourceName().getRscCategory().getCategoryName(),
                     colorMapName);
+
         } catch (VizException e) {
             throw new VizException("Error loading colormap: " + colorMapName);
         }
@@ -584,6 +584,7 @@ public class McidasSatResource extends NcSatelliteResource
 
             if (tmpunit == SI.CELSIUS) {
                 isCldHtCmptble = true;
+
             }
 
         } catch (Exception e) {
@@ -643,6 +644,62 @@ public class McidasSatResource extends NcSatelliteResource
     /*
      * (non-Javadoc)
      * 
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getAreaId (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     */
+    protected String getAreaId(IPersistable pdo) {
+        return ((McidasRecord) pdo).getAreaId();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getResolution (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     */
+    protected String getResolution(IPersistable pdo) {
+
+        return Integer.toString(((McidasRecord) pdo).getResolution()) + "km";
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getDisplayedName (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     */
+    protected String getDisplayedName(IPersistable pdo) {
+
+        String satelliteId = ((McidasRecord) pdo).getSatelliteId();
+
+        SatelliteNameManager.getInstance().setSatelliteId(satelliteId);
+
+        return SatelliteNameManager.getInstance()
+                .getDisplayedNameByID(satelliteId);
+    }
+
+    protected String getAreaName(IPersistable pdo) {
+
+        String areaId = getAreaId(pdo);
+
+        SatelliteAreaManager satAreaMgr = SatelliteAreaManager.getInstance();
+
+        String areaIdName = satAreaMgr
+                .getDisplayedName(SatelliteAreaManager.ResourceDefnName
+                        + SatelliteAreaManager.delimiter + areaId);
+
+        if (areaIdName == null) {
+            areaIdName = areaId;
+        }
+
+        return areaIdName;
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see
      * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getUnits(
      * com.raytheon.uf.common.dataplugin.persist.IPersistable)
@@ -678,6 +735,7 @@ public class McidasSatResource extends NcSatelliteResource
 
     String getCreatingEntityFromRecord(PluginDataObject pdo) {
         return ((McidasRecord) pdo).getSatelliteId();
+
     }
 
 }

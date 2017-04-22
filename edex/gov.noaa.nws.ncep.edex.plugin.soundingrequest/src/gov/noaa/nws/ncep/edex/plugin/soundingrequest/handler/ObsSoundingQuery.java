@@ -19,6 +19,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +33,7 @@ import com.raytheon.uf.common.dataplugin.bufrua.UAObs;
 import com.raytheon.uf.common.datastorage.DataStoreFactory;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.Request;
+import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.datastorage.records.IntegerDataRecord;
 import com.raytheon.uf.common.pointdata.PointDataContainer;
@@ -81,6 +83,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  07/02/2015   RM#8107 Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
  *  07/21/2015   RM#9173 Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
  *  04/19/2016   #17875  Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
+ *  07/19/2016   5736    bsteffen   Handle prSigW data.
  *  09/29/2016   RM15953 R.Reynolds  Added capability for wind interpolation
  *  
  *  @author Chin Chen
@@ -899,6 +902,22 @@ public class ObsSoundingQuery {
                                                 "htSigW",
                                                 Request.buildYLineRequest(new int[] { hdfIndex }));
                                 float[] htdata = htfloatData.getFloatData();
+                                float[] prdata = null;
+                                try {
+                                    FloatDataRecord prfloatData = (FloatDataRecord) dataStore
+                                            .retrieve(
+                                                    "/",
+                                                    "prSigW",
+                                                    Request.buildYLineRequest(new int[] { hdfIndex }));
+                                    prdata = prfloatData.getFloatData();
+                                } catch (StorageException e) {
+                                    /*
+                                     * This record does not exist in older data
+                                     * so fill with MISSING.
+                                     */
+                                    prdata = new float[sizes[0]];
+                                    Arrays.fill(prdata, NcSoundingLayer.MISSING);
+                                }
                                 FloatDataRecord windDfloatData = (FloatDataRecord) dataStore
                                         .retrieve(
                                                 "/",
@@ -918,6 +937,11 @@ public class ObsSoundingQuery {
                                     // if data is not available, dont convert it
                                     // and just use default setting data
                                     soundingLy.setGeoHeight(htdata[i]);
+                                    if (prdata[i] != NcSoundingLayer.MISSING) {
+                                        soundingLy
+                                                .setPressure(prdata[i] / 100F);
+                                    }
+                                    soundingLy.setPressure(prdata[i]);
                                     if (windSdata[i] != NcSoundingLayer.MISSING) {
                                         soundingLy
                                                 .setWindSpeed((float) metersPerSecondToKnots

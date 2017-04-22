@@ -1,12 +1,9 @@
 package gov.noaa.nws.ncep.viz.rsc.viirs.rsc;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatDataRetriever;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
-
 import java.awt.Rectangle;
 import java.text.ParsePosition;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +47,13 @@ import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
 
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatDataRetriever;
+import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.AbstractPolarOrbitSatResource;
+
 /**
  * Class for display of the Viirs satellite data.
  * 
@@ -68,13 +72,17 @@ import com.raytheon.uf.viz.npp.viirs.style.VIIRSDataRecordCriteria;
  *  07/01/2016   R17376     kbugenhagen  Updated to use colormap name in 
  *                                       attribute set file.  Removed overloaded
  *                                       loadColorMapParameters method.
+ *  01/30/2017   R17933     R Reynolds   Build legendString from DB query parameters
+ *  02/14/2017   R21492     kbugenhagen  Added call to suppress "Change Colormap"
+ *                                       menu item in setColorMapUnits method.
+ *                                       
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1
  */
-public class ViirsSatResource extends
-        AbstractPolarOrbitSatResource<VIIRSDataRecord> {
+public class ViirsSatResource
+        extends AbstractPolarOrbitSatResource<VIIRSDataRecord> {
 
     /**
      * Map for data records to renderable data, synchronized on for painting,
@@ -90,10 +98,78 @@ public class ViirsSatResource extends
         super(data, props);
         resourceData = data;
         dataRecordMap = new LinkedHashMap<>();
+
+        legendStr = createLegendString(null);
+
+        name = legendStr;
     }
 
-    private class ViirsDataRetriever extends
-            AbstractPolarOrbitSatDataRetriever<VIIRSDataRecord> {
+    @Override
+    public String createLegendString(IPersistable satRec) {
+
+        VIIRSDataRecord viirsDataRecord = (VIIRSDataRecord) satRec;
+        String resolution = "";
+        String legendStr = "";
+        String channel = "";
+        String rd = "";
+        String area = "";
+
+        try {
+
+            ResourceName rscName = resourceData.getResourceName();
+
+            Map<String, String> recordElements = new HashMap<>();
+
+            ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+            ResourceDefinition rscDefn = rscDefnsMngr
+                    .getResourceDefinition(rscName.getRscType());
+
+            HashMap<String, String> attributes = rscDefnsMngr
+                    .getAttrSet(rscName).getAttributes();
+
+            String legendStringAttribute = attributes
+                    .get(LEGEND_STRING_ATTRIBUTE_NAME);
+            if (legendStringAttribute == null
+                    || legendStringAttribute.trim().isEmpty()) {
+                legendStringAttribute = DEFAULT_LEGEND_STRING_ATTRIBUTE;
+
+            }
+
+            if (satRec != null) {
+
+                resolution = "(" + "DX:"
+                        + viirsDataRecord.getCoverage().getDx().toString() + ","
+                        + "DY:" + viirsDataRecord.getCoverage().getDy() + ")";
+
+                area = viirsDataRecord.getRegion();
+
+                recordElements.put(AREA, area);
+                recordElements.put(RESOLUTION, resolution);
+
+            }
+
+            channel = resourceData.getRscAttrSet().getRscAttrSetName();
+
+            rd = rscDefn.getResourceDefnName();
+
+            recordElements.put(RESOURCE_DEFINITION, rd);
+
+            recordElements.put(CHANNEL, channel);
+
+            legendStr = constructCustomLegendString(recordElements,
+                    legendStringAttribute);
+
+            if (satRec == null)
+                legendStr += " -NO DATA";
+
+        } catch (Exception ex) {
+            statusHandler.error("Error building legend string in VIIRS ", ex);
+        }
+        return legendStr;
+    }
+
+    private class ViirsDataRetriever
+            extends AbstractPolarOrbitSatDataRetriever<VIIRSDataRecord> {
 
         public ViirsDataRetriever(VIIRSDataRecord record, int level,
                 Rectangle dataSetBounds) {
@@ -135,8 +211,7 @@ public class ViirsSatResource extends
         public DrawableImage createTileImage(IGraphicsTarget target, Tile tile,
                 GeneralGridGeometry targetGeometry) throws VizException {
 
-            IImage image = target
-                    .getExtension(IColormappedImageExtension.class)
+            IImage image = target.getExtension(IColormappedImageExtension.class)
                     .initializeRaster(
                             new ViirsDataRetriever(record, tile.tileLevel,
                                     tile.getRectangle()),
@@ -149,8 +224,8 @@ public class ViirsSatResource extends
         }
     }
 
-    protected class RecordData extends
-            AbstractPolarOrbitSatResource<VIIRSDataRecord>.RecordData {
+    protected class RecordData
+            extends AbstractPolarOrbitSatResource<VIIRSDataRecord>.RecordData {
 
         private final static int TILE_SIZE = 256;
 
@@ -171,8 +246,8 @@ public class ViirsSatResource extends
         }
     }
 
-    protected class FrameData extends
-            AbstractPolarOrbitSatResource<VIIRSDataRecord>.FrameData {
+    protected class FrameData
+            extends AbstractPolarOrbitSatResource<VIIRSDataRecord>.FrameData {
 
         protected FrameData(DataTime time, int interval) {
             super(time, interval);
@@ -180,22 +255,17 @@ public class ViirsSatResource extends
 
         @Override
         public void setLegendForFrame(VIIRSDataRecord rec) {
-            name = VIIRS_LEGEND_NAME;
+            name = "";
             DataTime dateTime = rec.getDataTime();
             String refTime = dateTime.getDisplayString().split("\\[")[0];
             String[] timeParts = refTime.split(":");
-            StringBuilder builder = new StringBuilder(name);
-            builder.append(" ");
-            builder.append(rec.getParameter());
-            builder.append(" ");
-            builder.append(rec.getWavelength());
-            builder.append(" ");
-            builder.append(timeParts[0]);
-            builder.append(":");
-            builder.append(timeParts[1]);
-            legendStr = builder.toString();
+
+            legendStr = createLegendString(rec) + " " + timeParts[0] + ":"
+                    + timeParts[1];
             name = legendStr;
+
         }
+
     }
 
     /**
@@ -206,7 +276,8 @@ public class ViirsSatResource extends
      * @throws VizException
      */
     @Override
-    public RecordData addRecord(VIIRSDataRecord dataRecord) throws VizException {
+    public RecordData addRecord(VIIRSDataRecord dataRecord)
+            throws VizException {
         RecordData recordData = null;
         createColorMap(dataRecord);
         RecordData data = dataRecordMap.get(dataRecord);
@@ -278,14 +349,14 @@ public class ViirsSatResource extends
                 if (attrs.containsKey(VIIRSDataRecord.MISSING_VALUE_ID)) {
                     colorMapParameters.setNoDataValue(((Number) attrs
                             .get(VIIRSDataRecord.MISSING_VALUE_ID))
-                            .doubleValue());
+                                    .doubleValue());
                 }
                 if (unitStr != null) {
                     try {
-                        dataUnit = UnitFormat.getUCUMInstance().parseObject(
-                                unitStr, new ParsePosition(0));
+                        dataUnit = UnitFormat.getUCUMInstance()
+                                .parseObject(unitStr, new ParsePosition(0));
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        statusHandler.error("Error parsing dataUnit", e);
                     }
                 }
                 if (offset != null && offset != 0.0) {
@@ -332,14 +403,19 @@ public class ViirsSatResource extends
             }
         }
 
+        /*
+         * suppresses the "Change colormap ..." menu item in legend right-click
+         * drop down
+         */
+        getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
+
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#createNewFrame
-     * (com.raytheon.uf.common.time.DataTime, int)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * createNewFrame (com.raytheon.uf.common.time.DataTime, int)
      */
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
@@ -355,13 +431,15 @@ public class ViirsSatResource extends
      */
     @Override
     public String getName() {
+
         FrameData currFrame = (FrameData) getCurrentFrame();
         if (currFrame != null) {
             name = currFrame.getLegendForFrame();
         }
-        if (name == null) {
-            return VIIRS_LEGEND_NAME;
+        if (name == null || name.isEmpty()) {
+            name = createLegendString(null);
         }
+
         return name;
     }
 
@@ -395,9 +473,8 @@ public class ViirsSatResource extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#getParameterList
-     * (com.raytheon.uf.common.dataplugin.persist.IPersistable)
+     * @see gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource#
+     * getParameterList (com.raytheon.uf.common.dataplugin.persist.IPersistable)
      */
     @Override
     protected List<String> getParameterList(IPersistable pdo) {

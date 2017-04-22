@@ -117,7 +117,7 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinitionFilters.Resourc
  *  11/25/2016    R17956     E. Brown     Modifications to method getAllResourceParameters(). If the rscImplementation is PGEN then get the string subType
  *                                        (e.g. "14-CCFP.21112016.08.xml ebrown OAX” and parse into subTypeParamsArr[]. Use that and subTypeGenParams 
  *                                        (e.g. "activityLabel”, “forecaster”, and “site”) to build paramsMap and return it
- * 
+ *  01/30/2017    R17933     R Reynolds   Build legendString from DB query parameters
  * </pre>
  * 
  * @author ghull
@@ -1076,7 +1076,8 @@ public class ResourceDefnsMngr {
 
             String subTypeParamsArr[] = subType.split("_");
 
-            if (subTypeParamsArr != null) {
+            if (subTypeParamsArr != null && subTypeGenParams.length > 0) {
+
                 for (int i = 0; i < subTypeParamsArr.length; i++) {
 
                     if (subTypeGenParams[i].toString()
@@ -1201,6 +1202,7 @@ public class ResourceDefnsMngr {
         }
 
         return paramsMap;
+
     }
 
     //

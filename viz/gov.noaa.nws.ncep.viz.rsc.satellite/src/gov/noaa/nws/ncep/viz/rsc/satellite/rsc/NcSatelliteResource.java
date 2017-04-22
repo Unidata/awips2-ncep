@@ -72,7 +72,6 @@ import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
 import com.raytheon.viz.satellite.SatelliteConstants;
 import com.vividsolutions.jts.geom.Coordinate;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
 import gov.noaa.nws.ncep.viz.common.area.AreaName.AreaSource;
 import gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable;
@@ -128,12 +127,15 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      different methods for getting the colormap 
  *                                      name (i.e. via stylerules or attribute files.
  *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
+ 
  *  09/16/2016   R15716     SRussell    Added a new FrameData constructor,
  *                                      Added method getLastRecordAdded()
- *  12/14/2016    R20988    kbugenhagen Remove setting colormap capability in 
+ *  12/14/2016   R20988     kbugenhagen Remove setting colormap capability in 
  *                                      setColorMapUnits so colormap name isn't
  *                                      overwritten.
- * 
+ *  01/30/2017   R17933     R Reynolds   Build legendString from DB query parameters
+ *  02/14/2017   R21492     kbugenhagen Added call to suppress "Change Colormap"
+ *                                      menu item in setColorMapUnits method.
  * 
  * </pre>
  * 
@@ -142,17 +144,31 @@ public class NcSatelliteResource extends
         AbstractNatlCntrsResource2<SatelliteResourceData, NCMapDescriptor>
         implements IResourceDataChanged, IAreaProviderCapable {
 
-    private static final String CREATING_ENTITY_KEY = "creatingEntity";
+    public static final String NO_DATA = "NO DATA";
 
-    private static final String SECTOR_ID_KEY = "sectorID";
+    public static final String SATELLITE = "satellite";
 
-    protected final static String COLORBAR_STRING_FORMAT = "%.1f";
+    public static final String AREA = "area";
 
-    protected static final String DEFAULT_COLORMAP_NAME = "colorMapName";
+    public static final String RESOLUTION = "resolution";
+
+    public static final String CHANNEL = "channel";
+
+    public final static String COLORBAR_STRING_FORMAT = "%.1f";
+
+    public static final String DEFAULT_COLORMAP_NAME = "colorMapName";
+
+    public static final String REGION = "region";
+
+    public static final String RESOURCE_DEFINITION = "RD";
+
+    public static final String LEGEND_STRING_ATTRIBUTE_NAME = "legendString";
+
+    public static final String DEFAULT_LEGEND_STRING_ATTRIBUTE = "{RD} {channel}";
 
     private static JAXBManager jaxb;
 
-    protected String legendStr = "Satellite";
+    protected String legendStr = "";
 
     protected String physicalElement;
 
@@ -167,7 +183,7 @@ public class NcSatelliteResource extends
 
     protected volatile boolean initialized = false;
 
-    // slimmed down variation on what was in AbstractSatelliteResource
+    // Slimmed down variation on what was in AbstractSatelliteResource
     protected class FrameData extends AbstractFrameData {
 
         DataTime tileTimePrevAddedRecord = null;
@@ -249,6 +265,8 @@ public class NcSatelliteResource extends
 
             }
 
+            legendStr = createLegendString(satRec);
+
             return true;
         }
 
@@ -291,6 +309,7 @@ public class NcSatelliteResource extends
 
         public IPersistable getLastRecordAdded() {
             return last_record_added;
+
         }
 
     } // FrameData class
@@ -454,7 +473,7 @@ public class NcSatelliteResource extends
 
         resourceData.addChangeListener(this);
 
-        legendStr = createLegendString();
+        legendStr = createLegendString(null);
 
     }
 
@@ -471,15 +490,21 @@ public class NcSatelliteResource extends
     @Override
     public String getName() {
 
+        String tmpStr = "";
         FrameData fd = (FrameData) getCurrentFrame();
 
         if (fd == null || fd.getFrameTime() == null
-                || descriptor.getFramesInfo().getFrameCount() == 0) {
-            return legendStr + "-No Data";
+                || descriptor.getFramesInfo().getFrameCount() == 0
+                || legendStr.toUpperCase().contains(NO_DATA)) {
 
+            tmpStr = legendStr;
+
+        } else {
+            tmpStr = legendStr + " " + NmapCommon
+                    .getTimeStringFromDataTime(fd.getFrameTime(), "/");
         }
-        return legendStr + " "
-                + NmapCommon.getTimeStringFromDataTime(fd.getFrameTime(), "/");
+
+        return tmpStr;
     }
 
     /*
@@ -515,6 +540,9 @@ public class NcSatelliteResource extends
         ColorMapParameters colorMapParameters = loadColorMapParameters(record);
         getCapability(ColorMapCapability.class)
                 .setColorMapParameters(colorMapParameters);
+
+        legendStr = createLegendString(record);
+
     }
 
     /**
@@ -522,79 +550,67 @@ public class NcSatelliteResource extends
      * 
      * @return
      */
-    private String createLegendString() {
+    public String createLegendString(IPersistable satRec) {
 
         String legendString = "";
-        String area = "";
-        String satellite = "";
         String channel = "";
         String rd = "";
-        String customizedLegendString = "";
 
         try {
 
             ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
+
             ResourceName rscName = resourceData.getResourceName();
-            Map<String, String> variables = new HashMap<>();
+
             ResourceDefinition rscDefn = rscDefnsMngr
                     .getResourceDefinition(rscName.getRscType());
+
             HashMap<String, String> attributes = rscDefnsMngr
                     .getAttrSet(rscName).getAttributes();
 
+            Map<String, String> recordElements = new HashMap<>();
+
             // legendString can be assigned by the user in the attribute set,
             // if it does not exist.. legendStringAttribute will be null
-            String legendStringAttribute = attributes.get("legendString");
+            String legendStringAttribute = attributes
+                    .get(LEGEND_STRING_ATTRIBUTE_NAME);
+
+            if (legendStringAttribute == null
+                    || legendStringAttribute.trim().isEmpty()) {
+                legendStringAttribute = DEFAULT_LEGEND_STRING_ATTRIBUTE;
+            }
+
+            if (satRec != null) {
+
+                SatelliteRecord record = (SatelliteRecord) satRec;
+
+                recordElements.put(SATELLITE, record.getCreatingEntity());
+                recordElements.put(AREA, record.getSectorID());
+
+            }
+
+            rd = rscDefn.getResourceDefnName();
+            recordElements.put(RESOURCE_DEFINITION, rd);
 
             channel = resourceData.getRscAttrSet().getRscAttrSetName();
-            rd = rscDefn.getResourceDefnName();
-            final boolean gotEntity = resourceData.getMetadataMap()
-                    .containsKey(CREATING_ENTITY_KEY);
-            final boolean gotSector = resourceData.getMetadataMap()
-                    .containsKey(SECTOR_ID_KEY);
+            recordElements.put(CHANNEL, channel);
 
-            if (gotEntity) {
-                satellite = resourceData.getMetadataMap()
-                        .get(CREATING_ENTITY_KEY).getConstraintValue();
-                if (satellite != null && !satellite.isEmpty()) {
-                    variables.put(McidasConstants.SATELLLITE, satellite);
-                }
-            }
-            if (gotSector) {
-                area = resourceData.getMetadataMap().get(SECTOR_ID_KEY)
-                        .getConstraintValue();
-                if (area != null && !area.isEmpty()) {
-                    variables.put(McidasConstants.AREA, area);
-                }
-            }
-            if (rd != null && !rd.isEmpty()) {
-                variables.put(McidasConstants.RESOURCE_DEFINITION, rd);
-            }
-            if (channel != null && !channel.isEmpty()) {
-                variables.put(McidasConstants.CHANNEL, channel);
-            }
+            legendString = constructCustomLegendString(recordElements,
+                    legendStringAttribute);
 
-            // process legendStringAttribute if assignment exist
-            if (legendStringAttribute != null) {
+            if (satRec == null)
+                legendString += " -NO DATA";
 
-                customizedLegendString = constructCustomLegendString(variables,
-                        legendStringAttribute);
-            }
+        } catch (
 
-            /*
-             * standard, original legend string
-             */
-            if (gotEntity && gotSector) {
-                legendString = satellite + " " + area + " " + channel;
-                legendString = legendString.replace('%', ' ');
-            }
-            legendString = (customizedLegendString.isEmpty()) ? legendString
-                    : customizedLegendString;
+        Exception ex)
 
-        } catch (Exception ex) {
+        {
             statusHandler.error("Error creating legend string", ex);
         }
 
         return legendString;
+
     }
 
     /**
@@ -722,7 +738,6 @@ public class NcSatelliteResource extends
         } catch (StyleException e) {
             throw new VizException(e.getLocalizedMessage(), e);
         }
-
         return colorMapParameters;
     }
 
@@ -849,6 +864,12 @@ public class NcSatelliteResource extends
 
         colorMapParameters.setColorMapMin(colorMapMin);
         colorMapParameters.setColorMapMax(colorMapMax);
+
+        /*
+         * suppresses the "Change colormap ..." menu item in legend right-click
+         * drop down
+         */
+        getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
 
         LabelingPreferences labeling = imagePreferences.getColorbarLabeling();
         if (labeling != null) {

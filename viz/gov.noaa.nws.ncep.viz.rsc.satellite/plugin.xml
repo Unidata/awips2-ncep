@@ -16,6 +16,7 @@
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>
+      
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ModisSatResource"
             name="ModisSatellite"
@@ -68,6 +69,16 @@
    </extension>
    <extension
          point="gov.noaa.nws.ncep.viz.resources.NC-ResourceParameter">
+         
+         <!-- VIIRS -->
+      <nc-resourceParameter
+            constraintName="region"
+            ncResourceName="ViirsSatellite"
+            paramClass="String"
+            paramName="region"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>  
+         
          
       <!-- Gini -->
       <nc-resourceParameter
@@ -127,7 +138,8 @@
             paramClass="String"
             paramName="sectorID"
             paramType="REQUEST_CONSTRAINT">
-      </nc-resourceParameter>     
+      </nc-resourceParameter>        
+      
       <nc-resourceParameter
             ncResourceName="GiniSatellite"
             paramClass="RGB"
@@ -266,7 +278,14 @@
             paramName="displayUnitStr"
             defaultValue="BRIT"
             paramType="NON_EDITABLE_ATTRIBUTE">
-      </nc-resourceParameter>      
+      </nc-resourceParameter>   
+      
+      <nc-resourceParameter
+            ncResourceName="McidasSatellite"
+            paramClass="String"
+            paramName="projection"
+            paramType="REQUEST_CONSTRAINT">
+      </nc-resourceParameter>   
       
       <!-- Himawari -->
       <nc-resourceParameter

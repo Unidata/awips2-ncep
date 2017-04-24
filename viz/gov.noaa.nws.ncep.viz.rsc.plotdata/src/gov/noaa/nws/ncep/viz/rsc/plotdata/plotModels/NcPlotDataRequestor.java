@@ -49,6 +49,7 @@ import gov.noaa.nws.ncep.edex.common.metparameters.StationID;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationLatitude;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationLongitude;
 import gov.noaa.nws.ncep.edex.common.metparameters.StationNumber;
+import gov.noaa.nws.ncep.edex.common.metparameters.SurfacePressure;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube.QueryStatus;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer2;
@@ -96,6 +97,7 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
  *                                        requestUpperAirData() to save all
  *                                        unique values of refTime collected
  *                                        from the stations processed.
+ * 04/25/2017   R28263       E. Brown     Implemented SurfacePressure. Changed error to debug warning for parameters Min24HrTemp, Max24HrTemp, and WaterEquivOfNewSnow
  * </pre>
  */
 
@@ -1150,11 +1152,15 @@ public class NcPlotDataRequestor {
                                 newInstance.setValue(
                                         new Amount(soundingProfile.getPw(),
                                                 SI.MILLIMETER));
+                            } else if (newInstance.getMetParamName().equals(
+                                    SurfacePressure.class.getSimpleName())) {
+                                newInstance.setValue(new Amount(
+                                        soundingProfile.getSfcPress(),
+                                        SI.PASCAL));
                             } else {
-                                statusHandler.handle(Priority.PROBLEM,
-                                        "Sanity check: \""
-                                                + metPrm.getMetParamName()
-                                                + "\" is not available in the sounding data");
+                                statusHandler.handle(Priority.DEBUG, "\""
+                                        + metPrm.getMetParamName()
+                                        + "\" is not implemented for sounding data");
                             }
 
                             if (condFilterMap != null

@@ -21,11 +21,11 @@
         <Color red="0" green="0" blue="255"/>
     </PlotModelElement>
     <PlotModelElement symbolSize="1" textStyle="Bold" textFont="Courier" textSize="10" paramName="PRES">
-        <Position>TR</Position>
+        <Position>UR</Position>
         <Color red="0" green="0" blue="255"/>
     </PlotModelElement>
     <PlotModelElement symbolSize="1" textStyle="Bold" textFont="Courier" textSize="10" paramName="WEQS">
-        <Position>BR</Position>
+        <Position>LR</Position>
         <Color red="0" green="0" blue="255"/>
     </PlotModelElement>
     <PlotModelElement symbolSize="1" textStyle="Bold" textFont="Courier" textSize="10" paramName="UWND">

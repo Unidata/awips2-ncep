@@ -79,6 +79,7 @@ import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
  *                                      check if productid is a valid WMO Header
  * 12/12/2016   R25982      J Beck      Modify support for Aviation > TAFs
  *                                      and Observed Data > TAFs Decoded
+ * 02/21/2017   R28184      Chin Chen   fixed slow loading time for Observed TAF Data Products issue
  * </pre>
  * 
  * @author Chin Chen
@@ -98,7 +99,7 @@ public class NctextDbQuery {
 
     private final String NCTEXT_DATA_DB_TABLE = "awips.nctext";
 
-    private final String TAF_PRODUCT_TYPE = "fts";
+    private final String NCTEXT_TAF_STN_TABLE = "awips.nctext_tafstn";
 
     private static final String OBS_DATA_GROUP = "Observed Data";
 
@@ -397,20 +398,17 @@ public class NctextDbQuery {
                 /*
                  * This will be triggered by selecting Aviation > TAFs or
                  * Observed Data > TAFs Decoded
-                 * 
+                 * createProductDataQuery
                  * Special case to handle "R" type FTS files, This type of text
-                 * file, its record is saved with station id(s) embedded in
-                 * record plus some station may be the main issue station. So,
-                 * if we search stationID it will return too many reports. So we
-                 * will search for "stationID xxxxxxZ" pattern within the
-                 * rawrecord column.
+                 * file, one record contains one or more station reports. This one to many relation
+                 * is handled by saving station ids in its child table NCTEXT_TAF_STN_TABLE.
+                 * Therefore, we search station id from its child table NCTEXT_TAF_STN_TABLE and 
+                 * then use its parentid as key to get text data from its main table.
                  */
-
-                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
-                        + NCTEXT_DATA_DB_TABLE + " WHERE rawrecord LIKE '%"
-                        + sta.getStnid() + "_______Z%' AND producttype='"
-                        + TAF_PRODUCT_TYPE + "'");
-
+                queryStr = new StringBuilder("SELECT rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE id IN "
+                        + "(SELECT parentid FROM "+NCTEXT_TAF_STN_TABLE+" WHERE stnid = '"+sta.getStnid()+"')");
+                        
             } else if ((fileType != null) && (fileType.equals("WRECON"))) {
                 // special case to handle "W" type RECON files, This type of
                 // text file, its record should be
@@ -599,13 +597,14 @@ public class NctextDbQuery {
 
         for (NctextStationInfo sta : listOfStateStn) {
 
-            String queryStr = createProductDataQuery(productName, sta,
+        	String queryStr = createProductDataQuery(productName, sta,
                     rptTimeRange);
-
+            
             try {
-                
+            	
                 list = NcDirectDbQuery.executeQuery(queryStr,
                         NCTEXT_DATA_DB_NAME, QueryLanguage.SQL);
+                
                 rtnList.addAll(list);
             } catch (VizException e) {
                 statusHandler.handle(Priority.PROBLEM,
@@ -1107,6 +1106,7 @@ public class NctextDbQuery {
             try {
                 list = NcDirectDbQuery.executeQuery(queryStr,
                         NCTEXT_DATA_DB_NAME, QueryLanguage.SQL);
+                
                 if (list.size() > 0) {
                     // add the Object with the station id to the list
                     list.add(list.size(), stationId);

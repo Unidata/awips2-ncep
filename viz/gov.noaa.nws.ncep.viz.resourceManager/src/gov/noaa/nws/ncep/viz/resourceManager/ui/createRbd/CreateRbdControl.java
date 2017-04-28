@@ -198,6 +198,11 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *                                       Cleanup.
  * 11/14/2016     R17362    Jeff Beck    Added functionality to remove user defined resources from the dominant resource combo
  *                                       when clicking the "X" on the GUI.
+ * 04/27/2017     R29983    Steve Russell Added method handleSelectedResourceGroup
+ *                                        Updated listeners
+ *                                        groupListViewer.getTable().addSelectionListener() 
+ *                                        delGrpBtn.addSelectionListener() in
+ *                                        CreateRbdControl.createGroupGrp()
  * </pre>
  * 
  * @author ghull
@@ -250,7 +255,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private Button grpMoveDownBtn;
 
-    private int curGrp = -1;
+    private int currentlySelectedGroup = -1;
 
     private Button replaceResourceButton = null;
 
@@ -359,7 +364,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     private static Map<String, String> gempakProjMap = GempakProjectionValuesUtil
             .initializeProjectionNameMap();
 
-    private static String ungrpStr = "Static";
+    private static String unGroupString = "Static";
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(CreateRbdControl.class);
@@ -801,7 +806,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         form_data.bottom = new FormAttachment(100, -47);
         selectedResourceViewer.getList().setLayoutData(form_data);
 
-        //
         editResourceButton = new Button(seld_rscs_grp, SWT.PUSH);
         editResourceButton.setText(" Edit ...");
         form_data = new FormData();
@@ -875,7 +879,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 if (resSelected != null && grpSelected != null) {
 
                     if (groupListViewer.getTable().getSelection()[0].getText()
-                            .equalsIgnoreCase(ungrpStr)) {
+                            .equalsIgnoreCase(unGroupString)) {
                         rbdMngr.moveDownResource(resSelected, null);
 
                         selectedResourceViewer
@@ -936,7 +940,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 if (resSelected != null && grpSelected != null) {
 
                     if (groupListViewer.getTable().getSelection()[0].getText()
-                            .equalsIgnoreCase(ungrpStr)) {
+                            .equalsIgnoreCase(unGroupString)) {
                         rbdMngr.moveUpResource(resSelected, null);
 
                         selectedResourceViewer
@@ -1020,8 +1024,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 if ((ke.keyCode == SWT.CR || ke.keyCode == SWT.KEYPAD_CR)
                         && !txt.getText().isEmpty()) {
 
-                    if (txt.getText().equalsIgnoreCase(ungrpStr)) {
-                        curGrp = -1;
+                    if (txt.getText().equalsIgnoreCase(unGroupString)) {
+                        currentlySelectedGroup = -1;
                         selectUngroupedGrp();
                         selectedResourceViewer
                                 .setInput(rbdMngr.getUngroupedResources());
@@ -1038,8 +1042,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                                     .equalsIgnoreCase(txt.getText())) {
 
                                 groupListViewer.getTable().setSelection(ii);
-                                curGrp = groupListViewer.getTable()
-                                        .getSelectionIndex();
+                                currentlySelectedGroup = groupListViewer
+                                        .getTable().getSelectionIndex();
                                 selectedResourceViewer.setInput(rbdMngr
                                         .getResourcesInGroup(groupListViewer
                                                 .getTable()
@@ -1082,7 +1086,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 // Add "Ungrouped" group
                 ResourcePair group = new ResourcePair();
 
-                GroupResourceData grd = new GroupResourceData(ungrpStr, 0,
+                GroupResourceData grd = new GroupResourceData(unGroupString, 0,
                         grpColorBtn.getColorValue());
                 group.setResourceData(grd);
 
@@ -1098,8 +1102,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
                 if (ungrouped != null) {
                     if (groups != null) {
-                        List<ResourceSelection> list = new ArrayList<>(Arrays
-                                .asList(groups));
+                        List<ResourceSelection> list = new ArrayList<>(
+                                Arrays.asList(groups));
                         list.add(0, ungrouped);
                         groups1 = list
                                 .toArray(new ResourceSelection[list.size()]);
@@ -1148,25 +1152,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         groupListViewer.getTable().addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-
-                curGrp = groupListViewer.getTable().getSelectionIndex();
-                if (groupListViewer.getTable().getSelection()[0].getText()
-                        .equalsIgnoreCase(ungrpStr)) {
-                    curGrp = -1;
-                    selectedResourceViewer
-                            .setInput(rbdMngr.getUngroupedResources());
-                } else {
-                    selectedResourceViewer.setInput(
-                            rbdMngr.getResourcesInGroup(groupListViewer
-                                    .getTable().getSelection().length == 0
-                                            ? null
-                                            : groupListViewer.getTable()
-                                                    .getSelection()[0]
-                                                            .getText()));
-                }
-
-                setGroupButtons();
-
+                handleSelectedResourceGroup();
             }
         });
 
@@ -1220,7 +1206,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     if (((GroupResourceData) ((ResourceSelection) ((org.eclipse.jface.viewers.ViewerCell) event
                             .getSource()).getElement()).getResourcePair()
                                     .getResourceData()).getGroupName()
-                                            .equalsIgnoreCase(ungrpStr)) {
+                                            .equalsIgnoreCase(unGroupString)) {
                         return false;
                     }
 
@@ -1251,14 +1237,15 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                                 : groupListViewer.getTable().getSelection()[0]
                                         .getText()));
 
-                curGrp = groupListViewer.getTable().getSelectionIndex();
+                currentlySelectedGroup = groupListViewer.getTable()
+                        .getSelectionIndex();
 
                 if (groupListViewer.getTable().getSelection()[0].getText()
-                        .equalsIgnoreCase(ungrpStr)) {
+                        .equalsIgnoreCase(unGroupString)) {
                     selectUngroupedGrp();
                     selectedResourceViewer
                             .setInput(rbdMngr.getUngroupedResources());
-                    curGrp = -1;
+                    currentlySelectedGroup = -1;
                 }
 
                 setGroupButtons();
@@ -1276,7 +1263,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     if (event.y > grpList.getItemCount()
                             * grpList.getItemHeight()) {
                         grpList.deselectAll();
-                        curGrp = -1;
+                        currentlySelectedGroup = -1;
 
                         selectUngroupedGrp();
 
@@ -1310,7 +1297,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     groupListViewer.setInput(rbdMngr.getGroupResources());
                     groupListViewer.refresh();
                     groupListViewer.setSelection(isel);
-                    curGrp = groupListViewer.getTable().getSelectionIndex();
+                    currentlySelectedGroup = groupListViewer.getTable()
+                            .getSelectionIndex();
                     setGroupButtons();
                 }
             }
@@ -1337,7 +1325,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     groupListViewer.setSelection(isel);
 
                     groupListViewer.refresh();
-                    curGrp = groupListViewer.getTable().getSelectionIndex();
+                    currentlySelectedGroup = groupListViewer.getTable()
+                            .getSelectionIndex();
                     setGroupButtons();
                 }
             }
@@ -1360,15 +1349,13 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                         .getSelection()).getFirstElement();
 
                 if (sel != null) {
-
+                    // Remove Selection
                     removeUserDefinedResourceGroup(sel);
                     groupListViewer.setInput(rbdMngr.getGroupResources());
                     groupListViewer.refresh();
                     selectUngroupedGrp();
-                    selectedResourceViewer
-                            .setInput(rbdMngr.getUngroupedResources());
-                    setGroupButtons();
-                    curGrp = -1;
+
+                    handleSelectedResourceGroup();
 
                 }
             }
@@ -1771,7 +1758,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
                             if (((GroupResourceData) sel.getResourcePair()
                                     .getResourceData()).getGroupName()
-                                            .equalsIgnoreCase(ungrpStr)) {
+                                            .equalsIgnoreCase(unGroupString)) {
                                 sel = null;
                                 rbdMngr.replaceSelectedResource(rscSel, rbt);
 
@@ -1832,7 +1819,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                             if (sel != null && ((GroupResourceData) sel
                                     .getResourcePair().getResourceData())
                                             .getGroupName()
-                                            .equalsIgnoreCase(ungrpStr)) {
+                                            .equalsIgnoreCase(unGroupString)) {
                                 sel = null;
                             }
 
@@ -2662,7 +2649,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         if (groupListViewer.getSelection() == null
                 || groupListViewer.getSelection().isEmpty()
                 || groupListViewer.getTable().getSelection()[0].getText()
-                        .equalsIgnoreCase(ungrpStr)) {
+                        .equalsIgnoreCase(unGroupString)) {
             rbdMngr.removeSelectedResource(rscSel);
         } else { // remove from group
             ((GroupResourceData) getGroupResourceSelection().getResourceData())
@@ -2670,18 +2657,20 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         }
 
         // remove this from the list of available dominant resources.
-        if (rscSel.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-            timelineControl
-                    .removeAvailDomResource((AbstractNatlCntrsRequestableResourceData) rscSel
+        if (rscSel
+                .getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+            timelineControl.removeAvailDomResource(
+                    (AbstractNatlCntrsRequestableResourceData) rscSel
                             .getResourceData());
         }
 
     }
 
     /**
-     * Removes a User Defined Resource Group. Removes resources from the
-     * list of dominant resources. Removes resources from the dominant resource combo.
-     * If there are no resources left in any group, it will also remove the timeline.
+     * Removes a User Defined Resource Group. Removes resources from the list of
+     * dominant resources. Removes resources from the dominant resource combo.
+     * If there are no resources left in any group, it will also remove the
+     * timeline.
      * 
      * @param rscSel
      *            the user defined group to remove
@@ -2693,7 +2682,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         rbdMngr.removeSelectedResource(rscSel);
 
         // Remove resources from the dominant resource combo and remove the
-        // timeline if no resources are left in any user group or the static group
+        // timeline if no resources are left in any user group or the static
+        // group
         ResourceList groupResourceList = ((GroupResourceData) rscSel
                 .getResourceData()).getResourceList();
 
@@ -2836,7 +2826,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         TimeSettingsCacheManager.getInstance().reset();
         updateGUI();
 
-        curGrp = -1;
+        currentlySelectedGroup = -1;
         groupListViewer.setInput(rbdMngr.getGroupResources());
         selectedResourceViewer.setInput(rbdMngr.getUngroupedResources());
         selectedResourceViewer.refresh();
@@ -2857,7 +2847,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             if (groupListViewer.getSelection().isEmpty()
                     || groupListViewer.getTable().getSelection()[0].getText()
-                            .equalsIgnoreCase(ungrpStr)) {
+                            .equalsIgnoreCase(unGroupString)) {
                 selectedResourceViewer
                         .setInput(rbdMngr.getUngroupedResources());
             } else {
@@ -3293,8 +3283,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             groupListViewer.setInput(rbdMngr.getGroupResources());
             // the new group is always added at the top.
-            if (curGrp != -1) {
-                groupListViewer.getTable().setSelection(curGrp);
+            if (currentlySelectedGroup != -1) {
+                groupListViewer.getTable().setSelection(currentlySelectedGroup);
                 groupListViewer.refresh();
             } else {
                 this.selectUngroupedGrp();
@@ -3398,7 +3388,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             // get the filename to save to.
             SaveRbdDialog saveDlg = new SaveRbdDialog(shell, savedSpfGroup,
-                    savedSpfName, savedRbdName, saveRefTime, saveTimeAsConstant);
+                    savedSpfName, savedRbdName, saveRefTime,
+                    saveTimeAsConstant);
 
             if ((Boolean) saveDlg.open() == false) {
                 return;
@@ -3542,7 +3533,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
             // the new group is always added at the top.
             groupListViewer.getTable().setSelection(1);
-            curGrp = 0;
+            currentlySelectedGroup = 0;
 
             groupListViewer.refresh();
 
@@ -3559,7 +3550,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         if (groupListViewer.getTable().getSelectionCount() <= 0
                 || groupListViewer.getTable().getSelection()[0].getText()
-                        .equalsIgnoreCase(ungrpStr)) {
+                        .equalsIgnoreCase(unGroupString)) {
             grpMoveUpBtn.setEnabled(false);
             grpMoveDownBtn.setEnabled(false);
             grpColorComp.setEnabled(false);
@@ -3646,4 +3637,24 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     public void partInputChanged(IWorkbenchPartReference partRef) {
         // Auto-generated method stub
     }
+
+    /**
+     * Peform all of the necessary tasks for when a Resource Group is selected
+     */
+    public void handleSelectedResourceGroup() {
+        currentlySelectedGroup = groupListViewer.getTable().getSelectionIndex();
+        if (groupListViewer.getTable().getSelection()[0].getText()
+                .equalsIgnoreCase(unGroupString)) {
+            currentlySelectedGroup = -1;
+            selectedResourceViewer.setInput(rbdMngr.getUngroupedResources());
+        } else {
+            selectedResourceViewer.setInput(rbdMngr.getResourcesInGroup(
+                    groupListViewer.getTable().getSelection().length == 0 ? null
+                            : groupListViewer.getTable().getSelection()[0]
+                                    .getText()));
+        }
+
+        setGroupButtons();
+    }
+
 }

@@ -1,7 +1,5 @@
 package gov.noaa.nws.ncep.viz.ui.display;
 
-import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +23,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.EditableCapability;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.EditableManager;
 
+import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
+
 /**
  * This handler is responsible for picking up mouse clicks and key press events
  * on resources in the legend
@@ -35,16 +35,16 @@ import com.raytheon.viz.ui.input.EditableManager;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 02/03/2012              S. Gurung     Initial creation
- * 06/25/2012    827       Archana       Updated handleKeyUp() to
+ * 02/03/2012             S. Gurung      Initial creation
+ * 06/25/2012    827      Archana        Updated handleKeyUp() to
  *                                       toggle the display of the
  *                                       resources based on the
  *                                       UP/DOWN arrow key pressed.
- * 07/27/2012	695			B. Yin		 Added middle mouse click to toggle editable resource.
+ * 07/27/2012   695       B. Yin         Added middle mouse click to toggle editable resource.
  * 08/09/2012   839       Archana        Updated to toggle the colorbar when 
  *                                       its corresponding resource is toggled on/off.
- * 10/19/2012   897         S. Gurung    Updated handleKeyUp() to not toggle PgenResource and added code to 
- * 										 refresh the editor after handling events.
+ * 10/19/2012   897       S. Gurung      Updated handleKeyUp() to not toggle PgenResource and added code to 
+ *                                       refresh the editor after handling events.
  * 12/19/2012   960       G. Hull        use propertiesChanged() to toggle colorBar resources
  * 08/18/2014   ?         B. Yin         Handle GroupResource.
  * 11/06/2015   R9398     Edwin Brown    Corrected issue with hiding the color bar, broke up/ clarified,
@@ -57,6 +57,8 @@ import com.raytheon.viz.ui.input.EditableManager;
  *                                       isAProperLegendResource()
  * 06/15/2016   R13559    J. Lopez       Added an if statement in handleMouseUp() to 
  *                                       prevent PGEN from interfering with the legend
+ * 03/23/2017   R23111    B. Yin         Check if a resource is an IPowerLegend before
+ *                                       casting in isAnyVisibleLegendGroupExpanded.
  * </pre>
  * 
  * @author sgurung
@@ -108,7 +110,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
     }
 
     @Override
-    public boolean handleMouseUp(final int x, final int y, final int mouseButton) {
+    public boolean handleMouseUp(final int x, final int y,
+            final int mouseButton) {
 
         // Because we wait certain milliseconds for double click,
         // we have to save the status of the ctrl key.
@@ -215,8 +218,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         }
 
         AbstractEditor editor = NcDisplayMngr.getActiveNatlCntrsEditor();
-        ResourceList theMainList = editor.getActiveDisplayPane()
-                .getDescriptor().getResourceList();
+        ResourceList theMainList = editor.getActiveDisplayPane().getDescriptor()
+                .getResourceList();
 
         List<ResourcePair> subListOfResourcesToToggle = new ArrayList<>(0);
 
@@ -246,7 +249,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             for (ResourcePair resourcePair : theMainList) {
 
                 // If any visible group is expanded, set the rotateInGroup flag.
-                if (isAnyVisibleLegendGroupExpanded(rotateInGroup, resourcePair)) {
+                if (isAnyVisibleLegendGroupExpanded(rotateInGroup,
+                        resourcePair)) {
                     rotateInGroup = true;
                     group = resourcePair;
                 }
@@ -356,8 +360,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
             // will be toggled when the resource's propertiesChanged() method is
             // called. This is triggered by setVisible();
 
-            if (isFirstTime
-                    && ((keyCode == SWT.ARROW_DOWN) || (keyCode == SWT.ARROW_UP)))
+            if (isFirstTime && ((keyCode == SWT.ARROW_DOWN)
+                    || (keyCode == SWT.ARROW_UP)))
                 isFirstTime = false;
 
         }
@@ -455,8 +459,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
 
     private void toggleVisibilityForSingleResource(ResourcePair resourcePair) {
         // Toggles visibility of resourcePair
-        resourcePair.getProperties().setVisible(
-                !resourcePair.getProperties().isVisible());
+        resourcePair.getProperties()
+                .setVisible(!resourcePair.getProperties().isVisible());
     }
 
     private void toggleVisibilityForGroupedResource(ResourcePair resourcePair,
@@ -482,8 +486,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
     private void toggleBlendedResource(ResourcePair resourcePair) {
         AbstractVizResource<?, ?> resource = resourcePair.getResource();
 
-        ResourcePair parentResource = resource.getCapability(
-                BlendedCapability.class).getBlendableResource();
+        ResourcePair parentResource = resource
+                .getCapability(BlendedCapability.class).getBlendableResource();
         ResourceList childResources = parentResource.getResource()
                 .getCapability(BlendableCapability.class).getResourceList();
 
@@ -519,8 +523,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         // resources, it's kind of misleading. It actually sets the variable
         // "Visible" for all of the resources to what ever resourcePair's
         // visibility was set to above
-        groupResource.setVisibleForAllResources(resourcePair.getProperties()
-                .isVisible());
+        groupResource.setVisibleForAllResources(
+                resourcePair.getProperties().isVisible());
 
         // if CTRL is not down, disable all other groups
         if (!ctrlDown) {
@@ -540,7 +544,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
                     .getRenderableDisplay();
 
             // Iterate through all resources to find power legends
-            for (ResourcePair pair : display.getDescriptor().getResourceList()) {
+            for (ResourcePair pair : display.getDescriptor()
+                    .getResourceList()) {
 
                 // If resource is a power legend, disable it and all of its
                 // children
@@ -599,9 +604,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
 
         } else if (mouseButton == 2) {
 
-            if (mouseDownResourcePair != null
-                    && mouseDownResourcePair.getResource().hasCapability(
-                            EditableCapability.class)) {
+            if (mouseDownResourcePair != null && mouseDownResourcePair
+                    .getResource().hasCapability(EditableCapability.class)) {
                 // check / make editable
                 EditableManager.makeEditable(
                         mouseDownResourcePair.getResource(),
@@ -623,7 +627,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         if (mouseDownResourcePair.getResource() instanceof IPowerLegend) {
             IPowerLegend groupResource = (IPowerLegend) mouseDownResourcePair
                     .getResource();
-            if (mouseDownResourcePair.getResource().getProperties().isVisible()) {
+            if (mouseDownResourcePair.getResource().getProperties()
+                    .isVisible()) {
                 if (groupResource.isNameExpanded()) {
                     groupResource.setNameExpanded(false);
                 } else {
@@ -733,17 +738,17 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         boolean isResourceNameExpanded = false;
         boolean isVisible = false;
 
-        // Is the resouce an IPowerLegend?
+        // Is the resource an IPowerLegend?
         if (resource instanceof IPowerLegend) {
             isIPowerLegend = true;
+
+            // Is the resource list empty?
+            isResourceListEmpty = ((IPowerLegend) resource).getResourceList()
+                    .isEmpty();
+
+            // Is the Group on the legend expanded?
+            isResourceNameExpanded = ((IPowerLegend) resource).isNameExpanded();
         }
-
-        // Is the resource list empty?
-        isResourceListEmpty = ((IPowerLegend) resource).getResourceList()
-                .isEmpty();
-
-        // Is the Group on the legend expanded?
-        isResourceNameExpanded = ((IPowerLegend) resource).isNameExpanded();
 
         // Is the resource visible?
         isVisible = resourcePair.getProperties().isVisible();
@@ -770,7 +775,8 @@ public class NCLegendHandler extends AbstractNCLegendInputHandler {
         String rscName = resourcePair.getResource().getClass().getSimpleName();
 
         // If NOT a System Resource NOR a PgenResource
-        if (!isASystemResource && !isMapLayer && rscName.equals("PgenResource")) {
+        if (!isASystemResource && !isMapLayer
+                && !rscName.equals("PgenResource")) {
             isAProperLegendResource = true;
         }
 

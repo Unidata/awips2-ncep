@@ -93,8 +93,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  *                                        "arrows"
  * 11/09/2016    R26156      S. Russell   update createOneVector() to handle
  *                                        the special case of parameter DARR
- * 
  * 11/25/2016    R21762      P. Moyer     Implemented dropping of drawable items if their colors have an alpha of 0 (for conditional parameter coloring)
+ * 02/06/2017    R20605      P. Moyer     Corrected drawing of PTSY symbol for PTND pressure tendency value and symbol.
+ * 03/30/2017    R30012      P. Moyer     Added ability to increase horizontal spacing for symbols other than
+ *                                        Pressure Tendency.
  * </pre>
  */
 
@@ -438,6 +440,8 @@ public class NcPlotImageCreator {
     }
 
     private final class CreateImageTask implements Runnable {
+
+        private static final String PRESSURE_TENDENCY = "PRESSURE_TENDENCY_";
 
         private DataTime dataTime = null;
 
@@ -1486,12 +1490,27 @@ public class NcPlotImageCreator {
                                             symbolKey.symbolPatternName,
                                             position, textBounds, tempPixLoc[0],
                                             view, canvasBounds);
-                                    // Adjust the coordinates to offset from
-                                    // center depending on the plot position
-                                    tempPixLoc = getAdjustedCoordinates(
-                                            textBounds, tempPixLoc[0],
-                                            tempPixLoc[1], view, canvasBounds,
-                                            position);
+
+                                    // Adjust the coordinates to offset
+                                    // from center depending on the plot
+                                    // position
+
+                                    // if symbol is PTSY do not offset further
+                                    // if symbol is not PTSY double the
+                                    // horizontal offset
+                                    if (symbolKey.symbolPatternName
+                                            .startsWith(PRESSURE_TENDENCY)) {
+                                        tempPixLoc = getAdjustedCoordinates(
+                                                textBounds, tempPixLoc[0],
+                                                tempPixLoc[1], view,
+                                                canvasBounds, position);
+                                    } else {
+                                        tempPixLoc = getAdjustedCoordinates(
+                                                textBounds, tempPixLoc[0],
+                                                tempPixLoc[1], view,
+                                                canvasBounds, position, true);
+                                    }
+
                                     worldLoc = mapDescriptor
                                             .pixelToWorld(tempPixLoc);
 
@@ -1891,15 +1910,18 @@ public class NcPlotImageCreator {
                 offsetXpos = xPos + (3 * adjustedWidth);
             } else if (positionLastLetter.equalsIgnoreCase("R")) {
                 if (numPreceedingChars == 1) {
-                    m = 3;
+                    m = 6;
                 } else if (numPreceedingChars == 2) {
-                    m = 4;
+                    m = 7;
                 } else if (numPreceedingChars == 3) {
-                    m = 5;
+                    m = 8;
                 }
                 offsetXpos = xPos + (m * adjustedWidth);
             } else if (positionLastLetter.equalsIgnoreCase("L")) {
-                offsetXpos = xPos + adjustedWidth;
+                // if placing the PTND/PTSY on the left of the station center,
+                // subtract the adjusted width so that the text is further to
+                // the left and the symbol placement is compensated.
+                offsetXpos = xPos - adjustedWidth;
             }
         } // end if PTND
 
@@ -1930,9 +1952,25 @@ public class NcPlotImageCreator {
         return lastLetter;
     }
 
+    /*
+     * Defaults to false for "isSymbol" to allow use with original invocations
+     * of getAdjustedCoordinates in the code.
+     */
     private synchronized double[] getAdjustedCoordinates(Rectangle textBounds,
             double xPos, double yPos, IView view, Rectangle canvasSize,
             Position position) {
+        return getAdjustedCoordinates(textBounds, xPos, yPos, view, canvasSize,
+                position, false);
+    }
+
+    /*
+     * Calculates the x and y offset from the center station location plot for
+     * both symbols and text strings. If isSymbol is true, doubles the
+     * horizontal offset.
+     */
+    private synchronized double[] getAdjustedCoordinates(Rectangle textBounds,
+            double xPos, double yPos, IView view, Rectangle canvasSize,
+            Position position, boolean isSymbol) {
 
         Tracer.printX("> Entry");
         double charWidth = textBounds.width;
@@ -1942,6 +1980,12 @@ public class NcPlotImageCreator {
         double yScale = (view.getExtent().getHeight() / canvasSize.height);
         double adjustedWidth = charWidth * 0.625 * xScale;
         double adjustedHeight = charHeight * 0.625 * yScale;
+
+        // double the horizontal spacing if placing symbols (fixed width) not
+        // text (variable width).
+        if (isSymbol) {
+            adjustedWidth = adjustedWidth * 2;
+        }
 
         double canvasX1 = 0.0;
         double canvasY1 = 0.0;

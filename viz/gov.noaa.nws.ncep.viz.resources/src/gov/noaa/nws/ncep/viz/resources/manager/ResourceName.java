@@ -28,6 +28,9 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  *  02/10/13      #972        Greg Hull   ResourceCategory class
  *  02/16/16      R15244      bkowal      Cleanup unused imports.
  *  11/04/2016    R23113      Bugenhagen  Updated toString to return time including milliseconds.
+ *  03/27/2017    R28354      S. Russell  Updated setCycleTimeFromString(),
+ *                                        added getOrigTimeStr(),
+ *                                        added getOrigTimeStrLgth()
  * 
  *
  * </pre>
@@ -52,9 +55,9 @@ public class ResourceName {
         }
     }
 
-    public static final String generatedTypeDelimiter = ":";
+    public static final String GENERATED_TYPE_DELIMETER = ":";
 
-    public static final String dfltAttrSetName = "default";
+    public static final String DFLT_ATTR_SET_NAME = "default";
 
     private ResourceCategory rscCategory = ResourceCategory.NullCategory;
 
@@ -68,10 +71,16 @@ public class ResourceName {
     // resource.
     private DataTime cycleTime;
 
-    // This may be used to set the cycle time
-    public static final String LatestCycleTime = "LATEST";
+    // The original time string parsed out of the original resource name
+    // passed into the constructor
+    private String originalTimeString = null;
 
-    private static final DataTime LatestDataTime = new DataTime(new Date(0));
+    private int originalTimeStringLength = 0;
+
+    // This may be used to set the cycle time
+    public static final String LATEST_CYCLE_TIME = "LATEST";
+
+    private static final DataTime LATEST_DATA_TIME = new DataTime(new Date(0));
 
     public ResourceName() {
         rscCategory = ResourceCategory.NullCategory;
@@ -96,7 +105,7 @@ public class ResourceName {
     public ResourceName(String cat, String type, String attrSet) {
 
         setFullResourceName(cat + File.separator + type + File.separator
-                + (attrSet == null ? dfltAttrSetName : attrSet));
+                + (attrSet == null ? DFLT_ATTR_SET_NAME : attrSet));
     }
 
     public ResourceName(ResourceName rn) {
@@ -111,8 +120,8 @@ public class ResourceName {
         rscAttrSetName = rn.getRscAttrSetName();
         if (rn.getCycleTime() == null) {
             cycleTime = null;
-        } else if (rn.getCycleTime() == LatestDataTime) {
-            cycleTime = LatestDataTime;
+        } else if (rn.getCycleTime() == LATEST_DATA_TIME) {
+            cycleTime = LATEST_DATA_TIME;
         } else {
             cycleTime = new DataTime(rn.getCycleTime().getRefTime());
         }
@@ -122,7 +131,7 @@ public class ResourceName {
 
         setFullResourceName(cat.trim() + File.separator + type.trim()
                 + File.separator + group.trim() + File.separator
-                + (attrSet == null ? dfltAttrSetName : attrSet.trim()));
+                + (attrSet == null ? DFLT_ATTR_SET_NAME : attrSet.trim()));
     }
 
     public void setFullResourceName(String rscName) {
@@ -144,6 +153,13 @@ public class ResourceName {
         if (parenIndx != -1) {
             String cycleTimeStr = rscAttrSetName.substring(parenIndx + 1,
                     rscAttrSetName.indexOf(')'));
+
+            this.originalTimeString = cycleTimeStr;
+
+            if (cycleTimeStr != null) {
+                this.originalTimeStringLength = cycleTimeStr.length();
+            }
+
             setCycleTimeFromString(cycleTimeStr);
 
             rscAttrSetName = rscAttrSetName.substring(0, parenIndx);
@@ -213,10 +229,27 @@ public class ResourceName {
     }
 
     public String getCycleTimeString() {
-        if (cycleTime == LatestDataTime) {
-            return LatestCycleTime;
+        if (cycleTime == null) {
+            return null;
+        }
+        if (cycleTime == LATEST_DATA_TIME) {
+            return LATEST_CYCLE_TIME;
         }
         return NmapCommon.getTimeStringFromDataTime(cycleTime, "_");
+    }
+
+    /**
+     * Get the time string as it originally was when the resource name was
+     * passed into the constructor
+     * 
+     * @return
+     */
+    public String getOrigTimeStr() {
+        return this.originalTimeString;
+    }
+
+    public int getOrigTimeStrLgth() {
+        return this.originalTimeStringLength;
     }
 
     public void setCycleTime(DataTime cycleTime) {
@@ -224,11 +257,11 @@ public class ResourceName {
     }
 
     public void setCycleTimeLatest() {
-        this.cycleTime = LatestDataTime;
+        this.cycleTime = LATEST_DATA_TIME;
     }
 
     public boolean isLatestCycleTime() {
-        return (cycleTime == LatestDataTime);
+        return (cycleTime == LATEST_DATA_TIME);
     }
 
     public void setCycleTimeFromString(String cycTimeStr) {
@@ -236,8 +269,8 @@ public class ResourceName {
             cycleTime = null;
             return;
         }
-        if (cycTimeStr.equals(LatestCycleTime)) {
-            cycleTime = LatestDataTime;
+        if (cycTimeStr.equals(LATEST_CYCLE_TIME)) {
+            cycleTime = LATEST_DATA_TIME;
             return;
         }
         // else this will be in the format as created from NmapCommon.
@@ -268,8 +301,8 @@ public class ResourceName {
                     + rscAttrSetName;
             if (cycleTime == null) {
                 return str;
-            } else if (cycleTime == LatestDataTime) {
-                return str + '(' + LatestCycleTime + ')';
+            } else if (cycleTime == LATEST_DATA_TIME) {
+                return str + '(' + LATEST_CYCLE_TIME + ')';
             } else {
                 return str + '(' + NmapCommon.getTimeStringToMillisFromDataTime(
                         cycleTime, "_") + ')';
@@ -288,8 +321,8 @@ public class ResourceName {
                     + rscAttrSetName;
             if (cycleTime == null) {
                 return str;
-            } else if (cycleTime == LatestDataTime) {
-                return str + '(' + LatestCycleTime + ')';
+            } else if (cycleTime == LATEST_DATA_TIME) {
+                return str + '(' + LATEST_CYCLE_TIME + ')';
             } else {
                 return str + '('
                         + NmapCommon.getTimeStringFromDataTime(cycleTime, "_")

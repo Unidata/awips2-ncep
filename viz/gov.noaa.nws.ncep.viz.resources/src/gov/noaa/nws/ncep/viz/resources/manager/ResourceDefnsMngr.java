@@ -824,7 +824,7 @@ public class ResourceDefnsMngr {
         // if there is a generating type then check for a ':'
         if (!rd.getRscTypeGenerator().isEmpty()) {
             if (rscName.getRscType()
-                    .indexOf(ResourceName.generatedTypeDelimiter) == -1) {
+                    .indexOf(ResourceName.GENERATED_TYPE_DELIMETER) == -1) {
                 return false;
             }
         }

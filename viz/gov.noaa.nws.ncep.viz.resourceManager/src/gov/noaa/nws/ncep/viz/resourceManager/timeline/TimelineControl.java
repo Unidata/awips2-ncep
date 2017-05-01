@@ -128,10 +128,11 @@ import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcherSettings.REF_TIME
  *                                       removeAvailDomResource.
  * 01/24/2017     R17975    K.Bugenhagen Add widgets to support time selection
  *                                       for forecast resources.
- * 
+ * 03/27/2017     R28354    S.Russell    Updated method setDominantResource() 
+ *
  * </pre>
  * 
- * @author
+ * @author sgilbert
  * @version 1
  */
 
@@ -453,14 +454,32 @@ public class TimelineControl extends Composite {
 
     public boolean setDominantResource(
             AbstractNatlCntrsRequestableResourceData domRsc) {
-        return this.setDominantResource(domRsc, false);
+
+        boolean isDomRscSet = false;
+
+        try {
+            isDomRscSet = this.setDominantResource(domRsc, false);
+        } catch (VizException ve) {
+            statusHandler.handle(Priority.PROBLEM,
+                    "Dominant Resource Not Found", ve);
+            return false;
+        }
+
+        return isDomRscSet;
     }
 
-    // set this dominant Resource in the combo and select it as the dominant
-    //
+    /**
+     * set this dominant Resource in the combo and select it as the dominant
+     * 
+     * @param domRsc
+     * @param replace
+     * @return
+     */
     public boolean setDominantResource(
             AbstractNatlCntrsRequestableResourceData domRsc,
-            final boolean replace) {
+            final boolean replace) throws VizException {
+
+        boolean isDomRscFound = false;
 
         for (String comboEntry : dom_rsc_combo.getItems()) {
             if (!comboEntry.equals(noResourcesList[0])) {
@@ -476,19 +495,52 @@ public class TimelineControl extends Composite {
                     return false;
                 }
                 for (AbstractNatlCntrsRequestableResourceData rsc : seldRscsList) {
-                    if (rsc.getResourceName()
-                            .equals(domRsc.getResourceName())) {
+
+                    ResourceName rscName = rsc.getResourceName();
+                    ResourceName domRscName = domRsc.getResourceName();
+
+                    // If the resource name in the menu and the domRscName
+                    // have time strings of different lengths
+                    if (domRscName.getOrigTimeStrLgth() != rscName
+                            .getOrigTimeStrLgth()) {
+
+                        // Get new time strings ( no seconds or ms ) for
+                        // both so matching resource names will be seen as
+                        // matching
+                        rscName = new ResourceName(
+                                rscName.toStringNoSecsNoMillisecs());
+                        domRscName = new ResourceName(
+                                domRscName.toStringNoSecsNoMillisecs());
+                    }
+
+                    // If the resource name in the menu matches the domRscName
+                    if (rscName.equals(domRscName)) {
                         domRscData = domRsc;
                         dom_rsc_combo.setText(comboEntry);
+                        isDomRscFound = true;
                         break;
                     }
                 }
             }
         }
 
+        // This will prevent a loop resulting from calling
+        // selectDominantResource should these values be empty
+        if (domRscData == null || dom_rsc_combo.getText().isEmpty()) {
+            isDomRscFound = false;
+            // Choose the first menu entry as a default dom resource
+            domRscData = domRsc;
+            dom_rsc_combo.setText(dom_rsc_combo.getItem(0));
+
+        }
+
         selectDominantResource(replace);
 
-        return true;
+        if (!isDomRscFound) {
+            throw new VizException("Failed to find the dominant resource");
+        }
+
+        return isDomRscFound;
     }
 
     // set the numFrames from the domRsc to the timeMatcher.
@@ -814,7 +866,7 @@ public class TimelineControl extends Composite {
                          * This should not happen because this resource has been
                          * previously created.
                          */
-                        statusHandler.handle(Priority.ERROR,
+                        statusHandler.handle(Priority.PROBLEM,
                                 "Error Creating a resource", ve);
                     }
                     return;

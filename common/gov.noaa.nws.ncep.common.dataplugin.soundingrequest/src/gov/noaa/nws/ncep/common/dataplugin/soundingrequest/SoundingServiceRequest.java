@@ -1,5 +1,7 @@
 package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
 
+import java.util.Arrays;
+
 /**
  * 
  * This java class performs sounding data query service functions.
@@ -13,6 +15,9 @@ package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
  * 05/20/2015	RM#8306     Chin Chen   Initial coding - eliminate NSHARP dependence on uEngine
  * 07/20/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounding2
  * 09/22/2016   RM15953     R.Reynolds  Added capability for wind interpolation
+ * 04/24/2017   RM29290     S.Russell   Overrode the toString() method to 
+ *                                      create readable text stating the value
+ *                                      of each member request variable.                        
  * 
  * </pre>
  * 
@@ -196,6 +201,65 @@ public class SoundingServiceRequest implements IServerRequest {
 
     public void setWindInterpolation(boolean windInterpolation) {
         this.windInterpolation = windInterpolation;
+    }
+
+    public String toStringFormatted() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\n");
+        sb.append("Request Type: ");
+        sb.append(this.getReqType());
+        sb.append("\n");
+
+        sb.append("Sound Type: ");
+        sb.append(this.getSndType());
+        sb.append("\n");
+
+        sb.append("Model Type: ");
+        sb.append(this.getModelType());
+        sb.append("\n");
+
+        sb.append("Level: ");
+        sb.append(this.getLevel());
+        sb.append("\n");
+
+        sb.append("Interpolation: ");
+        sb.append(this.isInterpolation());
+        sb.append("\n");
+
+        sb.append("Merge: ");
+        sb.append(this.isMerge());
+        sb.append("\n");
+
+        sb.append("Password Required: ");
+        sb.append(this.isPwRequired());
+        sb.append("\n");
+
+        sb.append("Wind Interpolation: ");
+        sb.append(this.isWindInterpolation());
+        sb.append("\n");
+
+        sb.append("Range Start Time(s): ");
+        sb.append(Arrays.toString(this.getRangeStartTimeAry()));
+        sb.append("\n");
+
+        sb.append("Ref Times: ");
+        sb.append(Arrays.toString(this.getRefTimeAry()));
+        sb.append("\n");
+
+        sb.append("Station IDs: ");
+        sb.append("size: ");
+        sb.append(this.getStnIdAry().length);
+        sb.append(" ");
+        sb.append(Arrays.toString(this.getStnIdAry()));
+        sb.append("\n");
+
+        sb.append("Lat Long: ");
+        sb.append(Arrays.toString(this.getLatLonAry()));
+        sb.append("\n");
+
+        return sb.toString();
+
     }
 
 }

@@ -92,6 +92,10 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
  * 09/15/2016   R4151        jeff beck    Get pressureLevel from the sounding layer, and put it into a field in HeightAboveSeaLevel
  * 11/01/2016   R25655       K.Bugenhagen Check for null temperature and dew point in tenths entries in hashmap in requestSurfaceData method.
  *                                        Cleanup.
+ * 04/24/2017   R29290       S.Russell    Updated the first for loop in
+ *                                        requestUpperAirData() to save all
+ *                                        unique values of refTime collected
+ *                                        from the stations processed.
  * </pre>
  */
 
@@ -938,6 +942,7 @@ public class NcPlotDataRequestor {
         Date refTime = null;
         List<String> stnIdLst = new ArrayList<>(listSize);
         List<Long> rangeTimeLst = new ArrayList<>(listSize);
+        List<Long> refTimeLst = new ArrayList<>(listSize);
         Map<String, Station> mapOfStnidsWithStns = new HashMap<>();
         synchronized (stationsRequestingData) {
             for (Station currentStation : stationsRequestingData) {
@@ -958,6 +963,10 @@ public class NcPlotDataRequestor {
                 if (rangeTimeLst.contains(stnTime) == false) {
                     rangeTimeLst.add(stnTime);
                 }
+                if (refTimeLst.contains(refTime.getTime()) == false) {
+                    refTimeLst.add(refTime.getTime());
+                }
+
             }
         }
         if (stnIdLst.size() <= 0 || rangeTimeLst.size() <= 0) {
@@ -970,8 +979,12 @@ public class NcPlotDataRequestor {
             Tracer.print("Requesting UPPER AIR data for " + stnIdLst.size()
                     + " out of " + stationsRequestingData.size() + " stations");
         }
-        long[] refTimelArray = new long[1];
-        refTimelArray[0] = refTime.getTime();
+
+        long[] refTimeArray = new long[refTimeLst.size()];
+        for (int m = 0; m < refTimeLst.size(); m++) {
+            refTimeArray[m] = refTimeLst.get(m);
+        }
+
         long[] rangeTimeArray = new long[rangeTimeLst.size()];
         for (int k = 0; k < rangeTimeLst.size(); k++) {
             rangeTimeArray[k] = rangeTimeLst.get(k);
@@ -983,7 +996,7 @@ public class NcPlotDataRequestor {
         // Make the query
 
         long t004 = System.nanoTime();
-        soundingCube = PlotModelMngr.querySoundingData(refTimelArray,
+        soundingCube = PlotModelMngr.querySoundingData(refTimeArray,
                 rangeTimeArray, stnIdArray, plugin, levelStr, constraintMap,
                 parametersToPlot);
         long t005 = System.nanoTime();

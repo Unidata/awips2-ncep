@@ -1,18 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources;
 
-import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName.ResourceNameAdapter;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,6 +32,17 @@ import com.raytheon.uf.viz.core.rsc.AbstractRequestableResourceData;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+
+import gov.noaa.nws.ncep.viz.common.RGBColorAdapter;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamInfo;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceExtPointMngr.ResourceParamType;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName.ResourceNameAdapter;
 
 /**
  * This is the abstract class for all Natl Cntrs requestable resources. It is
@@ -96,6 +94,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 07/06/2016      R17376  kbugenhagen Added getMethods method.
  * 07/14/2016      R17949  Jeff Beck   Add support for displaying multiple PGEN resources selected from a list of available times.
  *                                     Removed some code from getAvailableDataTimes()
+ * 02/23/2017      R5940   B.Hebbard   Simplify logic in resolveLatestCycleTime.
  * </pre>
  * 
  * *
@@ -105,9 +104,9 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  */
 
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractNatlCntrsRequestableResourceData extends
-        AbstractRequestableResourceData implements INatlCntrsResourceData,
-        ISerializableObject {
+public abstract class AbstractNatlCntrsRequestableResourceData
+        extends AbstractRequestableResourceData
+        implements INatlCntrsResourceData, ISerializableObject {
 
     protected final IUFStatusHandler statusHandler = UFStatus
             .getHandler(getClass());
@@ -267,13 +266,12 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         this.resourceVersion = resourceVersion;
     }
 
-    // TODO : A better way to do this would be to get the ResourceDefinition and
     // check if the resource Implementation is a satellite or radar.
-    //
     public boolean isAutoUpdateable() {
         ResourceCategory rscCat = getResourceName().getRscCategory();
 
-        if (((rscCat != null) && (rscCat == ResourceCategory.SatelliteRscCategory))
+        if (((rscCat != null)
+                && (rscCat == ResourceCategory.SatelliteRscCategory))
                 || (rscCat == ResourceCategory.RadarRscCategory)
                 || (rscCat == ResourceCategory.SpaceRscCategory)
                 || (rscCat == ResourceCategory.GraphRscCategory)) {
@@ -435,10 +433,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     }
 
     // If there is a cycle time then this is a forecast resource.
-    //
-    // TODO : should we allow for a resource to be a forecast resource w/o
-    // having a cycle time?
-    //
     public boolean isForecastResource() {
         return resourceName.isForecastResource();
     }
@@ -489,14 +483,14 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
              * it.
              */
             if (ncRsc != null) {
-                statusHandler
-                        .debug("Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
+                statusHandler.debug(
+                        "Sanity Check: ncRsc != null. A ResourceData is attempting to construct ");
                 statusHandler.debug(" a resource that already exists. ");
             }
             ncRsc = rsc;
         } else {
-            statusHandler
-                    .debug("A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
+            statusHandler.debug(
+                    "A NatlCntrsResourceData is constructing a non-NatlCntrs Resource???");
         }
 
         return rsc;
@@ -505,8 +499,7 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
     // There are better/faster ways of doing this I'm sure, but for now
     // just call getAvailableDataTimes to do this.
     public void resolveLatestCycleTime() {
-        if ((getResourceName().getCycleTime() == null)
-                && getResourceName().isLatestCycleTime()) {
+        if (getResourceName().isLatestCycleTime()) {
             getAvailableDataTimes();
         }
     }
@@ -520,30 +513,20 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         DataTime[] availTimes = null;
 
         try {
-            ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
-                    .getResourceDefinition(getResourceName());
-
-            try {
-                availTimes = getAvailableTimes();
-                if (availTimes == null) {
-                    return new ArrayList<>();
-                }
-                availTimesList = Arrays.asList(availTimes);
-
-            } catch (VizException e) {
-                statusHandler.debug("Error getting Available Times: "
-                        + e.getMessage());
-                return null;
+            availTimes = getAvailableTimes();
+            if (availTimes == null) {
+                return new ArrayList<>();
             }
+            availTimesList = Arrays.asList(availTimes);
 
-        } catch (VizException e1) {
-            return availTimesList;
+        } catch (VizException e) {
+            statusHandler
+                    .debug("Error getting Available Times: " + e.getMessage());
+            return null;
         }
 
         // If there is a cycle time, filter out other times and sort by the
         // forecast hours.
-        // TODO: don't get the cycle time from the resourceName....
-        //
         if (getResourceName().getCycleTime() != null) {
             long cycleTimeMs = 0;
 
@@ -565,8 +548,6 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
             ArrayList<DataTime> tmpTimesList = new ArrayList<>();
 
             // Add all the forecast times for the given cycleTime.
-            // (TODO: confirm that duplicate valid times (with different periods
-            // are not getting added here.)
             for (DataTime dt : availTimesList) {
                 if (dt.getRefTime().getTime() == cycleTimeMs) {
                     // Create a DataTime without a period which may lead to
@@ -608,13 +589,13 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                 resourceName.getRscAttrSetName());
 
         for (ResourceParamInfo prmInfo : rscImplParamInfo.values()) {
-            if (prmInfo.getParamType() != ResourceParamType.EDITABLE_ATTRIBUTE) {
+            if (prmInfo
+                    .getParamType() != ResourceParamType.EDITABLE_ATTRIBUTE) {
                 continue;
             }
 
             String paramName = prmInfo.getAttributeName();
-            String getMthdName = "get"
-                    + paramName.substring(0, 1).toUpperCase()
+            String getMthdName = "get" + paramName.substring(0, 1).toUpperCase()
                     + paramName.substring(1);
 
             for (Method m : getMethods()) {
@@ -641,8 +622,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
 
                         } catch (IllegalAccessException
                                 | IllegalArgumentException
-                                | InvocationTargetException
-                                | ClassCastException | SecurityException
+                                | InvocationTargetException | ClassCastException
+                                | SecurityException
                                 | InstantiationException e) {
                             statusHandler.debug(e.getMessage());
                         }
@@ -682,7 +663,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
         // attributes on the resource
         for (ResourceParamInfo prmInfo : rscImplParamInfo.values()) {
 
-            if (prmInfo.getParamType() != ResourceParamType.EDITABLE_ATTRIBUTE) {
+            if (prmInfo
+                    .getParamType() != ResourceParamType.EDITABLE_ATTRIBUTE) {
                 continue;
             }
 
@@ -717,7 +699,8 @@ public abstract class AbstractNatlCntrsRequestableResourceData extends
                     try {
                         m.invoke(this, attrValue);
                     } catch (IllegalAccessException | IllegalArgumentException
-                            | InvocationTargetException | ClassCastException e) {
+                            | InvocationTargetException
+                            | ClassCastException e) {
                         statusHandler.debug(e.getMessage());
                     }
 

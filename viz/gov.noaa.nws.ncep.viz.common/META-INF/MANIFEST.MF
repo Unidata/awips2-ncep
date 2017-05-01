@@ -28,6 +28,8 @@ Export-Package: gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.common.ui.color,
  gov.noaa.nws.ncep.viz.common.util
 Import-Package: com.raytheon.uf.common.comm,
+ com.raytheon.uf.common.dataplugin.radar,
+ com.raytheon.uf.viz.radarapps.core,
  com.raytheon.viz.pointdata,
  com.vividsolutions.jts.geom,
  javax.measure.unit,

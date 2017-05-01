@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.edex.plugin.ncpafm.decoder;
 
-import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmBulletin;
-import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord;
-import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmUgc;
-import gov.noaa.nws.ncep.edex.plugin.ncpafm.util.NcPafmParser;
-import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Scanner;
@@ -16,8 +10,13 @@ import com.raytheon.edex.esb.Headers;
 import com.raytheon.edex.exception.DecoderException;
 import com.raytheon.edex.plugin.AbstractDecoder;
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.PluginException;
 import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
+
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmBulletin;
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord;
+import gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmUgc;
+import gov.noaa.nws.ncep.edex.plugin.ncpafm.util.NcPafmParser;
+import gov.noaa.nws.ncep.edex.tools.decoder.MndTime;
 
 /**
  *
@@ -55,12 +54,17 @@ import com.raytheon.uf.edex.decodertools.core.IDecoderConstants;
  *                                     PDOs, which it does via
  *                                     NcPafmBulletin.split().
  * Aug 30, 2013 2298       rjpeter     Make getPluginName abstract
+ * 02/24/2017              bugenhagen  Convert bulletin to upper case for
+ *                                     pattern matching.  Cleaned up deprecated
+ *                                     method, fixed Scanner memory leak error
+ *                                     messages, and added final to constants.
  * </pre>
  * 
  * @author Fee Jing Yen, SIB
  * @version 1
  * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
+ *          This code has been developed by the SIB for use in the AWIPS2
+ *          system.
  * 
  */
 public class NcPafmDecoder extends AbstractDecoder {
@@ -97,11 +101,11 @@ public class NcPafmDecoder extends AbstractDecoder {
         // Regular expression for the county table
         final String UGC_EXP = "([A-Z]{3}\\d{3})(\\-|\\>)(\\S)+\\x0d\\x0d\\x0a((\\d{6}|\\d{3})\\-(\\S)*\\x0d\\x0d\\x0a)*";
         // Pattern used for extracting the UGC line
-        Pattern ugcPattern = Pattern.compile(UGC_EXP);
+        final Pattern ugcPattern = Pattern.compile(UGC_EXP);
         // String segmentDelim ="$$";
-        String segmentDelim = "\\x24\\x24";
+        final String segmentDelim = "\\x24\\x24";
         // The bulletin delimiter is etx which is "\003" or ^c;
-        String etx = IDecoderConstants.ETX;
+        final String etx = IDecoderConstants.ETX;
         int mattypeInd;
         String theBulletin = null;
         byte[] messageData = null;
@@ -115,18 +119,22 @@ public class NcPafmDecoder extends AbstractDecoder {
          */
         NcPafmSeparator sep = NcPafmSeparator.separate(data, headers);
         messageData = sep.next();
-        String theMessage = new String(messageData);
+        final String theMessage = new String(messageData);
         /*
          * There may be multiple duplicate bulletins. Only get the first
          * bulletin and eliminate the remaining bulletins after the first
          * bulletin by excluding the duplicate report after the first ^c
          */
-        Scanner cc = new Scanner(theMessage).useDelimiter(etx);
+        final Scanner cc = new Scanner(theMessage);
+        cc.useDelimiter(etx);
         if (cc.hasNext()) {
             theBulletin = cc.next();
         } else {
             theBulletin = theMessage;
         }
+        cc.close();
+        theBulletin = theBulletin.toUpperCase();
+
         // Set MND (Mass News Disseminator) time string and convert it into
         // Calendar object
         MndTime mt = new MndTime(theBulletin.getBytes());
@@ -167,10 +175,11 @@ public class NcPafmDecoder extends AbstractDecoder {
             bulletinRec = null;
         }
         if (bulletinRec != null) {
-            ArrayList<String> segmentList = new ArrayList<String>();
+            ArrayList<String> segmentList = new ArrayList<>();
             segmentList.clear();
             // Break the bulletin message into segments delimited by a "$$"
-            Scanner sc = new Scanner(theBulletin).useDelimiter(segmentDelim);
+            Scanner sc = new Scanner(theBulletin);
+            sc.useDelimiter(segmentDelim);
             while (sc.hasNext()) {
                 String segment = sc.next();
                 Matcher ugcMatcher = ugcPattern.matcher(segment);
@@ -179,6 +188,7 @@ public class NcPafmDecoder extends AbstractDecoder {
                     segmentList.add(segment);
                 }
             }
+            sc.close();
             /*
              * Process each segment in method processUgc to decode the fields
              * for the child table ugc. The fields for ugc's two child tables
@@ -210,15 +220,8 @@ public class NcPafmDecoder extends AbstractDecoder {
 
         for (NcPafmRecord pdo : pdos) {
             pdo.setTraceId(traceId);
-            pdo.setMessageData(theMessage); // TODO: Do we need????
-            /*
-             * If unable to construct the DataURI, throw exception.
-             */
-            try {
-                pdo.constructDataURI();
-            } catch (PluginException e) {
-                throw new DecoderException("Error constructing dataURI", e);
-            }
+            pdo.setMessageData(theMessage);
+            pdo.getDataURI();
         }
 
         return pdos;

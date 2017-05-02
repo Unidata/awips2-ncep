@@ -15,5 +15,5 @@ legendColor=RGB {200, 200, 200}
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>10</dfltFrameCount>
     <dfltTimeRange>3</dfltTimeRange>
-    <dfltGeogArea>Centered-LocalRadar</dfltGeogArea>
+    <dfltGeogArea>BasicWX_US</dfltGeogArea>
 </ResourceDefinition>

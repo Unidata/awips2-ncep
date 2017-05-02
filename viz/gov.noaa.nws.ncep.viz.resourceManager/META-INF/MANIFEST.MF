@@ -19,7 +19,4 @@ Export-Package: gov.noaa.nws.ncep.viz.resourceManager,
  gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd,
  gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd,
  gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources
-Import-Package: com.raytheon.uf.common.dataplugin.radar,
- com.raytheon.uf.viz.radarapps.core,
- com.raytheon.viz.radar.util,
- gov.noaa.nws.ncep.viz.resourceManager.timeline
+Import-Package: gov.noaa.nws.ncep.viz.resourceManager.timeline

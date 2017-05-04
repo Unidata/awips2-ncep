@@ -296,7 +296,7 @@ public class NtransResource extends
     // metaFile, and productName) and also match the selected cycle time.
     //
     @Override
-    public void initResource(IGraphicsTarget grphTarget) throws VizException {
+    public void initResource(final IGraphicsTarget grphTarget) throws VizException {
         // Set initial display values from resource attributes (as if after
         // modification)
 
@@ -347,7 +347,7 @@ public class NtransResource extends
             processNewRscDataList();
         }
 
-        SharedWireframeGenerator wireframeGen = new SharedWireframeGenerator(
+        final SharedWireframeGenerator wireframeGen = new SharedWireframeGenerator(
                 descriptor, grphTarget);
         JobPool initPool = new JobPool("Loading NTrans Data", 4);
 

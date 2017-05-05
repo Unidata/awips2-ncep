@@ -1,7 +1,0 @@
-! Attributes for the TAF resource with "standard" plot model
-!
-plotModel=@PlotModels/nctaf/standard.xml
-! plotDensity range 1-30, or use 99 for "Plot All" points
-plotDensity=10
-conditionalFilter=
-legendString=TAF Standard View

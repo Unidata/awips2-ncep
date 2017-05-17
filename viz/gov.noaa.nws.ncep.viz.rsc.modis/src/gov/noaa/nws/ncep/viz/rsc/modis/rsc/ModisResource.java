@@ -1,25 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.modis.rsc;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
-import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
-import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.resources.util.Sampler;
-import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
-import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -107,10 +87,29 @@ import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
-import com.raytheon.viz.satellite.SatelliteConstants;
 import com.vividsolutions.jts.algorithm.CGAlgorithms;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
+
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
+import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
+import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.resources.util.Sampler;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
+import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * 
@@ -130,20 +129,22 @@ import com.vividsolutions.jts.geom.Point;
  * 09/22/2015   R7270   kbugenhagen  Allow for separate geotiffs per ModisRecord
  * 11/19/2015   R13133  kbugenhagen  Added sampling capability.
  * 04/12/2016   R15945  RCReynolds   Added code to build input to customizable getLegendString
- * 06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
+ * 06/06/2016   R15945  RCReynolds   Using McidasConstants instead of SatelliteConstants
+ * 05/09/2017   R27171  P. Moyer     Modified initResource to take parent resource's
+*                                    visibility and apply it to the newly created color bar
  * </pre>
  * 
  * @author kbugenhagen
  * @version 1.0
  */
 
-public class ModisResource extends
-        AbstractNatlCntrsResource<ModisResourceData, NCMapDescriptor> implements
-        INatlCntrsResource, IResourceDataChanged, ImageProvider,
+public class ModisResource
+        extends AbstractNatlCntrsResource<ModisResourceData, NCMapDescriptor>
+        implements INatlCntrsResource, IResourceDataChanged, ImageProvider,
         ISamplingResource {
 
-	static final String AREANAME = "areaName";
-	
+    static final String AREANAME = "areaName";
+
     static final char SLASH = File.separatorChar;
 
     static final String DEFAULT_COLORMAP_NAME = "colorMapName";
@@ -194,10 +195,8 @@ public class ModisResource extends
 
             this.dataRetriever = new ModisDataRetriever(record, tile.tileLevel,
                     tile.getRectangle());
-            IImage image = target
-                    .getExtension(IColormappedImageExtension.class)
-                    .initializeRaster(
-                            dataRetriever,
+            IImage image = target.getExtension(IColormappedImageExtension.class)
+                    .initializeRaster(dataRetriever,
                             getCapability(ColorMapCapability.class)
                                     .getColorMapParameters());
             IMesh mesh = target.getExtension(IMapMeshExtension.class)
@@ -292,10 +291,10 @@ public class ModisResource extends
                     }
 
                 } catch (VizException e) {
-                    statusHandler.handle(
-                            Priority.PROBLEM,
+                    statusHandler.handle(Priority.PROBLEM,
                             "Error adding record from update: "
-                                    + e.getLocalizedMessage(), e);
+                                    + e.getLocalizedMessage(),
+                            e);
 
                 }
             }
@@ -357,8 +356,8 @@ public class ModisResource extends
                 ResourceDefinition rscDefn = rscDefnsMngr
                         .getResourceDefinition(rscName.getRscType());
 
-                HashMap<String, String> attributes = rscDefnsMngr.getAttrSet(
-                        rscName).getAttributes();
+                HashMap<String, String> attributes = rscDefnsMngr
+                        .getAttrSet(rscName).getAttributes();
 
                 String legendStringAttribute = attributes.get("legendString");
 
@@ -374,8 +373,8 @@ public class ModisResource extends
 
                 String RD = rscDefn.getResourceDefnName();
 
-                boolean gotArea = resourceData.getMetadataMap().containsKey(
-                        AREANAME);
+                boolean gotArea = resourceData.getMetadataMap()
+                        .containsKey(AREANAME);
 
                 if (gotArea) {
                     area = resourceData.getMetadataMap().get(AREANAME)
@@ -414,8 +413,8 @@ public class ModisResource extends
                     value = variables.get(m.group(1));
                     if (value == null || value.isEmpty()) {
 
-                        legendStringAttribute = legendStringAttribute.replace(
-                                "{" + m.group(1) + "}", "");
+                        legendStringAttribute = legendStringAttribute
+                                .replace("{" + m.group(1) + "}", "");
                     }
                 }
 
@@ -423,7 +422,8 @@ public class ModisResource extends
                  * change all occurrences of '{' to "${" because thats what
                  * VariableSubstituterNCEP expects
                  */
-                for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+                for (int ipos = 0; ipos < legendStringAttribute
+                        .length(); ipos++) {
                     x = legendStringAttribute.charAt(ipos);
                     sb.append(x == '{' ? "${" : x);
                 }
@@ -436,7 +436,8 @@ public class ModisResource extends
                  * "${" present, but if there are then change them back to "{"
                  */
                 sb.setLength(0);
-                for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
+                for (int ipos = 0; ipos < customizedLegendString
+                        .length(); ipos++) {
                     x = customizedLegendString.charAt(ipos);
                     sb.append(x == '$' ? "{" : x);
                 }
@@ -451,8 +452,8 @@ public class ModisResource extends
 
             } catch (Exception ex) {
                 statusHandler.handle(Priority.ERROR,
-                        "Error building legend string ", ex.getStackTrace()
-                                .toString());
+                        "Error building legend string ",
+                        ex.getStackTrace().toString());
             }
 
         }
@@ -506,15 +507,15 @@ public class ModisResource extends
         try {
             File hdf5File = HDF5Util.findHDF5Location(dataRecord);
             IDataStore dataStore = DataStoreFactory.getDataStore(hdf5File);
-            IDataRecord[] dataRecords = dataStore.retrieve(dataRecord
-                    .getDataURI());
+            IDataRecord[] dataRecords = dataStore
+                    .retrieve(dataRecord.getDataURI());
             for (IDataRecord rec : dataRecords) {
                 if (rec instanceof FloatDataRecord) {
                     if (rec.getName().equals(ModisDao.LATITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLatitudes(
                                 ((FloatDataRecord) rec).getFloatData());
-                    } else if (rec.getName().equals(
-                            ModisDao.LONGITUDE_DATASET_NAME)) {
+                    } else if (rec.getName()
+                            .equals(ModisDao.LONGITUDE_DATASET_NAME)) {
                         dataRecord.getCoverage().setLongitudes(
                                 ((FloatDataRecord) rec).getFloatData());
                     }
@@ -538,11 +539,11 @@ public class ModisResource extends
                 dataRecord, preferences);
         setColorBar(preferences, colorMapParameters);
         if (colorMapParameters.getPersisted() != null) {
-            colorMapParameters.applyPersistedParameters(colorMapParameters
-                    .getPersisted());
+            colorMapParameters.applyPersistedParameters(
+                    colorMapParameters.getPersisted());
         }
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                colorMapParameters);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
         resourceChanged(ChangeType.CAPABILITY,
                 getCapability(ColorMapCapability.class));
     }
@@ -620,9 +621,9 @@ public class ModisResource extends
                 }
             }
             // load colormap by name
-            ColorMap colorMap = (ColorMap) ColorMapUtil.loadColorMap(
-                    modisResourceData.getResourceName().getRscCategory()
-                            .getCategoryName(), name);
+            ColorMap colorMap = (ColorMap) ColorMapUtil
+                    .loadColorMap(modisResourceData.getResourceName()
+                            .getRscCategory().getCategoryName(), name);
             colorMapParameters.setColorMap(colorMap);
 
         }
@@ -643,7 +644,7 @@ public class ModisResource extends
      */
     private void setColorMapUnits(ModisRecord dataRecord,
             ImagePreferences preferences, ColorMapParameters colorMapParameters)
-            throws VizException {
+                    throws VizException {
 
         colorMapParameters.setColorMapUnit(Unit.ONE);
 
@@ -690,16 +691,16 @@ public class ModisResource extends
         ColorBarFromColormap colorBar = (ColorBarFromColormap) this.cbarResource
                 .getResourceData().getColorbar();
         if (colorBar.getColorMap() == null) {
-            colorBar.setColorMap((ColorMap) getCapability(
-                    ColorMapCapability.class).getColorMapParameters()
-                    .getColorMap());
+            colorBar.setColorMap(
+                    (ColorMap) getCapability(ColorMapCapability.class)
+                            .getColorMapParameters().getColorMap());
         }
         colorBar.setIsScalingAttemptedForThisColorMap(true);
         colorBar.scalePixelValues();
         colorBar.setNumPixelsToReAlignLabel(true);
         colorBar.setImagePreferences(preferences);
-        colorBar.setDisplayUnitStr(colorMapParameters.getDisplayUnit()
-                .toString());
+        colorBar.setDisplayUnitStr(
+                colorMapParameters.getDisplayUnit().toString());
     }
 
     List<String> getParameterList(PluginDataObject pdo) {
@@ -710,7 +711,8 @@ public class ModisResource extends
         return paramList;
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
         return (AbstractFrameData) new FrameData(frameTime, timeInt);
     }
 
@@ -737,7 +739,8 @@ public class ModisResource extends
             }
         } else if (type != null && type == ChangeType.CAPABILITY) {
             if (object instanceof ImagingCapability) {
-                ImagingCapability imgCap = getCapability(ImagingCapability.class);
+                ImagingCapability imgCap = getCapability(
+                        ImagingCapability.class);
                 ImagingCapability newImgCap = (ImagingCapability) object;
                 imgCap.setBrightness(newImgCap.getBrightness(), false);
                 imgCap.setContrast(newImgCap.getContrast(), false);
@@ -747,7 +750,8 @@ public class ModisResource extends
                 modisResourceData.setContrast(imgCap.getContrast());
                 issueRefresh();
             } else if (object instanceof ColorMapCapability) {
-                ColorMapCapability colorMapCap = getCapability(ColorMapCapability.class);
+                ColorMapCapability colorMapCap = getCapability(
+                        ColorMapCapability.class);
                 ColorMapCapability newColorMapCap = (ColorMapCapability) object;
                 colorMapCap.setColorMapParameters(
                         newColorMapCap.getColorMapParameters(), false);
@@ -756,8 +760,8 @@ public class ModisResource extends
                 String colorMapName = colorMapCap.getColorMapParameters()
                         .getColorMapName();
                 modisResourceData.setColorMapName(colorMapName);
-                modisResourceData.getRscAttrSet().setAttrValue(
-                        DEFAULT_COLORMAP_NAME, colorMapName);
+                modisResourceData.getRscAttrSet()
+                        .setAttrValue(DEFAULT_COLORMAP_NAME, colorMapName);
                 ColorBarFromColormap cBar = modisResourceData.getColorBar();
                 cBar.setColorMap(theColorMap);
 
@@ -768,12 +772,12 @@ public class ModisResource extends
                         && cBar.getImagePreferences() == null) {
                     cBar.setImagePreferences(colorBar.getImagePreferences());
                 }
-                cBar.setIsScalingAttemptedForThisColorMap(colorBar
-                        .isScalingAttemptedForThisColorMap());
-                cBar.setNumPixelsToReAlignLabel(colorBar
-                        .isAlignLabelInTheMiddleOfInterval());
-                modisResourceData.getRscAttrSet()
-                        .setAttrValue("colorBar", cBar);
+                cBar.setIsScalingAttemptedForThisColorMap(
+                        colorBar.isScalingAttemptedForThisColorMap());
+                cBar.setNumPixelsToReAlignLabel(
+                        colorBar.isAlignLabelInTheMiddleOfInterval());
+                modisResourceData.getRscAttrSet().setAttrValue("colorBar",
+                        cBar);
                 modisResourceData.setIsEdited(true);
                 issueRefresh();
             }
@@ -782,19 +786,24 @@ public class ModisResource extends
     }
 
     public void initResource(IGraphicsTarget target) throws VizException {
-        cbarRscPair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(
-                        modisResourceData.getColorBar()));
+        cbarRscPair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(modisResourceData.getColorBar()));
         getDescriptor().getResourceList().add(cbarRscPair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
                 true);
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
         getCapability(ImagingCapability.class).setProvider(this);
 
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        cbarRscPair.getProperties().setVisible(parentVisibility);
+
         IDisplayPaneContainer container = getResourceContainer();
         if (container != null) {
-            container
-                    .registerMouseHandler(inputAdapter, InputPriority.RESOURCE);
+            container.registerMouseHandler(inputAdapter,
+                    InputPriority.RESOURCE);
         }
 
         loadRecords();
@@ -812,13 +821,13 @@ public class ModisResource extends
             ModisRecord record = (ModisRecord) pdo;
             records.add(record);
         }
-        modisResourceData.setRecords(records.toArray(new ModisRecord[records
-                .size()]));
+        modisResourceData
+                .setRecords(records.toArray(new ModisRecord[records.size()]));
     }
 
     protected void paintFrame(AbstractFrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
+                    throws VizException {
 
         FrameData currFrame = (FrameData) frameData;
         RecordData recordData = currFrame.getRecordData();
@@ -852,7 +861,7 @@ public class ModisResource extends
         }
 
     }
- 
+
     protected void createGeoTiff(ModisRecord record) {
         com.vividsolutions.jts.geom.Envelope envelope = new com.vividsolutions.jts.geom.Envelope();
 
@@ -911,10 +920,14 @@ public class ModisResource extends
                 cellEnv.expandToInclude(c2);
                 cellEnv.expandToInclude(c3);
 
-                int minX = (int) ((cellEnv.getMinX() - envelope.getMinX()) / dx);
-                int maxX = (int) ((cellEnv.getMaxX() - envelope.getMinX()) / dx);
-                int minY = (int) ((cellEnv.getMinY() - envelope.getMinY()) / dy);
-                int maxY = (int) ((cellEnv.getMaxY() - envelope.getMinY()) / dy);
+                int minX = (int) ((cellEnv.getMinX() - envelope.getMinX())
+                        / dx);
+                int maxX = (int) ((cellEnv.getMaxX() - envelope.getMinX())
+                        / dx);
+                int minY = (int) ((cellEnv.getMinY() - envelope.getMinY())
+                        / dy);
+                int maxY = (int) ((cellEnv.getMaxY() - envelope.getMinY())
+                        / dy);
                 /*
                  * Iterate each target pixel that is in the envelope of the
                  * source pixel.
@@ -953,8 +966,8 @@ public class ModisResource extends
                              */
                             int dataIndex = (dimensions[1] - jc - 1)
                                     * dimensions[0] + ic;
-                            if (dataIndex < 0
-                                    || dataIndex >= (dimensions[0] * dimensions[1])) {
+                            if (dataIndex < 0 || dataIndex >= (dimensions[0]
+                                    * dimensions[1])) {
                                 System.out.println("dataIndex: " + dataIndex
                                         + " is out of bounds for granule "
                                         + getName());
@@ -1109,6 +1122,7 @@ public class ModisResource extends
 
         return jaxb;
     }
+
     /**
      * Properties Changed.
      * 
@@ -1145,9 +1159,9 @@ public class ModisResource extends
 
     public List<Collection<DrawableImage>> getAllImages(FrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
-        List<RecordData> recordDataList = frameData.getRecordDataMap().get(
-                frameData.getFrameTime());
+                    throws VizException {
+        List<RecordData> recordDataList = frameData.getRecordDataMap()
+                .get(frameData.getFrameTime());
         List<Collection<DrawableImage>> images = new ArrayList<Collection<DrawableImage>>();
 
         if (recordDataList != null) {
@@ -1200,7 +1214,8 @@ public class ModisResource extends
         double noDataValue = colorMapParameters.getNoDataValue();
         double bestValue = Double.NaN;
         ModisRecord bestRecord = null;
-        List<RecordData> recordDataList = getRecordDataList((FrameData) getCurrentFrame());
+        List<RecordData> recordDataList = getRecordDataList(
+                (FrameData) getCurrentFrame());
 
         if (recordDataList != null) {
             for (RecordData data : recordDataList) {
@@ -1217,8 +1232,8 @@ public class ModisResource extends
         double dataValue = Double.NaN;
         double ciValue = Double.NaN;
         if (Double.isNaN(bestValue) == false) {
-            dataValue = colorMapParameters.getDataToDisplayConverter().convert(
-                    bestValue);
+            dataValue = colorMapParameters.getDataToDisplayConverter()
+                    .convert(bestValue);
             // convert CI scaled value (dataValue), which is 0..254 to actual CI
             // value, which is 0.0001..0.034
             ciValue = dataValue;

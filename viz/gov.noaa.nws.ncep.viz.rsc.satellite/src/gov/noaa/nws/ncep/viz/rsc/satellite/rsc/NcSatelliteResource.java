@@ -138,6 +138,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  02/14/2017   R21492     kbugenhagen Added call to suppress "Change Colormap"
  *                                      menu item in setColorMapUnits method.
  *  04/25/2017   R20558     bsteffen    Schedule all frames to load data in the background.
+ *  05/09/2017   R27171     P. Moyer    Modified initResource to take parent resource's
+ *                                      visibility and apply it to the newly created color bar
  * 
  * </pre>
  * 
@@ -383,7 +385,7 @@ public class NcSatelliteResource extends
          */
         public Collection<DrawableImage> getImagesToRender(
                 IGraphicsTarget target, PaintProperties paintProps)
-                throws VizException {
+                        throws VizException {
             List<DrawableImage> images = new ArrayList<>();
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
@@ -1087,6 +1089,12 @@ public class NcSatelliteResource extends
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
                 true);
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
+
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        cbarRscPair.getProperties().setVisible(parentVisibility);
 
         IDisplayPaneContainer container = getResourceContainer();
         if (container != null && inputAdapter != null) {

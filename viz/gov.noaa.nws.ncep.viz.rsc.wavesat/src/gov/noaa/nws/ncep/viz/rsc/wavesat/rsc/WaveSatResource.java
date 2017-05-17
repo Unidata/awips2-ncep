@@ -78,6 +78,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      condition to normalize longitude due
  *                                      to missing data point issue
  *  12/29/2016  R11514     A. Su        Added code to avoid the displaying of missing values from CryoSat-2.
+ *  05/09/2017  R27171     P. Moyer     Modified initResource to take parent resource's
+ *                                      visibility and apply it to the newly created color bar
  * 
  * </pre>
  * 
@@ -432,6 +434,12 @@ public class WaveSatResource
 
         colorBarResource = (ColorBarResource) colorBarResourcePair
                 .getResource();
+
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        colorBarResourcePair.getProperties().setVisible(parentVisibility);
 
         // Load all of the data after the user presses the "Load And Close" or
         // "Load" button in the Resource Manager.

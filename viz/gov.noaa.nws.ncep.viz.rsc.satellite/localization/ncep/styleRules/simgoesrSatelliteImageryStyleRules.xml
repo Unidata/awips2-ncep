@@ -8,11 +8,9 @@
       <parameter>CH-01-0.47um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
@@ -23,11 +21,9 @@
       <parameter>CH-02-0.64um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
@@ -39,10 +35,10 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
-      <defaultColormap>ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -52,10 +48,10 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
-      <defaultColormap>ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -65,10 +61,10 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
-      <defaultColormap>ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -78,38 +74,38 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
-      <defaultColormap>ZA (Vis Default)</defaultColormap>      
+      <defaultColormap>ZA (Vis Default)</defaultColormap>
     </imageStyle>
   </styleRule>
 
   <styleRule>
     <paramLevelMatches>
-      <parameter>CH-7-3.90um</parameter>
+      <parameter>CH-07-3.90um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
   <styleRule>
     <paramLevelMatches>
-      <parameter>CH-8-6.19um</parameter>
+      <parameter>CH-08-6.19um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
@@ -120,24 +116,11 @@
       <parameter>CH-09-6.95um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-<!--       <displayUnits>C</displayUnits> -->
+       <displayUnits>C</displayUnits> 
       <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-<!--         <minValue>-1500</minValue> -->
-<!--         <maxValue>-800</maxValue> -->
-
-<!--  These display an image with BRIT, but colors are "flipped" 
-       i.e. yellow and white are exchanged -->
-<!--         <minValue>170</minValue> -->
-<!--         <maxValue>2700</maxValue> -->
-
-<!--  This is very close to the D2D image -->
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
-
-<!--         <minValue>55</minValue> -->
-<!--         <maxValue>-109</maxValue> -->
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
@@ -148,11 +131,11 @@
       <parameter>CH-10-7.34um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
@@ -163,13 +146,13 @@
       <parameter>CH-11-8.50um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -178,13 +161,13 @@
       <parameter>CH-12-9.61um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -193,13 +176,13 @@
       <parameter>CH-13-10.35um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -208,13 +191,13 @@
       <parameter>CH-14-11.20um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -223,13 +206,13 @@
       <parameter>CH-15-12.30um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 
@@ -238,13 +221,13 @@
       <parameter>CH-16-13.30um</parameter>
     </paramLevelMatches>
     <imageStyle>
-      <displayUnits>BRIT</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
+       <displayUnits>C</displayUnits> 
+      <colorMapUnits>IRPixel</colorMapUnits>      
       <range scale="LINEAR">
-        <minValue>4600</minValue>
-        <maxValue>200</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
-      <defaultColormap>CIMSS_IR</defaultColormap>
+      <defaultColormap>CIMSS_WV</defaultColormap>
     </imageStyle>
   </styleRule>
 

@@ -35,6 +35,7 @@ import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName.ResourceNameAdapter;
 
@@ -73,6 +74,12 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceName.ResourceNameAdapter;
  * 01/24/2017     R17975   kbugenhagen  Modified generateTimeline, updateFromDominantResource,
  *                                      adjustTimeline to support calendar selects for forecast resource.
  *                                      Cleaned up comments.
+ * 05/05/2017     R33618   S. Russell   Fixed a bug in generateTimeLine().
+ *                                      Consolidate generateTimeLine() and
+ *                                      adjustTimeLine into 1 method, 
+ *                                      commonTimeLineGenerator(). Refactored
+ *                                      commonTimeLineGenerator() into 8
+ *                                      smaller methods.
  * 
  * </pre>
  * 
@@ -391,7 +398,9 @@ public class NCTimeMatcher extends AbstractTimeMatcher
                 this.setLatestRefTime();
                 break;
             }
-        } else if (timeSettings.getForecastRefTimeSelection() != null) {
+        }
+
+        else if (timeSettings.getForecastRefTimeSelection() != null) {
             switch (timeSettings.getForecastRefTimeSelection()) {
             case CALENDAR:
                 this.setRefTime(
@@ -402,6 +411,7 @@ public class NCTimeMatcher extends AbstractTimeMatcher
                 break;
             }
         }
+
         loadTimes(true);
     }
 
@@ -434,252 +444,6 @@ public class NCTimeMatcher extends AbstractTimeMatcher
         timeRange = 0;
         isForecast = false;
         refTime = null;
-    }
-
-    /**
-     * if refTime is null, then either use the most recent data as the refTime
-     * or the cycle time for forecast data.
-     * 
-     * @return false if no data found
-     */
-    public boolean generateTimeline() {
-
-        frameTimes.clear();
-        selectableDataTimes.clear();
-
-        List<DataTime> selDataTimes = new ArrayList<>();
-
-        if (dominantRscData == null) {
-            return false;
-        } else if (frameInterval == 0) {
-            return false;
-        }
-
-        long frameIntervalMillisecs = ((long) frameInterval) * 60 * 1000;
-        long timeRangeMillisecs = ((long) timeRange) * 60 * 60 * 1000;
-
-        /*
-         * determine the reference time to use. refTime is marshalled out to the
-         * bundle file and may be null or 'latest' or a time set by the user.
-         */
-        long refTimeMillisecs = 0;
-        Calendar refTimeCal = null;
-
-        /*
-         * check cycleTime instead of isForecast since some resources may be
-         * forecast w/o a cycletime
-         */
-        if (dominantResourceName.getCycleTime() != null) {
-            if (!dominantResourceName.isLatestCycleTime()) {
-                DataTime cycleTime = dominantResourceName.getCycleTime();
-                refTimeMillisecs = (cycleTime == null ? 0
-                        : cycleTime.getRefTime().getTime());
-            }
-            if (isLatestRefTime()) {
-                refTimeMillisecs = 0;
-            } else if (!isCurrentRefTime()) {
-                // calendar selected
-                refTimeCal = refTime.getRefTimeAsCalendar();
-                refTimeMillisecs = refTime.getRefTime().getTime();
-                // Remove seconds and milliseconds
-                DataTime refTimeNoMillisecs = convertStringToDataTimeWithoutSeconds(
-                        refTime.toString());
-                refTimeCal = refTimeNoMillisecs.getRefTimeAsCalendar();
-                refTimeMillisecs = refTimeNoMillisecs.getRefTime().getTime();
-            }
-        } else if (isCurrentRefTime()) {
-            refTimeMillisecs = Calendar.getInstance().getTimeInMillis();
-            refTimeCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        } else if (isLatestRefTime()) {
-            refTimeMillisecs = 0;
-        } else {
-            refTimeCal = refTime.getRefTimeAsCalendar();
-            refTimeMillisecs = refTime.getRefTime().getTime();
-        }
-
-        /*
-         * Always check all available times. If none of the available data times
-         * falls within the specified time range, then no time line should be
-         * created.
-         */
-        allAvailDataTimes = dominantRscData.getAvailableDataTimes();
-
-        List<DataTime> availTimes = allAvailDataTimes;
-        if (availTimes == null || availTimes.isEmpty()) {
-            return false;
-        } else {
-            long latestTime = availTimes.get(availTimes.size() - 1).getRefTime()
-                    .getTime();
-            if (latestTime < (refTimeMillisecs - timeRangeMillisecs)) {
-                return false;
-            }
-        }
-
-        /*
-         * if refTime is Latest or if using the data to generate the timeline,
-         * or if we need to get the cycle time for a forecast resource, then we
-         * will need to query the times of the dominant resource.
-         */
-        if (refTimeMillisecs == 0 || frameInterval == -1) {
-
-            if (allAvailDataTimes == null) { // no data
-                allAvailDataTimes = new ArrayList<>();
-                return false;
-            }
-
-            // added sort
-            GraphTimelineUtil.sortAvailableData(allAvailDataTimes);
-
-            // if refTime is not given (ie Latest) then get it from the data
-            if (refTimeMillisecs == 0) {
-                if (!allAvailDataTimes.isEmpty()) {
-                    refTime = allAvailDataTimes.get(
-                            (isForecast ? 0 : allAvailDataTimes.size() - 1));
-                    refTimeCal = refTime.getRefTimeAsCalendar();
-                    refTimeMillisecs = refTime.getRefTime().getTime();
-                } else {
-                    return false;
-                }
-            }
-
-            // extend refTime to the snap point
-            if (this.getDominantResourceName().getRscCategory()
-                    .getCategoryName().equals("TIMESERIES")
-                    && this.getHourSnap() != 0) {
-                refTimeMillisecs = GraphTimelineUtil
-                        .snapTimeToNext(refTimeCal, this.getHourSnap())
-                        .getTimeInMillis();
-            }
-
-            /*
-             * if generating times from the data then get only those times in
-             * the selected range.
-             */
-            if (frameInterval == -1) {
-                long oldestTimeMs = (isForecast ? refTimeMillisecs
-                        : refTimeMillisecs - timeRangeMillisecs - 1);
-                long latestTimeMs = (isForecast
-                        ? refTimeMillisecs + timeRangeMillisecs + 1
-                        : refTimeMillisecs);
-
-                for (DataTime time : allAvailDataTimes) {
-                    long timeMS = time.getValidTime().getTimeInMillis();
-                    if (timeMS >= oldestTimeMs && timeMS <= latestTimeMs) {
-                        selectableDataTimes.add(time);
-                    }
-                }
-            }
-        }
-
-        // no data found
-        if (selectableDataTimes.size() == 0) {
-            return false;
-        }
-        /*
-         * if a frameInterval is set then use it to create a list of times
-         * within the defined range.
-         */
-        if (frameInterval > 0) {
-
-            long frameTimeMillisecs = refTimeMillisecs;
-
-            if (isForecast) {
-                while (frameTimeMillisecs <= refTimeMillisecs
-                        + timeRangeMillisecs) {
-                    DataTime time = new DataTime(new Date(frameTimeMillisecs));
-                    selDataTimes.add(time);
-                    frameTimeMillisecs += frameIntervalMillisecs;
-                }
-            } else {
-                while (frameTimeMillisecs >= refTimeMillisecs
-                        - timeRangeMillisecs) {
-                    DataTime normRefTime = getNormalizedTime(
-                            new DataTime(new Date(frameTimeMillisecs)));
-                    selDataTimes.add(0, normRefTime);
-                    frameTimeMillisecs -= frameIntervalMillisecs;
-                }
-            }
-        }
-
-        /*
-         * Now check which frame ACTUALLY have data --- Originally, all
-         * FrameTime are added as select-able without check.
-         * 
-         * Note that for EVENT type resources, all frames will still be added
-         * select-able as before.
-         */
-        if (selDataTimes.size() > 0) {
-            for (DataTime dt : selDataTimes) {
-                FrameDataContainer fdc = new FrameDataContainer(dt,
-                        frameInterval, dominantRscData);
-                if (fdc.isDataTimeInFrame(allAvailDataTimes)) {
-                    selectableDataTimes.add(dt);
-                }
-            }
-        }
-        //
-
-        SelectableFrameTimeMatcher frmTimeMatcher = null;
-
-        /*
-         * if there is a GDATTIM then use this to compute the frameList from the
-         * list of available times in the DB
-         */
-        if (dfltFrameTimesStr != null) {
-            try {
-                frmTimeMatcher = new SelectableFrameTimeMatcher(
-                        dfltFrameTimesStr);
-
-                for (DataTime dt : allAvailDataTimes) {
-                    if (frmTimeMatcher.matchTime(dt)) {
-                        frameTimes.add(dt);
-                    }
-                }
-
-            } catch (VizException e) {
-                // sanity check since this should already be validated
-                statusHandler.error("bad GDATTIM string:" + dfltFrameTimesStr);
-                frmTimeMatcher = null;
-                return false;
-            }
-
-        } else {
-            int skipCount = 0;
-            // set the initial frameTimes from the skip value and numFrames
-            GraphTimelineUtil.sortAvailableData(selectableDataTimes);
-
-            // For graph display, numFrames = 1
-
-            for (skipCount = 0; skipCount < selectableDataTimes
-                    .size(); skipCount++) {
-                if (skipCount % (skipValue + 1) == 0) {
-
-                    DataTime selectableTime = (isForecast
-                            ? selectableDataTimes.get(skipCount)
-                            : selectableDataTimes.get(selectableDataTimes.size()
-                                    - skipCount - 1));
-
-                    if (frmTimeMatcher == null
-                            || frmTimeMatcher.matchTime(selectableTime)) {
-
-                        if (isForecast) {
-                            frameTimes.add(selectableTime);
-                        } else {
-                            frameTimes.add(0, selectableTime);
-                        }
-                    }
-                }
-                if (frameTimes.size() == numFrames) {
-                    break;
-                }
-            }
-        }
-
-        if (frameTimes.size() > 0) {
-            numFrames = frameTimes.size();
-        }
-
-        return true;
     }
 
     // YYYY-MM-DD HH:MM:SS -> DataTime
@@ -1133,16 +897,53 @@ public class NCTimeMatcher extends AbstractTimeMatcher
         }
     }
 
-    /*
-     * From generateTimeline() - The difference is that even the data times are
-     * refreshed as well, but the frameTimes will remain unchanged and only
-     * updated when ALL previous-selected frame times are gone.
+    /**
+     * @deprecated Use commonTimeLineGenerator() instead
+     * 
+     * @return boolean was a time line the Create RBD tab of the Resource
+     *         Manager generated?
      */
+    @Deprecated
+    public boolean generateTimeline() {
+        boolean wasTimeLineMade = false;
+        boolean updateExistingTimeLine = false;
+        wasTimeLineMade = this.commonTimeLineGenerator(updateExistingTimeLine);
+        return wasTimeLineMade;
+    }
+
+    /**
+     * @deprecated Use commonTimeLineGenerator() instead
+     * 
+     * @return boolean was a time line the Create RBD tab of the Resource
+     *         Manager generated?
+     */
+    @Deprecated
     public boolean adjustTimeline() {
+        boolean wasTimeLineMade = false;
+        boolean updateExistingTimeLine = true;
+        wasTimeLineMade = this.commonTimeLineGenerator(updateExistingTimeLine);
+        return wasTimeLineMade;
+    }
 
-        List<DataTime> selDataTimes = new ArrayList<>();
-
-        selectableDataTimes.clear();
+    /**
+     * Generate the time line in the Create RBD tab of the Resource Manager
+     * 
+     * If the refTime is null, then either the most recent data will be used as
+     * the refTime -OR- the cycle time will be used if the data is forecast data
+     * 
+     * This method is the amalgamation of code found in generateTimeLine() and
+     * adjustTimeLine. The former was used to make a time line in the Create RBT
+     * tab of the Resource Manager upon initial loading, the latter was used for
+     * the same purpose for subsequent reloadings.
+     * 
+     * This method was refactored into 7 sub methods, each that starts with the
+     * prefix ctg - commonTimeLineGenerator
+     * 
+     * @param updateExistingTimeLine
+     *            - initial load or a reload of CAVE?
+     * @return false if no data is found
+     */
+    public boolean commonTimeLineGenerator(boolean updateExistingTimeLine) {
 
         if (dominantRscData == null) {
             return false;
@@ -1150,51 +951,209 @@ public class NCTimeMatcher extends AbstractTimeMatcher
             return false;
         }
 
+        if (!updateExistingTimeLine) {
+            frameTimes.clear();
+        }
+
+        selectableDataTimes.clear();
+
+        // List of times within a time range, when a frame interval is set
+        List<DataTime> selDataTimes = new ArrayList<>();
+
         long frameIntervalMillisecs = ((long) frameInterval) * 60 * 1000;
         long timeRangeMillisecs = ((long) timeRange) * 60 * 60 * 1000;
 
+        // Get the refTimeCalendar and refTime in epoch time (ms)
+        long refTimeMillisecs = this.getRefTimeInEpochTime();
+        Calendar refTimeCal = this.getRefTimeCalendar();
+
+        // Are there available Data Times?
+        boolean areDataTimesAvailable = this
+                .areDataTimesAvailable(refTimeMillisecs, timeRangeMillisecs);
+
+        if (!areDataTimesAvailable) {
+            return false;
+        }
+
+        // If refTime is set to "Latest" -OR- if the timeline is generated
+        // from the DataTimes, -OR- if a cycle time is needed for a forecast
+        // resource
+        if (refTimeMillisecs == 0 || frameInterval == -1) {
+            // Sort
+            GraphTimelineUtil.sortAvailableData(this.allAvailDataTimes);
+
+            // refTime Not Given (menu: "Latest"): Get It From The Data
+            if (refTimeMillisecs == 0) {
+                if (!allAvailDataTimes.isEmpty()) {
+                    refTime = allAvailDataTimes.get(
+                            (isForecast ? 0 : allAvailDataTimes.size() - 1));
+                    refTimeCal = refTime.getRefTimeAsCalendar();
+                    refTimeMillisecs = refTime.getRefTime().getTime();
+                } else {
+                    return false;
+                }
+            }
+
+            // Advance refTime To The Snap Point
+            String rscCategoryName = this.getDominantResourceName()
+                    .getRscCategory().getCategoryName();
+
+            String grphRscCatName = ResourceCategory.GraphRscCategory
+                    .getCategoryName();
+
+            if (rscCategoryName.equals(grphRscCatName)
+                    && this.getHourSnap() != 0) {
+                refTimeMillisecs = GraphTimelineUtil
+                        .snapTimeToNext(refTimeCal, this.getHourSnap())
+                        .getTimeInMillis();
+            }
+
+            // Populate this.selectableDataTimes
+            boolean wasPopulated = populateSelectableDataTimes(
+                    updateExistingTimeLine, timeRangeMillisecs,
+                    refTimeMillisecs);
+
+            if (!wasPopulated) {
+                return false;
+            }
+        }
+
+        // If a frameInterval is set then use it to create a list of times
+        // within the defined range.
+        this.populateSelDataTimesWithinDefinedRange(selDataTimes,
+                refTimeMillisecs, timeRangeMillisecs, frameIntervalMillisecs);
+
+        // Check that frames actually have data
+        this.updateSelectableDataTimes(selDataTimes);
+
+        // Make sure the existing frameTimes are STILL in selectableDataTimes
+        this.updateFrameTimesToJustExistingFrameTimes(updateExistingTimeLine);
+
+        boolean frameListComputed = false;
+
+        if (updateExistingTimeLine) {
+
+            // If previously-selected frames are gone, then re-select.
+            if (frameTimes.isEmpty()) {
+                frameListComputed = this.computeFrameListFromDataTimes();
+            }
+
+        } else {
+            frameListComputed = this.computeFrameListFromDataTimes();
+        }
+
+        if (!frameListComputed) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the reftime in epoch time, if Latest reftime becomes zero, if not
+     * CURRENT, remove seconds before converting to epoch time
+     * 
+     * @return long refTime in epoch time
+     */
+    private long getRefTimeInEpochTime() {
+
+        long refTimeInEpochTime = 0;
+
         /*
-         * determine the reference time to use. refTime is marshalled out to the
-         * bundle file and may be null or 'latest' or a time set by the user.
+         * If there is a value for Cycle Time
+         * 
+         * Determined by checking cycleTime instead of isForecast, since some
+         * resources may be forecast w/o a cycletime
+         * 
+         * Determine the reference time to use.
+         * 
+         * refTime is marshaled out to the bundle file and may be null or
+         * 'latest' or a time set by the user.
          */
-        long refTimeMillisecs = 0;
-        Calendar refTimeCal = null;
 
-        if (!dominantResourceName.isLatestCycleTime()) {
-            DataTime cycleTime = dominantResourceName.getCycleTime();
-            refTimeMillisecs = (cycleTime == null ? 0
-                    : cycleTime.getRefTime().getTime());
+        // If there is a cycle time
+        if (dominantResourceName.getCycleTime() != null) {
+
+            // If the cycle time is NOT the latest cycle time
+            if (!dominantResourceName.isLatestCycleTime()) {
+                DataTime cycleTime = dominantResourceName.getCycleTime();
+
+                // Set the cycle time as THE reftime, but in epoch time.
+                refTimeInEpochTime = (cycleTime == null ? 0
+                        : cycleTime.getRefTime().getTime());
+            }
+
+            // If Ref. Time menu set to "Latest"
             if (isLatestRefTime()) {
-                refTimeMillisecs = 0;
-            } else if (!isCurrentRefTime()) {
-                // calendar selected
-                refTimeCal = refTime.getRefTimeAsCalendar();
-                refTimeMillisecs = refTime.getRefTime().getTime();
+                refTimeInEpochTime = 0;
+            } // if CALENDAR selected
+            else if (!isCurrentRefTime()) {
+                // get the refTime and refTimeCal in epoch time, but with
+                // not seconds nor milliseconds
 
+                // calendar selected
+                refTimeInEpochTime = refTime.getRefTime().getTime();
+
+                // Remove seconds and milliseconds
+                DataTime refTimeNoMillisecs = convertStringToDataTimeWithoutSeconds(
+                        refTime.toString());
+
+                refTimeInEpochTime = refTimeNoMillisecs.getRefTime().getTime();
+
+            }
+        } else if (isCurrentRefTime()) {
+            refTimeInEpochTime = Calendar.getInstance().getTimeInMillis();
+        } else if (isLatestRefTime()) {
+            refTimeInEpochTime = 0;
+        } else {
+            refTimeInEpochTime = refTime.getRefTime().getTime();
+
+        }
+
+        return refTimeInEpochTime;
+    }
+
+    /**
+     * If not CURRENT reftime, remove seconds from reftime before getting the
+     * calendar from the reftime. Otherwise get the UTC calendar
+     * 
+     * @return Calendar refTimeCal
+     */
+    private Calendar getRefTimeCalendar() {
+        Calendar refTimeCal = null;
+        // If there is a cycle time
+        if (dominantResourceName.getCycleTime() != null) {
+            if (!isCurrentRefTime()) {
+                // Remove seconds and milliseconds
                 DataTime refTimeNoMillisecs = convertStringToDataTimeWithoutSeconds(
                         refTime.toString());
                 refTimeCal = refTimeNoMillisecs.getRefTimeAsCalendar();
-                refTimeMillisecs = refTimeNoMillisecs.getRefTime().getTime();
             }
         } else if (isCurrentRefTime()) {
-            // if (isCurrentRefTime()) {
-            refTimeMillisecs = Calendar.getInstance().getTimeInMillis();
             refTimeCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        } else if (isLatestRefTime()) {
-            refTimeMillisecs = 0;
         } else {
             refTimeCal = refTime.getRefTimeAsCalendar();
-            refTimeMillisecs = refTime.getRefTime().getTime();
         }
+
+        return refTimeCal;
+    }
+
+    /**
+     * Is allVailDataTimes populated?
+     * 
+     * @param refTimeMillisecs
+     * @param timeRangeMillisecs
+     * @return boolean is there data available and within range, in member
+     *         collection allAvailDataTimes ?
+     */
+    private boolean areDataTimesAvailable(long refTimeMillisecs,
+            long timeRangeMillisecs) {
+        boolean areDataTimesAvailable = true;
 
         /*
          * Always check all available times. If none of the available data times
          * falls within the specified time range, then no time line should be
          * created.
-         * 
-         * Note: for auto-update-able data such as SAT, looks like there is a
-         * delay for getAvailableDataTimes() to pick up the new data frames -
-         * needs some investigation........ 08/12/2014 ....
          */
         allAvailDataTimes = dominantRscData.getAvailableDataTimes();
 
@@ -1209,68 +1168,85 @@ public class NCTimeMatcher extends AbstractTimeMatcher
             }
         }
 
+        return areDataTimesAvailable;
+    }
+
+    /**
+     * If "Latest" was chosen, or making frames based on data times populate
+     * selectableDataTimes based on allAvailableDataTimes, that are in range.
+     * 
+     * @param updateExistingTimeLine
+     * @param timeRangeMillisecs
+     * @param refTimeMillisecs
+     * @return boolean were new DataTimes for the dom rsc obtained?
+     */
+    private boolean populateSelectableDataTimes(boolean updateExistingTimeLine,
+            long timeRangeMillisecs, long refTimeMillisecs) {
+
+        boolean wasPopulated = false;
+
         /*
          * if refTime is Latest or if using the data to generate the timeline,
          * or if we need to get the cycle time for a forecast resource, then we
          * will need to query the times of the dominant resource.
          */
-        if (refTimeMillisecs == 0 || frameInterval == -1) {
-            if (allAvailDataTimes == null) { // no data
-                allAvailDataTimes = new ArrayList<>(); //
-                return false;
-            }
-
-            GraphTimelineUtil.sortAvailableData(allAvailDataTimes);
-
-            // if refTime is not given (ie Latest) then get it from the data
-            if (refTimeMillisecs == 0) {
-                if (!allAvailDataTimes.isEmpty()) {
-                    refTime = allAvailDataTimes.get(
-                            (isForecast ? 0 : allAvailDataTimes.size() - 1));
-                    refTimeCal = refTime.getRefTimeAsCalendar();
-                    refTimeMillisecs = refTime.getRefTime().getTime();
-                } else {
-                    return false;
-                }
-            }
-
-            // extend refTime to the snap point
-            if (this.getDominantResourceName().getRscCategory()
-                    .getCategoryName().equals("TIMESERIES")
-                    && this.getHourSnap() != 0) {
-                refTimeMillisecs = GraphTimelineUtil
-                        .snapTimeToNext(refTimeCal, this.getHourSnap())
-                        .getTimeInMillis();
-            }
+        if (refTimeMillisecs == 0 || this.frameInterval == -1) {
 
             /*
              * if generating times from the data then get only those times in
              * the selected range.
              */
-            if (frameInterval == -1) {
-
-                long oldestTimeMs = (isForecast ? refTimeMillisecs
+            if (this.frameInterval == -1) {
+                long oldestTimeMs = (this.isForecast ? refTimeMillisecs
                         : refTimeMillisecs - timeRangeMillisecs - 1);
-
-                long latestTimeMs = (isForecast
+                long latestTimeMs = (this.isForecast
                         ? refTimeMillisecs + timeRangeMillisecs + 1
                         : refTimeMillisecs);
 
-                for (DataTime time : allAvailDataTimes) {
+                for (DataTime time : this.allAvailDataTimes) {
                     long timeMS = time.getValidTime().getTimeInMillis();
                     if (timeMS >= oldestTimeMs && timeMS <= latestTimeMs) {
-                        selectableDataTimes.add(time);
+                        this.selectableDataTimes.add(time);
                     }
                 }
+
+                if (!updateExistingTimeLine) {
+                    // No data found
+                    if (this.selectableDataTimes.size() == 0) {
+                        return false;
+                    }
+                }
+
             }
+
         }
+
+        wasPopulated = true;
+        return wasPopulated;
+
+    }// end method populateSelectableDataTimes()
+
+    /**
+     * 
+     * Populate member collection selDataTimes
+     * 
+     * @param selDataTimes
+     * @param refTimeMillisecs
+     * @param timeRangeMillisecs
+     * @param frameIntervalMillisecs
+     */
+    private void populateSelDataTimesWithinDefinedRange(
+            List<DataTime> selDataTimes, long refTimeMillisecs,
+            long timeRangeMillisecs, long frameIntervalMillisecs) {
 
         /*
          * if a frameInterval is set then use it to create a list of times
          * within the defined range.
          */
-        if (frameInterval > 0) {
+        if (this.frameInterval > 0) {
+
             long frameTimeMillisecs = refTimeMillisecs;
+
             if (isForecast) {
                 while (frameTimeMillisecs <= refTimeMillisecs
                         + timeRangeMillisecs) {
@@ -1289,6 +1265,18 @@ public class NCTimeMatcher extends AbstractTimeMatcher
             }
         }
 
+    }
+
+    /**
+     * 
+     * Check to see that the frames actually have data. Consolidate into member
+     * selectableDataTimes
+     * 
+     * @param selDataTimes
+     */
+
+    private void updateSelectableDataTimes(List<DataTime> selDataTimes) {
+
         /*
          * Now check which frame ACTUALLY have data --- Originally, all
          * FrameTime are added as select-able without check.
@@ -1306,81 +1294,102 @@ public class NCTimeMatcher extends AbstractTimeMatcher
             }
         }
 
-        /*
-         * Add a check here to see if existing frameTimes are still in the
-         * selectableDataTimes - e.g, CAVE keeps running and the user comes back
-         * in a few days later to open the data selection window?
-         */
-        List<DataTime> ftimes = new ArrayList<>();
-        for (DataTime fdt : frameTimes) {
-            long frameTimeMillisecs = fdt.getValidTime().getTimeInMillis();
-            for (DataTime dt : selectableDataTimes) {
-                long selTimeMillisecs = dt.getValidTime().getTimeInMillis();
-                if (frameTimeMillisecs == selTimeMillisecs) {
-                    ftimes.add(fdt);
-                    break;
-                }
-            }
-        }
+    }
 
-        frameTimes.clear();
-        frameTimes.addAll(ftimes);
-
-        // If previously-selected frames are gone, then re-select.
-        if (frameTimes.isEmpty()) {
-
-            SelectableFrameTimeMatcher frmTimeMatcher = null;
-
+    /**
+     * 
+     * Ensure that the data represented in the time line is still within range
+     * after having sat a bit.
+     * 
+     * @param updateExistingTimeLine
+     */
+    private void updateFrameTimesToJustExistingFrameTimes(
+            boolean updateExistingTimeLine) {
+        if (updateExistingTimeLine) {
             /*
-             * if there is a GDATTIM then use this to compute the frameList from
-             * the list of available times in the DB
+             * Add a check here to see if existing frameTimes are still in the
+             * selectableDataTimes - e.g, CAVE keeps running and the user comes
+             * back in a few days later to open the data selection window?
              */
-            if (dfltFrameTimesStr != null) {
-                try {
-                    frmTimeMatcher = new SelectableFrameTimeMatcher(
-                            dfltFrameTimesStr);
-
-                    for (DataTime dt : allAvailDataTimes) {
-                        if (frmTimeMatcher.matchTime(dt)) {
-                            frameTimes.add(dt);
-                        }
-                    }
-
-                } catch (VizException e) {
-                    // sanity check since this should already be validated
-                    statusHandler
-                            .error("bad GDATTIM string:" + dfltFrameTimesStr);
-                    frmTimeMatcher = null;
-                    return false;
-                }
-
-            } else {
-                int skipCount = 0;
-                // set the initial frameTimes from the skip value and numFrames
-                GraphTimelineUtil.sortAvailableData(selectableDataTimes);
-                for (skipCount = 0; skipCount < selectableDataTimes
-                        .size(); skipCount++) {
-                    if (skipCount % (skipValue + 1) == 0) {
-                        DataTime selectableTime = (isForecast
-                                ? selectableDataTimes.get(skipCount)
-                                : selectableDataTimes
-                                        .get(selectableDataTimes.size()
-                                                - skipCount - 1));
-                        if (frmTimeMatcher == null
-                                || frmTimeMatcher.matchTime(selectableTime)) {
-                            if (isForecast) {
-                                frameTimes.add(selectableTime);
-                            } else {
-                                frameTimes.add(0, selectableTime);
-                            }
-                        }
-                    }
-                    if (frameTimes.size() == numFrames) {
+            List<DataTime> ftimes = new ArrayList<>();
+            for (DataTime fdt : frameTimes) {
+                long frameTimeMillisecs = fdt.getValidTime().getTimeInMillis();
+                for (DataTime dt : selectableDataTimes) {
+                    long selTimeMillisecs = dt.getValidTime().getTimeInMillis();
+                    if (frameTimeMillisecs == selTimeMillisecs) {
+                        ftimes.add(fdt);
                         break;
                     }
                 }
             }
 
+            frameTimes.clear();
+            frameTimes.addAll(ftimes);
+
+        }
+
+    }
+
+    /**
+     * Compute a frame list from data times.
+     * 
+     * @return boolean was a frame list computed?
+     */
+    private boolean computeFrameListFromDataTimes() {
+
+        SelectableFrameTimeMatcher frmTimeMatcher = null;
+
+        /*
+         * if there is a GDATTIM then use this to compute the frameList from the
+         * list of available times in the DB
+         */
+        if (dfltFrameTimesStr != null) {
+            try {
+                frmTimeMatcher = new SelectableFrameTimeMatcher(
+                        dfltFrameTimesStr);
+
+                for (DataTime dt : allAvailDataTimes) {
+                    if (frmTimeMatcher.matchTime(dt)) {
+                        frameTimes.add(dt);
+                    }
+                }
+
+            } catch (VizException e) {
+                // sanity check since this should already be validated
+                statusHandler.error("bad GDATTIM string:" + dfltFrameTimesStr);
+                frmTimeMatcher = null;
+                return false;
+            }
+
+        } else {
+            int skipCount = 0;
+            // set the initial frameTimes from the skip value and numFrames
+            GraphTimelineUtil.sortAvailableData(selectableDataTimes);
+
+            // For graph display, numFrames = 1
+            for (skipCount = 0; skipCount < selectableDataTimes
+                    .size(); skipCount++) {
+                if (skipCount % (skipValue + 1) == 0) {
+
+                    DataTime selectableTime = (isForecast
+                            ? selectableDataTimes.get(skipCount)
+                            : selectableDataTimes.get(selectableDataTimes.size()
+                                    - skipCount - 1));
+
+                    if (frmTimeMatcher == null
+                            || frmTimeMatcher.matchTime(selectableTime)) {
+
+                        if (isForecast) {
+                            frameTimes.add(selectableTime);
+                        } else {
+                            frameTimes.add(0, selectableTime);
+                        }
+                    }
+                }
+                if (frameTimes.size() == numFrames) {
+                    break;
+                }
+            }
         }
 
         if (frameTimes.size() > 0) {
@@ -1390,4 +1399,4 @@ public class NCTimeMatcher extends AbstractTimeMatcher
         return true;
     }
 
-}
+}// end class NCTimeMatcher

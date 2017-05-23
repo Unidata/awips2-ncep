@@ -27,6 +27,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 * Date          Ticket#    Engineer    Description
 * ------------  ---------- ----------- --------------------------
 * 12/14	 			R5413   B. Yin		 Remove Script Creator and use Thrift Client
+* 03/27/2017        R30270  bsteffen     Add physicalElement to gini area id.
 * </pre>
 */
 public class GiniAreaProviderFactory implements INcAreaProviderFactory {
@@ -49,16 +50,17 @@ public class GiniAreaProviderFactory implements INcAreaProviderFactory {
 
 			try {			
 				String[] satAndArea = areaName.split( File.separator );
-				if( satAndArea.length != 2 || 
-						satAndArea[0].isEmpty() || 
-						satAndArea[1].isEmpty() ) { 
-					throw new VizException("invalid gini area name. Expecting <creatingEntity>/<sectorid>.");
-				}
+				if (satAndArea.length != 3 || satAndArea[0].isEmpty()
+                        || satAndArea[1].isEmpty() || satAndArea[2].isEmpty()) {
+                    throw new VizException(
+                            "invalid gini area name. Expecting <creatingEntity>/<sectorid>/<physicalElement>.");
+                }
 
 				HashMap<String, RequestConstraint> reqConstraints = new HashMap<String, RequestConstraint>();
 				reqConstraints.put( "pluginName", new RequestConstraint( pluginName) );		
 				reqConstraints.put( "creatingEntity", new RequestConstraint( satAndArea[0]) );		
 				reqConstraints.put( "sectorID", new RequestConstraint( satAndArea[1]) );
+                reqConstraints.put("physicalElement", new RequestConstraint(satAndArea[2]));
 				
 		        DbQueryRequest request = new DbQueryRequest();
 		        request.setConstraints(reqConstraints);

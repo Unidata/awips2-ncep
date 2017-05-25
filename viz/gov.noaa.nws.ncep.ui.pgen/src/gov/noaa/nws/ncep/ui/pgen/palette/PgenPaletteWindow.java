@@ -16,6 +16,8 @@ import java.util.List;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.IParameter;
+import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -59,6 +61,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -154,6 +157,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * 11/30/2016   R17954      Bugenhagen  Changed promptToSaveOnClose to only prompt
  *                                      if editor has any elements drawn.
  * 12/27/2016   R27572      B. Yin      Fixed an undo/redo exception.
+ * 05/04/2017   R27242      B. Yin      Use ParameterizedComand to pass parameters.
  * 
  * </pre>
  * 
@@ -816,13 +820,14 @@ public class PgenPaletteWindow extends ViewPart
                     exeCommand(elem);
 
                     /*
-                     * Sets current action. 
-                     * Don't set current action to undo/redo. Undo/redo button never 
-                     * gets highlighted. 
+                     * Sets current action. Don't set current action to
+                     * undo/redo. Undo/redo button never gets highlighted.
                      */
-                    if (point.equals(ACTION_SECTION) 
-                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.UNDO)
-                            && !elem.getAttribute(PgenConstant.NAME).equalsIgnoreCase(PgenConstant.REDO)) {
+                    if (point.equals(ACTION_SECTION)
+                            && !elem.getAttribute(PgenConstant.NAME)
+                                    .equalsIgnoreCase(PgenConstant.UNDO)
+                            && !elem.getAttribute(PgenConstant.NAME)
+                                    .equalsIgnoreCase(PgenConstant.REDO)) {
                         currentAction = elem.getAttribute(PgenConstant.NAME);
                     }
                 }
@@ -1279,24 +1284,44 @@ public class PgenPaletteWindow extends ViewPart
         IEditorPart part = VizWorkbenchManager.getInstance().getActiveEditor();
         ICommandService service = (ICommandService) part.getSite()
                 .getService(ICommandService.class);
-        Command cmd = service.getCommand(commandId);
+        Command pgenCommand = service.getCommand(commandId);
 
-        if (cmd != null) {
+        if (pgenCommand != null) {
 
             try {
-
                 // Set up information to pass to the AbstractHandler
                 HashMap<String, Object> params = new HashMap<>();
-                params.put("editor", part);
                 params.put(PgenConstant.NAME,
                         elem.getAttribute(PgenConstant.NAME));
                 params.put(PgenConstant.CLASSNAME,
                         elem.getAttribute(PgenConstant.CLASSNAME));
-                ExecutionEvent exec = new ExecutionEvent(cmd, params, null,
-                        elem.getAttribute(PgenConstant.NAME));
+                ExecutionEvent exec = new ExecutionEvent(pgenCommand, params,
+                        null, elem.getAttribute(PgenConstant.NAME));
 
-                // Execute the handler
-                cmd.executeWithChecks(exec);
+                /*
+                 * If the command needs parameters, use ParameterizedCommand
+                 * to pass the parameters.
+                 */
+                boolean needParameters = false;
+                IParameter[] commandParams = pgenCommand.getParameters();
+                if ( commandParams != null && commandParams.length >= 2 ) {
+                        ArrayList<String> paraIds = new ArrayList<>();
+                        for ( IParameter para : commandParams ){
+                            paraIds.add(para.getId());
+                        }
+                        needParameters = paraIds.contains(PgenConstant.NAME)
+                                && paraIds.contains(PgenConstant.CLASSNAME); 
+                }
+              
+                if ( !needParameters ){
+                    pgenCommand.executeWithChecks(exec);
+                } else {
+                    ParameterizedCommand parameterizedCommand = ParameterizedCommand
+                            .generateCommand(pgenCommand, params);
+                    IHandlerService handlerService = part.getSite()
+                            .getService(IHandlerService.class);
+                    handlerService.executeCommand(parameterizedCommand, null);
+                }
 
                 // Update the GUI elements on the menus and toolbars
                 for (String toolbarID : NmapCommon

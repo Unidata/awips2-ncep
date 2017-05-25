@@ -37,6 +37,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+         
+   <plugin
+         id="gov.noaa.nws.ncep.common.dataplugin.asdi"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.aww"
@@ -121,6 +128,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+         
+   <plugin
+         id="gov.noaa.nws.ncep.edex.plugin.asdi"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>         
 
    <plugin
          id="gov.noaa.nws.ncep.edex.plugin.convsigmet"

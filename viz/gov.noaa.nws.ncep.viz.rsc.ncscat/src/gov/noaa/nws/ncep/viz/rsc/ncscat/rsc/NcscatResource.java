@@ -1,21 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncscat.rsc;
 
-import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
-import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,6 +32,22 @@ import com.raytheon.uf.viz.core.geom.PixelCoordinate;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.gempak.parameters.colorbar.ColorBarOrientation;
+import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.resources.AbstractFrameData;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.IRscDataObject;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBar;
+import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * NcscatResource - Class for display of all types of satellite
@@ -96,13 +96,15 @@ import com.vividsolutions.jts.geom.Coordinate;
  *                                     when needed instead of on each paint.
  *                                     Refactor to separate out IDataLoader methods into new NcscatDataLoader
  *                                     class (per new common design scheme).
+ * 05/09/2017    R27171    P. Moyer    Modified initResource to take parent resource's
+ *                                     visibility and apply it to the newly created color bar
  * </pre>
  * 
  * @author bhebbard
  * @version 1.0
  */
-public class NcscatResource extends
-        AbstractNatlCntrsResource2<NcscatResourceData, NCMapDescriptor>
+public class NcscatResource
+        extends AbstractNatlCntrsResource2<NcscatResourceData, NCMapDescriptor>
         implements INatlCntrsResource {
 
     private static final IUFStatusHandler logger = UFStatus
@@ -239,8 +241,9 @@ public class NcscatResource extends
 
             // We're given an RDO -- which for this resource is an NcscatRowData
             if (!(rdo instanceof NcscatRowData)) { // sanity check
-                logger.error("NcscatResource expecting NcscatRowData instead of:  "
-                        + rdo.getClass().getName());
+                logger.error(
+                        "NcscatResource expecting NcscatRowData instead of:  "
+                                + rdo.getClass().getName());
                 return false;
             } else {
                 NcscatRowData ncscatRowData = (NcscatRowData) rdo;
@@ -351,9 +354,8 @@ public class NcscatResource extends
                         double[] locLatLon = { location.x, location.y };
                         double[] locPix = descriptor.worldToPixel(locLatLon);
                         // ...and is currently in visible range
-                        if (locPix != null
-                                && correctedExtent.contains(locPix[0],
-                                        locPix[1])) {
+                        if (locPix != null && correctedExtent
+                                .contains(locPix[0], locPix[1])) {
                             // Remember first and last visible (in extent) point
                             // locations of row, for possible time stamp line --
                             // *even if we are not displaying the points in this
@@ -370,8 +372,8 @@ public class NcscatResource extends
                                 direction = pointData.getDirection();
                                 ColorBar colorBarToUse = pointData
                                         .getRainQcFlag()
-                                        && ncscatResourceData.use2ndColorForRainEnable ? colorBar2
-                                        : colorBar1;
+                                        && ncscatResourceData.use2ndColorForRainEnable
+                                                ? colorBar2 : colorBar1;
                                 color = getColorForSpeed(speed, colorBarToUse);
                                 colors = new Color[] { new Color(color.red,
                                         color.green, color.blue) };
@@ -382,9 +384,8 @@ public class NcscatResource extends
                                 if (pointData.getRainQcFlag()
                                         && ncscatResourceData.plotCirclesForRainEnable) {
                                     PixelCoordinate pixelLoc = new PixelCoordinate(
-                                            descriptor
-                                                    .worldToPixel(new double[] {
-                                                            location.x,
+                                            descriptor.worldToPixel(
+                                                    new double[] { location.x,
                                                             location.y }));
                                     DrawableCircle dc = new DrawableCircle();
                                     dc.basics.x = pixelLoc.getX();
@@ -406,12 +407,10 @@ public class NcscatResource extends
                 int minuteOfHour = rowData.rowTime.get(Calendar.MINUTE);
                 int minuteOfDay = hourOfDay * 60 + minuteOfHour;
 
-                if (ncscatResourceData.timeStampEnable
-                        &&
+                if (ncscatResourceData.timeStampEnable &&
                         // If this minute (of day) is a multiple of the selected
                         // timestamp interval...
-                        minuteOfDay % ncscatResourceData.timeStampInterval == 0
-                        &&
+                minuteOfDay % ncscatResourceData.timeStampInterval == 0 &&
                         // ...and we haven't already considered it for stamping
                         minuteOfDay != lastTimestampedMinute) {
                     // Draw time line/string for the first row within that
@@ -445,9 +444,11 @@ public class NcscatResource extends
                         ds1.basics.x = firstVisiblePointOfRow[0];
                         ds1.basics.y = firstVisiblePointOfRow[1];
                         ds1.font = font;
-                        ds1.horizontalAlignment = leftToRight ? HorizontalAlignment.RIGHT
+                        ds1.horizontalAlignment = leftToRight
+                                ? HorizontalAlignment.RIGHT
                                 : HorizontalAlignment.LEFT;
-                        ds1.verticallAlignment = bottomToTop ? VerticalAlignment.BOTTOM
+                        ds1.verticallAlignment = bottomToTop
+                                ? VerticalAlignment.BOTTOM
                                 : VerticalAlignment.TOP;
                         ds1.setText(timeString,
                                 ncscatResourceData.timeStampColor);
@@ -457,9 +458,11 @@ public class NcscatResource extends
                         ds2.basics.x = lastVisiblePointOfRow[0];
                         ds2.basics.y = lastVisiblePointOfRow[1];
                         ds2.font = font;
-                        ds2.horizontalAlignment = leftToRight ? HorizontalAlignment.LEFT
+                        ds2.horizontalAlignment = leftToRight
+                                ? HorizontalAlignment.LEFT
                                 : HorizontalAlignment.RIGHT;
-                        ds2.verticallAlignment = bottomToTop ? VerticalAlignment.TOP
+                        ds2.verticallAlignment = bottomToTop
+                                ? VerticalAlignment.TOP
                                 : VerticalAlignment.BOTTOM;
                         ds2.setText(timeString,
                                 ncscatResourceData.timeStampColor);
@@ -472,8 +475,8 @@ public class NcscatResource extends
             }
         }
 
-        private int determineRowDisplayInterval(
-                NcscatResourceData resourceData, double screenToWorldRatio) {
+        private int determineRowDisplayInterval(NcscatResourceData resourceData,
+                double screenToWorldRatio) {
             if (resourceData.skipEnable) {
                 // User can select how many rows -- and points within each row
                 // -- to *skip* in between ones that get displayed; add one to
@@ -483,7 +486,8 @@ public class NcscatResource extends
                 // ...OR if skip option not selected, auto-compute the interval
                 // based on zoom and user-specified relative density index
                 // (1-99) (i.e., selectable progressive disclosure)
-                int computedInterval = (int) (50 / screenToWorldRatio / ncscatResourceData.densityValue);
+                int computedInterval = (int) (50 / screenToWorldRatio
+                        / ncscatResourceData.densityValue);
                 // Limit computed interval to between 1 and 6
                 computedInterval = computedInterval > 6 ? 6 : computedInterval;
                 computedInterval = computedInterval < 1 ? 1 : computedInterval;
@@ -506,7 +510,8 @@ public class NcscatResource extends
 
         private boolean hasExtentChanged(PaintProperties paintProps) {
             // Has the corrected extent changed since last regen?
-            PixelExtent currentCorrectedExtent = computeCorrectedExtent(paintProps);
+            PixelExtent currentCorrectedExtent = computeCorrectedExtent(
+                    paintProps);
             if (correctedExtent == null) {
                 return true;
             } else if (correctedExtent.equals(currentCorrectedExtent)) {
@@ -530,7 +535,8 @@ public class NcscatResource extends
         ncscatResourceData = (NcscatResourceData) resourceData;
     }
 
-    protected AbstractFrameData createNewFrame(DataTime frameTime, int timeInt) {
+    protected AbstractFrameData createNewFrame(DataTime frameTime,
+            int timeInt) {
         return (AbstractFrameData) new FrameData(frameTime, timeInt);
     }
 
@@ -546,10 +552,10 @@ public class NcscatResource extends
         // list.
         //
         ColorBar colorBar1 = ncscatResourceData.getColorBar1();
-        colorBar1
-                .setReverseOrder(colorBar1.getOrientation() == ColorBarOrientation.Vertical);
-        colorbar1ResourcePair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(colorBar1));
+        colorBar1.setReverseOrder(
+                colorBar1.getOrientation() == ColorBarOrientation.Vertical);
+        colorbar1ResourcePair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(colorBar1));
 
         getDescriptor().getResourceList().add(colorbar1ResourcePair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
@@ -559,11 +565,10 @@ public class NcscatResource extends
                 .getResource();
 
         ColorBar colorBar2 = ncscatResourceData.getColorBar2();
-        colorBar2
-                .setReverseOrder(colorBar2.getOrientation() == ColorBarOrientation.Vertical);
-        colorBar2ResourcePair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(
-                        ncscatResourceData.getColorBar2()));
+        colorBar2.setReverseOrder(
+                colorBar2.getOrientation() == ColorBarOrientation.Vertical);
+        colorBar2ResourcePair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(ncscatResourceData.getColorBar2()));
 
         getDescriptor().getResourceList().add(colorBar2ResourcePair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
@@ -571,6 +576,13 @@ public class NcscatResource extends
 
         colorBar2Resource = (ColorBarResource) colorBar2ResourcePair
                 .getResource();
+
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        colorbar1ResourcePair.getProperties().setVisible(parentVisibility);
+        colorBar2ResourcePair.getProperties().setVisible(parentVisibility);
 
         if (!ncscatResourceData.use2ndColorForRainEnable) {
             getDescriptor().getResourceList().remove(colorBar2ResourcePair);
@@ -633,14 +645,15 @@ public class NcscatResource extends
         boolean isColorBar2Enabled = (getDescriptor().getResourceList()
                 .indexOf(colorBar2ResourcePair) != -1);
         //
-        if (ncscatResourceData.use2ndColorForRainEnable && !isColorBar2Enabled) {
+        if (ncscatResourceData.use2ndColorForRainEnable
+                && !isColorBar2Enabled) {
             colorBar2ResourcePair = ResourcePair
                     .constructSystemResourcePair(new ColorBarResourceData(
                             ncscatResourceData.getColorBar2()));
 
             getDescriptor().getResourceList().add(colorBar2ResourcePair);
-            getDescriptor().getResourceList().instantiateResources(
-                    getDescriptor(), true);
+            getDescriptor().getResourceList()
+                    .instantiateResources(getDescriptor(), true);
 
             colorBar2Resource = (ColorBarResource) colorBar2ResourcePair
                     .getResource();
@@ -654,14 +667,14 @@ public class NcscatResource extends
         }
 
         ColorBar colorBar1 = ncscatResourceData.getColorBar1();
-        colorBar1
-                .setReverseOrder(colorBar1.getOrientation() == ColorBarOrientation.Vertical);
+        colorBar1.setReverseOrder(
+                colorBar1.getOrientation() == ColorBarOrientation.Vertical);
         colorBar1Resource.setColorBar(colorBar1);
 
         if (colorBar2Resource != null) {
             ColorBar colorBar2 = ncscatResourceData.getColorBar2();
-            colorBar2
-                    .setReverseOrder(colorBar2.getOrientation() == ColorBarOrientation.Vertical);
+            colorBar2.setReverseOrder(
+                    colorBar2.getOrientation() == ColorBarOrientation.Vertical);
             colorBar2Resource.setColorBar(colorBar2);
         }
 
@@ -673,12 +686,12 @@ public class NcscatResource extends
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
         if (colorbar1ResourcePair != null) {
-            colorbar1ResourcePair.getProperties().setVisible(
-                    updatedProps.isVisible());
+            colorbar1ResourcePair.getProperties()
+                    .setVisible(updatedProps.isVisible());
         }
         if (colorBar2ResourcePair != null) {
-            colorBar2ResourcePair.getProperties().setVisible(
-                    updatedProps.isVisible());
+            colorBar2ResourcePair.getProperties()
+                    .setVisible(updatedProps.isVisible());
         }
     }
 
@@ -686,7 +699,8 @@ public class NcscatResource extends
     public String getName() {
         String legendString = super.getName();
         FrameData fd = (FrameData) getCurrentFrame();
-        if (fd == null || fd.getFrameTime() == null || fd.frameRows.size() == 0) {
+        if (fd == null || fd.getFrameTime() == null
+                || fd.frameRows.size() == 0) {
             return legendString + " - No Data";
         }
         return legendString + " "

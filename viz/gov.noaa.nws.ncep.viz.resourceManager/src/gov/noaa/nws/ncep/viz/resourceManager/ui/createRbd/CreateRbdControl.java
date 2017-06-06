@@ -203,6 +203,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *                                        groupListViewer.getTable().addSelectionListener() 
  *                                        delGrpBtn.addSelectionListener() in
  *                                        CreateRbdControl.createGroupGrp()
+ * 05/09/2017     R27171    P. Moyer     Modified loadRBD to propagate group visibility property down 
+ *                                       to group's contained resource properties.
  * </pre>
  * 
  * @author ghull
@@ -3095,6 +3097,18 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                                         .getResourceData()).getGroupName()
                                                 .equals(grd.getGroupName())) {
                             rp.getProperties().setVisible(false);
+                        }
+
+                        // propagate group's visibility to its resource
+                        // children's properties in its resource list.
+                        // Only go down one level - do not go down to
+                        // sub-children. This is regardless of actual
+                        // ResourceData type stored in the list.
+
+                        boolean visibility = rp.getProperties().isVisible();
+
+                        for (ResourcePair grp : grd.getResourceList()) {
+                            grp.getProperties().setVisible(visibility);
                         }
 
                     }

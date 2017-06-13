@@ -520,7 +520,7 @@ public class ColorBarResource extends
                         DrawableString strToDraw = new DrawableString(labelStr,
                                 colorOfThisLabel);
                         strToDraw.horizontalAlignment = labelHorizAlign;
-                        strToDraw.verticallAlignment = labelVertAlign;
+                        strToDraw.verticalAlignment = labelVertAlign;
                         if (colorBar.getShowLabels()) {
                             strToDraw.setCoordinates(lblX, lblY);
                             target.drawStrings(strToDraw);
@@ -588,7 +588,7 @@ public class ColorBarResource extends
                     DrawableString strToDraw = new DrawableString(labelStr,
                             colorOfThisLabel);
                     strToDraw.horizontalAlignment = labelHorizAlign;
-                    strToDraw.verticallAlignment = labelVertAlign;
+                    strToDraw.verticalAlignment = labelVertAlign;
 
                     if (colorBar.getShowLabels()) {
                         strToDraw.setCoordinates(lblX, lblY);

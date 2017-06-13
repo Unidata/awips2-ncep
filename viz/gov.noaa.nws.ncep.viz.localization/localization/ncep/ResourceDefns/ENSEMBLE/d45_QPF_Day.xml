@@ -3,10 +3,10 @@
     <resourceDefnName>d45_QPF_Day</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=cmc;DGEX185;ecmwf;ece;ensqpf;gefs;gfs;GFS230;nogaps;UkmetHR-NorthernHemisphere
+primaryModel=GFS
+availableModels=CMC;DGEX185;ECMWF-Global;ensqpf;GEFS;GFS;NAVGEM;UKMET-Global
 pluginName=grid
-GDFILE={gfs,cmc,DGEX185,ecmwf,ece,ensqpf,gefs,GFS230,nogaps,UkmetHR-NorthernHemisphere}
+GDFILE={GFS,CMC,DGEX185,ECMWF-Global,ensqpf,GEFS,NAVGEM,UKMET-Global}
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
  * Date       	Ticket#		Engineer	Description
  * ------------	----------	-----------	--------------------------
  * 05/10		#265		G. Zhang   	Initial Creation.
+ * 03/17                    M. James    More concise wording.
  *
  * </pre>
  * 
@@ -35,8 +36,8 @@ public class WipeDialog extends Dialog{
 	
 	private Shell parent = null;
 	
-	private static final String TITLE = "Clear Map Data Confirmation";
-	private static final String MESSAGE = "Do You Really Want To Remove All Data On The Map ?";
+	private static final String TITLE = "Clear Map";
+	private static final String MESSAGE = "Remove all data?";
 	
 	/**
      * Constructor.

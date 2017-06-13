@@ -3,8 +3,8 @@
     <resourceDefnName>GFS_ENS</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=gfs
+primaryModel=GFS
+availableModels=GFS
 pluginName=grid
 GDFILE=
     </resourceParameters>

@@ -1,0 +1,26 @@
+!
+! Restore File : sig_wave_cont_fill_alt_ft
+!
+! Log:
+! M.Mainelli/TPC     09/2004  Initial creation
+! J.M.Sienkiewicz/OPC 10/2008 adapted to colors for altimeter wave heights
+!
+GLEVEL = 0
+GVCORD = none
+SKIP   = 0
+SCALE  = 0             !0
+GDPFUN = mask(mul(HTSGW,3.28),sea)//wvhtft!wvhtft!wvhtft
+TYPE   = c/f           !c
+CINT   = 3/0/1000 !1;2;3;4;5;7;8;10;11;13;14 !12;24
+LINE   = 31/1/2/1 !32/1/1/1 !2/1/2/1
+FINT   = 0;3;6;9;12;15;18;21;24;27;30;33;36;39;42;45;70
+FLINE  = 0;31;27;26;24;3;22;23;5;19;17;2;15;14;30;28;7
+HILO   = 0
+HLSYM  = 0
+WIND   = 0
+TITLE  = 5/-1/?~^  ALT SIG WAVE HEIGHT (FT) !0
+TEXT   = 1/21/1/hw
+COLORS = 2
+MARKER = 2
+GRDLBL = 5
+FILTER = yes

@@ -3,10 +3,10 @@
     <resourceDefnName>d23_mid_fin</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gfs
-availableModels=cmc;DGEX185;ecmwf;ece;ensqpf;gefs;gfs;GFS230;naefsbc_m;nam;namNestConus;nogaps;sref_m;UkmetHR-NorthernHemisphere
+primaryModel=GFS
+availableModels=CMC;DGEX185;ECMWF-Global;ensqpf;GEFS;GFS;NAM12;NAM12NestConus;NAVGEM;sref_m;UKMET-Global
 pluginName=grid
-GDFILE={gfs,cmc,DGEX185,ecmwf,ece,ensqpf,gefs,GFS230,naefsbc_m,nam,namNestConus,nogaps,sref_m,UkmetHR-NorthernHemisphere}
+GDFILE={GFS,CMC,DGEX185,ECMWF-Global,ensqpf,GEFS,NAM12,NAM12NestConus,NAVGEM,sref_m,UKMET-Global}
     </resourceParameters>
     <rscImplementation>EnsembleFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

@@ -1,4 +1,4 @@
-colorMapName=CA (Low Light Vis)
+colorMapName=lingray
 colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
 wavelength=1.378
 displayUnitStr=C

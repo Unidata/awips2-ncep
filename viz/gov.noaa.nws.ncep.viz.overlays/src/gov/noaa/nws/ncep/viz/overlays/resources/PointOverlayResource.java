@@ -305,7 +305,7 @@ public class PointOverlayResource
                         drawStr.setCoordinates(pix[0] + offsetX,
                                 pix[1] + offsetY);
                         drawStr.horizontalAlignment = HorizontalAlignment.CENTER;
-                        drawStr.verticallAlignment = VerticalAlignment.MIDDLE;
+                        drawStr.verticalAlignment = VerticalAlignment.MIDDLE;
                         labelStrings.add(drawStr);
                     }
                 }

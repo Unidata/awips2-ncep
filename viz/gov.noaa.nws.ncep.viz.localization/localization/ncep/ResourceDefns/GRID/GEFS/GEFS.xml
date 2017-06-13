@@ -3,7 +3,7 @@
     <resourceDefnName>GEFS</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=gefs
+GDFILE=GEFS
 pluginName=grid
 ensembleMember=%
 inventoryParam=P

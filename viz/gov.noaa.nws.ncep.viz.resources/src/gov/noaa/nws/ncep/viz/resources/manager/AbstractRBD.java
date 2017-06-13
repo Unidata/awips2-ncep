@@ -1,5 +1,24 @@
 package gov.noaa.nws.ncep.viz.resources.manager;
 
+import gov.noaa.nws.ncep.viz.common.area.NcGridGeometryAdapter;
+import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsPaneManager;
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
+import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
+import gov.noaa.nws.ncep.viz.common.display.IPaneLayoutable;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
+import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
+import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
+import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,25 +60,6 @@ import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
-import gov.noaa.nws.ncep.viz.common.area.NcGridGeometryAdapter;
-import gov.noaa.nws.ncep.viz.common.area.PredefinedAreaFactory;
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsPaneManager;
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsRenderableDisplay;
-import gov.noaa.nws.ncep.viz.common.display.INcPaneID;
-import gov.noaa.nws.ncep.viz.common.display.IPaneLayoutable;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayName;
-import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.groupresource.GroupResourceData;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
-
 /**
  * Bundle for Natl Cntrs Resources
  * 
@@ -88,10 +88,6 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
  *    09/23/2016     R21176    J.Huber     Resolve latest cycle time for grouped gridded resources in SPF.
  *    10/07/2016     R21481    Bugenhagen  Replaced use of temp file with ByteArrayOutputStream 
  *                                         in getRbd method.
- *    02/23/2017     R5940     B.Hebbard   In resolveLatestCycleTimes method,  
- *                                         replace call to getAvailableDataTimes 
- *                                         with call to resolveLatestCycleTime.
- * 
  * 
  * </pre>
  * 
@@ -302,12 +298,12 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                     GridGeometrySerialized ggs = geomAdapter.marshal(geom);
                     ggsMap.put(((INatlCntrsRenderableDisplay) disp).getPaneId()
                             .toString(), ggs);
-                    dispMap.put(((INatlCntrsRenderableDisplay) disp).getPaneId()
-                            .toString(), disp);
+                    dispMap.put(((INatlCntrsRenderableDisplay) disp)
+                            .getPaneId().toString(), disp);
 
                     // something valid as a placeholder....
-                    disp.getDescriptor()
-                            .setGridGeometry(PredefinedAreaFactory
+                    disp.getDescriptor().setGridGeometry(
+                            PredefinedAreaFactory
                                     .getDefaultPredefinedAreaForDisplayType(
                                             rbdBndl.getDisplayType())
                                     .getGridGeometry());
@@ -319,11 +315,11 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             AbstractRBD<?> clonedRbd = getRbd(outstream);
 
             for (AbstractRenderableDisplay disp : clonedRbd.getDisplays()) {
-                String ggsKey = ((INatlCntrsRenderableDisplay) disp).getPaneId()
-                        .toString();
+                String ggsKey = ((INatlCntrsRenderableDisplay) disp)
+                        .getPaneId().toString();
                 if (ggsMap.containsKey(ggsKey)) {
-                    GeneralGridGeometry geom = geomAdapter
-                            .unmarshal(ggsMap.get(ggsKey));
+                    GeneralGridGeometry geom = geomAdapter.unmarshal(ggsMap
+                            .get(ggsKey));
                     disp.getDescriptor().setGridGeometry(geom);
                     // another copy
                     geom = geomAdapter.unmarshal(ggsMap.get(ggsKey));
@@ -357,8 +353,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         } catch (JAXBException e) {
             throw new VizException(e);
         } catch (VizException e) {
-            throw new VizException("Error loading rbd " + rbdBndl.rbdName + " :"
-                    + e.getMessage());
+            throw new VizException("Error loading bundle " + rbdBndl.rbdName
+                    + " :" + e.getMessage());
         } catch (IOException e) {
             throw new VizException(e);
         } catch (Exception e) {
@@ -385,12 +381,6 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         case GRAPH_DISPLAY:
             rbd = new GraphRBD(pLayout);
             rbd.setRbdName("Graph");
-            break;
-        case NMAP_RTKP_WORLD_DISPLAY:
-            break;
-        case NSHARP_DISPLAY:
-            break;
-        default:
             break;
         }
 
@@ -434,8 +424,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         displays = (T[]) NcDisplayMngr.createDisplaysForNcDisplayType(this,
                 NcEditorUtil.getPaneLayout(ncEditor));
 
-        for (int paneIndx = 0; paneIndx < paneLayout
-                .getNumberOfPanes(); paneIndx++) {
+        for (int paneIndx = 0; paneIndx < paneLayout.getNumberOfPanes(); paneIndx++) {
             IDisplayPane pane = NcEditorUtil.getDisplayPane(ncEditor,
                     paneLayout.createPaneId(paneIndx));
 
@@ -447,8 +436,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             displays[paneIndx] = rDispPane;
         }
 
-        setTimeMatcher(new NCTimeMatcher(
-                (NCTimeMatcher) displays[0].getDescriptor().getTimeMatcher()));
+        setTimeMatcher(new NCTimeMatcher((NCTimeMatcher) displays[0]
+                .getDescriptor().getTimeMatcher()));
     }
 
     /**
@@ -496,11 +485,14 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         this.displays = displays;
     }
 
+    // TODO : add the ability to define what the default display type is. Ie.
+    // NMAP or SWPC.
     public static AbstractRBD<?> getDefaultRBD() throws VizException {
         NcDisplayType dfltDisplayType = NcDisplayType.NMAP_DISPLAY;
         return getDefaultRBD(dfltDisplayType);
     }
 
+    // TODO : change/move this to be able to get user-based default RBDs.
     public static AbstractRBD<?> getDefaultRBD(NcDisplayType displayType)
             throws VizException {
 
@@ -533,14 +525,14 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             break;
 
         default:
-            throw new VizException("Unable to find the default RBD name for "
+            throw new VizException("Unable to find the default bundle name for "
                     + displayType.toString());
         }
 
         File rbdFile = NcPathManager.getInstance().getStaticFile(dfltRbdName);
 
         if (rbdFile == null) {
-            throw new VizException("Unable to find the default RBD file for "
+            throw new VizException("Unable to find the default bundle file for "
                     + displayType.toString());
         }
 
@@ -556,8 +548,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return clone(dfltRbd);
 
         } catch (Exception ve) {
-            throw new VizException(
-                    "Error getting default RBD: " + ve.getMessage());
+            throw new VizException("Error getting default bundle: "
+                    + ve.getMessage());
         }
     }
 
@@ -571,7 +563,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         //
         if (rbd.displays == null || rbd.displays.length == 0) {
             throw new VizException(
-                    "Error unmarshalling RBD: the renderable display list is null");
+                    "Error unmarshalling bundle: the renderable display list is null");
         }
 
         return rbd;
@@ -595,7 +587,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
         //
         if (rbd.displays == null || rbd.displays.length == 0) {
             throw new VizException(
-                    "Error unmarshalling RBD: the renderable display list is null");
+                    "Error unmarshalling bundle: the renderable display list is null");
         }
 
         return rbd;
@@ -626,9 +618,10 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             s = new String(b);
 
         } catch (Exception e) {
-            throw new VizException("Error opening RBD file " + fileName, e);
+            throw new VizException("Error opening bundle " + fileName, e);
         }
-
+        statusHandler.handle(Priority.INFO,
+                "Attempting to unmarshall file " + fileName);
         return unmarshalRBD(s, variables);
 
     }
@@ -658,7 +651,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                     .unmarshalFromInputStream(instream);
             if (rbd == null) {
                 statusHandler.handle(Priority.INFO,
-                        "Unmarshalled stream is not a valid RBD.");
+                        "Unmarshalled stream is not a valid bundle.");
                 return null;
             }
 
@@ -667,9 +660,9 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             return rbd;
 
         } catch (SerializationException e) {
-            throw new VizException("Error unmarshalling RBD", e);
+            throw new VizException("Error unmarshalling bundle", e);
         } catch (JAXBException e) {
-            throw new VizException("JAXB error for RBD", e);
+            throw new VizException("JAXB error for bundle", e);
         }
 
     }
@@ -692,15 +685,15 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             Map<String, String> variables) throws VizException {
 
         try {
-            String substStr = VariableSubstitutionUtil
-                    .processVariables(bundleStr, variables);
+            String substStr = VariableSubstitutionUtil.processVariables(
+                    bundleStr, variables);
 
             AbstractRBD<?> b = (AbstractRBD<?>) getJaxbManager()
                     .unmarshalFromXml(substStr);
 
             if (b == null) {
                 statusHandler.handle(Priority.INFO,
-                        "Unmarshalled rbd file is not a valid RBD.");
+                        "Unmarshalled file is not a valid bundle.");
                 return null;
             }
 
@@ -736,13 +729,11 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
      */
     private void sortResourcesByRenderingOrder() {
         for (T disp : getDisplays()) {
-            for (ResourcePair rscPair : disp.getDescriptor()
-                    .getResourceList()) {
+            for (ResourcePair rscPair : disp.getDescriptor().getResourceList()) {
                 if (rscPair.getProperties().getRenderingOrderId() != null) {
-                    rscPair.getProperties()
-                            .setRenderingOrder(RenderingOrderFactory
-                                    .getRenderingOrder(rscPair.getProperties()
-                                            .getRenderingOrderId()));
+                    rscPair.getProperties().setRenderingOrder(
+                            RenderingOrderFactory.getRenderingOrder(rscPair
+                                    .getProperties().getRenderingOrderId()));
                 }
             }
             disp.getDescriptor().getResourceList().sort();
@@ -761,8 +752,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             throws JAXBException {
         if (jaxb == null) {
             SubClassLocator locator = new SubClassLocator();
-            Collection<Class<?>> classes = JAXBClassLocator
-                    .getJAXBClasses(locator, AbstractRBD.class);
+            Collection<Class<?>> classes = JAXBClassLocator.getJAXBClasses(
+                    locator, AbstractRBD.class);
             locator.save();
 
             Class<?>[] jaxbClasses = new Class<?>[classes.size() + 1];
@@ -795,8 +786,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             if (disp != null) {
                 disp.getDescriptor().setTimeMatcher(timeMatcher);
 
-                timeMatcher.addDescriptor(
-                        (INatlCntrsDescriptor) disp.getDescriptor());
+                timeMatcher.addDescriptor((INatlCntrsDescriptor) disp
+                        .getDescriptor());
             }
         }
     }
@@ -823,12 +814,11 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                         AbstractResourceData singleAbstractData = singlePair
                                 .getResourceData();
                         if (singleAbstractData instanceof AbstractNatlCntrsRequestableResourceData) {
-                            allResourcesList.add(
-                                    (AbstractNatlCntrsRequestableResourceData) singleAbstractData);
+                            allResourcesList
+                                    .add((AbstractNatlCntrsRequestableResourceData) singleAbstractData);
                         }
                     }
-                } else if (rp
-                        .getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+                } else if (rp.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
                     allResourcesList
                             .add((AbstractNatlCntrsRequestableResourceData) rp
                                     .getResourceData());
@@ -841,7 +831,7 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                             && rscName.isLatestCycleTime()) {
 
                         // The rscData comes in with the ResourceName variable
-                        // still including "LATEST". The resolveLatestCycleTime
+                        // still including "LATEST". The getAvailableDataTimes()
                         // changes the ResourceName but does not reset the
                         // timeMatcher's ResourceName to match. So if the
                         // incoming ResourceName (which still has "LATEST") is
@@ -851,14 +841,18 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
                         // latest cycle time instead of "LATEST".
 
                         boolean refreshResourceData = false;
-                        if (timeMatcher.getDominantResourceName()
-                                .equals(rscData.getResourceName())) {
+                        if (timeMatcher.getDominantResourceName().equals(
+                                rscData.getResourceName())) {
                             refreshResourceData = true;
                         }
-                        rscData.resolveLatestCycleTime();
+                        rscData.getAvailableDataTimes();
                         if (refreshResourceData) {
                             timeMatcher.setDominantResourceData(rscData);
                         }
+                        // TODO : do we leave as Latest, or flag
+                        // as NoDataAvailable? Either way the resource is going
+                        // to have to be able to handle this case.
+                        //
                         if (rscName.isLatestCycleTime()) {
                             statusHandler.handle(Priority.PROBLEM,
                                     "Unable to Resolve Latest cycle time for :"
@@ -925,8 +919,8 @@ public abstract class AbstractRBD<T extends AbstractRenderableDisplay>
             if (rscPairResourceData instanceof AbstractNatlCntrsRequestableResourceData) {
                 AbstractNatlCntrsRequestableResourceData rdata = (AbstractNatlCntrsRequestableResourceData) rscPair
                         .getResourceData();
-                if (domRscName.toString()
-                        .equals(rdata.getResourceName().toString())) {
+                if (domRscName.toString().equals(
+                        rdata.getResourceName().toString())) {
                     timeMatcher.setDominantResourceData(rdata);
                     return;
                 }

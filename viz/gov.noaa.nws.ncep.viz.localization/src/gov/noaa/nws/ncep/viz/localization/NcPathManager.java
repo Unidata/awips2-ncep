@@ -59,7 +59,7 @@ import com.raytheon.uf.common.localization.PathManagerFactory;
  *                                       to the StartupInitialization class.
  * 10/01/2015     R8051     Edwin Brown  Clean up work.
  * 10/15/15       R7190     R. Reynolds  Added support for Mcidas
- * 
+ * 06/20/2017     R34594    J. Huber     Update paths to station xml files.
  * 
  * </pre>
  * 
@@ -104,7 +104,7 @@ public class NcPathManager {
 
         public static final String COLORMAPS_DIR = NCEP_ROOT + "ColorMaps";
 
-        public static final String STATIONS_DIR = NCEP_ROOT + "Stations";
+        public static final String AWW_STATIONS_DIR = NCEP_ROOT + "AWWTables";
 
         public static final String LOGOS_DIR = NCEP_ROOT + "Logos";
 
@@ -170,9 +170,6 @@ public class NcPathManager {
         public static final String GEOG_TBL = PREDEFINED_AREAS_DIR
                 + File.separator + "gempak" + File.separator + "geog.xml";
 
-        public static final String SFSTNS_TBL = STATIONS_DIR + File.separator
-                + "sfstns.xml";
-
         public static final String CONDITIONAL_FILTERS_DIR = PLOT_MODELS_DIR
                 + File.separator + "ConditionalFilters";
 
@@ -191,21 +188,9 @@ public class NcPathManager {
         public static final String ADVANCED_ICON_IMG = NCEP_ROOT
                 + File.separator + "advanced" + File.separator + "adv_icon.jpg";
 
-        // migrating code which looked for these filenames
-        public static final String VORS_STN_TBL = STATIONS_DIR + File.separator
-                + "vors.xml";
+        public static final String COUNTY_STN_TBL = AWW_STATIONS_DIR + "county.xml";
 
-        public static final String VOLCANO_STN_TBL = STATIONS_DIR
-                + File.separator + "volcano.xml";
-
-        public static final String COUNTY_STN_TBL = STATIONS_DIR
-                + File.separator + "county.xml";
-
-        public static final String FFG_ZONES_STN_TBL = STATIONS_DIR
-                + File.separator + "ffgZones.xml";
-
-        public static final String SPCWATCH_STN_TBL = STATIONS_DIR
-                + File.separator + "spcwatch.xml";
+        public static final String FFG_ZONES_STN_TBL = AWW_STATIONS_DIR + "ffgZones.xml";
 
         public static final String SHAPEFILES_DIR = NCEP_ROOT + "Shapefiles";
 
@@ -243,6 +228,16 @@ public class NcPathManager {
         // PGEN Files
         public static final String PGEN_ROOT = NCEP_ROOT + "pgen"
                 + File.separator;
+
+        public static final String PGEN_TABLES_DIR = PGEN_ROOT + "tables" + File.separator;
+
+        public static final String SPCWATCH_STN_TBL = PGEN_TABLES_DIR + "spcwatch.xml";
+
+        public static final String SFSTNS_TBL = PGEN_TABLES_DIR + "sfstns.xml";
+
+        public static final String VOLCANO_STN_TBL = PGEN_TABLES_DIR + "volcano.xml";
+
+        public static final String VORS_STN_TBL = PGEN_TABLES_DIR + "vors.xml";
 
         public static final String PGEN_SETTINGS_TBL = PGEN_ROOT
                 + "settings_tbl.xml";
@@ -417,27 +412,27 @@ public class NcPathManager {
      * @param filesOnly
      * @return Map
      */
-    public Map<String, LocalizationFile> listFiles(String name,
-            String[] filter, boolean recursive, boolean filesOnly) {
+    public Map<String, LocalizationFile> listFiles(String name, String[] filter,
+            boolean recursive, boolean filesOnly) {
 
-        LocalizationContext[] contexts = getLocalSearchHierarchy(LocalizationType.CAVE_STATIC);
+        LocalizationContext[] contexts = getLocalSearchHierarchy(
+                LocalizationType.CAVE_STATIC);
 
-        Map<String, LocalizationFile> lFileMap = new HashMap<String, LocalizationFile>();
+        Map<String, LocalizationFile> lFileMap = new HashMap<>();
 
-        List<LocalizationFile> lFilesList = Arrays.asList(pathMngr.listFiles(
-                contexts, name, filter, recursive, filesOnly));
+        List<LocalizationFile> lFilesList = Arrays.asList(pathMngr
+                .listFiles(contexts, name, filter, recursive, filesOnly));
 
         // loop thru the files and add them to the map if there is not already a
         // file present from a higher level.
 
         for (LocalizationFile lFile : lFilesList) {
-            String lName = lFile.getName();
+            String lName = lFile.getPath();
             LocalizationLevel lLvl = lFile.getContext().getLocalizationLevel();
 
-            if (!lFileMap.containsKey(lName)
-                    || (lFileMap.get(lName).getContext().getLocalizationLevel()
-                            .compareTo(lLvl) < 0)) {
-                lFileMap.put(lFile.getName(), lFile);
+            if (!lFileMap.containsKey(lName) || (lFileMap.get(lName)
+                    .getContext().getLocalizationLevel().compareTo(lLvl) < 0)) {
+                lFileMap.put(lFile.getPath(), lFile);
             }
         }
 
@@ -461,7 +456,8 @@ public class NcPathManager {
         return pathMngr.getContextList(level);
     }
 
-    public LocalizationContext[] getLocalSearchHierarchy(LocalizationType type) {
+    public LocalizationContext[] getLocalSearchHierarchy(
+            LocalizationType type) {
         return pathMngr.getLocalSearchHierarchy(type);
     }
 }

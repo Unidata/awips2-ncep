@@ -11,7 +11,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
- * 05/11/2015   5070        randerso    Adjust font sizes for dpi scaling
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  *
  * </pre>
  * 
@@ -19,14 +19,13 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * @version 1.0
  */
 
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,14 +38,13 @@ import javax.measure.unit.SI;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 
-import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.PixelExtent;
+import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.drawables.IFont;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
-import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
@@ -58,7 +56,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 public class NsharpAbstractPaneResource extends
         AbstractVizResource<AbstractResourceData, NsharpAbstractPaneDescriptor> {
-    NsharpNative nsharpNative = null;
 
     protected IGraphicsTarget target = null;
 
@@ -94,7 +91,7 @@ public class NsharpAbstractPaneResource extends
 
     protected IFont font12 = null;
 
-    protected IFont font20 = null; // d2dlite
+    protected IFont font20 = null;
 
     protected float currentFont10Size = 10;
 
@@ -104,45 +101,41 @@ public class NsharpAbstractPaneResource extends
 
     protected Coordinate interactiveTempPointCoordinate;
 
-    protected Float currentZoomLevel = 1f;
+    protected float currentZoomLevel = 1f;
 
-    protected float currentCanvasBoundWidth;// =
-                                            // NsharpConstants.DEFAULT_CANVAS_WIDTH;
+    protected float currentCanvasBoundWidth;
 
-    protected float currentCanvasBoundHeight; // =
-                                              // NsharpConstants.DEFAULT_CANVAS_HEIGHT;
+    protected float currentCanvasBoundHeight;
 
-    protected float myDefaultCanvasHeight;// =
-                                          // NsharpConstants.DEFAULT_CANVAS_HEIGHT*4/5;
+    protected float myDefaultCanvasHeight;
 
-    protected float myDefaultCanvasWidth;// =
-                                         // NsharpConstants.DEFAULT_CANVAS_WIDTH/2;
+    protected float myDefaultCanvasWidth;
 
-    // protected Float zoomLevel;
     protected boolean resize = false;
 
     protected String paneConfigurationName;
 
-    public static final float INVALID_DATA = NsharpNativeConstants.NSHARP_NATIVE_INVALID_DATA;
+    public static final float INVALID_DATA = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
 
     protected Coordinate cursorCor;
 
-    protected double charHeight = NsharpConstants.CHAR_HEIGHT_; // d2dlite
+    protected double charHeight = NsharpConstants.CHAR_HEIGHT_;
 
     protected double charWidth;
 
-    // d2dlite
     protected double lineHeight = charHeight * 1.2;
 
     protected PaintProperties paintProps;
 
-    protected boolean sidePaneMode = false; // FixMark:sidePaneLooping d2dlite
+    protected boolean sidePaneMode = false;
+
+    protected NsharpWeatherDataStore weatherDataStore;
 
     public NsharpAbstractPaneResource(AbstractResourceData resourceData,
             LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
         super(resourceData, loadProperties);
         descriptor = desc;
-        this.dataTimes = new ArrayList<DataTime>();
+        this.dataTimes = new ArrayList<>();
 
     }
 
@@ -164,7 +157,7 @@ public class NsharpAbstractPaneResource extends
             font12.dispose();
             font12 = null;
         }
-        if (font20 != null) { // d2dlite
+        if (font20 != null) {
             font20.dispose();
             font20 = null;
         }
@@ -180,15 +173,6 @@ public class NsharpAbstractPaneResource extends
         if (rscHandler == null || rscHandler.getSoundingLys() == null)
             return;
         float zoomLevel = paintProps.getZoomLevel();
-        /*
-         * if( currentCanvasBoundWidth!= paintProps.getCanvasBounds().width ||
-         * currentCanvasBoundHeight!=paintProps.getCanvasBounds().height){
-         * 
-         * currentCanvasBoundWidth= paintProps.getCanvasBounds().width;
-         * currentCanvasBoundHeight=paintProps.getCanvasBounds().height;
-         * adjustFontSize(currentCanvasBoundWidth,currentCanvasBoundHeight); }
-         */
-        // System.out.println("currentZoomLevel="+currentZoomLevel+" paintProps's zoomLevel="+zoomLevel);
         if (zoomLevel > 1.0f)
             zoomLevel = 1.0f;
         if ((zoomLevel != currentZoomLevel)) {
@@ -204,12 +188,12 @@ public class NsharpAbstractPaneResource extends
     @Override
     protected void initInternal(IGraphicsTarget target) throws VizException {
         this.target = target;
-        this.font9 = target.initializeFont("Monospace", 7.5f, null);
-        this.font10 = target.initializeFont("Monospace", 8, null);
-        this.font11 = target.initializeFont("Monospace", 9, null);
+        this.font9 = target.initializeFont("Monospace", 9, null);
+        this.font10 = target.initializeFont("Monospace", 10, null);
+        this.font11 = target.initializeFont("Monospace", 11, null);
         IFont.Style[] style = { IFont.Style.BOLD };
-        this.font12 = target.initializeFont("Monospace", 10, style);
-        this.font20 = target.initializeFont("Monospace", 17, null); // d2dlite
+        this.font12 = target.initializeFont("Monospace", 12, style);
+        this.font20 = target.initializeFont("Monospace", 20, null);
         this.font9.setSmoothing(false);
         this.font9.setScaleFont(false);
         this.font10.setSmoothing(false);
@@ -218,22 +202,21 @@ public class NsharpAbstractPaneResource extends
         this.font11.setScaleFont(false);
         this.font12.setSmoothing(false);
         this.font12.setScaleFont(false);
-        this.font20.setSmoothing(false); // d2dlite
+        this.font20.setSmoothing(false);
         this.font20.setScaleFont(false);
         commonLinewidth = getCapability(OutlineCapability.class)
                 .getOutlineWidth();
         commonLineStyle = getCapability(OutlineCapability.class).getLineStyle();
         this.resize = true;
-        // nsharpNative = new NsharpNative();
-        // System.out.println("NsharpDefaultPaneResource ::: initInternal with native "+
-        // nsharpNative.toString());
+
     }
 
     public void resetData(List<NcSoundingLayer> soundingLys,
             List<NcSoundingLayer> prevsoundingLys) {
         this.soundingLys = soundingLys;
         this.previousSoundingLys = prevsoundingLys;
-        descriptor.setFramesInfo(new FramesInfo(0));//setFrame(0);
+        descriptor.setFramesInfo(new FramesInfo(0));
+
     }
 
     public NsharpWGraphics getWorld() {
@@ -241,13 +224,10 @@ public class NsharpAbstractPaneResource extends
     }
 
     protected void adjustFontSize(float canvasW, float canvasH) {
-        // TODO: this is likely to need work after the LX upgrade changes
-
-        float font9Size, font10Size, font11Size, font12Size, font20Size; // d2dlite
+        float font9Size, font10Size, font11Size, font12Size, font20Size;
 
         float fontAdjusted = 0;
-        float fontBaseH = 90f; // Chin: why 70 & 100? After many "try and error"
-                               // experiments...
+        float fontBaseH = 90f;
         float fontBaseW = 120f;
         if (canvasH < myDefaultCanvasHeight && canvasW < myDefaultCanvasWidth) {
             // both width and height are smaller than default
@@ -264,19 +244,16 @@ public class NsharpAbstractPaneResource extends
             fontAdjusted = (float) (myDefaultCanvasHeight - canvasH)
                     / fontBaseH;
         }
-
-        // Ron: This would probably work better if the font adjustment was
-        // multiplied like a scale factor instead of added
-        // Chin: Can not bigger than 9, otherwise, fint9 size willbe negative.
-        // Why 8.8 ? After many "try and error" experiments...
+        // Chin: Can not bigger than 9, otherwise, fint9 size will be negative.
+        // After many "try and error" experiments...use 8.8
         if (fontAdjusted > 8.8)
             fontAdjusted = 8.8f;
 
-        font9Size = 7.5f - fontAdjusted;
-        font10Size = 8 - fontAdjusted;
-        font11Size = 9 - fontAdjusted;
-        font12Size = 10 - fontAdjusted;
-        font20Size = 17 - fontAdjusted; // d2dlite
+        font9Size = 9 - fontAdjusted;
+        font10Size = 10 - fontAdjusted;
+        font11Size = 11 - fontAdjusted;
+        font12Size = 12 - fontAdjusted;
+        font20Size = 20 - fontAdjusted;
 
         if (font9 != null) {
             font9.dispose();
@@ -296,13 +273,13 @@ public class NsharpAbstractPaneResource extends
         }
         IFont.Style[] style = { IFont.Style.BOLD };
         font12 = target.initializeFont("Monospace", font12Size, style);
-        // d2dlite
+
         if (font20 != null) {
             font20.dispose();
         }
         font20 = target.initializeFont("Monospace", font20Size, style);
         currentFont10Size = font10Size;
-        // System.out.println(descriptor.getPaneNumber()+": adjusted font10 size ="+currentFont10Size);
+
     }
 
     protected void magnifyFont(double zoomLevel) {
@@ -311,7 +288,7 @@ public class NsharpAbstractPaneResource extends
         font10.setMagnification(magFactor);
         font11.setMagnification(magFactor);
         font12.setMagnification(magFactor);
-        font20.setMagnification(magFactor); // d2dlite
+        font20.setMagnification(magFactor);
     }
 
     @Override
@@ -319,11 +296,12 @@ public class NsharpAbstractPaneResource extends
         super.setDescriptor(descriptor);
         RGB rgb = ColorUtil.getNewColor(descriptor);
         getCapability(ColorableCapability.class).setColor(rgb);
-        // System.out.println("screwT Rsc  setDescriptor called");
+
     }
 
     public void setSoundingLys(List<NcSoundingLayer> soundingLys) {
         this.soundingLys = soundingLys;
+
     }
 
     public HashMap<String, NsharpLineProperty> getLinePropertyMap() {
@@ -357,26 +335,14 @@ public class NsharpAbstractPaneResource extends
 
     public void setRscHandler(NsharpResourceHandler rscHandler) {
         this.rscHandler = rscHandler;
-        if (descriptor != null)
+        weatherDataStore = rscHandler.getWeatherDataStore();
+        if (descriptor != null) {
             descriptor.setRscHandler(rscHandler);
-    }
-
-    public void setNsharpNative(NsharpNative nsharpNative) {
-        this.nsharpNative = nsharpNative;
+        }
     }
 
     public void handleResize() {
         this.resize = false;
-        // double vertRatio = paintProps.getView().getExtent().getHeight() /
-        // paintProps.getCanvasBounds().height;
-        // double hRatio = paintProps.getView().getExtent().getWidth() /
-        // paintProps.getCanvasBounds().width;
-        // System.out.println(descriptor.getPaneNumber()+"viewWidth="+paintProps.getView().getExtent().getWidth()+" viewHeight="+paintProps.getView().getExtent().getHeight()
-        // );
-        // System.out.println(descriptor.getPaneNumber()+"canvWidth="+paintProps.getCanvasBounds().width+" canvHeight="+paintProps.getCanvasBounds().height
-        // );
-        // System.out.println(descriptor.getPaneNumber()+": vertRatio="+vertRatio
-        // + " hRatio="+hRatio);
         if (paintProps != null
                 && (currentCanvasBoundWidth != paintProps.getCanvasBounds().width || currentCanvasBoundHeight != paintProps
                         .getCanvasBounds().height)) {
@@ -395,12 +361,10 @@ public class NsharpAbstractPaneResource extends
 
     }
 
-    // FixMark:sidePaneLooping
     public boolean isSidePaneMode() {
         return sidePaneMode;
     }
 
-    // FixMark:sidePaneLooping
     public void setSidePaneMode(boolean sidePaneMode) {
         this.sidePaneMode = sidePaneMode;
     }
@@ -415,13 +379,12 @@ public class NsharpAbstractPaneResource extends
                 / paintProps.getCanvasBounds().height;
         double horizRatio = paintProps.getView().getExtent().getWidth()
                 / paintProps.getCanvasBounds().width;
-        charHeight = target.getStringsBounds(str).getHeight() * vertRatio; // d2dlite
-        lineHeight = charHeight * 1.2; // d2dlite
+        charHeight = target.getStringsBounds(str).getHeight() * vertRatio;
+        lineHeight = charHeight * 1.2;
         charWidth = target.getStringsBounds(str).getWidth() * horizRatio / 8;
 
     }
 
-    // d2dlite start
     protected String timeDescriptionToDisplayStr(String timeDescription) {
         /*
          * As of 2014 April 9, current time description string is defined as
@@ -430,13 +393,12 @@ public class NsharpAbstractPaneResource extends
          */
         String rtnStr = timeDescription.substring(4); // get rid of YYMM
         if (rtnStr.contains("V")) {
-            String[] s1Str = rtnStr.split("V"); // split DD/HH(DOW)Vxxx to
-                                                // "DD/HH(DOW)" and "xxx"
-            String[] s2Str = s1Str[0].split("\\("); // split "DD/HH(DOW)" to
-                                                    // "DD/HH" and "DOW)"
-            rtnStr = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1]; // put together
-                                                                 // to
-                                                                 // "DD/HHVxxx(DOW)"
+            // split DD/HH(DOW)Vxxx to "DD/HH(DOW)" and "xxx"
+            String[] s1Str = rtnStr.split("V");
+            // split "DD/HH(DOW)" to "DD/HH" and "DOW)"
+            String[] s2Str = s1Str[0].split("\\(");
+            // put together to "DD/HHVxxx(DOW)"
+            rtnStr = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1];
         }
         rtnStr = rtnStr.replace("/", "."); // replace "/" with "."
         return rtnStr;
@@ -458,6 +420,4 @@ public class NsharpAbstractPaneResource extends
         } else
             return pickedStnInfoStr; // not a good input, just return it
     }
-    // d2dlite end
-
 }

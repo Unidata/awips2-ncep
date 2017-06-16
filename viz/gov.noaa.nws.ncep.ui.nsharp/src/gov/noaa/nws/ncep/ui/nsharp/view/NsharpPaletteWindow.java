@@ -20,6 +20,8 @@
  * 02/04/2015   DR16888     Chin Chen   do not allow swap between Skewt and hodo when comparison is on, check in with DR17079
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration
  * 04/05/2016   RM#10435    rjpeter     Removed Inventory usage.
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ *  
  * </pre>
  * 
  * @author Chin Chen
@@ -673,10 +675,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     // note: resetRsc will reset currentPage, overlay, compare,
                     // interpolate flag in Resource
                     editor.getRscHandler().resetRsc();
-                    if (editor.getRscHandler().getDataPaneRsc() != null) {
-                        editor.getRscHandler().getDataPaneRsc()
-                                .resetCurrentParcel();
-                    }
+
                     NsharpParcelDialog parcelDia = NsharpParcelDialog
                             .getInstance(shell);
                     if (parcelDia != null) {
@@ -1394,7 +1393,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         } else {
             hailBtn.setEnabled(false);
         }
-        hailBtn.setEnabled(false);
         hailBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
             public void handleEvent(Event event) {

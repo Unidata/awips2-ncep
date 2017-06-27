@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
@@ -13,13 +14,14 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IPartListener;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -36,7 +38,6 @@ import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextDbQuery;
 import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextStationInfo;
 import gov.noaa.nws.ncep.ui.nctextui.rsc.NctextuiResource;
 import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 /**
  * 
@@ -56,6 +57,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
  * 02/15/2012   #972        G. Hull     NatlCntrsEditor 
  * 12/12/2016   R25982      J Beck      Modify support for Aviation > TAFs
  *                                      and Observed Data > TAFs Decoded
+ * 05/18/2017   R27945      Chin Chen   fixed Hours Covered Cut Off issue
  *
  * </pre>
  * 
@@ -104,25 +106,23 @@ public class NctextuiPaletteWindow extends ViewPart
 
     private String currentProductName = null;
 
-    private int colWidth = 200;
+    private static final int colWidth = 200;
 
-    private int listHeight = 150;
+    private static final int listHeight = 150;
 
-    private int btnGapY = 5;
+    private static final int btnGapX = 5;
 
-    private int btnGapX = 5;
+    private static final int staBtnWidth = 75;
 
-    private int timeBtnWidth = 40;
+    private static final int modeBtnWidth = 85;
 
-    private int staBtnWidth = 75;
+    private static final int btnHeight = 20;
 
-    private int btnHeight = 20;
+    private static final int pushbtnHeight = 25;
 
-    private int pushbtnHeight = 25;
+    private static final int labelGap = 20;
 
-    private int labelGap = 20;
-
-    private static int ASCII_CR_VAL = 13;
+    private static final int ASCII_CR_VAL = 13;
 
     private Text text;
 
@@ -162,7 +162,6 @@ public class NctextuiPaletteWindow extends ViewPart
                     .setDataTypeGroupItem(tmp.getDataTypeGroupItem());
             nctextuiPaletteWindow
                     .setDataTypeProductItem(tmp.getDataTypeProductItem());
-            ;
             nctextuiPaletteWindow.selectedGp = tmp.selectedGp;
             nctextuiPaletteWindow.selectedType = tmp.selectedType;
             nctextuiPaletteWindow.setTimeCovered(tmp.getTimeCovered());
@@ -227,16 +226,6 @@ public class NctextuiPaletteWindow extends ViewPart
             page.removePartListener(this);
         }
 
-    }
-
-    private void close() {
-        IWorkbenchPage wpage = PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getActivePage();
-
-        IViewPart vpart = wpage.findView("gov.noaa.nws.ncep.ui.NCTEXTUI");
-        wpage.hideView(vpart);
-
-        NcDisplayMngr.setPanningMode();
     }
 
     /**
@@ -459,106 +448,36 @@ public class NctextuiPaletteWindow extends ViewPart
         Group composite = new Group(parent, SWT.NORMAL);
         composite.setLayout(new GridLayout(1, false));
 
-        timeGp = new Group(composite, SWT.SHADOW_ETCHED_IN);
-        timeGp.setText("Hour Covered");
+        Label hourLabel = new Label(composite, SWT.None);
+        hourLabel.setText("Hour Covered");
+        
+        Combo hourCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
 
-        Listener btnListeener = new Listener() {
-            public void handleEvent(Event event) {
-                String btnText = ((Button) (event.widget)).getText();
-                timeCovered = EReportTimeRange.NONE;
-                if (!btnText.equals("all")) {
-                    EReportTimeRange timeRange = EReportTimeRange.NONE;
-                    timeCovered = timeRange
-                            .getTimeRangeFromInt(Integer.valueOf(btnText));
-                }
-                handleStnMarkingRequestByBtn();
+        hourCombo.setEnabled(true);
+
+        hourCombo
+                .setItems(new String[] { "1", "3", "6", "12", "24", "48", "all"});
+        
+        // default is 12 hours
+        hourCombo.select(3); 
+        
+        hourCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	int selectedIndex = hourCombo.getSelectionIndex(); 
+            	timeCovered = EReportTimeRange.NONE;
+            	if(selectedIndex >=0){
+            		String hourString = hourCombo.getItem(selectedIndex);
+            		if (!hourString.equals("all")) {
+                        EReportTimeRange timeRange = EReportTimeRange.NONE;
+                        timeCovered = timeRange
+                                .getTimeRangeFromInt(Integer.valueOf(hourString));
+                    }
+                    handleStnMarkingRequestByBtn();
+            	}   
             }
+        });
 
-        };
-
-        oneHrBtn = new Button(timeGp, SWT.RADIO | SWT.BORDER);
-        oneHrBtn.setText("1");
-        oneHrBtn.setEnabled(true);
-        oneHrBtn.setBounds(timeGp.getBounds().x + btnGapX,
-                timeGp.getBounds().y + labelGap, timeBtnWidth, btnHeight);
-        oneHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        threeHrBtn = new Button(timeGp, SWT.RADIO);
-        threeHrBtn.setText("3");
-        threeHrBtn.setEnabled(true);
-        threeHrBtn.setBounds(
-                btnGapX + oneHrBtn.getBounds().x + oneHrBtn.getBounds().width,
-                timeGp.getBounds().y + labelGap, timeBtnWidth, btnHeight);
-
-        threeHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        sixHrBtn = new Button(timeGp, SWT.RADIO);
-        sixHrBtn.setText("6");
-        sixHrBtn.setEnabled(true);
-        sixHrBtn.setBounds(
-                threeHrBtn.getBounds().x + threeHrBtn.getBounds().width
-                        + btnGapX,
-                timeGp.getBounds().y + labelGap, timeBtnWidth, btnHeight);
-
-        sixHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        twelveHrBtn = new Button(timeGp, SWT.RADIO);
-        twelveHrBtn.setText("12");
-        twelveHrBtn.setEnabled(true);
-        twelveHrBtn.setBounds(timeGp.getBounds().x + btnGapX,
-                oneHrBtn.getBounds().y + oneHrBtn.getBounds().height + btnGapY,
-                timeBtnWidth, btnHeight);
-
-        twelveHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        twentyfourHrBtn = new Button(timeGp, SWT.RADIO);
-        twentyfourHrBtn.setText("24");
-        twentyfourHrBtn.setEnabled(true);
-        twentyfourHrBtn.setBounds(
-                btnGapX + twelveHrBtn.getBounds().x
-                        + twelveHrBtn.getBounds().width,
-                threeHrBtn.getBounds().y + threeHrBtn.getBounds().height
-                        + btnGapY,
-                timeBtnWidth, btnHeight);
-
-        twentyfourHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        fourtyeightHrBtn = new Button(timeGp, SWT.RADIO);
-        fourtyeightHrBtn.setText("48");
-        fourtyeightHrBtn.setEnabled(true);
-        fourtyeightHrBtn.setBounds(
-                btnGapX + twentyfourHrBtn.getBounds().x
-                        + twentyfourHrBtn.getBounds().width,
-                sixHrBtn.getBounds().y + sixHrBtn.getBounds().height + btnGapY,
-                timeBtnWidth, btnHeight);
-
-        fourtyeightHrBtn.addListener(SWT.MouseUp, btnListeener);
-
-        allHrBtn = new Button(timeGp, SWT.RADIO);
-        allHrBtn.setText("all");
-        allHrBtn.setEnabled(true);
-        allHrBtn.setBounds(
-                btnGapX + fourtyeightHrBtn.getBounds().x
-                        + fourtyeightHrBtn.getBounds().width,
-                sixHrBtn.getBounds().y + sixHrBtn.getBounds().height + btnGapY,
-                timeBtnWidth, btnHeight);
-
-        if (timeCovered == EReportTimeRange.ONE_HOUR)
-            oneHrBtn.setSelection(true);
-        else if (timeCovered == EReportTimeRange.THREE_HOURS)
-            threeHrBtn.setSelection(true);
-        else if (timeCovered == EReportTimeRange.SIX_HOURS)
-            sixHrBtn.setSelection(true);
-        else if (timeCovered == EReportTimeRange.TWELVE_HOURS)
-            twelveHrBtn.setSelection(true);
-        else if (timeCovered == EReportTimeRange.TWENTYFOUR_HOURS)
-            twentyfourHrBtn.setSelection(true);
-        else if (timeCovered == EReportTimeRange.FORTYEIGHT_HOURS)
-            fourtyeightHrBtn.setSelection(true);
-        else
-            allHrBtn.setSelection(true);
-
-        allHrBtn.addListener(SWT.MouseUp, btnListeener);
         createStaStnBtns(composite);
 
     }
@@ -639,7 +558,7 @@ public class NctextuiPaletteWindow extends ViewPart
         replaceBtn.setText("Replace");
         replaceBtn.setEnabled(true);
         replaceBtn.setBounds(textModeGp.getBounds().x + btnGapX,
-                textModeGp.getBounds().y + labelGap, staBtnWidth, btnHeight);
+                textModeGp.getBounds().y + labelGap, modeBtnWidth, btnHeight);
         replaceBtn.setSelection(true);
 
         replaceBtn.addListener(SWT.MouseUp, new Listener() {
@@ -655,7 +574,7 @@ public class NctextuiPaletteWindow extends ViewPart
         appendBtn.setBounds(
                 replaceBtn.getBounds().x + replaceBtn.getBounds().width
                         + btnGapX,
-                textModeGp.getBounds().y + labelGap, staBtnWidth, btnHeight);
+                textModeGp.getBounds().y + labelGap, modeBtnWidth, btnHeight);
 
         appendBtn.addListener(SWT.MouseUp, new Listener() {
             public void handleEvent(Event event) {

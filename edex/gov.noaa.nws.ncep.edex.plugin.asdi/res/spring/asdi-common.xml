@@ -1,0 +1,22 @@
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+
+	<bean id="asdiPluginName" class="java.lang.String">
+		<constructor-arg type="java.lang.String" value="asdi" />
+	</bean>
+
+	<bean id="asdiProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+		<property name="pluginName" ref="asdiPluginName" />
+		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.asdi" />
+        <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.asdi.AsdiRecord" />
+	</bean>
+
+	<bean id="asdiRegistered" factory-bean="pluginRegistry" factory-method="register">
+		<constructor-arg ref="asdiPluginName"/>
+		<constructor-arg ref="asdiProperties"/>
+	</bean>
+    
+</beans>

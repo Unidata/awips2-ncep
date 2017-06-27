@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <resourceDefnName>ASDI</resourceDefnName>
+    <resourceCategory>MISC</resourceCategory>
+    <resourceParameters>
+        pluginName=asdi
+        reportType=asdi
+        legendColor=RGB {255, 255, 255}
+    </resourceParameters>
+    <rscImplementation>ASDI</rscImplementation>
+    <subTypeGenerator></subTypeGenerator>
+    <rscTypeGenerator></rscTypeGenerator>
+    <timeMatchMethod>BEFORE_OR_EQUAL</timeMatchMethod>
+    <frameSpan>2</frameSpan>
+    <timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+    <dfltFrameCount>10</dfltFrameCount>
+    <dfltTimeRange>24</dfltTimeRange>
+    <dfltGeogArea>BasicWX_US</dfltGeogArea>
+</ResourceDefinition>

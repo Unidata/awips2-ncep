@@ -231,6 +231,9 @@
 <ResourceDefinitionFilter rscDefnName="ATCF">
 <filters>Hurricane</filters>
 </ResourceDefinitionFilter>
+<ResourceDefinitionFilter rscDefnName="ASDI">
+<filters>ASDI</filters>
+</ResourceDefinitionFilter>
 <ResourceDefinitionFilter rscDefnName="WSTM">
 <filters>AWW</filters>
 </ResourceDefinitionFilter>

@@ -59,6 +59,7 @@ import com.raytheon.uf.common.localization.PathManagerFactory;
  *                                       to the StartupInitialization class.
  * 10/01/2015     R8051     Edwin Brown  Clean up work.
  * 10/15/15       R7190     R. Reynolds  Added support for Mcidas
+ * 03/07/2017    R28579     R.Reynolds   Added ASDI constant for airport XML directory
  * 06/20/2017     R34594    J. Huber     Update paths to station xml files.
  * 
  * </pre>
@@ -351,6 +352,8 @@ public class NcPathManager {
 
         public static final String SATELLITE_IMAGETYPES_DIR = NCEP_ROOT
                 + "satelliteImageTypes";
+
+        public static final String ASDI_AIRPORTS_DIR = NCEP_ROOT + "AsdiInfo";
 
     }
 

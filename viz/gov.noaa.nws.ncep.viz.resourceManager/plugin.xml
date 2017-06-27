@@ -125,5 +125,17 @@
        </path>
     </extension>
     
+       <extension
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="AsdiInfo"
+             recursive="true"
+             value="ncep/AsdiInfo"
+             extensionFilter=".xml">
+       </path>
+    </extension>
+    
 
 </plugin>

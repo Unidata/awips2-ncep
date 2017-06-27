@@ -19,6 +19,7 @@ import javax.measure.unit.Unit;
 import javax.measure.unit.UnitFormat;
 import javax.xml.bind.JAXBException;
 
+import org.eclipse.swt.graphics.Rectangle;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.raytheon.uf.common.colormap.ColorMap;
@@ -55,6 +56,7 @@ import com.raytheon.uf.common.style.level.Level;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableImage;
 import com.raytheon.uf.viz.core.IDisplayPaneContainer;
+import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.IRenderable;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
@@ -69,7 +71,9 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
+import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.viz.satellite.SatelliteConstants;
+import com.raytheon.viz.satellite.tileset.SatTileSetRenderable;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
@@ -136,6 +140,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  01/30/2017   R17933     R Reynolds   Build legendString from DB query parameters
  *  02/14/2017   R21492     kbugenhagen Added call to suppress "Change Colormap"
  *                                      menu item in setColorMapUnits method.
+ *  04/25/2017   R20558     bsteffen    Schedule all frames to load data in the background.
+ *  05/09/2017   R27171     P. Moyer    Modified initResource to take parent resource's
+ *                                      visibility and apply it to the newly created color bar
+ *  05/17/2017   R33818     bsteffen    Fixed units of GOES-R/Himawari data.
  * 
  * </pre>
  * 
@@ -167,6 +175,20 @@ public class NcSatelliteResource extends
     public static final String DEFAULT_LEGEND_STRING_ATTRIBUTE = "{RD} {channel}";
 
     private static JAXBManager jaxb;
+
+    /**
+     * Property that controls whether all frames of satellite data will be
+     * loaded in the background when the resource is painted. When the data is
+     * loaded in the background it causes the first loop through the data to be
+     * much smoother. The background loading increases memory and bandwidth
+     * usage so it needs to be disabled when these resources are limited.
+     * 
+     * {@link Boolean#getBoolean(String)} is not used because it defaults to
+     * false and the default value for this property is true.
+     */
+    private static final boolean BACKGROUND_LOAD = !System
+            .getProperty("ncp.sat.background.load", "true")
+            .equalsIgnoreCase("false");
 
     protected String legendStr = "";
 
@@ -400,10 +422,8 @@ public class NcSatelliteResource extends
                     tileMap.clear();
                 }
                 if (tileSet == null) {
-                    tileSet = new RecordTileSetRenderable(
-                            NcSatelliteResource.this, satRecord,
-                            satRecord.getGridGeometry(),
-                            satRecord.getInterpolationLevels() + 1);
+                    tileSet = new SatTileSetRenderable(NcSatelliteResource.this,
+                            satRecord);
                     tileSet.project(descriptor.getGridGeometry());
                     tileMap.put((T) satRecord.getCoverage(), tileSet);
                 }
@@ -454,6 +474,26 @@ public class NcSatelliteResource extends
                 }
             }
             return null;
+        }
+
+        /**
+         * Schedule the loading of data for all tiles that are needed to render
+         * within the specified extent. This just uses the scheduling in
+         * {@link TileSetRenderable}
+         * 
+         * @see TileSetRenderable#scheduleImagesWithinExtent(IGraphicsTarget,
+         *      IExtent, Rectangle)
+         */
+        public boolean scheduleImagesWithinExtent(IGraphicsTarget target,
+                IExtent extent, Rectangle canvasBounds) {
+            boolean result = true;
+            synchronized (tileMap) {
+                for (RecordTileSetRenderable renderable : tileMap.values()) {
+                    result &= renderable.scheduleImagesWithinExtent(target,
+                            extent, canvasBounds);
+                }
+            }
+            return result;
         }
 
         public Map<T, RecordTileSetRenderable> getTileMap() {
@@ -1053,6 +1093,12 @@ public class NcSatelliteResource extends
                 true);
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
 
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        cbarRscPair.getProperties().setVisible(parentVisibility);
+
         IDisplayPaneContainer container = getResourceContainer();
         if (container != null && inputAdapter != null) {
             container.registerMouseHandler(inputAdapter,
@@ -1060,6 +1106,24 @@ public class NcSatelliteResource extends
         }
 
         dataLoader.loadData();
+    }
+
+    @Override
+    public void paintInternal(IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
+        super.paintInternal(target, paintProps);
+        if (BACKGROUND_LOAD) {
+            /*
+             * after painting, schedule other frames to load data in the
+             * background for the same area.
+             */
+            for (AbstractFrameData frame : frameDataMap.values()) {
+                FrameData currFrame = (FrameData) frame;
+                currFrame.renderable.scheduleImagesWithinExtent(target,
+                        paintProps.getView().getExtent(),
+                        paintProps.getCanvasBounds());
+            }
+        }
     }
 
     /*

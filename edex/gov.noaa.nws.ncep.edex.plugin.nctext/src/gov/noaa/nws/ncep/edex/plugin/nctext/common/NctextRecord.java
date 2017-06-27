@@ -1,11 +1,17 @@
 package gov.noaa.nws.ncep.edex.plugin.nctext.common;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -37,13 +43,14 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 
  * Date         Ticket# Engineer    Description
  * ------------ ------- ----------- -------------------------------------
- * Oct 22, 2009 191     Chin Chen   Initial coding
- * Jul 23, 2010 191     Archana     Added DataUri annotation to productType
- * Apr 04, 2013 1846    bkowal      Added an index on refTime and forecastTime
- * Apr 12, 2013 1857    bgonzale    Added SequenceGenerator annotation.
- * May 07, 2013 1869    bsteffen    Remove dataURI column from PluginDataObject.
- * Aug 30, 2013 2298    rjpeter     Make getPluginName abstract
- * Jun 11, 2014 2061    bsteffen    Remove IDecoderGettable
+ * Oct 22, 2009 191      Chin Chen   Initial coding
+ * Jul 23, 2010 191      Archana     Added DataUri annotation to productType
+ * Apr 04, 2013 1846     bkowal      Added an index on refTime and forecastTime
+ * Apr 12, 2013 1857     bgonzale    Added SequenceGenerator annotation.
+ * May 07, 2013 1869     bsteffen    Remove dataURI column from PluginDataObject.
+ * Aug 30, 2013 2298     rjpeter     Make getPluginName abstract
+ * Jun 11, 2014 2061     bsteffen    Remove IDecoderGettable
+ * Feb 02, 2017 R28184   Chin Chen   fixed slow loading time for Observed TAF Data Products issue
  * 
  * </pre>
  * 
@@ -112,20 +119,25 @@ public class NctextRecord extends PluginDataObject {
 
     /** product data - the beef we are saving for a record, including header */
     @Column(columnDefinition = "text")
-    // @Column(length=100000)
     @XmlElement
     @DynamicSerializeElement
     private String rawRecord;
 
     /**
      * used to identify records in a same file with same values for all other
-     * data URI fields.
+     * data URI fields. 
+     * DataURI is not used by Nctext  any more.
+     * We should remove it when we decide to obsolete DataUri
+     * for all AWIPS2 projects
      */
     @DataURI(position = 5)
-    // @XmlElement
-    // @DynamicSerializeElement
-    // @Transient
     private int recordId;
+    
+    @DynamicSerializeElement
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "parentID", nullable = false)
+    @Index(name = "tafStn_parentid_idex")
+    private Set<NctextTafStn> tafStns = new HashSet<>();
 
     /**
      * data portion of a record, excluding first 3 lines (headers)
@@ -235,4 +247,16 @@ public class NctextRecord extends PluginDataObject {
     public String getPluginName() {
         return "nctext";
     }
+
+    public Set<NctextTafStn> getTafStns() {
+        return tafStns;
+    }
+
+    public void setTafStns(Set<NctextTafStn> tafStns) {
+        this.tafStns = tafStns;
+    }
+    public void addTafStnElement(NctextTafStn stn){
+        this.tafStns.add(stn);
+   }
+    
 }

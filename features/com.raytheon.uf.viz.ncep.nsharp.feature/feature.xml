@@ -31,13 +31,7 @@
          id="gov.noaa.nws.ncep.ui.nsharp"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.ui.nsharp.linux64"
-         download-size="0"
-         install-size="0"
          version="0.0.0"
-         fragment="true"/>
-
+         unpack="true"/>
+         
 </feature>

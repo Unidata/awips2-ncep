@@ -42,6 +42,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 04/12/2016      R16367  kbugenhagen Added support for SIMGOESR
  * 04/13/2016      R15954  S Russell   Added method getDataLoader()
  * 06/01/2016      R18511  kbugenhagen Added support for MODIS, removed system.out's
+ * 03/27/2017      R30270  bsteffen    Add physicalElement to gini area id.
  * 
  * This class is copied from com.raytheon.viz.satellite.rsc.SatResourceData
  * for TO 11 integration
@@ -277,7 +278,9 @@ public class SatelliteResourceData extends
         } else if (satelliteType == SatelliteType.GINI) {
             return metadataMap.get("creatingEntity").getConstraintValue()
                     + File.separator
-                    + metadataMap.get("sectorID").getConstraintValue();
+                    + metadataMap.get("sectorID").getConstraintValue()
+                    + File.separator
+                    + metadataMap.get("physicalElement").getConstraintValue();
         }
         return areaName;
     }

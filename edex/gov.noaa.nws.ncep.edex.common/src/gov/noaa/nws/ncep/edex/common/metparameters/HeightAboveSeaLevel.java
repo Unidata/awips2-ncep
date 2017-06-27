@@ -18,8 +18,10 @@ import com.raytheon.uf.common.units.UnitAdapter;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 09/29/2011              qzhou       Added STDZ format
- * 09/10/2016   R4151      jeff beck   Changed/added algorithm for STDZ to reference implementation.
+ * 09/10/2016   R4151      Jeff Beck   Changed/added algorithm for STDZ to reference implementation.
  *                                     Now uses pressure and previously did not.
+ * 04/11/2017   R28887     Jeff Beck   Corrected the calculataion of standard height in calculateSTDZ()
+ *                                     so that there will always be 3 digits to display in upper air plots.
  * </pre> 
  * @author  qzhou
  * @version 1.0
@@ -32,18 +34,15 @@ import com.raytheon.uf.common.units.UnitAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class HeightAboveSeaLevel extends AbstractMetParameter implements Length {
+public class HeightAboveSeaLevel extends AbstractMetParameter
+        implements Length {
 
     @DynamicSerializeElement
     private static final long serialVersionUID = -3831219033024527337L;
 
     private PressureLevel pressureLevel;
 
-    // Value needed to convert to decameters in STDZ algorithm
     private static final int DECAMETER_DIVISOR = 10;
-
-    // Value used to MOD in STDZ algorithm
-    private static final int MOD_DIVISOR = 1000;
 
     /*
      * (non-Javadoc) Run the STDZ algorithm if conditions are met
@@ -76,36 +75,50 @@ public class HeightAboveSeaLevel extends AbstractMetParameter implements Length 
 
     /**
      * 
-     * Compute standard height using STDZ algorithm
+     * Compute standard height using PR_STDZ algorithm
      * 
-     * This function computes a standard height used on upper-air charts. For
-     * data below 500mb, the standard height is the last three digits of the
-     * height. For data at and above 500mb, the height is the last three digits
-     * of the height in decameters.
+     * This function computes a standard height used on upper-air charts.
+     * 
+     * For pressure levels below 500mb, the standard height is defined as the
+     * last three digits of the height above sea level.
+     * 
+     * For pressure levels at and above 500mb, the standard height is defined as
+     * the last three digits of the height expressed in decameters.
+     * 
+     * Special Case:
+     * 
+     * If we are at a very high pressure near the surface, the height may be
+     * only 1 or 2 digits. In this case, we pad with zeros to get the standard
+     * height (as observed in legacy).
+     * 
      * 
      * @param pressureLevelValue
      *            pressure level in mb
+     * 
      * @param height
      *            height above sea level in meters
+     * 
      * @return the standard height in meters
      */
     private String calculateSTDZ(int pressureLevelValue, int height) {
 
         String stdz = "";
+        int len = 0;
 
         if (pressureLevelValue <= 500) {
+            stdz = Integer.toString(height / DECAMETER_DIVISOR);
 
-            // Data at and above 500mb
-            stdz = Integer.toString((height / DECAMETER_DIVISOR) % MOD_DIVISOR);
+        } else {
+            stdz = Integer.toString(height);
         }
 
-        else if (pressureLevelValue > 500) {
+        len = stdz.length();
 
-            // Data below 500mb
-            stdz = Integer.toString(height % MOD_DIVISOR);
+        if (len <= 3) {
+            return (String.format("%03d", Integer.parseInt(stdz)));
+        } else {
+            return stdz.substring(len - 3, len);
         }
-
-        return stdz;
     }
 
     public PressureLevel getPressureLevel() {

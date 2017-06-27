@@ -79,6 +79,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      to frameData inner class scope. Added
  *                                      setNeedsUpdateAllFrames() to set 
  *                                      needsUpdate on all frames to true.
+ *  05/09/2017    R27171    P. Moyer    Modified initResource to take parent resource's
+ *                                      visibility and apply it to the newly created color bar
  * </pre>
  * 
  * @author ghull
@@ -88,8 +90,8 @@ public class LightningResource extends
         AbstractNatlCntrsResource<LightningResourceData, NCMapDescriptor>
         implements INatlCntrsResource {
 
-    private static final IUFStatusHandler statusHandler =
-            UFStatus.getHandler(LightningResource.class);
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(LightningResource.class);
 
     private LightningResourceData ltngRscData;
 
@@ -217,6 +219,12 @@ public class LightningResource extends
 
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
 
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        cbarRscPair.getProperties().setVisible(parentVisibility);
+
         queryRecords();
     }
 
@@ -238,8 +246,8 @@ public class LightningResource extends
         ArrayList<DataTime> frameTimes = getFrameTimes();
         long frameIntrvlMs = (long) ltngRscData.getFrameSpan() * 60 * 1000;
 
-        long firstFrameTimeMs =
-                frameTimes.get(0).getValidTime().getTimeInMillis();
+        long firstFrameTimeMs = frameTimes.get(0).getValidTime()
+                .getTimeInMillis();
         long lastFrameTimeMs = frameTimes.get(frameTimes.size() - 1)
                 .getValidTime().getTimeInMillis();
 
@@ -272,15 +280,14 @@ public class LightningResource extends
         }
 
         // make a copy of the metadatamap
-        HashMap<String, RequestConstraint> requestConstraints =
-                new HashMap<String, RequestConstraint>(
-                        ltngRscData.getMetadataMap());
+        HashMap<String, RequestConstraint> requestConstraints = new HashMap<String, RequestConstraint>(
+                ltngRscData.getMetadataMap());
 
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(requestConstraints);
 
-        DbQueryResponse response =
-                (DbQueryResponse) ThriftClient.sendRequest(request);
+        DbQueryResponse response = (DbQueryResponse) ThriftClient
+                .sendRequest(request);
 
         ArrayList<Object> pdoArray = new ArrayList<Object>();
 
@@ -303,8 +310,8 @@ public class LightningResource extends
             }
         }
 
-        List<LtngStrikeDataObj> strikeList =
-                getStrikeDataFromHDF(pdoArray.toArray());
+        List<LtngStrikeDataObj> strikeList = getStrikeDataFromHDF(
+                pdoArray.toArray());
 
         // add the strike info to the newRscDataObjsList so that the abstract
         // class can time match it.
@@ -348,8 +355,7 @@ public class LightningResource extends
         long strikeCount = 0;
         long dsTime = 0;
 
-        HashMap<String, List<LtngStrikeDataObj>> strikeMap =
-                new HashMap<String, List<LtngStrikeDataObj>>();
+        HashMap<String, List<LtngStrikeDataObj>> strikeMap = new HashMap<String, List<LtngStrikeDataObj>>();
 
         // loop thru each of the hdf files
         for (File hdf5File : hdf5FileMap.keySet()) {
@@ -421,8 +427,8 @@ public class LightningResource extends
                                     .getFloatData()[s];
                         } else if (name
                                 .equals(LightningConstants.TIME_DATASET)) {
-                            strikeInfo.strikeTime =
-                                    ((LongDataRecord) hdf5Rec).getLongData()[s];
+                            strikeInfo.strikeTime = ((LongDataRecord) hdf5Rec)
+                                    .getLongData()[s];
                         } else if (name
                                 .equals(LightningConstants.MSG_TYPE_DATASET)) {
                         }
@@ -447,8 +453,7 @@ public class LightningResource extends
                 + (t1 - t0) + " (" + dsTime + ")");
 
         // return a list of all the strikes for all the uris.
-        ArrayList<LtngStrikeDataObj> strikeList =
-                new ArrayList<LtngStrikeDataObj>();
+        ArrayList<LtngStrikeDataObj> strikeList = new ArrayList<LtngStrikeDataObj>();
 
         for (String hdfgrp : strikeMap.keySet()) {
             strikeList.addAll(strikeMap.get(hdfgrp));
@@ -523,10 +528,10 @@ public class LightningResource extends
             // determine the length of the lines based on the symbol size. 3 is
             // 'normal'
             double xLength = (extent.getMaxX() - extent.getMinX()) / 200.0;
-            double posSymSize =
-                    (xLength * ltngRscData.getPositiveSymbolSize()) / 3;
-            double negSymSize =
-                    (xLength * ltngRscData.getNegativeSymbolSize()) / 3;
+            double posSymSize = (xLength * ltngRscData.getPositiveSymbolSize())
+                    / 3;
+            double negSymSize = (xLength * ltngRscData.getNegativeSymbolSize())
+                    / 3;
 
             // create or reuse the wireframe shapes
             for (int i = 0; i < ltngRscData.getColorBar()
@@ -561,8 +566,8 @@ public class LightningResource extends
             for (int s = ltngRscData.getColorBar().getNumIntervals()
                     - 1; s >= 0; s--) {
 
-                IWireframeShape strikeShape =
-                        currFrameData.ltngStrikeShapesList.get(s);
+                IWireframeShape strikeShape = currFrameData.ltngStrikeShapesList
+                        .get(s);
                 strikeShape.compile();
                 grphTarget.drawWireframeShape(strikeShape,
                         ltngRscData.getColorBar().getRGB(s),
@@ -627,19 +632,17 @@ public class LightningResource extends
                         * 1) > -9223372035442521600L) {
 
                     startIndx = 0;
-                    endTime =
-                            currFrameData.getFrameTime().getRefTime().getTime()
-                                    / 1000
-                                    - (long) (ltngRscData.getColorBar()
-                                            .getIntervalMin(0) * 60);
+                    endTime = currFrameData.getFrameTime().getRefTime()
+                            .getTime() / 1000
+                            - (long) (ltngRscData.getColorBar()
+                                    .getIntervalMin(0) * 60);
                 } else {
 
                     startIndx = 1;
-                    endTime =
-                            currFrameData.getFrameTime().getRefTime().getTime()
-                                    / 1000
-                                    - (long) (ltngRscData.getColorBar()
-                                            .getIntervalMin(1) * 60);
+                    endTime = currFrameData.getFrameTime().getRefTime()
+                            .getTime() / 1000
+                            - (long) (ltngRscData.getColorBar()
+                                    .getIntervalMin(1) * 60);
                 }
 
                 for (int i = startIndx; i < ltngRscData.getColorBar()
@@ -654,10 +657,10 @@ public class LightningResource extends
                         beginIntervalTime = 0;
                     }
 
-                    double minIntensity =
-                            ltngRscData.getColorBar().getIntervalMin(i);
-                    double maxIntensity =
-                            ltngRscData.getColorBar().getIntervalMax(i);
+                    double minIntensity = ltngRscData.getColorBar()
+                            .getIntervalMin(i);
+                    double maxIntensity = ltngRscData.getColorBar()
+                            .getIntervalMax(i);
 
                     // determine if this strike belongs in the shape for
                     // this colorInterval. if we are coloring by history
@@ -675,8 +678,8 @@ public class LightningResource extends
                                     && strike.intensity > minIntensity
                                     && strike.intensity <= maxIntensity)) {
 
-                        IWireframeShape strikeShape =
-                                currFrameData.ltngStrikeShapesList.get(i);
+                        IWireframeShape strikeShape = currFrameData.ltngStrikeShapesList
+                                .get(i);
 
                         // positive : draw a '+'
                         if (strike.isPositive()) {
@@ -749,8 +752,8 @@ public class LightningResource extends
         Float mins = cbar.getIntervalMax(cbar.getNumIntervals() - 1);
 
         long cbarRangeMs = (long) (60 * 1000 * mins);
-        long firstFrameTimeMs =
-                getFrameTimes().get(0).getValidTime().getTimeInMillis();
+        long firstFrameTimeMs = getFrameTimes().get(0).getValidTime()
+                .getTimeInMillis();
         Date startTime = new Date(firstFrameTimeMs - cbarRangeMs);
 
         // if the color bar is now infinite or if

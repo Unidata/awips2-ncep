@@ -8,8 +8,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>1200</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -21,8 +21,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -34,8 +34,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -47,8 +47,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -60,8 +60,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -73,8 +73,8 @@
     </paramLevelMatches>
     <imageStyle>
       <range scale="LINEAR">
-        <minValue>-100</minValue>
-        <maxValue>800</maxValue>
+        <minValue>0</minValue>
+        <maxValue>4096</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -87,11 +87,9 @@
     <imageStyle>
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
-      <displayUnits>C</displayUnits>
-      <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
@@ -108,8 +106,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1400</minValue>
-        <maxValue>-800</maxValue>      
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>    
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
@@ -126,8 +124,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>      
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>    
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
@@ -144,8 +142,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>      
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>   
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
@@ -162,8 +160,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>    
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>            
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>          
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -177,8 +175,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>    
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>            
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>         
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -192,8 +190,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>    
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>            
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>        
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -207,8 +205,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>    
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>            
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>          
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -222,8 +220,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>    
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-400</maxValue>            
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>   
       </range>
       <defaultColormap>lingray</defaultColormap>      
     </imageStyle>
@@ -237,8 +235,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-800</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>
@@ -256,8 +254,8 @@
       <displayUnits>C</displayUnits>
       <colorMapUnits>IRPixel</colorMapUnits>
       <range scale="LINEAR">
-        <minValue>-1500</minValue>
-        <maxValue>-800</maxValue>
+         <minValue>55</minValue>
+         <maxValue>-109</maxValue>
       </range>
       <defaultColormap>lingray</defaultColormap>      
       <colorbarLabeling>

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -23,15 +21,13 @@ import com.vividsolutions.jts.io.WKBReader;
  * ------------  ----------    -----------      --------------------------
  * 10/11/2016    R20573        jbeck            Initial creation
  *                                              Support county names overlay: get point data from maps database
+ * 06/22/2017    R34594        jhuber           Removed StatusHandler as it is now referenced in abstract class.
  * </pre>
  * 
  * @author jbeck
  */
 
 public class MapsDbTablePointDataSource extends AbstractPointDataSource {
-
-    protected final IUFStatusHandler statusHandler = UFStatus
-            .getHandler(getClass());
 
     private final static String DB_NAME = "maps";
 

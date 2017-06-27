@@ -26,21 +26,29 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDualDraw"
           name="Pgen Dual Point Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>  
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenKinkLineDraw"
           name="Pgen Kink Line Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>  
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenMultiDraw"
           name="Pgen Multi Point Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.outlookDraw"
           name="Pgen Outlook Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
        <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -53,16 +61,22 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenJetDraw"
           name="Pgen Jet Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
   	  <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenGfaDraw"
           name="Pgen Gfa Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenLabeledLineDraw"
           name="Pgen Cloud Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command> 
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -76,6 +90,8 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenWatchBoxDraw"
           name="Pgen Watch Box Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -95,7 +111,8 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenVectorDraw"
           name="Pgen Vector Drawing">
-          
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -111,36 +128,50 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAvnTextDraw"
           name="Pgen Aviation Text Drawing">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>      
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect"
           name="Pgen Selecting">
+          <commandParameter id="name" name="Pgen Type" optional="true" />
+          <commandParameter id="className" name="Pgen Category" optional="true" />
       </command>   
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenMultiSelect"
           name="Pgen Multi Selecting">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>           
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeleteElement"
           name="Pgen Deleting Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenCopyElement"
           name="Pgen Copy Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>    
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenMoveElement"
           name="Pgen Move Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>    
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenFlipDrawingElement"
           name="Pgen Flip Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>    
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -151,66 +182,92 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenProd"
           name="Pgen Prod">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Controls" optional="true" />
       </command>             
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeletePoint"
           name="Pgen Deleting Point">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddPoint"
           name="Pgen Add Point">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenAddPointAlt"
           name="Pgen Add Point Alt">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDistance"
           name="Pgen Distance">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeletePart"
           name="Pgen Deleting Part">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>       
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenDeleteObj"
           name="Pgen Deleting Obj">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command> 
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenRotateElement"
           name="Pgen Rotate Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>    
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenRotateElement"
           name="Pgen Rotate Element">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>    
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenModifyTool"
           name="Pgen Modify Lines">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenConnect"
           name="Pgen Connect">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>                                   
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenExtrapTool"
           name="Pgen Extrapolate Object">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenInterpTool"
           name="Pgen Interpolate Object">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
@@ -221,21 +278,29 @@
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenFromTool"
           name="From">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenCycleTool"
           name="Cycle selection">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenIncDec"
           name="Pgen Inc/Dec">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenGfaFormatTool"
           name="Cycle selection">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>        
       <command
           id="gov.noaa.nws.ncep.ui.pgen.fileManage"
@@ -245,14 +310,21 @@
           id="gov.noaa.nws.ncep.ui.pgen.productStoreManage"
           name="Manage Product Store">
           <commandParameter
-               id="action"
-               name="action"
+               id="name"
+               name="Save"
                optional="false">
-          </commandParameter>                             
+          </commandParameter>
+          <commandParameter
+               id="className"
+               name="Controls"
+               optional="false">
+          </commandParameter>                                       
       </command>
       <command
           id="gov.noaa.nws.ncep.ui.pgen.productRetrieveManage"
           name="Manage Product Retrieval">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Controls" optional="true" />
       </command>
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
           id="gov.noaa.nws.ncep.ui.pgen.exit"
@@ -261,6 +333,8 @@
       <command
           id="gov.noaa.nws.ncep.ui.pgen.restore"
           name="Restore Elements">
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Controls" optional="true" />
       </command>
       <command
           id="gov.noaa.nws.ncep.ui.pgen.layering"
@@ -307,6 +381,8 @@
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenVolCreate" 
           name="Pgen Volcano Create"> 
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenTCMtool" 
@@ -317,6 +393,8 @@
       <command categoryId="gov.noaa.nws.ncep.viz.ui.modalTool" 
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenSpenesTool" 
           name="Pgen SPENES Create"> 
+          <commandParameter id="name" name="Action Type" optional="true" />
+          <commandParameter id="className" name="Actions" optional="true" />
       </command>
       <command 
             id="gov.noaa.nws.ncep.ui.pgen.layering.PgenLayeringHotKeyCommand"
@@ -3373,7 +3451,7 @@
                 contextId="gov.noaa.nws.ncep.ui.pgen.pgenContext"
                 schemeId="com.raytheon.viz.ui.cave.scheme"
                 sequence="M1+S">
-                <parameter  id="action" value="Save" />
+                <parameter  id="name" value="Save" />
          </key>         
           
          <!-- Hot keys to move contour level up/down within pgenContoursContext -->       

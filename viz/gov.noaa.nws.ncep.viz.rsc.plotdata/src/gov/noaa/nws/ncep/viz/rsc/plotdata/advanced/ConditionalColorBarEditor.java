@@ -47,6 +47,8 @@ import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
  * ------------ ----------  ----------- --------------------------
  * 07/24/12     #431        S. Gurung   Initial Creation.
  * 11/16/16     R21762      P. Moyer    Removed -Inf/Inf control buttons. Implemented Alpha transparency.
+ * 03/15/2017   R27904      E. Brown    Forced min/max spinners to update constraints when
+ *                                      user changes a spinners value
  * 
  * </pre>
  * 
@@ -900,6 +902,11 @@ public class ConditionalColorBarEditor extends Composite {
             Float minVal = intrvlValue / (float) scaleMult;
 
             colorBar.setIntervalMin(seldIntrvl, minVal);
+
+            // Update the min/max constraints when the spinner value is changed
+            // by the user
+            updateSelectedInterval();
+
             computeColorBarRectangles();
         }
     };
@@ -917,6 +924,11 @@ public class ConditionalColorBarEditor extends Composite {
                     / (float) scaleMult;
 
             colorBar.setIntervalMax(seldIntrvl, maxVal);
+
+            // Update the min/max constraints when the spinner value is changed
+            // by the user
+            updateSelectedInterval();
+
             computeColorBarRectangles();
         }
     };

@@ -164,6 +164,7 @@ import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
  *                                        through the evaluation context
  * 06/15/2016   R13559      bkowal        Removed simulated mouse click.
  * 06/28/2016   R10233      J. Wu         Add parameter to loadContoursTool().
+ * 05/04/2017   R27242      B. Yin        Use ParameterizedComand to set selecting mode.
  * </pre>
  * 
  * @author
@@ -272,9 +273,9 @@ public class PgenUtil {
      * set current ModalTool to Selecting mode
      */
     public static final void setSelectingMode() {
-
-        setCommandMode("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect");
-
+        Map<String, String> params = new HashMap<>();
+        params.put(PgenConstant.NAME, PgenConstant.ACTION_SELECT);
+        executeCommand("gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect", null, params );
     }
 
     /**

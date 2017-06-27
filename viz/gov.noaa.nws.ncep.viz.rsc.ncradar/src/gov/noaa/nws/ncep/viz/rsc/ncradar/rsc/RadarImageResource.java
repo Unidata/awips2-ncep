@@ -8,11 +8,6 @@
 
 package gov.noaa.nws.ncep.viz.rsc.ncradar.rsc;
 
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
-import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
-import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
-
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -84,6 +79,11 @@ import com.raytheon.viz.radar.VizRadarRecord;
 import com.raytheon.viz.radar.util.DataUtilities;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
+import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
+
 /**
  * TODO Add Description
  * 
@@ -104,16 +104,17 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/10/2013   #999       Greg Hull   RadarRecords from RadarFrameData, rm interrogator
  * 06/30/2014    3165      njensen     Use ColorMapLoader to get ColorMap
  * 06/15/2016   R19647     bsteffen    Remove unused reference to RadarTileSet, formatting, and cleanup.
- * 
+ * 05/09/2017   R27171     P. Moyer    Modified initResource to take parent resource's
+ *                                     visibility and apply it to the newly created color bar
  * </pre>
  * 
  * @author sgurung
  * @version 1.0
  */
 
-public abstract class RadarImageResource<D extends IDescriptor> extends
-        AbstractRadarResource<D> implements IMeshCallback, IRangeableResource,
-        IResourceDataChanged {
+public abstract class RadarImageResource<D extends IDescriptor>
+        extends AbstractRadarResource<D>
+        implements IMeshCallback, IRangeableResource, IResourceDataChanged {
     protected static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(RadarImageResource.class);
 
@@ -214,13 +215,14 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
                 if (thresholds[i] instanceof Float) {
                     pixel.add(i);
                     real.add((Float) thresholds[i]);
-                    dmEntry.setDisplayValue(((Float) thresholds[i])
-                            .doubleValue());
+                    dmEntry.setDisplayValue(
+                            ((Float) thresholds[i]).doubleValue());
                     dmEntry.setLabel(((Float) thresholds[i]).toString());
                 } else {
                     dmEntry.setDisplayValue(Double.NaN);
 
-                    if (((String) thresholds[i]).compareToIgnoreCase("NO DATA") == 0) {
+                    if (((String) thresholds[i])
+                            .compareToIgnoreCase("NO DATA") == 0) {
                         dmEntry.setLabel("ND");
                     } else
                         dmEntry.setLabel((String) thresholds[i]);
@@ -253,9 +255,11 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
         ColorMap colorMap;
         try {
-            colorMap = (ColorMap) ColorMapUtil.loadColorMap(resourceData
-                    .getResourceName().getRscCategory().getCategoryName(),
-                    resourceData.getColorMapName());
+            colorMap = (ColorMap) ColorMapUtil
+                    .loadColorMap(
+                            resourceData.getResourceName().getRscCategory()
+                                    .getCategoryName(),
+                            resourceData.getColorMapName());
         } catch (VizException e) {
             throw new VizException("Error loading colormap: "
                     + resourceData.getColorMapName());
@@ -278,8 +282,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         colorMapParameters.setDataMin(0);
         // set in the capability not in the radar record.
         // radarRecord.params = colorMapParameters;
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                colorMapParameters);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(colorMapParameters);
         if (dmEntriesList.size() > 0) {
             DataMappingEntry[] dmEntryArray = new DataMappingEntry[dmEntriesList
                     .size()];
@@ -327,15 +331,20 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
          * create the colorBar Resource and add it to the resourceList for this
          * descriptor.
          */
-        cbarRscPair = ResourcePair
-                .constructSystemResourcePair(new ColorBarResourceData(
-                        resourceData.getColorBar()));
+        cbarRscPair = ResourcePair.constructSystemResourcePair(
+                new ColorBarResourceData(resourceData.getColorBar()));
 
         getDescriptor().getResourceList().add(cbarRscPair);
         getDescriptor().getResourceList().instantiateResources(getDescriptor(),
                 true);
 
         cbarResource = (ColorBarResource) cbarRscPair.getResource();
+
+        // set the color bar's visiblity to match that of the parent resource
+        // by changing the Resource Parameter's isVisible value.
+
+        boolean parentVisibility = getProperties().isVisible();
+        cbarRscPair.getProperties().setVisible(parentVisibility);
 
         queryRecords();
     }
@@ -354,7 +363,7 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
      */
     protected void createTile(IGraphicsTarget target,
             VizRadarRecord populatedRecord) throws StorageException,
-            IOException, ClassNotFoundException, VizException {
+                    IOException, ClassNotFoundException, VizException {
 
         ColorMapParameters params = getColorMapParameters(target,
                 populatedRecord);
@@ -408,8 +417,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         Unit<?> dataUnit = DataUtilities.getDataUnit(record);
 
         try {
-            params = ColorMapParameterFactory.build((Object) null, ""
-                    + prodCode, dataUnit, null, resourceData.mode);
+            params = ColorMapParameterFactory.build((Object) null,
+                    "" + prodCode, dataUnit, null, resourceData.mode);
         } catch (StyleException e) {
             throw new VizException(e.getLocalizedMessage(), e);
         }
@@ -428,8 +437,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
                 // Set the data value
                 if (thresholds[i] instanceof Float) {
-                    entry.setDisplayValue(params.getDataToDisplayConverter()
-                            .convert(i));
+                    entry.setDisplayValue(
+                            params.getDataToDisplayConverter().convert(i));
                 } else if (thresholds[i] instanceof String) {
                     entry.setLabel((String) thresholds[i]);
                 } else if (thresholds[i] == null) {
@@ -477,15 +486,14 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * com.raytheon.uf.viz.core.rsc.AbstractVizResource#paintInternal(com.raytheon
-     * .uf.viz.core.IGraphicsTarget,
+     * @see com.raytheon.uf.viz.core.rsc.AbstractVizResource#paintInternal(com.
+     * raytheon .uf.viz.core.IGraphicsTarget,
      * com.raytheon.uf.viz.core.drawables.PaintProperties)
      */
     @Override
     protected void paintFrame(AbstractFrameData frameData,
             IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
+                    throws VizException {
 
         if ((paintProps == null) || (paintProps.getDataTime() == null)) {
             return;
@@ -532,8 +540,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
                     image.getImage()
                             .setBrightness(resourceData.getBrightness());
                     image.getImage().setContrast(resourceData.getContrast());
-                    image.getImage().setInterpolated(
-                            imgCap.isInterpolationState());
+                    image.getImage()
+                            .setInterpolated(imgCap.isInterpolationState());
 
                     paintProps.setAlpha(resourceData.getAlpha());
                     target.drawRasters(paintProps, image);
@@ -576,16 +584,15 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
             if ((rangeCircle != null)
                     && (getCapability(OutlineCapability.class).isOutlineOn())) {
-                target.drawWireframeShape(
-                        rangeCircle,
-                        new RGB(0, 0, 0),// getCapability(ColorableCapability.class).getColor(),
+                target.drawWireframeShape(rangeCircle, new RGB(0, 0, 0), // getCapability(ColorableCapability.class).getColor(),
                         getCapability(OutlineCapability.class)
                                 .getOutlineWidth(),
                         getCapability(OutlineCapability.class).getLineStyle(),
                         paintProps.getAlpha());
             }
         }
-        RangeRingsOverlayCapability rrcap = getCapability(RangeRingsOverlayCapability.class);
+        RangeRingsOverlayCapability rrcap = getCapability(
+                RangeRingsOverlayCapability.class);
         rrcap.setRangeableResource(this);
         rrcap.paint(target, paintProps);
     }
@@ -733,10 +740,9 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
     protected IImage createImage(IGraphicsTarget target,
             ColorMapParameters params, RadarRecord record, Rectangle rect)
-            throws VizException {
+                    throws VizException {
         byte[] table = createConversionTable(params, record);
-        return target
-                .getExtension(IColormappedImageExtension.class)
+        return target.getExtension(IColormappedImageExtension.class)
                 .initializeRaster(
                         new RadarImageDataRetrievalAdapter(record, table, rect),
                         params);
@@ -805,8 +811,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         cmapParams.setColorMap(colorBar.getColorMap());
         cmapParams.setColorMapName(resourceData.getColorMapName());
 
-        getCapability(ColorMapCapability.class).setColorMapParameters(
-                cmapParams);
+        getCapability(ColorMapCapability.class)
+                .setColorMapParameters(cmapParams);
         refreshImage = true;
 
         // TODO : how to migrate this to to11dr11? Or do we still need to do
@@ -828,7 +834,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
         if (type != null && type == ChangeType.CAPABILITY) {
             if (object instanceof ImagingCapability) {
-                ImagingCapability imgCap = getCapability(ImagingCapability.class);
+                ImagingCapability imgCap = getCapability(
+                        ImagingCapability.class);
                 ImagingCapability newImgCap = (ImagingCapability) object;
                 imgCap.setBrightness(newImgCap.getBrightness(), false);
                 imgCap.setContrast(newImgCap.getContrast(), false);
@@ -839,7 +846,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
                 issueRefresh();
             } else if (object instanceof ColorMapCapability) {
 
-                ColorMapCapability colorMapCap = getCapability(ColorMapCapability.class);
+                ColorMapCapability colorMapCap = getCapability(
+                        ColorMapCapability.class);
                 ColorMapCapability newColorMapCap = (ColorMapCapability) object;
                 ColorMapParameters newColorMapParms = newColorMapCap
                         .getColorMapParameters();
@@ -865,8 +873,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
         }
     }
 
-    protected static class RadarImageDataRetrievalAdapter implements
-            IColorMapDataRetrievalCallback {
+    protected static class RadarImageDataRetrievalAdapter
+            implements IColorMapDataRetrievalCallback {
 
         protected final RadarRecord record;
 
@@ -893,8 +901,8 @@ public abstract class RadarImageResource<D extends IDescriptor> extends
 
         @Override
         public ColorMapData getColorMapData() {
-            return new ColorMapData(ByteBuffer.wrap(convertData()), new int[] {
-                    rect.width, rect.height });
+            return new ColorMapData(ByteBuffer.wrap(convertData()),
+                    new int[] { rect.width, rect.height });
         }
 
         public byte[] convertData() {

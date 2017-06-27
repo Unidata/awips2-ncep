@@ -32,7 +32,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
  * 29 May 2009     #115      Greg Hull    Initial Creation.
  * 05 Jan 2010               Greg Hull    added NC-ResourceAttribute ext point
  * 17 Nov 2010     307       Greg Hull    implemented equals()
- * 03/07/2017   R28579       R.Reynolds   Removed bothersome println.
  * 
  * </pre>
  *
@@ -41,166 +40,164 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
  */
 public class ResourceAttrSet {
 
-    public static class RscAttrValue {
-        public String attrName = null;
+	public static class RscAttrValue {
+		public String attrName = null;
+		private Object attrValue = null;
+		private Object dfltValue = null; // not implemented
+		private Class<?> clazz = null;
+	
+		RscAttrValue( String n, Object v ) {
+			attrName = n;    // field name in the resource
+			attrValue = v;
+			clazz = attrValue.getClass();
+		}
+		public Object getAttrValue() {
+			return attrValue;
+		}
+		public void setAttrValue( Object v ) {
+			attrValue = v;
+		}
+		public Class<?> getAttrClass() {
+			return clazz;
+		}
+	}
+	
+	// To start with this is the name of the .prm file but this can be changed to lookup values from 
+	// some other location
+	String attrSetName = null;
+	
+	private HashMap<String,RscAttrValue> rscAttrValues = null;
 
-        private Object attrValue = null;
+	public ResourceAttrSet( String name/*, INatlCntrsResourceData ncRscData */) {
+		rscAttrValues = new HashMap< String, RscAttrValue >();
+		attrSetName = name;
+	}
+	
+	// clone the ResourceAttrSet
+	public ResourceAttrSet( ResourceAttrSet rscAttrSet ) {
+		attrSetName = rscAttrSet.getRscAttrSetName();
+		rscAttrValues = new HashMap< String, RscAttrValue >();
+		
+		for( RscAttrValue attrVal : rscAttrSet.rscAttrValues.values() ) {
+			rscAttrValues.put( new String( attrVal.attrName ), 
+					new RscAttrValue( attrVal.attrName, attrVal.attrValue ) );
+		}
+	}
 
-        private Object dfltValue = null; // not implemented
+	public Set<String> getAttrNames() {
+		return rscAttrValues.keySet();
+	}
+	
+	
+	public void setAttrValue( String attrName, Object attrValue ) {
+		
+		RscAttrValue rscAttr = rscAttrValues.get( attrName ); 
+		
+		if( rscAttr == null ) {
+			rscAttrValues.put( attrName, new RscAttrValue(attrName, attrValue) );
+		}
+		else {
+			rscAttr.attrValue = attrValue;
+		}		
+	}
 
-        private Class<?> clazz = null;
-
-        RscAttrValue(String n, Object v) {
-            attrName = n; // field name in the resource
-            attrValue = v;
-            clazz = attrValue.getClass();
-        }
-
-        public Object getAttrValue() {
-            return attrValue;
-        }
-
-        public void setAttrValue(Object v) {
-            attrValue = v;
-        }
-
-        public Class<?> getAttrClass() {
-            return clazz;
-        }
-    }
-
-    // To start with this is the name of the .prm file but this can be changed
-    // to lookup values from
-    // some other location
-    String attrSetName = null;
-
-    private HashMap<String, RscAttrValue> rscAttrValues = null;
-
-    public ResourceAttrSet(
-            String name/* , INatlCntrsResourceData ncRscData */) {
-        rscAttrValues = new HashMap<String, RscAttrValue>();
-        attrSetName = name;
-    }
-
-    // clone the ResourceAttrSet
-    public ResourceAttrSet(ResourceAttrSet rscAttrSet) {
-        attrSetName = rscAttrSet.getRscAttrSetName();
-
-        rscAttrValues = new HashMap<String, RscAttrValue>();
-
-        for (RscAttrValue attrVal : rscAttrSet.rscAttrValues.values()) {
-            rscAttrValues.put(new String(attrVal.attrName),
-                    new RscAttrValue(attrVal.attrName, attrVal.attrValue));
-        }
-    }
-
-    public Set<String> getAttrNames() {
-        return rscAttrValues.keySet();
-    }
-
-    public void setAttrValue(String attrName, Object attrValue) {
-
-        RscAttrValue rscAttr = rscAttrValues.get(attrName);
-
-        if (rscAttr == null) {
-            rscAttrValues.put(attrName, new RscAttrValue(attrName, attrValue));
-        } else {
-            rscAttr.attrValue = attrValue;
-        }
-    }
-
-    public String getRscAttrSetName() {
-        return attrSetName;
-    }
-
-    public boolean hasAttrName(String attrName) {
-        return rscAttrValues.containsKey(attrName);
-    }
-
-    public RscAttrValue getRscAttr(String name) {
-        return rscAttrValues.get(name);
-    }
-
-    // TODO: Add support for the ColorBar, PlotModel attributes (and ArrowStyle
-    // and other enums)
-    // This was implemented mainly as a convienience for the equals() for the
-    // AbstractNatlCntrsResourceData
+	public String getRscAttrSetName() {
+		return attrSetName;
+	}
+	
+	public boolean hasAttrName( String attrName ) {
+		return rscAttrValues.containsKey( attrName );
+	}
+	
+	public RscAttrValue getRscAttr( String name ) {
+		return rscAttrValues.get( name );
+	}
+	
+	// TODO: Add support for the ColorBar, PlotModel attributes (and ArrowStyle and other enums) 
+	// This was implemented mainly as a convienience for the equals() for the 
+	// AbstractNatlCntrsResourceData
     @Override
     public boolean equals(Object obj) {
-        // first the sanity checks
-        if (!(obj instanceof ResourceAttrSet)) {
-            return false;
-        }
+    	// first the sanity checks
+    	if( !(obj instanceof ResourceAttrSet) ) {
+    		return false;
+    	}
+    	
+    	ResourceAttrSet other = (ResourceAttrSet) obj;
+    	HashMap<String,RscAttrValue> otherRscAttrValues = other.rscAttrValues;
 
-        ResourceAttrSet other = (ResourceAttrSet) obj;
-        HashMap<String, RscAttrValue> otherRscAttrValues = other.rscAttrValues;
-
-        if (this.rscAttrValues.size() != otherRscAttrValues.size()) {
-            return false;
-        }
-
-        for (String key : this.rscAttrValues.keySet()) {
-            if (!otherRscAttrValues.containsKey(key)) {
-                return false;
-            }
-
-            Object thisAttrVal = this.rscAttrValues.get(key).attrValue;
-            Object otherAttrVal = otherRscAttrValues.get(key).attrValue;
-
-            if (!thisAttrVal.getClass().getName()
-                    .equals(otherAttrVal.getClass().getName())) {
-                return false;
-            }
-
-            else if (thisAttrVal.getClass() == Boolean.class) {
-                if (!((Boolean) thisAttrVal).equals((Boolean) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == String.class) {
-                if (!((String) thisAttrVal).equals((String) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == Double.class) {
-                if (!((Double) thisAttrVal).equals((Double) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == Float.class) {
-                if (!((Float) thisAttrVal).equals((Float) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == Long.class) {
-                if (!((Long) thisAttrVal).equals((Long) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == Integer.class) {
-                if (!((Integer) thisAttrVal).equals((Integer) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == Short.class) {
-                if (!((Short) thisAttrVal).equals((Short) otherAttrVal)) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == RGB.class) {
-                if (!((RGB) thisAttrVal).toString()
-                        .equals(((RGB) otherAttrVal).toString())) {
-                    return false;
-                }
-            } else if (thisAttrVal.getClass() == LineStyle.class) {
-                if (!((LineStyle) thisAttrVal)
-                        .equals((LineStyle) otherAttrVal)) {
-                    return false;
-                }
-            }
-            // TODO : add support for PlotModel, ColorBar and
-            // ArrowStyle, MarkerTextSize, MarkerState, MarkerType, PlotModel
-            // ColorBar
-            // else if( thisAttrVal.getClass() == .class ) {
-            // if( (LineStyle)thisAttrVal != (LineStyle)otherAttrVal ) {
-            // return false;
-            // }
-            // }
-        }
-
-        return true;
+    	if( this.rscAttrValues.size() != otherRscAttrValues.size() ) {
+    		return false;
+    	}
+    	
+    	for( String key : this.rscAttrValues.keySet() ) {
+    		if( !otherRscAttrValues.containsKey( key ) ) {
+    			return false;
+    		}
+    		
+    		Object thisAttrVal  = this.rscAttrValues.get( key ).attrValue;
+    		Object otherAttrVal = otherRscAttrValues.get( key ).attrValue;
+    		
+    		if( !thisAttrVal.getClass().getName().equals( 
+    			                   otherAttrVal.getClass().getName() ) ) {
+    			return false;
+    		}
+    		
+    		else if( thisAttrVal.getClass() == Boolean.class ) {
+    			if( !((Boolean)thisAttrVal).equals( (Boolean)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == String.class ) {
+    			if( !((String)thisAttrVal).equals( (String)otherAttrVal ) ) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == Double.class ) {
+    			if( !((Double)thisAttrVal).equals( (Double)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == Float.class ) {
+    			if( !((Float)thisAttrVal).equals( (Float)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == Long.class ) {
+    			if( !((Long)thisAttrVal).equals( (Long)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == Integer.class ) {
+    			if( !((Integer)thisAttrVal).equals( (Integer)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == Short.class ) {
+    			if( !((Short)thisAttrVal).equals( (Short)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == RGB.class ) {
+    			if( !((RGB)thisAttrVal).toString().equals(
+    					   ((RGB)otherAttrVal).toString()) ) {
+    				return false;
+    			}
+    		}
+    		else if( thisAttrVal.getClass() == LineStyle.class ) {
+    			if( !((LineStyle)thisAttrVal).equals( (LineStyle)otherAttrVal )) {
+    				return false;
+    			}
+    		}
+    		// TODO : add support for PlotModel, ColorBar and  
+    		// ArrowStyle, MarkerTextSize, MarkerState, MarkerType, PlotModel ColorBar
+//    		else if( thisAttrVal.getClass() == .class ) {
+//    			if( (LineStyle)thisAttrVal != (LineStyle)otherAttrVal ) {
+//    				return false;
+//    			}
+//    		}
+    	}
+    	
+    	return true;
     }
 }

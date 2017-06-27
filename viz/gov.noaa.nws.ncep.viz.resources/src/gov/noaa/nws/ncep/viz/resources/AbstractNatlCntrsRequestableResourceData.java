@@ -176,97 +176,28 @@ public abstract class AbstractNatlCntrsRequestableResourceData
     private final String PLUGIN_NAME = "pluginName";
 
     public static enum TimeMatchMethod {
-
-        /**
-         * The data is matched to the frame if the data time is the same as the
-         * valid time of the frame. The start and end time of the frame span are
-         * both set to the valid time of the frame, making a frame span of zero.
-         */
-        EXACT,
-
-        /**
-         * The data is matched to the frame if the data time is equal to or
-         * before the valid time of the frame. The frame span ends at the valid
-         * time of the frame. The frame span starts at 1970-12-31-19:00:00.
-         */
-        BEFORE_OR_EQUAL,
-
-        /**
-         * The data is matched to the frame if the data time is equal to or
-         * before the valid time of the frame. The frame spans ends at the valid
-         * time of frame. The frame span starts at 1/2 of the frame interval
-         * before the valid time of the frame. There will not be a time match if
-         * the start time of the frame span is the same time or later than the
-         * data time. There will not be a time match if the end time of the
-         * frame span is before the data time.
-         */
-        CLOSEST_BEFORE_OR_EQUAL,
-
-        /**
-         * The data is matched to the frame if the data time is equal to or
-         * comes after the end of the frame span. The end time of the frame span
-         * is 1/2 of the frame interval after the valid frame time, minus one
-         * second. The start of the frame span is the valid time of the frame.
-         * There will not be a time match if the start time of the frame span is
-         * the same time or later than the data time. There will not be a time
-         * match if the end time of the frame span is before the data time.
-         */
-        CLOSEST_AFTER_OR_EQUAL,
-
-        /**
-         * The start of the frame span is 1/2 the frame interval before the
-         * valid frame time. The end time is 1/2 the interval after the valid
-         * time, - 1 second. There will not be a time match if the start time of
-         * the frame span is the same time or later than the data time. There
-         * will not be a time match if the end time of the frame span is before
-         * the data time.
-         */
-        CLOSEST_BEFORE_OR_AFTER,
-
-        /**
-         * All data is considered to be a match to any given frame. The latest
-         * data available is used for the match. The start of the frame span is
-         * 1970-12-31-19:00:00. The end of the frame span is the most maximum
-         * date that Java can calculate. This time matching method is used by
-         * PGEN.
-         */
+        EXACT, BEFORE_OR_EQUAL, CLOSEST_BEFORE_OR_EQUAL, CLOSEST_AFTER_OR_EQUAL, CLOSEST_BEFORE_OR_AFTER,
+        // Used by PGEN resource but it actually chooses the latest data
+        // available
         MATCH_ALL_DATA,
-
-        /**
-         * Same behavior as EXACT. The data is matched to the frame if the data
-         * time is the same as the valid time of the frame. The start and end
-         * time are both set to the valid time of the frame, making a frame span
-         * of zero. This time matching method was created when the "Event"
-         * filter was removed and is meant for event based resources. It
-         * requires that the Timeline Generation Methbod by set to MANUAL.
-         */
+        // This was created when the "Event" filter was removed. This now
+        // is an indication of 'Event'-based resources and requires that the
+        // TimelineGenMethod be set to MANUAL. Currently the behaviour of
+        // an EVENT TimeMatchMethod is the same as EXACT in that it sets a
+        // frames start/end time to the frame time. (ie a frame span of 0.)
+        //
         EVENT,
-
-        /**
-         * The same behavior as CLOSEST_BEFORE_OR_AFTER, but there will not be a
-         * time range validity check. This method can be used for event based
-         * resources as you would use EVENT, but all data will be matched to a
-         * frame, not just data that exactly matches on the boundaries of frame.
-         * The start of the frame span is 1/2 of the frame interval before the
-         * valid time of the frame. The end of the frame span is 1/2 of the
-         * frame interval after the valid time of the frame, minus one second.
-         */
+        // This can be used for event 'Event'-based resources where it's
+        // desired that all data records be matched per frame, not just the
+        // data that exactly matches on the frame boundary. This is the same as
+        // CLOSEST_BEFORE_OR_AFTER match but will NOT do the time range validity
+        // check.
         EVENT_BEFORE_OR_AFTER,
-
-        /**
-         * This time matching method imitates NMAP behavior. It ignores frame
-         * spans, matching data to the frame that is the closest in time, either
-         * before or after the frame. This will be done regardless of how far
-         * away in time the data is to the frame. The closest data no matter how
-         * far before or after the frame will be used that such that no frame is
-         * without a match. This method is curently in use only for grid
-         * resources, for which it was developed. Modifications to the resource
-         * class might be necessary. See the NcGridResource for an example of an
-         * implementation. The start of the frame span is 1/2 of the frame
-         * interval before the valid time of the frame. The end of the frame
-         * span is 1/2 of the frame interval after the valid time of the frame,
-         * minus one second.
-         */
+        // This is used for grid resource types. It will likely require
+        // modification to the particular rescource classes run method loop. For
+        // an exmaple please see NcGridResource. This time matching method
+        // imitates NMAP behavior in that it ignores frameSpans, finding the
+        // closes match in the data, after or before the frame time.
         BINNING_FOR_GRID_RESOURCES
     }
 

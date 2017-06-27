@@ -1,5 +1,8 @@
 package gov.noaa.nws.ncep.viz.resources;
 
+import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
+import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,27 +22,28 @@ import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 
-import gov.noaa.nws.ncep.viz.common.display.INatlCntrsDescriptor;
-import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
-
 /**
  * <pre>
  * 
  * AbstractDataLoader is part of the redesign of the *Resource classes as
- * described in Redmine 11819, Redmine 8830, and in the title block comment of
+ * described in Redmine 11819, Redmine 8830, and in the title block comment
+ * of
  * {@link gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2
  * 
  * This class holds the default data loading methods previously housed in
- * AbstractNatlCntrsResource. This class is to be extended into resource
+ * AbstractNatlCntrsResource.  This class is to be extended into resource
  * specific *DataLoader classes that will handle data loading for specific
  * resources.
  * 
- * SOFTWARE HISTORY Date Ticket# Engineer Description ------------
- * --------------------- -------------------------- 10/21/2015 R11819 S Russell
- * Initial Creation. 03/07/2016 R10155 B Hebbard In order to handle auto-update
- * fully, move update-related code here from AbstractNatlCntrsResource2.
- * 04/13/2016 R15954 S Russell Added a statusHandler to use for all child
- * classes
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 10/21/2015   R11819      S Russell   Initial Creation.
+ * 03/07/2016   R10155      B Hebbard   In order to handle auto-update fully,
+ *                                      move update-related code here from 
+ *                                      AbstractNatlCntrsResource2.
+ * 04/13/2016   R15954      S Russell   Added a statusHandler to use for all
+ *                                      child classes
  * 
  * </pre>
  * 
@@ -97,8 +101,6 @@ public abstract class AbstractDataLoader implements IDataLoader {
     // frame
     protected TreeMap<Long, AbstractFrameData> frameDataMap;
 
-    protected DbQueryRequest dbRequest;
-
     /**
      * Constructor
      */
@@ -106,7 +108,6 @@ public abstract class AbstractDataLoader implements IDataLoader {
         autoUpdateCache = new ArrayList<>();
         newFrameTimesList = new ArrayList<>();
         newRscDataObjsQueue = new ConcurrentLinkedQueue<>();
-        dbRequest = new DbQueryRequest();
     }
 
     /**
@@ -176,18 +177,19 @@ public abstract class AbstractDataLoader implements IDataLoader {
      * This method is used for querying data when you need a customized list of
      * query restraints
      * 
-     * @param <String,
-     *            RequestConstraint> requestConstraints
+     * @param <String, RequestConstraint> requestConstraints
      * @throws VizException
      */
 
     public void queryRecords(
             HashMap<String, RequestConstraint> requestConstraints)
-                    throws VizException {
+            throws VizException {
 
-        dbRequest.setConstraints(requestConstraints);
+        DbQueryRequest request = new DbQueryRequest();
+        request.setConstraints(requestConstraints);
+
         DbQueryResponse response = (DbQueryResponse) ThriftClient
-                .sendRequest(dbRequest);
+                .sendRequest(request);
 
         for (Map<String, Object> result : response.getResults()) {
             for (Object pdo : result.values()) {
@@ -217,8 +219,10 @@ public abstract class AbstractDataLoader implements IDataLoader {
 
     protected IRscDataObject[] processRecord(Object pdo) {
         if (!(pdo instanceof PluginDataObject)) {
-            System.out.println(
-                    "Resource Impl " + getClass().getName() + " must override "
+            System.out
+                    .println("Resource Impl "
+                            + getClass().getName()
+                            + " must override "
                             + "the processRecord method to process data objects of class: "
                             + pdo.getClass().getName());
             return null;
@@ -289,8 +293,8 @@ public abstract class AbstractDataLoader implements IDataLoader {
 
             if (timeMatcher.isAutoUpdateable()) {
 
-                if ((!foundFrame && autoUpdateReady
-                        && dataTimeMs > frameDataMap.firstKey()) || lastFrame) {
+                if ((!foundFrame && autoUpdateReady && dataTimeMs > frameDataMap
+                        .firstKey()) || lastFrame) {
                     // If there is the possibility of auto updating (if the
                     // dominant resource is a satellite or radar image) then
                     // store off the data in the autoUpdateCache and then update
@@ -301,9 +305,9 @@ public abstract class AbstractDataLoader implements IDataLoader {
                     // data update alert, then determine if a new frame is
                     // needed.
                     if (resource.isDominantResource() && autoUpdateReady) {
-                        newFrameTimesList
-                                .addAll(timeMatcher.determineNewFrameTimes(
-                                        rscDataObj.getDataTime()));
+                        newFrameTimesList.addAll(timeMatcher
+                                .determineNewFrameTimes(rscDataObj
+                                        .getDataTime()));
                     }
                 }
             }
@@ -349,8 +353,8 @@ public abstract class AbstractDataLoader implements IDataLoader {
         // doesn't
         // have an entry for this time, than create a new entry.
         for (DataTime frameTime : newFrameTimes) {
-            if (!frameDataMap.containsKey(
-                    frameTime.getValidTime().getTime().getTime())) {
+            if (!frameDataMap.containsKey(frameTime.getValidTime().getTime()
+                    .getTime())) {
                 AbstractFrameData newFrame = resource.createNewFrame(frameTime,
                         resourceData.frameSpan);
                 frameDataMap.put(frameTime.getValidTime().getTime().getTime(),
@@ -360,8 +364,7 @@ public abstract class AbstractDataLoader implements IDataLoader {
 
         // Loop through all of the times in the frameDataMap, and if the time is
         // not in the new frameTimes, then remove the frame from the map.
-        ArrayList<Long> frameTimesInMap = new ArrayList<>(
-                frameDataMap.keySet());
+        ArrayList<Long> frameTimesInMap = new ArrayList<>(frameDataMap.keySet());
 
         for (long frameTimeMs : frameTimesInMap) {
             if (!newFrameTimes.contains(new DataTime(new Date(frameTimeMs)))) {
@@ -386,8 +389,8 @@ public abstract class AbstractDataLoader implements IDataLoader {
      * check for any new incoming data, and load it if appropriate
      */
     public void processAnyNewData() {
-        if (!newRscDataObjsQueue.isEmpty() || (!newFrameTimesList.isEmpty()
-                && descriptor.isAutoUpdate())) {
+        if (!newRscDataObjsQueue.isEmpty()
+                || (!newFrameTimesList.isEmpty() && descriptor.isAutoUpdate())) {
             processNewRscDataList();
         }
     }
@@ -415,18 +418,6 @@ public abstract class AbstractDataLoader implements IDataLoader {
         for (AbstractFrameData frameData : frameDataMap.values()) {
             frameData.setPopulated(true);
         }
-    }
-
-    public DbQueryRequest getDbRequest() {
-        return dbRequest;
-    }
-
-    public void setDbRequest(DbQueryRequest dbRequest) {
-        this.dbRequest = dbRequest;
-    }
-
-    public void addDbRequestOrderBy(String field) {
-        dbRequest.setOrderByField(field);
     }
 
     // added since WarnResource gets null pointers in processNewRscDataList()

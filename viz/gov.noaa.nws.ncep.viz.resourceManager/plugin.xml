@@ -35,7 +35,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="Bundle Groups"
+             name="SPFs"
              recursive="true"
              value="ncep/SPFs"
 	         extensionFilter=".xml">
@@ -82,7 +82,7 @@
        <path
              application="NCEP"
              localizationType="CAVE_STATIC"
-             name="Default Bundles"
+             name="Default RBDs"
              recursive="true"
              value="ncep/DefaultRBDs"
 	         extensionFilter=".xml">
@@ -101,6 +101,17 @@
        </path>
     </extension>
     
+            <extension
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
+       <path
+             application="NCEP"
+             localizationType="CAVE_STATIC"
+             name="Satellite Names"
+             recursive="false"
+             value="ncep/satelliteNames"
+             extensionFilter=".xml">
+       </path>
+    </extension>
     
             <extension
           point="com.raytheon.uf.viz.localization.perspective.localizationpath">
@@ -110,18 +121,6 @@
              name="Satellite Image Types"
              recursive="false"
              value="ncep/satelliteImageTypes"
-             extensionFilter=".xml">
-       </path>
-    </extension>
-    
-       <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="AsdiInfo"
-             recursive="true"
-             value="ncep/AsdiInfo"
              extensionFilter=".xml">
        </path>
     </extension>

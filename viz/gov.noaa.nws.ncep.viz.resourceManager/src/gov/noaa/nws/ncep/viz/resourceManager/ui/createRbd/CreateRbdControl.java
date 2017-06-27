@@ -2912,10 +2912,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     .getElementAt(numRscs - 1));
         }
 
-        // the replace button is enabled if there is only 1 resource selected
-        // and it is not the base resource
-        rscSelDlg.setReplaceEnabled((numSeldRscs == 1 && !isBaseLevelRscSeld));
-
         // the delete button is only disabled if there is one the one base
         // resource selected.
         deleteResourceButton.setEnabled(

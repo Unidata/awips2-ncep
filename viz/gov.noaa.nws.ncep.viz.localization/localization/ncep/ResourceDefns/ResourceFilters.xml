@@ -626,9 +626,6 @@
 	<ResourceDefinitionFilter rscDefnName="CMC">
 	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="DGEX">
-	<filters>Forecast,CONUS</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="ECMWF">
 	<filters>Forecast,Global</filters>
 	</ResourceDefinitionFilter>
@@ -749,7 +746,7 @@
 	<ResourceDefinitionFilter rscDefnName="UKMET">
 	<filters>Forecast,Global</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="URMA">
+	<ResourceDefinitionFilter rscDefnName="URMA25">
 	<filters>Analysis,NSBN</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="LocalRadar">
@@ -762,96 +759,6 @@
 	<filters>Forecast,Ensemble,Global</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GFS_ENS">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="Medr_Pres_Day">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="Medr_Pres_Nite">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d45_QPF_Day">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d45_QPF_Nite">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d67_QPF_Day">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d67_QPF_Nite">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d1q_day_pre">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d1q_eve_fin">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d1q_mid_pre">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d1q_mid_fin">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d23_day_pre">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d23_day_fin">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d23_mid_pre">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d23_mid_fin">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MDD_day">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MDD_nite">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d45_QPF">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="d67_QPF">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="precip_blend">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="AK_Pres_blend">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="Bawx_Day">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="day_p1">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="day_p2">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="day_p3">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="day_p4">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="Bawx_Nite">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="nite_p1">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="nite_p2">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="nite_p3">
-	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="nite_p4">
 	<filters>Forecast,Ensemble,Global</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GINI_POES-NPOESS">
@@ -874,21 +781,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="MTS">
 	<filters>Standard,McIdas</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES12">
-	<filters>McIdas,GOES</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES13">
-	<filters>Standard,McIdas,GOES</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES14">
-	<filters>Standard,McIdas,GOES</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES15">
-	<filters>Standard,McIdas,GOES</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-2">
-	<filters>Standard,McIdas,GOES</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="FNEXRAD">
 	<filters>Radar</filters>
@@ -928,24 +820,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="DayNightTerminator">
 	<filters>Misc</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="ACE">
-	<filters>HighCadence,SWPC</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-13">
-	<filters>HighCadence,SWPC</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-14">
-	<filters>HighCadence,SWPC</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-15">
-	<filters>HighCadence,SWPC</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-16">
-	<filters>HighCadence,SWPC</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GOES-R">
-	<filters>HighCadence,SWPC</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="NCOM">
 	<filters>Analysis</filters>

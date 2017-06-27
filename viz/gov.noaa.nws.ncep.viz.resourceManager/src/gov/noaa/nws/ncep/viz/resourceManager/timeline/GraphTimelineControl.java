@@ -9,8 +9,6 @@
 package gov.noaa.nws.ncep.viz.resourceManager.timeline;
 
 import gov.noaa.nws.ncep.viz.common.ui.CalendarSelectDialog;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimelineGenMethod;
 import gov.noaa.nws.ncep.viz.resources.time_match.GraphTimelineUtil;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 
@@ -51,7 +49,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.common.time.DataTime;
@@ -71,6 +68,14 @@ import com.raytheon.uf.common.time.DataTime;
  * 
  * Timeline: A graphical view of available data times, that allows users to
  * select any or all data times from the available list.
+ * 
+ * TODO: Class hierarchy is not correct. There should have been an abstract
+ * class with common elements that both TimelineControl and GraphTimelineControl
+ * extend. Then TimelineControl and GraphTimelineControl would only support and
+ * implement the aspects that were unique to them. Specifically: "main
+ * difference are removing numFrames, and numSkip, and adding graphRange and
+ * hourSnap". This would eliminate the need to make the same changes twice in
+ * both classes as they are now.
  * 
  * <pre>
  * SOFTWARE HISTORY
@@ -93,36 +98,6 @@ import com.raytheon.uf.common.time.DataTime;
  */
 public class GraphTimelineControl extends TimelineControl {
 
-    private final String[] noResourcesList = { "                       None Available               " };
-
-    private final String manualTimelineStr = "                       Manual Timeline              ";
-
-    private enum MODE {
-        MOVE_LEFT, MOVE_RIGHT, MOVE_ALL
-    };
-
-    private final float DATE_LINE = 0.25f;
-
-    private final float TIME_LINE = 0.60f;
-
-    private final int MARGIN = 15;
-
-    private final int MARKER_WIDTH = 5;
-
-    private final int MARKER_HEIGHT = 10;
-
-    private final int SLIDER = 10;
-
-    private final int TICK_SMALL = 5;
-
-    private final int TICK_LARGE = 7;
-
-    private final int MAX_DATES = 10;
-
-    // if this is not null then the message is displayed in place of
-    // a timeline. This should only be set when no times are available.
-    private String timelineStateMessage = null;
-
     private Canvas canvas;
 
     private Combo graphRangeCombo;
@@ -139,14 +114,7 @@ public class GraphTimelineControl extends TimelineControl {
 
     private Label refTimeLbl;
 
-    private int timeRangeHrs = 0; 
-
-    private String availFrameIntervalStrings[] = { "Data", "1 min", "2 mins",
-            "5 mins", "10 mins", "15 mins", "20 mins", "30 mins", "1 hr",
-            "90 mins", "2 hrs", "3 hrs", "6 hrs", "12 hrs", "24 hrs" };
-
-    private int availFrameIntervalMins[] = { -1, 1, 2, 5, 10, 15, 20, 30, 60,
-            90, 120, 180, 360, 720, 1440 };
+    private int timeRangeHrs = 0;
 
     private String availGraphRangeStrings[] = { "1 hr", "2 hrs", "3 hrs",
             "6 hrs", "12 hrs", "24 hrs", "3 days", "7 days", "30 days" };
@@ -159,35 +127,9 @@ public class GraphTimelineControl extends TimelineControl {
 
     private int availHourSnapHrs[] = { 0, 1, 2, 3, 6, 12, 24 };
 
-    // keep this in order since code is referencing the index into this list.
-    private String refTimeSelectionOptions[] = { "Current", "Latest ",
-            "Calendar ..." };
-
-    private Font canvasFont;
-
-    private Cursor pointerCursor;
-
-    private Cursor resizeCursor;
-
-    private Cursor grabCursor;
-
-    private Rectangle slider = null;
-
-    private int sliderMin, sliderMax;
-
     private Map<Rectangle, Calendar> availableTimes;
 
     private Map<Calendar, Integer> timeLocations;
-
-    private boolean hasDifferentMinutes = false;
-
-    private List<Calendar> days;
-
-    private List<Integer> dayLocation;
-
-    private Color canvasColor, availableColor, selectedColor;
-
-    private Shell shell;
 
     private int newGraphRange = 0;
 
@@ -196,7 +138,7 @@ public class GraphTimelineControl extends TimelineControl {
         super(parent, "Graph");
         shell = parent.getShell();
 
-        availDomResourcesMap = new HashMap<String, ArrayList<AbstractNatlCntrsRequestableResourceData>>();
+        availDomResourcesMap = new HashMap<>();
 
         Composite top_form = this;
         GridData gd = new GridData();
@@ -227,7 +169,11 @@ public class GraphTimelineControl extends TimelineControl {
         dom_rsc_combo.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
 
-                selectDominantResource();
+                /*
+                 * the currently selected dominant resource is being replaced by
+                 * another dominant resource in the combo.
+                 */
+                selectDominantResource(true);
             }
         });
 
@@ -247,296 +193,6 @@ public class GraphTimelineControl extends TimelineControl {
         addSpinnerListeners();
 
         updateTimeline(new NCTimeMatcher());
-    }
-
-    public void addDominantResourceChangedListener(
-            IDominantResourceChangedListener lstnr) {
-        dominantResourceChangedListeners.add(lstnr);
-    }
-
-    public boolean removeAddDominantResourceChangedListener(
-            IDominantResourceChangedListener lstnr) {
-        return dominantResourceChangedListeners.remove(lstnr);
-    }
-
-    // set the timeMatcher and update the widgets for it.
-    public boolean setTimeMatcher(NCTimeMatcher tm) {
-        // this can happen if the user brings up the RBD Manager (usually with
-        // the spacebar) before there is an editor with a timeline
-        if (tm == null) {
-            timeMatcher = new NCTimeMatcher();
-            return false;
-        }
-
-        timeMatcher = tm;
-
-        /*
-         * loadTimes will adjust time line with "false" - it updates available
-         * times from DB but keeps selected frame times intact. If "true" is
-         * used, the time line will be completely rebuilt - available times are
-         * updated, the selected frames times are cleared and then re-built with
-         * "numFrames" and "skip" factor.
-         */
-        timeMatcher.loadTimes(false);
-
-        if (timeMatcher.getDominantResourceName() != null) {
-            for (int i = 0; i < dom_rsc_combo.getItemCount(); i++) {
-                if (dom_rsc_combo.getItem(i).equals(
-                        timeMatcher.getDominantResourceName().toString())) {
-                    dom_rsc_combo.select(i);
-                }
-            }
-        } else {
-            dom_rsc_combo.select(0); // 'None Available"
-        }
-
-        updateTimeline(timeMatcher);
-
-        // set the domRscData from the combo and
-        if (getDominantResource() == null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public NCTimeMatcher getTimeMatcher() {
-        timeMatcher.setFrameTimes(toDataTimes(getSelectedTimes()));
-        return timeMatcher;
-    }
-
-    private ArrayList<DataTime> toDataTimes(List<Calendar> times) {
-        ArrayList<DataTime> dlist = new ArrayList<DataTime>();
-        for (Calendar cal : times) {
-            DataTime dtime = new DataTime(cal);
-            dlist.add(dtime);
-        }
-        return dlist;
-    }
-
-    // set domRscData from the combo selection
-    public AbstractNatlCntrsRequestableResourceData getDominantResource() {
-        // look up this resource in the map of stored avail
-        // dominant resources and use the first in the list
-        // as the dominant resource.
-        String seldRscName = dom_rsc_combo.getText();
-
-        if (seldRscName.equals(noResourcesList[0])) {
-            domRscData = null;
-            return domRscData;
-        }
-        // if nothing is selected then return null.
-        else if (seldRscName.isEmpty()) {
-            domRscData = null;
-            return domRscData;
-        } else {
-            ArrayList<AbstractNatlCntrsRequestableResourceData> seldRscsList = availDomResourcesMap
-                    .get(seldRscName.toString());
-
-            if (seldRscsList == null || seldRscsList.isEmpty()) {
-                System.out.println("Sanity Check: seld Rsc " + seldRscName
-                        + " not found.");
-                domRscData = null;
-                return domRscData;
-            }
-
-            // TODO : There is a small hole in the design here in the case where
-            // Manual Timeline is selected for the event type resources and
-            // there are
-            // more than one event resource available. The dominant will be the
-            // first
-            // in the list. But the since the user will need to manually select
-            // a frame
-            // interval the only real problem is that the latest data will
-            // reference
-            // this resource. If the user needed the latest data of the second
-            // or other
-            // event resource then they wouldn't be able to unless they removed
-            // the
-            // resources and re-selected in a new order.
-            //
-            domRscData = seldRscsList.get(0);
-            return domRscData;
-        }
-    }
-
-    public void selectManualTimeline() {
-
-    }
-
-    // set this dominant Resource in the combo and select it as the dominant
-    //
-    public boolean setDominantResource(
-            AbstractNatlCntrsRequestableResourceData domRsc) {
-        // loop thru the combo items
-        for (String comboEntry : dom_rsc_combo.getItems()) {
-            if (!comboEntry.equals(noResourcesList[0])) {
-                if (comboEntry.equals(manualTimelineStr)) {
-                }
-
-                String mapKey = comboEntry;
-                ArrayList<AbstractNatlCntrsRequestableResourceData> seldRscsList = availDomResourcesMap
-                        .get(mapKey);
-
-                if (seldRscsList == null || seldRscsList.isEmpty()) {
-                    domRscData = null;
-                    return false;
-                }
-                for (AbstractNatlCntrsRequestableResourceData rsc : seldRscsList) {
-                    if (rsc.getResourceName().equals(domRsc.getResourceName())) {
-                        domRscData = domRsc;
-                        dom_rsc_combo.setText(comboEntry);
-                        break;
-                    }
-                }
-            }
-        }
-
-        selectDominantResource();
-
-        return true;
-    }
-
-    // set the numFrames from the domRsc to the timeMatcher.
-    public void selectDominantResource() {
-
-        // get the dominant resource from the selected combo item
-        // and set it in the timeMatcher.
-        if (getDominantResource() == null) {
-            timeMatcher.setDominantResourceData(null);
-        } else {
-            timeMatcher.setDominantResourceData(domRscData);
-        }
-
-        timeMatcher.updateFromDominantResource();
-
-        updateTimeline(timeMatcher);
-
-        // call all the listeners (used to set the auto update button)
-        for (IDominantResourceChangedListener lstnr : dominantResourceChangedListeners) {
-            lstnr.dominantResourceChanged(domRscData);
-        }
-    }
-
-    public void addAvailDomResource(AbstractNatlCntrsRequestableResourceData rsc) {
-
-        String mapKey; // the key for the map and the entry in the combo box
-
-        // for 'event' resources which requires a manual timeline then
-        // add "Manual" as a selection option
-        //
-        if (rsc.getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
-            mapKey = manualTimelineStr;
-        } else {
-            mapKey = rsc.getResourceName().toString();
-        }
-
-        ArrayList<AbstractNatlCntrsRequestableResourceData> rscList = availDomResourcesMap
-                .get(mapKey);
-
-        // if no resource by this name then create an
-        // entry in the map.
-        if (rscList == null) {
-            rscList = new ArrayList<AbstractNatlCntrsRequestableResourceData>();
-            availDomResourcesMap.put(mapKey, rscList);
-        }
-
-        // If there is no entry in the map then add the resource and update the
-        // combo
-        if (rscList.isEmpty()) {
-            rscList.add(rsc);
-
-            dom_rsc_combo.add(mapKey);
-
-            // remove none from the list
-            if (dom_rsc_combo.getItem(0).equals(noResourcesList[0])) {
-                if (dom_rsc_combo.getSelectionIndex() == 0) {
-                    dom_rsc_combo.remove(0);
-
-                    dom_rsc_combo.deselectAll();
-                    domRscData = null;
-                    // dom_rsc_combo.select(0);
-                    // selectDominantResource();
-                } else {
-                    dom_rsc_combo.remove(0);
-                }
-            }
-        } else {
-            // otherwise there are already other resources with the same name so
-            // just
-            // add this one. (We need to do this in case one of the other
-            // resources is
-            // removed then this one still needs to be made available as a
-            // dominant resource)
-            rscList.add(rsc);
-        }
-    }
-
-    // TODO : implement ; this is complicated by the fact that there may be
-    // another
-    // resource in another pane to 'replace' this one so we will need to save
-    // all
-    // the possible resources and only present the unique ones to the user.
-    //
-    public boolean removeAvailDomResource(
-            AbstractNatlCntrsRequestableResourceData rsc) {
-
-        String mapKey;
-
-        if (rsc.getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
-            mapKey = manualTimelineStr;
-        } else {
-            mapKey = rsc.getResourceName().toString();
-        }
-
-        ArrayList<AbstractNatlCntrsRequestableResourceData> rscList = availDomResourcesMap
-                .get(mapKey);
-
-        if (rscList == null || rscList.isEmpty()) {
-            System.out.println("removeAvailDomResource: " + mapKey
-                    + " is not in the availDomResourcesMap??");
-            return false;
-        }
-
-        rscList.remove(rsc);
-
-        // if this was the last resource with this name in the list and if it is
-        // currently selected
-        // then change the dominant resource.
-        if (rscList.isEmpty()) {
-
-            // if currently selected,
-            if (dom_rsc_combo.getText().equals(mapKey)) {
-
-                dom_rsc_combo.remove(mapKey);
-
-                if (dom_rsc_combo.getItemCount() == 0) {
-                    dom_rsc_combo.setItems(noResourcesList);
-                }
-
-                dom_rsc_combo.select(0);
-                selectDominantResource();
-            } else {
-                dom_rsc_combo.remove(mapKey);
-            }
-        }
-        // if this is an event type then force the next event type resource to
-        // be the
-        // dominant.
-        else if (rsc.getTimelineGenMethod() == TimelineGenMethod.USE_MANUAL_TIMELINE) {
-            selectDominantResource();
-        }
-
-        return true;
-    }
-
-    public void clearTimeline() {
-        availDomResourcesMap.clear();
-        dom_rsc_combo.setItems(noResourcesList);
-        dom_rsc_combo.select(0);
-
-        setTimeMatcher(new NCTimeMatcher());
-        updateTimeline(timeMatcher);
     }
 
     // End of methods from old TimelineControl
@@ -697,17 +353,6 @@ public class GraphTimelineControl extends TimelineControl {
         canvas.setEnabled(enable);
     }
 
-    private List<Calendar> toCalendar(List<DataTime> times) {
-        if (times == null)
-            return null;
-
-        List<Calendar> timelist = new ArrayList<Calendar>();
-        for (DataTime dt : times) {
-            timelist.add(dt.getValidTime());
-        }
-        return timelist;
-    }
-
     /**
      * Returns a list of the selected data times.
      * 
@@ -798,23 +443,6 @@ public class GraphTimelineControl extends TimelineControl {
     }
 
     /*
-     * Determines whether every data time is specified at the same minute of the
-     * hour.
-     */
-    private boolean checkTimeMinutes(List<Calendar> times) {
-
-        if (times.isEmpty())
-            return false;
-
-        int min = times.get(0).get(Calendar.MINUTE);
-        for (Calendar cal : times) {
-            if (min != cal.get(Calendar.MINUTE))
-                return true;
-        }
-        return false;
-    }
-
-    /*
      * Create all the widgets used for the timeline
      */
     private void createWidgets(Composite top_form) {
@@ -898,7 +526,7 @@ public class GraphTimelineControl extends TimelineControl {
                         if (!isInSlider(e.x, e.y) && toggleATime(e.x, e.y)) {
                             return;
                         }
-                        
+
                         /*
                          * If user grabs center, top or bottom of slider bar,
                          * move it to new location on mouse up
@@ -1362,7 +990,7 @@ public class GraphTimelineControl extends TimelineControl {
             return;
         } else if (timeData.isEmpty()) { // shouldn't happen. if empty the state
                                          // should be set
-            timelineStateMessage = new String("Timeline Empty");
+            timelineStateMessage = "Timeline Empty";
             return;
         }
 
@@ -1508,46 +1136,6 @@ public class GraphTimelineControl extends TimelineControl {
         int currX = (int) Math.round(dist * (double) lineLength) + beg.x;
 
         return currX;
-    }
-
-    /*
-     * calculates a list of days between the first and last available times, and
-     * calculate each day's relative position along the line defined by the two
-     * points specified beg and end
-     */
-    private void calculateDates(Point beg, Point end) {
-
-        days = new ArrayList<Calendar>();
-        dayLocation = new ArrayList<Integer>();
-        int lineLength = end.x - beg.x;
-
-        Calendar first = timeData.getStartTime();
-        Calendar last = timeData.getEndTime();
-        long timeLength = timeData.getTotalMillis();
-
-        Calendar cal = (Calendar) first.clone();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        while (cal.before(last)) {
-
-            if (cal.before(first)) {
-                days.add(cal);
-                dayLocation.add(beg.x);
-            } else {
-                double dist = (double) (cal.getTimeInMillis() - first
-                        .getTimeInMillis()) / (double) timeLength;
-                long lineDist = Math.round(dist * (double) lineLength);
-                days.add(cal);
-                dayLocation.add(beg.x + (int) lineDist);
-            }
-
-            cal = (Calendar) cal.clone();
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
     }
 
     /*
@@ -1709,42 +1297,13 @@ public class GraphTimelineControl extends TimelineControl {
     }
 
     /*
-     * calculates an appropriate time interval (in minutes) to use for tick
-     * marks along the timeline
-     */
-    private int calcTimeInterval(int lineLength, int minutes) {
-        int interval = 15;
-        int maxnum = lineLength / 4;
-
-        if (hasDifferentMinutes) {
-            if ((minutes / interval) > maxnum)
-                interval = 30;
-            if ((minutes / interval) > maxnum)
-                interval = 60;
-        } else {
-            interval = 60;
-        }
-
-        if ((minutes / interval) > maxnum)
-            interval = 180;
-        if ((minutes / interval) > maxnum)
-            interval = 360;
-        if ((minutes / interval) > maxnum)
-            interval = 720;
-        if ((minutes / interval) > maxnum)
-            interval = 1440;
-
-        return interval;
-    }
-
-    /*
      * Calculate the boxes and their locations that will be used to represent
      * the available times on the timeline
      */
     private void calculateAvailableBoxes(Point beg, Point end) {
 
-        availableTimes = new LinkedHashMap<Rectangle, Calendar>();
-        timeLocations = new HashMap<Calendar, Integer>();
+        availableTimes = new LinkedHashMap<>();
+        timeLocations = new HashMap<>();
 
         int lineLength = end.x - beg.x;
 
@@ -1816,16 +1375,6 @@ public class GraphTimelineControl extends TimelineControl {
             }
         }
     }
-
-    /**
-     * Sets the number of times that should be selected
-     * 
-     * @param num
-     */
-    // public void setNumberofFrames(int num) {
-    // numFramesSpnr.setSelection(Math.min(num,
-    // (timeData != null ? timeData.getSize() : 0)));
-    // }
 
     /**
      * Retuns the current skip factor used

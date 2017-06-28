@@ -93,6 +93,8 @@ public class EditAsdiAttrsDialog extends AbstractEditResourceAttrsDialog {
     RscAttrValue colorBarTimeAttr;
 
     private String[] selectedAirportNames = null;
+    
+    Group scaleGroup = null;
 
     Boolean check = false;
 
@@ -134,7 +136,7 @@ public class EditAsdiAttrsDialog extends AbstractEditResourceAttrsDialog {
                 true);
 
         // scale for time length
-        Group scaleGroup = new Group(topComp, SWT.NONE);
+        scaleGroup = new Group(topComp, SWT.NONE);
         fd = new FormData();
         fd.left = new FormAttachment(0, 15);
         fd.right = new FormAttachment(50, 15);

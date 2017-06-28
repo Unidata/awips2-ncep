@@ -144,6 +144,8 @@ public class NctextuiPaletteWindow extends ViewPart
 
     private Button oneHrBtn, threeHrBtn, sixHrBtn, twelveHrBtn, twentyfourHrBtn,
             fourtyeightHrBtn, allHrBtn;
+    
+    private Combo hourCombo = null;
 
     /**
      * No-arg Constructor
@@ -450,9 +452,8 @@ public class NctextuiPaletteWindow extends ViewPart
 
         Label hourLabel = new Label(composite, SWT.None);
         hourLabel.setText("Hour Covered");
-        
-        Combo hourCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
 
+        hourCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
         hourCombo.setEnabled(true);
 
         hourCombo

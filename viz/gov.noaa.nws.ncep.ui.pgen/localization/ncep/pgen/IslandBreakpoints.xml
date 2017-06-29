@@ -221,4 +221,36 @@
         <breakpoint name="Prince_Edward_Island" state="--" country="CN" location="-63.35,46.34"/>
         <path>-63.48,46.22 -62.67,45.95 -61.97,46.43 -62.85,46.42 -63.62,46.55 -64,47.05 -64.4,46.65 -63.48,46.22</path>
     </island>
+    <island>
+        <breakpoint name="Palmyra_Atoll" state="--" country="CP" location="-162.08,5.89"/>
+        <path>-162.08,5.89 -162.20,5.94 -161.96,5.84 -162.08,5.89</path>
+    </island>
+    <island>
+        <breakpoint name="Teraina_Atoll" state="--" country="CP" location="-160.37,4.68"/>
+        <path>-160.37,4.68 -160.50,4.80 -160.25,4.60 -160.37,4.68</path>
+    </island>
+    <island>
+        <breakpoint name="Tabuaeran_Atoll" state="--" country="CP" location="-159.32,3.87"/>
+        <path>-159.32,3.87 -159.45,3.95 -159.20,3.75 -159.32,3.87</path>
+    </island>
+    <island>
+        <breakpoint name="Kiritimati_(Christmas)_Island" state="--" country="CP" location="-157.42,1.87"/>
+        <path>-157.42,1.87 -157.70,2.10 -157.00,1.65 -157.42,1.87</path>
+    </island>
+    <island>
+        <breakpoint name="Azores_(Southeast)" state="--" country="AZ" location="-27.62,38.45"/>
+        <path>-27.62,38.45 -25.20,37.00 -24.99,36.92 -25.91,37.94 -25.57,37.75 -25.06,37.86 -26.90,38.58 -28.14,39.15 -29.04,38.58 -27.68,38.40 -28.33,38.88 -27.62,38.45</path>
+    </island>
+    <island>
+        <breakpoint name="Azores_(Northwest)" state="--" country="AZ" location="-31.19,39.50"/>
+        <path>-31.19,39.50 -31.28,39.22 -31.06,39.91 -31.19,39.50</path>
+    </island>
+    <island>
+        <breakpoint name="Cape_Verde_(South)" state="--" country="CV" location="-23.95,15.06"/>
+        <path>-23.95,15.06 -25.16,14.80 -22.75,15.36 -23.95,15.06</path>
+    </island>
+    <island>
+        <breakpoint name="Cape_Verde_(North)" state="--" country="CV" location="-23.60,16.53"/>
+        <path>-23.60,16.53 -25.57,17.25 -22.58,15.98 -23.15,17.04 -23.60,16.53</path>
+    </island>
 </islandBreakpoints>

@@ -14,7 +14,7 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=HiResW-NMM-GU
+inventoryParam=P
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

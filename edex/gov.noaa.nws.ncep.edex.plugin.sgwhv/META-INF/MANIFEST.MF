@@ -12,6 +12,7 @@ Require-Bundle: com.raytheon.edex.common,
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.raytheon.uf.common.wmo,
+ com.raytheon.uf.common.status,
  com.raytheon.uf.edex.bufrtools,
  com.raytheon.uf.edex.bufrtools.descriptors,
  com.raytheon.uf.edex.bufrtools.packets,

@@ -1,0 +1,113 @@
+#!/bin/sh
+
+# Created By J. Zeng
+
+# Modified by J. Wu to add "-s" option to split an activity XML with multiple
+# layers to a NMAP2 LPF file with layers.
+
+usage(){
+    cat <<EOF
+      This scripts is used to convert xml file to vgf/lpf file.
+
+      Usage: xml2vgf <sourcedf> <target> [-s]
+      - <sourcedf>: the source directory or the source file.
+      - <target>: the target directory
+      - [-s]: option to split the layers in the XML into separate VG files
+              if there are multiple layers in the XML file. An additional 
+	          LPF will be created.
+      
+      The converted file has the same name with .vgf suffix. When -s is
+      specified, the converted files will have the same name with _layerName.vgf 
+      suffix, where layerName is the name for the XML layers. 
+      
+      Warning: Running each conversion will overwrite the previous results.
+
+EOF
+    exit
+}
+
+srcpath=$1
+tgtpath=$2
+
+if [ $# -lt 2 ]; then
+     usage
+fi
+
+# Convert all XMLs to ASCII tag files first
+
+echo " "
+echo "Converting XMLs into ASCII tag files ....... "
+echo " "
+
+export PATH=${GEMPAK}/utilities/a2conv/bin:$PATH
+
+java -jar ${GEMPAK}/utilities/a2conv/distXC/xmlConverter.jar $srcpath $tgtpath $3
+
+#cd $tgtpath
+
+run_tag2vgf(){
+    tag2vgf<<EOF
+    ${tgtpath}/${vfile}.tag
+    ${tgtpath}/${vfile}.vgf
+EOF
+}
+
+echo " "
+echo "Converting all tag files into VGFs ....... "
+
+# Loop over files if the input is a directory
+
+if [ -d $srcpath ]; then
+     echo " "
+     echo "The source is a directory, any previous converted vgf files inside the target folder will be deleted."
+     for file in ${srcpath}/*.xml ; do		
+         tmpname=`basename $file`
+         filename=`echo $tmpname | sed s/.xml//`
+         if [ -f $tgtpath/${filename}.tag ]; then
+	     vfile=$filename
+             if [ -e ${tgtpath}/${vfile}.vgf ]; then
+                 rm -f  ${tgtpath}/${vfile}.vgf
+             fi
+             run_tag2vgf          
+         else 
+             for tfile in $tgtpath/${filename}*.tag ; do
+		 basefile=`basename $tfile` 
+	         vfile=`echo $basefile | sed s/.tag//`
+                 if [ -e ${tgtpath}/${vfile}.vgf ]; then
+                     rm -f  ${tgtpath}/${vfile}.vgf
+                 fi
+                 run_tag2vgf
+	     done
+	 fi	    
+     done	
+fi
+
+
+# Convert if the input is a single file.
+
+if [ -f $srcpath ]; then     
+     echo " "
+     echo "The source is a file, the previous converted vgf file will be deleted."
+     tmpname=`basename $srcpath`
+     filename=`echo $tmpname | sed s/.xml//`
+     if [ -f $tgtpath/${filename}.tag ]; then
+	 vfile=$filename
+         if [ -e ${tgtpath}/${vfile}.vgf ]; then
+            rm -f  ${tgtpath}/${vfile}.vgf
+         fi
+         run_tag2vgf          
+     else    
+         for file in $tgtpath/${filename}*.tag ; do
+	     basefile=`basename $file` 
+	     vfile=`echo $basefile | sed s/.tag//`
+             if [ -e ${tgtpath}/${vfile}.vgf ]; then
+                rm -f  ${tgtpath}/${vfile}.vgf
+             fi
+             run_tag2vgf
+         done
+     fi
+fi
+
+echo " "
+echo "Converting is completed."
+echo " "

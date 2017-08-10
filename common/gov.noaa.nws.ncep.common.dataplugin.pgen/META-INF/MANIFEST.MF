@@ -9,4 +9,5 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.12.1174",
  com.raytheon.uf.common.serialization.comm;bundle-version="1.12.1174",
  com.raytheon.uf.common.message;bundle-version="1.12.1174"
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.pgen,
- gov.noaa.nws.ncep.common.dataplugin.pgen.request
+ gov.noaa.nws.ncep.common.dataplugin.pgen.request,
+ gov.noaa.nws.ncep.common.dataplugin.pgen.response

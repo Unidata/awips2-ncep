@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <inventoryEnabled>true</inventoryEnabled>
     <resourceDefnName>GFS0P5</resourceDefnName>
     <resourceCategory>GRID</resourceCategory>
     <resourceParameters>
-GDFILE=GFS230
+GDFILE=GFS0.5
 pluginName=grid
+inventoryParam=P
     </resourceParameters>
     <rscImplementation>ModelFcstGridContours</rscImplementation>
     <subTypeGenerator></subTypeGenerator>

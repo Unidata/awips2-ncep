@@ -3,21 +3,29 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm;
 
-import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.InteriorStyle;
-import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
-
 import java.io.DataInput;
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.viz.rsc.ntrans.jcgm.InteriorStyle;
+import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
+
 /**
+ * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------
+ * Oct 24, 2016  R22550   bsteffen  Simplify INcCommand
+ * 
+ * </pre>
+ * 
  * @author bhebbard
  * 
  */
@@ -31,8 +39,8 @@ public class NcInteriorStyle extends InteriorStyle implements INcCommand {
     }
 
     @Override
-    public void contributeToPaintableImage(ImageBuilder ib, IGraphicsTarget target,
-            PaintProperties paintProps, IDescriptor descriptor) throws VizException {
+    public void contributeToPaintableImage(ImageBuilder ib)
+            throws VizException {
         switch (this.style) {
         case SOLID: // TODO: For now, SOLID is assumed for all filled polygons
             break;

@@ -40,7 +40,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
+ * Date       	Ticket#      Engineer    Description
  * ------------	----------	-----------	--------------------------
  * 07/03/10      #273        Greg Hull   
  * 03/01/11      #408        Greg Hull   remove Forecast/Observed
@@ -50,8 +50,11 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 12/13/2012    #957        Greg Hull   Show the localization level of files 
  * 02/22/2013    #972        Greg Hull   new ResourceCategory class
  * 04/09/2013    #864        Greg Hull   store isEnabled and filters in separate Resource Filters file.
- * 08/17/2015    R7755      J. Lopez     Moved isEnabled" flag  is moved to Resource Definitions and 
+ * 08/17/2015    R7755       J. Lopez    Moved isEnabled" flag  is moved to Resource Definitions and 
  *                                       removed "Filterable Labels" section from Resource Definition editor
+ * 04/11/2016    R14055      A. Su       Corrected the comparison for Category in updateResourceCategories();
+ *                                       Set the top of the views for four ListViewers to currently selected resources.
+ *                                       Changed the sorting order of second column to being alphabetical, ignoring cases.
  * 
  * </pre>
  * 
@@ -191,7 +194,6 @@ public class ResourceEditSelectionComposite extends Composite {
 
     // create all the widgets in the Resource Selection (top) section of the
     // sashForm.
-
     private void createSelectResourceGroup() {
 
         rscCatLViewer = new ListViewer(sel_rsc_comp, SWT.SINGLE | SWT.BORDER
@@ -257,7 +259,6 @@ public class ResourceEditSelectionComposite extends Composite {
         fd.top = new FormAttachment(copyRscTypeBtn, 7, SWT.BOTTOM);
         fd.left = new FormAttachment(copyRscTypeBtn, 0, SWT.LEFT);
         removeRscTypeBtn.setLayoutData(fd);
-        // removeRscTypeBtn.setEnabled( false ); // TODO : not implemented
 
         enableRscTypeBtn = new Button(sel_rsc_comp, SWT.CHECK);
         enableRscTypeBtn.setText("Enabled");
@@ -455,15 +456,6 @@ public class ResourceEditSelectionComposite extends Composite {
         });
 
         rscTypeLViewer.setComparator(new ViewerComparator() {
-            // TODO : implement this if we want to group definitions according
-            // to
-            // some meaningful category....
-            public int category(Object element) {
-
-                ResourceDefinition rd = (ResourceDefinition) element;
-                return (rd.isForecast() ? 1 : 0);
-
-            }
 
             @Override
             public int compare(Viewer viewer, Object e1, Object e2) {
@@ -475,15 +467,20 @@ public class ResourceEditSelectionComposite extends Composite {
                     return -1;
                 }
 
-                int catComp = category(e1) - category(e2);
+                if (r1.getResourceCategory() == ResourceCategory.RadarRscCategory) {
+                    if (r1.getRscImplementation().equals("RadarMosaic")) {
+                        return -1;
+                    } else if (r2.getRscImplementation().equals("RadarMosaic")) {
+                        return 1;
+                    }
+                }
 
-                return (catComp != 0 ? catComp : rscDefnsMngr
-                        .getDefaultRscDefnComparator().compare(r1, r2));
+                return r1.getResourceDefnName().compareToIgnoreCase(
+                        r2.getResourceDefnName());
             }
         });
 
         // The Elements of the ListViewer are AttrSetGroups.
-
         rscGroupLViewer.setContentProvider(new IStructuredContentProvider() {
             @Override
             public Object[] getElements(Object inputElement) {
@@ -533,7 +530,6 @@ public class ResourceEditSelectionComposite extends Composite {
 
                         }
                         return new String[0];
-
                     }
                 } else {
                     rscTypeGroupLbl.setText("");
@@ -623,8 +619,7 @@ public class ResourceEditSelectionComposite extends Composite {
                 } else {
                     // super calls getText which can trigger a bunch of
                     // inventory queries in some cases
-                    return (a1.getName().compareTo(a2.getName())); // super.compare(viewer,
-                                                                   // e1, e2);
+                    return (a1.getName().compareTo(a2.getName()));
                 }
             }
         });
@@ -742,7 +737,6 @@ public class ResourceEditSelectionComposite extends Composite {
                         seldResourceName.setRscAttrSetName("");
 
                         updateResourceGroups();
-
                     }
                 });
 
@@ -782,10 +776,8 @@ public class ResourceEditSelectionComposite extends Composite {
                 // allow for multiply selections
                 setSelectedResourceEnable();
                 rscTypeLViewer.refresh(true);
-
             }
         });
-
     }
 
     // allow calling with null as a 'refresh' of the currently selected rscName
@@ -821,12 +813,17 @@ public class ResourceEditSelectionComposite extends Composite {
 
         //
         if (seldResourceName.getRscCategory() != ResourceCategory.NullCategory) {
+            String selectedCategoryName = seldResourceName.getRscCategory()
+                    .getCategoryName();
+
             for (int itmIndx = 0; itmIndx < rscCatLViewer.getList()
                     .getItemCount(); itmIndx++) {
 
                 if (rscCatLViewer.getList().getItem(itmIndx)
-                        .equals(seldResourceName.getRscCategory())) {
+                        .equals(selectedCategoryName)) {
+
                     rscCatLViewer.getList().select(itmIndx);
+                    rscCatLViewer.getList().setTopIndex(itmIndx);
                     break;
                 }
             }
@@ -872,7 +869,9 @@ public class ResourceEditSelectionComposite extends Composite {
 
                 if (rd.getResourceDefnName().equals(
                         seldResourceName.getRscType())) {
+
                     rscTypeLViewer.getList().select(itmIndx);
+                    rscTypeLViewer.getList().setTopIndex(itmIndx);
                     break;
                 }
             }
@@ -909,7 +908,7 @@ public class ResourceEditSelectionComposite extends Composite {
         // if there are no groups
         if (rscGroupLViewer.getList().getItemCount() == 0) {
             if (!seldResourceName.getRscGroup().isEmpty()) {
-                // ????
+                //
                 seldResourceName.setRscGroup("");
                 seldResourceName.setRscAttrSetName("");
             }
@@ -929,7 +928,9 @@ public class ResourceEditSelectionComposite extends Composite {
 
                     if (asg.getAttrSetGroupName().equals(
                             seldResourceName.getRscGroup())) {
+
                         rscGroupLViewer.getList().select(itmIndx);
+                        rscGroupLViewer.getList().setTopIndex(itmIndx);
                         break;
                     }
                 }
@@ -1104,7 +1105,9 @@ public class ResourceEditSelectionComposite extends Composite {
                         .getElementAt(itmIndx);
 
                 if (as.getName().equals(seldResourceName.getRscAttrSetName())) {
+
                     rscAttrSetLViewer.getList().select(itmIndx);
+                    rscAttrSetLViewer.getList().setTopIndex(itmIndx);
                     break;
                 }
             }

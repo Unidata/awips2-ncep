@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=RTGSST
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

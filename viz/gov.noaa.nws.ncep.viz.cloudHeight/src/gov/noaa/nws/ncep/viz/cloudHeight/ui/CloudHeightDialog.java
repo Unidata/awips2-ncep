@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.perspectives.AbstractVizPerspectiveManager;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
@@ -54,12 +56,19 @@ import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
  *                                      - Widen fields to display full Sounding Source Time
  * 03/28/12      N/A        B. Hebbard  Modify 'Take Control' refactor above, to fix error when reopening
  *                                      Cloud Height tool after it had been closed
+ * 09/16/2016    R15716     S. Russell  Updated the open() method.
+ *                                      Updated createDialog() method, left
+ *                                      justify field names, widen fields
  * </pre>
  * 
  * @author
  * @version 1
  */
 public class CloudHeightDialog extends Dialog {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(CloudHeightDialog.class);
+
     private Shell shell;
 
     private String dlgTitle = null;
@@ -80,7 +89,8 @@ public class CloudHeightDialog extends Dialog {
 
     private Text temp_txt = null;
 
-    private Text hght1_txt = null; // the primary cloud height level
+    // the primary cloud height level
+    private Text hght1_txt = null;
 
     private Text pres1_txt = null;
 
@@ -114,15 +124,14 @@ public class CloudHeightDialog extends Dialog {
 
     private CloudHeightOptionsDialog optsDlg = null;
 
-    private Unit<? extends Length> distWorkingUnits = SI.METER; // NonSI.MILE;
-                                                                // // CHECK this
+    // NonSI.MILE;CHECK this
+    private Unit<? extends Length> distWorkingUnits = SI.METER;
 
-    private Unit<? extends Temperature> tempWorkingUnits = SI.CELSIUS; // from
-                                                                       // SatResource
+    // from SatResource
+    private Unit<? extends Temperature> tempWorkingUnits = SI.CELSIUS;
 
-    private Unit<? extends Length> hghtWorkingUnits = SI.METER; // from sounding
-                                                                // models and
-                                                                // data
+    // from souding models and data
+    private Unit<? extends Length> hghtWorkingUnits = SI.METER;
 
     private UnitConverter distUnitsConverter = null;
 
@@ -130,31 +139,16 @@ public class CloudHeightDialog extends Dialog {
 
     private UnitConverter hghtUnitsConverter = null;
 
-    // private Quadtree stationTree = null;
-    // private final double DIST = 1.0;
-
     public CloudHeightDialog(Shell parent, String title) {
         super(parent);
         dlgTitle = title;
 
         // create the Dialog before opening it since the error
         // msg text may be set before opening the dialog.
-
-        // Shell parent = getParent();
-        // Display display = parent.getDisplay();
         shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
         shell.setText(dlgTitle);
         shell.setSize(600, 800); // pack later
         init();
-        /*
-         * moved to open method... GridLayout mainLayout = new GridLayout(1,
-         * true); mainLayout.marginHeight = 1; mainLayout.marginWidth = 1;
-         * shell.setLayout(mainLayout); shell.setLocation(0, 0);
-         * 
-         * createDialog( shell );
-         * 
-         * shell.pack(); //stationTree = new Quadtree();
-         */
     }
 
     public static CloudHeightDialog getInstance(Shell parShell,
@@ -173,14 +167,20 @@ public class CloudHeightDialog extends Dialog {
     public void createDialog(Composite parent) {
         Composite top_form = parent;
 
-        top_form.setLayout(new FormLayout());
+        FormLayout mainFormLayout = new FormLayout();
+
+        top_form.setLayout(mainFormLayout);
 
         lat_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         lat_txt.setText("");
-        FormData fd = new FormData(70, 20);
+        // Set the width,height here to set the width,height of the dialog
+        FormData fd = new FormData(200, 20);
         fd.top = new FormAttachment(0, 15);
-        fd.left = new FormAttachment(0, 180); // this will shift all the text
-                                              // boxes and labels
+
+        // This will shift all the text boxes and labels
+        // This is where to change values to make the dialog box wider
+        fd.left = new FormAttachment(0, 250);
+
         fd.right = new FormAttachment(100, -105);
         lat_txt.setLayoutData(fd);
 
@@ -188,12 +188,16 @@ public class CloudHeightDialog extends Dialog {
         lat_lbl.setText("Latitude");
         FormData fd1 = new FormData();
         fd1.bottom = new FormAttachment(lat_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(lat_txt, -10, SWT.LEFT);
+
+        // This statement, repeated with each field label, attaches the label
+        // to the left side of the Composite (dialog) with an offset of 20 from
+        // that edge
+        fd1.left = new FormAttachment(0, 20);
         lat_lbl.setLayoutData(fd1);
 
         lon_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         lon_txt.setText("");
-        fd = new FormData(100, 20);
+        fd = new FormData(105, 20);
         fd.top = new FormAttachment(lat_txt, 5, SWT.BOTTOM);
         fd.left = new FormAttachment(lat_txt, 0, SWT.LEFT);
         fd.right = new FormAttachment(lat_txt, 0, SWT.RIGHT);
@@ -203,7 +207,7 @@ public class CloudHeightDialog extends Dialog {
         lon_lbl.setText("Longitude");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(lon_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(lon_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         lon_lbl.setLayoutData(fd1);
 
         snd_src_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER
@@ -219,7 +223,7 @@ public class CloudHeightDialog extends Dialog {
         snd_src_lbl.setText("Sounding Data Source");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(snd_src_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(snd_src_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         snd_src_lbl.setLayoutData(fd1);
 
         snd_time_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER
@@ -235,7 +239,7 @@ public class CloudHeightDialog extends Dialog {
         snd_time_lbl.setText("Sounding Source Time");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(snd_time_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(snd_time_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         snd_time_lbl.setLayoutData(fd1);
 
         dist_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
@@ -250,7 +254,7 @@ public class CloudHeightDialog extends Dialog {
         dist_lbl.setText("Sounding Source Distance");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(dist_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(dist_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         dist_lbl.setLayoutData(fd1);
 
         dist_units_combo = new Combo(top_form, SWT.READ_ONLY);
@@ -298,7 +302,7 @@ public class CloudHeightDialog extends Dialog {
         pixel_lbl.setText("Pixel Value");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(pixel_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(pixel_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         pixel_lbl.setLayoutData(fd1);
 
         temp_txt = new Text(top_form, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
@@ -313,7 +317,7 @@ public class CloudHeightDialog extends Dialog {
         temp_lbl.setText("Temperature");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(temp_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(temp_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         temp_lbl.setLayoutData(fd1);
 
         temp_units_combo = new Combo(top_form, SWT.READ_ONLY);
@@ -359,7 +363,7 @@ public class CloudHeightDialog extends Dialog {
         hght1_lbl.setText("Primary Cloud Height");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(hght1_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(hght1_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         hght1_lbl.setLayoutData(fd1);
 
         hght_units_combo = new Combo(top_form, SWT.READ_ONLY);
@@ -439,7 +443,7 @@ public class CloudHeightDialog extends Dialog {
         pres1_lbl.setText("Primary Cloud Pressure");
         fd1 = new FormData();
         fd1.bottom = new FormAttachment(pres1_txt, -4, SWT.BOTTOM);
-        fd1.right = new FormAttachment(pres1_txt, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         pres1_lbl.setLayoutData(fd1);
 
         Label pres_units_label = new Label(top_form, SWT.NONE);
@@ -452,8 +456,8 @@ public class CloudHeightDialog extends Dialog {
         alt_cloud_lvls_list = new List(top_form, SWT.SINGLE | SWT.BORDER
                 | SWT.V_SCROLL);
 
-        fd = new FormData(100, 44); // 44 is minimum to show 2 lines without
-                                    // scrollbars.
+        // 44 is minimum to show 2 lines without scrollbars
+        fd = new FormData(100, 44);
         fd.top = new FormAttachment(pres1_txt, 10, SWT.BOTTOM);
         fd.left = new FormAttachment(pres1_txt, 0, SWT.LEFT);
         fd.right = new FormAttachment(pres1_txt, 30, SWT.RIGHT);
@@ -465,7 +469,7 @@ public class CloudHeightDialog extends Dialog {
         alt_cl_lbl.setText("Alternate Cloud Levels");
         fd1 = new FormData();
         fd1.top = new FormAttachment(alt_cloud_lvls_list, 5, SWT.TOP);
-        fd1.right = new FormAttachment(alt_cloud_lvls_list, -10, SWT.LEFT);
+        fd1.left = new FormAttachment(0, 20);
         alt_cl_lbl.setLayoutData(fd1);
 
         sts_txt = new Text(top_form, SWT.MULTI | SWT.BORDER | SWT.READ_ONLY
@@ -500,7 +504,6 @@ public class CloudHeightDialog extends Dialog {
 
         close_btn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent ev) {
-                // shell.dispose();
                 close();
             }
         });
@@ -544,9 +547,11 @@ public class CloudHeightDialog extends Dialog {
                         try {
                             mgr.getToolManager().activateToolSet(
                                     associatedCloudHeightAction.getCommandId());
-                        } catch (VizException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
+                        } catch (VizException ve) {
+                            statusHandler.error(
+                                    "Error handling Cloud Height Dialog Event",
+                                    ve);
+
                         }
                     }
                 }
@@ -582,12 +587,10 @@ public class CloudHeightDialog extends Dialog {
     public void setLatLon(double lat, double lon) {
         lat_txt.setText(String.format("%6.2f", lat));
         lon_txt.setText(String.format("%7.2f", lon));
-
-        // getNearestStation( new Coordinate(lon, lat));
     }
 
     public boolean isOpen() {
-        return isOpen; // shell != null && !shell.isDisposed();
+        return isOpen;
     }
 
     private void init() {
@@ -608,13 +611,17 @@ public class CloudHeightDialog extends Dialog {
 
         parent.setCursor(crossCursor);
 
-        // Shell parent = getParent();
-        // Display display = parent.getDisplay();
         if (shell == null || shell.isDisposed()) {
             shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
             shell.setText(dlgTitle);
             shell.setSize(600, 800); // pack later
         }
+
+        shell.addListener(SWT.Close, new Listener() {
+            public void handleEvent(Event event) {
+                close();
+            }
+        });
 
         init();
 
@@ -627,8 +634,6 @@ public class CloudHeightDialog extends Dialog {
         createDialog(shell);
 
         shell.pack();
-        // stationTree = new Quadtree();
-
         shell.open();
         isOpen = true;
 
@@ -685,11 +690,9 @@ public class CloudHeightDialog extends Dialog {
     public void setSoundingDataDistance(double workingDist) {
         if (Double.isNaN(workingDist)) {
             dist_txt.setText("N/A");
-            // dist_txt.setText("");
         } else
             try {
                 double distVal = distUnitsConverter.convert(workingDist);
-                // dist_txt.setText( distStr );
                 dist_txt.setText(String.format("%.1f", distVal));
             } catch (ConversionException e) {
                 temp_txt.setText("Conversion Error");
@@ -736,16 +739,19 @@ public class CloudHeightDialog extends Dialog {
         alt_cloud_lvls_list.removeAll();
     }
 
-    // input values are in Ft and mb. The height will be converted to the units
-    // selected
-    // for the primary cloud height.
-    //
+    /**
+     * input values are in Ft and mb. The height will be converted to the units
+     * selected for the primary cloud height.
+     * 
+     * @param workingHght
+     * @param pres
+     */
     public void addAltCloudHeight(double workingHght, double pres) {
         try {
             double cldHght = hghtUnitsConverter.convert(workingHght);
 
-            String altLvlStr = String.format("%-6.0f %s / %-4.0f mb", // "%-6.1f %s / %-6.1f mb",
-                    cldHght, optsDlg.getCloudHeightUnits().toString(), pres);
+            String altLvlStr = String.format("%-6.0f %s / %-4.0f mb", cldHght,
+                    optsDlg.getCloudHeightUnits().toString(), pres);
 
             alt_cloud_lvls_list.add(altLvlStr);
 

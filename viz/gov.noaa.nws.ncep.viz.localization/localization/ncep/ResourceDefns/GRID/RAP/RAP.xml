@@ -14,7 +14,7 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=RUC130
+inventoryParam=P
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

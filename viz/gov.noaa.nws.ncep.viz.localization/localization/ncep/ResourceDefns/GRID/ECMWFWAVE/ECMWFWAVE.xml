@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=ecmwfWave
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

@@ -1,6 +1,6 @@
 package gov.noaa.nws.ncep.viz.resources.util;
 
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
 import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
 
 import java.awt.geom.Rectangle2D;
@@ -55,6 +55,8 @@ import com.vividsolutions.jts.geom.Point;
  * Date         Ticket# Engineer        Description
  * ------------ ------- -----------     --------------------------
  * 11/13/2015   R13133  kbugenhagen     Initial creation
+ * 06/20/2016   R18511  kbugenhagen     Updated to use AbstractNatlCntrsResource2.
+ * 
  * 
  * </pre>
  * 
@@ -160,7 +162,7 @@ public enum Sampler {
             ReferencedCoordinate coordinate) throws VizException {
         ResourceProperties props = rp.getProperties();
         AbstractVizResource<?, ?> rsc = rp.getResource();
-        if (rsc instanceof AbstractNatlCntrsResource && coordinate != null) {
+        if (rsc instanceof AbstractNatlCntrsResource2 && coordinate != null) {
             if (rsc != null && rsc.getStatus() == ResourceStatus.INITIALIZED
                     && props.isVisible()) {
                 String curVal = inspect(rsc, coordinate);

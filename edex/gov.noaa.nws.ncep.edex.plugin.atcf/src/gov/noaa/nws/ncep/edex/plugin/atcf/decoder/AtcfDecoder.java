@@ -29,11 +29,16 @@ import com.raytheon.uf.common.status.UFStatus;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    Engineer     Description
- * ------------ -------- ----------- --------------------------
- * Jun 23, 2010 208      F. J. Yen   Initial creation
- * Aug 30, 2013 2298     rjpeter     Make getPluginName abstract
- * 6/2014				 T. Lee		 Batch processing
+ * Date         Ticket#  Engineer     Description
+ * ------------ -------- -----------  --------------------------
+ * 06/23/2010   208      F. J. Yen   Initial creation
+ * 08/30/2013   2298     rjpeter      Make getPluginName abstract
+ * 06/  /2014            T. Lee      Batch processing
+ * 07/25/2015   R19869   B. Hebbard  Change ATCF_DATA regex to allow null value
+ *                                   (common in B-deck) in column 4 TECHNUM/MIN
+ * 08/10/2016   R19869   B. Hebbard  Per code review, share out regex ATCF_DATA so
+ *                                   AtcfSeparator needn't have a duplicate expression;
+ *                                   clean comments.
  * </pre>
  * 
  * @author Fee Jing Yen, SIB
@@ -44,6 +49,8 @@ import com.raytheon.uf.common.status.UFStatus;
 public class AtcfDecoder extends AbstractDecoder {
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(AtcfDecoder.class);
+
+    public static final String ATCF_DATA = "(WP|IO|SH|CP|EP|AL), +\\d{1,2}, +\\d{10}, +\\d{0,2}, +\\w{1,4}, +(-|\\d)\\d{0,2}, +\\d{1,3}(N|S), +\\d{1,4}(E|W), +.*?\\x0a";
 
     protected Matcher regexMatcher;
 
@@ -64,7 +71,6 @@ public class AtcfDecoder extends AbstractDecoder {
         String traceId = "";
         byte[] messageData = null;
         // ATCF_DATA is REGEX for a ATCF record
-        final String ATCF_DATA = "(WP|IO|SH|CP|EP|AL), +\\d{1,2}, +\\d{10}, +\\d{1,2}, +\\w{1,4}, +(-|\\d)\\d{0,2}, +\\d{1,3}(N|S), +\\d{1,4}(E|W), +.*?\\x0a";
         final Pattern atcfPattern = Pattern.compile(ATCF_DATA);
         if (headers != null) {
             traceId = (String) headers.get("traceId");

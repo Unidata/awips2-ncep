@@ -11,6 +11,7 @@ import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +23,10 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
+import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.JAXBManager;
+import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -38,7 +41,7 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 12/15  		 #217	   	Greg Hull   Initial Creation
+ * 12/15        #217        Greg Hull   Initial Creation
  * 03/21        R1G2-9      Greg Hull   synchronized readPlotModels()     
  * 03/04/11      425        Greg Hull   change category to plugin
  * 03/08/11      425        Greg Hull   add deletePlotModel
@@ -50,6 +53,13 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * 07/20/15	    #8051   Jonas Okwara    Modified readPlotModel method to read PLOT_MODEL directory
  * 07/24/15     #8051   Jonas Okwara    Switched from SerializationUtil methods to jaxbMarshal and jaxbUnmarshal methods
  * 10/01/2015   R8051   Edwin Brown     Clean up work
+ * 09/22/2016   RM15953 R.Reynolds      Added capability for wind interpolation
+ * 09/26/2016   R20482  Bugenhagen      Handle saving localization file without 
+ *                                      throwing exception due to updated 
+ *                                      checksum.  Fixed issue with deletion.
+ *                                      Replaced deprecated calls
+ *                                      to LocalizationFile.save method.
+ * 
  * </pre>
  * 
  * @author ghull
@@ -117,7 +127,7 @@ public class PlotModelMngr {
         if (plotModels == null) {
             // This runs when the plot model manager dialog is brought up the
             // first time
-            plotModels = new HashMap<String, PlotModel>();
+            plotModels = new HashMap<>();
 
             // Get all of the xml (plotModel) files in the PLOT_MODELS
             // directory. This will return files from all context levels.
@@ -192,7 +202,7 @@ public class PlotModelMngr {
     public ArrayList<String> getPlugins() {
         readPlotModels();
 
-        ArrayList<String> pluginList = new ArrayList<String>();
+        ArrayList<String> pluginList = new ArrayList<>();
         for (PlotModel pm : plotModels.values()) {
             if (!pluginList.contains(pm.getPlugin())) {
                 pluginList.add(pm.getPlugin());
@@ -208,7 +218,7 @@ public class PlotModelMngr {
 
         readPlotModels();
 
-        HashMap<String, PlotModel> plotModelsByPlugin = new HashMap<String, PlotModel>();
+        HashMap<String, PlotModel> plotModelsByPlugin = new HashMap<>();
 
         for (PlotModel pm : plotModels.values()) {
             if (plgn == null || plgn.equalsIgnoreCase(pm.getPlugin())) {
@@ -264,19 +274,24 @@ public class PlotModelMngr {
         plotModel.setLocalizationFile(lFile);
 
         try {
-            lFile.jaxbMarshal(plotModel, Jaxb);
-            lFile.save();
+            SaveableOutputStream outstream = lFile.openOutputStream();
+            Jaxb.marshalToStream(plotModel, outstream);
+            outstream.save();
+            outstream.close();
 
             LocalizationLevel lLvl = lFile.getContext().getLocalizationLevel();
-
             // update this PlotModel in the map
             plotModels.put(plotModel.getPlugin() + plotModel.getName() + " ("
                     + lLvl.name() + ")", plotModel);
 
-        } catch (LocalizationException e) {
-            String statusString = "Tried to save " + lFile.getName();
-            statusHandler.handle(Priority.INFO, statusString, e);
+        } catch (LocalizationException | IOException e) {
+            statusHandler.error(
+                    "Error saving plot model: " + plotModel.getName(), e);
+        } catch (SerializationException e) {
+            statusHandler.error(
+                    "Error marshalling plot model " + plotModel.getName(), e);
         }
+
     }
 
     public void deletePlotModel(String pluginName, String pltMdlName)
@@ -306,6 +321,11 @@ public class PlotModelMngr {
         try {
             String lFileName = lFile.getName();
             lFile.delete();
+
+            // Give the localization server time to delete the file before
+            // getting the BASE, SITE or DESK level file.
+            Thread.sleep(500);
+
             plotModels.remove(pluginName + pltMdlName);
             lFile = NcPathManager.getInstance().getStaticLocalizationFile(
                     lFileName);
@@ -335,10 +355,13 @@ public class PlotModelMngr {
                 }
             }
 
-        } catch ( LocalizationException e ) {
+        } catch (LocalizationException e) {
             throw new VizException("Error Deleting PlotModel, " + pltMdlName
                     + ", for plugin, " + pluginName + "\n" + e.getMessage());
+        } catch (InterruptedException e) {
+            statusHandler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
         }
+
     }
 
     public PlotModel getDefaultPlotModel() {
@@ -393,6 +416,6 @@ public class PlotModelMngr {
         return NcSoundingQuery.genericSoundingDataQuery(refTime, rangeTime,
                 null, null, null, stnIdAry, sndType,
                 NcSoundingLayer.DataType.ALLDATA, true, level, null, true,
-                true, pwRequired);
+                true, pwRequired, true);
     }
 }

@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=waveHurr4WC
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

@@ -11,25 +11,30 @@
  */
 package gov.noaa.nws.ncep.viz.rsc.ntrans.ncgm;
 
-import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
-
-import com.raytheon.uf.viz.core.IGraphicsTarget;
-import com.raytheon.uf.viz.core.drawables.IDescriptor;
-import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
+
+import gov.noaa.nws.ncep.viz.rsc.ntrans.rsc.ImageBuilder;
 
 /**
  * INcCommand: Interface implemented by selected CGM command classes that have
  * been extended to allow themselves to contribute to an AWIPS II image.
  * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------
+ * Oct 24, 2016  R22550   bsteffen  Simplify INcCommand
+ * 
+ * </pre>
+ * 
  * @author bhebbard
  * 
  */
-
 public interface INcCommand {
 
-    public abstract void contributeToPaintableImage(ImageBuilder ib,
-            IGraphicsTarget target, PaintProperties paintProps,
-            IDescriptor descriptor) throws VizException;
+    public abstract void contributeToPaintableImage(ImageBuilder ib)
+            throws VizException;
 
 }

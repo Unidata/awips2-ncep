@@ -1,9 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 
-import gov.noaa.nws.ncep.viz.common.dbQuery.NcConnector;
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,8 +17,6 @@ import com.raytheon.uf.common.dataquery.requests.DbQueryRequest.OrderMode;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -30,14 +24,32 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 
+import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
+
 /**
  * Resource data for Ensemble grids
  * 
- * SOFTWARE HISTORY Date Ticket# Engineer Description ------------ ----------
- * ----------- -------------------------- 12/13/2011 G Hull Created. 04/02/2012
- * #606 G Hull added primaryModel for Ensem 09/11/2012 #743 Archana Added CLRBAR
- * 03/15/2012 G Hull added getComponentModels to support Ensemble component
- * cycle time query </pre>
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 
+ * 12/13/2011               G Hull        Created. 
+ * 04/02/2012    #606       G Hull        added primaryModel for Ensem 
+ * 09/11/2012    #743       Archana       Added CLRBAR
+ * 03/15/2012               G Hull        added getComponentModels to support Ensemble component
+ *                                        cycle time query 
+ * 08/18/2016   R17569      K Bugenhagen  Added availableCycles attribute
+ *                                        to avoid unnecessary and expensive 
+ *                                        db queries for cycle times.  Changed
+ *                                        static methods to instance methods.
+ * 12/28/2016   R21988      K Bugenhagen  In queryLatestAvailCycleTimes, add
+ *                                        parameter constraint to speed up query.
+ * 
+ * 
+ * </pre>
  * 
  * @author ghull
  * @version 1.0
@@ -46,8 +58,10 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 @XmlType(name = "NC-EnsembleResourceData")
 public class NcEnsembleResourceData extends NcgridResourceData {
 
-    private static final IUFStatusHandler statusHandler = UFStatus.getHandler(
-            NcConnector.class, "DEFAULT");
+    /**
+     * Latest available cycle times for ensemble
+     */
+    private Date[] availableCycles;
 
     /**
      * Enum to map the cycle wild card strings in ensemble gdfile string with
@@ -70,8 +84,7 @@ public class NcEnsembleResourceData extends NcgridResourceData {
         }
 
         private static void initMapping() {
-            placeholderMapping = new HashMap<String, CyclePlaceholder>(
-                    values().length);
+            placeholderMapping = new HashMap<>(values().length);
             for (CyclePlaceholder placeholder : values()) {
                 placeholderMapping.put(placeholder.cycleString, placeholder);
             }
@@ -130,11 +143,24 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      *            <code>gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil.dateToDbtimeQuery</code>
      * @return
      */
-    public static Date[] queryLatestAvailCycleTimes(String modelName,
+    public Date[] queryLatestAvailCycleTimes(String modelName,
             DataTime queryRefDataTime) {
-        return queryLatestAvailCycleTimes(modelName,
-                CommonDateFormatUtil.dateToDbtimeQuery(queryRefDataTime
-                        .getRefTime()), CyclePlaceholder.MAX_MODEL_CYCLES);
+
+        String[] modelMember = modelName.split(":");
+
+        // Query to find the parameter associated with this model that will
+        // provide the fastest query.
+        String parameter = queryForBestModelParameter(modelMember[0]);
+
+        if (parameter == null) {
+            statusHandler.warn("Model parameter not found: " + parameter);
+            return availableCycles;
+        }
+        return queryLatestAvailCycleTimes(modelName, parameter,
+                CommonDateFormatUtil
+                        .dateToDbtimeQuery(queryRefDataTime.getRefTime()),
+                CyclePlaceholder.MAX_MODEL_CYCLES);
+
     }
 
     /**
@@ -147,26 +173,37 @@ public class NcEnsembleResourceData extends NcgridResourceData {
      * @param queryRefDateTime
      *            - string date in format "2011-10-09 06:20:00.0" Use method
      *            <code>gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil.dateToDbtimeQuery</code>
+     * @param parameter
+     *            - name of parameter to use in constraint to speed up query
      * @param queryLimit
      *            - resulting array limit. 0 and less will be unlimited
      * @return
      */
-    public static Date[] queryLatestAvailCycleTimes(String modelName,
+    public Date[] queryLatestAvailCycleTimes(String modelName, String parameter,
             String queryRefDateTime, int queryLimit) {
-        Date[] availableCycles = new Date[0];
+
+        DbQueryRequest request;
+        DbQueryResponse response;
+
+        availableCycles = new Date[0];
         String[] modelMember = modelName.split(":");
-        HashMap<String, RequestConstraint> rcMap = new HashMap<String, RequestConstraint>();
-        rcMap.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
-                GridDBConstants.GRID_TBL_NAME));
-        rcMap.put(GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint(
-                modelMember[0], ConstraintType.EQUALS));
+        HashMap<String, RequestConstraint> rcMap = new HashMap<>();
+
+        rcMap.put(GridDBConstants.PLUGIN_NAME,
+                new RequestConstraint(GridDBConstants.GRID_TBL_NAME));
+        rcMap.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(modelMember[0], ConstraintType.EQUALS));
         if (modelMember.length > 1) {
             rcMap.put(GridDBConstants.ENSEMBLE_ID_QUERY, new RequestConstraint(
                     modelMember[1], ConstraintType.EQUALS));
         }
         rcMap.put(GridDBConstants.REF_TIME_QUERY, new RequestConstraint(
                 queryRefDateTime, ConstraintType.LESS_THAN_EQUALS));
-        DbQueryRequest request = new DbQueryRequest();
+        // Add parameter constraint to query. This simply speeds up the query
+        // greatly since it won't return results for ALL parameters.
+        rcMap.put(GridDBConstants.PARAMETER_QUERY,
+                new RequestConstraint(parameter, ConstraintType.EQUALS));
+        request = new DbQueryRequest();
         request.addRequestField(GridDBConstants.REF_TIME_QUERY);
         request.setDistinct(true);
         request.setConstraints(rcMap);
@@ -176,9 +213,9 @@ public class NcEnsembleResourceData extends NcgridResourceData {
         }
 
         try {
-            DbQueryResponse response = (DbQueryResponse) ThriftClient
-                    .sendRequest(request);
-            // extract list of results
+            // Perform the query
+            response = (DbQueryResponse) ThriftClient.sendRequest(request);
+            // Extract list of results
             List<Map<String, Object>> responseList = null;
             if (response != null) {
                 responseList = response.getResults();
@@ -186,50 +223,127 @@ public class NcEnsembleResourceData extends NcgridResourceData {
                         && queryLimit > 0 ? queryLimit : responseList.size();
                 availableCycles = new Date[numCycles];
                 for (int i = 0; i < numCycles; i++) {
-                    availableCycles[i] = (Date) responseList.get(i).get(
-                            GridDBConstants.REF_TIME_QUERY);
+                    availableCycles[i] = (Date) responseList.get(i)
+                            .get(GridDBConstants.REF_TIME_QUERY);
                 }
             }
         } catch (VizException e) {
-            // TODO Auto-generated catch block. Please revise as appropriate.
+            statusHandler.error("Error querying for cycle times", e);
         }
+
         return availableCycles;
+
+    }
+
+    /**
+     * Queries for the parameter associated with the modelName that will provide
+     * the fastest query. Most models are associated with either the PMSL or P
+     * parameters, so check that records for those exist first. If neither is
+     * found, check for the first parameter associated with the modelName
+     * 
+     * @param modelName
+     * @return parameter associated with modelName
+     */
+    private String queryForBestModelParameter(String modelName) {
+
+        String parameter = null;
+
+        // check for PMSL parameter first
+        parameter = queryForParameter(modelName, "PMSL");
+
+        // if PMSL not found, check for P parameter
+        if (parameter == null) {
+            parameter = queryForParameter(modelName, "P");
+        }
+
+        // if P not found, check for any other parameter
+        if (parameter == null) {
+            parameter = queryForParameter(modelName, null);
+        }
+
+        return parameter;
+    }
+
+    /**
+     * Performs query for specific parameter for a modelName.
+     * 
+     * @param modelName
+     * @param parameter
+     *            if null, query for first parameter found.
+     * @return parameter returned from query; null if not found.
+     */
+    private String queryForParameter(String modelName, String parameter) {
+
+        DbQueryRequest request = new DbQueryRequest();
+        DbQueryResponse response = new DbQueryResponse();
+        String parameterFound = null;
+        HashMap<String, RequestConstraint> rcMap = new HashMap<>();
+
+        rcMap.put(GridDBConstants.PLUGIN_NAME,
+                new RequestConstraint(GridDBConstants.GRID_TBL_NAME));
+        rcMap.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(modelName, ConstraintType.EQUALS));
+        // if parameter is null, query for first parameter found
+        if (parameter != null) {
+            rcMap.put(GridDBConstants.PARAMETER_QUERY,
+                    new RequestConstraint(parameter, ConstraintType.EQUALS));
+        }
+        request.addRequestField(GridDBConstants.PARAMETER_QUERY);
+        request.setConstraints(rcMap);
+        request.setLimit(1);
+        try {
+            // Perform the query
+            response = (DbQueryResponse) ThriftClient.sendRequest(request);
+            // Extract parameter value form list of results
+            List<Map<String, Object>> responseList = response.getResults();
+            if (response.getResults().size() > 0) {
+                parameterFound = (String) responseList.get(0)
+                        .get(GridDBConstants.PARAMETER_QUERY);
+            }
+        } catch (VizException e) {
+            statusHandler.error(
+                    "Error querying for model parameter " + parameter, e);
+        }
+
+        return parameterFound;
+
     }
 
     /**
      * Method to write out gdfile to xml and replace cycle strings with
      * respective wild cards.
      */
-    public static String convertGdfileToWildcardString(
-            String gdfileWithCycleStrings, DataTime queryRefDateTime) {
+    public String convertGdfileToWildcardString(String gdfileWithCycleStrings,
+            DataTime queryRefDateTime) {
         StringBuilder gdFileBuilder = new StringBuilder(
                 gdfileWithCycleStrings.length() * 2);
-        String[] modelBlocks = gdfileWithCycleStrings.substring(
-                gdfileWithCycleStrings.indexOf("{") + 1,
-                gdfileWithCycleStrings.lastIndexOf("}")).split(",");
+        String[] modelBlocks = gdfileWithCycleStrings
+                .substring(gdfileWithCycleStrings.indexOf("{") + 1,
+                        gdfileWithCycleStrings.lastIndexOf("}"))
+                .split(",");
         for (int i = 0; i < modelBlocks.length; i++) {
             if (modelBlocks[i].contains("|")) {
                 String percentage = modelBlocks[i].substring(0,
                         modelBlocks[i].indexOf("%") + 1);
-                String[] modelCycleTime = modelBlocks[i].substring(
-                        modelBlocks[i].indexOf("%") + 1).split("\\|");
-
-                Date[] latestAvailCycles = queryLatestAvailCycleTimes(
-                        modelCycleTime[0], queryRefDateTime);
+                String[] modelCycleTime = modelBlocks[i]
+                        .substring(modelBlocks[i].indexOf("%") + 1)
+                        .split("\\|");
+                Date[] latestAvailCycles = getAvailableCycles();
+                if (latestAvailCycles == null) {
+                    latestAvailCycles = queryLatestAvailCycleTimes(
+                            modelCycleTime[0], queryRefDateTime);
+                }
                 int cycleIndex = getLatestAvailCycleIndex(modelCycleTime[1],
                         latestAvailCycles);
 
                 if (cycleIndex < 0) {
-                    statusHandler
-                            .handle(Priority.WARN,
-                                    String.format(
-                                            "The %s cycle is not available! Available cycles: %s\n",
-                                            modelCycleTime[1],
-                                            Arrays.toString(latestAvailCycles)));
+                    statusHandler.handle(Priority.WARN,
+                            String.format(
+                                    "The %s cycle is not available! Available cycles: %s\n",
+                                    modelCycleTime[1],
+                                    Arrays.toString(latestAvailCycles)));
                 } else {
-                    gdFileBuilder
-                            .append(percentage)
-                            .append(modelCycleTime[0])
+                    gdFileBuilder.append(percentage).append(modelCycleTime[0])
                             .append("|")
                             .append(CyclePlaceholder
                                     .getCyclePlaceholderString(cycleIndex))
@@ -256,51 +370,49 @@ public class NcEnsembleResourceData extends NcgridResourceData {
     }
 
     /**
-     * Method to read in gdfile from xml and replace cycle wild cards with
-     * available cycle dates.
+     * Method to replace cycle wild cards with available cycle dates in gdfile.
      */
-    public static String convertGdfileToCycleTimeString(String gdfile,
+    public String convertGdfileToCycleTimeString(String gdfile,
             DataTime queryRefDateTime) {
         StringBuilder gdFileBuilder = new StringBuilder(gdfile.length() * 2);
-        String[] modelBlocks = gdfile.substring(gdfile.indexOf("{") + 1,
-                gdfile.lastIndexOf("}")).split(",");
+        String[] modelBlocks = gdfile
+                .substring(gdfile.indexOf("{") + 1, gdfile.lastIndexOf("}"))
+                .split(",");
         for (int i = 0; i < modelBlocks.length; i++) {
             String percentage = modelBlocks[i].substring(0,
                     modelBlocks[i].indexOf("%") + 1);
-            String[] modelCycleTime = modelBlocks[i].substring(
-                    modelBlocks[i].indexOf("%") + 1).split("\\|");
-            Date[] latestAvailCycles = queryLatestAvailCycleTimes(
-                    modelCycleTime[0], queryRefDateTime);
-
+            String[] modelCycleTime = modelBlocks[i]
+                    .substring(modelBlocks[i].indexOf("%") + 1).split("\\|");
+            Date[] latestAvailCycles = getAvailableCycles();
+            if (latestAvailCycles == null) {
+                latestAvailCycles = queryLatestAvailCycleTimes(
+                        modelCycleTime[0], queryRefDateTime);
+            }
             if (CyclePlaceholder.containsCyclePlaceholders(modelBlocks[i])) {
 
                 int cycleIndex = CyclePlaceholder
                         .getCyclePlaceholderIndex(modelCycleTime[1]);
 
                 if (cycleIndex >= latestAvailCycles.length) {
-                    statusHandler
-                            .handle(Priority.WARN,
-                                    String.format(
-                                            "The %s cycle is not available! Available cycles: %s",
-                                            modelCycleTime[1],
-                                            Arrays.toString(latestAvailCycles)));
+                    statusHandler.handle(Priority.WARN,
+                            String.format(
+                                    "The %s cycle is not available! Available cycles: %s",
+                                    modelCycleTime[1],
+                                    Arrays.toString(latestAvailCycles)));
                 } else {
-                    gdFileBuilder
-                            .append(percentage)
-                            .append(modelCycleTime[0])
+                    gdFileBuilder.append(percentage).append(modelCycleTime[0])
                             .append("|")
-                            .append(CommonDateFormatUtil
-                                    .getCycleTimeString(latestAvailCycles[cycleIndex]))
+                            .append(CommonDateFormatUtil.getCycleTimeString(
+                                    latestAvailCycles[cycleIndex]))
                             .append(",");
                 }
             } else if (latestAvailCycles.length > 0) {
                 gdFileBuilder.append(modelBlocks[i]).append(",");
             } else {
-                statusHandler
-                        .handle(Priority.WARN,
-                                String.format(
-                                        "No cycles found for model %s in gdfile block %s. Block will be ignored!",
-                                        modelCycleTime[0], modelBlocks[i]));
+                statusHandler.handle(Priority.WARN,
+                        String.format(
+                                "No cycles found for model %s in gdfile block %s. Block will be ignored!",
+                                modelCycleTime[0], modelBlocks[i]));
             }
         }
         gdFileBuilder.deleteCharAt(gdFileBuilder.lastIndexOf(","));
@@ -493,6 +605,10 @@ public class NcEnsembleResourceData extends NcgridResourceData {
         super.setClrbar(clrbar);
     }
 
+    public Date[] getAvailableCycles() {
+        return availableCycles;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj)) {
@@ -510,8 +626,8 @@ public class NcEnsembleResourceData extends NcgridResourceData {
         } else if (this.availableModels == null
                 && other.availableModels != null) {
             return false;
-        } else if (this.availableModels != null
-                && this.availableModels.equals(other.availableModels) == false) {
+        } else if (this.availableModels != null && this.availableModels
+                .equals(other.availableModels) == false) {
             return false;
         }
         return true;

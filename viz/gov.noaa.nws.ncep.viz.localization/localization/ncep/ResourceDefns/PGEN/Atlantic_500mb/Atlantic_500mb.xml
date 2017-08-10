@@ -14,9 +14,9 @@ desk=%
 forecaster=%
     </resourceParameters>
     <rscImplementation>PGEN</rscImplementation>
-    <subTypeGenerator>dataTime</subTypeGenerator>
+    <subTypeGenerator>activityLabel</subTypeGenerator>
     <rscTypeGenerator></rscTypeGenerator>
-    <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+    <timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
     <frameSpan>60</frameSpan>
     <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
     <dfltFrameCount>10</dfltFrameCount>

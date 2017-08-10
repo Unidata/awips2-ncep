@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf;
 
 import gov.noaa.nws.ncep.viz.resources.manager.AbstractRBD;
-import gov.noaa.nws.ncep.viz.resources.manager.NcMapRBD;
 import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 
 import java.io.File;
@@ -11,7 +10,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FormAttachment;
@@ -22,7 +20,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -34,23 +31,26 @@ import org.eclipse.swt.widgets.Text;
  * ------------	----------	-----------	--------------------------
  *                                       Created
  * 02/22/2013     #972       G. Hull     AbstractRBD
+ * 10/11/2016     R17032     A. Su       Disallowed some chars in naming RBD.
  * 
  * </pre>
  * 
- * @author 
+ * @author
  * @version 1
  */
 public class RenameRbdDialog extends Dialog {
 
-	private String dialogTitle = "Rename Rbd"; 
-    private Shell myShell;    
+    private String dialogTitle = "Rename Rbd";
+
+    private Shell myShell;
+
     private Text newRbdNameText;
-    
+
     private AbstractRBD<?> rbdToRename;
-    
-    public RenameRbdDialog(Shell parentShell, AbstractRBD<?> rbd ) {
+
+    public RenameRbdDialog(Shell parentShell, AbstractRBD<?> rbd) {
         super(parentShell);
-        myShell = parentShell; 
+        myShell = parentShell;
         rbdToRename = rbd;
     }
 
@@ -58,146 +58,145 @@ public class RenameRbdDialog extends Dialog {
         Shell parentShell = getParent();
         Display display = parentShell.getDisplay();
 
-        myShell = new Shell(parentShell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL );
+        myShell = new Shell(parentShell, SWT.DIALOG_TRIM | SWT.RESIZE
+                | SWT.APPLICATION_MODAL);
 
-        myShell.setText(dialogTitle); 
+        myShell.setText(dialogTitle);
 
         /*
          * Start to Create the main layout for the shell.
          */
-        myShell.setLayout( new FormLayout() );
-        myShell.setLocation( parentShell.getLocation().x+100, 
-        					 parentShell.getLocation().y+300 ); 
+        myShell.setLayout(new FormLayout());
+        myShell.setLocation(parentShell.getLocation().x + 100,
+                parentShell.getLocation().y + 300);
 
         initializeComponents(myShell);
-    
+
         myShell.pack();
 
         myShell.open();
-        
+
         while (!myShell.isDisposed()) {
             if (!display.readAndDispatch()) {
-            	display.sleep();
+                display.sleep();
             }
         }
 
         return null;
     }
-    
+
     protected void initializeComponents(Shell shell) {
 
-        Composite topComp = new Composite( shell, SWT.NONE );
-        topComp.setLayout(new FormLayout() );
+        Composite topComp = new Composite(shell, SWT.NONE);
+        topComp.setLayout(new FormLayout());
 
-        FormData fd = new FormData( 350, 160 );
-        fd.top = new FormAttachment( 0, 0 );
-        fd.left  = new FormAttachment( 0, 0 );
-        fd.right = new FormAttachment( 100, 0 );
-        fd.bottom = new FormAttachment( 100, 0 );
-        topComp.setLayoutData( fd );
-        
-        newRbdNameText = new Text(topComp, SWT.BORDER );
-        newRbdNameText.setText( rbdToRename.getRbdName() );
-        newRbdNameText.setSelection(0, rbdToRename.getRbdName().length() );
-        
+        FormData fd = new FormData(350, 160);
+        fd.top = new FormAttachment(0, 0);
+        fd.left = new FormAttachment(0, 0);
+        fd.right = new FormAttachment(100, 0);
+        fd.bottom = new FormAttachment(100, 0);
+        topComp.setLayoutData(fd);
+
+        newRbdNameText = new Text(topComp, SWT.BORDER);
+        newRbdNameText.setText(rbdToRename.getRbdName());
+        newRbdNameText.setSelection(0, rbdToRename.getRbdName().length());
+
         fd = new FormData();
-        fd.top = new FormAttachment( 0, 50);
-        fd.left  = new FormAttachment( 0, 25 );
-        fd.right = new FormAttachment( 100, -25 );
+        fd.top = new FormAttachment(0, 50);
+        fd.left = new FormAttachment(0, 25);
+        fd.right = new FormAttachment(100, -25);
 
-        newRbdNameText.setLayoutData( fd );
+        newRbdNameText.setLayoutData(fd);
 
-        Label newRbdNameLabel = new Label(topComp, SWT.NONE); 
+        Label newRbdNameLabel = new Label(topComp, SWT.NONE);
         newRbdNameLabel.setText("Enter New RBD Name:");
 
         fd = new FormData();
-        fd.bottom = new FormAttachment( newRbdNameText, -3, SWT.TOP );
-        fd.left  = new FormAttachment( newRbdNameText, 0, SWT.LEFT );
-        newRbdNameLabel.setLayoutData( fd );
+        fd.bottom = new FormAttachment(newRbdNameText, -3, SWT.TOP);
+        fd.left = new FormAttachment(newRbdNameText, 0, SWT.LEFT);
+        newRbdNameLabel.setLayoutData(fd);
 
-        Label sep = new Label( topComp, SWT.SEPARATOR | SWT.HORIZONTAL );
-       	fd = new FormData();
-        fd.top  = new FormAttachment( newRbdNameText, 30, SWT.BOTTOM );
-        fd.left  = new FormAttachment( 0, 5 );
-        fd.right  = new FormAttachment( 100, -5 );
-        
-        sep.setLayoutData( fd );
+        Label sep = new Label(topComp, SWT.SEPARATOR | SWT.HORIZONTAL);
+        fd = new FormData();
+        fd.top = new FormAttachment(newRbdNameText, 30, SWT.BOTTOM);
+        fd.left = new FormAttachment(0, 5);
+        fd.right = new FormAttachment(100, -5);
 
-        final Button renameRbdBtn = new Button(topComp, SWT.NONE); 
+        sep.setLayoutData(fd);
+
+        final Button renameRbdBtn = new Button(topComp, SWT.NONE);
         renameRbdBtn.setText(" Rename ");
-        
-        fd = new FormData();
-        fd.bottom = new FormAttachment( 100, -10 );
-        fd.right = new FormAttachment( 100, -20 );
 
-        renameRbdBtn.setLayoutData( fd ); 
-        
-        Button cancelBtn = new Button(topComp, SWT.NONE); 
+        fd = new FormData();
+        fd.bottom = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(100, -20);
+
+        renameRbdBtn.setLayoutData(fd);
+
+        Button cancelBtn = new Button(topComp, SWT.NONE);
         cancelBtn.setText(" Cancel ");
-        
-        fd = new FormData();
-        fd.top = new FormAttachment( renameRbdBtn, 0, SWT.TOP );
-        fd.right = new FormAttachment( renameRbdBtn, -20, SWT.LEFT );
 
-        cancelBtn.setLayoutData( fd ); 
+        fd = new FormData();
+        fd.top = new FormAttachment(renameRbdBtn, 0, SWT.TOP);
+        fd.right = new FormAttachment(renameRbdBtn, -20, SWT.LEFT);
+
+        cancelBtn.setLayoutData(fd);
 
         // TODO : should we allow spaces?
-        newRbdNameText.addVerifyListener( new VerifyListener() {			
-			@Override
-			public void verifyText(VerifyEvent e) {
-				if( e.text.contains( File.separator ) ) {
-					e.doit = false;
-				}
-			}
-		});
-        
-        newRbdNameText.addModifyListener( new ModifyListener() {			
-			@Override
-			public void modifyText(ModifyEvent e) {
-				renameRbdBtn.setEnabled( 
-							!rbdToRename.getRbdName().equals( newRbdNameText.getText().trim() ) );
-			}
-		});
-        
-        newRbdNameText.addSelectionListener(new SelectionAdapter() {			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				renameRbd();
-			}
-    	});
+        newRbdNameText.addVerifyListener(new VerifyListener() {
+            @Override
+            public void verifyText(VerifyEvent e) {
+                if (e.text.contains(File.separator)) {
+                    e.doit = false;
+                }
+            }
+        });
 
-    	renameRbdBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				renameRbd();
-			}
-    	});
+        newRbdNameText.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                renameRbdBtn.setEnabled(!rbdToRename.getRbdName().equals(
+                        newRbdNameText.getText().trim()));
+            }
+        });
 
-    	cancelBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-		    	if( myShell != null ) { 
-		    		myShell.dispose();
-		    	}
-			}
-    	});    	
+        newRbdNameText.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                renameRbd();
+            }
+        });
+
+        renameRbdBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                renameRbd();
+            }
+        });
+
+        cancelBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (myShell != null) {
+                    myShell.dispose();
+                }
+            }
+        });
     }
- 
+
     private void renameRbd() {
-    	String newRbdName = newRbdNameText.getText().trim(); 
+        String newRbdName = newRbdNameText.getText().trim();
 
-    	if( !SpfsManager.getInstance().isValidRbdName( newRbdName ) ) {
-    		MessageBox mb = new MessageBox(myShell, SWT.ICON_ERROR);
-    		mb.setMessage("Invalid RBD name.");
-    		mb.setText("Error");
-    		mb.open();
-    		return;
-    	} 
+        // If not a valid name, pop up an MessageDialog to alert the user.
+        if (!SpfsManager.getInstance().validateName(myShell, newRbdName,
+                "Renaming RBD", null)) {
+            return;
+        }
 
-    	rbdToRename.setRbdName( newRbdName );
+        rbdToRename.setRbdName(newRbdName);
 
-    	if( myShell != null ) { 
-    		myShell.dispose();
-    	}
+        if (myShell != null) {
+            myShell.dispose();
+        }
     }
 }

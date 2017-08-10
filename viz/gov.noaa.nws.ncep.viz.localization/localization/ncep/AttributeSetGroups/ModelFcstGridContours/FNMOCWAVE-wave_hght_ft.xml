@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+	<attrSetGroupName>wave_hght_ft</attrSetGroupName>
+	<resource>FNMOCWAVE</resource>
+	<attrSetLabels>
+		<attrSetLabel>
+			<name>grid_sig_wave_ft_color_fnmoc</name>
+			<alias>grid_sig_wave_ft_color</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>grid_sig_wave_ft_fnmoc</name>
+			<alias>grid_sig_wave_ft</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_1ft_color_fnmoc</name>
+			<alias>sig_wave_cont_1ft_color</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_3ft_fnmoc</name>
+			<alias>sig_wave_cont_3ft</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_8ft_fnmoc</name>
+			<alias>sig_wave_cont_8ft</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_fill_drk_ft_fnmoc</name>
+			<alias>sig_wave_cont_fill_drk_ft</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_fill_alt_ft_fnmoc</name>
+			<alias>sig_wave_cont_fill_alt_ft</alias>
+		</attrSetLabel>
+	</attrSetLabels>
+</AttributeSetGroup>
+

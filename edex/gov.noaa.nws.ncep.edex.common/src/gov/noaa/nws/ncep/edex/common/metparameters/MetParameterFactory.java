@@ -12,28 +12,49 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
 
-//import com.raytheon.uf.viz.core.exception.VizException;
+/**
+ * Creates AbstractNcParameters
+ * 
+ * TODO : this class can be enhanced to read AbstractNcParameter objects either
+ * from an extension point or to read jaxb files from a directory. Till then the
+ * AbstractNcParameter's are just created here.
+ * 
+ * njensen comment: If you end up deciding to read jaxb files, please make your
+ * own JAXBManager instead of using SerializationUtil. It will perform faster
+ * and you can remove the deprecated ISerializableObject from these classes.
+ * 
+ * <pre>
+ * 
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 07/20/2016    R15950     J. Huber    Added Snowfall, AirTemperatureTenths, and DewPointTempTenths
+ * 08/24/2016    R18194    RReynolds    Added Ceiling parameters
+ * 11/17/2016    R26156     J. Huber    Added CloudFractionMax and CloudFractionMaxLowMidLayer  
+ * 12/13/2016    R27046    S.Russell    Added PackedWindSpeedAndDirection
+ * 01/09/2017    R27759    S.Russell    Added SeaLevelPressureOrAltimeterSetting to ncParamsMap
+ * 01/13/2017    R27759    S.Russell    Added PressureTendencyAndChangeGroup to
+ *                                      ncParamsMap
+ * 
+ * </pre>
+ * 
+ * @author ?
+ * @version 1.0
+ */
 
-// TODO : this class can be enhanced to read AbstractNcParameter objects either from an extension point or to read
-// jaxb files from a directory. Till then the AbstractNcParameter's are just created here.
-//
-// njensen comment: If you end up deciding to read jaxb files, please make your own JAXBManager instead of using
-// SerializationUtil.  It will perform faster and you can remove the deprecated ISerializableObject from these
-// classes.
-//
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public class MetParameterFactory implements ISerializableObject {
+public class MetParameterFactory {
 
     /**
-	 * 
-	 */
+     * 
+     */
     @DynamicSerializeElement
     private static final long serialVersionUID = 5589025391819288854L;
 
@@ -69,8 +90,7 @@ public class MetParameterFactory implements ISerializableObject {
                     new Avg3HrShipSpeed());
             ncParamsMap.put(Avg1HrHeatFlux.class.getSimpleName(),
                     new Avg1HrHeatFlux());
-            ncParamsMap.put(
-                    Avg1HrSnowPhaseChangeHeatFlux.class.getSimpleName(),
+            ncParamsMap.put(Avg1HrSnowPhaseChangeHeatFlux.class.getSimpleName(),
                     new Avg1HrSnowPhaseChangeHeatFlux());
             ncParamsMap.put(Avg1HrSubSurfaceHeatFlux.class.getSimpleName(),
                     new Avg1HrSubSurfaceHeatFlux());
@@ -84,16 +104,12 @@ public class MetParameterFactory implements ISerializableObject {
                     new BruntVaisalaFreq());
             ncParamsMap.put(BruntVaisalaPeriod.class.getSimpleName(),
                     new BruntVaisalaPeriod());
-            // ncParamsMap.put(
-            // BruntVaisalaFrequencySquared.class.getSimpleName(), new
-            // BruntVaisalaFrequencySquared() );
             ncParamsMap.put(CatFcstCeilingHeightCond.class.getSimpleName(),
                     new CatFcstCeilingHeightCond());
             ncParamsMap.put(CatFcstObstructionsVision.class.getSimpleName(),
                     new CatFcstObstructionsVision());
             ncParamsMap.put(CatFcstPrecipitation.class.getSimpleName(),
                     new CatFcstPrecipitation());
-
             ncParamsMap.put(CatFcstSnowAmountFalling06hr.class.getSimpleName(),
                     new CatFcstSnowAmountFalling06hr());
             ncParamsMap.put(CatFcstSnowAmountFalling12hr.class.getSimpleName(),
@@ -104,6 +120,12 @@ public class MetParameterFactory implements ISerializableObject {
                     new CatFcstVisibilityCond());
             ncParamsMap.put(CeilingFromSurface.class.getSimpleName(),
                     new CeilingFromSurface());
+            ncParamsMap.put(CeilingOrLowestLayer.class.getSimpleName(),
+                    new CeilingOrLowestLayer());
+            ncParamsMap.put(CombinedCloudMaxCoverage.class.getSimpleName(),
+                    new CombinedCloudMaxCoverage());
+            ncParamsMap.put(CombinedCloud.class.getSimpleName(),
+                    new CombinedCloud());
             ncParamsMap.put(CeilingFromSeaLevel.class.getSimpleName(),
                     new CeilingFromSeaLevel());
             ncParamsMap.put(CloudCover.class.getSimpleName(), new CloudCover());
@@ -119,6 +141,10 @@ public class MetParameterFactory implements ISerializableObject {
             ncParamsMap.put(CloudBase2.class.getSimpleName(), new CloudBase2());
             ncParamsMap.put(CloudFractionInLayer.class.getSimpleName(),
                     new CloudFractionInLayer());
+            ncParamsMap.put(CloudFractionMax.class.getSimpleName(),
+                    new CloudFractionMax());
+            ncParamsMap.put(CloudFractionMaxLowMidLayer.class.getSimpleName(),
+                    new CloudFractionMaxLowMidLayer());
             ncParamsMap.put(CloudWater.class.getSimpleName(), new CloudWater());
             ncParamsMap.put(CloudTop1.class.getSimpleName(), new CloudTop1());
             ncParamsMap.put(CloudTop2.class.getSimpleName(), new CloudTop2());
@@ -161,6 +187,8 @@ public class MetParameterFactory implements ISerializableObject {
                     new DewPointDepression());
             ncParamsMap.put(DewPointTemp.class.getSimpleName(),
                     new DewPointTemp());
+            ncParamsMap.put(DewPointTempTenths.class.getSimpleName(),
+                    new DewPointTempTenths());
             ncParamsMap.put(DryBulbTemp.class.getSimpleName(),
                     new DryBulbTemp());
             ncParamsMap.put(FiveSecPeakWindDir.class.getSimpleName(),
@@ -214,11 +242,6 @@ public class MetParameterFactory implements ISerializableObject {
                     new FosbergFireWxIndex());
             ncParamsMap.put(FZRainWatchThresh.class.getSimpleName(),
                     new FZRainWatchThresh());
-            // ncParamsMap.put(
-            // GenericDimensionlessParameter.class.getSimpleName(), new
-            // GenericDimensionlessParameter() );
-            // ncParamsMap.put( GustBarb.class.getSimpleName(), new GustBarb()
-            // );
             ncParamsMap.put(HailSize.class.getSimpleName(), new HailSize());
             ncParamsMap.put(HeatIndex.class.getSimpleName(), new HeatIndex());
             ncParamsMap.put(HeightAboveSeaLevel.class.getSimpleName(),
@@ -262,8 +285,7 @@ public class MetParameterFactory implements ISerializableObject {
                     new LiftedIndex());
             ncParamsMap.put(LiftedSurfaceAirTempAt500mb.class.getSimpleName(),
                     new LiftedSurfaceAirTempAt500mb());
-            ncParamsMap.put(
-                    Lowest01MinAvgPressInPastHour.class.getSimpleName(),
+            ncParamsMap.put(Lowest01MinAvgPressInPastHour.class.getSimpleName(),
                     new Lowest01MinAvgPressInPastHour());
             ncParamsMap.put(Max24HrTemp.class.getSimpleName(),
                     new Max24HrTemp());
@@ -318,10 +340,18 @@ public class MetParameterFactory implements ISerializableObject {
             ncParamsMap.put(Omega.class.getSimpleName(), new Omega());
             ncParamsMap.put(PeakWindDir.class.getSimpleName(),
                     new PeakWindDir());
+            ncParamsMap.put(PackedWindSpeedAndDirection.class.getSimpleName(),
+                    new PackedWindSpeedAndDirection());
             ncParamsMap.put(PeakWindSpeed.class.getSimpleName(),
                     new PeakWindSpeed());
             ncParamsMap.put(PeakWindSpeedTime.class.getSimpleName(),
                     new PeakWindSpeedTime());
+            ncParamsMap.put(
+                    SeaLevelPressureOrAltimeterSetting.class.getSimpleName(),
+                    new SeaLevelPressureOrAltimeterSetting());
+            ncParamsMap.put(
+                    PressureTendencyAndChangeGroup.class.getSimpleName(),
+                    new PressureTendencyAndChangeGroup());
             ncParamsMap.put(InstrumentWavePeriod.class.getSimpleName(),
                     new InstrumentWavePeriod());
             ncParamsMap.put(PredomSwellWavePeriod.class.getSimpleName(),
@@ -354,8 +384,6 @@ public class MetParameterFactory implements ISerializableObject {
             ncParamsMap.put(Precip01Hr.class.getSimpleName(), new Precip01Hr());
             ncParamsMap.put(Precip03Hr.class.getSimpleName(), new Precip03Hr());
             ncParamsMap.put(Precip06Hr.class.getSimpleName(), new Precip06Hr());
-            // ncParamsMap.put( PrecipitationIn09Hours.class.getSimpleName(),
-            // new PrecipitationIn09Hours() );
             ncParamsMap.put(Precip12Hr.class.getSimpleName(), new Precip12Hr());
             ncParamsMap.put(Precip18Hr.class.getSimpleName(), new Precip18Hr());
             ncParamsMap.put(Precip24Hr.class.getSimpleName(), new Precip24Hr());
@@ -365,13 +393,10 @@ public class MetParameterFactory implements ISerializableObject {
                     new PressureLevel());
             ncParamsMap.put(PressChange3Hr.class.getSimpleName(),
                     new PressChange3Hr());
-
-            // TTR 923
             ncParamsMap.put(PressChange3HrAbsVal.class.getSimpleName(),
                     new PressChange3HrAbsVal());
             ncParamsMap.put(PressureChange3HrAndTendency.class.getSimpleName(),
                     new PressureChange3HrAndTendency());
-
             ncParamsMap.put(PressChange24Hr.class.getSimpleName(),
                     new PressChange24Hr());
             ncParamsMap.put(PressureTendencySymbol.class.getSimpleName(),
@@ -399,10 +424,9 @@ public class MetParameterFactory implements ISerializableObject {
                     new QuantPrecipFcstBestCat12Hr());
             ncParamsMap.put(QuantPrecipFcstBestCat24Hr.class.getSimpleName(),
                     new QuantPrecipFcstBestCat24Hr());
-            ncParamsMap
-                    .put(RateOfIceAccretionOnVesselInSaltWater.class
-                            .getSimpleName(),
-                            new RateOfIceAccretionOnVesselInSaltWater());
+            ncParamsMap.put(
+                    RateOfIceAccretionOnVesselInSaltWater.class.getSimpleName(),
+                    new RateOfIceAccretionOnVesselInSaltWater());
             ncParamsMap.put(RelativeHumidity.class.getSimpleName(),
                     new RelativeHumidity());
             ncParamsMap.put(RelFreqPrecip24HrsClim.class.getSimpleName(),
@@ -423,11 +447,8 @@ public class MetParameterFactory implements ISerializableObject {
                     new SeaSurfaceTemp());
             ncParamsMap.put(ShowalterIndex.class.getSimpleName(),
                     new ShowalterIndex());
-
-            // Redmine 4318
             ncParamsMap.put(SignificantWaveHeight.class.getSimpleName(),
                     new SignificantWaveHeight());
-
             ncParamsMap.put(SkinTemperature.class.getSimpleName(),
                     new SkinTemperature());
             ncParamsMap.put(SkyCoverage.class.getSimpleName(),
@@ -461,8 +482,6 @@ public class MetParameterFactory implements ISerializableObject {
                     new StormMotionSpeed());
             ncParamsMap.put(StormMotionDirection.class.getSimpleName(),
                     new StormMotionDirection());
-            // ncParamsMap.put( SumOfFour6HrPrecipitation.class.getSimpleName(),
-            // new SumOfFour6HrPrecipitation() );
             ncParamsMap.put(SunshineDuration.class.getSimpleName(),
                     new SunshineDuration());
             ncParamsMap.put(SurfaceEquivPotentialTemp.class.getSimpleName(),
@@ -479,17 +498,19 @@ public class MetParameterFactory implements ISerializableObject {
                     new SurfaceSatMixingRatio());
             ncParamsMap.put(AirTemperature.class.getSimpleName(),
                     new AirTemperature());
+            ncParamsMap.put(AirTemperatureTenths.class.getSimpleName(),
+                    new AirTemperatureTenths());
             ncParamsMap.put(TempLapseRate.class.getSimpleName(),
                     new TempLapseRate());
             ncParamsMap.put(ProbableCeiling.class.getSimpleName(),
                     new ProbableCeiling());
-            ncParamsMap.put(
-                    ProbableCeilingAsMeanSeaLevel.class.getSimpleName(),
+            ncParamsMap.put(ProbableCeilingAsMeanSeaLevel.class.getSimpleName(),
                     new ProbableCeilingAsMeanSeaLevel());
             ncParamsMap.put(ProbableFlightRuleIdentifier.class.getSimpleName(),
                     new ProbableFlightRuleIdentifier());
-            ncParamsMap.put(ProbableMountainObscThreshMetIndicator.class
-                    .getSimpleName(),
+            ncParamsMap.put(
+                    ProbableMountainObscThreshMetIndicator.class
+                            .getSimpleName(),
                     new ProbableMountainObscThreshMetIndicator());
             ncParamsMap.put(ProbableVisibility.class.getSimpleName(),
                     new ProbableVisibility());
@@ -499,16 +520,9 @@ public class MetParameterFactory implements ISerializableObject {
                     new ProbableWindGust());
             ncParamsMap.put(ProbableWindSpeed.class.getSimpleName(),
                     new ProbableWindSpeed());
-            // ncParamsMap.put( ThunderstormOccurring2hr.class.getSimpleName(),
-            // new ThunderstormOccurring2hr() );
-            // ncParamsMap.put( ThunderstormOccurring6hr.class.getSimpleName(),
-            // new ThunderstormOccurring6hr() );
-            // ncParamsMap.put( ThunderstormOccurring12hr.class.getSimpleName(),
-            // new ThunderstormOccurring12hr() );
-            // ncParamsMap.put( ThunderstormOccurring24hr.class.getSimpleName(),
-            // new ThunderstormOccurring24hr() );
             ncParamsMap.put(ShipIceThickness.class.getSimpleName(),
                     new ShipIceThickness());
+            ncParamsMap.put(SnowFall.class.getSimpleName(), new SnowFall());
             ncParamsMap.put(StationNumber.class.getSimpleName(),
                     new StationNumber());
             ncParamsMap.put(TopOfIcing.class.getSimpleName(), new TopOfIcing());
@@ -534,14 +548,11 @@ public class MetParameterFactory implements ISerializableObject {
                     new EstStormDirectionUComp());
             ncParamsMap.put(UCompAt10Meters.class.getSimpleName(),
                     new UCompAt10Meters());
-            ncParamsMap.put(
-                    UncondProbOf06HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf06HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf06HrSevereWeather());
-            ncParamsMap.put(
-                    UncondProbOf12HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf12HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf12HrSevereWeather());
-            ncParamsMap.put(
-                    UncondProbOf24HrSevereWeather.class.getSimpleName(),
+            ncParamsMap.put(UncondProbOf24HrSevereWeather.class.getSimpleName(),
                     new UncondProbOf24HrSevereWeather());
 
             ncParamsMap.put(UncondProbOfTstorms2hr.class.getSimpleName(),
@@ -579,8 +590,6 @@ public class MetParameterFactory implements ISerializableObject {
                     new WetBulbPotentialTemp());
             ncParamsMap.put(WetBulbTemp.class.getSimpleName(),
                     new WetBulbTemp());
-            // ncParamsMap.put( WindBarb.class.getSimpleName(), new WindBarb()
-            // );
             ncParamsMap.put(WindChillEquivalentTemp.class.getSimpleName(),
                     new WindChillEquivalentTemp());
             ncParamsMap.put(WindChillTemperature.class.getSimpleName(),
@@ -597,8 +606,9 @@ public class MetParameterFactory implements ISerializableObject {
                     new CeilingFromSeaLevelWorstCase());
             ncParamsMap.put(FlightRulesIdWorstCase.class.getSimpleName(),
                     new FlightRulesIdWorstCase());
-            ncParamsMap.put(MountainObscThreshMetIndicatorWorstCase.class
-                    .getSimpleName(),
+            ncParamsMap.put(
+                    MountainObscThreshMetIndicatorWorstCase.class
+                            .getSimpleName(),
                     new MountainObscThreshMetIndicatorWorstCase());
             ncParamsMap.put(Probability.class.getSimpleName(),
                     new Probability());
@@ -611,6 +621,8 @@ public class MetParameterFactory implements ISerializableObject {
             ncParamsMap.put(LowLevelWindShear.class.getSimpleName(),
                     new LowLevelWindShear());
             ncParamsMap.put(WxPresent.class.getSimpleName(), new WxPresent());
+            ncParamsMap.put(CloudLayerBase.class.getSimpleName(),
+                    new CloudLayerBase());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -652,7 +664,8 @@ public class MetParameterFactory implements ISerializableObject {
     // u is the expected units and must be compatible with the units for the
     // implemented
     // Quantity.
-    public AbstractMetParameter createParameter(String prmName, String unitName) {
+    public AbstractMetParameter createParameter(String prmName,
+            String unitName) {
         Unit<?> units;
 
         if (unitName == null) {
@@ -719,8 +732,7 @@ public class MetParameterFactory implements ISerializableObject {
         }
     }
 
-    public @Retention(RetentionPolicy.RUNTIME)
-    @interface DeriveMethod {
+    public @Retention(RetentionPolicy.RUNTIME) @interface DeriveMethod {
     }
 
 }

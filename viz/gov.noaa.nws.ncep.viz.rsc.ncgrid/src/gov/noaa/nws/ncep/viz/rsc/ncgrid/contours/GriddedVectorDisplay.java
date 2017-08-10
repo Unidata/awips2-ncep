@@ -1,23 +1,23 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.contours;
 
-import gov.noaa.nws.ncep.edex.common.dataRecords.NcFloatDataRecord;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
 
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.geospatial.ReferencedCoordinate;
 import com.raytheon.uf.common.geospatial.ReferencedObject.Type;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
@@ -27,8 +27,8 @@ import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormapShadedShapeExten
 import com.raytheon.uf.viz.core.drawables.ext.colormap.IColormapShadedShapeExtension.IColormapShadedShape;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
-import com.raytheon.uf.viz.core.rsc.DisplayType;
 import com.raytheon.uf.viz.core.point.display.VectorGraphicsConfig;
+import com.raytheon.uf.viz.core.rsc.DisplayType;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -67,6 +67,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
  *                                      Added getFilledShape()
  * Sep 25, 2015  R12041                 Update the vgconfig.setMinimumMagnitude
  *                                      call in the constructor
+ * Apr 21, 2016  R17741    S. Gilbert   Calculate speed direction when plotting instead of up front
  * </pre>
  * 
  * @author bsteffen
@@ -75,12 +76,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
  */
 public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(GriddedVectorDisplay.class);
-
-    private final FloatBuffer magnitude;
-
-    private final FloatBuffer direction;
+    private final Logger logger = LoggerFactory.getLogger("PerformanceLogger");
 
     private final ISpatialObject gridLocation;
 
@@ -100,13 +96,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
     private GeodeticCalculator gc;
 
-    private NcFloatDataRecord data;
+    private FloatGridData data;
 
     private ContourAttributes contourAttributes;
 
     private Coordinate latLon;
 
-    private boolean isDirectional;
+    private boolean directional;
 
     private static NcgribLogger ncgribLogger;
 
@@ -128,7 +124,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
      * @param NcFloatDataRecord
      * @param DisplayType
      */
-    public GriddedVectorDisplay(NcFloatDataRecord rec, DisplayType displayType,
+    public GriddedVectorDisplay(FloatGridData rec, DisplayType displayType,
             boolean directional, IMapDescriptor descriptor,
             ISpatialObject gridLocation, ContourAttributes attrs) {
         super(descriptor, MapUtil.getGridGeometry(gridLocation), gridLocation
@@ -138,46 +134,13 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         this.contourAttributes = attrs;
         ncgribLogger = NcgribLogger.getInstance();
 
-        if (directional) {
-            float[] dir = rec.getXdata();
-            float[] spd = new float[dir.length];
-            for (int i = 0; i < dir.length; i++) {
-                if (dir[i] == -999999.0f) {
-                    dir[i] = -999999.0f;
-                    spd[i] = -999999.0f;
-                } else {
-                    spd[i] = 40;
-                }
-            }
-            this.magnitude = FloatBuffer.wrap(spd);
-            this.direction = FloatBuffer.wrap(dir);
-        } else {
-            float[] dirX = rec.getXdata();
-            float[] dirY = rec.getYdata();
-
-            float[] spd = new float[dirX.length];
-            float[] dir = new float[dirX.length];
-
-            for (int i = 0; i < spd.length; i++) {
-                if (dirX[i] == -999999.0f || dirY[i] == -999999.0f) {
-                    spd[i] = -999999.0f;
-                    dir[i] = -999999.0f;
-                } else {
-                    spd[i] = (float) Math.hypot(dirX[i], dirY[i]);
-                    dir[i] = (float) (Math.atan2(dirX[i], dirY[i]) * 180 / Math.PI) + 180;
-                }
-            }
-
-            this.magnitude = FloatBuffer.wrap(spd);
-            this.direction = FloatBuffer.wrap(dir);
-        }
         long t2 = System.currentTimeMillis();
         logger.debug("GriddedVectorDisplay after check -999999 took:"
                 + (t2 - t1));
         this.gridLocation = gridLocation;
         this.displayType = displayType;
         this.gc = new GeodeticCalculator(descriptor.getCRS());
-        this.isDirectional = directional;
+        this.directional = directional;
 
         int colorIndex = 31;
         float sizeFactor = 1;
@@ -263,7 +226,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
 
         if (filledShape != null) {
             if (filledShape.isDrawable()) {
-                Map<Object, RGB> colorMap = new HashMap<Object, RGB>();
+                Map<Object, RGB> colorMap = new HashMap<>();
                 colorMap.put(this, color);
                 target.getExtension(IColormapShadedShapeExtension.class)
                         .drawColormapShadedShape(filledShape, colorMap, 1.0f,
@@ -296,7 +259,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
                 lastShape.compile();
                 long t4 = System.currentTimeMillis();
                 if (ncgribLogger.enableCntrLogs()) {
-                    logger.info("--GriddedVectorDisplay: create wireframe took:"
+                    logger.debug("--GriddedVectorDisplay: create wireframe took:"
                             + (t4 - t1));
                 }
 
@@ -319,12 +282,20 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     @Override
     protected void paintImage(int x, int y, PaintProperties paintProps,
             double adjSize) throws VizException {
+        float spd, dir;
+
         int idx = x + y * this.gridDims[0];
         if (idx < 0 || idx >= (gridDims[0] * gridDims[1])) {
             return;
         }
-        float spd = this.magnitude.get(idx);
-        float dir = this.direction.get(idx);
+
+        if (directional) {
+            spd = 40.0f;
+            dir = data.getXdata().get(idx);
+        } else {
+            spd = getSpeed(idx);
+            dir = getDirection(idx);
+        }
 
         if (Float.isNaN(spd) || Float.isNaN(dir)) {
             return;
@@ -386,6 +357,41 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         }
 
         this.isPlotted[idx] = true;
+    }
+
+    /*
+     * Calculate speed from U and V components at grid point idx.
+     */
+    private float getSpeed(int idx) {
+        float u = data.getXdata().get(idx);
+        float v = data.getYdata().get(idx);
+        float speed;
+
+        if (u == IDecoderConstantsN.GRID_MISSING
+                || v == IDecoderConstantsN.GRID_MISSING) {
+            return Float.NaN;
+        }
+
+        speed = (float) Math.hypot(u, v);
+        return speed;
+    }
+
+    /*
+     * Calculate direction from U and V components at grid point idx.
+     */
+    private float getDirection(int idx) {
+        float u = data.getXdata().get(idx);
+        float v = data.getYdata().get(idx);
+        float direction;
+
+        if (u == IDecoderConstantsN.GRID_MISSING
+                || v == IDecoderConstantsN.GRID_MISSING) {
+            return Float.NaN;
+        }
+
+        direction = (float) (Math.atan2(u, v) * 180 / Math.PI) + 180;
+
+        return direction;
     }
 
     private void paintBarb(Coordinate plotLoc, double adjSize, double spd,
@@ -700,13 +706,6 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         return false;
     }
 
-    /**
-     * @return the magnitude
-     */
-    public FloatBuffer getMagnitude() {
-        return magnitude;
-    }
-
     @Override
     protected void disposeImages() {
         if (lastShape != null) {
@@ -740,7 +739,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     /**
      * @return NcFloatDataRecord
      */
-    public NcFloatDataRecord getData() {
+    public FloatGridData getData() {
         return data;
     }
 
@@ -753,7 +752,7 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
      */
     public boolean checkAttrsChanged(DisplayType type, boolean dir, String attr) {
         boolean isChanged = false;
-        if (this.displayType != type || this.isDirectional != dir
+        if (this.displayType != type || this.directional != dir
                 || !this.contourAttributes.getWind().equalsIgnoreCase(attr)) {
             isChanged = true;
         }
@@ -792,9 +791,9 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
     @Override
     protected void paintGlobalImage(int x, int y, PaintProperties paintProps,
             double adjSize) throws VizException {
+        float spd, dir;
+
         int adjx = x - 1;
-        // if (x > 0)
-        // adjx = 180 + x;
         int adjy = y + 1;
         if (x > 0) {
             adjx++;
@@ -805,8 +804,14 @@ public class GriddedVectorDisplay extends AbstractGriddedDisplay<Coordinate> {
         if (idx < 0 || idx >= (gridDims[0] * gridDims[1])) {
             return;
         }
-        float spd = this.magnitude.get(idx);
-        float dir = this.direction.get(idx);
+
+        if (directional) {
+            spd = 40.0f;
+            dir = data.getXdata().get(idx);
+        } else {
+            spd = getSpeed(idx);
+            dir = getDirection(idx);
+        }
 
         if (Float.isNaN(spd) || Float.isNaN(dir)) {
             return;

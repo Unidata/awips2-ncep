@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-SJU
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

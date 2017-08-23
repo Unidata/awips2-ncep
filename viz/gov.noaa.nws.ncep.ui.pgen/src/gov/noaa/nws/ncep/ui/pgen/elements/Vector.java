@@ -7,11 +7,6 @@
  */
 package gov.noaa.nws.ncep.ui.pgen.elements;
 
-import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
-import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
-
 import java.awt.Color;
 
 import org.geotools.referencing.GeodeticCalculator;
@@ -19,18 +14,28 @@ import org.geotools.referencing.datum.DefaultEllipsoid;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.annotation.ElementOperations;
+import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
+import gov.noaa.nws.ncep.ui.pgen.display.ArrowHead;
+import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector;
+
 /**
  * Class to represent a symbol element.
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/09					J. Wu   	Initial Creation.
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 08/15        R8188       J. Lopez     Changed orientation and rotation 
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 01/09                    J. Wu       Initial Creation.
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 08/15        R8188       J. Lopez    Changed orientation and rotation 
  *                                      of "Hash" to match legacy
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 11/07/2016   R23252      S. Russell  Added getArrowHeadType(), a new 
+ *                                      constructor, and member variable
+ *                                      arrowHeadType for Vector arrows with
+ *                                      pointed (OPEN) arrowheads.
  * 
  * </pre>
  * 
@@ -51,6 +56,8 @@ public class Vector extends SinglePointElement implements IVector {
 
     private boolean directionOnly;
 
+    private ArrowHead.ArrowHeadType arrowHeadType = ArrowHead.ArrowHeadType.FILLED;
+
     /**
      * Default constructor
      */
@@ -58,20 +65,25 @@ public class Vector extends SinglePointElement implements IVector {
     }
 
     /**
-     * @param deleted
      * @param range
      * @param colors
      * @param lineWidth
      * @param sizeScale
      * @param clear
      * @param location
-     * @param type
+     * @param vc
+     * @param speed
+     * @param direction
+     * @param arrowHeadSize
+     * @param directionOnly
+     * @param pgenCategory
+     * @param pgenType
      */
+
     public Vector(Coordinate[] range, Color[] colors, float lineWidth,
-            double sizeScale, Boolean clear, Coordinate location,
-            VectorType vc, double speed, double direction,
-            double arrowHeadSize, boolean directionOnly, String pgenCategory,
-            String pgenType) {
+            double sizeScale, Boolean clear, Coordinate location, VectorType vc,
+            double speed, double direction, double arrowHeadSize,
+            boolean directionOnly, String pgenCategory, String pgenType) {
 
         super(range, colors, lineWidth, sizeScale, clear, location,
                 pgenCategory, pgenType);
@@ -81,6 +93,42 @@ public class Vector extends SinglePointElement implements IVector {
         this.direction = direction;
         this.arrowHeadSize = arrowHeadSize;
         this.directionOnly = directionOnly;
+
+    }
+
+    /**
+     * A constructor that takes in ArrowHead.ArrowHeadType as an argument for
+     * choosing between OPEN ( barbed, pointed ) and CLOSED ( filled, solid )
+     * arrowheads
+     * 
+     * @param range
+     * @param colors
+     * @param lineWidth
+     * @param sizeScale
+     * @param clear
+     * @param location
+     * @param vc
+     * @param speed
+     * @param direction
+     * @param arrowHeadSize
+     * @param directionOnly
+     * @param pgenCategory
+     * @param pgenType
+     * @param arrowHeadType
+     */
+    public Vector(Coordinate[] range, Color[] colors, float lineWidth,
+            double sizeScale, Boolean clear, Coordinate location, VectorType vc,
+            double speed, double direction, double arrowHeadSize,
+            boolean directionOnly, String pgenCategory, String pgenType,
+            ArrowHead.ArrowHeadType arrowHeadType) {
+
+        this(range, colors, lineWidth, sizeScale, clear, location, vc, speed,
+                direction, arrowHeadSize, directionOnly, pgenCategory,
+                pgenType);
+
+        if (arrowHeadType != null) {
+            this.arrowHeadType = arrowHeadType;
+        }
 
     }
 
@@ -247,9 +295,10 @@ public class Vector extends SinglePointElement implements IVector {
          * Set new Color, Strings and Coordinate so that we don't just set
          * references to this object's attributes.
          */
-        newVector.setColors(new Color[] { new Color(this.getColors()[0]
-                .getRed(), this.getColors()[0].getGreen(), this.getColors()[0]
-                .getBlue()) });
+        newVector
+                .setColors(new Color[] { new Color(this.getColors()[0].getRed(),
+                        this.getColors()[0].getGreen(),
+                        this.getColors()[0].getBlue()) });
         newVector.setLocation(new Coordinate(this.getLocation()));
 
         newVector.setPgenCategory(new String(this.getPgenCategory()));
@@ -272,7 +321,8 @@ public class Vector extends SinglePointElement implements IVector {
      *            - The ending point in Lat/Lon coordinates
      * @return The angle of line point1->point2 relative to the North
      */
-    public static double northRotationAngle(Coordinate point1, Coordinate point2) {
+    public static double northRotationAngle(Coordinate point1,
+            Coordinate point2) {
 
         /*
          * Note - Orientation will be clockwise as following: North 0; East 90;
@@ -323,4 +373,16 @@ public class Vector extends SinglePointElement implements IVector {
 
         return direction;
     }
+
+    /*
+     * Gets an enum indicating whether the arrow head should be OPEN or FILLED
+     * for Vector arrows.
+     * 
+     * @return enum indicating the arrow head should be OPEN or FILLED.
+     */
+    public ArrowHead.ArrowHeadType getArrowHeadType() {
+        return this.arrowHeadType;
+
+    }
+
 }

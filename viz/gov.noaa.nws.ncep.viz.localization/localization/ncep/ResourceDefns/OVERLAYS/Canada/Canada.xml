@@ -5,7 +5,7 @@
     <resourceParameters>
 dbName=maps
 tableName=mapdata.canada
-labelField=name_en
+labelField=name
 !labelField=nom_fr
 mapName=Canada
     </resourceParameters>

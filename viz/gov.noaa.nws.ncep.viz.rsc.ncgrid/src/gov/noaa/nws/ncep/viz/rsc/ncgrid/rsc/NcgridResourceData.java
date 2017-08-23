@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -18,7 +19,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.time.DataTime;
+import com.raytheon.uf.viz.core.catalog.CatalogQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -31,22 +34,23 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Feb, 2010           		M. Li      Initial creation
- * Nov, 2010				M. Li	   add wind attribute
- * Nov,22 2010  352			X. Guo     Add HILO, HLSYM
- * 11/29/2010				mgamazaychikov	Added dataSource, getAvailableTimes
- * 12/22/1010               G Hull     replace dataSource with pluginName
- * Feb, 2011				           Add eventName to timeline query
- * 02/11/2011               G Hull     eventName now set in bndlTemplate and by RseourceDefnsMngr ;
+ * Feb, 2010               M. Li       Initial creation
+ * Nov, 2010               M. Li       add wind attribute
+ * Nov,22 2010  352        X. Guo      Add HILO, HLSYM
+ * 11/29/2010              mgamazaychi Added dataSource, getAvailableTimes
+ * 12/22/1010              G Hull      replace dataSource with pluginName
+ * Feb, 2011                           Add eventName to timeline query
+ * 02/11/2011              G Hull      eventName now set in bndlTemplate and by RseourceDefnsMngr ;
  *                                     add constructor
- * 09/19/2011				mgamazaychikov	Made changes associated with removal of DatatypeTable class
- * 12/22/2011               G Hull     Updated getGdFile()
- * 12/06/2012   #538        Q. Zhou    Added skip and filter areas and implements. 
- * 03/28/2012               X. Guo     Don't need to convert gdfile toUppercase
- * 08/29/2012   #743        Archana    Added CLRBAR  
- * 09/14/2013   #1036       S. Gurung  Added TEXT  
- * 07/02/2014   ?           B. Yin     Handle grid analysis.
- * 03/27/2015   RM6552      S. Russell Initialize member variables to avoid nullpointer exceptions
+ * 09/19/2011              mgamazaychi Made changes associated with removal of DatatypeTable class
+ * 12/22/2011              G Hull      Updated getGdFile()
+ * 12/06/2012   #538       Q. Zhou     Added skip and filter areas and implements. 
+ * 03/28/2012              X. Guo      Don't need to convert gdfile toUppercase
+ * 08/29/2012   #743       Archana     Added CLRBAR  
+ * 09/14/2013   #1036      S. Gurung   Added TEXT  
+ * 07/02/2014   ?          B. Yin      Handle grid analysis.
+ * 03/27/2015   RM6552     S. Russell  Initialize member variables to avoid nullpointer exceptions
+ * 04/05/2016   RM#10435   rjpeter     Removed Inventory usage.
  * </pre>
  * 
  * @author mli
@@ -57,6 +61,12 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 public class NcgridResourceData extends
         AbstractNatlCntrsRequestableResourceData implements
         INatlCntrsResourceData {
+
+    protected static long CACHE_EXPIRATION = 60000;
+
+    protected final List<DataTime> cachedAvailableTimes = new ArrayList<>();
+
+    protected long cacheExpireTime = 0L;
 
     @XmlElement
     protected String type = "";
@@ -137,132 +147,136 @@ public class NcgridResourceData extends
             return false;
         }
 
-        if (obj instanceof NcgridResourceData == false) {
+        if ((obj instanceof NcgridResourceData) == false) {
             return false;
         }
 
         NcgridResourceData other = (NcgridResourceData) obj;
 
-        if (this.resourceName != null && other.resourceName == null) {
+        if ((this.resourceName != null) && (other.resourceName == null)) {
             return false;
-        } else if (this.resourceName == null && other.resourceName != null) {
+        } else if ((this.resourceName == null) && (other.resourceName != null)) {
             return false;
-        } else if (this.resourceName != null
-                && this.resourceName.equals(other.resourceName) == false) {
-            return false;
-        }
-
-        if (this.type != null && other.type == null) {
-            return false;
-        } else if (this.type == null && other.type != null) {
-            return false;
-        } else if (this.type != null && this.type.equals(other.type) == false) {
+        } else if ((this.resourceName != null)
+                && (this.resourceName.equals(other.resourceName) == false)) {
             return false;
         }
 
-        if (this.cint != null && other.cint == null) {
+        if ((this.type != null) && (other.type == null)) {
             return false;
-        } else if (this.cint == null && other.cint != null) {
+        } else if ((this.type == null) && (other.type != null)) {
             return false;
-        } else if (this.cint != null && this.cint.equals(other.cint) == false) {
-            return false;
-        }
-
-        if (this.gdfile != null && other.gdfile == null) {
-            return false;
-        } else if (this.gdfile == null && other.gdfile != null) {
-            return false;
-        } else if (this.gdfile != null
-                && this.gdfile.equals(other.gdfile) == false) {
+        } else if ((this.type != null)
+                && (this.type.equals(other.type) == false)) {
             return false;
         }
 
-        if (this.gvcord != null && other.gvcord == null) {
+        if ((this.cint != null) && (other.cint == null)) {
             return false;
-        } else if (this.gvcord == null && other.gvcord != null) {
+        } else if ((this.cint == null) && (other.cint != null)) {
             return false;
-        } else if (this.gvcord != null
-                && this.gvcord.equals(other.gvcord) == false) {
-            return false;
-        }
-
-        if (this.glevel != null && other.glevel == null) {
-            return false;
-        } else if (this.glevel == null && other.glevel != null) {
-            return false;
-        } else if (this.glevel != null
-                && this.glevel.equals(other.glevel) == false) {
+        } else if ((this.cint != null)
+                && (this.cint.equals(other.cint) == false)) {
             return false;
         }
 
-        if (this.gdpfun != null && other.gdpfun == null) {
+        if ((this.gdfile != null) && (other.gdfile == null)) {
             return false;
-        } else if (this.gdpfun == null && other.gdpfun != null) {
+        } else if ((this.gdfile == null) && (other.gdfile != null)) {
             return false;
-        } else if (this.gdpfun != null
-                && this.gdpfun.equals(other.gdpfun) == false) {
-            return false;
-        }
-
-        if (this.skip != null && other.skip == null) {
-            return false;
-        } else if (this.skip == null && other.skip != null) {
-            return false;
-        } else if (this.skip != null && this.skip.equals(other.skip) == false) {
+        } else if ((this.gdfile != null)
+                && (this.gdfile.equals(other.gdfile) == false)) {
             return false;
         }
 
-        if (this.filter != null && other.filter == null) {
+        if ((this.gvcord != null) && (other.gvcord == null)) {
             return false;
-        } else if (this.filter == null && other.filter != null) {
+        } else if ((this.gvcord == null) && (other.gvcord != null)) {
             return false;
-        } else if (this.filter != null
-                && this.filter.equals(other.filter) == false) {
-            return false;
-        }
-
-        if (this.scale != null && other.scale == null) {
-            return false;
-        } else if (this.scale == null && other.scale != null) {
-            return false;
-        } else if (this.scale != null
-                && this.scale.equals(other.scale) == false) {
+        } else if ((this.gvcord != null)
+                && (this.gvcord.equals(other.gvcord) == false)) {
             return false;
         }
 
-        if (this.title != null && other.title == null) {
+        if ((this.glevel != null) && (other.glevel == null)) {
             return false;
-        } else if (this.title == null && other.title != null) {
+        } else if ((this.glevel == null) && (other.glevel != null)) {
             return false;
-        } else if (this.title != null
-                && this.title.equals(other.title) == false) {
-            return false;
-        }
-
-        if (this.lineAttributes != null && other.lineAttributes == null) {
-            return false;
-        } else if (this.lineAttributes == null && other.lineAttributes != null) {
-            return false;
-        } else if (this.lineAttributes != null
-                && this.lineAttributes.equals(other.lineAttributes) == false) {
+        } else if ((this.glevel != null)
+                && (this.glevel.equals(other.glevel) == false)) {
             return false;
         }
 
-        if (this.colors != null && other.colors == null) {
+        if ((this.gdpfun != null) && (other.gdpfun == null)) {
             return false;
-        } else if (this.colors == null && other.colors != null) {
+        } else if ((this.gdpfun == null) && (other.gdpfun != null)) {
             return false;
-        } else if (this.colors != null
-                && this.colors.equals(other.colors) == false) {
+        } else if ((this.gdpfun != null)
+                && (this.gdpfun.equals(other.gdpfun) == false)) {
             return false;
         }
 
-        if (this.marker != null && other.marker == null) {
+        if ((this.skip != null) && (other.skip == null)) {
             return false;
-        } else if (this.marker == null && other.marker != null) {
+        } else if ((this.skip == null) && (other.skip != null)) {
             return false;
-        } else if (this.marker != null
-                && this.marker.equals(other.marker) == false) {
+        } else if ((this.skip != null)
+                && (this.skip.equals(other.skip) == false)) {
+            return false;
+        }
+
+        if ((this.filter != null) && (other.filter == null)) {
+            return false;
+        } else if ((this.filter == null) && (other.filter != null)) {
+            return false;
+        } else if ((this.filter != null)
+                && (this.filter.equals(other.filter) == false)) {
+            return false;
+        }
+
+        if ((this.scale != null) && (other.scale == null)) {
+            return false;
+        } else if ((this.scale == null) && (other.scale != null)) {
+            return false;
+        } else if ((this.scale != null)
+                && (this.scale.equals(other.scale) == false)) {
+            return false;
+        }
+
+        if ((this.title != null) && (other.title == null)) {
+            return false;
+        } else if ((this.title == null) && (other.title != null)) {
+            return false;
+        } else if ((this.title != null)
+                && (this.title.equals(other.title) == false)) {
+            return false;
+        }
+
+        if ((this.lineAttributes != null) && (other.lineAttributes == null)) {
+            return false;
+        } else if ((this.lineAttributes == null)
+                && (other.lineAttributes != null)) {
+            return false;
+        } else if ((this.lineAttributes != null)
+                && (this.lineAttributes.equals(other.lineAttributes) == false)) {
+            return false;
+        }
+
+        if ((this.colors != null) && (other.colors == null)) {
+            return false;
+        } else if ((this.colors == null) && (other.colors != null)) {
+            return false;
+        } else if ((this.colors != null)
+                && (this.colors.equals(other.colors) == false)) {
+            return false;
+        }
+
+        if ((this.marker != null) && (other.marker == null)) {
+            return false;
+        } else if ((this.marker == null) && (other.marker != null)) {
+            return false;
+        } else if ((this.marker != null)
+                && (this.marker.equals(other.marker) == false)) {
             return false;
         }
 
@@ -270,54 +284,57 @@ public class NcgridResourceData extends
             return false;
         }
 
-        if (this.fint != null && other.fint == null) {
+        if ((this.fint != null) && (other.fint == null)) {
             return false;
-        } else if (this.fint == null && other.fint != null) {
+        } else if ((this.fint == null) && (other.fint != null)) {
             return false;
-        } else if (this.fint != null && this.fint.equals(other.fint) == false) {
-            return false;
-        }
-
-        if (this.fline != null && other.fline == null) {
-            return false;
-        } else if (this.fline == null && other.fline != null) {
-            return false;
-        } else if (this.fline != null
-                && this.fline.equals(other.fline) == false) {
+        } else if ((this.fint != null)
+                && (this.fint.equals(other.fint) == false)) {
             return false;
         }
 
-        if (this.hilo != null && other.hilo == null) {
+        if ((this.fline != null) && (other.fline == null)) {
             return false;
-        } else if (this.hilo == null && other.hilo != null) {
+        } else if ((this.fline == null) && (other.fline != null)) {
             return false;
-        } else if (this.hilo != null && this.hilo.equals(other.hilo) == false) {
-            return false;
-        }
-
-        if (this.hlsym != null && other.hlsym == null) {
-            return false;
-        } else if (this.hlsym == null && other.hlsym != null) {
-            return false;
-        } else if (this.hlsym != null
-                && this.hlsym.equals(other.hlsym) == false) {
+        } else if ((this.fline != null)
+                && (this.fline.equals(other.fline) == false)) {
             return false;
         }
 
-        if (this.clrbar != null && other.clrbar == null) {
+        if ((this.hilo != null) && (other.hilo == null)) {
             return false;
-        } else if (this.clrbar == null && other.clrbar != null) {
+        } else if ((this.hilo == null) && (other.hilo != null)) {
             return false;
-        } else if (this.clrbar != null
-                && this.clrbar.equals(other.clrbar) == false) {
+        } else if ((this.hilo != null)
+                && (this.hilo.equals(other.hilo) == false)) {
             return false;
         }
 
-        if (this.text != null && other.text == null) {
+        if ((this.hlsym != null) && (other.hlsym == null)) {
             return false;
-        } else if (this.text == null && other.text != null) {
+        } else if ((this.hlsym == null) && (other.hlsym != null)) {
             return false;
-        } else if (this.text != null && this.text.equals(other.text) == false) {
+        } else if ((this.hlsym != null)
+                && (this.hlsym.equals(other.hlsym) == false)) {
+            return false;
+        }
+
+        if ((this.clrbar != null) && (other.clrbar == null)) {
+            return false;
+        } else if ((this.clrbar == null) && (other.clrbar != null)) {
+            return false;
+        } else if ((this.clrbar != null)
+                && (this.clrbar.equals(other.clrbar) == false)) {
+            return false;
+        }
+
+        if ((this.text != null) && (other.text == null)) {
+            return false;
+        } else if ((this.text == null) && (other.text != null)) {
+            return false;
+        } else if ((this.text != null)
+                && (this.text.equals(other.text) == false)) {
             return false;
         }
 
@@ -403,15 +420,6 @@ public class NcgridResourceData extends
     public void setType(String type) {
         this.type = type;
     }
-
-    /*
-     * public DisplayType getVectorType() { if
-     * (this.type.toUpperCase().contains("B")) { return DisplayType.BARB; } else
-     * if (this.type.toUpperCase().contains("A") ||
-     * this.type.toUpperCase().contains("D")) { return DisplayType.ARROW; } else
-     * if (this.type.toUpperCase().contains("S")) { return
-     * DisplayType.STREAMLINE; } else { return null; } }
-     */
 
     public String getLineAttributes() {
         return lineAttributes;
@@ -534,18 +542,6 @@ public class NcgridResourceData extends
         return this.gdfile.startsWith("{") && this.gdfile.endsWith("}");
     }
 
-    // set metadataMap with the modelName constraint and return it
-    // (This is overridden by the NcEnsembleResourceData
-    //
-    // public HashMap<String, RequestConstraint> getMetadataMap() {
-    // HashMap<String, RequestConstraint> queryList = super.getMetadataMap();
-    //
-    // queryList.put("modelInfo.modelName",
-    // new RequestConstraint( getGdfile(), ConstraintType.EQUALS ) );
-    //
-    // return queryList;
-    // }
-
     @Override
     public DataTime[] getAvailableTimes() throws VizException {
 
@@ -569,13 +565,33 @@ public class NcgridResourceData extends
                 }
                 return availableTimes;
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                throw new VizException();
+                throw new VizException(
+                        "Error occurred looking up available times for Gempack grid",
+                        e);
             }
         } else {
             DataTime[] availableTimes = super.getAvailableTimes();
             return availableTimes;
         }
+    }
+
+    @Override
+    /* Override to use CatalogQuery instead of DataCubeContainer */
+    protected DataTime[] queryForTimes(Map<String, RequestConstraint> map)
+            throws VizException {
+        DataTime[] rval = null;
+        synchronized (cachedAvailableTimes) {
+            if (System.currentTimeMillis() > cacheExpireTime) {
+                cachedAvailableTimes.clear();
+                rval = CatalogQuery.performTimeQuery(map, false, binOffset);
+                cacheExpireTime = System.currentTimeMillis() + CACHE_EXPIRATION;
+                cachedAvailableTimes.addAll(Arrays.asList(rval));
+            } else {
+                rval = cachedAvailableTimes
+                        .toArray(new DataTime[cachedAvailableTimes.size()]);
+            }
+        }
+        return rval;
     }
 
     @Override
@@ -590,46 +606,30 @@ public class NcgridResourceData extends
                 ResourceDefinition rscDefn = ResourceDefnsMngr.getInstance()
                         .getResourceDefinition(getResourceName());
 
-                if (rscDefn.getInventoryEnabled()
-                        && rscDefn.isInventoryInitialized()) {
+                try {
                     availTimesList = rscDefn.getDataTimes(getResourceName());
-                } else {
-                    try {
-                        DataTime[] availTimes = null;
-                        availTimes = getAvailableTimes();
-                        if (availTimes == null) {
-                            return new ArrayList<DataTime>();
-                        }
-                        availTimesList = Arrays.asList(availTimes);
-
-                    } catch (VizException e) {
-                        System.out.println("Error getting Available Times: "
-                                + e.getMessage());
-                        return null;
-                    }
+                } catch (VizException e) {
+                    statusHandler.error(
+                            "Error occurred getting available times for "
+                                    + getResourceName(), e);
+                    return null;
                 }
             } catch (VizException e1) {
+                statusHandler.error(
+                        "Error occurred looking up resource definition for "
+                                + getResourceName(), e1);
                 return availTimesList;
             }
 
             // Sort the time by ref-time then by forecast hours.
             Collections.sort(availTimesList);
             Iterator<DataTime> it = availTimesList.iterator();
+            List<DataTime> availAnlsList = new ArrayList<>();
 
-            // test dfltFrameTimes ="firstf00-lastf06" All f00 plus last f06;
-            // test dfltFrameTimes ="firstf00 - lastf06";
-            // test dfltFrameTimes ="allf00";
-            // test dfltFrameTimes = null;
-            // test dfltFrameTimes = "";
-            // dfltFrameTimes ="allf000";
-
-            List<DataTime> availAnlsList = new ArrayList<DataTime>();
-
-            if (dfltFrameTimes == null || dfltFrameTimes.isEmpty()) { // Default
-                                                                      // is
-                                                                      // "AllF00"
+            // Default is "AllF00"
+            if ((dfltFrameTimes == null) || dfltFrameTimes.isEmpty()) {
                 while (it.hasNext()) {
-                    DataTime dt = (DataTime) it.next();
+                    DataTime dt = it.next();
                     if (dt.getFcstTime() == 0) {
                         availAnlsList.add(dt);
                     }
@@ -637,8 +637,8 @@ public class NcgridResourceData extends
             } else {
                 String dft = dfltFrameTimes.toUpperCase();
 
-                if (dft.contains("ALLF")) { // For GDATTIM = "allfxx". Default
-                                            // is "ALLF00"
+                // For GDATTIM = "allfxx". Default is "ALLF00"
+                if (dft.contains("ALLF")) {
                     int fxx = 0;
                     try {
                         int idx1 = dft.indexOf("ALLF");
@@ -648,22 +648,20 @@ public class NcgridResourceData extends
                     }
                     fxx *= 3600;
                     while (it.hasNext()) {
-                        DataTime dt = (DataTime) it.next();
+                        DataTime dt = it.next();
                         if (dt.getFcstTime() == fxx) {
                             availAnlsList.add(dt);
                         }
                     }
-                } else if (dft.contains("FIRSTF") && dft.contains("LASTF")) { // For
-                                                                              // GDATTIM
-                                                                              // =
-                                                                              // "firstfxx - lastfyy".
+                } else if (dft.contains("FIRSTF") && dft.contains("LASTF")) {
+                    // For GDATTIM = "firstfxx - lastfyy".
                     int fxx = 0;
                     int fyy = 0;
 
                     int idx1 = dft.indexOf("FIRSTF");
                     if (idx1 >= 0) {
                         int idx2 = dft.indexOf('-');
-                        if (idx2 > 0 && idx2 > idx1 + 6) {
+                        if ((idx2 > 0) && (idx2 > (idx1 + 6))) {
                             try {
                                 fxx = Integer.parseInt(dft.substring(idx1 + 6,
                                         idx2));
@@ -687,7 +685,7 @@ public class NcgridResourceData extends
                     for (int ii = availTimesList.size() - 1; ii >= 0; ii--) {
 
                         DataTime dt = availTimesList.get(ii);
-                        if (dt.getFcstTime() == fyy * 3600) {
+                        if (dt.getFcstTime() == (fyy * 3600)) {
                             lastItem = dt;
                             break;
                         }
@@ -696,10 +694,10 @@ public class NcgridResourceData extends
                     for (int ii = availTimesList.size() - 1; ii >= 0; ii--) {
                         DataTime dt = availTimesList.get(ii);
                         System.out.println("Time: " + dt.getRefTime()
-                                + "FCST: " + dt.getFcstTime() / 3600);
+                                + "FCST: " + (dt.getFcstTime() / 3600));
                     }
                     while (it.hasNext()) {
-                        DataTime dt = (DataTime) it.next();
+                        DataTime dt = it.next();
                         if (dt == lastItem) {
                             availAnlsList.add(dt);
                             break;
@@ -710,7 +708,7 @@ public class NcgridResourceData extends
 
                 } else { // for anything else in GDATTIM
                     while (it.hasNext()) {
-                        DataTime dt = (DataTime) it.next();
+                        DataTime dt = it.next();
                         if (dt.getFcstTime() == 0) {
                             availAnlsList.add(dt);
                         }
@@ -728,7 +726,7 @@ public class NcgridResourceData extends
      * @return
      */
     public boolean isGdattimForGridAnalysis() {
-        if (dfltFrameTimes != null && !dfltFrameTimes.isEmpty()) {
+        if ((dfltFrameTimes != null) && !dfltFrameTimes.isEmpty()) {
             return (dfltFrameTimes.toUpperCase().contains("ALLF") || (dfltFrameTimes
                     .toUpperCase().contains("FIRSTF") && dfltFrameTimes
                     .toUpperCase().contains("LASTF")));

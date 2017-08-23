@@ -10,6 +10,13 @@
             value="gov.noaa.nws.ncep.common.dataplugin.pgen.request.StoreActivityRequest" />
         <constructor-arg ref="StoreActivityHandler" />
     </bean>
+    <bean id="RetrieveActivityMapHandler"
+        class="gov.noaa.nws.ncep.edex.plugin.pgen.handler.RetrieveActivityMapHandler" />
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ncep.common.dataplugin.pgen.request.RetrieveActivityMapRequest" />
+        <constructor-arg ref="RetrieveActivityMapHandler" />
+    </bean>
   
     <bean id="RetrieveActivityHandler"
         class="gov.noaa.nws.ncep.edex.plugin.pgen.handler.RetrieveActivityHandler" />

@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=mesoEta212
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

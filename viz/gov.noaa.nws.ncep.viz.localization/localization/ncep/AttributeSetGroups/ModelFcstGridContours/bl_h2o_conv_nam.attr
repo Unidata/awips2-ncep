@@ -8,8 +8,8 @@
 !                               changed title line to show better labeling
 !
 GLEVEL =  9823!9823!9823:0!9823:0!0
-GVCORD =  sgma!sgma!sgma!sgma!none 
-SKIP   =    0/1                                                                     
+GVCORD =  sgma!sgma!sgma!sgma!none
+SKIP   =    0/1
 FILTER=y
 SCALE  =   7!0
 GDPFUN =  sdiv(mixr,obs)!thte(mul(.9823;pres@0%none),tmpc,dwpc)//te!te!te!pmsl!kntv(wnd%sgma@9823)
@@ -22,7 +22,7 @@ HILO   =    !!!!6/H#;L#/1020-1070;900-1016
 HLSYM  =   1;1/2//4;1.5/0
 CLRBAR =  1
 WIND   =    10/0.75/1.5/112
-TITLE  =   1/-1/~ BL (18MB AGL)MOISTURE CONVERGENCE, WIND    (KTS) and THTAE!0
-COLORS =  2                                                                       
-MARKER =  2                                                                       
-GRDLBL =  5                                                                       
+TITLE  =   1/-1/BL (18MB AGL)MOISTURE CONVERGENCE, WIND    (KTS) and THTAE ~!0
+COLORS =  2
+MARKER =  2
+GRDLBL =  5

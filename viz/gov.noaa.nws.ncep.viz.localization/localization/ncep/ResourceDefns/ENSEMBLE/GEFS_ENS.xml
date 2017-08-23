@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinition xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
-    <inventoryEnabled>true</inventoryEnabled>
     <resourceDefnName>GEFS_ENS</resourceDefnName>
     <resourceCategory>ENSEMBLE</resourceCategory>
     <resourceParameters>
-primaryModel=gefs
-availableModels=gefs:01,02;gfs;nam12
+primaryModel=GEFS
+availableModels=GEFS:01,02;gfs;NAM12;GFS230
 pluginName=grid
 GDFILE=
     </resourceParameters>

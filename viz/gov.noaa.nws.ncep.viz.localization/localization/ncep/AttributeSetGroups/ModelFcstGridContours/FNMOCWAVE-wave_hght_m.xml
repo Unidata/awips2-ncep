@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+	<attrSetGroupName>wave_hght_m</attrSetGroupName>
+	<resource>FNMOCWAVE</resource>
+	<attrSetLabels>
+		<attrSetLabel>
+			<name>grid_sig_wave_m_fnmoc</name>
+			<alias>grid_sig_wave_m</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>grid_sig_wave_m_color_fnmoc</name>
+			<alias>grid_sig_wave_m_color_fnmoc</alias>
+		</attrSetLabel>
+		<attrSetLabel>
+			<name>sig_wave_cont_fill_drk_m_fnmoc</name>
+			<alias>sig_wave_cont_fill_drk_m</alias>
+		</attrSetLabel>
+	</attrSetLabels>
+</AttributeSetGroup>
+

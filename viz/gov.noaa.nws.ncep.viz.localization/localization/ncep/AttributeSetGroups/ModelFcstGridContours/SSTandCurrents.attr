@@ -2,24 +2,24 @@
 ! Restore File : ncom
 !
 ! Log:
-! K. Bugenhagen	3/15	Initial creation 
+! K. Bugenhagen	3/15	Initial creation
 !
 GLEVEL =    0
 GVCORD =  DPTH
-SKIP   =  
+SKIP   =
 FILTER =    n
 SCALE  =    0               ! 0         ! 1
 GDPFUN =  TEMPWTR           ! TEMPWTR   ! KNTV(WND)
 TYPE   =    c               ! c         ! a
-CINT   =    5/-99/15        ! 5/20/99     
+CINT   =    5/-99/15        ! 5/20/99
 LINE   =    5               ! 2
-FINT   =    
-FLINE  =      
+FINT   =
+FLINE  =
 HILO   =    0
 HLSYM  =    0
 CLRBAR =    0
-WIND   =   bk6 
-TITLE  =   5/-1/~ GRIDDED SIG WAVE HEIGHT (m) and NWW3 10m WIND!0
+WIND   =   bk6
+TITLE  =   5/-1/GRIDDED SIG WAVE HEIGHT (m) and NWW3 10m WIND ~!0
 COLORS =    1
 MARKER =    0
-GRDLBL =                                                                         
+GRDLBL =

@@ -75,6 +75,8 @@ import com.raytheon.uf.common.time.DataTime;
  * 11/14/13       #1051     G. Hull         add pref for desk, set from command line. now gets triggered
  *                                          from spring bean.
  * 08/06/2015     R8015     A. Su           Moved the initializer to the class StartupInitialition.
+ * 11/04/2016     R23113    K.Bugenhagen    Added support for seconds and milliseconds
+ *                                          in time methods.
  * 
  * </pre>
  * 
@@ -122,8 +124,8 @@ public class NmapCommon {
     public static FileFilter createDirFilter() {
         return new FileFilter() {
             public boolean accept(File f) {
-                return (f.isDirectory()
-                        && !f.getAbsolutePath().contains(".svn") ? true : false);
+                return (f.isDirectory() && !f.getAbsolutePath().contains(".svn")
+                        ? true : false);
             }
         };
     }
@@ -275,8 +277,8 @@ public class NmapCommon {
                 if (!dir.exists()) {
                     return new File[] {}; // BadFileOrDirError
                 }
-                File[] files = dir.listFiles(NmapCommon
-                        .createFileFilter(file_exts));
+                File[] files = dir
+                        .listFiles(NmapCommon.createFileFilter(file_exts));
 
                 if (fileSortComparator == null) {
                     Arrays.sort(files);
@@ -296,7 +298,8 @@ public class NmapCommon {
 
     // DataTime refTime -> YYMMDD"connStr"HHMM --- connStr = '_', '/', ':'
     // or....
-    public static String getTimeStringFromDataTime(DataTime dt, String connStr) {
+    public static String getTimeStringFromDataTime(DataTime dt,
+            String connStr) {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumIntegerDigits(2);
         nf.setMinimumFractionDigits(0);
@@ -315,7 +318,34 @@ public class NmapCommon {
         return String.format("%s%s%s%s%s%s", yyStr, mon, dd, connStr, hh, min);
     }
 
-    // YYMMDD/HHMM -> DataTime
+    public static String getTimeStringToMillisFromDataTime(DataTime dt,
+            String connStr) {
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMinimumIntegerDigits(2);
+        nf.setMinimumFractionDigits(0);
+        nf.setMaximumFractionDigits(2);
+        nf.setMaximumIntegerDigits(3);
+
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.setTime(dt.getRefTime());
+        int yy = cal.get(Calendar.YEAR) % 100;
+        String yyStr = nf.format(yy);
+        String mon = nf.format(cal.get(Calendar.MONTH) + 1);
+        String dd = nf.format(cal.get(Calendar.DAY_OF_MONTH));
+        String hh = nf.format(cal.get(Calendar.HOUR_OF_DAY));
+        String min = nf.format(cal.get(Calendar.MINUTE));
+        String sec = nf.format(cal.get(Calendar.SECOND));
+        String millisec = nf.format(cal.get(Calendar.MILLISECOND));
+        // prepend 0 if needed
+        if (millisec.length() < 3) {
+            millisec = "0" + millisec;
+        }
+
+        return String.format("%s%s%s%s%s%s%s%s", yyStr, mon, dd, connStr, hh,
+                min, sec, millisec);
+    }
+
+    // YYMMDD_HHMM -> DataTime
     public static DataTime parseDataTimeFromCycleTimeString(String cycTimeStr) {
         if (cycTimeStr == null || cycTimeStr.isEmpty()) {
             return null;
@@ -333,9 +363,36 @@ public class NmapCommon {
 
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 
-        cal.set(yy, mon, dd, hh, min, 0);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(yy, mon, dd, hh, min);
 
         return new DataTime(cal);
     }
+
+    // YYMMDD_HHMMSSMMM -> DataTime
+    public static DataTime parseDataTimeToMillisFromCycleTimeString(
+            String cycTimeStr) {
+        if (cycTimeStr == null || cycTimeStr.isEmpty()) {
+            return null;
+        } else if (cycTimeStr.length() != 2 + 2 + 2 + 1 + 2 + 2 + 2 + 3) {
+            System.out.println("Can't parse cycle time:" + cycTimeStr);
+            return null;
+        }
+
+        int yy = Integer.parseInt(cycTimeStr.substring(0, 2));
+        yy = (yy > 60 ? 1900 + yy : 2000 + yy);
+        int mon = Integer.parseInt(cycTimeStr.substring(2, 4)) - 1;
+        int dd = Integer.parseInt(cycTimeStr.substring(4, 6));
+        int hh = Integer.parseInt(cycTimeStr.substring(7, 9));
+        int min = Integer.parseInt(cycTimeStr.substring(9, 11));
+        int sec = Integer.parseInt(cycTimeStr.substring(11, 13));
+        int millisec = Integer.parseInt(cycTimeStr.substring(13, 16));
+
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+        cal.set(yy, mon, dd, hh, min, sec);
+        cal.set(Calendar.MILLISECOND, millisec);
+
+        return new DataTime(cal);
+    }
+
 }

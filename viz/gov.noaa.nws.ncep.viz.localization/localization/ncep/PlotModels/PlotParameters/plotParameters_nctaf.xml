@@ -79,12 +79,16 @@
                      prioritySelectTable="cloud_select.txt"
                      plotLookupTable="pgen_skyc.txt" />
  
- <PlotParameterDefn  plotParamName="CEIL" metParamName="CeilingFromSurface" dbParamName="CEILING" plotUnit="hecto_ft" plotFormat="%3.0f"/>
+ <PlotParameterDefn  plotParamName="CEIL" metParamName="CeilingFromSurface" dbParamName="CEILING" plotUnit="hft" plotFormat="%3.0f"/>
  <PlotParameterDefn  plotParamName="CMSL" metParamName="CeilingFromSeaLevel" deriveParams="CeilingFromSurface,StationElevation" plotUnit="hecto_ft" plotFormat="%3.0f"/>
  <PlotParameterDefn  plotParamName="TCEL" metParamName="ProbableCeiling" dbParamName="PROBABLE_CEILING" plotUnit="hecto_ft" plotFormat="%3.0f"/>
  <PlotParameterDefn  plotParamName="TCMS" metParamName="ProbableCeilingAsMeanSeaLevel" deriveParams="ProbableCeiling,StationElevation" plotUnit="hecto_ft" plotFormat="%3.0f"/>
  <PlotParameterDefn  plotParamName="WCMS" metParamName="CeilingFromSeaLevelWorstCase" deriveParams="all" plotUnit="hecto_ft" plotFormat="%3.0f"/>
-  
+ <PlotParameterDefn  plotParamName="CLDB" metParamName="CeilingOrLowestLayer" deriveParams="CeilingFromSurface,SkyCoverage,CloudLayerBase" plotUnit="ft" plotFormat="CLDB"/>
+ <PlotParameterDefn  plotParamName="CLDS" metParamName="CombinedCloud" deriveParams="SkyCoverage,CloudLayerBase" plotUnit="ft" plotFormat="CLDS"/>
+ <PlotParameterDefn  plotParamName="CLDT" metParamName="CombinedCloudMaxCoverage" deriveParams="SkyCoverage,CloudLayerBase" plotUnit="ft" plotFormat="CLDT"/>
+ 
+ 
   <!-- These really aren't normally displayed by themselves but they need
   == to be here since they are used to derive the WindBarbs.
   -->
@@ -125,7 +129,7 @@
 
  <!--  FLIGHT RULES -->
 
- <PlotParameterDefn   plotParamName="XVFR" metParamName="FlightRulesID" deriveParams="CeilingFromSurface,Visibility" plotFormat="%1.0f"/>   
+ <PlotParameterDefn   plotParamName="XVFR" metParamName="FlightRulesID" plotMode="text" deriveParams="all" plotFormat="%3.0f"/>   
  <PlotParameterDefn   plotParamName="TXVF" metParamName="ProbableFlightRuleIdentifier" deriveParams="ProbableCeiling,ProbableVisibility" plotFormat="%1.0f"/>   
  <PlotParameterDefn   plotParamName="WXVF" metParamName="FlightRulesIdWorstCase" deriveParams="all" plotFormat="%1.0f"/>   
                            

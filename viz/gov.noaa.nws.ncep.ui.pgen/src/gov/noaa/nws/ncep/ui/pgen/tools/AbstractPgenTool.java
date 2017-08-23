@@ -22,18 +22,19 @@ import com.raytheon.viz.ui.tools.AbstractModalTool;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 04/09					B. Yin   	Initial Creation.
- * 05/09		79			B. Yin		Added 'delete obj' flag
- * 										Set the flag in the execute method
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 04/09                    B. Yin      Initial Creation.
+ * 05/09        79          B. Yin      Added 'delete obj' flag
+ *                                      Set the flag in the execute method
  * 29/09        169         Greg Hull   Use AbstractNCModalMapTool
- * 03/13		927			B. Yin 		Added setHandler, getDefaultMouseHandler,
- * 										resetMouseHandler, and setWorkingComponent
+ * 03/13        927         B. Yin      Added setHandler, getDefaultMouseHandler,
+ *                                      resetMouseHandler, and setWorkingComponent
  * 12/13        TTR899      J. Wu       Set delObjFlag to false when any Pgen Action 
  *                                      button is clicked
  * 04/2014      TTR900      pswamy      R-click cannot return to SELECT from Rotate and DEL_OBJ
- * 12/2014		R5413		B. Yin		Set PGEN tool in PGEN session
+ * 12/2014      R5413       B. Yin      Set PGEN tool in PGEN session
+ * 06/15/2016   R13559      bkowal      File cleanup. Removed commented code.
  * 
  * </pre>
  * 
@@ -62,10 +63,9 @@ public abstract class AbstractPgenTool extends AbstractModalTool {
      */
     @Override
     protected void activateTool() {
-        if (PgenSession.getInstance().getPgenPalette() == null)
+        if (PgenSession.getInstance().getPgenPalette() == null) {
             return;
-        // super.activateTool(event);
-        // super.activateTool();
+        }
 
         if (editor instanceof AbstractEditor) {
             this.mapEditor = (AbstractEditor) super.editor;
@@ -103,13 +103,13 @@ public abstract class AbstractPgenTool extends AbstractModalTool {
         }
 
         this.inputHandler = getMouseHandler();
-        if (this.inputHandler != null){
+        if (this.inputHandler != null) {
             mapEditor.registerMouseHandler(this.inputHandler);
         }
 
         // Turn off, so tool doesn't exihibit toggle behavior
         setEnabled(false);
-        
+
         PgenSession.getInstance().setPgenTool(this);
     }
 
@@ -134,9 +134,9 @@ public abstract class AbstractPgenTool extends AbstractModalTool {
 
         }
 
-        if (mapEditor != null && this.inputHandler != null){
-        	mapEditor.unregisterMouseHandler(this.inputHandler);
-		}
+        if (mapEditor != null && this.inputHandler != null) {
+            mapEditor.unregisterMouseHandler(this.inputHandler);
+        }
 
         PgenSession.getInstance().setPgenTool(null);
     }
@@ -176,10 +176,16 @@ public abstract class AbstractPgenTool extends AbstractModalTool {
      * @return
      */
     protected boolean isResourceEditable() {
-        if (drawingLayer == null)
+        if (drawingLayer == null) {
             return false;
-        else
+        } else {
             return drawingLayer.isEditable();
+        }
+    }
+
+    protected boolean isResourceVisible() {
+        return (drawingLayer == null || drawingLayer.getProperties() == null) ? false
+                : drawingLayer.getProperties().isVisible();
     }
 
     /**

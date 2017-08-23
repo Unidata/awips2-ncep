@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=QPE-XNAV-TAR
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

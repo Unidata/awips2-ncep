@@ -42,8 +42,9 @@ import com.raytheon.uf.viz.core.map.IMapDescriptor;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Jun 15, 2012            bgonzale     Initial creation
- * Dec 10, 2014	R5413		byin		Added dispose method.
+ * Jun 15, 2012            bgonzale    Initial creation
+ * Dec 10, 2014 R5413      byin        Added dispose method.
+ * 06/15/2016   R13559     bkowal      File cleanup. Removed unused variables.
  * 
  * </pre>
  * 
@@ -69,11 +70,9 @@ public class PgenResourceGhost {
         df.setLayerDisplayAttr(false, null, false);
         if (component != null) {
             Iterator<DrawableElement> iterator = component.createDEIterator();
-            int count = 0;
             while (iterator.hasNext()) {
                 DrawableElement element = iterator.next();
                 drawElement(target, paintProps, df, element, descriptor);
-                ++count;
             }
         }
     }
@@ -120,9 +119,9 @@ public class PgenResourceGhost {
         this.component = ghost;
     }
 
-	/*
-	 * Release resources held by the ghost elements.
-	 */
+    /*
+     * Release resources held by the ghost elements.
+     */
     public void dispose() {
         for (AbstractElementContainer aec : componentMap.values()) {
             aec.dispose();

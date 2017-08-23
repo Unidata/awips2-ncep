@@ -1,0 +1,42 @@
+TITLE.help
+
+The TITLE parameter in a GRID attribute file has the format:
+
+	TITLE = color / location / titleString
+
+	or
+
+	TITLE = color / location / titleString | shortTitleString
+	
+AWIPS2 interprets "titleString" only and ignores "location" and 
+"shortTitleString".
+
+Special characters may be used in the title string for the software to
+automatically substitute various information at these positions. 
+For instance, if the character "~" is used, then the valid time is 
+substituted in that position when no escape character ("\") precedes it:
+
+	TITLE = 5// \~500mb Heights, Winds ~
+
+which will be converted to its legend string as
+
+	Model_Name  ~500mb Heights, Winds  161014/1200V048
+
+The AWIPS2 convention is that the time information is right justified at 
+the end of the string, by default.
+
+The following special characters will be interpreted and replaced:
+
+	\	The escape character, printing next character literally
+	!	The start of comment, ignoring the rest of the line
+	~	Valid date/time
+	^	Forecast date/time
+	?	Day of the week, only shown before a date/time
+	@	Vertical level
+	_	Grid function
+	$	Nonzero scaling factor
+	#	Grid point location
+
+All special characters are substituted for regardless of where they are 
+and how many times they appear in the title string.
+

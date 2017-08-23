@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=AK-NamDNG5
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

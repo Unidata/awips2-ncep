@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=MPE-Mosiac-SJU
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

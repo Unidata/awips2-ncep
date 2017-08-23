@@ -4,7 +4,7 @@
     <resourceCategory>MISC</resourceCategory>
     <resourceParameters>
 pluginName=sgwhv
-satelliteId=-9999998
+satelliteId=47
 legendColor=RGB {255, 255, 0}
     </resourceParameters>
     <rscImplementation>WaveSatV</rscImplementation>

@@ -1,15 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.resources;
 
-import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
-import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
-import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
-import gov.noaa.nws.ncep.viz.common.staticPointDataSource.IStaticPointDataSource;
-import gov.noaa.nws.ncep.viz.common.staticPointDataSource.LabeledPoint;
-import gov.noaa.nws.ncep.viz.common.staticPointDataSource.StaticPointDataSourceMngr;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
-import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
-
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -31,48 +21,58 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.ui.pgen.display.DisplayElementFactory;
+import gov.noaa.nws.ncep.ui.pgen.display.IDisplayable;
+import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
+import gov.noaa.nws.ncep.viz.common.staticPointDataSource.IStaticPointDataSource;
+import gov.noaa.nws.ncep.viz.common.staticPointDataSource.LabeledPoint;
+import gov.noaa.nws.ncep.viz.common.staticPointDataSource.StaticPointDataSourceMngr;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
+import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
+
 /**
- * 
- * 
  * <pre>
- * (non-Javadoc)
  *   
- *    SOFTWARE HISTORY
+ * SOFTWARE HISTORY
  *   
- *    Date          Ticket#       Engineer           Description
+ *    Date          Ticket#       Engineer      Description
  * -----------    ----------    -----------    --------------------------
- * 07/03/2013       #1010        ghull           Initial creation
- * 12/03/2015       R9407        pchowdhuri      Maps/overlays need to be able to reference the 
- *                                               Localization Cave>Bundles>Maps XML files
- * 02/17/2016       #13554       dgilling        Implement IStaticDataNatlCntrsResource.
- * 07/03/13     #1010     ghull       Initial creation
- * 11/05/2015   #5070     randerso    Adjust font sizes for dpi scaling
- *    
+ * 07/03/2013       #1010         ghull         Initial creation
+ * 12/03/2015       R9407         pchowdhuri    Maps/overlays need to be able to reference the 
+ *                                              Localization Cave>Bundles>Maps XML files
+ * 02/17/2016       #13554        dgilling      Implement IStaticDataNatlCntrsResource.
+ * 07/03/13         #1010         ghull         Initial creation
+ * 11/05/2015       #5070         randerso      Adjust font sizes for dpi scaling
+ * 11/12/2016       R20573        jbeck         Change the legend string text, and the algorithm for creating it (for county names)
+ * 
  * </pre>
  * 
  * @author randerso
- * </pre>
+ * 
  */
 
-public class PointOverlayResource extends
-        AbstractVizResource<PointOverlayResourceData, MapDescriptor> implements
-        IStaticDataNatlCntrsResource {
+public class PointOverlayResource
+        extends AbstractVizResource<PointOverlayResourceData, MapDescriptor>
+        implements IStaticDataNatlCntrsResource {
 
     private PointOverlayResourceData ptOvrlyRscData;
 
     private List<LabeledPoint> labeledPoints;
 
-    /** The set of symbols with similar attributes across many locations */
+    /* The set of symbols with similar attributes across many locations */
     private SymbolLocationSet symbolSet = null;
 
-    /**
+    /*
      * A flag indicating new symbols are needed next time we repaint with
      * markers active
      */
     private boolean symbolSetRegenerationNeeded = true;
 
-    // Whether to draw marker symbol and draw ID at each point
-    // These are set from the MarkerState enum in the resourceData
+    /*
+     * Whether to draw marker symbol and draw ID at each point These are set
+     * from the MarkerState enum in the resourceData
+     */
     private boolean drawSymbols = true;
 
     private boolean drawLabels = true;
@@ -100,24 +100,23 @@ public class PointOverlayResource extends
         updateDrawFlagsFromMarkerState();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.raytheon.uf.viz.core.rsc.AbstractVizResource#getName()
+     */
     @Override
     public String getName() {
-        //
-        String numPoints = null;
-        String mapName = ptOvrlyRscData.getMapName();
-        String strNumLabeledPoints = " of " + numLabeledPoints.toString();
-        //
-        if (numVisPoints == 0) {
-            if (labelStrings == null || labelStrings.isEmpty()) {
-                numPoints = "No Visible Points";
-                strNumLabeledPoints = " ...Zoom in and see...";
-            } else {
-                numPoints = Integer.toString(labelStrings.size());
-            }
-        } else {
-            numPoints = Integer.toString(numVisPoints);
+
+        String legendString = ptOvrlyRscData.getMapName();
+
+        if (numVisPoints == 0
+                && (labelStrings == null || labelStrings.isEmpty())) {
+            legendString += " (...Hidden...)";
         }
-        return mapName + " (" + numPoints + strNumLabeledPoints + ")";
+
+        return legendString;
+
     }
 
     /*
@@ -149,8 +148,8 @@ public class PointOverlayResource extends
      * IGraphicsTarget, com.raytheon.viz.core.PixelExtent, double, float)
      */
     @Override
-    public void paintInternal(IGraphicsTarget target, PaintProperties paintProps)
-            throws VizException {
+    public void paintInternal(IGraphicsTarget target,
+            PaintProperties paintProps) throws VizException {
 
         // This could be implemented in ProgressiveDisclosureProperties(in
         // ResourceProperties)
@@ -170,14 +169,15 @@ public class PointOverlayResource extends
         // determine the new labels/symbols
         //
         if (prevExtent == null
-                || (!paintProps.isZooming() && !(Math.abs(prevExtent.getMaxX()
-                        - paintProps.getView().getExtent().getMaxX()) < .01
-                        && Math.abs(prevExtent.getMaxY()
-                                - paintProps.getView().getExtent().getMaxY()) < .01
-                        && Math.abs(prevExtent.getMinX()
-                                - paintProps.getView().getExtent().getMinX()) < .01 && Math
-                        .abs(prevExtent.getMinY()
-                                - paintProps.getView().getExtent().getMinY()) < .01))) {
+                || (!paintProps.isZooming() && !(Math
+                        .abs(prevExtent.getMaxX() - paintProps.getView()
+                                .getExtent().getMaxX()) < .01
+                && Math.abs(prevExtent.getMaxY()
+                        - paintProps.getView().getExtent().getMaxY()) < .01
+                && Math.abs(prevExtent.getMinX()
+                        - paintProps.getView().getExtent().getMinX()) < .01
+                && Math.abs(prevExtent.getMinY()
+                        - paintProps.getView().getExtent().getMinY()) < .01))) {
 
             symbolSetRegenerationNeeded = true;
 
@@ -191,8 +191,9 @@ public class PointOverlayResource extends
                 / paintProps.getView().getExtent().getWidth();
 
         if (font == null) {
-            font = target.initializeFont("Monospace", 12 * ptOvrlyRscData
-                    .getMarkerTextSize().getSoftwareSize(), null);
+            font = target.initializeFont("Monospace",
+                    12 * ptOvrlyRscData.getMarkerTextSize().getSoftwareSize(),
+                    null);
             font.setSmoothing(false);
             font.setScaleFont(false);
             DrawableString line = new DrawableString("N");
@@ -215,7 +216,7 @@ public class PointOverlayResource extends
 
                 // SymbolLocationSet constructor requires a positive-length
                 // array of Coordinate
-                List<Coordinate> visibleLocs = new ArrayList<Coordinate>();
+                List<Coordinate> visibleLocs = new ArrayList<>();
 
                 for (LabeledPoint lp : labeledPoints) {
                     double[] latlon = new double[] { lp.getLongitude(),
@@ -241,10 +242,10 @@ public class PointOverlayResource extends
                     Coordinate[] locations = visibleLocs
                             .toArray(new Coordinate[0]);
 
-                    Color[] colors = new Color[] { new Color(
-                            ptOvrlyRscData.getColor().red,
-                            ptOvrlyRscData.getColor().green,
-                            ptOvrlyRscData.getColor().blue) };
+                    Color[] colors = new Color[] {
+                            new Color(ptOvrlyRscData.getColor().red,
+                                    ptOvrlyRscData.getColor().green,
+                                    ptOvrlyRscData.getColor().blue) };
 
                     symbolSet = new SymbolLocationSet(null, colors,
                             ptOvrlyRscData.getMarkerWidth(),
@@ -253,14 +254,15 @@ public class PointOverlayResource extends
                             // clear
                             false, locations,
                             // category
-                            "Marker", ptOvrlyRscData.getMarkerType().toString());
+                            "Marker",
+                            ptOvrlyRscData.getMarkerType().toString());
                 }
             }
 
             if (symbolSet != null) {
                 if (symDispElmtsList == null) {
-                    DisplayElementFactory df = new DisplayElementFactory(
-                            target, this.descriptor);
+                    DisplayElementFactory df = new DisplayElementFactory(target,
+                            this.descriptor);
                     symDispElmtsList = df.createDisplayElements(symbolSet,
                             paintProps);
                 }
@@ -282,7 +284,7 @@ public class PointOverlayResource extends
                     offsetY = charHeight / screenToWorldRatio;
                 }
 
-                labelStrings = new ArrayList<DrawableString>();
+                labelStrings = new ArrayList<>();
 
                 for (LabeledPoint lp : labeledPoints) {
                     double[] latlon = new double[] { lp.getLongitude(),
@@ -300,20 +302,10 @@ public class PointOverlayResource extends
                         DrawableString drawStr = new DrawableString(
                                 lp.getName(), ptOvrlyRscData.getColor());
                         drawStr.font = font;
-                        drawStr.setCoordinates(pix[0] + offsetX, pix[1]
-                                + offsetY);
+                        drawStr.setCoordinates(pix[0] + offsetX,
+                                pix[1] + offsetY);
                         drawStr.horizontalAlignment = HorizontalAlignment.CENTER;
                         drawStr.verticallAlignment = VerticalAlignment.MIDDLE;
-                        // WORD WRAP looks nicer but the drawing doesn't seem to
-                        // be
-                        // horizontally centering
-                        // the wrapped labels (those with spaces) correctly. So
-                        // if there
-                        // are no symbols I think its better to have the text
-                        // centered over
-                        // the true location. The default TextStyle centers the
-                        // text over
-                        // the true location.
                         labelStrings.add(drawStr);
                     }
                 }
@@ -332,8 +324,10 @@ public class PointOverlayResource extends
     public void updateDrawFlagsFromMarkerState() {
         MarkerState markerState = ptOvrlyRscData.getMarkerState();
 
-        drawSymbols = (markerState == MarkerState.MARKER_ONLY || markerState == MarkerState.MARKER_PLUS_TEXT);
-        drawLabels = (markerState == MarkerState.TEXT_ONLY || markerState == MarkerState.MARKER_PLUS_TEXT);
+        drawSymbols = (markerState == MarkerState.MARKER_ONLY
+                || markerState == MarkerState.MARKER_PLUS_TEXT);
+        drawLabels = (markerState == MarkerState.TEXT_ONLY
+                || markerState == MarkerState.MARKER_PLUS_TEXT);
     }
 
     /**

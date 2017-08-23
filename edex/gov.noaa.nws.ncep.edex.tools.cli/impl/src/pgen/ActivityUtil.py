@@ -7,62 +7,68 @@
 # Users can override the default EDEX server and port name by specifying them
 # in the $DEFAULT_HOST and $DEFAULT_PORT shell environment variables.
 # 
+# SOFTWARE HISTORY
+# 
+# Date         Ticket#    Engineer    Description
+# 05/16/2016    R9714     byin        Replaced micro-engine with thrift client
 ##
 
 import os
 import re
 import xml.etree.ElementTree as ET
 import lib.CommHandler as CH
+from ufpy import ThriftClient
+from dynamicserialize.dstypes.gov.noaa.nws.ncep.common.dataplugin.pgen.request import RetrieveActivityMapRequest
 
 class ActivityUtil:
     
     #
-    #  Sends a CatalogQuery to the EDEX uEngine to get a list of 
+    #  Sends a RetrieveActivityMapRequest to the EDEX thrift to get a list of 
     #  PGEN Activity Types, Subtypes, Labels, refTimes, and associated 
     #  dataURIs in the pgen database tables.
     #
     def getActivityMap(self):
-        script='''import CatalogQuery
-query = CatalogQuery.CatalogQuery("pgen")
-query.addReturnedField("activityType")
-query.addReturnedField("activitySubtype")
-query.addReturnedField("activityLabel")
-query.addReturnedField("dataTime.refTime")
-query.addReturnedField("activityName")
-query.addReturnedField("dataURI")
-return query.execute()'''
-
-        service = '/services/pyproductjaxb'
         host = os.getenv("DEFAULT_HOST", "localhost")
         port = os.getenv("DEFAULT_PORT", "9581")
-        connection=str(host+":"+port)
-        ch = CH.CommHandler(connection,service)
-        ch.process(script)
 
-        if not ch.isGoodStatus():
-            print ch.formatResponse()
+        request = RetrieveActivityMapRequest()
+        response = None
+
+        try:
+            thriftClient = ThriftClient.ThriftClient(host, port)
+            response = thriftClient.sendRequest(request)
+        except Exception, e:
+            print e
             exit(1)
 
-        return self.__generateMap( ch.getContents() )
+        if response is None:
+            print "ThriftClient returns None!"
+            exit(1)
+        else:
+            return self.__generateMap(response)
 
     #
     #  Generates a map of activity types/subtypes, labels, refTimes, and dataURIs from 
-    #  the XML returned from EDEX uEngine 
+    #  the response returned from EDEX thrift 
     #
     #  The map is a dictionary (dict) of Activity Types in form of "type(subtype)" whose values 
     #  are a list of dicts which have keys "activityType", "activityLabel", "dataTime.refTime",
     #  and "dataURI".
     #
-    def __generateMap(self, xml):
+    def __generateMap(self, resp):
         aMap = dict()
-        tree = ET.fromstring(xml)
-        for item in tree.iter('items'):
+        for item in resp.getData():
             record = dict()
-            for attr in item.iter('attributes'):
-                record.update( {attr.attrib['field'] : attr.attrib['value'] } )
+            record.update( { 'dataURI' : item.getDataURI() } )
+            record.update( { 'activityName' : item.getActivityName() } )
+            record.update( { 'activitySubtype' : item.getActivitySubtype() } )
+            record.update( { 'dataTime.refTime' : item.getRefTime() } )
+            record.update( { 'activityLabel' : item.getActivityLabel() } )
+            record.update( { 'activityType' : item.getActivityType() } )
 
             atype = record['activityType']
             stype = record['activitySubtype']
+
             if ( stype != None and len(stype.lstrip()) > 0):
                 atype = atype + "(" + stype.lstrip() + ")"
 
@@ -72,7 +78,7 @@ return query.execute()'''
                 aMap.update( {atype: [record]} )
 
         return aMap
-    
+
     #
     #  Compare if a command line string matches an string in activity.
     #  This uses string methods.
@@ -131,35 +137,6 @@ return query.execute()'''
                 matched = True
                             
         return matched
-
-    #
-    #  This method sends a CatalogQuery request to the EDEX uEngine
-    #  for the dataURI associated with the given activity type and label
-    #
-    def getDataURI( self, atype, label):
-
-        script='''import CatalogQuery
-query = CatalogQuery.CatalogQuery("pgen")
-query.addConstraint("activityType","{0}","=")
-query.addConstraint("activityLabel","{1}","=")
-query.addReturnedField("dataURI")
-query.addReturnedField("dataTime.refTime")
-return query.execute()'''.format(atype,label)
-
-
-        service = '/services/pyproductjaxb'
-        host = os.getenv("DEFAULT_HOST", "localhost")
-        port = os.getenv("DEFAULT_PORT", "9581")
-        connection=str(host+":"+port)
-        ch = CH.CommHandler(connection,service)
-        ch.process(script)
-
-        if not ch.isGoodStatus():
-            print ch.formatResponse()
-            exit(1)
-
-        logger.debug( ch.getContents() )
-        return __parseResponse( ch.getContents() )
 
     #
     #  Parses the XML response from the uEngine and extracts

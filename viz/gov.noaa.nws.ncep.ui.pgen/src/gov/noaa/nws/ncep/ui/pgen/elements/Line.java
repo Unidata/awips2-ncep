@@ -1,6 +1,6 @@
 /*
  * Line
- * 
+ *
  * Date created: 15 January 2009
  *
  * This code has been developed by the NCEP/SIB for use in the AWIPS2 system.
@@ -27,14 +27,16 @@ import com.vividsolutions.jts.geom.Point;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 01/09					J. Wu   	Initial Creation.
+ * Date         Ticket#     Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 01/09                    J. Wu       Initial Creation.
  * 05/09        #42         S. Gilbert  Added pgenType and pgenCategory to constructors and copy()
- * 03/10		#223		M.Laryukhin	getCentroid() method is added
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 
+ * 03/10        #223        M.Laryukhin getCentroid() method is added
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 03/02/2016   R13544      S. Russell  Add a new constructor to take in 
+ *                                      a flipSide value
  * </pre>
+ * 
  * 
  * @author J. Wu
  * @version 0.0.1
@@ -54,7 +56,7 @@ public class Line extends MultiPointElement implements ILine {
     }
 
     /**
-     * @param deleted
+     * 
      * @param range
      * @param colors
      * @param lineWidth
@@ -73,6 +75,34 @@ public class Line extends MultiPointElement implements ILine {
             FillPattern fillPattern, String pgenCategory, String pgenType) {
         super(range, colors, lineWidth, sizeScale, closed, filled, linePoints,
                 smoothFactor, fillPattern, pgenCategory, pgenType);
+    }
+
+    /**
+     * 
+     * @param range
+     * @param colors
+     * @param lineWidth
+     * @param sizeScale
+     * @param closed
+     * @param filled
+     * @param linePoints
+     * @param smoothFactor
+     * @param fillPattern
+     * @param pgenCategory
+     * @param pgenType
+     * @param flipSide
+     */
+    public Line(Coordinate[] range, Color[] colors, float lineWidth,
+            double sizeScale, boolean closed, boolean filled,
+            List<Coordinate> linePoints, int smoothFactor,
+            FillPattern fillPattern, String pgenCategory, String pgenType,
+            boolean flipSide) {
+
+        this(range, colors, lineWidth, sizeScale, closed, filled, linePoints,
+                smoothFactor, fillPattern, pgenCategory, pgenType);
+
+        this.setFlipSide(flipSide);
+
     }
 
     /**

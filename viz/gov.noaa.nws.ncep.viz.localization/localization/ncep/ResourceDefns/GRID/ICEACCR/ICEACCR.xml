@@ -19,6 +19,5 @@ pluginName=grid
 GDFILE=ICEACCR
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
     <addToURICatalog>false</addToURICatalog>
 </ResourceDefinition>

@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.modis.rsc;
 
+import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
 import gov.noaa.nws.ncep.common.dataplugin.modis.ModisRecord;
 import gov.noaa.nws.ncep.common.dataplugin.modis.dao.ModisDao;
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
@@ -10,7 +11,11 @@ import gov.noaa.nws.ncep.viz.resources.AbstractSatelliteRecordData;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResource;
 import gov.noaa.nws.ncep.viz.resources.colorBar.ColorBarResourceData;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.util.Sampler;
+import gov.noaa.nws.ncep.viz.resources.util.VariableSubstitutorNCEP;
 import gov.noaa.nws.ncep.viz.rsc.modis.tileset.ModisDataRetriever;
 import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
@@ -27,6 +32,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
@@ -100,6 +107,7 @@ import com.raytheon.uf.viz.core.tile.Tile;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable.TileImageCreator;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
+import com.raytheon.viz.satellite.SatelliteConstants;
 import com.vividsolutions.jts.algorithm.CGAlgorithms;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
@@ -121,6 +129,8 @@ import com.vividsolutions.jts.geom.Point;
  *                                   createGeoTiff method.
  * 09/22/2015   R7270   kbugenhagen  Allow for separate geotiffs per ModisRecord
  * 11/19/2015   R13133  kbugenhagen  Added sampling capability.
+ * 04/12/2016   R15945  RCReynolds   Added code to build input to customizable getLegendString
+ * 06/06/2016   R15945     RCReynolds  Using McidasConstants instead of SatelliteConstants
  * </pre>
  * 
  * @author kbugenhagen
@@ -132,6 +142,8 @@ public class ModisResource extends
         INatlCntrsResource, IResourceDataChanged, ImageProvider,
         ISamplingResource {
 
+	static final String AREANAME = "areaName";
+	
     static final char SLASH = File.separatorChar;
 
     static final String DEFAULT_COLORMAP_NAME = "colorMapName";
@@ -153,6 +165,10 @@ public class ModisResource extends
     protected Coordinate virtualCursor;// virtual cursor location
 
     protected boolean sampling = false;
+
+    String customizedLegendString = "";
+
+    String originalLegendString = "";
 
     /**
      * Map for data records to renderable data, synchronized on for painting,
@@ -300,6 +316,7 @@ public class ModisResource extends
 
         public String getLegendStr() {
             return legendStr;
+
         }
 
         public void setLegendStr(String legendStr) {
@@ -308,6 +325,7 @@ public class ModisResource extends
 
         public String getLegendForFrame() {
             return legendStr;
+
         }
 
         public void setLegendForFrame(ModisRecord rec) {
@@ -324,6 +342,119 @@ public class ModisResource extends
             builder.append(":");
             builder.append(timeParts[1]);
             legendStr = builder.toString();
+            StringBuffer sb = new StringBuffer("");
+            char x;
+
+            originalLegendString = legendStr;
+
+            ResourceName rscName = modisResourceData.getResourceName();
+
+            try {
+                Map<String, String> variables = new HashMap<String, String>();
+
+                ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr
+                        .getInstance();
+                ResourceDefinition rscDefn = rscDefnsMngr
+                        .getResourceDefinition(rscName.getRscType());
+
+                HashMap<String, String> attributes = rscDefnsMngr.getAttrSet(
+                        rscName).getAttributes();
+
+                String legendStringAttribute = attributes.get("legendString");
+
+                String area = "";
+                String satellite = rec.getCreatingEntity();
+
+                String resolution = "(" + "DX:"
+                        + rec.getCoverage().getDx().toString() + "," + "DY:"
+                        + rec.getCoverage().getDy() + ")";
+
+                String channel = resourceData.getRscAttrSet()
+                        .getRscAttrSetName();
+
+                String RD = rscDefn.getResourceDefnName();
+
+                boolean gotArea = resourceData.getMetadataMap().containsKey(
+                        AREANAME);
+
+                if (gotArea) {
+                    area = resourceData.getMetadataMap().get(AREANAME)
+                            .getConstraintValue();
+                    if (area != null && !area.isEmpty()) {
+                        variables.put(McidasConstants.AREA, area);
+                    }
+                }
+
+                if (RD != null && !RD.isEmpty()) {
+                    variables.put(McidasConstants.RESOURCE_DEFINITION, RD);
+                }
+
+                if (channel != null && !channel.isEmpty()) {
+                    variables.put(McidasConstants.CHANNEL, channel);
+                }
+
+                if (satellite != null && !satellite.isEmpty()) {
+                    variables.put(McidasConstants.SATELLLITE, satellite);
+                }
+
+                if (resolution != null && !resolution.isEmpty()) {
+                    variables.put(McidasConstants.RESOLUTION, resolution);
+                }
+
+                /*
+                 * "variables map" now contains keywords/values available for
+                 * building the custom legend string. Examine marked-up legend
+                 * string looking for {keyword} that matches in "variables". If
+                 * it doesn't then remove it from legendString.
+                 */
+                Pattern p = Pattern.compile("\\{(.*?)\\}");
+                Matcher m = p.matcher(legendStringAttribute.toString());
+                String value = "";
+                while (m.find()) {
+                    value = variables.get(m.group(1));
+                    if (value == null || value.isEmpty()) {
+
+                        legendStringAttribute = legendStringAttribute.replace(
+                                "{" + m.group(1) + "}", "");
+                    }
+                }
+
+                /*
+                 * change all occurrences of '{' to "${" because thats what
+                 * VariableSubstituterNCEP expects
+                 */
+                for (int ipos = 0; ipos < legendStringAttribute.length(); ipos++) {
+                    x = legendStringAttribute.charAt(ipos);
+                    sb.append(x == '{' ? "${" : x);
+                }
+
+                customizedLegendString = VariableSubstitutorNCEP
+                        .processVariables(sb.toString(), variables);
+
+                /*
+                 * If user coded legendString properly there shoulden't be any
+                 * "${" present, but if there are then change them back to "{"
+                 */
+                sb.setLength(0);
+                for (int ipos = 0; ipos < customizedLegendString.length(); ipos++) {
+                    x = customizedLegendString.charAt(ipos);
+                    sb.append(x == '$' ? "{" : x);
+                }
+                customizedLegendString = sb.toString();
+
+                if (!customizedLegendString.isEmpty()) {
+                    customizedLegendString += " " + timeParts[0] + ":"
+                            + timeParts[1];
+                } else {
+                    customizedLegendString = legendStr;
+                }
+
+            } catch (Exception ex) {
+                statusHandler.handle(Priority.ERROR,
+                        "Error building legend string ", ex.getStackTrace()
+                                .toString());
+            }
+
         }
 
         public void dispose() {
@@ -721,7 +852,7 @@ public class ModisResource extends
         }
 
     }
-
+ 
     protected void createGeoTiff(ModisRecord record) {
         com.vividsolutions.jts.geom.Envelope envelope = new com.vividsolutions.jts.geom.Envelope();
 
@@ -849,7 +980,7 @@ public class ModisResource extends
         GridCoverage coverage = factory.create("modis.tif", image,
                 new ReferencedEnvelope(envelope, DefaultGeographicCRS.WGS84));
         try {
-            File tiffFile = new File("/tmp/" + getName() + ".tiff");
+            File tiffFile = new File("/tmp/" + getNameForFile() + ".tiff");
             GridCoverageWriter writer = format.getWriter(tiffFile);
             writer.write(coverage, null);
             writer.dispose();
@@ -978,7 +1109,11 @@ public class ModisResource extends
 
         return jaxb;
     }
-
+    /**
+     * Properties Changed.
+     * 
+     * @param updatedProps
+     */
     @Override
     public void propertiesChanged(ResourceProperties updatedProps) {
         if (cbarRscPair != null) {
@@ -987,14 +1122,21 @@ public class ModisResource extends
     }
 
     public String getName() {
+
+        return customizedLegendString;
+
+    }
+
+    public String getNameForFile() {
         FrameData currFrame = (FrameData) getCurrentFrame();
         if (currFrame != null) {
-            name = currFrame.getLegendForFrame();
+            name = originalLegendString;
         }
         if (name == null) {
             return "NPP MODIS";
         }
         return name;
+
     }
 
     public void setName(String str) {

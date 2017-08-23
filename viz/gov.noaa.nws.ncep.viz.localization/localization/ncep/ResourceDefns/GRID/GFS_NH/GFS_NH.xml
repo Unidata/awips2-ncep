@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=GFS201
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

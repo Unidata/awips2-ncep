@@ -11,8 +11,10 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -39,16 +41,19 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
+import com.raytheon.uf.common.datastorage.DataStoreFactory;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.Request;
 import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
+import com.raytheon.uf.common.datastorage.records.IDataRecord;
 import com.raytheon.uf.common.datastorage.records.ShortDataRecord;
 import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.MapUtil;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager.SerializationType;
+import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -73,6 +78,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * Aug 06, 2013 2228            njensen     Use deserialize(byte[])
  * Jun 11, 2014 2061            bsteffen    Remove IDecoderGettable
  * Sep 08, 2014                 sgilbert    Correct CONUS image projection
+ * Jun 15, 2016 R19647          bsteffen    Improve performance of retrieveFromDataStore
  * 
  * </pre>
  * 
@@ -99,6 +105,10 @@ public class MosaicRecord extends PersistablePluginDataObject implements
         IPersistable, ISpatialEnabled, IMosaicRecord {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String DATA_DATASET_NAME = DataStoreFactory.DEF_DATASET_NAME;
+
+    public static final String THRESHOLD_DATASET_NAME = "Thresholds";
 
     @Column
     @DataURI(position = 1)
@@ -262,58 +272,66 @@ public class MosaicRecord extends PersistablePluginDataObject implements
     public void retrieveFromDataStore(IDataStore dataStore)
             throws StorageException, FileNotFoundException {
 
+        Set<String> datasetsToRequest = new HashSet<>();
+
         if ("Radial".equals(format) || "Raster".equals(format)) {
-            // ByteDataRecord byteData = (ByteDataRecord) dataStore.retrieve(
-            // getDataURI(), "Data");
-            ByteDataRecord byteData = (ByteDataRecord) dataStore.retrieve(
-                    getDataURI(), "Data", Request.ALL);
-            setRawData(byteData.getByteData());
-        }
-
-        if ("Graphic".equals(format) || "XY".equals(format)
+            datasetsToRequest.add(DATA_DATASET_NAME);
+        } else if ("Graphic".equals(format) || "XY".equals(format)
                 || "Graph".equals(format)) {
+            datasetsToRequest.add("Symbology");
+            datasetsToRequest.add("ProductVals");
+            datasetsToRequest.add("DependentValues");
 
-            try {
-                // ByteDataRecord byteData = (ByteDataRecord)
-                // dataStore.retrieve(
-                // getDataURI(), "Symbology");
-                ByteDataRecord byteData = (ByteDataRecord) dataStore.retrieve(
-                        getDataURI(), "Symbology", Request.ALL);
-                Object o = DynamicSerializationManager.getManager(
-                        SerializationType.Thrift).deserialize(
-                        byteData.getByteData());
-                setSymbologyBlock((SymbologyBlock) o);
-            } catch (Throwable e) {
-                setSymbologyBlock(null);
+        }
+        datasetsToRequest.add(THRESHOLD_DATASET_NAME);
+
+        String[] datasetGroupPaths = new String[datasetsToRequest.size()];
+        int index = 0;
+        for (String dataset : datasetsToRequest) {
+            datasetGroupPaths[index] = getDataURI() + DataURI.SEPARATOR
+                    + dataset;
+            index += 1;
+        }
+
+        for (IDataRecord record : dataStore.retrieveDatasets(datasetGroupPaths,
+                Request.ALL)) {
+            if (record.getName().equals(DATA_DATASET_NAME)) {
+                ByteDataRecord byteData = (ByteDataRecord) record;
+                setRawData(byteData.getByteData());
+            } else if (record.getName().equals(THRESHOLD_DATASET_NAME)) {
+                ShortDataRecord shortData = (ShortDataRecord) record;
+                setThresholds(shortData.getShortData());
+            } else if (record.getName().equals("DependentValues")) {
+                ShortDataRecord depValData = (ShortDataRecord) record;
+                setProductDependentValues(depValData.getShortData());
+            } else if (record.getName().equals("Symbology")) {
+                ByteDataRecord byteData = (ByteDataRecord) record;
+                try {
+                    Object o = DynamicSerializationManager.getManager(
+                            SerializationType.Thrift).deserialize(
+                            byteData.getByteData());
+                    setSymbologyBlock((SymbologyBlock) o);
+                } catch (SerializationException e) {
+                    throw new StorageException("Error Creating Objects",
+                            record, e);
+                }
+            } else if (record.getName().equals("ProductVals")) {
+                ByteDataRecord byteData = (ByteDataRecord) record;
+                try {
+                    Object o = DynamicSerializationManager.getManager(
+                            SerializationType.Thrift).deserialize(
+                            byteData.getByteData());
+                    setProductVals((HashMap<MosaicConstants.MapValues, Map<String, Map<MosaicConstants.MapValues, String>>>) o);
+                } catch (SerializationException e) {
+                    throw new StorageException("Error Creating Objects",
+                            record, e);
+                }
             }
-
-            try {
-                ByteDataRecord byteData = (ByteDataRecord) dataStore.retrieve(
-                        getDataURI(), "ProductVals", Request.ALL);
-                Object o = DynamicSerializationManager.getManager(
-                        SerializationType.Thrift).deserialize(
-                        byteData.getByteData());
-                setProductVals((HashMap<MosaicConstants.MapValues, Map<String, Map<MosaicConstants.MapValues, String>>>) o);
-            } catch (Throwable e) {
-                setProductVals(null);
-            }
-
         }
-        try {
-            ShortDataRecord shortData = (ShortDataRecord) dataStore.retrieve(
-                    getDataURI(), "Thresholds", Request.ALL);
-            setThresholds(shortData.getShortData());
-        } catch (Exception e) {
-            setThresholds(null);
-        }
+    }
 
-        try {
-            ShortDataRecord depValData = (ShortDataRecord) dataStore.retrieve(
-                    getDataURI(), "DependentValues", Request.ALL);
-            setProductDependentValues(depValData.getShortData());
-        } catch (Throwable e) {
-            setProductDependentValues(null);
-        }
+    public boolean isFourBit() {
+        return numLevels.intValue() == 16;
     }
 
     public String getProdName() {

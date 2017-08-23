@@ -1,5 +1,6 @@
 package gov.noaa.nws.ncep.viz.common.ui;
 
+
 /**
  * This subroutine locates relative minima and maxima over a grid. Up to NMAX
  * maxima and NMIN minima are found. Minima and maxima may be restricted to a
@@ -20,6 +21,7 @@ package gov.noaa.nws.ncep.viz.common.ui;
  * Apr22,2014    1129        B. Hebbard   Move maxHi/maxLo from here to GridRelativeHiLoDisplay so can handle relative to current extent
  * Jul25,2014    ?           B. Yin       Fixed array out of bound issue in clusterLocator()
  * Oct 9,2015    R12016      J. Lopez     Increased the size of GRID_MXM to allow more points
+ * Apr21,2016    R17741      S. Gilbert   Clear memory used by temporary grid arrays
  * </pre>
  * 
  * @author xguo
@@ -71,7 +73,7 @@ public class HILORelativeMinAndMaxLocator {
 
     private float[] dgMinVal;
 
-    // X, Y, V Storage
+    // X, Y, V Temporary Storage
     private float[] xExtr;
 
     private float[] yExtr;
@@ -179,6 +181,13 @@ public class HILORelativeMinAndMaxLocator {
                 loadMaxGridValues();
             }
         }
+
+        /*
+         * Free up temporary array space
+         */
+        xExtr = null;
+        yExtr = null;
+        vExtr = null;
         return true;
     }
 

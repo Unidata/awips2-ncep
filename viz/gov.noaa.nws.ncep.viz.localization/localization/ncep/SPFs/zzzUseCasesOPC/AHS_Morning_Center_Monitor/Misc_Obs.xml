@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="Misc_Obs">
+    <displayType>NMAP_DISPLAY</displayType>
+    <paneLayout numRows="1" numColumns="1"/>
+    <selectedPaneId row="0" col="0"/>
+    <geoSyncedPanes>true</geoSyncedPanes>
+    <autoUpdate>false</autoUpdate>
+    <rbdSequence>0</rbdSequence>
+    <timeMatcher dominantResourceName="MISC/LTNG/default" numFrames="10" graphRange="12" hourSnap="3" skipValue="0" timeRange="6" frameInterval="10"/>
+    <displayList>
+        <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="NC-MapRenderableDisplay" mapCenter="-27.678764852722185 33.03501964302296 0.0" zoomLevel="0.3326672315597534">
+            <descriptor xsi:type="NCMapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <groupName>LTNG Density</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 255, 0}</legendColor>
+                        <groupName>LTNG Strikes</groupName>
+                        <funcKeyNum>2</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="LightningResourceData" isEdited="false" resourceName="MISC/LTNG/default" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="binlightning"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {200, 200, 200}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>10</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>BEFORE_OR_EQUAL</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>6</dfltTimeRange>
+<enablePositiveStrikes>true</enablePositiveStrikes>
+<enableNegativeStrikes>true</enableNegativeStrikes>
+<positiveSymbolSize>3</positiveSymbolSize>
+<negativeSymbolSize>3</negativeSymbolSize>
+<colorBar>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <IntervalValue>0.0</IntervalValue>
+    <IntervalValue>5.0</IntervalValue>
+    <IntervalValue>10.0</IntervalValue>
+    <IntervalValue>15.0</IntervalValue>
+    <IntervalValue>20.0</IntervalValue>
+    <IntervalValue>30.0</IntervalValue>
+    <IntervalValue>60.0</IntervalValue>
+    <IntervalValue>90.0</IntervalValue>
+    <IntervalValue>120.0</IntervalValue>
+    <IntervalValue>180.0</IntervalValue>
+    <IntervalValue>240.0</IntervalValue>
+    <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+    <IntervalColor>RGB {238, 64, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+    <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+    <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+    <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+    <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+    <IntervalColor>RGB {30, 144, 255}</IntervalColor>
+    <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+    <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <drawToScale>false</drawToScale>
+    <orientation>Vertical</orientation>
+    <anchorLoc>LowerRight</anchorLoc>
+    <lengthAsRatio>0.5</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <numDecimals>0</numDecimals>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<colorByIntensity>false</colorByIntensity>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 0}</legendColor>
+                        <groupName>ATCF</groupName>
+                        <funcKeyNum>3</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="AtcfResourceData" isEdited="false" resourceName="MISC/ATCF/default" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="atcf"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>360</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>EXACT</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<legendName>ATCF</legendName>
+<ohpcEnable>true</ohpcEnable>
+<ohpcColor>RGB {255, 0, 0}</ohpcColor>
+<ohpcLineWidth>3</ohpcLineWidth>
+<ohpcSymbolWidth>1</ohpcSymbolWidth>
+<ohpcSymbolSize>1.0</ohpcSymbolSize>
+<clipEnable>true</clipEnable>
+<clipColor>RGB {0, 255, 0}</clipColor>
+<clipLineWidth>3</clipLineWidth>
+<clipSymbolWidth>1</clipSymbolWidth>
+<clipSymbolSize>1.0</clipSymbolSize>
+<avnoEnable>true</avnoEnable>
+<avnoColor>RGB {0, 0, 255}</avnoColor>
+<avnoLineWidth>3</avnoLineWidth>
+<avnoSymbolWidth>1</avnoSymbolWidth>
+<avnoSymbolSize>1.0</avnoSymbolSize>
+<mrfoEnable>true</mrfoEnable>
+<mrfoColor>RGB {255, 255, 0}</mrfoColor>
+<mrfoLineWidth>3</mrfoLineWidth>
+<mrfoSymbolWidth>1</mrfoSymbolWidth>
+<mrfoSymbolSize>1.0</mrfoSymbolSize>
+<ukmEnable>true</ukmEnable>
+<ukmColor>RGB {255, 174, 185}</ukmColor>
+<ukmLineWidth>3</ukmLineWidth>
+<ukmSymbolWidth>1</ukmSymbolWidth>
+<ukmSymbolSize>1.0</ukmSymbolSize>
+<avniEnable>true</avniEnable>
+<avniColor>RGB {0, 205, 0}</avniColor>
+<avniLineWidth>3</avniLineWidth>
+<avniSymbolWidth>1</avniSymbolWidth>
+<avniSymbolSize>1.0</avniSymbolSize>
+<namiEnable>true</namiEnable>
+<namiColor>RGB {238, 64, 0}</namiColor>
+<namiLineWidth>3</namiLineWidth>
+<namiSymbolWidth>1</namiSymbolWidth>
+<namiSymbolSize>1.0</namiSymbolSize>
+<emx2Enable>true</emx2Enable>
+<emx2Color>RGB {255, 0, 0}</emx2Color>
+<emx2LineWidth>3</emx2LineWidth>
+<emx2SymbolWidth>1</emx2SymbolWidth>
+<emx2SymbolSize>1.0</emx2SymbolSize>
+<egriEnable>true</egriEnable>
+<egriColor>RGB {0, 0, 255}</egriColor>
+<egriLineWidth>3</egriLineWidth>
+<egriSymbolWidth>1</egriSymbolWidth>
+<egriSymbolSize>1.0</egriSymbolSize>
+<ngpiEnable>true</ngpiEnable>
+<ngpiColor>RGB {0, 178, 238}</ngpiColor>
+<ngpiLineWidth>3</ngpiLineWidth>
+<ngpiSymbolWidth>1</ngpiSymbolWidth>
+<ngpiSymbolSize>1.0</ngpiSymbolSize>
+<ukm2Enable>true</ukm2Enable>
+<ukm2Color>RGB {255, 127, 0}</ukm2Color>
+<ukm2LineWidth>3</ukm2LineWidth>
+<ukm2SymbolWidth>1</ukm2SymbolWidth>
+<ukm2SymbolSize>1.0</ukm2SymbolSize>
+<hwfiEnable>true</hwfiEnable>
+<hwfiColor>RGB {205, 0, 0}</hwfiColor>
+<hwfiLineWidth>3</hwfiLineWidth>
+<hwfiSymbolWidth>1</hwfiSymbolWidth>
+<hwfiSymbolSize>1.0</hwfiSymbolSize>
+<ghmiEnable>true</ghmiEnable>
+<ghmiColor>RGB {255, 165, 79}</ghmiColor>
+<ghmiLineWidth>3</ghmiLineWidth>
+<ghmiSymbolWidth>1</ghmiSymbolWidth>
+<ghmiSymbolSize>1.0</ghmiSymbolSize>
+<gfniEnable>true</gfniEnable>
+<gfniColor>RGB {255, 174, 185}</gfniColor>
+<gfniLineWidth>3</gfniLineWidth>
+<gfniSymbolWidth>1</gfniSymbolWidth>
+<gfniSymbolSize>1.0</gfniSymbolSize>
+<aemiEnable>true</aemiEnable>
+<aemiColor>RGB {205, 133, 0}</aemiColor>
+<aemiLineWidth>3</aemiLineWidth>
+<aemiSymbolWidth>1</aemiSymbolWidth>
+<aemiSymbolSize>1.0</aemiSymbolSize>
+<tconEnable>true</tconEnable>
+<tconColor>RGB {145, 44, 238}</tconColor>
+<tconLineWidth>3</tconLineWidth>
+<tconSymbolWidth>1</tconSymbolWidth>
+<tconSymbolSize>1.0</tconSymbolSize>
+<gunaEnable>true</gunaEnable>
+<gunaColor>RGB {30, 144, 255}</gunaColor>
+<gunaLineWidth>3</gunaLineWidth>
+<gunaSymbolWidth>1</gunaSymbolWidth>
+<gunaSymbolSize>1.0</gunaSymbolSize>
+<tvcnEnable>true</tvcnEnable>
+<tvcnColor>RGB {255, 106, 106}</tvcnColor>
+<tvcnLineWidth>3</tvcnLineWidth>
+<tvcnSymbolWidth>1</tvcnSymbolWidth>
+<tvcnSymbolSize>1.0</tvcnSymbolSize>
+<emxiEnable>true</emxiEnable>
+<emxiColor>RGB {0, 139, 0}</emxiColor>
+<emxiLineWidth>3</emxiLineWidth>
+<emxiSymbolWidth>1</emxiSymbolWidth>
+<emxiSymbolSize>1.0</emxiSymbolSize>
+<fsseEnable>true</fsseEnable>
+<fsseColor>RGB {255, 0, 0}</fsseColor>
+<fsseLineWidth>3</fsseLineWidth>
+<fsseSymbolWidth>1</fsseSymbolWidth>
+<fsseSymbolSize>1.0</fsseSymbolSize>
+<ukmiEnable>true</ukmiEnable>
+<ukmiColor>RGB {0, 255, 255}</ukmiColor>
+<ukmiLineWidth>3</ukmiLineWidth>
+<ukmiSymbolWidth>1</ukmiSymbolWidth>
+<ukmiSymbolSize>1.0</ukmiSymbolSize>
+<bammEnable>true</bammEnable>
+<bammColor>RGB {255, 215, 0}</bammColor>
+<bammLineWidth>3</bammLineWidth>
+<bammSymbolWidth>1</bammSymbolWidth>
+<bammSymbolSize>1.0</bammSymbolSize>
+<bamdEnable>true</bamdEnable>
+<bamdColor>RGB {238, 238, 0}</bamdColor>
+<bamdLineWidth>3</bamdLineWidth>
+<bamdSymbolWidth>1</bamdSymbolWidth>
+<bamdSymbolSize>1.0</bamdSymbolSize>
+<bamsEnable>true</bamsEnable>
+<bamsColor>RGB {238, 238, 0}</bamsColor>
+<bamsLineWidth>3</bamsLineWidth>
+<bamsSymbolWidth>1</bamsSymbolWidth>
+<bamsSymbolSize>1.0</bamsSymbolSize>
+<egr2Enable>true</egr2Enable>
+<egr2Color>RGB {255, 0, 255}</egr2Color>
+<egr2LineWidth>3</egr2LineWidth>
+<egr2SymbolWidth>1</egr2SymbolWidth>
+<egr2SymbolSize>1.0</egr2SymbolSize>
+<timeEnable>true</timeEnable>
+<nameEnable>true</nameEnable>
+<speedEnable>false</speedEnable>
+<markerEnable>false</markerEnable>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-LatLonOverlayResourceData" isEdited="true" resourceName="OVERLAY/LatLon/default">
+                        <legendColor>RGB {255, 165, 79}</legendColor>
+                        <color>RGB {255, 165, 79}</color>
+                        <lineWidth>1</lineWidth>
+                        <latitudeInterval>10</latitudeInterval>
+                        <longitudeInterval>10</longitudeInterval>
+                        <lineStyle>SHORT_DASHED</lineStyle>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" isEdited="false" resourceName="OVERLAY/Locator/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                        <color>RGB {255, 255, 255}</color>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-OverlayResourceGroupData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>World</mapName>
+<dbName>maps</dbName>
+<table>mapdata.world</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>State Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.states</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Canada</mapName>
+<dbName>maps</dbName>
+<table>mapdata.canada</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Mexico</mapName>
+<dbName>maps</dbName>
+<table>mapdata.mexico</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>County Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.county</table>
+<geomField>the_geom</geomField>
+<labelField>countyname</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <mapName>Geo-Political</mapName>
+                        <color>RGB {255, 228, 220}</color>
+                        <lineWidth>1</lineWidth>
+                        <lineStyle>SOLID</lineStyle>
+                    </resourceData>
+                </resource>
+                <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+                <gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+                <timeMatcher xsi:type="ncTimeMatcher" dominantResourceName="MISC/LTNG/default" numFrames="10" graphRange="12" hourSnap="3" skipValue="0" timeRange="6" frameInterval="10"/>
+                <autoUpdate>false</autoUpdate>
+                <suspendZoom>false</suspendZoom>
+            </descriptor>
+            <paneId row="0" col="0"/>
+            <initialArea areaName="Misc_Obs" mapCenter="-27.678764852722185 33.03501964302296 0.0">
+                <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+                <areaSource>INITIAL_DISPLAY_AREA</areaSource>
+                <zoomLevel>0.3326672315597534</zoomLevel>
+                <zoomDisable>false</zoomDisable>
+                <description>N/A</description>
+                <gridGeometry rangeX="0 15384" rangeY="0 9999" envelopeMinX="-2.0E7" envelopeMaxX="2.0E7" envelopeMinY="-1.3E7" envelopeMaxY="1.3E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+            </initialArea>
+        </displays>
+    </displayList>
+    <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

@@ -8,22 +8,33 @@
 package gov.noaa.nws.ncep.ui.pgen.controls;
 
 import gov.noaa.nws.ncep.common.dataplugin.pgen.ActivityInfo;
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
 import gov.noaa.nws.ncep.ui.pgen.elements.Product;
+import gov.noaa.nws.ncep.ui.pgen.productmanage.ProductConfigureDialog;
+import gov.noaa.nws.ncep.ui.pgen.producttypes.ProductType;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
 import gov.noaa.nws.ncep.ui.pgen.store.PgenStorageException;
 import gov.noaa.nws.ncep.ui.pgen.store.StorageUtils;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.TimeZone;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -31,6 +42,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -51,12 +63,15 @@ import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
- * ------------ ----------  ----------- -----------------------------------
+ * --------------------------------------------------------------------------------------
  * 03/13        #977        S. Gilbert  Initial creation
  * 01/14        #1105       J. Wu       Pre-fill for each activity info.
  * 05/14        TTR 963     J. Wu       Change activity Info to Activity Label.
  * 01/7/2016    R13162      J. Lopez    Added a combo box to save the file using the Default name
- * 
+ * 04/14/2016   R13245      B. Yin      Changed reference time to 24 hour format.
+ *                                      Added a drop down list for reference time.
+ * 05/02/2016   R16076      J. Wu       change type/subtype/site/desk to pulldown menu.
+ * 07/28/2016   R17954      B. Yin      return CANCEL when Cancel button is pressed.
  * 
  * </pre>
  * 
@@ -75,27 +90,34 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private static final String CANCEL_LABEL = "Cancel";
 
-    private static final int SHELLMINIMUMWIDTH = 375;
+    private static final int SHELL_MINIMUM_WIDTH = 375;
 
-    private static final int SHELLMINIMUMLENGTH = 400;
+    private static final int SHELL_MINIMUM_LENGTH = 400;
 
-    private static final int PREFERREDWIDTH = 400;
+    private static final int PREFERRED_WIDTH = 400;
+
+    private static final int REF_TIME_LIMIT = 4;
+
+    private static final int REF_TIME_WIDTH = 90;
+
+    private static final String DEFAULT_LABEL_PREFIX = "("
+            + PgenConstant.GENERAL_DEFAULT + ") ";
 
     private String title = null;
 
-    private String defualtFileName;
+    private String defaultFileName;
 
     private Combo labelCombo = null;
 
     private Text nameText = null;
 
-    private Text typeText = null;
+    private Combo typeCombo = null;
 
-    private Text subtypeText = null;
+    private Combo subtypeCombo = null;
 
-    private Text siteText = null;
+    private Combo siteCombo = null;
 
-    private Text deskText = null;
+    private Combo deskCombo = null;
 
     private Text forecasterText = null;
 
@@ -105,7 +127,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
     private DateTime validDate;
 
-    private DateTime validTime;
+    private Combo validTime;
 
     private Button autoSaveOffBtn;
 
@@ -114,6 +136,10 @@ public class StoreActivityDialog extends CaveJFACEDialog {
     private PgenResource rsc;
 
     private Product activity;
+
+    private LinkedHashMap<String, ProductType> prdTyps = null;
+
+    private ActivityCollection actCollection;
 
     /*
      * Constructor
@@ -125,7 +151,6 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         setStoreMode(btnName);
         rsc = PgenSession.getInstance().getPgenResource();
         activity = rsc.getActiveProduct();
-
     }
 
     @Override
@@ -159,7 +184,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
     protected void configureShell(Shell shell) {
         this.setShellStyle(SWT.RESIZE | SWT.PRIMARY_MODAL);
         super.configureShell(shell);
-        shell.setMinimumSize(SHELLMINIMUMWIDTH, SHELLMINIMUMLENGTH);
+        shell.setMinimumSize(SHELL_MINIMUM_WIDTH, SHELL_MINIMUM_LENGTH);
 
         if (title != null) {
             shell.setText(title);
@@ -202,6 +227,7 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         createAutoSaveArea(g3);
 
         setDialogFields();
+
         return dlgAreaForm;
     }
 
@@ -215,60 +241,41 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         labelCombo = new Combo(g1, SWT.DROP_DOWN);
         GridData layout = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        layout.widthHint = PREFERREDWIDTH;
+        layout.widthHint = PREFERRED_WIDTH;
         labelCombo.setLayoutData(layout);
 
         labelCombo.setToolTipText("Input or select a file name - required.");
         Label nameLabel = new Label(g1, SWT.NONE);
         nameLabel.setText("Activity Name*:");
-        nameLabel.setEnabled(false);
 
         nameText = new Text(g1, SWT.NONE);
         nameText.setLayoutData(gdata);
-        nameText.setEditable(false);
-        nameText.setToolTipText("Alias for this activity, just like your first name while activity "
-                + "type/subtype is the last name. Leave it as is");
+        nameText.setToolTipText("Name for this activity, just like your first name while activity "
+                + "type/subtype is the last name.");
+        nameText.setEnabled(false);
 
         Label typeLabel = new Label(g1, SWT.NONE);
         typeLabel.setText("Activity Type*:");
-        typeLabel.setEnabled(false);
-
-        typeText = new Text(g1, SWT.NONE);
-        typeText.setLayoutData(gdata);
-        typeText.setEditable(false);
-        typeText.setToolTipText("Activity type as defined. Leave it as is");
+        typeCombo = new Combo(g1, SWT.DROP_DOWN | SWT.READ_ONLY);
+        typeCombo.setToolTipText("Activity type as defined");
 
         Label subtypeLabel = new Label(g1, SWT.NONE);
         subtypeLabel.setText("Activity Subtype*:");
-        subtypeLabel.setEnabled(false);
-
-        subtypeText = new Text(g1, SWT.NONE);
-        subtypeText.setLayoutData(gdata);
-        subtypeText.setEditable(false);
-        subtypeText
-                .setToolTipText("Activity subtype as defined. Leave it as is");
+        subtypeCombo = new Combo(g1, SWT.DROP_DOWN | SWT.READ_ONLY);
+        subtypeCombo.setToolTipText("Activity subtype as defined.");
 
         Label siteLabel = new Label(g1, SWT.NONE);
         siteLabel.setText("Site*:");
-        siteLabel.setEnabled(false);
-
-        siteText = new Text(g1, SWT.NONE);
-        siteText.setLayoutData(gdata);
-        siteText.setEditable(false);
-        siteText.setToolTipText("Site defined in localization. Leave it as is");
+        siteCombo = new Combo(g1, SWT.DROP_DOWN | SWT.MULTI);
+        siteCombo.setToolTipText("Sites available");
 
         Label deskLabel = new Label(g1, SWT.NONE);
         deskLabel.setText("Desk:");
-        deskLabel.setEnabled(false);
-
-        deskText = new Text(g1, SWT.NONE);
-        deskText.setLayoutData(gdata);
-        deskText.setEditable(false);
-        deskText.setToolTipText("Desk defined in localization or set when starting CAVE. Leave it as is");
+        deskCombo = new Combo(g1, SWT.DROP_DOWN | SWT.MULTI);
+        deskCombo.setToolTipText("Desks available");
 
         Label forecasterLabel = new Label(g1, SWT.NONE);
         forecasterLabel.setText("Forecaster:");
-
         forecasterText = new Text(g1, SWT.NONE);
         forecasterText.setLayoutData(gdata);
         forecasterText
@@ -309,11 +316,47 @@ public class StoreActivityDialog extends CaveJFACEDialog {
                 .setToolTipText("Activity's reference date, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
 
-        validTime = new DateTime(g2, SWT.BORDER | SWT.TIME | SWT.SHORT);
+        validTime = new Combo(g2, SWT.DROP_DOWN);
 
         validTime
                 .setToolTipText("Activity's reference time, changing it and saving the "
                         + "activity will save the current activity as a new entry in PGEN DB.");
+
+        validTime.setTextLimit(REF_TIME_LIMIT);
+        validTime.setLayoutData(new GridData(REF_TIME_WIDTH, -1));
+
+        Calendar curTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        validTime
+                .setText(String.format("%02d%2d",
+                        curTime.get(Calendar.HOUR_OF_DAY),
+                        curTime.get(Calendar.MINUTE)));
+
+        validTime.addVerifyListener(new VerifyListener() {
+            @Override
+            public void verifyText(VerifyEvent ve) {
+                if (PgenUtil.validateDigitInput(ve)) {
+                    ve.doit = true;
+                } else {
+                    ve.doit = false;
+                    Display.getCurrent().beep();
+                }
+            }
+        });
+
+        validTime.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                if (!validTime.getText().isEmpty()) {
+                    if (PgenUtil.validateUTCTime(validTime.getText())) {
+                        validTime.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_WHITE));
+                    } else {
+                        validTime.setBackground(Display.getCurrent()
+                                .getSystemColor(SWT.COLOR_RED));
+                    }
+                }
+            }
+        });
 
         Label utcLabel = new Label(g2, SWT.NONE);
         utcLabel.setText("UTC");
@@ -354,27 +397,34 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         if (buttonId == SAVE_ID) {
             storeProducts();
         } else if (buttonId == CANCEL_ID) {
+            setReturnCode(Window.CANCEL);
             close();
         }
     }
 
+    /*
+     * Initialize and set up fields in the dialog
+     */
     private void setDialogFields() {
 
-        // Creates the default file name
-        defualtFileName = PgenSession.getInstance().getPgenResource()
-                .buildFileName(activity);
-        defualtFileName = defualtFileName.substring(defualtFileName
-                .lastIndexOf(File.separator) + 1);
-        labelCombo.add("(Default) " + defualtFileName);
+        // Retrieve activity definitions & available activities
+        prdTyps = ProductConfigureDialog.getProductTypes();
+        actCollection = new ActivityCollection();
 
-        labelCombo.setText(defualtFileName);
+        // Creates the default file name
+        defaultFileName = PgenUtil.buildPrdFileName(activity, prdTyps);
+        labelCombo.add(DEFAULT_LABEL_PREFIX + defaultFileName);
+
+        labelCombo.setText(defaultFileName);
 
         // Add the original file name if exist and select it
         if (activity.getOutputFile() != null
-                && !activity.getOutputFile().equals(defualtFileName)) {
+                && !activity.getOutputFile().equals(defaultFileName)) {
             labelCombo.add(activity.getOutputFile());
             labelCombo.select(1);
         }
+
+        labelCombo.pack();
 
         // If the default name is selected, remove the "(Default)" label
         labelCombo.addSelectionListener(new SelectionListener() {
@@ -383,7 +433,9 @@ public class StoreActivityDialog extends CaveJFACEDialog {
             public void widgetSelected(SelectionEvent e) {
 
                 if (((Combo) e.widget).getSelectionIndex() == 0) {
-                    labelCombo.setText(defualtFileName);
+                    String labelStr = labelCombo.getText().substring(
+                            DEFAULT_LABEL_PREFIX.length());
+                    labelCombo.setText(labelStr);
                 }
             }
 
@@ -400,35 +452,137 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         }
 
         /*
-         * Activity type/subtype is stored in Product as "type(subtype)", so we
-         * need to split it up here.
+         * Type - add all types and select the current activity's type
+         * 
+         * Note that Activity type/subtype is stored in Product as
+         * "type(subtype)".
          */
         String type = activity.getType();
-        if (type != null) {
-            int loc1 = type.indexOf("(");
-            if (loc1 > 0) {
-                typeText.setText(type.substring(0, loc1));
-                String subtype = type.substring(loc1 + 1).replace(")", "");
-                if (subtype.length() > 0 && !subtype.equalsIgnoreCase("NONE"))
-                    subtypeText.setText(subtype);
+        String curActType = PgenConstant.DEFAULT_ACTIVITY_TYPE;
+        String curActSubtype = PgenConstant.DEFAULT_SUBTYPE;
+        ProductType currentAct = prdTyps.get(type);
+        if (currentAct != null) {
+            if (currentAct.getName() != null
+                    && currentAct.getName().trim().length() > 0) {
+                curActType = currentAct.getName();
             } else {
-                typeText.setText(type);
+                curActType = currentAct.getType();
+                curActSubtype = currentAct.getSubtype();
             }
         }
 
-        siteText.setText(PgenUtil.getCurrentOffice());
+        typeCombo.removeAll();
+        ArrayList<String> types = new ArrayList<>();
+        for (ProductType ptype : prdTyps.values()) {
+            String typStr = ptype.getType();
+            if (ptype.getName() != null && ptype.getName().trim().length() > 0) {
+                typStr = ptype.getName();
+            }
 
-        // get the desk info.
-        String desk = LocalizationManager.getContextName(LocalizationLevel
-                .valueOf("DESK"));
-
-        if (desk != null && !desk.equalsIgnoreCase("none")) {
-            deskText.setText(desk);
+            if (!types.contains(typStr)) {
+                types.add(typStr);
+            }
         }
 
+        int selectInd = 0;
+        int jj = 0;
+        typeCombo.add(PgenConstant.DEFAULT_ACTIVITY_TYPE);
+        for (String typ : types) {
+            jj++;
+            if (typ.equals(curActType)) {
+                selectInd = jj;
+            }
+            typeCombo.add(typ);
+        }
+        typeCombo.select(selectInd);
+
+        typeCombo.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                subtypeCombo.removeAll();
+                ArrayList<String> subtypes = getSubtypesForType(
+                        typeCombo.getText(), prdTyps.values());
+                for (String styp : subtypes) {
+                    subtypeCombo.add(styp);
+                }
+                subtypeCombo.select(0);
+
+                typeCombo.pack();
+
+                resetLabelAndName();
+            }
+        });
+
+        /*
+         * Subtype - add all subtypes for the selected activity.
+         */
+        subtypeCombo.removeAll();
+        ArrayList<String> subtypes = getSubtypesForType(curActType,
+                prdTyps.values());
+
+        selectInd = 0;
+        jj = 0;
+        for (String styp : subtypes) {
+            if (styp.equals(curActSubtype)) {
+                selectInd = jj;
+            }
+            subtypeCombo.add(styp);
+            jj++;
+        }
+        subtypeCombo.select(selectInd);
+
+        subtypeCombo.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                subtypeCombo.pack();
+
+                resetLabelAndName();
+            }
+        });
+
+        /*
+         * Site - add current site & other available. Select current site as
+         * default.
+         */
+        siteCombo.removeAll();
+
+        String currentSite = PgenUtil.getCurrentOffice();
+        if (currentSite != null) {
+            siteCombo.add(currentSite);
+            siteCombo.select(0);
+        }
+
+        for (String site : actCollection.getCurrentSiteList()) {
+            if (site != null && site.trim().length() > 0
+                    && !site.equalsIgnoreCase(PgenConstant.OPTION_ALL)
+                    && !site.equals(currentSite)) {
+                siteCombo.add(site);
+            }
+        }
+
+        /*
+         * Desk - add current desk & other available. Select current desk as
+         * default.
+         */
+        deskCombo.removeAll();
+        String currentDesk = LocalizationManager
+                .getContextName(LocalizationLevel.valueOf(PgenConstant.DESK));
+        if (currentDesk != null
+                && !currentDesk.equalsIgnoreCase(PgenConstant.NONE)) {
+            deskCombo.add(currentDesk);
+            deskCombo.select(0);
+        }
+
+        for (String desk : actCollection.getCurrentDeskList()) {
+            if (desk != null && desk.trim().length() > 0
+                    && !desk.equalsIgnoreCase(PgenConstant.OPTION_ALL)
+                    && !desk.equals(currentSite)) {
+                deskCombo.add(desk);
+            }
+        }
+
+        // Forecaster.
         forecasterText.setText(System.getProperty("user.name"));
 
-        // Select the cave mode.
+        // Select CAVE mode.
         String mode = CAVEMode.getMode().name();
         int index = 0;
         int ii = 0;
@@ -443,18 +597,36 @@ public class StoreActivityDialog extends CaveJFACEDialog {
 
         statusText.setText("Unknown");
 
+        // Reference time
         Calendar datetime = activity.getTime().getStartTime();
         if (datetime != null) {
             validDate.setYear(datetime.get(Calendar.YEAR));
             validDate.setMonth(datetime.get(Calendar.MONTH));
             validDate.setDay(datetime.get(Calendar.DAY_OF_MONTH));
-            validTime.setHours(datetime.get(Calendar.HOUR_OF_DAY));
-            validTime.setMinutes(datetime.get(Calendar.MINUTE));
+            validTime.setText(String.format("%02d%02d",
+                    datetime.get(Calendar.HOUR_OF_DAY),
+                    datetime.get(Calendar.MINUTE)));
         }
 
+        /*
+         * Creates a drop down list for reference time
+         */
+        ProductType pType = ProductConfigureDialog.getProductTypes().get(type);
+
+        if ((pType != null) && (pType.getPgenSave() != null)
+                && (pType.getPgenSave().getRefTimeList() != null)) {
+            for (String refTime : pType.getPgenSave().getRefTimeList()
+                    .split(";")) {
+                validTime.add(refTime);
+            }
+        } else {
+            for (int kk = 0; kk < 24; kk++) {
+                validTime.add(String.format("%02d00", kk));
+            }
+        }
     }
 
-    /**
+    /*
      * Store the products to EDEX.
      */
     private void storeProducts() {
@@ -485,6 +657,12 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         activity.setCenter(info.getSite());
         activity.setForecaster(info.getForecaster());
 
+        String prevName = activity.getName();
+        String prevType = activity.getType();
+        activity.setName(info.getActivityName());
+        activity.setType(getFullType(info.getActivityType(),
+                info.getActivitySubtype()));
+
         try {
 
             StorageUtils.storeProduct(info, activity, true);
@@ -499,8 +677,18 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         PgenFileNameDisplay.getInstance().setFileName(activityLabel);
         PgenUtil.setSelectingMode();
         rsc.getResourceData().setNeedsSaving(false);
+
+        if (!activity.getName().equals(prevName)
+                || !activity.getType().equals(prevType)) {
+            rsc.getResourceData().startProductManage();
+        }
     }
 
+    /*
+     * Retrieve the current activity information on dialog.
+     * 
+     * @return a ActivityInfo
+     */
     private ActivityInfo getActivityInfo() {
 
         ActivityInfo info = new ActivityInfo();
@@ -508,24 +696,137 @@ public class StoreActivityDialog extends CaveJFACEDialog {
         if (!lbl.endsWith(".xml")) {
             lbl += ".xml";
         }
+
         info.setActivityLabel(lbl);
         info.setActivityName(nameText.getText());
-        info.setActivityType(typeText.getText());
-        info.setActivitySubtype(subtypeText.getText());
-        info.setSite(siteText.getText());
-        info.setDesk(deskText.getText());
+        info.setActivityType(typeCombo.getText());
+        String stype = subtypeCombo.getText();
+        if (stype.equals(PgenConstant.DEFAULT_SUBTYPE)) {
+            stype = "";
+        }
+        info.setActivitySubtype(stype);
+        info.setSite(siteCombo.getText());
+        info.setDesk(deskCombo.getText());
         info.setForecaster(forecasterText.getText());
         info.setMode(modeCombo.getText());
         info.setStatus(statusText.getText());
 
         Calendar refTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+        int hours = 0;
+        int minutes = 0;
+
+        try {
+            hours = Integer.valueOf(validTime.getText().substring(0, 2));
+            minutes = Integer.valueOf(validTime.getText().substring(2, 4));
+        } catch (Exception e) {
+        }
+
         refTime.set(validDate.getYear(), validDate.getMonth(),
-                validDate.getDay(), validTime.getHours(),
-                validTime.getMinutes(), 0);
+                validDate.getDay(), hours, minutes, 0);
         refTime.set(Calendar.MILLISECOND, 0);
 
         info.setRefTime(refTime);
 
         return info;
     }
+
+    /*
+     * Get subtypes defined for an activity type
+     * 
+     * Note: an activity without "subtype" uses DEFAULT_SUBTYPE "none".
+     * 
+     * @param type activity type
+     * 
+     * @param prdTyps a collection of ProductType
+     * 
+     * @return a list of subtypes
+     */
+    private ArrayList<String> getSubtypesForType(String type,
+            Collection<ProductType> prdTyps) {
+
+        ArrayList<String> subtypes = new ArrayList<>();
+        subtypes.add(PgenConstant.DEFAULT_SUBTYPE);
+        if (type != null && type.trim().length() > 0) {
+            for (ProductType ptype : prdTyps) {
+                if (ptype.getType().equals(type)) {
+                    String stp = ptype.getSubtype();
+                    if (stp != null && stp.trim().length() > 0
+                            && !subtypes.contains(stp)) {
+                        subtypes.add(stp);
+                    }
+                }
+            }
+        }
+
+        return subtypes;
+
+    }
+
+    /*
+     * Get full type name from an activity type and subtype
+     * 
+     * @param type activity type
+     * 
+     * @param subtype activity subtype
+     * 
+     * @return full type string
+     */
+    private String getFullType(String type, String subtype) {
+
+        String fullType = PgenConstant.DEFAULT_ACTIVITY_TYPE;
+
+        if (type != null && type.trim().length() > 0) {
+            fullType = type;
+
+            if (subtype != null
+                    && subtype.trim().length() > 0
+                    && !subtype.trim().equalsIgnoreCase(
+                            PgenConstant.DEFAULT_SUBTYPE)) {
+                fullType += ("(" + subtype + ")");
+            }
+        }
+
+        return fullType;
+    }
+
+    /*
+     * Reset activity label and name from an activity type and subtype
+     */
+    private void resetLabelAndName() {
+
+        labelCombo.removeAll();
+
+        String fullType = getFullType(typeCombo.getText(),
+                subtypeCombo.getText());
+
+        // Construct the new default and set as the first option
+        Product newAct = activity.copy();
+        newAct.setType(fullType);
+        newAct.setName(fullType);
+        String newDefault = PgenUtil.buildPrdFileName(newAct, prdTyps);
+        labelCombo.add(DEFAULT_LABEL_PREFIX + newDefault);
+
+        // Add the original default as an second option
+        if (!defaultFileName.equals(newDefault)) {
+            labelCombo.add(defaultFileName);
+        }
+
+        /*
+         * Add the original file name if exist and select it. Otherwise, set to
+         * the new default.
+         */
+        if (activity.getOutputFile() != null
+                && !activity.getOutputFile().equals(defaultFileName)) {
+            labelCombo.add(activity.getOutputFile());
+            labelCombo.select(labelCombo.getItemCount() - 1);
+        } else {
+            labelCombo.setText(newDefault);
+        }
+
+        // Set name
+        nameText.setText(fullType);
+
+    }
+
 }

@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.cloudHeight;
 
-import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasRecord;
 import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
 import gov.noaa.nws.ncep.edex.common.metparameters.AirTemperature;
 import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
@@ -26,17 +25,13 @@ import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.ComputationalMethod;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.PixelValueMethod;
 import gov.noaa.nws.ncep.viz.cloudHeight.ui.CloudHeightDialog.SoundingDataSourceType;
-import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager;
 import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
 import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ICloudHeightCapable;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.McidasFileBasedTileSet;
-import gov.noaa.nws.ncep.viz.rsc.satellite.rsc.McidasSatResource;
 import gov.noaa.nws.ncep.viz.rsc.satellite.units.NcIRPixelToTempConverter;
+import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
-import java.awt.Rectangle;
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -53,39 +48,20 @@ import javax.xml.bind.JAXBException;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.NoninvertibleTransformException;
-import org.opengis.referencing.operation.TransformException;
 
-import com.raytheon.uf.common.dataplugin.HDF5Util;
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
-import com.raytheon.uf.common.datastorage.records.ByteDataRecord;
-import com.raytheon.uf.common.datastorage.records.IDataRecord;
-import com.raytheon.uf.common.geospatial.ISpatialEnabled;
 import com.raytheon.uf.common.geospatial.MapUtil;
-import com.raytheon.uf.common.inventory.exception.DataCubeException;
-import com.raytheon.uf.common.numeric.buffer.ByteBufferWrapper;
-import com.raytheon.uf.common.numeric.filter.UnsignedFilter;
-import com.raytheon.uf.common.numeric.source.DataSource;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.util.BufferUtil;
 import com.raytheon.uf.viz.core.IDisplayPane;
-import com.raytheon.uf.viz.core.data.IColorMapDataRetrievalCallback;
-import com.raytheon.uf.viz.core.data.prep.HDF5DataRetriever;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
-import com.raytheon.uf.viz.datacube.CubeUtil;
-import com.raytheon.viz.core.rsc.hdf5.FileBasedTileSet;
 import com.vividsolutions.jts.geom.Coordinate;
-//import com.raytheon.uf.viz.core.data.IDataRetrievalCallback;
-//import com.raytheon.uf.viz.core.data.prep.CMDataPreparerManager;
-//import com.raytheon.viz.core.gl.dataprep.ByteDataPreparer;
-//import com.raytheon.viz.core.gl.dataprep.GlNumericImageData;
 
 /**
  * Cloud Height Processor
@@ -93,46 +69,57 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	DescriptionN
- * ------------	----------	-----------	--------------------------
- * 05/19/09		 #106		Greg Hull		Created
- * 07/22/09					M. Li		TO10 -> TO11
- * 09/27/09      #169       Greg Hull   NCMapEditor
- * 03/04/2009				M. Gao		Using localization extension to replace NmapCommon class
- * 05/23/2010               G. Hull     Use ICloudHeightCapable. Use UnitConverter (don't assume Celsius)
- * 11/18/2010	 327        M. Li	    add isAlreadyOpen
- * 01/05/2011   393     Archana    Added logic to compute the cloud-height using station data
- * 02/28/2011   393    Archana     Added logic to compute the cloud height
- *                                                   using the moist adiabatic method
- * 03/09/2011   393    Archana     Added logic to implement pixel selection from a pixel
- *                                                   area around the user clicked point.  
- * 09/14/2011   457         S. Gurung   Renamed H5UAIR to NCUAIR
- * 10/06/2011   465    Archana          Updated to use NcSoundingQuery2 and NcSoundingLayer2    
- * 11/18/2011               G. Hull     replace calls to getValue() with getValueAs(unit)
- * 01/27/2012   583         B. Hebbard  Fix unit deserialization issue; replace ByteDataPreparer (etc.)
- *                                      with RTS-refactored equivalents (package dataprep-->dataformat)
- * 02/03/2012   583         B. Hebbard  In getPixelValueFromTheUserClickedCoordinate remove File.exists()
- *                                      check, which will fail for non-local HDF5
- * 03/01/2012   524         B. Hebbard  When multiple cloud levels found, make "primary" the lowest
- * 04/16/2012   524/583     B. Hebbard  Give more detailed messages when "Unable to compute Cloud Height"
- *                                      for common cases "No sounding data available for selected location"
- *                                      and "Cloud temperature warmer than entire sounding"
- * 05/21/2012   524         B. Hebbard  Fix regression:  Null pointer exception on start with no SAT IR.
- * 02/11/2013   972         G. Hull     IDisplayPane instead of NCDisplayPane
- * 10/13/2013               T. Lee      Fixed station data retrieval; Fixed moist adiabatic computation error;
- *                                      Added climate cloud height
- * 03/07/2014   2791        bsteffen    Move Data Source/Destination to numeric plugin.
- * 07142015     RM#9173     Chin Chen   use NcSoundingQuery to query ncuair sounding data
- *
+ * Date         Ticket#     Engineer        DescriptionN
+ * ------------ ----------  ----------- --------------------------
+ * 05/19/2009   #106        Greg Hull       Created
+ * 07/22/2009               M. Li           TO10 -> TO11
+ * 09/27/2009   #169        Greg Hull       NCMapEditor
+ * 03/04/2009               M. Gao          Using localization extension to replace NmapCommon class
+ * 05/23/2010               G. Hull         Use ICloudHeightCapable. Use UnitConverter (don't assume Celsius)
+ * 11/18/2010   327         M. Li           add isAlreadyOpen
+ * 01/05/2011   393         Archana         Added logic to compute the cloud-height using station data
+ * 02/28/2011   393         Archana         Added logic to compute the cloud height
+ *                                          using the moist adiabatic method
+ * 03/09/2011   393         Archana         Added logic to implement pixel selection from a pixel
+ *                                          area around the user clicked point.  
+ * 09/14/2011   457         S. Gurung       Renamed H5UAIR to NCUAIR
+ * 10/06/2011   465         Archana         Updated to use NcSoundingQuery2 and NcSoundingLayer2    
+ * 11/18/2011               G. Hull         replace calls to getValue() with getValueAs(unit)
+ * 01/27/2012   583         B. Hebbard      Fix unit deserialization issue; replace ByteDataPreparer (etc.)
+ *                                          with RTS-refactored equivalents (package dataprep-->dataformat)
+ * 02/03/2012   583         B. Hebbard      In getPixelValueFromTheUserClickedCoordinate remove File.exists()
+ *                                          check, which will fail for non-local HDF5
+ * 03/01/2012   524         B. Hebbard      When multiple cloud levels found, make "primary" the lowest
+ * 04/16/2012   524/583     B. Hebbard      Give more detailed messages when "Unable to compute Cloud Height"
+ *                                          for common cases "No sounding data available for selected location"
+ *                                          and "Cloud temperature warmer than entire sounding"
+ * 05/21/2012   524         B. Hebbard      Fix regression:  Null pointer exception on start with no SAT IR.
+ * 02/11/2013   972         G. Hull         IDisplayPane instead of NCDisplayPane
+ * 10/13/2013               T. Lee          Fixed station data retrieval; Fixed moist adiabatic computation error;
+ *                                          Added climate cloud height
+ * 03/07/2014   2791        bsteffen        Move Data Source/Destination to numeric plugin.
+ * 07/14/2015   RM#9173     Chin Chen       Use NcSoundingQuery to query ncuair sounding data
+ * 06/09/2016   R18511      K. Bugenhagen   Change due to refactoring. Cleanup: removed system.outs, stacktrace prints, commented code.
+ * 07/26/2016   R19277      bsteffen        Move redundant code into McidasRecord.getGridGeometry()
+ * 08/31/2016   R15716      S. Russell      Repaired, refactored, and renamed 
+ *                                          getPixelValue() into 
+ *                                          getDataAtCoordinate(). Updated
+ *                                          getSoundingFromStationData() to 
+ *                                          fix left over status messages.
+ * 
  * 
  * @version 1
  */
 public class CloudHeightProcesser {
 
+    private static IUFStatusHandler statusHandler = UFStatus
+            .getHandler(CloudHeightProcesser.class);
+
+    private final CoordinateReferenceSystem DEFAULT_MAP_PROJECTION = DefaultGeographicCRS.WGS84;
+
     private CloudHeightDialog cldHghtDlg = null;
 
-    private CloudHeightResource cldHghtRsc = null; // should the dlg or a mngr
-                                                   // class have the rsc?
+    private CloudHeightResource cldHghtRsc = null;
 
     private ICloudHeightCapable satRsc = null;
 
@@ -179,10 +166,13 @@ public class CloudHeightProcesser {
 
     private String algo = "Cloud height by moist-adiabatic method...  ";
 
+    private final String STD_SOUNDING_DATA_SOURCE = "Standard";
+
     StationData stnData = null;
 
     public static class CloudHeightData {
-        protected double cloudHght; // in meters
+        // in meters
+        protected double cloudHght;
 
         protected double cloudPres;
 
@@ -196,9 +186,8 @@ public class CloudHeightProcesser {
             throws VizException {
         seldPane = p;
         cldHghtDlg = dlg;
-        aListOfNcSoundingLayers = new ArrayList<NcSoundingLayer2>(0);
+        aListOfNcSoundingLayers = new ArrayList<>(0);
         // tell the dialog what units the data values will be in.
-        //
         cldHghtDlg.setWorkingUnits(SI.METER, SI.CELSIUS, SI.METER);
         celsiusToKelvinConverter = SI.CELSIUS.getConverterTo(SI.KELVIN);
         pixelToTemperatureConverter = new NcIRPixelToTempConverter();
@@ -218,7 +207,7 @@ public class CloudHeightProcesser {
             sndingModels = (ArrayList<SoundingModel>) sndingMdlRdr
                     .getSoundingModels();
         } catch (JAXBException e) {
-            e.printStackTrace();
+            statusHandler.error("Error getting sounding models", e);
         }
     }
 
@@ -232,15 +221,12 @@ public class CloudHeightProcesser {
         }
 
         removeCloudHeightResource();
-
         seldPane = newPane;
-
         getResources();
     }
 
     public void processCloudHeight(Coordinate latlon, boolean mouseDown) {
-        List<CloudHeightData> cloudHeights = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
+        List<CloudHeightData> cloudHeights = new ArrayList<>(0);
 
         if (cldHghtDlg != null && cldHghtDlg.isOpen() && latlon != null) {
 
@@ -257,8 +243,8 @@ public class CloudHeightProcesser {
                 }
             }
 
-            if (cldHghtRsc == null) { // a user could have unloaded the cloud
-                                      // height resource
+            // a user could have unloaded the cloud height resource
+            if (cldHghtRsc == null) {
                 getResources();
             }
 
@@ -269,21 +255,19 @@ public class CloudHeightProcesser {
             // get the options
             if (mouseDown) {
                 sndingDataSrc = cldHghtDlg.getSoundingDataSourceType();
-                maxSndingDist = cldHghtDlg.getMaxSoundingDist(); // in working
-                                                                 // units of
-                                                                 // meters
+                // in working units of meters
+                maxSndingDist = cldHghtDlg.getMaxSoundingDist();
 
                 compMthd = cldHghtDlg.getComputationalMethod();
                 pixValMthd = cldHghtDlg.getPixelValueMethod();
                 pixAreaRad = cldHghtDlg.getPixelAreaDimension();
                 useSnglPix = cldHghtDlg.isPixelValueFromSinglePixel();
             }
-            pixVal = getPixelValue(latlon, satRsc, useSnglPix, pixAreaRad,
-                    pixValMthd);
+            pixVal = getDataAtCoordinate(latlon, satRsc, useSnglPix,
+                    pixAreaRad, pixValMthd);
             if (pixVal != null) {
                 NumberFormat nf = new DecimalFormat("####");
                 pixValStr = nf.format(pixVal);
-                // pixValStr = pixVal.toString();
             }
 
             Double tempK = null;
@@ -296,26 +280,23 @@ public class CloudHeightProcesser {
                         .displayStatusMsg("Error: Unable to compute the brightness temperature.");
                 return;
             } else {
-                // tempK = new Double (234);
                 tempC = SI.KELVIN.getConverterTo(SI.CELSIUS).convert(
                         tempK.doubleValue());
             }
             // get the sounding data
             if (sndingDataSrc == SoundingDataSourceType.STANDARD_ATM) {
-                // System.out.println(" STANDARD ATM");
                 sndingSrcStr = new String("Standard Atm");
                 sndingSrcTimeStr = new String("N/A");
                 sndingSrcDist = Double.NaN; // flag to display empty
 
-                if (currSndingDataSource != "Standard") {
-                    currSndingDataSource = "Standard";
+                if (currSndingDataSource != this.STD_SOUNDING_DATA_SOURCE) {
+                    currSndingDataSource = this.STD_SOUNDING_DATA_SOURCE;
                 }
 
                 for (SoundingModel sndMod : sndingModels) {
                     // TODO : Add checks for Summer/Winter and valid region
-                    //
-                    if (sndMod.getName().equalsIgnoreCase("Standard")) {
-                        // if( sndMod.getNeLat() > latlon.y ) ...
+                    if (sndMod.getName().equalsIgnoreCase(
+                            this.STD_SOUNDING_DATA_SOURCE)) {
                         soundingData = (ArrayList<LevelValues>) sndMod
                                 .getSoundingLevels().getLevelValues();
                         cloudHeights = computeCloudHeights(soundingData, tempC);
@@ -324,8 +305,6 @@ public class CloudHeightProcesser {
                 }
 
                 if (cloudHeights.isEmpty()) {
-                    // System.out.println("Climatology sounding is used...");
-
                     cloudHeights = getSoundingFromClimatology(latlon, tempC);
                     if (!cloudHeights.isEmpty())
                         cldHghtDlg
@@ -334,12 +313,7 @@ public class CloudHeightProcesser {
                 }
 
             } else if (sndingDataSrc == SoundingDataSourceType.STATION_DATA) {
-                // System.out.println(" STN DATA !!!!!!!!!!!!!!!!");
                 soundingData = getSoundingFromStationData(latlon);
-                // System.out
-                // .println(" CloudHeightProcesser/processCloudHeights. # of levels --->  "
-                // + soundingData.size());
-
                 if (compMthd.compareTo(ComputationalMethod.STANDARD) == 0) {
 
                     cloudHeights = computeCloudHeights(soundingData, tempC);
@@ -348,8 +322,6 @@ public class CloudHeightProcesser {
                         if (aListOfNcSoundingLayers != null) {
                             float tempInKelvin = (float) celsiusToKelvinConverter
                                     .convert(tempC);
-                            // System.out
-                            // .println("Calling computeCloudHeightByMoistAdiabaticMethod()!!");
                             if (!(aListOfNcSoundingLayers.isEmpty()))
                                 cloudHeights = moistAdiabaticMethod(
                                         aListOfNcSoundingLayers, new Amount(
@@ -361,9 +333,6 @@ public class CloudHeightProcesser {
                     }
                 } else {
                     if (compMthd.compareTo(ComputationalMethod.MOIST_ADIABATIC) == 0) {
-                        // System.out
-                        // .println("Compute cloud height by moist adabatic method !");
-
                         float tempInKelvin = (float) celsiusToKelvinConverter
                                 .convert(tempC);
                         cloudHeights = moistAdiabaticMethod(
@@ -394,8 +363,6 @@ public class CloudHeightProcesser {
                          * 'maxIntervalInHoursForValidStationData' hours to
                          * compute a fresh set of the sounding data
                          */
-                        System.out
-                                .println("Calling compute cloud height from PrevioustationData()");
                         if (aListOfNcSoundingLayers.isEmpty()) {
                             cloudHeights = computeCloudHeightFromPreviousStationData(
                                     stnData,
@@ -462,12 +429,18 @@ public class CloudHeightProcesser {
      *         that are time-matched to the satellite image time
      */
     private List<LevelValues> getSoundingFromStationData(Coordinate latlon) {
-        List<LevelValues> listOfLevelValues = new ArrayList<LevelValues>(0);
+        List<LevelValues> listOfLevelValues = new ArrayList<>(0);
         if (sndingDataSrc == SoundingDataSourceType.STATION_DATA) {
-            // cldHghtDlg.displayStatusMsg("Getting sounding data...");
             sndingSrcTimeStr = "N/A";
-            sndingSrcStr = "Station Data";
-            sndingSrcDist = cldHghtDlg.getMaxSoundingDist();
+            sndingSrcStr = "N/A";
+            sndingSrcDist = Double.NaN;
+            aListOfNcSoundingLayers = new ArrayList<>(0);
+
+            // Used as a flag, reset this for a new click on the map
+            if (!this.aListOfNcSoundingLayers.isEmpty()) {
+                this.aListOfNcSoundingLayers.clear();
+            }
+
             maxIntervalInHoursForValidStationData = cldHghtDlg
                     .getMaxValidIntervalInHoursForStationData();
             stnData = cldHghtRsc.getStationData(latlon, maxSndingDist,
@@ -495,14 +468,9 @@ public class CloudHeightProcesser {
             // previous station.
 
         }
-        // cldHghtDlg.displayStatusMsg("");
         if (listOfLevelValues.isEmpty()) {
-            System.out
-                    .println("No sounding data available for selected location \n");
-            // } else {
-            // System.out
-            // .println(" CloudHeightProcesser/StationData: Sounding is found ---> "
-            // + stnData.stationId);
+            cldHghtDlg
+                    .displayStatusMsg("No sounding data available for selected location \n");
         }
         return listOfLevelValues;
     }
@@ -522,17 +490,12 @@ public class CloudHeightProcesser {
 
     private List<CloudHeightData> moistAdiabaticMethod(
             List<NcSoundingLayer2> listOfNcSoundingLayer, Amount tmpk) {
-        List<CloudHeightData> cldHgtDataList = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
-        // System.out.println("computeCloudHeightByMoistAdiabaticMethod !!!!");
+        List<CloudHeightData> cldHgtDataList = new ArrayList<>(0);
         try {
             PressureLevel plev = new PressureLevel();
             plev.setValue(new Amount(600, NcUnits.MILLIBAR));
             NcSoundingLayer2 unstableLevelBelow600mb = PSLibrary.psUstb(
                     listOfNcSoundingLayer, plev);
-
-            // System.out.println(" Most unstable air!!! \n"
-            // + unstableLevelBelow600mb.getPressure());
 
             if (unstableLevelBelow600mb != null) {
                 PressureLevel pAt600mb = unstableLevelBelow600mb.getPressure();
@@ -560,7 +523,6 @@ public class CloudHeightProcesser {
 
                     Amount te = PRLibrary.prThte(pressure, tmpc, dwpc);
                     Amount pres500 = new Amount(500, NcUnits.MILLIBAR);
-                    // Amount tguess = new Amount(273.15, SI.KELVIN);
                     Amount tguess = new Amount(0, SI.KELVIN);
                     Amount tmst = PRLibrary.prTmst(te, pres500, tguess);
                     Amount t500 = null;
@@ -585,18 +547,6 @@ public class CloudHeightProcesser {
                                             .floatValue(),
                                     PCLibrary.VerticalCoordinate.PRESSURE,
                                     PCLibrary.SearchOrder.BOTTOM_UP);
-
-                    // for (int ii = 0; ii < nearestSoundingLevels.size(); ii++)
-                    // {
-                    // System.out
-                    // .println(" CloudHeightProcesser/Moist Adiabatic Levels. Pressure "
-                    // + nearestSoundingLevels.get(ii)
-                    // .getPressure());
-                    // System.out
-                    // .println(" CloudHeightProcesser/Moist Adiabatic Levels. Height "
-                    // + nearestSoundingLevels.get(ii)
-                    // .getGeoHeight());
-                    // }
                     CloudHeightData newCldHgtData = new CloudHeightData(
                             Float.NaN, Float.NaN);
                     if (nearestSoundingLevels != null
@@ -611,30 +561,12 @@ public class CloudHeightProcesser {
                                             pmst.getValueAs(NcUnits.MILLIBAR)
                                                     .floatValue(),
                                             PCLibrary.VerticalCoordinate.PRESSURE);
-
-                            // System.out
-                            // .println(" CloudHeightProcesser/Interpolated Moist Adiabatic Levels. Pressure "
-                            // + interpolatedSounding
-                            // .getPressure());
-                            // System.out
-                            // .println(" CloudHeightProcesser/Interpolated Moist Adiabatic Levels. Height "
-                            // + interpolatedSounding
-                            // .getGeoHeight());
-
                             newCldHgtData = new CloudHeightData(
                                     interpolatedSounding.getGeoHeight()
                                             .getValueAs(SI.METER).doubleValue(),
                                     interpolatedSounding.getPressure()
                                             .getValueAs(NcUnits.MILLIBAR)
                                             .doubleValue());
-                            // System.out
-                            // .println(" CloudHeightProcesser/New Moist Adiabatic Levels. Pressure "
-                            // + newCldHgtData.cloudHght);
-
-                            // System.out
-                            // .println(" CloudHeightProcesser/New Moist Adiabatic Levels. Height "
-                            // + newCldHgtData.cloudPres);
-
                         } else if (PCLibrary.getLocationOfLevel() == PCLibrary.LevelType.EXACT_MATCH) {
                             NcSoundingLayer2 tempSounding = nearestSoundingLevels
                                     .get(0);
@@ -651,7 +583,7 @@ public class CloudHeightProcesser {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            statusHandler.error("Error determining cloud height", e);
         }
         return cldHgtDataList;
     }
@@ -666,29 +598,28 @@ public class CloudHeightProcesser {
      */
     private List<NcSoundingLayer2> getStationSounding(StationData stationData) {
 
-        List<NcSoundingLayer2> ncSoundingLayer2List = new ArrayList<NcSoundingLayer2>(
-                0);
-//RM#9173
+        List<NcSoundingLayer2> ncSoundingLayer2List = new ArrayList<>(0);
         String[] stnIdAry = new String[1];
         if (stationData.stationId != null && !stationData.stationId.isEmpty())
-        	stnIdAry[0] = stationData.stationId;
+            stnIdAry[0] = stationData.stationId;
         try {
 
             long refTime = stationData.stationRefTime.getRefTime().getTime();
-            long[] reflTimeAry = {refTime}; 
-            long[] rangeTimeAry = {refTime}; //for ncuair, reange time is same as ref time
-        	NcSoundingCube thisSoundingCube = NcSoundingQuery
-                    .genericSoundingDataQuery( reflTimeAry, rangeTimeAry, null, null,null,  
-                    		stnIdAry,ObsSndType.NCUAIR.toString(),  NcSoundingLayer.DataType.ALLDATA,  true,  null,null,true,true,false);
-//end RM#9173    
-            //
+            long[] reflTimeAry = { refTime };
+            long[] rangeTimeAry = { refTime }; // for ncuair, reange time is
+                                               // same as ref time
+            NcSoundingCube thisSoundingCube = NcSoundingQuery
+                    .genericSoundingDataQuery(reflTimeAry, rangeTimeAry, null,
+                            null, null, stnIdAry, ObsSndType.NCUAIR.toString(),
+                            NcSoundingLayer.DataType.ALLDATA, true, null, null,
+                            true, true, false);
+
             // TODO -- This shouldn't be necessary, given Amount.getUnit()
             // should now heal itself
             // from a null unit by using the String. see also
             // PlotModelGenerator2.plotUpperAirData()
             // Repair the 'unit' in the met params, if damaged (as in, nulled)
             // in transit.
-            // System.out.println("CloudHeightProcesser.getListOfNcSoundingLayerForThisStation() begin fixing returned data...");
             if (thisSoundingCube != null
                     && thisSoundingCube.getRtnStatus() == QueryStatus.OK) {
                 for (NcSoundingProfile sndingProfile : thisSoundingCube
@@ -702,9 +633,6 @@ public class CloudHeightProcesser {
                     }
                 }
             }
-            // System.out.println("CloudHeightProcesser.getListOfNcSoundingLayerForThisStation() done fixing returned data");
-            // TODO -- End
-            //
 
             if (thisSoundingCube != null) {
                 List<NcSoundingProfile> listOfSoundingProfiles = thisSoundingCube
@@ -718,26 +646,14 @@ public class CloudHeightProcesser {
                 }
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            statusHandler.error("Error getting sounding data", e);
         }
 
         if (ncSoundingLayer2List.isEmpty()) {
-            System.out
-                    .println(" CloudHeightProcessr: No sounding data found for station "
+            cldHghtDlg
+                    .displayStatusMsg(" CloudHeightProcessr: No sounding data found for station "
                             + stationData.stationId + " \n");
         }
-        // else {
-        // System.out
-        // .println(" CloudHeightProcessr/getListOfNcSoundingLayerForThisStation: Returned Queried Sounding!!!!!!!!!!!!!! ");
-        // for (int kk = 0; kk < 5; kk++) {
-        // System.out.println(" Pressure: Height: Temperature");
-        // System.out.println(""
-        // + ncSoundingLayer2List.get(kk).getPressure() + " "
-        // + ncSoundingLayer2List.get(kk).getGeoHeight() + " "
-        // + ncSoundingLayer2List.get(kk).getTemperature());
-        // }
-        // }
         return ncSoundingLayer2List;
     }
 
@@ -751,7 +667,7 @@ public class CloudHeightProcesser {
      */
     private List<LevelValues> getListOfLevelData(
             List<NcSoundingLayer2> listOfNcSoundingLayer) {
-        List<LevelValues> aListOfLevelValues = new ArrayList<LevelValues>(0);
+        List<LevelValues> aListOfLevelValues = new ArrayList<>(0);
         if (listOfNcSoundingLayer != null && !listOfNcSoundingLayer.isEmpty()) {
             for (NcSoundingLayer2 eachNcSoundingLayer : listOfNcSoundingLayer) {
 
@@ -797,7 +713,7 @@ public class CloudHeightProcesser {
      */
     private List<CloudHeightData> computeCloudHeights(
             List<LevelValues> soundingLevels, Double tempC) {
-        List<CloudHeightData> cldHghts = new ArrayList<CloudHeightData>(0);
+        List<CloudHeightData> cldHghts = new ArrayList<>(0);
 
         double tempMax = -9999.0;
         int lindx = 0;
@@ -810,23 +726,11 @@ public class CloudHeightProcesser {
                 double topTemp = topLvl.getTemperature();
                 double btmTemp = btmLvl.getTemperature();
 
-                if (tempCDoubleVal == topTemp) {
-                    // System.out.println("tempCDoubleVal equals topTemp and is: "+
-                    // tempCDoubleVal);
-                }
-
-                if (tempCDoubleVal == btmTemp) {
-                    // System.out.println("tempCDoubleVal equals btmTemp and is: "+
-                    // tempCDoubleVal);
-                }
                 // logic from NMAP source snghgt.f
-                tempMax = (btmTemp > tempMax ? btmTemp : tempMax); // find the
+                tempMax = (btmTemp > tempMax ? btmTemp : tempMax);
 
-                tempMax = (topTemp > tempMax ? topTemp : tempMax); // find the
-                                                                   // maximum
-                                                                   // temperature
-                // System.out.println("Max standard sounding temp ----> "
-                // + tempMax);
+                // find the maximum temperature
+                tempMax = (topTemp > tempMax ? topTemp : tempMax);
 
                 double sign = (tempCDoubleVal - topTemp)
                         * (tempCDoubleVal - btmTemp);
@@ -874,10 +778,7 @@ public class CloudHeightProcesser {
             if (tempCDoubleVal > tempMax) {
                 cldHghtDlg
                         .displayStatusMsg("Cloud temperature warmer than entire sounding \n");
-                // cldHghtDlg.displayStatusMsg("The cloud temperature is warmer than the entire sounding data");
-                // System.out.println("The cloud temperature is warmer than the entire sounding data");
             }
-            // System.out.println("Maximum temperature is: "+tempMax);
         }
         return cldHghts;
     }
@@ -909,17 +810,8 @@ public class CloudHeightProcesser {
                     }
 
                 }
-                // else {
-                // cldHghtDlg.displayStatusMsg(
-                // "The Satellite Image must be an IR Image");
-                // }
             }
         }
-
-        // if( satRsc == null ) {
-        // cldHghtDlg.appendStatusMsg("No Satellite IR image is loaded.");
-        // }
-
         if (cldHghtRsc == null) {
             try {
                 CloudHeightResourceData srd = new CloudHeightResourceData();
@@ -928,13 +820,10 @@ public class CloudHeightProcesser {
                 seldPane.getDescriptor().getResourceList().add(cldHghtRsc);
                 cldHghtRsc.init(seldPane.getTarget());
             } catch (VizException e) {
-                e.printStackTrace();
+                statusHandler.error("Error creating cloud height resource", e);
             }
             seldPane.refresh();
         }
-        // if satRsc is not set then we will check for it later and print msgs
-        // til
-        // it is loaded.
     }
 
     public void close() {
@@ -1002,8 +891,7 @@ public class CloudHeightProcesser {
     private List<CloudHeightData> computeCloudHeightFromPreviousStationData(
             StationData nearestStationData, int maxInterval,
             DataTime imageTime, float tempInKelvin) {
-        List<CloudHeightData> cloudHeightData = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
+        List<CloudHeightData> cloudHeightData = new ArrayList<>(0);
         if (stnData != null) {
             Calendar limitingCalendar = imageTime.getRefTimeAsCalendar();
             limitingCalendar.add(Calendar.HOUR_OF_DAY, -maxInterval);
@@ -1032,218 +920,204 @@ public class CloudHeightProcesser {
 
     /**
      * 
-     * @param coord
+     * Get the satellite data located at the coordinate the user clicked on the
+     * map. If the option was chosen get maximum or minimum data value from a
+     * rectangular matrix of coordiantes around the point the user clicked
+     * 
+     * @param usrClickdLatLon
+     *            - this is the point the user clicked on the map translated
+     *            from mouseclicks into LatLon
      * @param satRsc
+     *            - a satellite Resource that has implemented the
+     *            ICloudHeightCapable Interface
      * @param isSinglePixelNeeded
+     *            - from the dialog, did the user want data ONLY from the point
+     *            on the map s/he clicked?
      * @param pixelAreaDimension
+     *            - the distance beyond the user clicked point from which to
+     *            gather more data if chosen
      * @param pixelSelectionMethod
      * @return
      */
-    private Double getPixelValue(Coordinate coord, ICloudHeightCapable satRsc,
-            boolean isSinglePixelNeeded, int pixelAreaDimension,
+
+    private Double getDataAtCoordinate(Coordinate usrClickdLatLon,
+            ICloudHeightCapable satRsc, boolean isSinglePixelNeeded,
+            int pixelAreaDimension,
             CloudHeightDialog.PixelValueMethod pixelSelectionMethod) {
-        Double pixVal = Double.NaN;
+
+        Double dataVal = Double.NaN;
+
+        // Abort
+        if (satRsc == null) {
+            return dataVal;
+        }
+
+        double[] userClickedPixelCoord = new double[2];
         double[] in = new double[2];
         double[] out = new double[2];
-        double[] outCoord = new double[2];
-        int newArrDimensions = (pixelAreaDimension * 2) + 1;
-        PixelLocation[][] squarePixelArea = new PixelLocation[newArrDimensions][newArrDimensions];
-        in[0] = MapUtil.correctLon(coord.x);
-        in[1] = MapUtil.correctLat(coord.y);
-        if (satRsc != null && satRsc instanceof McidasSatResource) {
-            int maxX = 0;
-            int maxY = 0;
-            FileBasedTileSet tileSet = ((McidasSatResource) satRsc)
-                    .getTileSet();
-            if (tileSet instanceof McidasFileBasedTileSet) {
-                PluginDataObject pdo = ((McidasFileBasedTileSet) tileSet)
-                        .getPdo();
-                if (pdo != null && pdo instanceof McidasRecord) {
+        MathTransform localProjToLatLon = null;
+        MathTransform mtGridToCRS = null;
+        MathTransform latLonToLocalProj = null;
+        MathTransform invmtCRSToGrid = null;
 
-                    /* Get the geometry associated with the Mcidas file */
-                    GridGeometry2D gridGeom = getGridGeometry(pdo, satRsc);
-                    try {
-                        MathTransform localProjToLatLon = CRS
-                                .findMathTransform(
-                                        gridGeom.getCoordinateReferenceSystem(),
-                                        DefaultGeographicCRS.WGS84);
-                        MathTransform latLonToLocalProj = localProjToLatLon
-                                .inverse();
-                        MathTransform mtGridToCRS = gridGeom
-                                .getGridToCRS(PixelInCell.CELL_CORNER);
-                        MathTransform invmtCRSToGrid = mtGridToCRS.inverse();
-                        latLonToLocalProj.transform(in, 0, out, 0, 1);
-                        invmtCRSToGrid.transform(out, 0, outCoord, 0, 1);
-                        /* Get the raw data from the HDF5 file */
-                        File file = HDF5Util.findHDF5Location(pdo);
-                        // if ( file.exists() ){ } // Won't be found for
-                        // non-local HDF5
-                        IDataRecord idr = null;
-                        // Following throws VizException on fail; trapped below
-                        idr = CubeUtil.retrieveData(pdo, "mcidas");
-                        if (idr != null) {
-                            AbstractStorageRecord asr = (AbstractStorageRecord) idr;
-                            long[] sizes = asr.getSizes();
-                            maxX = (int) sizes[0];
-                            maxY = (int) sizes[1];
+        int pixelDistFrmUsrClickPt = (pixelAreaDimension * 2) + 1;
+        in[0] = MapUtil.correctLon(usrClickdLatLon.x);
+        in[1] = MapUtil.correctLat(usrClickdLatLon.y);
 
-                            if (((ByteDataRecord) idr).validateDataSet()) {
-                                byte[] arrayOfBytes = ((ByteDataRecord) idr)
-                                        .getByteData();
-                                Rectangle rectangle = new Rectangle(0, 0, maxX,
-                                        maxY);
-                                ByteBuffer byteBuffer = BufferUtil.wrapDirect(
-                                        arrayOfBytes, rectangle);
-                                IColorMapDataRetrievalCallback retriever = new HDF5DataRetriever(
-                                        file, "/full", rectangle);
-                                double tempDbl = Double.NaN;
-                                if (retriever != null) {
+        GridGeometry2D gridGeom = satRsc.getGridGeometry();
 
-                                    /*
-                                     * Wrap the raw data of bytes into a
-                                     * ByteBufferWrapper object
-                                     */
-                                    DataSource bdf = UnsignedFilter
-                                            .apply(new ByteBufferWrapper(
-                                                    byteBuffer, maxX, maxY));
-                                    /*
-                                     * Get the actual pixel value information
-                                     * from the byte array
-                                     */
-                                    tempDbl = bdf.getDataValue(
-                                            (int) (outCoord[0]),
-                                            (int) (outCoord[1]));
+        try {
 
-                                    if (isSinglePixelNeeded) {
-                                        pixVal = new Double((tempDbl));
-                                    } else {
-                                        int[] pixCoord = new int[2];
-                                        pixCoord[0] = (int) outCoord[0];
-                                        pixCoord[1] = (int) outCoord[1];
+            // Get the appropriate coordinate systems to translate LatLon
+            // into pixel coordiantes
+            localProjToLatLon = CRS.findMathTransform(
+                    gridGeom.getCoordinateReferenceSystem(),
+                    this.DEFAULT_MAP_PROJECTION);
+            latLonToLocalProj = localProjToLatLon.inverse();
 
-                                        if (pixCoord != null
-                                                && pixCoord.length == 2) {
-                                            PixelLocation userClickedPoint = new PixelLocation(
-                                                    pixCoord[0], pixCoord[1]);
-                                            /*
-                                             * In the pixel area generate the
-                                             * middle column of pixel locations
-                                             */
+            mtGridToCRS = gridGeom.getGridToCRS(PixelInCell.CELL_CORNER);
+            invmtCRSToGrid = mtGridToCRS.inverse();
 
-                                            PixelLocation[] tempPixelArea = this
-                                                    .generatePixelLocations(
-                                                            userClickedPoint,
-                                                            false,
-                                                            newArrDimensions);
-                                            int midpoint = ((int) (pixelAreaDimension));
+            // Convert the user clicked LatLon into pixel coordiantes
+            latLonToLocalProj.transform(in, 0, out, 0, 1);
+            invmtCRSToGrid.transform(out, 0, userClickedPixelCoord, 0, 1);
 
-                                            /*
-                                             * For each PixelLocaton in the
-                                             * column, generate the entire row
-                                             * to complete the matrix
-                                             */
-                                            for (int i = 0; i < newArrDimensions; i++) {
-                                                squarePixelArea[i][midpoint] = tempPixelArea[i];
-                                                squarePixelArea[i] = this
-                                                        .generatePixelLocations(
-                                                                squarePixelArea[i][midpoint],
-                                                                true,
-                                                                newArrDimensions);
-                                            }
-
-                                            double[][] arrayOfPixVal = new double[newArrDimensions][newArrDimensions];
-                                            /*
-                                             * Generate the NxN array of pixel
-                                             * values
-                                             */
-                                            // System.out
-                                            // .println(" newArrDimesions:!!!!!!!!!! "
-                                            // + newArrDimensions);
-                                            for (int i = 0; i < newArrDimensions; i++) {
-                                                for (int j = 0; j < newArrDimensions; j++) {
-
-                                                    // System.out
-                                                    // .println((int)
-                                                    // (squarePixelArea[i][j].xCoord));
-                                                    // System.out
-                                                    // .println((int)
-                                                    // (squarePixelArea[i][j].yCoord));
-                                                    // System.out
-                                                    // .println((int)
-                                                    // (arrayOfPixVal[i][j]));
-                                                    try {
-                                                        arrayOfPixVal[i][j] = bdf
-                                                                .getDataValue(
-                                                                        (int) (squarePixelArea[i][j].xCoord),
-                                                                        (int) (squarePixelArea[i][j].yCoord));
-                                                    } catch (Exception e) {
-                                                        // empty block
-                                                        // System.out.println(" exception thrown!!! ");
-                                                    }
-
-                                                }
-                                            }
-
-                                            /*
-                                             * Get either the maximum or the
-                                             * most frequently used pixel value
-                                             */
-                                            if (pixelSelectionMethod == PixelValueMethod.MAX_VALUE) {
-                                                pixVal = new Double(
-                                                        getMaxPixValue(arrayOfPixVal));
-                                            } else {
-                                                pixVal = new Double(
-                                                        getModeOfPixelValues(arrayOfPixVal));
-                                            }
-
-                                        }
-
-                                    }
-                                }
-
-                            }
-                        }
-                    } catch (FactoryException e) {
-                        e.printStackTrace();
-                    } catch (NoninvertibleTransformException e) {
-                        e.printStackTrace();
-                    } catch (TransformException e) {
-                        e.printStackTrace();
-                    } catch (DataCubeException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-            }
+        } catch (Exception e) {
+            statusHandler
+                    .error("Error transforming the user clicked latlon value into pixel coordiantes",
+                            e);
         }
-        return pixVal;
+
+        // If the user ONLY wants data for the point s/he clicked on the map
+        if (isSinglePixelNeeded) {
+            Double imageValue = satRsc.getRawIRImageValue(usrClickdLatLon);
+            dataVal = new Double(imageValue);
+        } else {
+            // The user wants data from pixels for an entire rectangular area
+            // surronging the point s/he clicked on the map.
+
+            double[][] arrayDataValAroundUsrClikdPt = new double[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+
+            arrayDataValAroundUsrClikdPt = getDataFrmRectAreaOfPixelCoordsArndClckdPt(
+                    userClickedPixelCoord, pixelDistFrmUsrClickPt,
+                    pixelAreaDimension, mtGridToCRS, localProjToLatLon, satRsc);
+
+            // Get either maximum or most frequently data value in the
+            // rectangular area around the user clicked point
+            if (pixelSelectionMethod == PixelValueMethod.MAX_VALUE) {
+                dataVal = new Double(
+                        getMaxDataVal(arrayDataValAroundUsrClikdPt));
+            } else {
+                dataVal = new Double(
+                        getModeOfDataValues(arrayDataValAroundUsrClikdPt));
+            }
+
+        }// end else if(isSinglePixelNeeded)
+
+        return dataVal;
     }
 
     /**
-     * Retrieves the grid geometry for the mcidas data
+     * Get the data for a rectangle of pixels arund the pixel coordinate the
+     * user clicked on the map
      * 
-     * @param pdo
-     *            - The Mcidas Record
+     * @param userClickePixelCoord
+     * @param pixelDistFrmUsrClickPt
+     * @param pixelAreaDimension
+     * @param mtGridToCRS
+     * @param localProjToLatLon
      * @param satRsc
-     *            - The Mcidas satellite resource
-     * @return the grid geometry depending upon the type of projection described
-     *         in the Mcidas data
+     * @return
      */
-    private GridGeometry2D getGridGeometry(PluginDataObject pdo,
-            ICloudHeightCapable satRsc) {
-        GridGeometry2D mcidasGeom = null;
-        if (pdo instanceof McidasRecord && satRsc instanceof McidasSatResource) {
-            String projection = ((McidasRecord) pdo).getProjection();
-            if (projection.equalsIgnoreCase("STR")
-                    || projection.equalsIgnoreCase("MER")
-                    || projection.equalsIgnoreCase("LCC")) {
-                mcidasGeom = MapUtil.getGridGeometry(((ISpatialEnabled) pdo)
-                        .getSpatialObject());
-            } else {
-                mcidasGeom = ((McidasSatResource) satRsc)
-                        .createNativeGeometry(pdo);
-            }
+    private double[][] getDataFrmRectAreaOfPixelCoordsArndClckdPt(
+            double[] userClickePixelCoord, int pixelDistFrmUsrClickPt,
+            int pixelAreaDimension, MathTransform mtGridToCRS,
+            MathTransform localProjToLatLon, ICloudHeightCapable satRsc) {
+
+        double[][] arrayOfPixVal = new double[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+        PixelLocation[][] squarePixelArea = new PixelLocation[pixelDistFrmUsrClickPt][pixelDistFrmUsrClickPt];
+        int[] pixCoord = new int[2];
+
+        // Set the pixel coordinates of where the user clicked on the map
+        pixCoord[0] = (int) userClickePixelCoord[0];
+        pixCoord[1] = (int) userClickePixelCoord[1];
+
+        if (pixCoord == null || pixCoord.length != 2) {
+            // Abort
+            return null;
         }
-        return mcidasGeom;
+
+        PixelLocation userClickedPoint = new PixelLocation(pixCoord[0],
+                pixCoord[1]);
+
+        // For the rectangular area around the user clicked point generate a
+        // column of pixel coordinates in the middle of that rectangle
+        PixelLocation[] tempPixelArea = this.generatePixelLocations(
+                userClickedPoint, false, pixelDistFrmUsrClickPt);
+        int midpoint = ((int) (pixelAreaDimension));
+
+        // For each PixelLocaton in the middle column, generate the entire row
+        // to complete the rectangle of pixel coordinates around the point the
+        // the user clicked.
+        for (int i = 0; i < pixelDistFrmUsrClickPt; i++) {
+            squarePixelArea[i][midpoint] = tempPixelArea[i];
+            squarePixelArea[i] = this.generatePixelLocations(
+                    squarePixelArea[i][midpoint], true, pixelDistFrmUsrClickPt);
+        }
+
+        // Get the data from the satellite tile map for each pixel coordinate
+        // in the rectangular matrix of pixel coordinates
+        for (int i = 0; i < pixelDistFrmUsrClickPt; i++) {
+            for (int j = 0; j < pixelDistFrmUsrClickPt; j++) {
+
+                double xCoord = (double) (squarePixelArea[i][j].xCoord);
+                double yCoord = (double) (squarePixelArea[i][j].yCoord);
+
+                Coordinate latlon = pixelsBackToLatlon(mtGridToCRS,
+                        localProjToLatLon, xCoord, yCoord);
+
+                arrayOfPixVal[i][j] = satRsc.getRawIRImageValue(latlon);
+
+            }
+
+        }
+
+        return arrayOfPixVal;
+
+    }
+
+    /**
+     * Convert coordinates in pixels into the same coordinate in LatLon
+     * 
+     * @param mtGridToCRS
+     * @param localProjToLatLon
+     * @param xCoord
+     * @param yCoord
+     * @return
+     */
+    private Coordinate pixelsBackToLatlon(MathTransform mtGridToCRS,
+            MathTransform localProjToLatLon, double xCoord, double yCoord) {
+        Coordinate latlon = null;
+
+        double[] pixelCoord = new double[2];
+        double[] crsCoord = new double[2];
+        double[] latlonCoord = new double[2];
+
+        pixelCoord[0] = xCoord;
+        pixelCoord[1] = yCoord;
+
+        try {
+            mtGridToCRS.transform(pixelCoord, 0, crsCoord, 0, 1);
+            localProjToLatLon.transform(crsCoord, 0, latlonCoord, 0, 1);
+        } catch (Exception e) {
+            statusHandler
+                    .error("Error tranforming pixel coordinates to latitude and longitude",
+                            e);
+        }
+
+        latlon = new Coordinate(latlonCoord[0], latlonCoord[1]);
+
+        return latlon;
     }
 
     /**
@@ -1253,7 +1127,7 @@ public class CloudHeightProcesser {
      *            - the 2D array to search
      * @return the maximum pixel value in the array
      */
-    private double getMaxPixValue(double[][] arrayOfPixVal) {
+    private double getMaxDataVal(double[][] arrayOfPixVal) {
         double maxPixVal = 0.0f;
         if (arrayOfPixVal != null && arrayOfPixVal.length > 0) {
             int arraySize = arrayOfPixVal.length;
@@ -1275,9 +1149,9 @@ public class CloudHeightProcesser {
      *            - the input 2D array to search
      * @return the most frequently occurring pixel value
      */
-    private double getModeOfPixelValues(double[][] arrayOfPixVal) {
+    private double getModeOfDataValues(double[][] arrayOfPixVal) {
         double modePixVal = 0.0f;
-        Map<Double, Integer> frequencyMap = new HashMap<Double, Integer>(0);
+        Map<Double, Integer> frequencyMap = new HashMap<>(0);
         int counter = 0;
         if (arrayOfPixVal != null && arrayOfPixVal.length > 0) {
             int arraySize = arrayOfPixVal.length;
@@ -1345,13 +1219,9 @@ public class CloudHeightProcesser {
      */
     private List<CloudHeightData> getSoundingFromClimatology(Coordinate latlon,
             double tmpc) {
-        List<CloudHeightData> chSummer = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
-        List<CloudHeightData> chWinter = new ArrayList<CloudHeightProcesser.CloudHeightData>(
-                0);
-        List<List<CloudHeightData>> ch = new ArrayList<List<CloudHeightData>>(4);
-        // List<LevelValues> summerSounding = null;
-        // List<LevelValues> winterSounding = null;
+        List<CloudHeightData> chSummer = new ArrayList<>(0);
+        List<CloudHeightData> chWinter = new ArrayList<>(0);
+        List<List<CloudHeightData>> ch = new ArrayList<>(4);
 
         double latitude = Math.abs(latlon.y);
         Calendar cal = satelliteImageTime.getRefTimeAsCalendar();
@@ -1360,9 +1230,7 @@ public class CloudHeightProcesser {
         if (latlon.y < 0)
             jdy += 180;
 
-        /*
-         * Acquire needed data.
-         */
+        // Acquire needed data.
 
         double fraction = 1.d;
         double pfraction = 0.d;
@@ -1383,14 +1251,6 @@ public class CloudHeightProcesser {
                 if (sndMod.getName().equalsIgnoreCase("Summer-30deg")) {
                     ch.add(computeCloudHeights((ArrayList<LevelValues>) sndMod
                             .getSoundingLevels().getLevelValues(), tmpc));
-                    // for (int kk = 0; kk < sndMod.getSoundingLevels()
-                    // .getLevelValues().size(); kk++) {
-                    // System.out.print(" At 30N");
-                    // System.out.println(sndMod.getSoundingLevels()
-                    // .getLevelValues().get(kk).getPressure());
-                    // System.out.println(sndMod.getSoundingLevels()
-                    // .getLevelValues().get(kk).getHeight());
-                    // }
                 } else if (sndMod.getName().equalsIgnoreCase("Summer-15deg")) {
                     ch.add(computeCloudHeights((ArrayList<LevelValues>) sndMod
                             .getSoundingLevels().getLevelValues(), tmpc));
@@ -1430,11 +1290,6 @@ public class CloudHeightProcesser {
                             .getSoundingLevels().getLevelValues(), tmpc));
                     for (int kk = 0; kk < sndMod.getSoundingLevels()
                             .getLevelValues().size(); kk++) {
-                        // System.out.print(" At 60N");
-                        // System.out.println(sndMod.getSoundingLevels()
-                        // .getLevelValues().get(kk).getPressure());
-                        // System.out.println(sndMod.getSoundingLevels()
-                        // .getLevelValues().get(kk).getHeight());
                     }
                 } else if (sndMod.getName().equalsIgnoreCase("Summer-45deg")) {
                     ch.add(computeCloudHeights((ArrayList<LevelValues>) sndMod
@@ -1483,65 +1338,28 @@ public class CloudHeightProcesser {
 
         }
 
-        /*
-         * Geographical interpolation to the location.
-         */
-        double hhs = 0., pps = 0., hhw = 0., ppw = 0., hh = -9999., pp = -9999.;
+        // Geographical interpolation to the location.
+        double hhs = 0.0;
+        double pps = 0.0;
+        double hhw = 0.0;
+        double ppw = 0.0;
+        double hh = -9999.0;
+        double pp = -9999.0;
+
         try {
             if (latitude > 15 && latitude < 75) {
-                // System.out.println(" Summer Height over Northern Latitude "
-                // + ch.get(3).get(0).cloudHght);
-                // System.out.println(" Summer Pressure over Northern Latitude "
-                // + ch.get(3).get(0).cloudPres);
-                // System.out.println(" Summer Height over Southern Latitude "
-                // + ch.get(2).get(0).cloudHght);
-                // System.out.println(" Summer Pressure over Southern Latitude "
-                // + ch.get(2).get(0).cloudPres);
-
-                // System.out.println(" Winter Height over Northern Latitude "
-                // + ch.get(1).get(0).cloudHght);
-                // System.out.println(" Winter Pressure over Northern Latitude "
-                // + ch.get(1).get(0).cloudPres);
-                // System.out.println(" Winter Height over Southern Latitude "
-                // + ch.get(0).get(0).cloudHght);
-                // System.out.println(" Winter Pressure over Southern Latitude "
-                // + ch.get(0).get(0).cloudPres);
-
-                // System.out.println(" Fraction " + fraction);
-
                 hhs = (ch.get(3).get(0).cloudHght)
                         + (ch.get(2).get(0).cloudHght - ch.get(3).get(0).cloudHght)
                         * fraction;
                 pps = (ch.get(2).get(0).cloudPres)
                         * Math.exp((Math.log(ch.get(2).get(0).cloudPres) - Math
                                 .log(ch.get(3).get(0).cloudPres)) * pfraction);
-                // System.out.println(" Summer height at point of interest: "
-                // + hhs);
-                // System.out.println(" Summer pressure at point of interest: "
-                // + pps);
-
                 hhw = (ch.get(1).get(0).cloudHght)
                         + (ch.get(0).get(0).cloudHght - ch.get(1).get(0).cloudHght)
                         * fraction;
                 ppw = (ch.get(0).get(0).cloudPres)
                         * Math.exp((Math.log(ch.get(0).get(0).cloudPres) - Math
                                 .log(ch.get(1).get(0).cloudPres)) * pfraction);
-
-                // System.out.println(" Winter height at point of interest: "
-                // + hhw);
-                // System.out.println(" Winter pressure at point of interest: "
-                // + ppw);
-
-                // System.out
-                // .println(" Pressure and Height at the point of interest: "
-                // + pps
-                // + " "
-                // + hhs
-                // + " Winter time "
-                // + ppw
-                // + " "
-                // + hhw);
-
             } else {
                 hhs = chSummer.get(0).cloudHght;
                 pps = chSummer.get(0).cloudPres;

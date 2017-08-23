@@ -1,4 +1,5 @@
 package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
+
 /**
  * 
  * This java class performs sounding data query service functions.
@@ -7,11 +8,12 @@ package gov.noaa.nws.ncep.common.dataplugin.soundingrequest;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 05/20/2015	RM#8306		Chin Chen	Initial coding - eliminate NSHARP dependence on uEngine
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 05/20/2015	RM#8306     Chin Chen   Initial coding - eliminate NSHARP dependence on uEngine
  * 07/20/2015   RM#9173     Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounding2
- *
+ * 09/22/2016   RM15953     R.Reynolds  Added capability for wind interpolation
+ * 
  * </pre>
  * 
  * @author Chin Chen
@@ -25,172 +27,175 @@ import com.vividsolutions.jts.geom.Coordinate;
 @DynamicSerialize
 public class SoundingServiceRequest implements IServerRequest {
 
-	@DynamicSerializeElement
-	private SoundingRequestType reqType;
+    @DynamicSerializeElement
+    private SoundingRequestType reqType;
 
-	@DynamicSerializeElement
-	private SoundingType sndType;
+    @DynamicSerializeElement
+    private SoundingType sndType;
 
-	@DynamicSerializeElement
-	private long[]	refTimeAry=null;
+    @DynamicSerializeElement
+    private long[] refTimeAry = null;
 
-	@DynamicSerializeElement
-	private String[] refTimeStrAry=null;
+    @DynamicSerializeElement
+    private String[] refTimeStrAry = null;
 
-	@DynamicSerializeElement
-	private long[]	rangeStartTimeAry=null;
+    @DynamicSerializeElement
+    private long[] rangeStartTimeAry = null;
 
-	@DynamicSerializeElement
-	private String[]	rangeStartTimeStrAry=null;
+    @DynamicSerializeElement
+    private String[] rangeStartTimeStrAry = null;
 
-	@DynamicSerializeElement
-	// x:lon, y:lat
-	private Coordinate[] latLonAry=null;
+    @DynamicSerializeElement
+    // x:lon, y:lat
+    private Coordinate[] latLonAry = null;
 
-	@DynamicSerializeElement
-	private String[] stnIdAry = null;
+    @DynamicSerializeElement
+    private String[] stnIdAry = null;
 
-	@DynamicSerializeElement
-	private String modelType;  // grid model type name
-	
-	@DynamicSerializeElement
-	private boolean merge=true; // default true, except when user request "raw data" for observed data.
+    @DynamicSerializeElement
+    private String modelType; // grid model type name
 
-	@DynamicSerializeElement
-	private boolean interpolation=true; // default true, for grid model use only 
-	
-	@DynamicSerializeElement
-	private String level;
-		
-	@DynamicSerializeElement
-	private boolean pwRequired= false;
-	
-	public SoundingServiceRequest() {
-		super();
-		reqType = SoundingRequestType.NONE;
-		sndType = SoundingType.NA;
-	}
+    @DynamicSerializeElement
+    private boolean merge = true; // default true, except when user request
+                                  // "raw data" for observed data.
 
-	public static enum SoundingRequestType {
-		GET_SOUNDING_DATA_GENERIC,
-		GET_SOUNDING_REF_TIMELINE,
-		GET_SOUNDING_RANGESTART_TIMELINE,
-		GET_SOUNDING_STATION_INFO,
-		NONE
-	}
+    @DynamicSerializeElement
+    private boolean interpolation = true; // default true, for grid model use
+                                          // only
 
-	public static enum SoundingType {
-		GRID_MODEL_SND,
-		OBS_UAIR_SND,
-		OBS_BUFRUA_SND,
-		PFC_NAM_SND,
-		PFC_GFS_SND,
-		NA
-	}
+    @DynamicSerializeElement
+    private String level;
 
-	public SoundingRequestType getReqType() {
-		return reqType;
-	}
+    @DynamicSerializeElement
+    private boolean pwRequired = false;
 
-	public void setReqType(SoundingRequestType reqType) {
-		this.reqType = reqType;
-	}
+    @DynamicSerializeElement
+    private boolean windInterpolation = true;
 
-	public SoundingType getSndType() {
-		return sndType;
-	}
+    public SoundingServiceRequest() {
+        super();
+        reqType = SoundingRequestType.NONE;
+        sndType = SoundingType.NA;
+    }
 
-	public void setSndType(SoundingType sndType) {
-		this.sndType = sndType;
-	}
+    public static enum SoundingRequestType {
+        GET_SOUNDING_DATA_GENERIC, GET_SOUNDING_REF_TIMELINE, GET_SOUNDING_RANGESTART_TIMELINE, GET_SOUNDING_STATION_INFO, NONE
+    }
 
-	public long[] getRefTimeAry() {
-		return refTimeAry;
-	}
+    public static enum SoundingType {
+        GRID_MODEL_SND, OBS_UAIR_SND, OBS_BUFRUA_SND, PFC_NAM_SND, PFC_GFS_SND, NA
+    }
 
-	public void setRefTimeAry(long[] refTimeAry) {
-		this.refTimeAry = refTimeAry;
-	}
+    public SoundingRequestType getReqType() {
+        return reqType;
+    }
 
-	public long[] getRangeStartTimeAry() {
-		return rangeStartTimeAry;
-	}
+    public void setReqType(SoundingRequestType reqType) {
+        this.reqType = reqType;
+    }
 
-	public void setRangeStartTimeAry(long[] rangeStartTimeAry) {
-		this.rangeStartTimeAry = rangeStartTimeAry;
-	}
+    public SoundingType getSndType() {
+        return sndType;
+    }
 
-	public Coordinate[] getLatLonAry() {
-		return latLonAry;
-	}
+    public void setSndType(SoundingType sndType) {
+        this.sndType = sndType;
+    }
 
-	public void setLatLonAry(Coordinate[] latLonAry) {
-		this.latLonAry = latLonAry;
-	}
+    public long[] getRefTimeAry() {
+        return refTimeAry;
+    }
 
-	public String[] getStnIdAry() {
-		return stnIdAry;
-	}
+    public void setRefTimeAry(long[] refTimeAry) {
+        this.refTimeAry = refTimeAry;
+    }
 
-	public void setStnIdAry(String[] stnIdAry) {
-		this.stnIdAry = stnIdAry;
-	}
+    public long[] getRangeStartTimeAry() {
+        return rangeStartTimeAry;
+    }
 
-	public boolean isMerge() {
-		return merge;
-	}
+    public void setRangeStartTimeAry(long[] rangeStartTimeAry) {
+        this.rangeStartTimeAry = rangeStartTimeAry;
+    }
 
-	public void setMerge(boolean merge) {
-		this.merge = merge;
-	}
+    public Coordinate[] getLatLonAry() {
+        return latLonAry;
+    }
 
-	public boolean isInterpolation() {
-		return interpolation;
-	}
+    public void setLatLonAry(Coordinate[] latLonAry) {
+        this.latLonAry = latLonAry;
+    }
 
-	public void setInterpolation(boolean interpolation) {
-		this.interpolation = interpolation;
-	}
+    public String[] getStnIdAry() {
+        return stnIdAry;
+    }
 
-	public String getModelType() {
-		return modelType;
-	}
+    public void setStnIdAry(String[] stnIdAry) {
+        this.stnIdAry = stnIdAry;
+    }
 
-	public void setModelType(String modelType) {
-		this.modelType = modelType;
-	}
+    public boolean isMerge() {
+        return merge;
+    }
 
-	public String[] getRefTimeStrAry() {
-		return refTimeStrAry;
-	}
+    public void setMerge(boolean merge) {
+        this.merge = merge;
+    }
 
-	public void setRefTimeStrAry(String[] refTimeStrAry) {
-		this.refTimeStrAry = refTimeStrAry;
-	}
+    public boolean isInterpolation() {
+        return interpolation;
+    }
 
-	public String getLevel() {
-		return level;
-	}
+    public void setInterpolation(boolean interpolation) {
+        this.interpolation = interpolation;
+    }
 
-	public void setLevel(String level) {
-		this.level = level;
-	}
+    public String getModelType() {
+        return modelType;
+    }
 
-	public boolean isPwRequired() {
-		return pwRequired;
-	}
+    public void setModelType(String modelType) {
+        this.modelType = modelType;
+    }
 
-	public void setPwRequired(boolean pwRequired) {
-		this.pwRequired = pwRequired;
-	}
+    public String[] getRefTimeStrAry() {
+        return refTimeStrAry;
+    }
 
-	public String[] getRangeStartTimeStrAry() {
-		return rangeStartTimeStrAry;
-	}
+    public void setRefTimeStrAry(String[] refTimeStrAry) {
+        this.refTimeStrAry = refTimeStrAry;
+    }
 
-	public void setRangeStartTimeStrAry(String[] rangeStartTimeStrAry) {
-		this.rangeStartTimeStrAry = rangeStartTimeStrAry;
-	}
+    public String getLevel() {
+        return level;
+    }
 
-	
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    public boolean isPwRequired() {
+        return pwRequired;
+    }
+
+    public void setPwRequired(boolean pwRequired) {
+        this.pwRequired = pwRequired;
+    }
+
+    public String[] getRangeStartTimeStrAry() {
+        return rangeStartTimeStrAry;
+    }
+
+    public void setRangeStartTimeStrAry(String[] rangeStartTimeStrAry) {
+        this.rangeStartTimeStrAry = rangeStartTimeStrAry;
+    }
+
+    public boolean isWindInterpolation() {
+        return windInterpolation;
+    }
+
+    public void setWindInterpolation(boolean windInterpolation) {
+        this.windInterpolation = windInterpolation;
+    }
+
 }

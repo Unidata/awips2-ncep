@@ -4,15 +4,10 @@ import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
-import java.lang.reflect.Constructor;
-
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
-import com.raytheon.uf.common.status.UFStatus.Priority;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
 
 /**
@@ -35,6 +30,7 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  *                                          D2D instantiates this class in populating the contextMenu
  * 12/01/2015     R12953       RReynolds    Refactored title string of attribute dialog box
  * 01/01/2016     R14142       RCReynolds   Refactored so title string can be passed from both Legend and Edit Button.
+ * 04/05/2016     R15715       dgilling     Refactored out PopupEditAttrsDialog and associated methods.
  * 
  * </pre>
  * 
@@ -43,127 +39,35 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  */
 public class EditResourceAttrsAction extends AbstractRightClickAction {
 
-    private String title = null;
+    private final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(getClass());
 
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(EditResourceAttrsAction.class);
-
-    private ResourceExtPointMngr rscExtPointMngr = null;
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.action.Action#run()
-     */
     @Override
     public void run() {
-        // add sanity check that this is an INatlCntrsResource
         Shell shell = NcDisplayMngr.getCaveShell();
 
-        if (selectedRsc.getResource() instanceof INatlCntrsResource) {
+        if (getSelectedRsc() instanceof INatlCntrsResource) {
             // Popup with the Apply button
-            if (PopupEditAttrsDialog(shell,
-                    (INatlCntrsResourceData) selectedRsc.getResourceData(),
-                    true)) {
-                ((INatlCntrsResource) selectedRsc.getResource())
-                        .resourceAttrsModified();
+            EditResourceAttrsDialogFactory factory = new EditResourceAttrsDialogFactory()
+                    .setShell(shell)
+                    .setResourceData(
+                            (INatlCntrsResourceData) getSelectedRsc()
+                                    .getResourceData())
+                    .setCapabilities(getSelectedRsc().getCapabilities())
+                    .setApplyBtn(true).setTitle(getText());
+            if (factory.construct()) {
+                ((INatlCntrsResource) getSelectedRsc()).resourceAttrsModified();
             }
             getContainer().refresh();
 
-        } else
-            statusHandler.handle(Priority.INFO,
-                    "Edit Attr sanity check: Resource is not a NC Resource.");
-    }
-
-    // TODO : This method is also called by the RBD Manager. Consider moving to
-    // another class.
-
-    @SuppressWarnings("unchecked")
-    public boolean PopupEditAttrsDialog(Shell sh,
-            INatlCntrsResourceData rscData, Boolean applyBtn) {
-
-        if (rscExtPointMngr == null) {
-            rscExtPointMngr = ResourceExtPointMngr.getInstance();
-        }
-
-        if (rscData == null) {
-            statusHandler.handle(Priority.INFO,
-                    "Resource is null in PopupEditAttrsDialog");
-            return false;
-        }
-        AbstractEditResourceAttrsDialog editAttrsDlg = null;
-
-        Class<?> editDlgClass = rscExtPointMngr.getResourceDialogClass(rscData
-                .getResourceName());
-
-        // this should be a sanity check since the Edit button should be
-        // desensitized if this
-        // resource doesn't extent the Abstract Dialog class
-        if (editDlgClass == null) {
-            MessageDialog msgDlg = new MessageDialog(
-                    NcDisplayMngr.getCaveShell(), "Info", null, "Resource "
-                            + rscData.getResourceName().toString()
-                            + " is not editable", MessageDialog.INFORMATION,
-                    new String[] { "OK" }, 0);
-            msgDlg.open();
-
-            return false;
-        }
-        Constructor<?> constr;
-
-        try {
-            constr = editDlgClass.getConstructor(new Class[] { Shell.class,
-                    INatlCntrsResourceData.class, Boolean.class });
-            editAttrsDlg = (AbstractEditResourceAttrsDialog) constr
-                    .newInstance(sh, rscData, applyBtn);
-
-            String titleCheck = getText();
-            if (titleCheck != null) {
-                editAttrsDlg.dlgTitle = titleCheck;
-            }
-
-            if (!editAttrsDlg.isOpen()) {
-                editAttrsDlg.open();
-                return editAttrsDlg.ok;
-            }
-
-        } catch (Exception e) {
-            statusHandler.handle(Priority.ERROR,
-                    "Error instantiating Edit Dialog for Resource: "
-                            + rscData.getResourceName().toString()
-                            + " Dialog class is: " + editDlgClass);
-        }
-
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.action.Action#getText()
-     */
-    @SuppressWarnings("unchecked")
-    public String getText() {
-        if (selectedRsc != null) {
-            return "Edit " + selectedRsc.getResource().getName().toString()
-                    + " Attributes";
-        } else if (title != null) {
-            return "Edit " + title + " Attributes";
-
         } else {
-            return null;
+            statusHandler
+                    .info("Edit Attr sanity check: Resource is not a NC Resource.");
         }
-    }
-
-    /**
-     * Set title for dialog resource
-     */
-    public void setText(String title) {
-        this.title = title;
     }
 
     @Override
-    public void setSelectedRsc(ResourcePair selectedRsc) {
-        super.setSelectedRsc(selectedRsc);
+    public String getText() {
+        return String.format("Edit %s Attributes", getSelectedRsc().getName());
     }
 }

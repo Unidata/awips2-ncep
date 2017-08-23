@@ -1,11 +1,5 @@
 package gov.noaa.nws.ncep.edex.common.metparameters;
 
-//import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
-//import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
-
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
-import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDerivableException;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,12 +21,15 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.raytheon.uf.common.units.UnitAdapter;
 import com.raytheon.uf.common.serialization.ISerializableObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.DataTime.FLAG;
+import com.raytheon.uf.common.units.UnitAdapter;
+
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.DeriveMethod;
+import gov.noaa.nws.ncep.edex.common.metparameters.MetParameterFactory.NotDerivableException;
 
 /**
  * An abstract class for all metParameters. This will hold the value of the
@@ -46,7 +43,8 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
  * which the value applies.
  * 
  * 
- * TODO : make this a generic for a Quantity? ... AbstractMetParameter<Q extents Quantity>
+ * TODO : make this a generic for a Quantity? ... AbstractMetParameter<Q extents
+ * Quantity>
  * 
  * <pre>
  * 
@@ -63,6 +61,10 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
  * 12/04/2014    R5437     B. Hebbard   Add/enhance recursive getDeriveMethod(..) variants to return
  *                                      ('bubble up') bottom-level (non-derived) params from the
  *                                      given set that are actually needed in the derivation.
+ * 08/24/2016    R18194    RReynolds    Added access to met data arrays
+ * 01/25/2017    R27759    S.Russell    added overrideCallChildDeriveAnyway
+ *                                      and used it in derive() to make
+ *                                      R27759 work, call the child derive()
  * 
  * </pre>
  * 
@@ -72,12 +74,16 @@ import com.raytheon.uf.common.time.DataTime.FLAG;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE)
 @DynamicSerialize
-public abstract class AbstractMetParameter extends Amount implements Quantity,
-        ISerializableObject {
+public abstract class AbstractMetParameter extends Amount
+        implements Quantity, ISerializableObject {
 
-    /**
-	 * 
-	 */
+    /*-
+     * If you have only one dervive() in the child class, and you want that
+     * derive() to be called despite missing values in some of the arguments,
+     * and your derive() is set up to handle that -- set this to true in the
+     * constructor of the child class.
+     */
+    protected boolean overrideCallChildDeriveAnyway = false;
 
     @DynamicSerializeElement
     private static final long serialVersionUID = 7369542461296836406L;
@@ -116,6 +122,28 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
     public void setDbParamNamesForDerivingThisMetPrm(
             Set<String> dbParamNamesForDerivingThisMetPrm) {
         this.dbParamNamesForDerivingThisMetPrm = dbParamNamesForDerivingThisMetPrm;
+    }
+
+    public String dbValsString[];
+
+    public Number dbValsNumber[];
+
+    public void setDbValsString(String[] dbv) {
+        dbValsString = dbv;
+    }
+
+    public void setDbValsNumber(Number[] dbv) {
+        dbValsNumber = dbv;
+    }
+
+    public Number[] getDbValsNumber() {
+
+        return dbValsNumber;
+    }
+
+    public String[] getDbValsString() {
+
+        return dbValsString;
     }
 
     // TTR 923
@@ -162,6 +190,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
     }
 
     /**
+     * -
+     * 
      * @param useStringValue
      *            the useStringValue to set
      */
@@ -173,11 +203,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
      * @param standardUnit
      *            the standardUnit to set
      */
-    //  @formatter:off
-    //	public final void setStandardUnit(Unit<?> standardUnit) {
-    //		this.standardUnit = standardUnit;
-    //	}
-    //  @formatter:on
 
     // only one of these may be set at a time. In order to hold a string value
     // the Quantity of the parameter must be Dimensionless
@@ -271,8 +296,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
         }
 
         if (dataTime.getUtilityFlags().contains(FLAG.PERIOD_USED)) {
-            return dataTime.getValidPeriod().contains(
-                    dt.getValidTime().getTime());
+            return dataTime.getValidPeriod()
+                    .contains(dt.getValidTime().getTime());
         } else {
             return dataTime.compareTo(dt) == 0;
         }
@@ -316,8 +341,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
         try {
 
             if (!isUnitCompatible(unitName)) {
-                System.out
-                        .println("getValueAs() : asking for incompatible units. "
+                System.out.println(
+                        "getValueAs() : asking for incompatible units. "
                                 + getUnit().toString() + " , " + unitName);
                 return null;
             }
@@ -376,13 +401,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
 
     // if this
     public void setStringValue(String sv) throws ConversionException {
-        // @formatter:off
-        // the units must be dimensionless
-        //		if( isUnitCompatible( Unit.ONE ) ) {
-        //			throw new ConversionException("Incompatible unit in setStringValue the Quantity "					
-        //					+" for this parameter must be Dimensionless." );
-        //		}
-        // @formatter:on
         setValueToMissing();
 
         valueString = sv;
@@ -432,7 +450,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
     private Boolean derivable(ArrayList<String> checkedParams,
             Collection<AbstractMetParameter> availableParams,
             Collection<AbstractMetParameter> usedParams) {
-        return (getDeriveMethod(checkedParams, availableParams, usedParams) != null);
+        return (getDeriveMethod(checkedParams, availableParams,
+                usedParams) != null);
     }
 
     /**
@@ -531,11 +550,6 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
             if (m.getAnnotation(DeriveMethod.class) != null) {
 
                 Class<?> rtype = m.getReturnType();
-                // @formatter:off
-                //	if (rtype.getSimpleName().equals(AbstractMetParameter.class.getName()) { // sanity check
-                //		continue;
-                //	}
-                // @formatter:on
                 Class<?>[] deriveMthdArgs = m.getParameterTypes();
 
                 // loop thru the list of args for this derive() method and check
@@ -556,8 +570,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
                     // ...or if in the list and if we have not already checked
                     // this parameter (at higher level) then see if it is
                     // derivable
-                    if (!prmFound
-                            && !checkedParams.contains(this.getMetParamName())) {
+                    if (!prmFound && !checkedParams
+                            .contains(this.getMetParamName())) {
 
                         AbstractMetParameter argParam;
                         try {
@@ -572,8 +586,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
                             checkedParams.remove(argParam.getMetParamName());
 
                         } catch (Exception e) {
-                            System.out
-                                    .println("error getting newInstance for metParam "
+                            System.out.println(
+                                    "error getting newInstance for metParam "
                                             + argClass.getSimpleName());
                         }
                     }
@@ -599,8 +613,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
             // If this happens then the caller should set the
             // preferredDeriveParameters list to tell this method which
             // arguments to use.
-            System.out.println("Sanity Check: metParameter "
-                    + getMetParamName() + " has multiple derive() methods for "
+            System.out.println("Sanity Check: metParameter " + getMetParamName()
+                    + " has multiple derive() methods for "
                     + "the given input parameters.");
             return null;
         } else {
@@ -661,7 +675,8 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
             setValueToMissing();
             return this;
             // throw new
-            // NotDerivableException("can't derive param from given parameters.");
+            // NotDerivableException("can't derive param from given
+            // parameters.");
         }
         String errMsg = "";
 
@@ -682,7 +697,11 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
                     if (inputPrm.getClass() == argClass) {
                         if (!inputPrm.hasValidValue()) {
                             setValueToMissing();
-                            return this;
+
+                            if (!this.overrideCallChildDeriveAnyway) {
+                                return this;
+                            }
+
                         } else {
                             mthdArgs.add(inputPrm);
                             prmFound = true;
@@ -767,54 +786,4 @@ public abstract class AbstractMetParameter extends Amount implements Quantity,
                     + " " + getUnit().toString();
         }
     }
-
-    //  @formatter:off
-    //	@Override
-    //	public Object clone(){
-    //		AbstractMetParameter metParam = null;
-    //		try {
-    //			synchronized(this){
-    //			metParam = this.getClass().newInstance();
-    //			
-    //			if(metParam == null )
-    //				return metParam;
-    //			
-    //			if(this.getDataTime() == null )
-    //				return metParam;
-    //			if(this.getDataTime() != null )
-    //			    metParam.dataTime = new DataTime(this.getDataTime().getRefTime());
-    //			
-    //			if( this.listOfInputMetPrmNamesForDerivingThisMetPrm != null )
-    //			    metParam.listOfInputMetPrmNamesForDerivingThisMetPrm = new ArrayList<String>(this.listOfInputMetPrmNamesForDerivingThisMetPrm);
-    //			
-    //			if( this.valueString != null )
-    //			    metParam.valueString = new String(this.valueString);
-    //			
-    //			if( this.getUnit() != null)
-    //				metParam.setUnit(this.getUnit());
-    //			
-    //			if ( this.getUnitStr() != null )
-    //				 metParam.setUnitStr( new String( this.getUnitStr() ) );
-    //			
-    //			if ( this.getValueString() != null )
-    //				metParam.setValueString( new String( this.getValueString()));
-    //			
-    //			if ( this.getValue() != null  )
-    //			     metParam.setValue(this.getValue());
-    //				
-    //			metParam.useStringValue = this.useStringValue;
-    //			}	
-    //			
-    //		} catch (InstantiationException e) {
-    //			// TODO Auto-generated catch block
-    //			e.printStackTrace();
-    //		} catch (IllegalAccessException e) {
-    //			// TODO Auto-generated catch block
-    //			e.printStackTrace();
-    //		}
-    //		
-    //		return metParam;
-    //	}
-    //  @formatter:on
-
 }

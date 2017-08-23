@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=QPE-RFC-RSA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

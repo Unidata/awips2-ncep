@@ -1,0 +1,22 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+  
+    <bean id="RetrieveAtcfDeckHandler"
+        class="gov.noaa.nws.ncep.edex.plugin.atcf.handler.RetrieveAtcfDeckHandler" />
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ncep.common.dataplugin.atcf.request.RetrieveAtcfDeckRequest" />
+        <constructor-arg ref="RetrieveAtcfDeckHandler" />
+    </bean>
+    
+    <bean id="RetrieveCyclonesHandler"
+        class="gov.noaa.nws.ncep.edex.plugin.atcf.handler.RetrieveCyclonesHandler" />
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ncep.common.dataplugin.atcf.request.RetrieveCyclonesRequest" />
+        <constructor-arg ref="RetrieveCyclonesHandler" />
+    </bean>
+    
+</beans>
+  

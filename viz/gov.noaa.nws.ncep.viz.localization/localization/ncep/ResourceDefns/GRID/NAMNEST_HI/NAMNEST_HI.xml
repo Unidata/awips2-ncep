@@ -14,7 +14,7 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=namNestHI
+inventoryParam=PMSL
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

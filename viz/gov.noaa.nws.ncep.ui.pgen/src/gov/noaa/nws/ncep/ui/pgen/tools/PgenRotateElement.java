@@ -15,7 +15,6 @@ import gov.noaa.nws.ncep.ui.pgen.annotation.Operation;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.TrackExtrapPointInfoDlg;
 import gov.noaa.nws.ncep.ui.pgen.display.ISinglePoint;
 import gov.noaa.nws.ncep.ui.pgen.display.IText.TextRotation;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.MultiPointElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Text;
@@ -38,6 +37,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/2010		#280		Moved two methods to PgenToolUtils.
  * 04/2014      TTR900      pswamy      R-click cannot return to SELECT from Rotate and DEL_OBJ
  * 09/29/2015   R12832      J. Wu       Fix direction-change when moving hash marks.
+ * 03/04/2016   R15238      J. Wu       Fix direction when rotating burbs.
  * 
  * </pre>
  * 
@@ -123,13 +123,6 @@ public class PgenRotateElement extends AbstractPgenDrawingTool {
                 DrawableElement elSelected = drawingLayer.getNearestElement(
                         loc, rotateFilter);
 
-                /*
-                 * if (elSelected instanceof TCAElement) {
-                 * PgenUtil.loadTCATool(elSelected); } else if (elSelected
-                 * instanceof WatchBox) {
-                 * PgenUtil.loadWatchBoxModifyTool(elSelected); }
-                 */
-
                 if (elSelected != null)
                     drawingLayer.setSelected(elSelected);
 
@@ -143,18 +136,7 @@ public class PgenRotateElement extends AbstractPgenDrawingTool {
                     trackExtrapPointInfoDlg = null;
                 }
 
-                if (drawingLayer.getSelectedDE() != null) {
-                    drawingLayer.removeGhostLine();
-                    ptSelected = false;
-                    drawingLayer.removeSelected();
-                    mapEditor.refresh();
-
-                } else {
-                    // set selecting mode
-                    PgenUtil.setSelectingMode();
-                }
-
-                return true;
+                return false;
             }
 
             return false;
@@ -185,27 +167,17 @@ public class PgenRotateElement extends AbstractPgenDrawingTool {
 
                 if (el instanceof Vector) {
                     if (oldDir == null) {
-                        oldDir = ((Vector) el).getDirection(); // autoboxing to
-                                                               // Double
+                        oldDir = ((Vector) el).getDirection();
                     }
-                    double[] swtCoordinates = mapEditor
-                            .translateInverseClick(origin);
-                    Double newDir = PgenToolUtils.calculateAngle(oldDir,
-                            swtCoordinates[0], swtCoordinates[1], x, y);
-                    if (((Vector) el).getVectorType().equals(
-                            VectorType.HASH_MARK)) {
-                        newDir = ((Vector) el).vectorDirection(origin, loc);
-                    } else {
-                        // offset for the location point
-                        newDir += southOffsetAngle(origin);
-                    }
+
+                    Double newDir = ((Vector) el).vectorDirection(origin, loc);
                     ((Vector) el).setDirection(newDir);
 
                 } else if (el instanceof Text) {
                     if (oldDir == null) {
-                        oldDir = ((Text) el).getRotation(); // autoboxing to
-                                                            // Double
+                        oldDir = ((Text) el).getRotation();
                     }
+
                     double[] swtCoordinates = mapEditor
                             .translateInverseClick(origin);
                     Double newRotation = 180 - PgenToolUtils.calculateAngle(

@@ -1,33 +1,4 @@
-/**
- * 
- * gov.noaa.nws.ncep.ui.nctextui.palette.NctextPaletteWindow
- * 
- * This java class performs the NCTEXT GUI construction.
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 12/24/2009		TBD		Chin Chen	Initial coding
- * 06/28/2011       T402       X. Guo   Re-format NCTEXT view panel, check
- *                                      the click action on nctext legend
- * 02/15/2012     #972      G. Hull     NatlCntrsEditor 
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
 package gov.noaa.nws.ncep.ui.nctextui.palette;
-
-import gov.noaa.nws.ncep.ui.nctextui.dbutil.EReportTimeRange;
-import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextDbQuery;
-import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextStationInfo;
-import gov.noaa.nws.ncep.ui.nctextui.rsc.NctextuiResource;
-import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +31,40 @@ import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.viz.ui.UiUtil;
 
-public class NctextuiPaletteWindow extends ViewPart implements
-        SelectionListener, DisposeListener, IPartListener {
+import gov.noaa.nws.ncep.ui.nctextui.dbutil.EReportTimeRange;
+import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextDbQuery;
+import gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextStationInfo;
+import gov.noaa.nws.ncep.ui.nctextui.rsc.NctextuiResource;
+import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
+/**
+ * 
+ * gov.noaa.nws.ncep.ui.nctextui.palette.NctextPaletteWindow
+ * 
+ * This java class performs the NCTEXT GUI construction. This code has been
+ * developed by the SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 12/24/2009   TBD         Chin Chen   Initial coding
+ * 06/28/2011   T402        X. Guo      Re-format NCTEXT view panel, check
+ *                                      the click action on nctext legend
+ * 02/15/2012   #972        G. Hull     NatlCntrsEditor 
+ * 12/12/2016   R25982      J Beck      Modify support for Aviation > TAFs
+ *                                      and Observed Data > TAFs Decoded
+ *
+ * </pre>
+ * 
+ * @author Chin Chen
+ * @version 1.0
+ */
+
+public class NctextuiPaletteWindow extends ViewPart
+        implements SelectionListener, DisposeListener, IPartListener {
 
     private String selectedGp = null;
 
@@ -76,6 +79,8 @@ public class NctextuiPaletteWindow extends ViewPart implements
     private NctextDbQuery query;
 
     private EReportTimeRange timeCovered = EReportTimeRange.TWELVE_HOURS;
+
+    private EReportTimeRange tempTimeCovered;
 
     private boolean isState = false;
 
@@ -123,7 +128,7 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
     private Button nextBtn, prevBtn;
 
-    private java.util.List<NctextStationInfo> points = new ArrayList<NctextStationInfo>();
+    private java.util.List<NctextStationInfo> points = new ArrayList<>();
 
     private HandlePrinting printingHandle;
 
@@ -137,95 +142,12 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
     private int currentTextIndex;
 
-    public int getCurrentTextIndex() {
-        return currentTextIndex;
-    }
+    private Button oneHrBtn, threeHrBtn, sixHrBtn, twelveHrBtn, twentyfourHrBtn,
+            fourtyeightHrBtn, allHrBtn;
 
-    public void setCurrentTextIndex(int currentTextIndex) {
-        this.currentTextIndex = currentTextIndex;
-    }
-
-    public java.util.List<Object[]> getCurrentTextReports() {
-        return currentTextReports;
-    }
-
-    public void setCurrentTextReports(
-            java.util.List<Object[]> currentTextReports) {
-        this.currentTextReports = currentTextReports;
-    }
-
-    public java.util.List<NctextStationInfo> getPoints() {
-        return points;
-    }
-
-    public void setPoints(java.util.List<NctextStationInfo> points) {
-        this.points = points;
-    }
-
-    public boolean isReplaceText() {
-        return replaceText;
-    }
-
-    public void setReplaceText(boolean replaceText) {
-        this.replaceText = replaceText;
-    }
-
-    public EReportTimeRange getTimeCovered() {
-        return timeCovered;
-    }
-
-    public void setTimeCovered(EReportTimeRange timeCovered) {
-        this.timeCovered = timeCovered;
-    }
-
-    public boolean isState() {
-        return isState;
-    }
-
-    public void setState(boolean isState) {
-        this.isState = isState;
-    }
-
-    public String getCurrentProductName() {
-        return currentProductName;
-    }
-
-    public void setCurrentProductName(String currentProductName) {
-        this.currentProductName = currentProductName;
-    }
-
-    public void enableNextBtn(boolean enable) {
-        nextBtn.setEnabled(enable);
-    }
-
-    public void enablePrevBtn(boolean enable) {
-        prevBtn.setEnabled(enable);
-    }
-
-    public void setEditorVisible(boolean isVisible) {
-        this.isEditorVisible = isVisible;
-    }
-
-    public boolean getEditorVisible() {
-        return this.isEditorVisible;
-    }
-
-    public void setDataTypeGroupItem(int item) {
-        this.dataTypeGpItem = item;
-    }
-
-    public int getDataTypeGroupItem() {
-        return this.dataTypeGpItem;
-    }
-
-    public void setDataTypeProductItem(int item) {
-        this.dataTypePdItem = item;
-    }
-
-    public int getDataTypeProductItem() {
-        return this.dataTypePdItem;
-    }
-
+    /**
+     * No-arg Constructor
+     */
     public NctextuiPaletteWindow() {
 
         super();
@@ -234,12 +156,12 @@ public class NctextuiPaletteWindow extends ViewPart implements
         else {
             NctextuiPaletteWindow tmp = nctextuiPaletteWindow;
             nctextuiPaletteWindow = this;
-            nctextuiPaletteWindow.setCurrentProductName(tmp
-                    .getCurrentProductName());
-            nctextuiPaletteWindow.setDataTypeGroupItem(tmp
-                    .getDataTypeGroupItem());
-            nctextuiPaletteWindow.setDataTypeProductItem(tmp
-                    .getDataTypeProductItem());
+            nctextuiPaletteWindow
+                    .setCurrentProductName(tmp.getCurrentProductName());
+            nctextuiPaletteWindow
+                    .setDataTypeGroupItem(tmp.getDataTypeGroupItem());
+            nctextuiPaletteWindow
+                    .setDataTypeProductItem(tmp.getDataTypeProductItem());
             ;
             nctextuiPaletteWindow.selectedGp = tmp.selectedGp;
             nctextuiPaletteWindow.selectedType = tmp.selectedType;
@@ -355,13 +277,13 @@ public class NctextuiPaletteWindow extends ViewPart implements
         dataTypeGp.setText(GP_LABEL);
 
         // create GP widget list
-        gpWdgList = new org.eclipse.swt.widgets.List(dataTypeGp, SWT.SINGLE
-                | SWT.V_SCROLL);
+        gpWdgList = new org.eclipse.swt.widgets.List(dataTypeGp,
+                SWT.SINGLE | SWT.V_SCROLL);
         gpWdgList.setBounds(dataTypeGp.getBounds().x + btnGapX,
                 dataTypeGp.getBounds().y + labelGap, colWidth, listHeight);
+
         // query gp list form nctextdbrsc
         query = NctextDbQuery.getAccess();
-        // query = NctextDbQueryX.getAccess();
         java.util.List<String> groupList = query.getDataTypeGpList();
 
         if ((groupList != null) && (groupList.size() > 0)
@@ -385,6 +307,7 @@ public class NctextuiPaletteWindow extends ViewPart implements
             public void handleEvent(Event e) {
                 if (gpWdgList.getSelectionCount() > 0) {
                     selectedGp = gpWdgList.getSelection()[0];
+
                     // query selected gp's product type list form nctextdbrsc
                     prodTypeList = query.getGpProductList(selectedGp);
                     typeWdgList.removeAll();
@@ -392,14 +315,37 @@ public class NctextuiPaletteWindow extends ViewPart implements
                     for (String str : prodTypeList) {
                         /*
                          * add product type list to widget list, note that
-                         * Widgget list was created earlier. This part of code
-                         * is listener event handler and is invoked when user
-                         * picks gp
+                         * Widget list was created earlier. This part of code is
+                         * listener event handler and is invoked when user picks
+                         * gp
                          */
                         typeWdgList.add(str);
                     }
+
+                    /*
+                     * The default is to highlight the first item in the
+                     * typeWdgList column
+                     */
                     typeWdgList.setSelection(0);
                     setDataTypeGroupItem(gpWdgList.getSelectionIndex());
+
+                    /*
+                     * Check to make sure there is a type for this group, then
+                     * enable or disable the "Hour Covered" buttons.
+                     */
+
+                    String productType = null;
+                    int productTypeListSize = typeWdgList.getSelectionCount();
+
+                    if (productTypeListSize > 0) {
+
+                        productType = typeWdgList.getSelection()[0];
+
+                        // Disable the "Hour Covered" radio buttons for TAF text
+                        // products
+                        enableOrDisableHoursButtons(productType);
+
+                    }
                 }
             }
         });
@@ -410,8 +356,8 @@ public class NctextuiPaletteWindow extends ViewPart implements
         prodListGp = new Group(parent, SWT.SHADOW_ETCHED_IN);
         prodListGp.setText(PRODUCT_LABEL);
         // create product type widget list
-        typeWdgList = new org.eclipse.swt.widgets.List(prodListGp, SWT.SINGLE
-                | SWT.V_SCROLL | SWT.H_SCROLL);
+        typeWdgList = new org.eclipse.swt.widgets.List(prodListGp,
+                SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL);
 
         typeWdgList.setBounds(prodListGp.getBounds().x + btnGapX,
                 prodListGp.getBounds().y + labelGap, colWidth, listHeight);
@@ -439,6 +385,10 @@ public class NctextuiPaletteWindow extends ViewPart implements
                     // type
                     handleProductTypeStnMarking();
                     setDataTypeProductItem(typeWdgList.getSelectionIndex());
+
+                    // Disable the "Hour Covered" radio buttons for TAF text
+                    // products
+                    enableOrDisableHoursButtons(currentProductName);
                 }
             }
         });
@@ -456,7 +406,8 @@ public class NctextuiPaletteWindow extends ViewPart implements
             if (points != null && points.size() > 1) {
                 text.setText(" ");
             } else {
-                text.setText("No Station Reports This Product At Selected Time Range");
+                text.setText(
+                        "No Station Reports This Product At Selected Time Range");
             }
             nextBtn.setEnabled(false);
             prevBtn.setEnabled(false);
@@ -517,22 +468,22 @@ public class NctextuiPaletteWindow extends ViewPart implements
                 timeCovered = EReportTimeRange.NONE;
                 if (!btnText.equals("all")) {
                     EReportTimeRange timeRange = EReportTimeRange.NONE;
-                    timeCovered = timeRange.getTimeRangeFromInt(Integer
-                            .valueOf(btnText));
+                    timeCovered = timeRange
+                            .getTimeRangeFromInt(Integer.valueOf(btnText));
                 }
                 handleStnMarkingRequestByBtn();
             }
 
         };
 
-        Button oneHrBtn = new Button(timeGp, SWT.RADIO | SWT.BORDER);
+        oneHrBtn = new Button(timeGp, SWT.RADIO | SWT.BORDER);
         oneHrBtn.setText("1");
         oneHrBtn.setEnabled(true);
-        oneHrBtn.setBounds(timeGp.getBounds().x + btnGapX, timeGp.getBounds().y
-                + labelGap, timeBtnWidth, btnHeight);
+        oneHrBtn.setBounds(timeGp.getBounds().x + btnGapX,
+                timeGp.getBounds().y + labelGap, timeBtnWidth, btnHeight);
         oneHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button threeHrBtn = new Button(timeGp, SWT.RADIO);
+        threeHrBtn = new Button(timeGp, SWT.RADIO);
         threeHrBtn.setText("3");
         threeHrBtn.setEnabled(true);
         threeHrBtn.setBounds(
@@ -541,16 +492,17 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
         threeHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button sixHrBtn = new Button(timeGp, SWT.RADIO);
+        sixHrBtn = new Button(timeGp, SWT.RADIO);
         sixHrBtn.setText("6");
         sixHrBtn.setEnabled(true);
-        sixHrBtn.setBounds(threeHrBtn.getBounds().x
-                + threeHrBtn.getBounds().width + btnGapX, timeGp.getBounds().y
-                + labelGap, timeBtnWidth, btnHeight);
+        sixHrBtn.setBounds(
+                threeHrBtn.getBounds().x + threeHrBtn.getBounds().width
+                        + btnGapX,
+                timeGp.getBounds().y + labelGap, timeBtnWidth, btnHeight);
 
         sixHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button twelveHrBtn = new Button(timeGp, SWT.RADIO);
+        twelveHrBtn = new Button(timeGp, SWT.RADIO);
         twelveHrBtn.setText("12");
         twelveHrBtn.setEnabled(true);
         twelveHrBtn.setBounds(timeGp.getBounds().x + btnGapX,
@@ -559,33 +511,37 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
         twelveHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button twentyfourHrBtn = new Button(timeGp, SWT.RADIO);
+        twentyfourHrBtn = new Button(timeGp, SWT.RADIO);
         twentyfourHrBtn.setText("24");
         twentyfourHrBtn.setEnabled(true);
-        twentyfourHrBtn.setBounds(btnGapX + twelveHrBtn.getBounds().x
-                + twelveHrBtn.getBounds().width, threeHrBtn.getBounds().y
-                + threeHrBtn.getBounds().height + btnGapY, timeBtnWidth,
-                btnHeight);
+        twentyfourHrBtn.setBounds(
+                btnGapX + twelveHrBtn.getBounds().x
+                        + twelveHrBtn.getBounds().width,
+                threeHrBtn.getBounds().y + threeHrBtn.getBounds().height
+                        + btnGapY,
+                timeBtnWidth, btnHeight);
 
         twentyfourHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button fourtyeightHrBtn = new Button(timeGp, SWT.RADIO);
+        fourtyeightHrBtn = new Button(timeGp, SWT.RADIO);
         fourtyeightHrBtn.setText("48");
         fourtyeightHrBtn.setEnabled(true);
-        fourtyeightHrBtn.setBounds(btnGapX + twentyfourHrBtn.getBounds().x
-                + twentyfourHrBtn.getBounds().width, sixHrBtn.getBounds().y
-                + sixHrBtn.getBounds().height + btnGapY, timeBtnWidth,
-                btnHeight);
+        fourtyeightHrBtn.setBounds(
+                btnGapX + twentyfourHrBtn.getBounds().x
+                        + twentyfourHrBtn.getBounds().width,
+                sixHrBtn.getBounds().y + sixHrBtn.getBounds().height + btnGapY,
+                timeBtnWidth, btnHeight);
 
         fourtyeightHrBtn.addListener(SWT.MouseUp, btnListeener);
 
-        Button allHrBtn = new Button(timeGp, SWT.RADIO);
+        allHrBtn = new Button(timeGp, SWT.RADIO);
         allHrBtn.setText("all");
         allHrBtn.setEnabled(true);
-        allHrBtn.setBounds(btnGapX + fourtyeightHrBtn.getBounds().x
-                + fourtyeightHrBtn.getBounds().width, sixHrBtn.getBounds().y
-                + sixHrBtn.getBounds().height + btnGapY, timeBtnWidth,
-                btnHeight);
+        allHrBtn.setBounds(
+                btnGapX + fourtyeightHrBtn.getBounds().x
+                        + fourtyeightHrBtn.getBounds().width,
+                sixHrBtn.getBounds().y + sixHrBtn.getBounds().height + btnGapY,
+                timeBtnWidth, btnHeight);
 
         if (timeCovered == EReportTimeRange.ONE_HOUR)
             oneHrBtn.setSelection(true);
@@ -604,6 +560,7 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
         allHrBtn.addListener(SWT.MouseUp, btnListeener);
         createStaStnBtns(composite);
+
     }
 
     public void createStaStnBtns(Composite parent) {
@@ -629,8 +586,9 @@ public class NctextuiPaletteWindow extends ViewPart implements
         stateBtn.setEnabled(true);
         if (isState)
             stateBtn.setSelection(true);
-        stateBtn.setBounds(stationBtn.getBounds().x
-                + stationBtn.getBounds().width + btnGapX,
+        stateBtn.setBounds(
+                stationBtn.getBounds().x + stationBtn.getBounds().width
+                        + btnGapX,
                 staStnGp.getBounds().y + labelGap, staBtnWidth, btnHeight);
 
         stateBtn.addListener(SWT.MouseUp, new Listener() {
@@ -694,8 +652,9 @@ public class NctextuiPaletteWindow extends ViewPart implements
         Button appendBtn = new Button(textModeGp, SWT.RADIO);
         appendBtn.setText("Append");
         appendBtn.setEnabled(true);
-        appendBtn.setBounds(replaceBtn.getBounds().x
-                + replaceBtn.getBounds().width + btnGapX,
+        appendBtn.setBounds(
+                replaceBtn.getBounds().x + replaceBtn.getBounds().width
+                        + btnGapX,
                 textModeGp.getBounds().y + labelGap, staBtnWidth, btnHeight);
 
         appendBtn.addListener(SWT.MouseUp, new Listener() {
@@ -710,8 +669,9 @@ public class NctextuiPaletteWindow extends ViewPart implements
         prevBtn = new Button(textModeGp, SWT.PUSH);
         prevBtn.setText("Previous");
         prevBtn.setEnabled(false);
-        prevBtn.setBounds(appendBtn.getBounds().x + appendBtn.getBounds().width
-                + btnGapX, textModeGp.getBounds().y + labelGap, staBtnWidth,
+        prevBtn.setBounds(
+                appendBtn.getBounds().x + appendBtn.getBounds().width + btnGapX,
+                textModeGp.getBounds().y + labelGap, staBtnWidth,
                 pushbtnHeight);
 
         prevBtn.addListener(SWT.MouseUp, new Listener() {
@@ -742,8 +702,9 @@ public class NctextuiPaletteWindow extends ViewPart implements
         nextBtn = new Button(textModeGp, SWT.PUSH);
         nextBtn.setText("Next");
         nextBtn.setEnabled(false);
-        nextBtn.setBounds(prevBtn.getBounds().x + prevBtn.getBounds().width
-                + btnGapX, textModeGp.getBounds().y + labelGap, staBtnWidth,
+        nextBtn.setBounds(
+                prevBtn.getBounds().x + prevBtn.getBounds().width + btnGapX,
+                textModeGp.getBounds().y + labelGap, staBtnWidth,
                 pushbtnHeight);
 
         nextBtn.addListener(SWT.MouseUp, new Listener() {
@@ -775,8 +736,9 @@ public class NctextuiPaletteWindow extends ViewPart implements
         Button printBtn = new Button(textModeGp, SWT.PUSH);
         printBtn.setText("Print");
         printBtn.setEnabled(true);
-        printBtn.setBounds(nextBtn.getBounds().x + nextBtn.getBounds().width
-                + btnGapX, textModeGp.getBounds().y + labelGap, staBtnWidth,
+        printBtn.setBounds(
+                nextBtn.getBounds().x + nextBtn.getBounds().width + btnGapX,
+                textModeGp.getBounds().y + labelGap, staBtnWidth,
                 pushbtnHeight);
 
         printBtn.addListener(SWT.MouseUp, new Listener() {
@@ -832,13 +794,11 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
     @Override
     public void setFocus() {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void widgetSelected(SelectionEvent e) {
-        // TODO Auto-generated method stub
 
     }
 
@@ -847,17 +807,20 @@ public class NctextuiPaletteWindow extends ViewPart implements
 
         if (StnPt != null && (mapEditor != null)) {
             // add RED "X" marker(s) on picked stn
-            List<NctextStationInfo> rtnStateStnLst = new ArrayList<NctextStationInfo>();
+            List<NctextStationInfo> rtnStateStnLst = new ArrayList<>();
+
             if (nctextuiPaletteWindow.isState() == true) {
 
                 List<NctextStationInfo> stateStnLst = query
-                        .getStateStationInfoList(nctextuiPaletteWindow
-                                .getCurrentProductName() + StnPt.getState());
+                        .getStateStationInfoList(
+                                nctextuiPaletteWindow.getCurrentProductName()
+                                        + StnPt.getState());
                 // need to filter out those stns does not have reports in DB
                 // now, use points list for reference
                 for (NctextStationInfo stnInState : stateStnLst) {
                     for (NctextStationInfo stnHasRpt : points) {
-                        if (stnInState.getStnid().equals(stnHasRpt.getStnid()) == true) {
+                        if (stnInState.getStnid()
+                                .equals(stnHasRpt.getStnid()) == true) {
                             rtnStateStnLst.add(stnInState);
                             break;
                         }
@@ -867,14 +830,16 @@ public class NctextuiPaletteWindow extends ViewPart implements
                 rtnStateStnLst.add(StnPt);
             }
 
-            // Make text bold for readability
             Text text = nctextuiPaletteWindow.getText();
             bold(text);
 
-            if (nctextuiPaletteWindow.isReplaceText() == false) {
+            // Whether to use append text or replace text behavior
+            if (!nctextuiPaletteWindow.isReplaceText()) {
+
                 // APPEND mode
                 List<NctextStationInfo> prevPickedStnLst = NctextuiResource
                         .getNctextuiResource().getPickedStnPt();
+
                 if (prevPickedStnLst.size() > 0) {
                     if (rtnStateStnLst.addAll(prevPickedStnLst) == false) {
                         return;
@@ -884,54 +849,109 @@ public class NctextuiPaletteWindow extends ViewPart implements
                 // REPLACE mode
                 text.setText("");
             }
-            NctextuiResource.getNctextuiResource().setPickedStnPt(
-                    rtnStateStnLst);
+
+            NctextuiResource.getNctextuiResource()
+                    .setPickedStnPt(rtnStateStnLst);
             mapEditor.refresh();
-            // QUERY DB now....Object[0] = Rawrecord text data, Object[1] =
-            // issuesite
+
             List<List<Object[]>> rptLstList = query.getProductDataListList(
+
                     nctextuiPaletteWindow.selectedGp,
                     nctextuiPaletteWindow.getCurrentProductName(), StnPt,
                     nctextuiPaletteWindow.getTimeCovered(),
                     nctextuiPaletteWindow.isState(), null);
+
+            // Handle empty rptLstList
             if (rptLstList.isEmpty()) {
-                if (nctextuiPaletteWindow.isState())
-                    text.append("--State " + StnPt.getState() + "--"
+
+                // STATE: What to print when there is nothing returned from db
+                if (nctextuiPaletteWindow.isState()) {
+
+                    text.append("--State Empty " + StnPt.getState() + "--"
                             + nctextuiPaletteWindow.getCurrentProductName()
                             + " Report (Station picked " + StnPt.getStnid()
                             + ")\n");
-                else
-                    text.append("--Text-- " + ": "
-                            + nctextuiPaletteWindow.getCurrentProductName()
-                            + ": Reporting Station: (" + StnPt.getStnid()
-                            + ") " + StnPt.getStnname() + NEW_LINE);
-                if (nctextuiPaletteWindow.getTimeCovered().getTimeRange() == 0)
-                    text.append("Report unavailable in database.\n");
-                else
-                    text.append("Report unavailable within "
-                            + nctextuiPaletteWindow.getTimeCovered()
-                                    .getTimeRange() + " hour(s) range.\n");
+                } else {
 
-                nctextuiPaletteWindow.enablePrevBtn(false);
-            } else {
-                String textToDisp;
-                String textRawStr;
-                StringBuilder textStr;
-                if (nctextuiPaletteWindow.isState()) {
-                    // SelectBy State mode
-                    textStr = new StringBuilder("--State " + StnPt.getState()
-                            + "--"
+                    // STATION:What to print when there is nothing returned from
+                    // db
+                    text.append("--Text-- " + ": "
+
                             + nctextuiPaletteWindow.getCurrentProductName()
-                            + " Report\n");
+                            + ": Station: (" + StnPt.getStnid() + ") "
+                            + StnPt.getStnname() + NEW_LINE);
+                }
+
+                if (nctextuiPaletteWindow.getTimeCovered()
+                        .getTimeRange() == 0) {
+
+                    text.append("Report unavailable in database.\n");
+
+                } else {
+
+                    text.append(
+                            "Report unavailable within "
+                                    + nctextuiPaletteWindow.getTimeCovered()
+                                            .getTimeRange()
+                                    + " hour(s) range.\n");
+
+                    nctextuiPaletteWindow.enablePrevBtn(false);
+                }
+
+            } else {
+                String textToDisp = "";
+                String rawBulletin;
+                StringBuilder textStr;
+
+                /*
+                 * "Select By State" Radio button is checked
+                 */
+                if (nctextuiPaletteWindow.isState()) {
+
+                    if (isTafProduct(currentProductName)) {
+                        textStr = new StringBuilder("");
+                    } else {
+                        textStr = new StringBuilder(
+                                "--State of " + StnPt.getState() + " -- "
+                                        + nctextuiPaletteWindow
+                                                .getCurrentProductName()
+                                        + " Report" + NEW_LINE);
+                    }
 
                     for (List<Object[]> lstObj : rptLstList) {
-                        textStr.append("--Station "
-                                + (String) (lstObj.get(0))[1] + "-- : "
-                                + nctextuiPaletteWindow.getCurrentProductName()
-                                + NEW_LINE);
-                        textRawStr = (String) (lstObj.get(0))[0];
-                        // remove CR before displaying
-                        textToDisp = removeCR(textRawStr);
+
+                        // Get the station ID from lstObj
+                        String stationId = (String) (lstObj
+                                .get(lstObj.size() - 1))[0];
+
+                        // get the raw bulletin
+                        rawBulletin = (String) (lstObj.get(0))[0];
+
+                        // Add to the station header text if not TAF
+                        if (!isTafProduct(currentProductName)) {
+
+                            textStr.append("-- "
+                                    + nctextuiPaletteWindow
+                                            .getCurrentProductName()
+                                    + ": " + "Station: " + stationId + "  "
+                                    + "--" + NEW_LINE);
+                        }
+
+                        /*
+                         * For "TAFs decoded" (NOT Aviation TAFs) we have a
+                         * special case and we must extract only the text for
+                         * the station of interest from the raw bulletin. We
+                         * don't display WMO headers, or other stations in the
+                         * bulletin.
+                         * 
+                         */
+                        if (currentProductName.equals("TAFs Decoded")) {
+                            textToDisp = getStationText(rawBulletin, stationId);
+                        } else {
+                            textToDisp = rawBulletin;
+                        }
+
+                        textToDisp = removeCR(textToDisp);
                         textStr.append(textToDisp + NEW_LINE);
                     }
 
@@ -946,36 +966,77 @@ public class NctextuiPaletteWindow extends ViewPart implements
                     } else
                         text.setText(textStr.toString());
                 } else {
-                    // SelectBy Station mode
-                    // "----" used as text header delimiter
-                    String textHeader = "--Text-- " + ": "
+
+                    /*
+                     * "Select By Station" Radio button checked
+                     */
+                    // create station header
+                    String stationHeader = nctextuiPaletteWindow.selectedGp
+                            + "--- "
                             + nctextuiPaletteWindow.getCurrentProductName()
-                            + ": Reporting Station: (" + StnPt.getStnid()
-                            + ") " + StnPt.getStnname() + "----" + NEW_LINE;
-                    nctextuiPaletteWindow.setCurrentTextReports(rptLstList
-                            .get(0));
+                            + ": Station: (" + StnPt.getStnid() + ") "
+                            + StnPt.getStnname() + "---" + NEW_LINE;
+
+                    nctextuiPaletteWindow
+                            .setCurrentTextReports(rptLstList.get(0));
 
                     int currentTextIndex = 0;
+
                     nctextuiPaletteWindow.setCurrentTextIndex(currentTextIndex);
-                    textRawStr = (String) (rptLstList.get(0)
+
+                    // get the raw bulletin
+                    rawBulletin = (String) (rptLstList.get(0)
                             .get(currentTextIndex))[0];
-                    // remove CR before displaying
-                    textToDisp = removeCR(textRawStr);
-                    // When put text string to Text display, use "setText" but
-                    // not "append" method, so, the text will show from top
+
+                    /*
+                     * For "TAFs decoded" we have a special case and must
+                     * extract the text for the station of interest from the raw
+                     * bulletin.
+                     */
+                    if (currentProductName.equals("TAFs Decoded")) {
+
+                        textToDisp = getStationText(rawBulletin,
+                                StnPt.getStnid());
+
+                    } else {
+                        /* All other NCTEXT products use the entire bulletin */
+                        textToDisp = rawBulletin;
+                    }
+
+                    textToDisp = removeCR(textToDisp);
+                    textToDisp += NEW_LINE;
+
+                    /* APPEND mode, select by station */
+
                     if (nctextuiPaletteWindow.isReplaceText() == false) {
                         // Append mode: get current text string from Text
                         StringBuilder textStr1 = new StringBuilder(
                                 text.getText());
-                        textStr1.append(textHeader + textToDisp);
+
+                        if (isTafProduct(currentProductName)) {
+                            // Don't display a header
+                            textStr1.append(textToDisp);
+                        } else {
+                            // Display a header
+                            textStr1.append(stationHeader + textToDisp);
+                        }
+
                         text.setText(textStr1.toString());
+
                     } else
-                        // Replace mode
-                        text.setText(textHeader + textToDisp);
-                    if ((rptLstList.get(0).size() > 1)
-                            && (nctextuiPaletteWindow.isReplaceText() == true)) {
-                        // System.out.println("debug 1 list size "+
-                        // rptLstList.get(0).size());
+
+                    /* REPLACE mode, select by station, TAFs decoded */
+
+                    if (isTafProduct(currentProductName)) {
+                        // Don't display a header
+                        text.setText(textToDisp);
+                    } else {
+                        // Display a header
+                        text.setText(stationHeader + textToDisp);
+                    }
+
+                    if ((rptLstList.get(0).size() > 1) && (nctextuiPaletteWindow
+                            .isReplaceText() == true)) {
                         nctextuiPaletteWindow.enablePrevBtn(true);
                     } else {
                         nctextuiPaletteWindow.enablePrevBtn(false);
@@ -983,13 +1044,143 @@ public class NctextuiPaletteWindow extends ViewPart implements
                 }
             }
         }
+
     }
 
     /**
-     * Bolds text
+     * Get a single station's text from a bulletin. Don't return any WMO header
+     * text Don't return any other station's text in the same bulletin
+     * 
+     * @param rawBulletin
+     *            the raw bulletin
+     * @param stationId
+     *            the station of interest
+     * @return only the text for the single station of interest
+     */
+    private String getStationText(String rawBulletin, String stationId) {
+
+        // the beginning index of the station text text
+        int begin;
+
+        // the end index of the station text
+        int end;
+
+        // "narrowed" part of the bulletin in which we find the end index
+        String subtext;
+
+        begin = rawBulletin.indexOf(stationId);
+        subtext = rawBulletin.substring(begin);
+        end = subtext.indexOf('=');
+
+        return subtext.substring(0, end);
+    }
+
+    /**
+     * Enable or disable the "Hour Covered" Radio Buttons
+     * 
+     * For TAFs, we only want the latest forecast, so there is no need for these
+     * "Hour" buttons to be enabled/selectable.
+     * 
+     * @param enable
+     *            the action to take: true to enable, false to disable
+     */
+    private void enableOrDisableHoursButtons(String productType) {
+
+        if (productType.equals("TAFs Decoded") || productType.equals("TAFs")) {
+
+            // disable hour buttons
+
+            oneHrBtn.setEnabled(false);
+            oneHrBtn.setSelection(false);
+            threeHrBtn.setEnabled(false);
+            threeHrBtn.setSelection(false);
+            sixHrBtn.setEnabled(false);
+            sixHrBtn.setSelection(false);
+            twelveHrBtn.setEnabled(false);
+            twelveHrBtn.setSelection(false);
+            twentyfourHrBtn.setEnabled(false);
+            twentyfourHrBtn.setSelection(false);
+            fourtyeightHrBtn.setEnabled(false);
+            fourtyeightHrBtn.setSelection(false);
+            allHrBtn.setEnabled(false);
+            allHrBtn.setSelection(false);
+
+            // Disable the button group
+            timeGp.setEnabled(false);
+
+            /*
+             * Set the selected button even though it is disabled, as good
+             * visual feedback (and like legacy)
+             */
+            selectHourCoveredButton(getTimeCovered());
+
+            // Save the current time range covered
+            nctextuiPaletteWindow.setTempTimeCovered(
+                    (nctextuiPaletteWindow.getTimeCovered()));
+
+            /*
+             * Set the time range covered to NONE. This affects the database
+             * query, so it doesn't try to query a time range. It's important we
+             * set this back to what is previously was.
+             */
+            nctextuiPaletteWindow.setTimeCovered((EReportTimeRange.NONE));
+
+        } else {
+
+            /*
+             * When clicking on "non-TAF" NCTEXT products, we need to (re)enable
+             * all the "Hours" buttons.
+             * 
+             */
+            oneHrBtn.setEnabled(true);
+            threeHrBtn.setEnabled(true);
+            sixHrBtn.setEnabled(true);
+            twelveHrBtn.setEnabled(true);
+            twentyfourHrBtn.setEnabled(true);
+            fourtyeightHrBtn.setEnabled(true);
+            allHrBtn.setEnabled(true);
+
+            // Enable the button group
+            timeGp.setEnabled(true);
+
+            // If disabled previously, then restore the previous time range
+            // covered
+            if (nctextuiPaletteWindow
+                    .getTimeCovered() == EReportTimeRange.NONE) {
+
+                nctextuiPaletteWindow.setTimeCovered(
+                        (nctextuiPaletteWindow.getTempTimeCovered()));
+
+                // Now select the correct radio button
+                selectHourCoveredButton(timeCovered);
+            }
+
+        }
+    }
+
+    private void selectHourCoveredButton(EReportTimeRange timeCovered) {
+
+        if (timeCovered == EReportTimeRange.ONE_HOUR)
+            oneHrBtn.setSelection(true);
+        else if (timeCovered == EReportTimeRange.THREE_HOURS)
+            threeHrBtn.setSelection(true);
+        else if (timeCovered == EReportTimeRange.SIX_HOURS)
+            sixHrBtn.setSelection(true);
+        else if (timeCovered == EReportTimeRange.TWELVE_HOURS)
+            twelveHrBtn.setSelection(true);
+        else if (timeCovered == EReportTimeRange.TWENTYFOUR_HOURS)
+            twentyfourHrBtn.setSelection(true);
+        else if (timeCovered == EReportTimeRange.FORTYEIGHT_HOURS)
+            fourtyeightHrBtn.setSelection(true);
+        else
+            allHrBtn.setSelection(true);
+    }
+
+    /**
+     * Set text bold
      * 
      * @param text
-     *            text to be emboldened
+     *            text to be made bold
      */
     private void bold(Text text) {
         FontData[] fontData = text.getFont().getFontData();
@@ -998,6 +1189,114 @@ public class NctextuiPaletteWindow extends ViewPart implements
         }
         Font newFont = new Font(text.getDisplay(), fontData);
         text.setFont(newFont);
+    }
+
+    public int getCurrentTextIndex() {
+        return currentTextIndex;
+    }
+
+    public void setCurrentTextIndex(int currentTextIndex) {
+        this.currentTextIndex = currentTextIndex;
+    }
+
+    public java.util.List<Object[]> getCurrentTextReports() {
+        return currentTextReports;
+    }
+
+    public void setCurrentTextReports(
+            java.util.List<Object[]> currentTextReports) {
+        this.currentTextReports = currentTextReports;
+    }
+
+    public java.util.List<NctextStationInfo> getPoints() {
+        return points;
+    }
+
+    public void setPoints(java.util.List<NctextStationInfo> points) {
+        this.points = points;
+    }
+
+    public boolean isReplaceText() {
+        return replaceText;
+    }
+
+    public void setReplaceText(boolean replaceText) {
+        this.replaceText = replaceText;
+    }
+
+    public EReportTimeRange getTimeCovered() {
+        return timeCovered;
+    }
+
+    public void setTimeCovered(EReportTimeRange timeCovered) {
+        this.timeCovered = timeCovered;
+    }
+
+    public boolean isState() {
+        return isState;
+    }
+
+    public void setState(boolean isState) {
+        this.isState = isState;
+    }
+
+    public String getCurrentProductName() {
+        return currentProductName;
+    }
+
+    public void setCurrentProductName(String currentProductName) {
+        this.currentProductName = currentProductName;
+    }
+
+    public void enableNextBtn(boolean enable) {
+        nextBtn.setEnabled(enable);
+    }
+
+    public void enablePrevBtn(boolean enable) {
+        prevBtn.setEnabled(enable);
+    }
+
+    public void setEditorVisible(boolean isVisible) {
+        this.isEditorVisible = isVisible;
+    }
+
+    public boolean getEditorVisible() {
+        return this.isEditorVisible;
+    }
+
+    public void setDataTypeGroupItem(int item) {
+        this.dataTypeGpItem = item;
+    }
+
+    public int getDataTypeGroupItem() {
+        return this.dataTypeGpItem;
+    }
+
+    public void setDataTypeProductItem(int item) {
+        this.dataTypePdItem = item;
+    }
+
+    public int getDataTypeProductItem() {
+        return this.dataTypePdItem;
+    }
+
+    public EReportTimeRange getTempTimeCovered() {
+        return tempTimeCovered;
+    }
+
+    public void setTempTimeCovered(EReportTimeRange tempTimeCovered) {
+        this.tempTimeCovered = tempTimeCovered;
+    }
+
+    public boolean isTafProduct(String product) {
+
+        if (product.equals("TAFs Decoded") || product.equals("TAFs")) {
+            return true;
+
+        } else {
+            return false;
+        }
+
     }
 
 }

@@ -4,6 +4,7 @@ Bundle-Name: Ncgrid Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.ncgrid;singleton:=true
 Bundle-Version: 1.15.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.ncgrid.Activator
+Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.core;bundle-version="1.11.17",
  gov.noaa.nws.ncep.ui.pgen;bundle-version="1.0.0",

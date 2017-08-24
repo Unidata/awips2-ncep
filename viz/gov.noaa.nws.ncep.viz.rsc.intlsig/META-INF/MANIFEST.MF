@@ -4,6 +4,7 @@ Bundle-Name: Intlsig Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.rsc.intlsig;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.rsc.intlsig.Activator
+Eclipse-RegisterBuddy: gov.noaa.nws.ncep.viz.resources
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.resources,

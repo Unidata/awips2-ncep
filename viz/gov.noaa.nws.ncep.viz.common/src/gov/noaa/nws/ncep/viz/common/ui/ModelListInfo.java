@@ -10,9 +10,8 @@ import java.util.TimeZone;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.catalog.LayerProperty;
+import com.raytheon.uf.viz.core.catalog.CatalogQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.uf.viz.core.rsc.ResourceType;
 
 public class ModelListInfo {
 
@@ -204,13 +203,11 @@ public class ModelListInfo {
 		constraintMap.put( "info.datasetId", 
         		new RequestConstraint( modelName.toUpperCase(), ConstraintType.EQUALS ) );
 		
-		LayerProperty property = new LayerProperty();
-        property.setDesiredProduct( ResourceType.PLAN_VIEW );
         DataTime[] availableTimes;
         
         try {
-			property.setEntryQueryParameters( constraintMap );
-	        availableTimes = property.getEntryTimes();
+            availableTimes = CatalogQuery.performTimeQuery(constraintMap, false,
+                    null);
 
 //	        System.out.println("availableTimes.lenght==="+availableTimes.length);
 	        

@@ -11,7 +11,7 @@
 	<bean id="wcpProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="wcpPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.wcp" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.wcp.dao.WcpDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.wcp.dao.WcpDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.wcp.WcpRecord" />
 	</bean>
 

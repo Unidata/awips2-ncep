@@ -1,22 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels;
 
-import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
-import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
-import gov.noaa.nws.ncep.edex.common.metparameters.PressureChange3HrAndTendency;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector;
-import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
-import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
-import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.text.ParseException;
@@ -58,6 +41,24 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.edex.common.metparameters.AbstractMetParameter;
+import gov.noaa.nws.ncep.edex.common.metparameters.Amount;
+import gov.noaa.nws.ncep.edex.common.metparameters.PressureChange3HrAndTendency;
+import gov.noaa.nws.ncep.ui.pgen.display.ArrowHead;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector;
+import gov.noaa.nws.ncep.ui.pgen.display.IVector.VectorType;
+import gov.noaa.nws.ncep.ui.pgen.elements.SymbolLocationSet;
+import gov.noaa.nws.ncep.ui.pgen.elements.Vector;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.queue.QueueEntry;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Station;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * <pre>
  * 
@@ -74,15 +75,27 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/17/2014    923         S. Russell   altered method setUpSymbolMappingTables()
  * 06/17/2014    923         S. Russell   altered method createRenderableData()
  * 07/08/2014    TTR1027     B. Hebbard   Force createRenderableData to recreate wind vectors each time.
- * Aug 08, 2014  3477        bclement     changed plot info locations to floats
+ * 08/08/2014    3477        bclement     changed plot info locations to floats
  * 09/10/2014    R4230       S. Russell   Fix wind barb/brbk menu option in plot model dialog box
  * 11/03/2014    R4830       S. Russell   Added elements to presWxSymbolNames
  * 11/03/2014    R5156       B. Hebbard   Allow use of system fonts in addition to file-based 3
  * 11/06/2014    R5156       B. Hebbard   Rename Helvetica & Times lookalike fonts/files to make clear they aren't Java/AWT logical SansSerif & Serif
- * 08/14/2015    R7757       B. Hebbard   Add support for directional arrow (no magnitude) parameters; also refactor so imageCreator belongs directly to resource (instead of NcPlotDataRequestor) for better frame status tracking; other cleanups.
+ * 08/14/2015    R7757       B. Hebbard   Add support for directional arrow (no magnitude) parameters; also refactor so imageCreator belongs directly to resource 
+ *                                        (instead of NcPlotDataRequestor) for better frame status tracking; other cleanups.
  * 11/17/2015    R9579       B. Hebbard   Add support for MARK (marker) symbol parameter; various cleanups
  * 12/17/2015    R9579       B. Hebbard   Fix PTND regression preventing symbol draw; prevent NPE on null lookupTable return
- * 11/05/2015    5070         randerso    Adjust font sizes for dpi scaling
+ * 11/05/2015    5070        randerso     Adjust font sizes for dpi scaling
+ * 04/18/2016    R17315      J. Beck      Fix Exception on startup coming from removeSign(). Fix logic in removeSign().Added Bruce's comments to removeSign().
+ *                                        Added statusHandler wrapper -- problemHandler(), to make distinct error messages programmatically.
+ * 11/07/2016    R23252      S. Russell   Updated createOneVector() to support
+ *                                        Vector wind arrows with OPEN 
+ *                                        arrowheads and support plotMode
+ *                                        "arrows"
+ * 11/09/2016    R26156      S. Russell   update createOneVector() to handle
+ *                                        the special case of parameter DARR
+ * 
+ * 11/25/2016    R21762      P. Moyer     Implemented dropping of drawable items if their colors have an alpha of 0 (for conditional parameter coloring)
+ * </pre>
  */
 
 public class NcPlotImageCreator {
@@ -130,16 +143,13 @@ public class NcPlotImageCreator {
 
     // @formatter:off
     public static enum Position {
-            TC,
-        UL, UC, UR,
-        ML, MC, MR,
-        LL, LC, LR,
-            BC,
+        TC, UL, UC, UR, ML, MC, MR, LL, LC, LR, BC,
         // ----
-            SC,  // special sky coverage position -- plots at MC
-            WD,  // special wind barb position -- plots at MC
-            INVALID
+        SC, // special sky coverage position -- plots at MC
+        WD, // special wind barb position -- plots at MC
+        INVALID
     }
+
     // @formatter:on
 
     public static enum DisplayMode { // TODO: Not used?? Should be?
@@ -155,28 +165,59 @@ public class NcPlotImageCreator {
                 .getPlotParamDefns(plotModel.getPlugin());
         imageCreationJobPool = new JobPool("Creating station plots...", 8,
                 false);
-        queueOfStations = new ConcurrentLinkedQueue<QueueEntry>();
+        queueOfStations = new ConcurrentLinkedQueue<>();
         iPointInfoRenderingListener = listener;
-        mapOfStnsToDataTime = new HashMap<DataTime, Map<String, Station>>();
-        dataTimeToText = new HashMap<DataTime, Map<Position, Map<String, DrawableString>>>();
-        positionToSymbolTypeMap = new HashMap<Position, PlotSymbolType>();
-        symbolTypeToLookupTableMap = new HashMap<PlotSymbolType, StringLookup>();
-        plotModelPositionToPmeMap = new EnumMap<Position, PlotModelElement>(
-                Position.class);
-        mapOfSymbolsPerPlotPosPerFrame = new HashMap<DataTime, Map<Position, List<SymbolLocationSet>>>();
+        mapOfStnsToDataTime = new HashMap<>();
+        dataTimeToText = new HashMap<>();
+        positionToSymbolTypeMap = new HashMap<>();
+        symbolTypeToLookupTableMap = new HashMap<>();
+        plotModelPositionToPmeMap = new EnumMap<>(Position.class);
+        mapOfSymbolsPerPlotPosPerFrame = new HashMap<>();
         plotFontMngr = new PlotFontMngr();
         setUpPlotPositionToPlotModelElementMapping(plotModel);
         setUpSymbolLookupTables();
         Tracer.print("< Exit");
     }
 
+    /**
+     * This is a wrapper for eliminating duplicate and identical exception
+     * messages from statusHandler. We had 16 exceptions in this class that
+     * printed an identical message. This is a short term(?) solution for this
+     * class only.
+     * 
+     * StatusHandler is still called, but the messages are now succinct.
+     * 
+     * An example Exception error message format is:
+     * 
+     * "A ArithmeticException was encountered in Class NcPlotImageCreator, in method removeSign()."
+     * 
+     * @param e
+     *            the exception that was caught
+     */
+    private void problemHandler(Exception e) {
+
+        String methodName = e.getStackTrace()[0].getMethodName();
+        String exceptionName = e.getClass().getSimpleName();
+        String className = this.getClass().toString();
+
+        // use only the class name, not the complete path
+        String[] pathelement = className.split("\\.");
+        String myClass = pathelement[pathelement.length - 1];
+
+        // invoke the statusHandler method with a detailed message
+        statusHandler.handle(Priority.PROBLEM,
+                "A " + exceptionName + " was encountered in Class " + myClass
+                        + ", in method " + methodName + "().\n",
+                e);
+    }
+
     public void queueStationsToCreateImages(DataTime dt,
             Collection<Station> stations) {
         Tracer.print("> Entry " + Tracer.shortTimeString(dt));
         QueueEntry qe = new QueueEntry(dt, stations);
-        Tracer.print("About to queue " + stations.size()
-                + " stations from frame " + Tracer.shortTimeString(dt)
-                + " for image creation\n");
+        Tracer.print(
+                "About to queue " + stations.size() + " stations from frame "
+                        + Tracer.shortTimeString(dt) + " for image creation\n");
         queueOfStations.add(qe);
         runCreateImageTask();
         Tracer.print("< Exit  " + Tracer.shortTimeString(dt));
@@ -184,6 +225,7 @@ public class NcPlotImageCreator {
 
     private void runCreateImageTask() {
         Tracer.print("> Entry");
+
         if (queueOfStations.peek() == null) {
             return;
         }
@@ -205,6 +247,7 @@ public class NcPlotImageCreator {
             position = Position.valueOf(pme.getPosition());
         } catch (IllegalArgumentException e) {
             position = Position.INVALID;
+            problemHandler(e);
         }
         return position;
     }
@@ -244,7 +287,7 @@ public class NcPlotImageCreator {
         Tracer.print("> Entry");
         List<PlotModelElement> plotModelElementsList = pm
                 .getAllPlotModelElements();
-        Set<Position> posToRemove = new HashSet<Position>(0);
+        Set<Position> posToRemove = new HashSet<>(0);
         if (plotModelPositionToPmeMap != null
                 && !plotModelPositionToPmeMap.isEmpty()) {
             Set<Position> posSet = plotModelPositionToPmeMap.keySet();
@@ -253,8 +296,8 @@ public class NcPlotImageCreator {
                     boolean matchFound = false;
                     synchronized (plotModelElementsList) {
                         for (PlotModelElement pme : plotModelElementsList) {
-                            if (pos.toString().equalsIgnoreCase(
-                                    pme.getPosition())) {
+                            if (pos.toString()
+                                    .equalsIgnoreCase(pme.getPosition())) {
                                 matchFound = true;
                                 break;
                             }
@@ -270,16 +313,19 @@ public class NcPlotImageCreator {
                     plotModelPositionToPmeMap.remove(p);
                     positionToSymbolTypeMap.remove(p);
                     if (p != Position.WD) {
-                        if (dataTimeToText != null && !dataTimeToText.isEmpty()) {
+                        if (dataTimeToText != null
+                                && !dataTimeToText.isEmpty()) {
                             Set<DataTime> frameTimeSet = dataTimeToText
                                     .keySet();
-                            if (frameTimeSet != null && !frameTimeSet.isEmpty()) {
+                            if (frameTimeSet != null
+                                    && !frameTimeSet.isEmpty()) {
                                 synchronized (frameTimeSet) {
                                     for (DataTime dt : frameTimeSet) {
                                         Map<Position, Map<String, DrawableString>> mapOfStrPosition = dataTimeToText
                                                 .get(dt);
                                         if (mapOfStrPosition != null
-                                                && !mapOfStrPosition.isEmpty()) {
+                                                && !mapOfStrPosition
+                                                        .isEmpty()) {
                                             mapOfStrPosition.remove(p);
                                             dataTimeToText.put(dt,
                                                     mapOfStrPosition);
@@ -292,7 +338,8 @@ public class NcPlotImageCreator {
                                 && !mapOfSymbolsPerPlotPosPerFrame.isEmpty()) {
                             Set<DataTime> frameTimeSet = mapOfSymbolsPerPlotPosPerFrame
                                     .keySet();
-                            if (frameTimeSet != null && !frameTimeSet.isEmpty()) {
+                            if (frameTimeSet != null
+                                    && !frameTimeSet.isEmpty()) {
                                 synchronized (frameTimeSet) {
                                     for (DataTime dt : frameTimeSet) {
                                         Map<Position, List<SymbolLocationSet>> mapOfSymbolsToEachPosition = mapOfSymbolsPerPlotPosPerFrame
@@ -340,14 +387,16 @@ public class NcPlotImageCreator {
                 if (thisPlotParamDefn == null) {
                     Tracer.print("Unable to find " + plotParamName
                             + " in the list of plot parameter definitions for "
-                            + plotModel.getPlugin() + ":" + plotModel.getName());
+                            + plotModel.getPlugin() + ":"
+                            + plotModel.getName());
                     continue;
                 }
-                if (thisPlotParamDefn.getPlotMode().equalsIgnoreCase(
-                        PlotParameterDefn.PLOT_MODE_MARKER)
+                if (thisPlotParamDefn.getPlotMode()
+                        .equalsIgnoreCase(PlotParameterDefn.PLOT_MODE_MARKER)
                         || thisPlotParamDefn.getPlotMode().equalsIgnoreCase(
                                 PlotParameterDefn.PLOT_MODE_TABLE)) {
-                    PlotSymbolType symbolType = getPlotSymbolType(plotParamName);
+                    PlotSymbolType symbolType = getPlotSymbolType(
+                            plotParamName);
                     positionToSymbolTypeMap.put(position, symbolType);
                     if (symbolTypeToLookupTableMap.get(symbolType) == null) {
                         if (symbolType != PlotSymbolType.INVALID) {
@@ -382,6 +431,7 @@ public class NcPlotImageCreator {
                 symbolType = PlotSymbolType.valueOf(symbolGEMPAKName);
             } catch (IllegalArgumentException e) {
                 symbolType = PlotSymbolType.INVALID;
+                problemHandler(e);
             }
         }
         return symbolType;
@@ -425,8 +475,7 @@ public class NcPlotImageCreator {
                     + Tracer.shortTimeString(time) + " with "
                     + listOfStationsToDrawImages.size() + " stations");
             this.dataTime = new DataTime(time.getRefTime());
-            this.listOfStations = new ArrayList<Station>(
-                    listOfStationsToDrawImages);
+            this.listOfStations = new ArrayList<>(listOfStationsToDrawImages);
             activePane = NcDisplayMngr.getActiveNatlCntrsEditor()
                     .getActiveDisplayPane();
             aTarget = activePane.getTarget();
@@ -435,7 +484,8 @@ public class NcPlotImageCreator {
             view = renderableDisplay.getView();
 
             if (lastZoomLevel == Double.MIN_VALUE
-                    || (Math.abs(renderableDisplay.getZoom() - lastZoomLevel) > ZOOM_TOLERANCE)) {
+                    || (Math.abs(renderableDisplay.getZoom()
+                            - lastZoomLevel) > ZOOM_TOLERANCE)) {
                 lastZoomLevel = renderableDisplay.getZoom();
             }
             VizApp.runSync(new Runnable() {
@@ -492,15 +542,18 @@ public class NcPlotImageCreator {
 
         private void createVectors(
                 Map<Coordinate, List<IVector>> vectorCoordinatesToVectorsMap,
-                Collection<Station> stnColl, String plotUnit,
-                double symbolSize, RGB rgb, String metPrm1, String metPrm2,
-                PlotModelElement pme, boolean directionOnly,
-                boolean directionReverse) {
+                Collection<Station> stnColl, String plotUnit, double symbolSize,
+                RGB rgb, String metPrm1, String metPrm2, PlotModelElement pme,
+                boolean directionOnly, boolean directionReverse,
+                String plotmode, String paramname) {
+
             Tracer.print("> Entry " + Tracer.shortTimeString(this.dataTime)
                     + " with " + stnColl.size() + " stations" + " metPrm1 "
                     + metPrm1 + " metPrm2 " + metPrm2);
+
             mapDescriptor = NcDisplayMngr.getActiveNatlCntrsEditor()
                     .getActiveDisplayPane().getDescriptor();
+
             synchronized (stnColl) {
                 Tracer.printX(Tracer.shortTimeString(this.dataTime)
                         + " Still have " + stnColl.size()
@@ -510,70 +563,90 @@ public class NcPlotImageCreator {
                             currentStation.info.latitude };
                     AbstractMetParameter vectorParam1 = null;
                     AbstractMetParameter vectorParam2 = null;
+                    Integer alpha = null;
                     try {
                         IVector vector = null;
                         synchronized (currentStation.parametersToPlot) {
                             for (AbstractMetParameter metPrm : currentStation.parametersToPlot) {
-                                if (metPrm.getMetParamName().equalsIgnoreCase(
-                                        metPrm1)) {
+                                if (metPrm.getMetParamName()
+                                        .equalsIgnoreCase(metPrm1)) {
                                     vectorParam1 = metPrm;
                                 }
-                                if (metPrm.getMetParamName().equalsIgnoreCase(
-                                        metPrm2)) {
+                                if (metPrm.getMetParamName()
+                                        .equalsIgnoreCase(metPrm2)) {
                                     vectorParam2 = metPrm;
                                 }
                             }
-                            if ((vectorParam1 != null && ((vectorParam2 != null) || directionOnly))) {
+                            if ((vectorParam1 != null && ((vectorParam2 != null)
+                                    || directionOnly))) {
                                 if (pme.hasAdvancedSettings()) {
                                     rgb = getConditionalColor(currentStation,
+                                            pme);
+                                    alpha = getConditionalAlpha(currentStation,
                                             pme);
                                 }
                                 if (rgb == null) {
                                     rgb = new RGB(255, 255, 255);
                                 }
+                                if ((alpha != null)
+                                        && (alpha.intValue() == 0)) {
+                                    // alpha = new Integer(255);
+                                    continue;
+                                } else {
+                                    alpha = new Integer(255);
+                                }
+
+                                // dropping of vector via
+                                // "continue" when receiving a conditional
+                                // color with alpha 0.
+
                                 vector = createOneVector(vectorParam1,
-                                        vectorParam2, plotUnit, symbolSize,
-                                        rgb, stationWorldLoc, directionOnly,
-                                        directionReverse);
+                                        vectorParam2, plotUnit, symbolSize, rgb,
+                                        alpha, stationWorldLoc, directionOnly,
+                                        directionReverse, plotmode, paramname);
                             }
                             if (vector != null) {
-                                Tracer.printX(Tracer
-                                        .shortTimeString(this.dataTime)
-                                        + " Adding a vector for "
+                                Tracer.printX(Tracer.shortTimeString(
+                                        this.dataTime) + " Adding a vector for "
                                         + currentStation.info.stationId);
                                 List<IVector> vectorsAtThisLocation = vectorCoordinatesToVectorsMap
                                         .get(vector.getLocation());
                                 if (vectorsAtThisLocation == null) {
-                                    vectorsAtThisLocation = new ArrayList<IVector>();
+                                    vectorsAtThisLocation = new ArrayList<>();
                                     vectorCoordinatesToVectorsMap.put(
                                             vector.getLocation(),
                                             vectorsAtThisLocation);
                                 }
                                 vectorsAtThisLocation.add(vector);
-                                Tracer.printX(Tracer
-                                        .shortTimeString(this.dataTime)
-                                        + " Created vector for "
+                                Tracer.printX(Tracer.shortTimeString(
+                                        this.dataTime) + " Created vector for "
                                         + currentStation.info.stationId);
                             }
                         }
                     } catch (ArithmeticException ae) {
-                        Tracer.print("ArithmeticException instead of azimuth for station : "
-                                + currentStation.info.stationId);
-                        statusHandler.handle(Priority.PROBLEM,
-                                "ArithmeticException:  " + ae.getMessage());
+
+                        Tracer.print(
+                                "ArithmeticException in createVectors() instead of azimuth for station : "
+                                        + currentStation.info.stationId);
+
+                        problemHandler(ae);
+
                     } catch (IllegalStateException ise) {
-                        Tracer.print("IllegalStateException instead of azimuth for station : "
-                                + currentStation.info.stationId);
-                        statusHandler.handle(Priority.PROBLEM,
-                                "IllegalStateException:  " + ise.getMessage());
+                        Tracer.print(
+                                "IllegalStateException in createVectors() instead of azimuth for station : "
+                                        + currentStation.info.stationId);
+
+                        problemHandler(ise);
+
                     } catch (NullPointerException npe) {
                         Tracer.print("NullPointerException for "
                                 + currentStation.info.stationId);
-                        statusHandler.handle(Priority.PROBLEM,
-                                "NullPointerException:  " + npe.getMessage());
+
+                        problemHandler(npe);
+
                     } catch (Exception e) {
-                        statusHandler.handle(Priority.PROBLEM, "Exception:  "
-                                + e.getMessage());
+
+                        problemHandler(e);
                     }
                 }
             }
@@ -582,11 +655,14 @@ public class NcPlotImageCreator {
 
         private IVector createOneVector(AbstractMetParameter metParam1,
                 AbstractMetParameter metParam2, String plotUnit,
-                double symbolSize, RGB rgb, double[] stationLoc,
-                boolean directionOnly, boolean directionReverse) {
+                double symbolSize, RGB rgb, Integer alpha, double[] stationLoc,
+                boolean directionOnly, boolean directionReverse,
+                String plotmode, String paramname) {
             Tracer.printX("> Entry");
             AbstractMetParameter speed = null, direction = null;
             Vector vector = null;
+            ArrowHead.ArrowHeadType arrowHeadType = ArrowHead.ArrowHeadType.FILLED;
+
             if (metParam1 instanceof Angle) {
                 direction = metParam1;
                 speed = metParam2;
@@ -594,25 +670,46 @@ public class NcPlotImageCreator {
                 direction = metParam2;
                 speed = metParam1;
             }
-            Color[] vectorColorArray = new Color[] { new Color(rgb.red,
-                    rgb.green, rgb.blue) };
+            Color[] vectorColorArray = new Color[] {
+                    new Color(rgb.red, rgb.green, rgb.blue, alpha.intValue()) };
             try {
+
                 // The units in the element are for the speed and not the
                 // direction.
                 Number nDirection = direction.getValueAs(NonSI.DEGREE_ANGLE);
                 if (nDirection == null) {
                     return null;
                 }
+
                 double dDirection = nDirection.doubleValue();
-                if (directionOnly) {
-                    // Directional arrow
-                    Number nSpeed = speed == null ? null : speed
-                            .getValueAs(plotUnit);
+
+                if (plotmode.equalsIgnoreCase(
+                        PlotParameterDefn.PLOT_MODE_DIRECTIONAL)) {
+
+                    // TODO: A more elegant way of accommodating the special
+                    // case of DARR should be found. Directional arrows
+                    // usually have FILLED arrowheads, but NMAP is inconsistent
+                    // in regards to DARR, which is a directional arrow. NMAP
+                    // renders DARR with OPEN arrowheads, so this hackish method
+                    // is done here to make CAVE match NMAP while making a
+                    // deadline.
+                    if (paramname.equalsIgnoreCase("DARR")) {
+                        arrowHeadType = ArrowHead.ArrowHeadType.OPEN;
+                    }
+
+                    // Directional arrow.
+                    // Always the same size arrows
+                    // Only indicates direction
+
+                    Number nSpeed = (speed == null) ? null
+                            : speed.getValueAs(plotUnit);
                     // If speed not reported (as for wave direction), assume
                     // positive for following test.
                     // If speed reported as zero, preserve as zero so arrow will
                     // be suppressed.
-                    double dSpeed = nSpeed == null ? 1.0 : nSpeed.doubleValue();
+                    double dSpeed = (nSpeed == null) ? 1.0
+                            : nSpeed.doubleValue();
+
                     // Suppress arrow if calm (direction and speed both zero).
                     // Note that if direction is nonzero (non-north), then we
                     // assume it's significant (and produce the directional
@@ -625,32 +722,68 @@ public class NcPlotImageCreator {
                         }
                         // Numeric constants in the following are "tuned" to
                         // match NMAP2 display characteristics.
-                        vector = new Vector(null, vectorColorArray, 2.50f,
-                                symbolSize * 1.28, false, new Coordinate(
-                                        stationLoc[0], stationLoc[1]),
-                                VectorType.ARROW, dSpeed, dDirection, 0.9,
-                                true, "Vector", "Arrow");
+                        vector = new Vector(null, vectorColorArray, 1.20f,
+                                symbolSize * 2.60, false,
+                                new Coordinate(stationLoc[0], stationLoc[1]),
+                                VectorType.ARROW, dSpeed, dDirection, 0.9, true,
+                                "Vector", "Arrow", arrowHeadType);
                     }
-                } else {
+                } else if (plotmode
+                        .equalsIgnoreCase(PlotParameterDefn.PLOT_MODE_BARB)) {
                     // Wind barb
                     double uSpeed = speed.getValueAs(plotUnit).doubleValue();
                     double dSpeed = Double.MIN_VALUE;
                     Unit<?> unit;
-                    unit = (Unit<?>) UnitFormat.getUCUMInstance().parseObject(
-                            plotUnit);
+                    unit = (Unit<?>) UnitFormat.getUCUMInstance()
+                            .parseObject(plotUnit);
                     double cWindSpeedThresh = WIND_SPD_3KNOTS.getValueAs(unit)
                             .doubleValue();
                     if (uSpeed >= cWindSpeedThresh) {
                         dSpeed = roundTo5(uSpeed);
                     }
                     vector = new Vector(null, vectorColorArray, 1.0f,
-                            symbolSize, false, new Coordinate(stationLoc[0],
-                                    stationLoc[1]), VectorType.WIND_BARB,
-                            dSpeed, dDirection, 1.0, true, "Vector", "Barb");
+                            symbolSize, false,
+                            new Coordinate(stationLoc[0], stationLoc[1]),
+                            VectorType.WIND_BARB, dSpeed, dDirection, 1.0, true,
+                            "Vector", "Barb");
+                } else if (plotmode
+                        .equalsIgnoreCase(PlotParameterDefn.PLOT_MODE_ARROW)) {
+
+                    // Arrow == Vector arrow, the arrow is built on direction
+                    // AND speed. Faster vectors are longer arrows, slower
+                    // vectors are shorter arrows.
+
+                    arrowHeadType = ArrowHead.ArrowHeadType.OPEN;
+
+                    Number nSpeed = null;
+                    double dSpeed = 1.0d;
+
+                    nSpeed = (speed == null) ? null
+                            : speed.getValueAs(plotUnit);
+
+                    dSpeed = (nSpeed == null) ? 1.0 : nSpeed.doubleValue();
+
+                    if (dDirection > 0.0 || dSpeed > 0.0) {
+                        if (directionReverse) {
+                            dDirection = dDirection > 180.0 ? dDirection - 180.0
+                                    : dDirection + 180.0;
+                        }
+
+                        // Numeric constants in the following are "tuned" to
+                        // match NMAP2 display characteristics.
+                        vector = new Vector(null, vectorColorArray, 2.50f,
+                                symbolSize * 1.28, false,
+                                new Coordinate(stationLoc[0], stationLoc[1]),
+                                VectorType.ARROW, dSpeed, dDirection, 0.9,
+                                false, "VECTOR", "Arrow", arrowHeadType);
+                    }
+
                 }
+
             } catch (ParseException e) {
-                statusHandler.handle(Priority.PROBLEM,
-                        "ParseException:  " + e.getMessage());
+
+                problemHandler(e);
+
             }
             Tracer.printX("< Exit" + "  returning "
                     + ((vector == null) ? "NULL" : "a vector"));
@@ -671,32 +804,32 @@ public class NcPlotImageCreator {
 
             // Initialize the 3 'drawables' collections we're building for
             // return back to the main resource class
-            List<DrawableString> stringsToDraw = new ArrayList<DrawableString>();
-            List<IVector> vectorsToDraw = new ArrayList<IVector>(0);
-            List<SymbolLocationSet> symbolLocationSetsToDraw = new ArrayList<SymbolLocationSet>(
+            List<DrawableString> stringsToDraw = new ArrayList<>();
+            List<IVector> vectorsToDraw = new ArrayList<>(0);
+            List<SymbolLocationSet> symbolLocationSetsToDraw = new ArrayList<>(
                     0);
 
             // Local structures only
             Map<Position, Map<String, DrawableString>> localDMap = null;
-            Map<Position, List<SymbolLocationSet>> positionToSymbolLocationSetsMap = new EnumMap<Position, List<SymbolLocationSet>>(
+            Map<Position, List<SymbolLocationSet>> positionToSymbolLocationSetsMap = new EnumMap<>(
                     Position.class);
 
             if (dataTimeToText.get(dataTime) != null) {
-                localDMap = new HashMap<Position, Map<String, DrawableString>>(
-                        dataTimeToText.get(dataTime));
+                localDMap = new HashMap<>(dataTimeToText.get(dataTime));
             } else {
-                localDMap = new HashMap<Position, Map<String, DrawableString>>();
+                localDMap = new HashMap<>();
             }
 
             Set<Position> positionSet = plotModelPositionToPmeMap.keySet();
-            Map<String, Station> stationMap = new HashMap<String, Station>(
+            Map<String, Station> stationMap = new HashMap<>(
                     listOfStations.size());
             Tracer.print(Tracer.shortTimeString(this.dataTime)
                     + " listOfStations has " + listOfStations.size()
                     + " stations right after stationMap creation");
 
-            Tracer.print("From createRenderableData()  - list of parameters plotted per station for frame: "
-                    + Tracer.shortTimeString(dataTime));
+            Tracer.print(
+                    "From createRenderableData()  - list of parameters plotted per station for frame: "
+                            + Tracer.shortTimeString(dataTime));
 
             /* Create a map of stations that have been currently disclosed */
             Tracer.print(Tracer.shortTimeString(this.dataTime)
@@ -704,8 +837,7 @@ public class NcPlotImageCreator {
                     + " stations before loop (should be 0)");
             for (Station station : listOfStations) {
                 String key = stationMapKey(station.info.longitude,
-                        station.info.latitude)
-                        + "-"
+                        station.info.latitude) + "-"
                         + station.info.dataTime.toString();
                 Tracer.printX(Tracer.shortTimeString(this.dataTime)
                         + " stnplotMap for " + station.info.stationId + " : "
@@ -717,18 +849,20 @@ public class NcPlotImageCreator {
                         + station.parametersToPlot.toString());
                 stationMap.put(key, station);
             }
-            Tracer.printX(Tracer.shortTimeString(this.dataTime)
-                    + " stationMap has " + stationMap.size()
-                    + " stations after loop");
+            Tracer.printX(
+                    Tracer.shortTimeString(this.dataTime) + " stationMap has "
+                            + stationMap.size() + " stations after loop");
 
             if (lastView == null) {
                 lastView = view.clone();
             }
 
-            double width = aTarget.getStringsBounds(
-                    new DrawableString("M", defaultColor)).getWidth();
-            double height = aTarget.getStringsBounds(
-                    new DrawableString("'y", defaultColor)).getHeight();
+            double width = aTarget
+                    .getStringsBounds(new DrawableString("M", defaultColor))
+                    .getWidth();
+            double height = aTarget
+                    .getStringsBounds(new DrawableString("'y", defaultColor))
+                    .getHeight();
             Rectangle textBounds = new Rectangle(0, 0, (int) width,
                     (int) height);
 
@@ -737,7 +871,7 @@ public class NcPlotImageCreator {
             Tracer.print(Tracer.shortTimeString(this.dataTime)
                     + " positionSet has " + positionSet.size() + " elements");
 
-            Map<Coordinate, List<IVector>> vectorCoordinatesToVectorsMap = new HashMap<Coordinate, List<IVector>>(
+            Map<Coordinate, List<IVector>> vectorCoordinatesToVectorsMap = new HashMap<>(
                     0);
 
             for (Position position : positionSet) {
@@ -749,14 +883,13 @@ public class NcPlotImageCreator {
                 RGB pmeColor = pme.getColorRGB();
 
                 // Set the font information
-                IFont font = plotFontMngr
-                        .getFont(pme.getTextFont(), pme.getTextStyle(),
-                                Integer.parseInt(pme.getTextSize()));
+                IFont font = plotFontMngr.getFont(pme.getTextFont(),
+                        pme.getTextStyle(),
+                        Integer.parseInt(pme.getTextSize()));
                 if (font == null) {
-                    statusHandler.handle(
-                            Priority.PROBLEM,
-                            "Unable to obtain font:  " + pme.getTextFont()
-                                    + "-" + pme.getTextStyle() + "-"
+                    statusHandler.handle(Priority.PROBLEM,
+                            "Unable to obtain font:  " + pme.getTextFont() + "-"
+                                    + pme.getTextStyle() + "-"
                                     + Integer.parseInt(pme.getTextSize()));
                 }
 
@@ -766,22 +899,25 @@ public class NcPlotImageCreator {
                         .getPlotParamDefn(pme.getParamName());
 
                 // TODO how about using enum DisplayMode here?
-                boolean drawVector = (position == Position.WD || plotParamDefn
-                        .getPlotMode().equals(
-                                PlotParameterDefn.PLOT_MODE_DIRECTIONAL));
-                boolean drawSymbol = (positionToSymbolTypeMap.get(position) != null);
+                String plotmode = plotParamDefn.getPlotMode();
+                boolean drawVector = (position == Position.WD
+                        || plotmode
+                                .equals(PlotParameterDefn.PLOT_MODE_DIRECTIONAL)
+                        || plotmode.equals(PlotParameterDefn.PLOT_MODE_ARROW));
+
+                boolean drawSymbol = (positionToSymbolTypeMap
+                        .get(position) != null);
                 // TODO Suggest refining following boolean expression (to test
                 // what the plot mode *is*, rather than what things it is not).
                 // @formatter:off
-                boolean drawText = (
-                        !plotParamDefn.getPlotMode().equals(
-                                PlotParameterDefn.PLOT_MODE_BARB) && 
-                        !plotParamDefn.getPlotMode().equals(
-                                PlotParameterDefn.PLOT_MODE_DIRECTIONAL)) && 
-                        !plotParamDefn.getPlotMode().equals(
-                                PlotParameterDefn.PLOT_MODE_MARKER) && 
-                        !plotParamDefn.getPlotMode().equals(
-                                PlotParameterDefn.PLOT_MODE_TABLE);
+                boolean drawText = (!plotParamDefn.getPlotMode()
+                        .equals(PlotParameterDefn.PLOT_MODE_BARB)
+                        && !plotParamDefn.getPlotMode()
+                                .equals(PlotParameterDefn.PLOT_MODE_DIRECTIONAL))
+                        && !plotParamDefn.getPlotMode()
+                                .equals(PlotParameterDefn.PLOT_MODE_MARKER)
+                        && !plotParamDefn.getPlotMode()
+                                .equals(PlotParameterDefn.PLOT_MODE_TABLE);
                 // @formatter:on
 
                 if (drawText) {
@@ -793,7 +929,7 @@ public class NcPlotImageCreator {
                                              // is not safe -- distorts station
                                              // plots after zoom!
 
-                        mapOfStrPositions = new HashMap<String, DrawableString>();
+                        mapOfStrPositions = new HashMap<>();
 
                         // Loop thru all the stations to create the a list of
                         // DrawableString for each position
@@ -810,9 +946,6 @@ public class NcPlotImageCreator {
                                         || station.info.longitude < -180
                                         || station.info.latitude > 90
                                         || station.info.latitude < -90) {
-                                    // System.out.println("Skipping the station: "
-                                    // + station.info.stationId +
-                                    // " since it has invalid or missing coordinates");
                                     continue;
                                 }
 
@@ -839,9 +972,10 @@ public class NcPlotImageCreator {
                                     // Add the pixel coordinates and the string
                                     // to render to the Map<DrawableBasics,
                                     // DrawableString>
-                                    String dbKey = createKeyFromTextCoordinates(drawableString.basics);
-                                    mapOfStrPositions
-                                            .put(dbKey, drawableString);
+                                    String dbKey = createKeyFromTextCoordinates(
+                                            drawableString.basics);
+                                    mapOfStrPositions.put(dbKey,
+                                            drawableString);
                                 }
 
                                 // Update the stationMap with the current
@@ -861,7 +995,7 @@ public class NcPlotImageCreator {
                         // be repositioned per the current pixel position of the
                         // station
                         synchronized (mapOfStrPositions) {
-                            List<String> pixPosToRemoveList = new ArrayList<String>();
+                            List<String> pixPosToRemoveList = new ArrayList<>();
                             Set<String> dbSet = mapOfStrPositions.keySet();
                             synchronized (dbSet) {
                                 try {
@@ -882,8 +1016,9 @@ public class NcPlotImageCreator {
                                         }
                                     }
                                 } catch (Exception e) {
-                                    statusHandler.handle(Priority.PROBLEM,
-                                            "Exception:  " + e.getMessage());
+
+                                    problemHandler(e);
+
                                 }
                             }
                         }
@@ -904,9 +1039,6 @@ public class NcPlotImageCreator {
                                         || station.info.longitude < -180
                                         || station.info.latitude > 90
                                         || station.info.latitude < -90) {
-                                    // System.out.println("Skipping the station: "
-                                    // + station.info.stationId +
-                                    // " since it has invalid or missing coordinates");
                                     continue;
                                 }
 
@@ -930,7 +1062,8 @@ public class NcPlotImageCreator {
 
                                     // Fetch the corresponding string from the
                                     // Map<DrawableBasics, DrawableString>
-                                    String strPosKey = createKeyFromTextCoordinates(dbStn);
+                                    String strPosKey = createKeyFromTextCoordinates(
+                                            dbStn);
                                     DrawableString strToReposition = mapOfStrPositions
                                             .get(strPosKey);
 
@@ -942,20 +1075,21 @@ public class NcPlotImageCreator {
                                         // If the string exists, update its
                                         // coordinates
                                         Rectangle2D rr = aTarget
-                                                .getStringsBounds(new DrawableString(
-                                                        "'"
-                                                                + strToReposition
+                                                .getStringsBounds(
+                                                        new DrawableString(
+                                                                "'" + strToReposition
                                                                         .getText()[0]
                                                                 + "y",
-                                                        strToReposition
-                                                                .getColors()[0]));
+                                                                strToReposition
+                                                                        .getColors()[0]));
                                         textBounds = new Rectangle(0, 0,
                                                 (int) rr.getWidth(),
                                                 (int) rr.getHeight());
 
-                                        Tracer.print("textBounds updated in TEXT draw for station "
-                                                + station.info.stationId
-                                                + " to " + textBounds);
+                                        Tracer.print(
+                                                "textBounds updated in TEXT draw for station "
+                                                        + station.info.stationId
+                                                        + " to " + textBounds);
 
                                         double[] pixLoc = getAdjustedCoordinates(
                                                 textBounds,
@@ -979,10 +1113,17 @@ public class NcPlotImageCreator {
                                             strToReposition.setText(
                                                     strToReposition.getText(),
                                                     rgb);
+
+                                            Integer alpha = getConditionalAlpha(
+                                                    station, pme);
+                                            if ((alpha == null) || (alpha
+                                                    .intValue() == 0)) {
+                                                continue;
+                                            }
                                         }
 
-                                        if ((!font.getFontName().equals(
-                                                strToReposition.font
+                                        if ((!font.getFontName()
+                                                .equals(strToReposition.font
                                                         .getFontName()))
                                                 || (Math.abs(font.getFontSize()
                                                         - strToReposition.font
@@ -992,17 +1133,23 @@ public class NcPlotImageCreator {
                                                                 .getStyle() != null
                                                         && font.getStyle().length > 0
                                                         && strToReposition.font
-                                                                .getStyle().length > 0 && font
-                                                        .getStyle()[0] != strToReposition.font
-                                                        .getStyle()[0])
-                                                || ((font.getStyle() == null || font
-                                                        .getStyle().length == 0) && strToReposition.font
-                                                // The style is set to null for
-                                                // plain style fonts
-                                                        .getStyle() != null)
-                                                || (font.getStyle() != null && (strToReposition.font
-                                                        .getStyle() == null || strToReposition.font
-                                                        .getStyle().length == 0))) {
+                                                                .getStyle().length > 0
+                                                        && font.getStyle()[0] != strToReposition.font
+                                                                .getStyle()[0])
+                                                || ((font.getStyle() == null
+                                                        || font.getStyle().length == 0)
+                                                        && strToReposition.font
+                                                                // The style is
+                                                                // set to null
+                                                                // for
+                                                                // plain style
+                                                                // fonts
+                                                                .getStyle() != null)
+                                                || (font.getStyle() != null
+                                                        && (strToReposition.font
+                                                                .getStyle() == null
+                                                                || strToReposition.font
+                                                                        .getStyle().length == 0))) {
                                             strToReposition.font = font;
                                         }
 
@@ -1010,7 +1157,8 @@ public class NcPlotImageCreator {
                                             station.positionToLocationMap.put(
                                                     position,
                                                     strToReposition.basics);
-                                            String localDbKey = createKeyFromTextCoordinates(strToReposition.basics);
+                                            String localDbKey = createKeyFromTextCoordinates(
+                                                    strToReposition.basics);
                                             mapOfStrPositions.put(localDbKey,
                                                     strToReposition);
                                         }
@@ -1031,7 +1179,8 @@ public class NcPlotImageCreator {
                                             station.positionToLocationMap.put(
                                                     position,
                                                     drawableString.basics);
-                                            String keydb = createKeyFromTextCoordinates(drawableString.basics);
+                                            String keydb = createKeyFromTextCoordinates(
+                                                    drawableString.basics);
                                             mapOfStrPositions.put(keydb,
                                                     drawableString);
                                         }
@@ -1046,8 +1195,6 @@ public class NcPlotImageCreator {
                                     // obsolete. So create the string to be
                                     // rendered.
 
-                                    // System.out.println( dataTime.toString() +
-                                    // " Trying to create the met parameter value for a new station ?");
                                     DrawableString drawableString = getDrawableStringForStation(
                                             station, plotParamDefn, font,
                                             pmeColor, position, aTarget, pme);
@@ -1060,7 +1207,8 @@ public class NcPlotImageCreator {
                                                 .getColors()[0];
                                         if ((!pme.hasAdvancedSettings())
                                                 && (oldColor.red != pmeColor.red
-                                                        || oldColor.green != pmeColor.green || oldColor.blue != pmeColor.blue)) {
+                                                        || oldColor.green != pmeColor.green
+                                                        || oldColor.blue != pmeColor.blue)) {
                                             drawableString.setText(
                                                     drawableString.getText(),
                                                     pmeColor);
@@ -1070,9 +1218,16 @@ public class NcPlotImageCreator {
                                             drawableString.setText(
                                                     drawableString.getText(),
                                                     rgb);
+
+                                            Integer alpha = getConditionalAlpha(
+                                                    station, pme);
+                                            if ((alpha == null) || (alpha
+                                                    .intValue() == 0)) {
+                                                continue;
+                                            }
                                         }
-                                        if (!font.getFontName().equals(
-                                                drawableString.font
+                                        if (!font.getFontName()
+                                                .equals(drawableString.font
                                                         .getFontName())
                                                 || (Math.abs(font.getFontSize()
                                                         - drawableString.font
@@ -1082,17 +1237,23 @@ public class NcPlotImageCreator {
                                                                 .getStyle() != null
                                                         && font.getStyle().length > 0
                                                         && drawableString.font
-                                                                .getStyle().length > 0 && font
-                                                        .getStyle()[0] != drawableString.font
-                                                        .getStyle()[0])
-                                                || ((font.getStyle() == null || font
-                                                        .getStyle().length == 0) && drawableString.font
-                                                // The style is set to null for
-                                                // plain style fonts
-                                                        .getStyle() != null)
-                                                || (font.getStyle() != null && (drawableString.font
-                                                        .getStyle() == null || drawableString.font
-                                                        .getStyle().length == 0))) {
+                                                                .getStyle().length > 0
+                                                        && font.getStyle()[0] != drawableString.font
+                                                                .getStyle()[0])
+                                                || ((font.getStyle() == null
+                                                        || font.getStyle().length == 0)
+                                                        && drawableString.font
+                                                                // The style is
+                                                                // set to null
+                                                                // for
+                                                                // plain style
+                                                                // fonts
+                                                                .getStyle() != null)
+                                                || (font.getStyle() != null
+                                                        && (drawableString.font
+                                                                .getStyle() == null
+                                                                || drawableString.font
+                                                                        .getStyle().length == 0))) {
                                             drawableString.font = font;
                                         }
 
@@ -1100,7 +1261,8 @@ public class NcPlotImageCreator {
                                             station.positionToLocationMap.put(
                                                     position,
                                                     drawableString.basics);
-                                            String dbkey = createKeyFromTextCoordinates(drawableString.basics);
+                                            String dbkey = createKeyFromTextCoordinates(
+                                                    drawableString.basics);
                                             mapOfStrPositions.put(dbkey,
                                                     drawableString);
                                         }
@@ -1126,17 +1288,19 @@ public class NcPlotImageCreator {
                         metPrm2 = vectorPrmNames[1];
                     }
                     Double d = pme.getSymbolSize();
+                    String paramname = pme.getParamName();
                     double symbolSize = (d == null ? 1.0 : d.doubleValue());
-                    boolean directionOnly = plotParamDefn.getPlotMode().equals(
-                            PlotParameterDefn.PLOT_MODE_DIRECTIONAL);
-                    boolean directionReverse = plotParamDefn.getTransform() != null
+                    boolean directionOnly = plotParamDefn.getPlotMode()
+                            .equals(PlotParameterDefn.PLOT_MODE_DIRECTIONAL);
+                    boolean directionReverse = plotParamDefn
+                            .getTransform() != null
                             && plotParamDefn.getTransform().equalsIgnoreCase(
                                     PlotParameterDefn.PLOT_TRANSFORM_REVERSE);
                     Collection<Station> stnColl = stationMap.values();
                     createVectors(vectorCoordinatesToVectorsMap, stnColl,
                             plotParamDefn.getPlotUnit(), symbolSize, pmeColor,
                             metPrm1, metPrm2, pme, directionOnly,
-                            directionReverse);
+                            directionReverse, plotmode, paramname);
                 }
 
                 if (drawSymbol) {
@@ -1156,10 +1320,9 @@ public class NcPlotImageCreator {
                     // temporary name change, and that PTND processing is
                     // happening
                     String metParamName = plotParamDefn.getMetParamName();
-                    if (metParamName != null
-                            && metParamName
-                                    .equalsIgnoreCase(PressureChange3HrAndTendency.class
-                                            .getSimpleName())) {
+                    if (metParamName != null && metParamName
+                            .equalsIgnoreCase(PressureChange3HrAndTendency.class
+                                    .getSimpleName())) {
                         plotParamDefn = plotParameterDefinitions
                                 .getPlotParamDefn("PTSY");
                         wasPTND = true;
@@ -1175,11 +1338,11 @@ public class NcPlotImageCreator {
                                 .get(symbolType);
 
                         if (positionToSymbolLocationSetsMap == null) {
-                            positionToSymbolLocationSetsMap = new HashMap<Position, List<SymbolLocationSet>>();
+                            positionToSymbolLocationSetsMap = new HashMap<>();
                         }
 
                         List<Coordinate> listOfCoords = null;
-                        Map<SymbolKey, List<Coordinate>> symbolKeyToSetOfCoordsMap = new HashMap<SymbolKey, List<Coordinate>>();
+                        Map<SymbolKey, List<Coordinate>> symbolKeyToSetOfCoordsMap = new HashMap<>();
                         Collection<Station> stnColl = stationMap.values();
 
                         synchronized (stnColl) {
@@ -1212,25 +1375,22 @@ public class NcPlotImageCreator {
                                             }
                                         }
                                     } catch (Exception e) {
-                                        statusHandler
-                                                .handle(Priority.PROBLEM,
-                                                        "Exception:  "
-                                                                + e.getMessage());
+                                        problemHandler(e);
+
                                     }
                                 }
                                 // Temporarily change the name of the
                                 // combination element, the PTND button,
                                 // to get the PTSY symbol part of it to
                                 // process.
-                                if (wasPTND
-                                        && tableParamToPlot != null
-                                        && tableParamToPlot
-                                                .getMetParamName()
+                                if (wasPTND && tableParamToPlot != null
+                                        && tableParamToPlot.getMetParamName()
                                                 .equalsIgnoreCase(
                                                         "PressureChange3HrAndTendency")) {
                                     if (tableParamToPlot
                                             .getAssociatedMetParam() != null
-                                            && tableParamToPlot.hasValidValue()) {
+                                            && tableParamToPlot
+                                                    .hasValidValue()) {
                                         // Save a copy of the P03C values
                                         // from the PTND metparameter
                                         ptnd = tableParamToPlot;
@@ -1248,7 +1408,8 @@ public class NcPlotImageCreator {
                                                 .toString();
                                     } else {
                                         formattedString = getFormattedValueToPlot(
-                                                plotParamDefn, tableParamToPlot);
+                                                plotParamDefn,
+                                                tableParamToPlot);
 
                                         if (formattedString == null
                                                 || formattedString.isEmpty()) {
@@ -1259,9 +1420,11 @@ public class NcPlotImageCreator {
                                         }
 
                                         symbolPatternName = lookupTable
-                                                .recursiveTranslation(formattedString);
+                                                .recursiveTranslation(
+                                                        formattedString);
                                         if (symbolPatternName == null
-                                                || symbolPatternName.isEmpty()) {
+                                                || symbolPatternName
+                                                        .isEmpty()) {
                                             continue;
                                         } else {
                                             symbolPatternName = symbolPatternName
@@ -1274,12 +1437,20 @@ public class NcPlotImageCreator {
                                     // otherwise, use default color
                                     // associated with this PME
                                     RGB rgb = null;
+                                    Integer alpha = null;
                                     if (pme.hasAdvancedSettings()) {
                                         rgb = getConditionalColor(station, pme);
+                                        alpha = getConditionalAlpha(station,
+                                                pme);
                                     } else {
                                         rgb = pme.getColorRGB();
+                                        alpha = new Integer(255);
                                     }
                                     if (rgb == null) {
+                                        continue;
+                                    }
+                                    if ((alpha == null)
+                                            || (alpha.intValue() == 0)) {
                                         continue;
                                     }
 
@@ -1292,9 +1463,10 @@ public class NcPlotImageCreator {
                                     SymbolKey symbolKey = new SymbolKey(
                                             symbolPatternName,
                                             (symbolType == PlotSymbolType.MARK),
-                                            rgb, (float) pme.getSymbolSize()
-                                                    .doubleValue(), (float) pme
-                                                    .getSymbolWidth()
+                                            rgb, alpha,
+                                            (float) pme.getSymbolSize()
+                                                    .doubleValue(),
+                                            (float) pme.getSymbolWidth()
                                                     .doubleValue());
 
                                     // Get coordinates for the symbol. Start
@@ -1312,8 +1484,8 @@ public class NcPlotImageCreator {
                                     // the P03C number
                                     tempPixLoc[0] = adjustForPTSYSymbol(ptnd,
                                             symbolKey.symbolPatternName,
-                                            position, textBounds,
-                                            tempPixLoc[0], view, canvasBounds);
+                                            position, textBounds, tempPixLoc[0],
+                                            view, canvasBounds);
                                     // Adjust the coordinates to offset from
                                     // center depending on the plot position
                                     tempPixLoc = getAdjustedCoordinates(
@@ -1330,24 +1502,24 @@ public class NcPlotImageCreator {
                                     listOfCoords = symbolKeyToSetOfCoordsMap
                                             .get(symbolKey);
                                     if (listOfCoords == null) {
-                                        listOfCoords = new ArrayList<Coordinate>();
-                                        symbolKeyToSetOfCoordsMap.put(
-                                                symbolKey, listOfCoords);
+                                        listOfCoords = new ArrayList<>();
+                                        symbolKeyToSetOfCoordsMap.put(symbolKey,
+                                                listOfCoords);
                                     }
 
                                     // Add to that list the coordinates at
                                     // which to draw the symbol for this
                                     // station
-                                    listOfCoords.add(new Coordinate(
-                                            worldLoc[0], worldLoc[1]));
+                                    listOfCoords.add(new Coordinate(worldLoc[0],
+                                            worldLoc[1]));
 
                                 } catch (VizException e) {
-                                    statusHandler.handle(Priority.PROBLEM,
-                                            "Exception:  " + e.getMessage());
+                                    problemHandler(e);
+
                                 }
                             }
                         }
-                        List<SymbolLocationSet> symbolLocationSets = new ArrayList<SymbolLocationSet>();
+                        List<SymbolLocationSet> symbolLocationSets = new ArrayList<>();
                         for (SymbolKey symbolKey : symbolKeyToSetOfCoordsMap
                                 .keySet()) {
                             List<Coordinate> coordSet = symbolKeyToSetOfCoordsMap
@@ -1357,12 +1529,13 @@ public class NcPlotImageCreator {
                             }
 
                             RGB rgb = symbolKey.rgb;
+                            Integer alpha = symbolKey.alpha;
                             Color symbolColor = new Color(rgb.red, rgb.green,
-                                    rgb.blue);
+                                    rgb.blue, alpha.intValue());
                             Color[] colorArray = new Color[] { symbolColor };
+
                             symbolLocationSets.add(new SymbolLocationSet(null,
-                                    colorArray,
-                                    symbolKey.width,
+                                    colorArray, symbolKey.width,
                                     symbolKey.size * 0.75, // sizeScale
                                     false, // clear
                                     coordSet.toArray(new Coordinate[0]),
@@ -1392,12 +1565,12 @@ public class NcPlotImageCreator {
                     }
                 }
             } catch (Exception e) {
-                statusHandler.handle(Priority.PROBLEM,
-                        "Exception:  " + e.getMessage());
+                problemHandler(e);
+
             }
 
             /* Consolidate all vectors at all positions into a single list */
-            vectorsToDraw = new ArrayList<IVector>(0);
+            vectorsToDraw = new ArrayList<>(0);
             if (vectorCoordinatesToVectorsMap != null
                     && !vectorCoordinatesToVectorsMap.isEmpty()) {
                 for (List<IVector> vColl : vectorCoordinatesToVectorsMap
@@ -1405,8 +1578,8 @@ public class NcPlotImageCreator {
                     try {
                         vectorsToDraw.addAll(vColl);
                     } catch (Exception e) {
-                        statusHandler.handle(Priority.PROBLEM, "Exception:  "
-                                + e.getMessage());
+                        problemHandler(e);
+
                     }
                 }
             }
@@ -1441,89 +1614,93 @@ public class NcPlotImageCreator {
             Tracer.print("< Exit");
         }
 
-        /**
-         * Creates and formats the string to be plotted at the input plot
-         * position for the input station
-         * 
-         * @param station
-         * @param plotParamDefn
-         * @param font
-         * @param textColor
-         * @param position
-         * @param textBounds
-         * @return
-         */
-
         private DrawableString getDrawableStringForStation(Station station,
                 PlotParameterDefn plotParamDefn, IFont font, RGB textColor,
-                Position position, IGraphicsTarget aTarget, PlotModelElement pme) {
+                Position position, IGraphicsTarget aTarget,
+                PlotModelElement pme) {
 
             Tracer.printX("> Entry");
             DrawableString drawableString = null;
             String metParamName = plotParamDefn.getMetParamName();
+            boolean skipAlpha = false;
+            Integer alpha = null;
 
             synchronized (station.parametersToPlot) {
                 try {
                     if (pme.hasAdvancedSettings()) {
                         textColor = getConditionalColor(station, pme);
+
+                        alpha = getConditionalAlpha(station, pme);
+                        if ((alpha == null) || (alpha.intValue() == 0)) {
+                            skipAlpha = true;
+                        }
                     }
-                    for (AbstractMetParameter metParamToPlot : station.parametersToPlot) {
-                        if (metParamToPlot.getMetParamName().equals(
-                                metParamName)) {
 
-                            try {
-                                String formattedString = getFormattedValueToPlot(
-                                        plotParamDefn, metParamToPlot);
+                    if (!skipAlpha) {
+                        // loop over all values of station.parametersToPlot
+                        for (AbstractMetParameter metParamToPlot : station.parametersToPlot) {
+                            if (metParamToPlot.getMetParamName()
+                                    .equals(metParamName)) {
 
-                                if (formattedString == null) {
-                                    return null;
+                                try {
+                                    String formattedString = getFormattedValueToPlot(
+                                            plotParamDefn, metParamToPlot);
+
+                                    if (formattedString == null) {
+                                        return null;
+                                    }
+
+                                    formattedString = removeSign(metParamToPlot,
+                                            formattedString);
+
+                                    drawableString = new DrawableString(
+                                            formattedString, textColor);
+                                    drawableString.horizontalAlignment = HorizontalAlignment.CENTER;
+                                    drawableString.verticallAlignment = VerticalAlignment.MIDDLE;
+                                    drawableString.font = font;
+                                    drawableString.magnification = 1.0;
+
+                                    Rectangle2D bounds = aTarget
+                                            .getStringsBounds(
+                                                    new DrawableString(
+                                                            "'" + drawableString
+                                                                    .getText()[0]
+                                                            + "y",
+                                                            drawableString
+                                                                    .getColors()[0]));
+                                    Rectangle textBounds = new Rectangle(0, 0,
+                                            (int) bounds.getWidth(),
+                                            (int) bounds.getHeight());
+                                    double[] pixLoc = getAdjustedCoordinates(
+                                            textBounds, station.pixelLocation.x,
+                                            station.pixelLocation.y, lastView,
+                                            canvasBounds, position);
+                                    if (pixLoc != null) {
+                                        drawableString.setCoordinates(pixLoc[0],
+                                                pixLoc[1]);
+                                    } else {
+                                        drawableString.setCoordinates(
+                                                station.pixelLocation.x,
+                                                station.pixelLocation.y);
+                                    }
+
+                                    return drawableString;
+
+                                } catch (VizException e) {
+                                    problemHandler(e);
+
+                                    break;
                                 }
-                                // Remove sign for specific values
-                                formattedString = removeSign(metParamToPlot,
-                                        formattedString);
-
-                                drawableString = new DrawableString(
-                                        formattedString, textColor);
-                                drawableString.horizontalAlignment = HorizontalAlignment.CENTER;
-                                drawableString.verticallAlignment = VerticalAlignment.MIDDLE;
-                                drawableString.font = font;
-                                drawableString.magnification = 1.0;
-
-                                Rectangle2D bounds = aTarget
-                                        .getStringsBounds(new DrawableString(
-                                                "'"
-                                                        + drawableString
-                                                                .getText()[0]
-                                                        + "y", drawableString
-                                                        .getColors()[0]));
-                                Rectangle textBounds = new Rectangle(0, 0,
-                                        (int) bounds.getWidth(),
-                                        (int) bounds.getHeight());
-                                double[] pixLoc = getAdjustedCoordinates(
-                                        textBounds, station.pixelLocation.x,
-                                        station.pixelLocation.y, lastView,
-                                        canvasBounds, position);
-                                if (pixLoc != null) {
-                                    drawableString.setCoordinates(pixLoc[0],
-                                            pixLoc[1]);
-                                } else {
-                                    drawableString.setCoordinates(
-                                            station.pixelLocation.x,
-                                            station.pixelLocation.y);
-                                }
-
-                                return drawableString;
-
-                            } catch (VizException e) {
-                                statusHandler.handle(Priority.PROBLEM,
-                                        "Exception:  " + e.getMessage());
-                                break;
                             }
                         }
                     }
+
                 } catch (Exception e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            "Exception:  " + e.getMessage());
+
+                    problemHandler(e);
+
+                    e.printStackTrace();
+                    Tracer.print("< Bad Exit");
                     return null;
                 }
             }
@@ -1533,38 +1710,72 @@ public class NcPlotImageCreator {
         }
     }
 
-    /*
-     * Remove the sign on pressure tendency values of zero or where the value of
-     * PTSY was 4
+    /**
+     * Remove the arithmetic sign when the pressure change over the last 3 hours
+     * is zero. Remove the arithmetic sign when the Pressure Tendency is steady.
+     * 
+     * In order to make it easier to understand, the algorithm we use here is
+     * not optimized.
+     * 
+     * TODO: (Bruce H.) Consider improving the OO design so that this central
+     * class (NcPlotImageCreator) doesn't need to know anything about specific
+     * metParameters. For example, in this case, the removeSign operation might
+     * be delegated to the specific child class of AbstractMetParameter needing
+     * it (PressChange3Hr or Pressurechange3HrAndTendency) as an implementation
+     * of a more generic method (e.g., something like cleanFormattedString()
+     * with a default no-op (empty) implementation). This might be included with
+     * a broader re-factor of metParameters (to handle known special cases such
+     * as this) and of the Point Data Display resource (.rsc.plotdata) in
+     * general.
+     * 
+     * @param metParamToPlot
+     * @param formattedString
+     * @return the value formatted as a string
      */
     private String removeSign(AbstractMetParameter metParamToPlot,
             String formattedString) {
 
-        if (!metParamToPlot.getMetParamName()
-                .equalsIgnoreCase("PressChange3Hr")
-                && !metParamToPlot.getMetParamName().equalsIgnoreCase(
-                        "PressureChange3HrAndTendency")) {
-            return formattedString;
+        // for temporary calculations
+        String s = formattedString;
+
+        int pressureIsSteady = 4;
+
+        // Remove the sign
+        if (s.startsWith("+") || s.startsWith("-")) {
+            s = s.substring(1);
         }
 
-        String str = formattedString;
-        AbstractMetParameter amp = metParamToPlot.getAssociatedMetParam();
-        String sPTSY = amp.getStringValue();
-        int iPTSY = 0;
-        double iP03C = 0.0d;
-        iP03C = metParamToPlot.getValue().doubleValue();
-        iPTSY = Integer.parseInt(sPTSY);
+        String metParamName = metParamToPlot.getMetParamName();
 
-        // If zero pressure tendency value or ptsy symbol is 4 - neutral
-        if (iP03C == 0.0 || iPTSY == 4) {
-            // Remove the sign
-            if (formattedString.contains("+") || formattedString.contains("-")) {
-                str = formattedString.substring(1);
+        if (metParamName.equalsIgnoreCase("PressChange3Hr")) {
+
+            // Return with sign removed
+            if (metParamToPlot.getValue().doubleValue() == 0.0) {
+                return s;
             }
         }
 
-        return str;
+        if (metParamName.equalsIgnoreCase("PressureChange3HrAndTendency")) {
 
+            try {
+
+                String pressureTendencySymbol = metParamToPlot
+                        .getAssociatedMetParam().getStringValue();
+
+                // Return with sign removed
+                if (Integer
+                        .parseInt(pressureTendencySymbol) == pressureIsSteady) {
+                    return s;
+                }
+
+            } catch (Exception e) {
+                problemHandler(e);
+                return null;
+            }
+        }
+
+        // Return the value passed in, including the sign
+        return formattedString;
     }
 
     private String getFormattedValueToPlot(PlotParameterDefn plotParamDefn,
@@ -1606,8 +1817,9 @@ public class NcPlotImageCreator {
                     return null;
                 }
 
-                String formattedStr = new String(metPrm.getFormattedString(
-                        plotParamDefn.getPlotFormat()).trim());
+                String formattedStr = new String(
+                        metPrm.getFormattedString(plotParamDefn.getPlotFormat())
+                                .trim());
                 String plotTrim = plotParamDefn.getPlotTrim();
 
                 if (plotTrim != null && !plotTrim.isEmpty()) {
@@ -1621,8 +1833,8 @@ public class NcPlotImageCreator {
             }
 
         } catch (Exception e) {
-            statusHandler.handle(Priority.PROBLEM,
-                    "Exception:  " + e.getMessage());
+            problemHandler(e);
+
             return plotUnit;
         }
 
@@ -1689,7 +1901,7 @@ public class NcPlotImageCreator {
             } else if (positionLastLetter.equalsIgnoreCase("L")) {
                 offsetXpos = xPos + adjustedWidth;
             }
-        }// end if PTND
+        } // end if PTND
 
         // PTSY symbol independent of a PTND button combination
         else if (ptnd == null) {
@@ -1809,7 +2021,8 @@ public class NcPlotImageCreator {
         return new double[] { canvasX1, canvasY1 };
     }
 
-    private RGB getConditionalColor(Station currentStation, PlotModelElement pme) {
+    private RGB getConditionalColor(Station currentStation,
+            PlotModelElement pme) {
         PlotParameterDefn condPlotParamDefn = PlotParameterDefnsMngr
                 .getInstance().getPlotParamDefns(plotModel.getPlugin())
                 .getPlotParamDefn(pme.getConditionalParameter());
@@ -1818,8 +2031,8 @@ public class NcPlotImageCreator {
         if (!currentStation.conditionalColorParameters.isEmpty()) {
             synchronized (currentStation.conditionalColorParameters) {
                 for (AbstractMetParameter condColorMetPrm : currentStation.conditionalColorParameters) {
-                    if (condColorMetPrm.getMetParamName().equals(
-                            condPlotParamDefn.getMetParamName())) {
+                    if (condColorMetPrm.getMetParamName()
+                            .equals(condPlotParamDefn.getMetParamName())) {
                         String condParamValue = getConditionalParameterValue(
                                 condPlotParamDefn, condColorMetPrm,
                                 currentStation);
@@ -1840,14 +2053,46 @@ public class NcPlotImageCreator {
         return rgb;
     }
 
-    private String getConditionalParameterValue(
-            PlotParameterDefn plotParamDefn, AbstractMetParameter metPrm,
-            Station station) {
+    private Integer getConditionalAlpha(Station currentStation,
+            PlotModelElement pme) {
+        PlotParameterDefn condPlotParamDefn = PlotParameterDefnsMngr
+                .getInstance().getPlotParamDefns(plotModel.getPlugin())
+                .getPlotParamDefn(pme.getConditionalParameter());
+        Tracer.printX("> Entry");
+        Integer alpha = null;
+        if (!currentStation.conditionalColorParameters.isEmpty()) {
+            synchronized (currentStation.conditionalColorParameters) {
+                for (AbstractMetParameter condColorMetPrm : currentStation.conditionalColorParameters) {
+                    if (condColorMetPrm.getMetParamName()
+                            .equals(condPlotParamDefn.getMetParamName())) {
+                        String condParamValue = getConditionalParameterValue(
+                                condPlotParamDefn, condColorMetPrm,
+                                currentStation);
+                        if (condParamValue != null
+                                && !condColorMetPrm.hasStringValue()) {
+                            float value = Float.parseFloat(condParamValue);
+                            if (pme.getConditionalColorBar() != null) {
+                                alpha = pme.getConditionalColorBar()
+                                        .getAlphaForInterval(value);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Tracer.printX("< Exit " + alpha);
+        return alpha;
+    }
+
+    private String getConditionalParameterValue(PlotParameterDefn plotParamDefn,
+            AbstractMetParameter metPrm, Station station) {
         try {
             return getFormattedValueToPlot(plotParamDefn, metPrm);
+
         } catch (VizException e) {
-            statusHandler.handle(Priority.PROBLEM,
-                    "Exception:  " + e.getMessage());
+            problemHandler(e);
+
             return null;
         }
     }
@@ -1856,7 +2101,8 @@ public class NcPlotImageCreator {
         return plotModelPositionToPmeMap;
     }
 
-    public void removeObsoletePlotEntriesAtThisPositionForAllFrames(Position p) {
+    public void removeObsoletePlotEntriesAtThisPositionForAllFrames(
+            Position p) {
         Tracer.print("> Entry" + "  Position " + p);
         if (dataTimeToText != null && !dataTimeToText.isEmpty()) {
             Set<DataTime> dtSet = dataTimeToText.keySet();
@@ -1864,9 +2110,8 @@ public class NcPlotImageCreator {
                 for (DataTime dt : dtSet) {
                     Map<Position, Map<String, DrawableString>> mapOfStrPos = dataTimeToText
                             .get(dt);
-                    if ((mapOfStrPos != null && !mapOfStrPos.isEmpty() && mapOfStrPos
-                            .containsKey(p))
-                            && (p != Position.SC)
+                    if ((mapOfStrPos != null && !mapOfStrPos.isEmpty()
+                            && mapOfStrPos.containsKey(p)) && (p != Position.SC)
                             && (p != Position.WD)) {
                         mapOfStrPos.remove(p);
                         dataTimeToText.put(dt, mapOfStrPos);

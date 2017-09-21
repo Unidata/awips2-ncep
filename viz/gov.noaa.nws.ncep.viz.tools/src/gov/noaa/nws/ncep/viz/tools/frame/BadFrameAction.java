@@ -39,6 +39,7 @@ import com.raytheon.viz.ui.tools.AbstractTool;
  * ------------	----------	-----------	--------------------------
  * 10/10		#309		G. Zhang   	Initial Creation.
  * 02/11/13     #972        G. Hull     AbstractEditor instead of NCMapEditor
+ * 11/08/16      5976       bsteffen    Update deprecated method calls.
  *
  * </pre>
  * 
@@ -146,7 +147,7 @@ public class BadFrameAction  extends AbstractTool {
 	 * get the next visible frame index
 	 */
 	private int getNxtIdx(IDescriptor idtor, int skipIdx){
-		DataTime[] dt = idtor.getFrames();
+        DataTime[] dt = idtor.getFramesInfo().getFrameTimes();
 		
 		TreeSet<Integer> set = new TreeSet<Integer>();
 		

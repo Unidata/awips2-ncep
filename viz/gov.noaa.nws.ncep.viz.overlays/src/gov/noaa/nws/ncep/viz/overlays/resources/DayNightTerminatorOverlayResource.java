@@ -31,16 +31,16 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
-import com.raytheon.uf.viz.core.PixelExtent;
 import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.drawables.IShadedShape;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
+import com.raytheon.uf.viz.core.drawables.JTSCompiler;
+import com.raytheon.uf.viz.core.drawables.JTSCompiler.JTSGeometryData;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.IMapDescriptor;
 import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -56,6 +56,7 @@ import com.vividsolutions.jts.geom.LineString;
  * ------------ ----------  ----------- --------------------------
  * 04/24/14     1130       S. Gurung	Initial Creation
  * 02/17/16     #13554     dgilling     Implement IStaticDataNatlCntrsResource.
+ * 11/08/16      5976       bsteffen    Update deprecated method calls.
  * 
  * </pre>
  * 
@@ -177,9 +178,7 @@ public class DayNightTerminatorOverlayResource
 
         if (polygonCoordinatesList != null) {
             IWireframeShape wireframeShape = target.createWireframeShape(false,
-                    descriptor, 4.0f, false, new PixelExtent(getViewMinX()
-                            + offset, getViewMaxX() - offset, getViewMinY()
-                            + offset, getViewMaxY() - offset));
+                    descriptor);
             // JTSCompiler jtsCompiler = new JTSCompiler(null, wireframeShape,
             // descriptor);
             GeometryFactory gf = new GeometryFactory();
@@ -192,7 +191,7 @@ public class DayNightTerminatorOverlayResource
             // dayNightTermOverlayResourceData.getTermLineWidth(),
             // dayNightTermOverlayResourceData.getTermLineStyle());
             IShadedShape shadedShape = target.createShadedShape(false,
-                    descriptor.getGridGeometry(), true);
+                    descriptor.getGridGeometry());
             shadedShape.addPolygonPixelSpace(new LineString[] { ls }, color);
             shadedShape.addPolygon(new LineString[] { ls }, color);
             shadedShape.compile();
@@ -321,7 +320,10 @@ public class DayNightTerminatorOverlayResource
             LineString ls = gf.createLineString(meridianCoords);
 
             try {
-                jtsCompiler.handle(ls, lineColor, true);
+                JTSGeometryData data = jtsCompiler.createGeometryData();
+                data.setGeometryColor(lineColor);
+                data.setWorldWrapCorrect(true);
+                jtsCompiler.handle(ls, data);
                 wireframeShape.compile();
                 target.drawWireframeShape(wireframeShape, lineColor, lineWidth,
                         lineStyle);
@@ -1102,7 +1104,10 @@ public class DayNightTerminatorOverlayResource
         LineString ls = gf.createLineString(terminatorCoords);
 
         try {
-            jtsCompiler.handle(ls, new RGB(255, 255, 255), true);
+            JTSGeometryData data = jtsCompiler.createGeometryData();
+            data.setGeometryColor(new RGB(255, 255, 255));
+            data.setWorldWrapCorrect(true);
+            jtsCompiler.handle(ls, data);
             wireframeShape.compile();
         } catch (VizException e) {
             statusHandler.handle(Priority.PROBLEM,

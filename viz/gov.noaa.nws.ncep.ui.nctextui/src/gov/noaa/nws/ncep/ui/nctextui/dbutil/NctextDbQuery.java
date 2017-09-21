@@ -1,65 +1,4 @@
-/**
- * 
- * gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextDbQuery
- * 
- * This java class performs the NCTEXT GUI database query.
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * 
- * 
- * Database : NCEP
- * Schema:  NWX
- * Tables:
- * 
- * 1.Data Type Group List table
- * name :  datatypegrouplist
- * column 1: id, int
- * column 2: datatypegroupname, string
- * column 3: datatypegrouptablename, string
- * reference: dataTypeGpList.xml – use contents of this xml  file for table contents
- * 
- * 2.Data Group Tables:  One table for each entry of datatypegrouplist table.
- * name:   table name should match with column 3 of  datatypegrouplist table.
- * column 1:  id, int
- * column 2: productname, string
- * column 3: producttablename, string
- * column 4: productType, String – use file extension as defined in $GEMTBL/nwx/master.tbl.
- * reference: ObservedData.xml, etc.-  use contents of these xml files for tables contents
- * 
- * 3.Product Tables:   one for each entry in Data Group Table
- * name:   table name should match with column 3 of Data Group Table
- * column 1:  id, int
- * column 2: productid, string
- * column 3: stnid, string
- * column 4: stnname, string
- * column 5: state, string
- * column 6: country, string
- * column 7: latitude, double
- * column 8: longitude, double
- * column 9: elevation, int
- * reference: use contents of $GEMTBL/nwx/*.bull files for tables contents. Need to be carefully to match bull file for each product station table
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 1/10/2010    TBD         Chin Chen   Initial coding
- * 1/26/2010                Chin Chen   Make changes to use NCEP database for station info sources
- *                                      instead of using XML files. 
- * 12/10/2012               Chin Chen   Add support for "Observed Data" group
- * 07/10/2014               Chin Chen   added NcText new Admin Message Group
- * 11/09/2015    R9392      kbugenhagen Modified query in createProductDataQuery
- *                                      to include wmoid in order to avoid
- *                                      returning multiple rows + code cleanup.
- * 
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
 package gov.noaa.nws.ncep.ui.nctextui.dbutil;
-
-import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -91,6 +30,61 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.datacube.DataCubeContainer;
 import com.raytheon.viz.pointdata.PointDataRequest;
 
+import gov.noaa.nws.ncep.viz.common.dbQuery.NcDirectDbQuery;
+
+/**
+ * 
+ * gov.noaa.nws.ncep.ui.nctextui.dbutil.NctextDbQuery
+ * 
+ * This java class performs the NCTEXT GUI database query. This code has been
+ * developed by the SIB for use in the AWIPS2 system.
+ * 
+ * 
+ * Database : NCEP Schema: NWX Tables:
+ * 
+ * 1.Data Type Group List table name : datatypegrouplist column 1: id, int
+ * column 2: datatypegroupname, string column 3: datatypegrouptablename, string
+ * reference: dataTypeGpList.xml – use contents of this xml file for table
+ * contents
+ * 
+ * 2.Data Group Tables: One table for each entry of datatypegrouplist table.
+ * name: table name should match with column 3 of datatypegrouplist table.
+ * column 1: id, int column 2: productname, string column 3: producttablename,
+ * string column 4: productType, String – use file extension as defined in
+ * $GEMTBL/nwx/master.tbl. reference: ObservedData.xml, etc.- use contents of
+ * these xml files for tables contents
+ * 
+ * 3.Product Tables: one for each entry in Data Group Table name: table name
+ * should match with column 3 of Data Group Table column 1: id, int column 2:
+ * productid, string column 3: stnid, string column 4: stnname, string column 5:
+ * state, string column 6: country, string column 7: latitude, double column 8:
+ * longitude, double column 9: elevation, int reference: use contents of
+ * $GEMTBL/nwx/*.bull files for tables contents. Need to be carefully to match
+ * bull file for each product station table
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 1/10/2010    TBD         Chin Chen   Initial coding
+ * 1/26/2010                Chin Chen   Make changes to use NCEP database for station info sources
+ *                                      instead of using XML files. 
+ * 12/10/2012               Chin Chen   Add support for "Observed Data" group
+ * 07/10/2014               Chin Chen   added NcText new Admin Message Group
+ * 11/09/2015   R9392       kbugenhagen Modified query in createProductDataQuery
+ *                                      to include wmoid in order to avoid
+ *                                      returning multiple rows + code cleanup.
+ * 09/01/2016   R15951      jlopez      Modified query in createProductDataQuery to
+ *                                      check if productid is a valid WMO Header
+ * 12/12/2016   R25982      J Beck      Modify support for Aviation > TAFs
+ *                                      and Observed Data > TAFs Decoded
+ * </pre>
+ * 
+ * @author Chin Chen
+ * @version 1.0
+ */
+
 public class NctextDbQuery {
 
     protected static final transient IUFStatusHandler statusHandler = UFStatus
@@ -103,6 +97,8 @@ public class NctextDbQuery {
     private final String NCTEXT_STATIC_GP_TABLE_NAME = "nwx.datatypegrouplist";
 
     private final String NCTEXT_DATA_DB_TABLE = "awips.nctext";
+
+    private final String TAF_PRODUCT_TYPE = "fts";
 
     private static final String OBS_DATA_GROUP = "Observed Data";
 
@@ -160,44 +156,44 @@ public class NctextDbQuery {
 
     private static final int MILLISECONDS_IN_HOUR = 3600000;
 
+    private static final String WMO_REGEX = "\\D{4}\\d{2}";
+
     // List of data type group
-    private static List<String> dataTypeGpStrList = new ArrayList<String>();
+    private static List<String> dataTypeGpStrList = new ArrayList<>();
 
     // Map from data group name to a list of data products for the group.
     // <key: dataTypeGpName, value: productList array>
-    private static Map<String, List<String>> gpToProductlistMap = new HashMap<String, List<String>>();
+    private static Map<String, List<String>> gpToProductlistMap = new HashMap<>();
 
     // Map, from a data productName to all of its stationInfo list,
     // key:productname, value: all of its stn info list
-    private static Map<String, List<NctextStationInfo>> productAllStationInfoListMap = new HashMap<String, List<NctextStationInfo>>();
+    private static Map<String, List<NctextStationInfo>> productAllStationInfoListMap = new HashMap<>();
 
     // Map, from a data productName to its stationInfo list of a state,
     // key:productname+state, value:its state stn info list
-    private static Map<String, List<NctextStationInfo>> productStateStationInfoListMap = new HashMap<String, List<NctextStationInfo>>();
+    private static Map<String, List<NctextStationInfo>> productStateStationInfoListMap = new HashMap<>();
 
     // <key:productName, value: productType>
-    private static Map<String, String> productNameToTypeMap = new HashMap<String, String>();
+    private static Map<String, String> productNameToTypeMap = new HashMap<>();
 
     // <key:fileExt, value: fileType>
-    private static Map<String, String> fileExtToFileTypeMap = new HashMap<String, String>();
+    private static Map<String, String> fileExtToFileTypeMap = new HashMap<>();
 
     private boolean autoUpdate;
 
     // read file type info from database
     private List<Object[]> readfileTypeInfoList() {
-        String queryStr = new String("Select * FROM "
-                + NCTEXT_FILE_TYPE_TABLE_NAME);
+        String queryStr = new String(
+                "Select * FROM " + NCTEXT_FILE_TYPE_TABLE_NAME);
         List<Object[]> list = null;
         try {
-            // TODO In general, investigate replacing direct queries in this
-            // class with requests to ThriftClient.
             list = NcDirectDbQuery.executeQuery(queryStr, NCTEXT_DATA_DB_NAME,
                     QueryLanguage.SQL);
         } catch (VizException e) {
-            statusHandler.handle(
-                    Priority.PROBLEM,
+            statusHandler.handle(Priority.PROBLEM,
                     "-----DB exception at readfileTypeInfoList: "
-                            + e.getLocalizedMessage(), e);
+                            + e.getLocalizedMessage(),
+                    e);
         }
 
         return list;
@@ -210,13 +206,13 @@ public class NctextDbQuery {
                 + NCTEXT_STATIC_GP_TABLE_NAME + " ORDER BY id");
         List<Object[]> list = null;
         try {
-            list = NcDirectDbQuery.executeQuery(queryStr,
-                    NCTEXT_STATIC_DB_NAME, QueryLanguage.SQL);
+            list = NcDirectDbQuery.executeQuery(queryStr, NCTEXT_STATIC_DB_NAME,
+                    QueryLanguage.SQL);
         } catch (VizException e) {
-            statusHandler.handle(
-                    Priority.PROBLEM,
+            statusHandler.handle(Priority.PROBLEM,
                     "-----DB exception at readDataTypeGpInfoList: "
-                            + e.getLocalizedMessage(), e);
+                            + e.getLocalizedMessage(),
+                    e);
         }
 
         return list;
@@ -231,10 +227,10 @@ public class NctextDbQuery {
             stninfolst = NcDirectDbQuery.executeQuery(queryStr,
                     NCTEXT_STATIC_DB_NAME, QueryLanguage.SQL);
         } catch (VizException e) {
-            statusHandler.handle(
-                    Priority.PROBLEM,
+            statusHandler.handle(Priority.PROBLEM,
                     "-----DB exception at readStnInfo: "
-                            + e.getLocalizedMessage(), e);
+                            + e.getLocalizedMessage(),
+                    e);
         }
 
         return stninfolst;
@@ -244,7 +240,7 @@ public class NctextDbQuery {
     // list of such product
     private void addToProductAllStationInfoListMap(String productName,
             List<Object[]> stnInfoLstObj) {
-        List<NctextStationInfo> listOfStn = new ArrayList<NctextStationInfo>();
+        List<NctextStationInfo> listOfStn = new ArrayList<>();
         for (Object[] obj : stnInfoLstObj) {
             NctextStationInfo stn = new NctextStationInfo();
             stn.setProductid((String) obj[1]);
@@ -262,14 +258,14 @@ public class NctextDbQuery {
 
     }
 
-    // add item to productStateStationInfoListMap, key=productname+state, val=
-    // state stn list of such product
+    // add item to productStateStationInfoListMap,
+    // key=productname+state, val=state stn list of such product
     private void addToProductStateStationInfoListMap(String productName,
             List<Object[]> stnInfoLstObj) {
         List<NctextStationInfo> listOfAllStn = productAllStationInfoListMap
                 .get(productName);
 
-        Collection<String> setOfState = new HashSet<String>();
+        Collection<String> setOfState = new HashSet<>();
 
         String state = null;
 
@@ -285,7 +281,7 @@ public class NctextDbQuery {
         List<NctextStationInfo> listOfStateStn;
 
         for (String sta : setOfState) {
-            listOfStateStn = new ArrayList<NctextStationInfo>();
+            listOfStateStn = new ArrayList<>();
             for (NctextStationInfo stn : listOfAllStn) {
                 if (stn.getState().compareTo(sta) == 0)
                     listOfStateStn.add(stn);
@@ -296,18 +292,18 @@ public class NctextDbQuery {
     }
 
     private List<Object[]> readGpProductInfo(String gpTableName) {
-        String queryStr = new String("Select * FROM " + gpTableName
-                + " ORDER BY id");
+        String queryStr = new String(
+                "Select * FROM " + gpTableName + " ORDER BY id");
         List<Object[]> gpProductObjList = null;
         try {
             gpProductObjList = NcDirectDbQuery.executeQuery(queryStr,
                     NCTEXT_STATIC_DB_NAME, QueryLanguage.SQL);
 
         } catch (VizException e) {
-            statusHandler.handle(
-                    Priority.PROBLEM,
+            statusHandler.handle(Priority.PROBLEM,
                     "-----DB exception at readGpProductInfo: "
-                            + e.getLocalizedMessage(), e);
+                            + e.getLocalizedMessage(),
+                    e);
         }
 
         return gpProductObjList;
@@ -334,7 +330,7 @@ public class NctextDbQuery {
                 String gpTbl = (String) gpObjArray[2];
                 List<Object[]> gpProObjList = readGpProductInfo(gpTbl);
                 if (gpProObjList != null) {
-                    List<String> productLst = new ArrayList<String>();
+                    List<String> productLst = new ArrayList<>();
                     for (Object[] proObjArray : gpProObjList) {
                         String productName = (String) proObjArray[1];
                         String productTbl = (String) proObjArray[2];
@@ -374,75 +370,101 @@ public class NctextDbQuery {
      * "Select rawrecord, issuesite FROM awips.nctext WHERE rawrecord LIKE '%RDU%' AND producttype='etagd' ORDER BY issuetime DESC"
      */
     private String createProductDataQuery(String productName,
+
             NctextStationInfo sta, EReportTimeRange rptTimeRange) {
         StringBuilder queryStr = null;
         String productType;
         String fileType;
+
         if ((productName != null) && (sta != null)) {
             // product type is ingested text file extension
+
             productType = productNameToTypeMap.get(productName);
+
             fileType = fileExtToFileTypeMap.get(productType);
+
             if ((fileType != null) && (fileType.equals("R"))) {
-                // special case to handle "R" type GUIDENCE files, This type of
+                // special case to handle "R" type GUIDANCE files, This type of
                 // text file, its record is saved with a gp stn id created by
                 // NCTEXT decoder.
-                queryStr = new StringBuilder(
-                        "Select rawrecord, issuesite FROM "
-                                + NCTEXT_DATA_DB_TABLE
-                                + " WHERE rawrecord LIKE '%" + sta.getStnid()
-                                + "%' AND producttype='" + productType + "'");
+                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE rawrecord LIKE '%"
+                        + sta.getStnid() + "%' AND producttype='" + productType
+                        + "'");
+
             } else if ((fileType != null) && (fileType.equals("RFTS"))) {
-                // special case to handle "R" type FTS files, This type of text
-                // file, its record is saved with stn id(s) embedded in record
-                // plus some stn may be the main issue stn. So, if just search
-                // stn id will retunrs too many reports.
-                // so, we will search "stnid xxxxxxZ" pattern.
-                queryStr = new StringBuilder(
-                        "Select rawrecord, issuesite FROM "
-                                + NCTEXT_DATA_DB_TABLE
-                                + " WHERE rawrecord LIKE '%" + sta.getStnid()
-                                + "_______Z%' AND producttype='" + productType
-                                + "'");
+
+                /*
+                 * This will be triggered by selecting Aviation > TAFs or
+                 * Observed Data > TAFs Decoded
+                 * 
+                 * Special case to handle "R" type FTS files, This type of text
+                 * file, its record is saved with station id(s) embedded in
+                 * record plus some station may be the main issue station. So,
+                 * if we search stationID it will return too many reports. So we
+                 * will search for "stationID xxxxxxZ" pattern within the
+                 * rawrecord column.
+                 */
+
+                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE rawrecord LIKE '%"
+                        + sta.getStnid() + "_______Z%' AND producttype='"
+                        + TAF_PRODUCT_TYPE + "'");
+
             } else if ((fileType != null) && (fileType.equals("WRECON"))) {
                 // special case to handle "W" type RECON files, This type of
                 // text file, its record should be
                 // selectd based on WMOID, as issue site are duplicated for many
                 // products
-                queryStr = new StringBuilder(
-                        "Select rawrecord, issuesite FROM "
-                                + NCTEXT_DATA_DB_TABLE + " WHERE wmoid='"
-                                + sta.getProductid() + "' AND issuesite='"
-                                + sta.getStnid() + "' AND producttype='"
-                                + productType + "'");
+                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE wmoid='"
+                        + sta.getProductid() + "' AND issuesite='"
+                        + sta.getStnid() + "' AND producttype='" + productType
+                        + "'");
+            }
+
+            // if the productid is a valid WMO Header (4 letters, 2 numbers)
+            // use the wmoid in the query
+            else if (sta.getProductid().matches(WMO_REGEX)) {
+                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE issuesite='"
+                        + sta.getStnid() + "' AND producttype='" + productType
+                        + "'" + " AND wmoid='" + sta.getProductid() + "'");
+
             } else {
-                queryStr = new StringBuilder(
-                        "Select rawrecord, issuesite FROM "
-                                + NCTEXT_DATA_DB_TABLE + " WHERE issuesite='"
-                                + sta.getStnid() + "' AND producttype='"
-                                + productType + "'" + " AND wmoid='"
-                                + sta.getProductid() + "'");
+
+                queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
+                        + NCTEXT_DATA_DB_TABLE + " WHERE issuesite='"
+                        + sta.getStnid() + "' AND producttype='" + productType
+                        + "'");
             }
 
         } else if (productName != null) {
             productType = productNameToTypeMap.get(productName);
-            queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
-                    + NCTEXT_DATA_DB_TABLE + " WHERE producttype='"
-                    + productType + "'");
+            queryStr = new StringBuilder(
+                    "Select rawrecord, issuesite FROM " + NCTEXT_DATA_DB_TABLE
+                            + " WHERE producttype='" + productType + "'");
+
         } else if (sta != null) {
-            queryStr = new StringBuilder("Select rawrecord, issuesite FROM "
-                    + NCTEXT_DATA_DB_TABLE + " WHERE wmoid='"
-                    + sta.getProductid() + "' AND issuesite='" + sta.getStnid()
-                    + "'");
+            queryStr = new StringBuilder(
+                    "Select rawrecord, issuesite FROM " + NCTEXT_DATA_DB_TABLE
+                            + " WHERE wmoid='" + sta.getProductid()
+                            + "' AND issuesite='" + sta.getStnid() + "'");
 
         }
+
         if (rptTimeRange.getTimeRange() > 0) {
+
             Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
             cal.add(Calendar.HOUR_OF_DAY, -(rptTimeRange.getTimeRange()));
+
             String timeE = cal.get(Calendar.YEAR) + "-"
                     + (cal.get(Calendar.MONTH) + 1) + "-"
                     + cal.get(Calendar.DAY_OF_MONTH) + " "
                     + cal.get(Calendar.HOUR_OF_DAY) + ":"
                     + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
+
             queryStr.append(" AND issuetime>='" + timeE + "'");
         }
 
@@ -490,16 +512,16 @@ public class NctextDbQuery {
             // to do this, we have to query DB first.
             StringBuilder queryStr = null;
             List<Object[]> list = null;
-            List<NctextStationInfo> staListFiltered = new ArrayList<NctextStationInfo>();
+            List<NctextStationInfo> staListFiltered = new ArrayList<>();
             if (fileType.equals("WRECON")) {
                 // W type RECON file should use wmoid to get station
-                queryStr = new StringBuilder("Select wmoid, issuesite FROM "
-                        + NCTEXT_DATA_DB_TABLE + " WHERE producttype='"
-                        + productType + "'");
+                queryStr = new StringBuilder(
+                        "Select wmoid, issuesite FROM " + NCTEXT_DATA_DB_TABLE
+                                + " WHERE producttype='" + productType + "'");
             } else {
-                queryStr = new StringBuilder("Select distinct issuesite FROM "
-                        + NCTEXT_DATA_DB_TABLE + " WHERE producttype='"
-                        + productType + "'");
+                queryStr = new StringBuilder(
+                        "Select distinct issuesite FROM " + NCTEXT_DATA_DB_TABLE
+                                + " WHERE producttype='" + productType + "'");
             }
             // adjust time....
             if (timeCovered.getTimeRange() > 0) {
@@ -541,16 +563,16 @@ public class NctextDbQuery {
                     }
                 }
             } catch (VizException e) {
-                statusHandler.handle(
-                        Priority.PROBLEM,
+                statusHandler.handle(Priority.PROBLEM,
                         "-----DB exception when filtering "
-                                + e.getLocalizedMessage(), e);
+                                + e.getLocalizedMessage(),
+                        e);
             }
             return staListFiltered;
         } else {
             // to make sure caller wont clear the return list. should create
             // another list and return
-            List<NctextStationInfo> rtnstaList = new ArrayList<NctextStationInfo>();
+            List<NctextStationInfo> rtnstaList = new ArrayList<>();
             if (staList != null && staList.size() > 0)
                 rtnstaList.addAll(staList);
             return rtnstaList;
@@ -563,29 +585,33 @@ public class NctextDbQuery {
         List<NctextStationInfo> listOfStateStn;
         if (isState) {
             // get state station list from map
-            listOfStateStn = productStateStationInfoListMap.get(productName
-                    + station.getState());
+            listOfStateStn = productStateStationInfoListMap
+                    .get(productName + station.getState());
         } else {
             // create a state list with this single station
-            listOfStateStn = new ArrayList<NctextStationInfo>();
+            listOfStateStn = new ArrayList<>();
             listOfStateStn.add(station);
         }
 
         List<Object[]> list = null;
+
         List<Object[]> rtnList = new ArrayList<Object[]>();
+
         for (NctextStationInfo sta : listOfStateStn) {
+
             String queryStr = createProductDataQuery(productName, sta,
                     rptTimeRange);
 
             try {
+                
                 list = NcDirectDbQuery.executeQuery(queryStr,
                         NCTEXT_DATA_DB_NAME, QueryLanguage.SQL);
                 rtnList.addAll(list);
             } catch (VizException e) {
-                statusHandler.handle(
-                        Priority.PROBLEM,
+                statusHandler.handle(Priority.PROBLEM,
                         "-----DB exception at getProductDataList: "
-                                + e.getLocalizedMessage(), e);
+                                + e.getLocalizedMessage(),
+                        e);
             }
         }
         return rtnList;
@@ -621,8 +647,8 @@ public class NctextDbQuery {
             EReportTimeRange rptTimeRange, boolean isState) {
 
         List<Object[]> rtnList;
-        List<List<Object[]>> rtnListList = new ArrayList<List<Object[]>>();
-        Map<String, RequestConstraint> rcMap = new HashMap<String, RequestConstraint>();
+        List<List<Object[]>> rtnListList = new ArrayList<>();
+        Map<String, RequestConstraint> rcMap = new HashMap<>();
         rcMap.put(PluginDataObject.PLUGIN_NAME_ID, new RequestConstraint(
                 OBS_SFC_HRLY_TABLE, ConstraintType.EQUALS));
         if (rptTimeRange.getTimeRange() > 0) {
@@ -636,7 +662,7 @@ public class NctextDbQuery {
         }
 
         for (NctextStationInfo sta : listOfStateStn) {
-            rtnList = new ArrayList<Object[]>();
+            rtnList = new ArrayList<>();
             String myStnId;
 
             // In nwx.sfstns table, those US stations' id started with K, its
@@ -648,9 +674,9 @@ public class NctextDbQuery {
             else
                 myStnId = sta.stnid;
             ;
-            rcMap.put(STATION_ID_KEY, new RequestConstraint(myStnId,
-                    ConstraintType.EQUALS));
-            List<String> parameters = new ArrayList<String>();
+            rcMap.put(STATION_ID_KEY,
+                    new RequestConstraint(myStnId, ConstraintType.EQUALS));
+            List<String> parameters = new ArrayList<>();
 
             parameters.add(OBS_SFC_HRLY_RAW_DATA_KEY);
             parameters.add(OBS_SFC_HRLY_TIME_KEY);
@@ -677,7 +703,7 @@ public class NctextDbQuery {
              * "KTPH 252242Z AUTO 30012KT 10SM CLR 16/M13 A3000 RMK AO2 WSHFT 2222 $"
              */
             if (pdc != null) {
-                Map<Object, Object> timeDataMap = new HashMap<Object, Object>();
+                Map<Object, Object> timeDataMap = new HashMap<>();
                 for (int i = 0; i < pdc.getCurrentSz(); i++) {
                     PointDataView pdv = pdc.readRandom(i);
                     String oneReport;
@@ -695,7 +721,8 @@ public class NctextDbQuery {
                         // find the head of str2, by get rid off \r, \n, Space
                         // in the front of temStr
                         for (int j = 0; j < temStr.length(); j++) {
-                            if (temStr.charAt(j) > 33 && temStr.charAt(j) < 127) {
+                            if (temStr.charAt(j) > 33
+                                    && temStr.charAt(j) < 127) {
                                 str2 = temStr.substring(j);
                                 // also get rid of tailing \r, \n etc..at end of
                                 // str2 if there are existing
@@ -730,8 +757,8 @@ public class NctextDbQuery {
             List<NctextStationInfo> listOfStateStn,
             EReportTimeRange rptTimeRange, boolean isState) {
         List<Object[]> rtnList;
-        List<List<Object[]>> rtnListList = new ArrayList<List<Object[]>>();
-        Map<String, RequestConstraint> rcMap = new HashMap<String, RequestConstraint>();
+        List<List<Object[]>> rtnListList = new ArrayList<>();
+        Map<String, RequestConstraint> rcMap = new HashMap<>();
         rcMap.put(PluginDataObject.PLUGIN_NAME_ID, new RequestConstraint(
                 OBS_SYN_DATA_TABLE, ConstraintType.EQUALS));
         if (rptTimeRange.getTimeRange() > 0) {
@@ -747,7 +774,7 @@ public class NctextDbQuery {
         @SuppressWarnings("deprecation")
         int timeoffset = date.getTimezoneOffset();
         for (NctextStationInfo sta : listOfStateStn) {
-            rtnList = new ArrayList<Object[]>();
+            rtnList = new ArrayList<>();
             String myProdId;
             /*
              * I nwx.lsfstns table, 'productId' was coded with 6 digits
@@ -763,9 +790,9 @@ public class NctextDbQuery {
              */
 
             myProdId = sta.productid.substring(0, 5);
-            rcMap.put(STATION_ID_KEY, new RequestConstraint(myProdId,
-                    ConstraintType.EQUALS));
-            List<String> parameters = new ArrayList<String>();
+            rcMap.put(STATION_ID_KEY,
+                    new RequestConstraint(myProdId, ConstraintType.EQUALS));
+            List<String> parameters = new ArrayList<>();
 
             parameters.add(OBS_SYN_DATA_RAW_DATA_KEY);
             parameters.add(OBS_SYN_DATA_TIME_KEY);
@@ -774,7 +801,7 @@ public class NctextDbQuery {
             String report = new String();
 
             if (pdc != null) {
-                Map<Object, Object> timeDataMap = new HashMap<Object, Object>();
+                Map<Object, Object> timeDataMap = new HashMap<>();
                 for (int i = 0; i < pdc.getCurrentSz(); i++) {
                     PointDataView pdv = pdc.readRandom(i);
                     String oneReport;
@@ -823,10 +850,10 @@ public class NctextDbQuery {
          */
         for (Iterator it = pdvlst.iterator(); it.hasNext();) {
             PointDataView tpdv = (PointDataView) it.next();
-            if (tpdv.getString(OBS_SND_DATA_TYPE_KEY).equals(
-                    pdv.getString(OBS_SND_DATA_TYPE_KEY))) {
-                if (tpdv.getString(OBS_SND_DATA_COR_KEY).compareTo(
-                        (pdv.getString(OBS_SND_DATA_COR_KEY))) < 0) {
+            if (tpdv.getString(OBS_SND_DATA_TYPE_KEY)
+                    .equals(pdv.getString(OBS_SND_DATA_TYPE_KEY))) {
+                if (tpdv.getString(OBS_SND_DATA_COR_KEY)
+                        .compareTo((pdv.getString(OBS_SND_DATA_COR_KEY))) < 0) {
                     pdvlst.remove(tpdv);
                 } else {
                     shouldAddToList = false;
@@ -841,14 +868,14 @@ public class NctextDbQuery {
         // We will have to do the same way. Do sorting based on such rule.
         Collections.sort(pdvlst, new Comparator() {
             public int compare(Object o1, Object o2) {
-                String first2of1 = ((PointDataView) (o1)).getString(
-                        OBS_SND_DATA_TYPE_KEY).substring(0, 2);
-                String first2of2 = ((PointDataView) (o2)).getString(
-                        OBS_SND_DATA_TYPE_KEY).substring(0, 2);
-                String last2of1 = ((PointDataView) (o1)).getString(
-                        OBS_SND_DATA_TYPE_KEY).substring(2);
-                String last2of2 = ((PointDataView) (o2)).getString(
-                        OBS_SND_DATA_TYPE_KEY).substring(2);
+                String first2of1 = ((PointDataView) (o1))
+                        .getString(OBS_SND_DATA_TYPE_KEY).substring(0, 2);
+                String first2of2 = ((PointDataView) (o2))
+                        .getString(OBS_SND_DATA_TYPE_KEY).substring(0, 2);
+                String last2of1 = ((PointDataView) (o1))
+                        .getString(OBS_SND_DATA_TYPE_KEY).substring(2);
+                String last2of2 = ((PointDataView) (o2))
+                        .getString(OBS_SND_DATA_TYPE_KEY).substring(2);
 
                 if (last2of1.compareTo(last2of2) > 0)
                     return 1;
@@ -873,8 +900,8 @@ public class NctextDbQuery {
             EReportTimeRange rptTimeRange, boolean isState) {
 
         List<Object[]> rtnList;
-        List<List<Object[]>> rtnListList = new ArrayList<List<Object[]>>();
-        Map<String, RequestConstraint> rcMap = new HashMap<String, RequestConstraint>();
+        List<List<Object[]>> rtnListList = new ArrayList<>();
+        Map<String, RequestConstraint> rcMap = new HashMap<>();
         rcMap.put(PluginDataObject.PLUGIN_NAME_ID, new RequestConstraint(
                 OBS_SND_DATA_TABLE, ConstraintType.EQUALS));
         rcMap.put("nil", new RequestConstraint("FALSE", ConstraintType.EQUALS));
@@ -888,12 +915,12 @@ public class NctextDbQuery {
                     ConstraintType.GREATER_THAN_EQUALS));
         }
         List<PointDataView> pdvList = null;
-        Map<Object, Object> timeDataMap = new HashMap<Object, Object>();
+        Map<Object, Object> timeDataMap = new HashMap<>();
         Date date = new Date();
         @SuppressWarnings("deprecation")
         int timeoffset = date.getTimezoneOffset();
         for (NctextStationInfo sta : listOfStateStn) {
-            rtnList = new ArrayList<Object[]>();
+            rtnList = new ArrayList<>();
             timeDataMap.clear();
             String myStnId = sta.stnid;
             String myProdId = sta.productid;
@@ -903,9 +930,9 @@ public class NctextDbQuery {
              * miss leading name. It is actually is the station number. The
              * equivalent filed of productId in OBS_SND_DATA_TABLE is 'stnum'.
              */
-            rcMap.put(STATION_NUMBER_KEY, new RequestConstraint(myProdId,
-                    ConstraintType.EQUALS));
-            List<String> parameters = new ArrayList<String>();
+            rcMap.put(STATION_NUMBER_KEY,
+                    new RequestConstraint(myProdId, ConstraintType.EQUALS));
+            List<String> parameters = new ArrayList<>();
 
             parameters.add(OBS_SND_DATA_RAW_DATA_KEY);
             parameters.add(OBS_SND_DATA_TIME_KEY);
@@ -933,7 +960,7 @@ public class NctextDbQuery {
                     long sndTime = pdv.getLong(OBS_SND_DATA_TIME_KEY);
                     pdvList = (List<PointDataView>) timeDataMap.get(sndTime);
                     if (pdvList == null) {
-                        pdvList = new ArrayList<PointDataView>();
+                        pdvList = new ArrayList<>();
                     }
                     addToSndPdvList(pdv, pdvList);
                     // replace pdvList with latest one
@@ -970,7 +997,8 @@ public class NctextDbQuery {
                         // does.
                         int spaceCount = 0;
                         char[] recordAry = oneRecord.toCharArray();
-                        for (int charindex = 0; charindex < oneRecord.length();) {
+                        for (int charindex = 0; charindex < oneRecord
+                                .length();) {
                             String temStr = oneRecord.substring(charindex);
                             int spaceIndex = temStr.indexOf("S");
                             if (spaceIndex > 0) {
@@ -992,12 +1020,9 @@ public class NctextDbQuery {
                             DATE_FORMAT2);
                     date.setTime(obsTime + timeoffset * 60000);
                     String dateStr = timeInSimple.format(date);
-                    oneRefTimeReport = pdv
-                            .getString(OBS_SND_DATA_STATIONID_KEY)
-                            + " - "
-                            + pdv.getString(OBS_SND_DATA_STNUM_KEY)
-                            + " at "
-                            + dateStr + NEW_LINE + oneRefTimeReport;
+                    oneRefTimeReport = pdv.getString(OBS_SND_DATA_STATIONID_KEY)
+                            + " - " + pdv.getString(OBS_SND_DATA_STNUM_KEY)
+                            + " at " + dateStr + NEW_LINE + oneRefTimeReport;
                     finalReport = finalReport + oneRefTimeReport + NEW_LINE;
                     oneRefTimeReport = "";
                 }
@@ -1020,23 +1045,30 @@ public class NctextDbQuery {
      * Object[1] = text issuesite List(B) - List<Object[]> - contains one
      * station's query result, its size = number of query hits fro this station
      * List(A) - List<List<Object[]>> - contain one state's query result. its
-     * size = numer of Stations of this state having report In case of single
+     * size = number of Stations of this state having report In case of single
      * station query, there will be only one station on List(A).
      */
     public List<List<Object[]>> getProductDataListList(String groupName,
             String productName, NctextStationInfo station,
             EReportTimeRange rptTimeRange, boolean isState,
             String outputFileName) {
+        
         List<NctextStationInfo> listOfStateStn;
+        
         if (isState) {
             // get state station list from map
-            listOfStateStn = productStateStationInfoListMap.get(productName
-                    + station.getState());
+            listOfStateStn = productStateStationInfoListMap
+                    .get(productName + station.getState());
+
+            // Sort station list alphabetically
+            Collections.sort(listOfStateStn);
+
         } else {
             // create a state list with this single station
-            listOfStateStn = new ArrayList<NctextStationInfo>();
+            listOfStateStn = new ArrayList<>();
             listOfStateStn.add(station);
         }
+
         if (groupName.equals(OBS_DATA_GROUP)) {
             // When products need query to its own DB table (NOT to
             // "nctext" table). It should do its own query and return from here.
@@ -1056,24 +1088,36 @@ public class NctextDbQuery {
         // All other products, fall through here....
         List<Object[]> list = null;
         List<Object[]> rtnList;
-        List<List<Object[]>> rtnListList = new ArrayList<List<Object[]>>();
+        List<List<Object[]>> rtnListList = new ArrayList<>();
+
         for (NctextStationInfo sta : listOfStateStn) {
-            rtnList = new ArrayList<Object[]>();
-            // create DB query string and execute SQL query
+
+            rtnList = new ArrayList<>();
+
             String queryStr = createProductDataQuery(productName, sta,
                     rptTimeRange);
+
+            /*
+             * Create an Object[1] to hold the station id associated with this
+             * query. We add this to list, so we can access it from the GUI code.
+             *  
+             */
+            Object[] stationId = { sta.getStnid() };
+
             try {
                 list = NcDirectDbQuery.executeQuery(queryStr,
                         NCTEXT_DATA_DB_NAME, QueryLanguage.SQL);
                 if (list.size() > 0) {
+                    // add the Object with the station id to the list
+                    list.add(list.size(), stationId);
                     rtnList.addAll(list);
                     rtnListList.add(rtnList);
                 }
             } catch (VizException e) {
-                statusHandler.handle(
-                        Priority.PROBLEM,
+                statusHandler.handle(Priority.PROBLEM,
                         "-----DB exception at getProductDataList: "
-                                + e.getLocalizedMessage(), e);
+                                + e.getLocalizedMessage(),
+                        e);
             }
         }
         return rtnListList;
@@ -1095,6 +1139,7 @@ public class NctextDbQuery {
         // key is product name + state name
         List<NctextStationInfo> listOfStateStn;
         listOfStateStn = productStateStationInfoListMap.get(key);
+
         return listOfStateStn;
     }
 
@@ -1109,13 +1154,14 @@ public class NctextDbQuery {
         } catch (DataCubeException e) {
             statusHandler.handle(Priority.PROBLEM,
                     "requestObsPointData-DataCubeContainer:Error getting raw data from "
-                            + tableName + " ::" + e.getLocalizedMessage(), e);
+                            + tableName + " ::" + e.getLocalizedMessage(),
+                    e);
         }
         if (pdc == null) {
             try {
                 pdc = PointDataRequest.requestPointDataAllLevels(tableName,
-                        parameters.toArray(new String[parameters.size()]),
-                        null, rcMap);
+                        parameters.toArray(new String[parameters.size()]), null,
+                        rcMap);
             } catch (VizException e) {
                 statusHandler.handle(Priority.PROBLEM,
                         "requestObsPointData-PointDataRequest: Error getting raw data from "

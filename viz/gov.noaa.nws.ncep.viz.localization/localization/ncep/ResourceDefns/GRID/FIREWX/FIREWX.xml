@@ -14,7 +14,7 @@
     <resourceParameters>
 pluginName=grid
 GDFILE=fireWxNAM
+inventoryParam=P
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

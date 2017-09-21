@@ -1,0 +1,2304 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="Sat_Obs_Difax">
+    <displayType>NMAP_DISPLAY</displayType>
+    <paneLayout numRows="1" numColumns="1"/>
+    <selectedPaneId row="0" col="0"/>
+    <geoSyncedPanes>true</geoSyncedPanes>
+    <autoUpdate>false</autoUpdate>
+    <rbdSequence>0</rbdSequence>
+    <timeMatcher dominantResourceName="SURFACE/AllLandSynop/pmsl_color" numFrames="8" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="60"/>
+    <displayList>
+        <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="NC-MapRenderableDisplay" mapCenter="-31.27695209230912 46.075081748796464 0.0" zoomLevel="0.46229907870292664">
+            <descriptor xsi:type="NCMapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <groupName>IR-ltng-GS-RapidScat</groupName>
+                        <funcKeyNum>1</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="IMAGE_COUNTRY">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/GOES13/4_4003_STR/10p7um" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="satelliteId">
+        <constraint constraintType="EQUALS" constraintValue="180"/>
+    </mapping>
+    <mapping key="imageTypeId">
+        <constraint constraintType="EQUALS" constraintValue="8"/>
+    </mapping>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="4"/>
+    </mapping>
+    <mapping key="areaId">
+        <constraint constraintType="EQUALS" constraintValue="4003"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="projection">
+        <constraint constraintType="EQUALS" constraintValue="STR"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 102}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>C</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PgenResourceData" isEdited="true" resourceName="PGEN/Gulf_Stream/F000/monochrome(LATEST)" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="site">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="pgen"/>
+    </mapping>
+    <mapping key="activityLabel">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="forecaster">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="activitySubtype">
+        <constraint constraintType="EQUALS" constraintValue="F000"/>
+    </mapping>
+    <mapping key="desk">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="dataTime">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="activityType">
+        <constraint constraintType="EQUALS" constraintValue="Gulf_Stream"/>
+    </mapping>
+    <mapping key="activityName">
+        <constraint constraintType="EQUALS" constraintValue="%"/>
+    </mapping>
+    <mapping key="operatingMode">
+        <constraint constraintType="EQUALS" constraintValue="OPERATIONAL"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {0, 255, 0}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>2147483647</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
+<dfltNumFrames>1</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>24</dfltTimeRange>
+<monoColorEnable>true</monoColorEnable>
+<monoColor>RGB {0, 255, 0}</monoColor>
+<fillModeEnable>true</fillModeEnable>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 0, 0}</legendColor>
+                        <groupName>RGB</groupName>
+                        <funcKeyNum>2</funcKeyNum>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="false" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {0, 255, 0}</legendColor>
+                        <groupName>IR_1000-850thkn_Obs</groupName>
+                        <funcKeyNum>3</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="IMAGE_COUNTRY">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/METEOSAT10/3_3005_STR/10p8um" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="satelliteId">
+        <constraint constraintType="EQUALS" constraintValue="53"/>
+    </mapping>
+    <mapping key="imageTypeId">
+        <constraint constraintType="EQUALS" constraintValue="256"/>
+    </mapping>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="3"/>
+    </mapping>
+    <mapping key="areaId">
+        <constraint constraintType="EQUALS" constraintValue="3005"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="projection">
+        <constraint constraintType="EQUALS" constraintValue="STR"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 102}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>C</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="true">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="colorMapCapability">
+        <colorMapParameters colorMapName="lingray">
+            <persisted/>
+        </colorMapParameters>
+    </capability>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="IMAGE_COUNTRY">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NcSatelliteResourceData" isEdited="true" resourceName="SATELLITE/GOES13/4_4003_STR/10p7um" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="satelliteId">
+        <constraint constraintType="EQUALS" constraintValue="180"/>
+    </mapping>
+    <mapping key="imageTypeId">
+        <constraint constraintType="EQUALS" constraintValue="8"/>
+    </mapping>
+    <mapping key="resolution">
+        <constraint constraintType="EQUALS" constraintValue="4"/>
+    </mapping>
+    <mapping key="areaId">
+        <constraint constraintType="EQUALS" constraintValue="4003"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="mcidas"/>
+    </mapping>
+    <mapping key="projection">
+        <constraint constraintType="EQUALS" constraintValue="STR"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 102}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>10</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<alpha>1.0</alpha>
+<brightness>1.0</brightness>
+<contrast>1.0</contrast>
+<colorMapName>lingray</colorMapName>
+<colorBar>
+    <orientation>Vertical</orientation>
+    <anchorLoc>UpperLeft</anchorLoc>
+    <labelColor>RGB {255, 255, 255}</labelColor>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <pixelRGBs>RGB {0, 0, 0}</pixelRGBs>
+    <pixelRGBs>RGB {2, 2, 2}</pixelRGBs>
+    <pixelRGBs>RGB {4, 4, 4}</pixelRGBs>
+    <pixelRGBs>RGB {6, 6, 6}</pixelRGBs>
+    <pixelRGBs>RGB {8, 8, 8}</pixelRGBs>
+    <pixelRGBs>RGB {10, 10, 10}</pixelRGBs>
+    <pixelRGBs>RGB {12, 12, 12}</pixelRGBs>
+    <pixelRGBs>RGB {14, 14, 14}</pixelRGBs>
+    <pixelRGBs>RGB {16, 16, 16}</pixelRGBs>
+    <pixelRGBs>RGB {18, 18, 18}</pixelRGBs>
+    <pixelRGBs>RGB {20, 20, 20}</pixelRGBs>
+    <pixelRGBs>RGB {22, 22, 22}</pixelRGBs>
+    <pixelRGBs>RGB {24, 24, 24}</pixelRGBs>
+    <pixelRGBs>RGB {26, 26, 26}</pixelRGBs>
+    <pixelRGBs>RGB {28, 28, 28}</pixelRGBs>
+    <pixelRGBs>RGB {30, 30, 30}</pixelRGBs>
+    <pixelRGBs>RGB {32, 32, 32}</pixelRGBs>
+    <pixelRGBs>RGB {34, 34, 34}</pixelRGBs>
+    <pixelRGBs>RGB {36, 36, 36}</pixelRGBs>
+    <pixelRGBs>RGB {38, 38, 38}</pixelRGBs>
+    <pixelRGBs>RGB {40, 40, 40}</pixelRGBs>
+    <pixelRGBs>RGB {42, 42, 42}</pixelRGBs>
+    <pixelRGBs>RGB {44, 44, 44}</pixelRGBs>
+    <pixelRGBs>RGB {46, 46, 46}</pixelRGBs>
+    <pixelRGBs>RGB {48, 48, 48}</pixelRGBs>
+    <pixelRGBs>RGB {50, 50, 50}</pixelRGBs>
+    <pixelRGBs>RGB {52, 52, 52}</pixelRGBs>
+    <pixelRGBs>RGB {54, 54, 54}</pixelRGBs>
+    <pixelRGBs>RGB {56, 56, 56}</pixelRGBs>
+    <pixelRGBs>RGB {58, 58, 58}</pixelRGBs>
+    <pixelRGBs>RGB {60, 60, 60}</pixelRGBs>
+    <pixelRGBs>RGB {62, 62, 62}</pixelRGBs>
+    <pixelRGBs>RGB {64, 64, 64}</pixelRGBs>
+    <pixelRGBs>RGB {66, 66, 66}</pixelRGBs>
+    <pixelRGBs>RGB {68, 68, 68}</pixelRGBs>
+    <pixelRGBs>RGB {70, 70, 70}</pixelRGBs>
+    <pixelRGBs>RGB {72, 72, 72}</pixelRGBs>
+    <pixelRGBs>RGB {74, 74, 74}</pixelRGBs>
+    <pixelRGBs>RGB {76, 76, 76}</pixelRGBs>
+    <pixelRGBs>RGB {78, 78, 78}</pixelRGBs>
+    <pixelRGBs>RGB {80, 80, 80}</pixelRGBs>
+    <pixelRGBs>RGB {82, 82, 82}</pixelRGBs>
+    <pixelRGBs>RGB {84, 84, 84}</pixelRGBs>
+    <pixelRGBs>RGB {86, 86, 86}</pixelRGBs>
+    <pixelRGBs>RGB {88, 88, 88}</pixelRGBs>
+    <pixelRGBs>RGB {90, 90, 90}</pixelRGBs>
+    <pixelRGBs>RGB {92, 92, 92}</pixelRGBs>
+    <pixelRGBs>RGB {94, 94, 94}</pixelRGBs>
+    <pixelRGBs>RGB {96, 96, 96}</pixelRGBs>
+    <pixelRGBs>RGB {98, 98, 98}</pixelRGBs>
+    <pixelRGBs>RGB {100, 100, 100}</pixelRGBs>
+    <pixelRGBs>RGB {102, 102, 102}</pixelRGBs>
+    <pixelRGBs>RGB {104, 104, 104}</pixelRGBs>
+    <pixelRGBs>RGB {106, 106, 106}</pixelRGBs>
+    <pixelRGBs>RGB {108, 108, 108}</pixelRGBs>
+    <pixelRGBs>RGB {110, 110, 110}</pixelRGBs>
+    <pixelRGBs>RGB {112, 112, 112}</pixelRGBs>
+    <pixelRGBs>RGB {114, 114, 114}</pixelRGBs>
+    <pixelRGBs>RGB {116, 116, 116}</pixelRGBs>
+    <pixelRGBs>RGB {118, 118, 118}</pixelRGBs>
+    <pixelRGBs>RGB {120, 120, 120}</pixelRGBs>
+    <pixelRGBs>RGB {122, 122, 122}</pixelRGBs>
+    <pixelRGBs>RGB {124, 124, 124}</pixelRGBs>
+    <pixelRGBs>RGB {126, 126, 126}</pixelRGBs>
+    <pixelRGBs>RGB {129, 129, 129}</pixelRGBs>
+    <pixelRGBs>RGB {131, 131, 131}</pixelRGBs>
+    <pixelRGBs>RGB {133, 133, 133}</pixelRGBs>
+    <pixelRGBs>RGB {135, 135, 135}</pixelRGBs>
+    <pixelRGBs>RGB {137, 137, 137}</pixelRGBs>
+    <pixelRGBs>RGB {139, 139, 139}</pixelRGBs>
+    <pixelRGBs>RGB {141, 141, 141}</pixelRGBs>
+    <pixelRGBs>RGB {143, 143, 143}</pixelRGBs>
+    <pixelRGBs>RGB {145, 145, 145}</pixelRGBs>
+    <pixelRGBs>RGB {147, 147, 147}</pixelRGBs>
+    <pixelRGBs>RGB {149, 149, 149}</pixelRGBs>
+    <pixelRGBs>RGB {151, 151, 151}</pixelRGBs>
+    <pixelRGBs>RGB {153, 153, 153}</pixelRGBs>
+    <pixelRGBs>RGB {155, 155, 155}</pixelRGBs>
+    <pixelRGBs>RGB {157, 157, 157}</pixelRGBs>
+    <pixelRGBs>RGB {159, 159, 159}</pixelRGBs>
+    <pixelRGBs>RGB {161, 161, 161}</pixelRGBs>
+    <pixelRGBs>RGB {163, 163, 163}</pixelRGBs>
+    <pixelRGBs>RGB {165, 165, 165}</pixelRGBs>
+    <pixelRGBs>RGB {167, 167, 167}</pixelRGBs>
+    <pixelRGBs>RGB {169, 169, 169}</pixelRGBs>
+    <pixelRGBs>RGB {171, 171, 171}</pixelRGBs>
+    <pixelRGBs>RGB {173, 173, 173}</pixelRGBs>
+    <pixelRGBs>RGB {175, 175, 175}</pixelRGBs>
+    <pixelRGBs>RGB {177, 177, 177}</pixelRGBs>
+    <pixelRGBs>RGB {179, 179, 179}</pixelRGBs>
+    <pixelRGBs>RGB {181, 181, 181}</pixelRGBs>
+    <pixelRGBs>RGB {183, 183, 183}</pixelRGBs>
+    <pixelRGBs>RGB {185, 185, 185}</pixelRGBs>
+    <pixelRGBs>RGB {187, 187, 187}</pixelRGBs>
+    <pixelRGBs>RGB {189, 189, 189}</pixelRGBs>
+    <pixelRGBs>RGB {191, 191, 191}</pixelRGBs>
+    <pixelRGBs>RGB {193, 193, 193}</pixelRGBs>
+    <pixelRGBs>RGB {195, 195, 195}</pixelRGBs>
+    <pixelRGBs>RGB {197, 197, 197}</pixelRGBs>
+    <pixelRGBs>RGB {199, 199, 199}</pixelRGBs>
+    <pixelRGBs>RGB {201, 201, 201}</pixelRGBs>
+    <pixelRGBs>RGB {203, 203, 203}</pixelRGBs>
+    <pixelRGBs>RGB {205, 205, 205}</pixelRGBs>
+    <pixelRGBs>RGB {207, 207, 207}</pixelRGBs>
+    <pixelRGBs>RGB {209, 209, 209}</pixelRGBs>
+    <pixelRGBs>RGB {211, 211, 211}</pixelRGBs>
+    <pixelRGBs>RGB {213, 213, 213}</pixelRGBs>
+    <pixelRGBs>RGB {215, 215, 215}</pixelRGBs>
+    <pixelRGBs>RGB {217, 217, 217}</pixelRGBs>
+    <pixelRGBs>RGB {219, 219, 219}</pixelRGBs>
+    <pixelRGBs>RGB {221, 221, 221}</pixelRGBs>
+    <pixelRGBs>RGB {223, 223, 223}</pixelRGBs>
+    <pixelRGBs>RGB {225, 225, 225}</pixelRGBs>
+    <pixelRGBs>RGB {227, 227, 227}</pixelRGBs>
+    <pixelRGBs>RGB {229, 229, 229}</pixelRGBs>
+    <pixelRGBs>RGB {231, 231, 231}</pixelRGBs>
+    <pixelRGBs>RGB {233, 233, 233}</pixelRGBs>
+    <pixelRGBs>RGB {235, 235, 235}</pixelRGBs>
+    <pixelRGBs>RGB {237, 237, 237}</pixelRGBs>
+    <pixelRGBs>RGB {239, 239, 239}</pixelRGBs>
+    <pixelRGBs>RGB {241, 241, 241}</pixelRGBs>
+    <pixelRGBs>RGB {243, 243, 243}</pixelRGBs>
+    <pixelRGBs>RGB {245, 245, 245}</pixelRGBs>
+    <pixelRGBs>RGB {247, 247, 247}</pixelRGBs>
+    <pixelRGBs>RGB {249, 249, 249}</pixelRGBs>
+    <pixelRGBs>RGB {251, 251, 251}</pixelRGBs>
+    <pixelRGBs>RGB {253, 253, 253}</pixelRGBs>
+    <pixelRGBs>RGB {255, 255, 255}</pixelRGBs>
+    <showLabels>true</showLabels>
+    <reverseOrder>true</reverseOrder>
+    <lengthAsRatio>0.6</lengthAsRatio>
+    <widthInPixels>15</widthInPixels>
+    <drawColorBar>true</drawColorBar>
+    <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+</colorBar>
+<satelliteType>MCIDAS</satelliteType>
+<displayUnitStr>C</displayUnitStr>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS_0p25/layer_1000-850/1000-850mb_thkn(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="gfs0p25"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 228, 220}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>1</cint>
+<gdfile>gfs0p25</gdfile>
+<gvcord>pres</gvcord>
+<glevel>850:1000</glevel>
+<gdpfun>(sub(hght@850,hght@1000))</gdpfun>
+<skip>0/1;-1</skip>
+<filter>yes</filter>
+<scale>-1</scale>
+<wind>0</wind>
+<title>1/-1/?~^  1000-850mb THKN !0</title>
+<lineAttributes>3/5/2/1</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>0</hilo>
+<hlsym>0</hlsym>
+<clrbar>0</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="true" resourceName="SURFACE/AllLandSynop/pmsl_color" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Land Reports) BRBK TMPF WSYM SMSL PTND</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="pmsl_color" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="BRBK" textSize="10" textFont="Helvetica" textStyle="Normal" symbolSize="0.9" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>WD</Position>
+        <Color blue="0" green="255" red="255"/>
+        <conditionalParameter>SKNT</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>0.0</Interval_Value>
+            <Interval_Value>6.0</Interval_Value>
+            <Interval_Value>12.0</Interval_Value>
+            <Interval_Value>17.0</Interval_Value>
+            <Interval_Value>23.0</Interval_Value>
+            <Interval_Value>27.0</Interval_Value>
+            <Interval_Value>33.0</Interval_Value>
+            <Interval_Value>42.0</Interval_Value>
+            <Interval_Value>48.0</Interval_Value>
+            <Interval_Value>56.0</Interval_Value>
+            <Interval_Value>63.0</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {255, 228, 220}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+            <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+            <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+            <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+            <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+            <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UR</Position>
+        <Color blue="220" green="228" red="255"/>
+        <conditionalParameter>SMSL</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>-INF</Interval_Value>
+            <Interval_Value>40.0</Interval_Value>
+            <Interval_Value>80.0</Interval_Value>
+            <Interval_Value>120.0</Interval_Value>
+            <Interval_Value>160.0</Interval_Value>
+            <Interval_Value>200.0</Interval_Value>
+            <Interval_Value>240.0</Interval_Value>
+            <Interval_Value>280.0</Interval_Value>
+            <Interval_Value>320.0</Interval_Value>
+            <Interval_Value>920.0</Interval_Value>
+            <Interval_Value>960.0</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 130, 71}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 130, 71}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="10" textFont="Helvetica" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>MR</Position>
+        <Color blue="0" green="255" red="255"/>
+        <conditionalParameter>PTND</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>-INF</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {238, 64, 0}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="TMPF" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UL</Position>
+        <Color blue="220" green="228" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>99</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="true" resourceName="SURFACE/AllMarineSynop/pmsl_color" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1003,1004,1005,1006,1007"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Marine Reports) BRBK TMPF WSYM SMSL PTND</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="pmsl_color" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="BRBK" textSize="10" textFont="Helvetica" textStyle="Normal" symbolSize="0.9" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>WD</Position>
+        <Color blue="0" green="255" red="255"/>
+        <conditionalParameter>SKNT</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>0.0</Interval_Value>
+            <Interval_Value>6.0</Interval_Value>
+            <Interval_Value>12.0</Interval_Value>
+            <Interval_Value>17.0</Interval_Value>
+            <Interval_Value>23.0</Interval_Value>
+            <Interval_Value>27.0</Interval_Value>
+            <Interval_Value>33.0</Interval_Value>
+            <Interval_Value>42.0</Interval_Value>
+            <Interval_Value>48.0</Interval_Value>
+            <Interval_Value>56.0</Interval_Value>
+            <Interval_Value>63.0</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {255, 228, 220}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+            <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+            <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+            <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+            <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+            <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UR</Position>
+        <Color blue="220" green="228" red="255"/>
+        <conditionalParameter>SMSL</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>-INF</Interval_Value>
+            <Interval_Value>40.0</Interval_Value>
+            <Interval_Value>80.0</Interval_Value>
+            <Interval_Value>120.0</Interval_Value>
+            <Interval_Value>160.0</Interval_Value>
+            <Interval_Value>200.0</Interval_Value>
+            <Interval_Value>240.0</Interval_Value>
+            <Interval_Value>280.0</Interval_Value>
+            <Interval_Value>320.0</Interval_Value>
+            <Interval_Value>920.0</Interval_Value>
+            <Interval_Value>960.0</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 130, 71}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 255}</Interval_Color>
+            <Interval_Color>RGB {255, 130, 71}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="10" textFont="Helvetica" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>MR</Position>
+        <Color blue="0" green="255" red="255"/>
+        <conditionalParameter>PTND</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>-INF</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {238, 64, 0}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="TMPF" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UL</Position>
+        <Color blue="220" green="228" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="14" textFont="Courier" textStyle="Bold" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>99</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="NCP_GROUP">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="GroupResourceData" isEdited="false" resourceName="">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <groupName>Difax</groupName>
+                        <funcKeyNum>4</funcKeyNum>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS_0p25/layer_1000-500/1000-500mb_thkn(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="gfs0p25"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>6/0/540!6/546/999</cint>
+<gdfile>gfs0p25</gdfile>
+<gvcord>pres</gvcord>
+<glevel>500:1000</glevel>
+<gdpfun>(sub(hght@500,hght@1000))!!</gdpfun>
+<skip></skip>
+<filter>y</filter>
+<scale>-1</scale>
+<wind></wind>
+<title>5/-1/?~^  1000-500 MB THICKNESS!0</title>
+<lineAttributes>6/3/2  !2/3/2</lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo></hilo>
+<hlsym></hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS_0p25/compare_height/emsl_blue_med-hilo_04-mb(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="gfs0p25"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>c</type>
+<cint>4</cint>
+<gdfile>gfs0p25</gdfile>
+<gvcord>none</gvcord>
+<glevel>0</glevel>
+<gdpfun>emsl</gdpfun>
+<skip>0</skip>
+<filter>y</filter>
+<scale>0</scale>
+<wind></wind>
+<title>6/-1/?~^  Mean Sea Level Pressure (emsl) - med-hilo - 4 mb</title>
+<lineAttributes>6/1/2/1</lineAttributes>
+<colors>6</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>6;6/H#;L#//5/80;80/y</hilo>
+<hlsym>2;1.5//21//hw</hlsym>
+<clrbar>0</clrbar>
+<text>0</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties xsi:type="gridLoadProperties" displayType="CONTOUR" loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities>
+    <capability xsi:type="imagingCapability" contrast="1.0" brightness="1.0" interpolationState="false" alpha="1.0"/>
+    <capability xsi:type="displayTypeCapability" displayType="CONTOUR"/>
+</capabilities>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="CONTOUR">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-NcgridResourceData" isEdited="false" resourceName="GRID/GFS_0p25/winds_sigma_0.995/sigma995_winds_coral(LATEST)" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+<metadataMap>
+    <mapping key="info.secondaryId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.ensembleId">
+        <constraint constraintType="LIKE" constraintValue="%"/>
+    </mapping>
+    <mapping key="info.datasetId">
+        <constraint constraintType="EQUALS" constraintValue="gfs0p25"/>
+    </mapping>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="grid"/>
+    </mapping>
+</metadataMap>
+<legendColor>RGB {255, 255, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS</timelineGenMethod>
+<timeMatchMethod>BINNING_FOR_GRID_RESOURCES</timeMatchMethod>
+<dfltNumFrames>999</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>240</dfltTimeRange>
+<type>b</type>
+<cint></cint>
+<gdfile>gfs0p25</gdfile>
+<gvcord>sgma</gvcord>
+<glevel>9950</glevel>
+<gdpfun>kntv(wnd)</gdpfun>
+<skip>0</skip>
+<filter>yes</filter>
+<scale>0</scale>
+<wind>bk9/1.0/2/112</wind>
+<title>9/-1/?~^  @ WINDS (KTS)</title>
+<lineAttributes></lineAttributes>
+<colors>2</colors>
+<marker>2</marker>
+<grdlbl>5</grdlbl>
+<fint></fint>
+<fline></fline>
+<hilo>0</hilo>
+<hlsym>0</hlsym>
+<clrbar>0</clrbar>
+<text>1/22/2/hw</text>
+                            </resourceData>
+                        </resource-in-group>
+                        <resource-in-group>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="PLOT">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-PlotResourceData" isEdited="false" resourceName="SURFACE/AllLandSynop/sfc_analysis" isRequeryNecessaryOnTimeMatch="false" isUpdatingOnMetadataOnly="false" retrieveData="false">
+<metadataMap>
+    <mapping key="pluginName">
+        <constraint constraintType="EQUALS" constraintValue="sfcobs"/>
+    </mapping>
+    <mapping key="reportType">
+        <constraint constraintType="IN" constraintValue="1001,1002"/>
+    </mapping>
+</metadataMap>
+<alertParser xsi:type="plotAlertParser"/>
+<legendColor>RGB {0, 80, 255}</legendColor>
+<resourceVersion></resourceVersion>
+<frameSpan>60</frameSpan>
+<timelineGenMethod>USE_FRAME_INTERVAL</timelineGenMethod>
+<timeMatchMethod>CLOSEST_BEFORE_OR_AFTER</timeMatchMethod>
+<dfltNumFrames>8</dfltNumFrames>
+<dfltGraphRange>12</dfltGraphRange>
+<dfltHourSnap>3</dfltHourSnap>
+<dfltTimeRange>48</dfltTimeRange>
+<legendString>Synop (All Land Reports) SKYC TMPF WSYM SMSL PTND BRBK</legendString>
+<spiFile>synoptic.spi</spiFile>
+<plotModel name="sfc_analysis" plugin="sfcobs" svgTemplate="standardPlotModelTemplate.svg">
+    <PlotModelElement paramName="TMPF" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UL</Position>
+        <Color blue="0" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="WSYM" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>ML</Position>
+        <Color blue="255" green="0" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="SKYC" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="0.6" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>SC</Position>
+        <Color blue="238" green="178" red="0"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="BRBK" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="0.6" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>WD</Position>
+        <Color blue="238" green="178" red="0"/>
+        <conditionalParameter>SKNT</conditionalParameter>
+        <conditionalColorBar>
+            <label_Color>RGB {255, 255, 255}</label_Color>
+            <Interval_Value>0.0</Interval_Value>
+            <Interval_Value>6.0</Interval_Value>
+            <Interval_Value>12.0</Interval_Value>
+            <Interval_Value>17.0</Interval_Value>
+            <Interval_Value>23.0</Interval_Value>
+            <Interval_Value>27.0</Interval_Value>
+            <Interval_Value>33.0</Interval_Value>
+            <Interval_Value>42.0</Interval_Value>
+            <Interval_Value>48.0</Interval_Value>
+            <Interval_Value>56.0</Interval_Value>
+            <Interval_Value>63.0</Interval_Value>
+            <Interval_Value>INF</Interval_Value>
+            <Interval_Color>RGB {255, 228, 220}</Interval_Color>
+            <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+            <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+            <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+            <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+            <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+            <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+            <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+            <show_Labels>true</show_Labels>
+            <draw_ToScale>false</draw_ToScale>
+            <lengthRatio>0.5</lengthRatio>
+            <widthPx>15</widthPx>
+            <num_Decimals>0</num_Decimals>
+        </conditionalColorBar>
+    </PlotModelElement>
+    <PlotModelElement paramName="SMSL" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>UR</Position>
+        <Color blue="255" green="255" red="255"/>
+    </PlotModelElement>
+    <PlotModelElement paramName="PTND" textSize="14" textFont="Helvetica" textStyle="Normal" symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+        <Position>MR</Position>
+        <Color blue="0" green="238" red="238"/>
+    </PlotModelElement>
+</plotModel>
+<levelKey>Surface</levelKey>
+<plotDensity>99</plotDensity>
+<plotMissingData>false</plotMissingData>
+<plotInfoRetriever xsi:type="pointDataPlotInfoRetriever"/>
+<conditionalFilter name="NoFilter" description="" plugin="sfcobs"/>
+                            </resourceData>
+                        </resource-in-group>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="false" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-LatLonOverlayResourceData" isEdited="true" resourceName="OVERLAY/LatLon/default">
+                        <legendColor>RGB {255, 165, 79}</legendColor>
+                        <color>RGB {255, 165, 79}</color>
+                        <lineWidth>1</lineWidth>
+                        <latitudeInterval>10</latitudeInterval>
+                        <longitudeInterval>10</longitudeInterval>
+                        <lineStyle>SHORT_DASHED</lineStyle>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="LocatorResourceData" isEdited="false" resourceName="OVERLAY/Locator/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <fontSize>14</fontSize>
+                        <fontName>Monospace</fontName>
+                        <pos1LocatorSource>LATLON</pos1LocatorSource>
+                        <pos1RoundToNearest>1</pos1RoundToNearest>
+                        <pos1DisplayUnit>degrees</pos1DisplayUnit>
+                        <pos1DirectionUnit>omit</pos1DirectionUnit>
+                        <pos2LocatorSource></pos2LocatorSource>
+                        <pos2RoundToNearest>1</pos2RoundToNearest>
+                        <pos2DisplayUnit>omit</pos2DisplayUnit>
+                        <pos2DirectionUnit>omit</pos2DirectionUnit>
+                        <pos3LocatorSource>None</pos3LocatorSource>
+                        <pos3RoundToNearest>1</pos3RoundToNearest>
+                        <pos3DisplayUnit>omit</pos3DisplayUnit>
+                        <pos3DirectionUnit>omit</pos3DirectionUnit>
+                        <pos4LocatorSource>None</pos4LocatorSource>
+                        <pos4RoundToNearest>1</pos4RoundToNearest>
+                        <pos4DisplayUnit>omit</pos4DisplayUnit>
+                        <pos4DirectionUnit>omit</pos4DirectionUnit>
+                        <pos5LocatorSource>None</pos5LocatorSource>
+                        <pos5RoundToNearest>1</pos5RoundToNearest>
+                        <pos5DisplayUnit>omit</pos5DisplayUnit>
+                        <pos5DirectionUnit>omit</pos5DirectionUnit>
+                        <color>RGB {255, 255, 255}</color>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false" renderingOrderId="MAP_OUTLINE">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="NC-OverlayResourceGroupData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                        <legendColor>RGB {255, 228, 220}</legendColor>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>World</mapName>
+<dbName>maps</dbName>
+<table>mapdata.world</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>State Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.states</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Canada</mapName>
+<dbName>maps</dbName>
+<table>mapdata.canada</table>
+<geomField>the_geom</geomField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>Mexico</mapName>
+<dbName>maps</dbName>
+<table>mapdata.mexico</table>
+<geomField>the_geom</geomField>
+<labelField>name</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties loadWithoutData="false">
+<resourceType>PLAN_VIEW</resourceType>
+<capabilities/>
+                            </loadProperties>
+                            <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+<pdProps minDisplayWidth="0" maxDisplayWidth="1"/>
+                            </properties>
+                            <resourceData xsi:type="NC-dbOverlayResourceData" isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+<legendColor>RGB {255, 255, 255}</legendColor>
+<mapName>County Boundaries</mapName>
+<dbName>maps</dbName>
+<table>mapdata.county</table>
+<geomField>the_geom</geomField>
+<labelField>countyname</labelField>
+<color>RGB {255, 228, 220}</color>
+<lineWidth>1</lineWidth>
+<lineStyle>SOLID</lineStyle>
+                            </resourceData>
+                        </resource>
+                        <mapName>Geo-Political</mapName>
+                        <color>RGB {255, 228, 220}</color>
+                        <lineWidth>1</lineWidth>
+                        <lineStyle>SOLID</lineStyle>
+                    </resourceData>
+                </resource>
+                <resource>
+                    <loadProperties loadWithoutData="false">
+                        <resourceType>PLAN_VIEW</resourceType>
+                        <capabilities/>
+                    </loadProperties>
+                    <properties isVisible="true" isHoverOn="false" isMapLayer="true" isBlinking="false" isSystemResource="false">
+                        <pdProps minDisplayWidth="0" maxDisplayWidth="100000000"/>
+                    </properties>
+                    <resourceData xsi:type="PgenOverlayResourceData" isEdited="false" resourceName="OVERLAY/Label_Loc_ATLSFCAnalysis/default">
+                        <legendColor>RGB {255, 255, 255}</legendColor>
+                        <pgenStaticProductLocation>ncep/StaticPgenOverlays</pgenStaticProductLocation>
+                        <pgenStaticProductName>Label_Loc_ATLSFCAnalysis.xml</pgenStaticProductName>
+                        <monoColorEnable>false</monoColorEnable>
+                        <color>RGB {255, 0, 225}</color>
+                    </resourceData>
+                </resource>
+                <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+                <gridGeometry rangeX="0 18231" rangeY="0 9999" envelopeMinX="-1.4455794249398155E7" envelopeMaxX="1.6679762595459407E7" envelopeMinY="-4159352.416710777" envelopeMaxY="1.2918177724173004E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84(DD)&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, -120.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+                <numberOfFrames>12</numberOfFrames>
+                <timeMatcher xsi:type="ncTimeMatcher" dominantResourceName="SURFACE/AllLandSynop/pmsl_color" numFrames="8" graphRange="12" hourSnap="3" skipValue="0" timeRange="48" frameInterval="60"/>
+                <autoUpdate>false</autoUpdate>
+                <suspendZoom>false</suspendZoom>
+            </descriptor>
+            <paneId row="0" col="0"/>
+            <initialArea areaName="Sat_Obs_Difax" mapCenter="-31.27695209230912 46.075081748796464 0.0">
+                <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+                <areaSource>INITIAL_DISPLAY_AREA</areaSource>
+                <zoomLevel>0.46229907870292664</zoomLevel>
+                <zoomDisable>false</zoomDisable>
+                <description>N/A</description>
+                <gridGeometry rangeX="0 18231" rangeY="0 9999" envelopeMinX="-1.4455794249398155E7" envelopeMaxX="1.6679762595459407E7" envelopeMinY="-4159352.416710777" envelopeMaxY="1.2918177724173004E7">
+                    <CRS>PROJCS[&quot;Mercator_1SP&quot;, 
+  GEOGCS[&quot;WGS84(DD)&quot;, 
+    DATUM[&quot;WGS84&quot;, 
+      SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH]], 
+  PROJECTION[&quot;Mercator_1SP&quot;], 
+  PARAMETER[&quot;semi_major&quot;, 6371200.0], 
+  PARAMETER[&quot;semi_minor&quot;, 6371200.0], 
+  PARAMETER[&quot;latitude_of_origin&quot;, 0.0], 
+  PARAMETER[&quot;central_meridian&quot;, -120.0], 
+  PARAMETER[&quot;scale_factor&quot;, 1.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, EAST], 
+  AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+                </gridGeometry>
+            </initialArea>
+        </displays>
+    </displayList>
+    <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

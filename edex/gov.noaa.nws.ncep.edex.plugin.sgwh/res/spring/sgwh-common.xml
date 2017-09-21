@@ -10,7 +10,7 @@
 	<bean id="sgwhProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="sgwhPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.sgwh" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.sgwh.dao.SgwhDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.sgwh.dao.SgwhDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.sgwh.SgwhRecord" />
 	</bean>

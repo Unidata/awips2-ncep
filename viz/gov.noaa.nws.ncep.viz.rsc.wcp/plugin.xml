@@ -6,7 +6,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.wcp.rsc.WCPResourceData"
             name="WCP"
-            recordClass="gov.noaa.nws.ncep.edex.plugin.wcp.common.WcpRecord"
+            recordClass="gov.noaa.nws.ncep.common.dataplugin.wcp.WcpRecord"
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW"/>
    </extension>

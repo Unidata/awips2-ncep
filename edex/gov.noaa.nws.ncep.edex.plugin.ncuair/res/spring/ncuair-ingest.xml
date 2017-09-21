@@ -7,7 +7,7 @@
 	
 	<bean id="ncuairDecoder" class="gov.noaa.nws.ncep.edex.plugin.ncuair.decoder.NcUairDecoder"/>
 
-    <bean id="ncuairToPointData" class="gov.noaa.nws.ncep.common.dataplugin.ncuair.dao.NcUairToPointData" />
+    <bean id="ncuairToPointData" class="gov.noaa.nws.ncep.edex.plugin.ncuair.dao.NcUairToPointData" />
 		
 	<bean id="ncuairSeparator" class="gov.noaa.nws.ncep.edex.plugin.ncuair.decoder.NcUairSeparator" />
 

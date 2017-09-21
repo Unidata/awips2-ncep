@@ -3,16 +3,15 @@ Bundle-ManifestVersion: 2
 Bundle-Name: NcPafm Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ncpafm
 Bundle-Version: 1.0.0.qualifier
-Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: javax.persistence;bundle-version="1.0.0",
- com.raytheon.edex.common;bundle-version="1.11.31",
  gov.noaa.nws.ncep.common;bundle-version="1.0.0",
- gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0"
-Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncpafm,
- gov.noaa.nws.ncep.common.dataplugin.ncpafm.dao
+ com.raytheon.uf.common.geospatial;bundle-version="1.15.1",
+ com.raytheon.uf.common.time;bundle-version="1.16.0",
+ com.raytheon.uf.common.serialization;bundle-version="1.15.1",
+ com.raytheon.uf.common.dataplugin;bundle-version="1.14.0"
+Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncpafm
 Import-Package: com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.pointdata.spatial,
- com.raytheon.uf.common.status,
- com.raytheon.uf.edex.pointdata
+ com.raytheon.uf.common.status

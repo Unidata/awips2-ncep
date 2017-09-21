@@ -7,7 +7,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.aww.wou.WouResource"
             name="WOU"
-            recordClass="gov.noaa.nws.ncep.edex.plugin.aww.common.AwwRecord"
+            recordClass="gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord"
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW">
       </resource>

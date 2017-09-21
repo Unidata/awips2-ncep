@@ -10,7 +10,7 @@
 		<property name="pluginName" ref="awwPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.aww" />
 		<property name="dao"
-			value="gov.noaa.nws.ncep.common.dataplugin.aww.dao.AwwDao" />
+			value="gov.noaa.nws.ncep.edex.plugin.aww.dao.AwwDao" />
 		<property name="record"
 			value="gov.noaa.nws.ncep.common.dataplugin.aww.AwwRecord" />
 	</bean>

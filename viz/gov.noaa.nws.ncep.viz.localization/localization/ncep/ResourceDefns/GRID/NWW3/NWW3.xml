@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=nww3
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

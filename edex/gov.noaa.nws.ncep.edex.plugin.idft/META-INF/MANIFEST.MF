@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Idft Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.idft
 Bundle-Version: 1.0.0.qualifier
-Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
 Bundle-Vendor: AWIPS II Migration
 Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
  javax.persistence;bundle-version="1.0.0",
@@ -14,5 +13,4 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
 Import-Package: com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.decodertools.core,
  gov.noaa.nws.ncep.common.dataplugin.idft,
- gov.noaa.nws.ncep.edex.util,
  org.apache.log4j

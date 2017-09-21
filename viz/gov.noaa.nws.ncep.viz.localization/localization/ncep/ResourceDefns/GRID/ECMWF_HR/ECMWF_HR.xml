@@ -15,5 +15,4 @@
 pluginName=grid
 GDFILE=ecmwfP25
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

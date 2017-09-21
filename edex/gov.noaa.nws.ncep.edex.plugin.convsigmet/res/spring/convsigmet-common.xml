@@ -9,8 +9,8 @@
 
     <bean id="convsigmetProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
         <property name="pluginName" ref="convsigmetPluginName" />
-		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.convsigmet" />
-        <property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.convsigmet.dao.ConvSigmetDao" />
+        <property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.convsigmet" />
+        <property name="dao" value="gov.noaa.nws.ncep.edex.plugin.convsigmet.dao.ConvSigmetDao" />
         <property name="record"
             value="gov.noaa.nws.ncep.common.dataplugin.convsigmet.ConvSigmetRecord" />
     </bean>

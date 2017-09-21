@@ -58,6 +58,8 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 04/13        #874        B. Yin      Handle elements in contours.
  * 12/13        #1065       J. Wu       use LineAttrDlg for kink lines.
  * 09/15        R8535       J. Lopez    Made multi-select work outside of the map area
+ * 06/07/2016   R17380      B. Yin      Use Ctrl key to draw polygon.
+ * 06/16/2016   R17380      B. Yin      Set multi-selecting flag for attr dialog.
  * </pre>
  * 
  * @author B. Yin
@@ -107,6 +109,11 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
 
         private DrawableElementFactory def;
 
+        /*
+         * Ctrl key flag
+         */
+        private boolean ctrlKeyDown = false;
+
         private PgenMultiSelectHandler() {
             super();
             def = new DrawableElementFactory();
@@ -121,8 +128,9 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
          */
         @Override
         public boolean handleMouseDown(int anX, int aY, int button) {
-            if (!isResourceEditable())
+            if (!isResourceEditable() || shiftDown) {
                 return false;
+            }
 
             theFirstMouseX = anX;
             theFirstMouseY = aY;
@@ -186,7 +194,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
          */
 
         public boolean handleMouseDownMove(int anX, int aY, int button) {
-            if (!isResourceEditable() || button != 1 || noCat) {
+            if (!isResourceEditable() || button != 1 || noCat || shiftDown) {
                 return false;
             }
 
@@ -266,13 +274,13 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
         @Override
         public boolean handleMouseUp(int anX, int aY, int button) {
 
-            if (!isResourceEditable() || noCat) {
+            if (!isResourceEditable() || noCat || shiftDown) {
                 return false;
             }
 
             if (button == 1) {
 
-                if (shiftDown && !selectRect) {
+                if (ctrlKeyDown && !selectRect) {
                     if (polyPoints == null) {
                         polyPoints = new ArrayList<Coordinate>();
                     }
@@ -388,7 +396,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     }
 
                     polyPoints.clear();
-                    shiftDown = false;
+                    ctrlKeyDown = false;
                 }
             }
 
@@ -419,6 +427,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                     return false;
 
                 if (attrDlg != null) {
+                    attrDlg.setMultiSelectMode(true);
                     attrDlg.setBlockOnOpen(false);
                     attrDlg.open();
                     attrDlg.enableButtons();
@@ -458,7 +467,7 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
         @Override
         public boolean handleMouseMove(int anX, int aY) {
 
-            if (!isResourceEditable() || noCat) {
+            if (!isResourceEditable() || noCat || shiftDown) {
                 return false;
             }
 
@@ -508,7 +517,24 @@ public class PgenMultiSelectTool extends AbstractPgenDrawingTool {
                 PgenResource pResource = PgenSession.getInstance()
                         .getPgenResource();
                 pResource.deleteSelectedElements();
+            } else if (keyCode == SWT.CONTROL) {
+                ctrlKeyDown = true;
             }
+            return true;
+        }
+
+        /**
+         * Sets the ctrl key flag to false when the key is released.
+         */
+        @Override
+        public boolean handleKeyUp(int keyCode) {
+
+            super.handleKeyUp(keyCode);
+
+            if (keyCode == SWT.CONTROL) {
+                ctrlKeyDown = false;
+            }
+
             return true;
         }
 

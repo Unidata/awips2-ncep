@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * An interface to edit NCSCAT resource attributes.
  * 
@@ -41,6 +43,7 @@ import org.eclipse.swt.widgets.Spinner;
  * 11 Aug 2010   #273        G. Hull      Call getNcscatMode() instead of using getNatlCntrsResourceName.
  * 08 Oct 2010               B. Hebbard   Fix tool tips.
  * 01 Jul 2014 TTR 1018      S. Russell   Updated call to ColorBarEditor
+ * 04/05/2016   R15715       dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -50,8 +53,9 @@ import org.eclipse.swt.widgets.Spinner;
 
 public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
-    public EditNcscatAttrsDialog(Shell parentShell, INatlCntrsResourceData r, Boolean apply) {
-        super(parentShell, r, apply);
+    public EditNcscatAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
         ncscatMode = ((NcscatResourceData) r).getNcscatMode();
     }
 
@@ -171,7 +175,7 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
     Spinner arrowHeadSizeSpinner = null;
 
-    // 
+    //
     @Override
     public Composite createDialog(Composite topComp) {
 
@@ -180,110 +184,156 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         densityValueAttr = editedRscAttrSet.getRscAttr("densityValue");
         timeStampEnableAttr = editedRscAttrSet.getRscAttr("timeStampEnable");
         timeStampColorAttr = editedRscAttrSet.getRscAttr("timeStampColor");
-        timeStampIntervalAttr = editedRscAttrSet.getRscAttr("timeStampInterval");
-        timeStampLineWidthAttr = editedRscAttrSet.getRscAttr("timeStampLineWidth");
+        timeStampIntervalAttr = editedRscAttrSet
+                .getRscAttr("timeStampInterval");
+        timeStampLineWidthAttr = editedRscAttrSet
+                .getRscAttr("timeStampLineWidth");
         arrowStyleAttr = editedRscAttrSet.getRscAttr("arrowStyle");
         arrowWidthAttr = editedRscAttrSet.getRscAttr("arrowWidth");
         arrowSizeAttr = editedRscAttrSet.getRscAttr("arrowSize");
         headSizeAttr = editedRscAttrSet.getRscAttr("headSize");
         colorBarAttr01 = editedRscAttrSet.getRscAttr("colorBar1");
         colorBarAttr02 = editedRscAttrSet.getRscAttr("colorBar2");
-        highWindSpeedEnableAttr = editedRscAttrSet.getRscAttr("highWindSpeedEnable");
-        lowWindSpeedEnableAttr = editedRscAttrSet.getRscAttr("lowWindSpeedEnable");
+        highWindSpeedEnableAttr = editedRscAttrSet
+                .getRscAttr("highWindSpeedEnable");
+        lowWindSpeedEnableAttr = editedRscAttrSet
+                .getRscAttr("lowWindSpeedEnable");
         rainFlagEnableAttr = editedRscAttrSet.getRscAttr("rainFlagEnable");
-        availabilityFlagEnableAttr = editedRscAttrSet.getRscAttr("availabilityFlagEnable");
-        use2ndColorForRainEnableAttr = editedRscAttrSet.getRscAttr("use2ndColorForRainEnable");
-        plotCirclesForRainEnableAttr = editedRscAttrSet.getRscAttr("plotCirclesForRainEnable");
+        availabilityFlagEnableAttr = editedRscAttrSet
+                .getRscAttr("availabilityFlagEnable");
+        use2ndColorForRainEnableAttr = editedRscAttrSet
+                .getRscAttr("use2ndColorForRainEnable");
+        plotCirclesForRainEnableAttr = editedRscAttrSet
+                .getRscAttr("plotCirclesForRainEnable");
 
-        if (skipEnableAttr == null || skipEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("skipEnable is null or not of expected class Boolean?");
+        if (skipEnableAttr == null
+                || skipEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("skipEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (skipValueAttr == null || skipValueAttr.getAttrClass() != Integer.class) {
-            System.out.println("skipValue is null or not of expected class Integer?");
+        if (skipValueAttr == null
+                || skipValueAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("skipValue is null or not of expected class Integer?");
             return null;
         }
-        if (densityValueAttr == null || densityValueAttr.getAttrClass() != Integer.class) {
-            System.out.println("densityValue is null or not of expected class Integer?");
+        if (densityValueAttr == null
+                || densityValueAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("densityValue is null or not of expected class Integer?");
             return null;
         }
-        if (timeStampEnableAttr == null || timeStampEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("timeStampEnable is null or not of expected class Boolean?");
+        if (timeStampEnableAttr == null
+                || timeStampEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("timeStampEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (timeStampColorAttr == null || timeStampColorAttr.getAttrClass() != RGB.class) {
-            System.out.println("timeStampColor is null or not of expected class RGB?");
+        if (timeStampColorAttr == null
+                || timeStampColorAttr.getAttrClass() != RGB.class) {
+            statusHandler
+                    .error("timeStampColor is null or not of expected class RGB?");
             return null;
         }
-        if (timeStampIntervalAttr == null || timeStampIntervalAttr.getAttrClass() != Integer.class) {
-            System.out.println("timeStampInterval is null or not of expected class Integer?");
+        if (timeStampIntervalAttr == null
+                || timeStampIntervalAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("timeStampInterval is null or not of expected class Integer?");
             return null;
         }
-        if (timeStampLineWidthAttr == null || timeStampLineWidthAttr.getAttrClass() != Integer.class) {
-            System.out.println("timeStampLineWidth is null or not of expected class Integer?");
+        if (timeStampLineWidthAttr == null
+                || timeStampLineWidthAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("timeStampLineWidth is null or not of expected class Integer?");
             return null;
         }
-        if (arrowStyleAttr == null || arrowStyleAttr.getAttrClass() != ArrowStyle.class) {
-            System.out.println("arrowStyle is null or not of expected class ArrowStyle?");
+        if (arrowStyleAttr == null
+                || arrowStyleAttr.getAttrClass() != ArrowStyle.class) {
+            statusHandler
+                    .error("arrowStyle is null or not of expected class ArrowStyle?");
             return null;
         }
-        if (arrowWidthAttr == null || arrowWidthAttr.getAttrClass() != Integer.class) {
-            System.out.println("arrowWidth is null or not of expected class Integer?");
+        if (arrowWidthAttr == null
+                || arrowWidthAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("arrowWidth is null or not of expected class Integer?");
             return null;
         }
-        if (arrowSizeAttr == null || arrowSizeAttr.getAttrClass() != Integer.class) {
-            System.out.println("arrowSize is null or not of expected class Integer?");
+        if (arrowSizeAttr == null
+                || arrowSizeAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("arrowSize is null or not of expected class Integer?");
             return null;
         }
-        if (headSizeAttr == null || headSizeAttr.getAttrClass() != Integer.class) {
-            System.out.println("headSize is null or not of expected class Integer?");
+        if (headSizeAttr == null
+                || headSizeAttr.getAttrClass() != Integer.class) {
+            statusHandler
+                    .error("headSize is null or not of expected class Integer?");
             return null;
         }
-        if (highWindSpeedEnableAttr == null || highWindSpeedEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("highWindSpeedEnable is null or not of expected class Boolean?");
+        if (highWindSpeedEnableAttr == null
+                || highWindSpeedEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("highWindSpeedEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (lowWindSpeedEnableAttr == null || lowWindSpeedEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("lowWindSpeedEnable is null or not of expected class Boolean?");
+        if (lowWindSpeedEnableAttr == null
+                || lowWindSpeedEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("lowWindSpeedEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (rainFlagEnableAttr == null || rainFlagEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("rainFlagEnable is null or not of expected class Boolean?");
+        if (rainFlagEnableAttr == null
+                || rainFlagEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("rainFlagEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (availabilityFlagEnableAttr == null || availabilityFlagEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("availabilityFlagEnable is null or not of expected class Boolean?");
+        if (availabilityFlagEnableAttr == null
+                || availabilityFlagEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("availabilityFlagEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (use2ndColorForRainEnableAttr == null || use2ndColorForRainEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("use2ndColorForRainEnable is null or not of expected class Boolean?");
+        if (use2ndColorForRainEnableAttr == null
+                || use2ndColorForRainEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("use2ndColorForRainEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (plotCirclesForRainEnableAttr == null || plotCirclesForRainEnableAttr.getAttrClass() != Boolean.class) {
-            System.out.println("plotCirclesForRainEnable is null or not of expected class Boolean?");
+        if (plotCirclesForRainEnableAttr == null
+                || plotCirclesForRainEnableAttr.getAttrClass() != Boolean.class) {
+            statusHandler
+                    .error("plotCirclesForRainEnable is null or not of expected class Boolean?");
             return null;
         }
-        if (colorBarAttr01 == null || colorBarAttr01.getAttrClass() != ColorBar.class) {
-            System.out.println("colorBar1 is null or not of expected class ColorBar?");
+        if (colorBarAttr01 == null
+                || colorBarAttr01.getAttrClass() != ColorBar.class) {
+            statusHandler
+                    .error("colorBar1 is null or not of expected class ColorBar?");
             return null;
         }
-        if (colorBarAttr02 == null || colorBarAttr02.getAttrClass() != ColorBar.class) {
-            System.out.println("colorBar2 is null or not of expected class ColorBar?");
+        if (colorBarAttr02 == null
+                || colorBarAttr02.getAttrClass() != ColorBar.class) {
+            statusHandler
+                    .error("colorBar2 is null or not of expected class ColorBar?");
             return null;
         }
 
         FormLayout layout0 = new FormLayout();
         topComp.setLayout(layout0);
 
-        //  Arrow Type and Attributes
+        // Arrow Type and Attributes
 
         arrowBarbStyleCombo = new Combo(topComp, SWT.DROP_DOWN | SWT.READ_ONLY);
         FormData fd = new FormData();
-        //TODO:  Consider anchoring label to left, then combo to right of it
+        // TODO: Consider anchoring label to left, then combo to right of it
         fd.left = new FormAttachment(0, 168);
         fd.top = new FormAttachment(0, 32);
         arrowBarbStyleCombo.setLayoutData(fd);
-        arrowBarbStyleCombo.setToolTipText("Type of arrow or wind barb to be drawn at each wind vector cell");
+        arrowBarbStyleCombo
+                .setToolTipText("Type of arrow or wind barb to be drawn at each wind vector cell");
 
         for (ArrowStyle as : ArrowStyle.values()) {
             arrowBarbStyleCombo.add(as.getDisplayName());
@@ -292,8 +342,10 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         ArrowStyle arrowStyle = (ArrowStyle) arrowStyleAttr.getAttrValue();
         arrowBarbStyleCombo.select(arrowStyle.ordinal());
         arrowBarbStyleCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                ArrowStyle as = ArrowStyle.values()[arrowBarbStyleCombo.getSelectionIndex()];
+                ArrowStyle as = ArrowStyle.values()[arrowBarbStyleCombo
+                        .getSelectionIndex()];
                 arrowStyleAttr.setAttrValue(as);
                 arrowHeadSizeSpinner.setEnabled(as != ArrowStyle.WIND_BARB);
             }
@@ -307,7 +359,8 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowLabel1.setText("Show Wind Vectors As");
 
         arrowWidthSpinner = new Spinner(topComp, SWT.BORDER);
-        arrowWidthSpinner.setToolTipText("Width in pixels of each arrow or wind barb");
+        arrowWidthSpinner
+                .setToolTipText("Width in pixels of each arrow or wind barb");
         fd = new FormData();
         fd.left = new FormAttachment(arrowBarbStyleCombo, 24, SWT.RIGHT);
         fd.top = new FormAttachment(arrowBarbStyleCombo, 0, SWT.CENTER);
@@ -317,10 +370,14 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowWidthSpinner.setMaximum(10);
         arrowWidthSpinner.setIncrement(1);
         arrowWidthSpinner.setPageIncrement(1);
-        arrowWidthSpinner.setSelection(((Integer) arrowWidthAttr.getAttrValue()).intValue());
+        arrowWidthSpinner
+                .setSelection(((Integer) arrowWidthAttr.getAttrValue())
+                        .intValue());
         arrowWidthSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                arrowWidthAttr.setAttrValue(new Integer(arrowWidthSpinner.getSelection()));
+                arrowWidthAttr.setAttrValue(new Integer(arrowWidthSpinner
+                        .getSelection()));
             }
         });
 
@@ -332,7 +389,8 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowLabel2.setText("Width");
 
         arrowSizeSpinner = new Spinner(topComp, SWT.BORDER);
-        arrowSizeSpinner.setToolTipText("Relative size of each wind barb or arrow");
+        arrowSizeSpinner
+                .setToolTipText("Relative size of each wind barb or arrow");
         fd = new FormData();
         fd.left = new FormAttachment(arrowWidthSpinner, 24, SWT.RIGHT);
         fd.top = new FormAttachment(arrowWidthSpinner, 0, SWT.CENTER);
@@ -342,10 +400,13 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowSizeSpinner.setMaximum(100);
         arrowSizeSpinner.setIncrement(1);
         arrowSizeSpinner.setPageIncrement(1);
-        arrowSizeSpinner.setSelection(((Integer) arrowSizeAttr.getAttrValue()).intValue());
+        arrowSizeSpinner.setSelection(((Integer) arrowSizeAttr.getAttrValue())
+                .intValue());
         arrowSizeSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                arrowSizeAttr.setAttrValue(new Integer(arrowSizeSpinner.getSelection()));
+                arrowSizeAttr.setAttrValue(new Integer(arrowSizeSpinner
+                        .getSelection()));
             }
         });
 
@@ -357,7 +418,8 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowLabel3.setText("Size");
 
         arrowHeadSizeSpinner = new Spinner(topComp, SWT.BORDER);
-        arrowHeadSizeSpinner.setToolTipText("Relative size of head on each arrow");
+        arrowHeadSizeSpinner
+                .setToolTipText("Relative size of head on each arrow");
         fd = new FormData();
         fd.left = new FormAttachment(arrowSizeSpinner, 24, SWT.RIGHT);
         fd.top = new FormAttachment(arrowSizeSpinner, 0, SWT.CENTER);
@@ -367,10 +429,13 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowHeadSizeSpinner.setMaximum(100);
         arrowHeadSizeSpinner.setIncrement(1);
         arrowHeadSizeSpinner.setPageIncrement(1);
-        arrowHeadSizeSpinner.setSelection(((Integer) headSizeAttr.getAttrValue()).intValue());
+        arrowHeadSizeSpinner.setSelection(((Integer) headSizeAttr
+                .getAttrValue()).intValue());
         arrowHeadSizeSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                headSizeAttr.setAttrValue(new Integer(arrowHeadSizeSpinner.getSelection()));
+                headSizeAttr.setAttrValue(new Integer(arrowHeadSizeSpinner
+                        .getSelection()));
             }
         });
         arrowHeadSizeSpinner.setEnabled(arrowStyle != ArrowStyle.WIND_BARB);
@@ -382,17 +447,20 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         arrowLabel4.setLayoutData(fd);
         arrowLabel4.setText("Head");
 
-        //  Skip
+        // Skip
 
         skipButton = new Button(topComp, SWT.RADIO);
         fd = new FormData();
         fd.left = new FormAttachment(8, 0);
         fd.top = new FormAttachment(arrowBarbStyleCombo, 12, SWT.BOTTOM);
         skipButton.setLayoutData(fd);
-        skipButton.setSelection(((Boolean) skipEnableAttr.getAttrValue()).booleanValue());
+        skipButton.setSelection(((Boolean) skipEnableAttr.getAttrValue())
+                .booleanValue());
         skipButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                skipEnableAttr.setAttrValue(new Boolean(skipButton.getSelection()));
+                skipEnableAttr.setAttrValue(new Boolean(skipButton
+                        .getSelection()));
                 skipSpinner.setEnabled(skipButton.getSelection());
                 skipLabel1.setEnabled(skipButton.getSelection());
                 densitySpinner.setEnabled(densityButton.getSelection());
@@ -400,11 +468,14 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
             }
         });
         skipButton.setText("Skip");
-        skipButton.setToolTipText("Omit specified number of rows, and points within each row, between ones drawn");
+        skipButton
+                .setToolTipText("Omit specified number of rows, and points within each row, between ones drawn");
 
-        //TODO:  As enhancement, allow separate values for rows and columns, optionally linked...
+        // TODO: As enhancement, allow separate values for rows and columns,
+        // optionally linked...
         skipSpinner = new Spinner(topComp, SWT.BORDER);
-        skipSpinner.setToolTipText("Skip this many rows and columns between displayed ones");
+        skipSpinner
+                .setToolTipText("Skip this many rows and columns between displayed ones");
         fd = new FormData();
         fd.left = new FormAttachment(skipButton, 8, SWT.RIGHT);
         fd.top = new FormAttachment(skipButton, 0, SWT.CENTER);
@@ -414,10 +485,13 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         skipSpinner.setMaximum(99);
         skipSpinner.setIncrement(1);
         skipSpinner.setPageIncrement(1);
-        skipSpinner.setSelection(((Integer) skipValueAttr.getAttrValue()).intValue());
+        skipSpinner.setSelection(((Integer) skipValueAttr.getAttrValue())
+                .intValue());
         skipSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                skipValueAttr.setAttrValue(new Integer(skipSpinner.getSelection()));
+                skipValueAttr.setAttrValue(new Integer(skipSpinner
+                        .getSelection()));
             }
         });
         skipSpinner.setEnabled(skipButton.getSelection());
@@ -430,17 +504,20 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         skipLabel1.setText("points/rows between displayed ones");
         skipLabel1.setEnabled(skipButton.getSelection());
 
-        //  Density
+        // Density
 
         densityButton = new Button(topComp, SWT.RADIO);
         fd = new FormData();
         fd.left = new FormAttachment(8, 0);
         fd.top = new FormAttachment(skipButton, 12, SWT.BOTTOM);
         densityButton.setLayoutData(fd);
-        densityButton.setSelection(!((Boolean) skipEnableAttr.getAttrValue()).booleanValue());
+        densityButton.setSelection(!((Boolean) skipEnableAttr.getAttrValue())
+                .booleanValue());
         densityButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                skipEnableAttr.setAttrValue(new Boolean(!densityButton.getSelection()));
+                skipEnableAttr.setAttrValue(new Boolean(!densityButton
+                        .getSelection()));
                 skipSpinner.setEnabled(skipButton.getSelection());
                 skipLabel1.setEnabled(skipButton.getSelection());
                 densitySpinner.setEnabled(densityButton.getSelection());
@@ -448,11 +525,14 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
             }
         });
         densityButton.setText("Density");
-        densityButton.setToolTipText("Relative density (0-100) of points regardless of zoom level");
+        densityButton
+                .setToolTipText("Relative density (0-100) of points regardless of zoom level");
 
-        //TODO:  As enhancement, allow separate values for rows and columns, optionally linked...
+        // TODO: As enhancement, allow separate values for rows and columns,
+        // optionally linked...
         densitySpinner = new Spinner(topComp, SWT.BORDER);
-        densitySpinner.setToolTipText("Density this many rows and columns between displayed ones");
+        densitySpinner
+                .setToolTipText("Density this many rows and columns between displayed ones");
         fd = new FormData();
         fd.left = new FormAttachment(densityButton, 8, SWT.RIGHT);
         fd.top = new FormAttachment(densityButton, 0, SWT.CENTER);
@@ -462,10 +542,13 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         densitySpinner.setMaximum(99);
         densitySpinner.setIncrement(1);
         densitySpinner.setPageIncrement(1);
-        densitySpinner.setSelection(((Integer) densityValueAttr.getAttrValue()).intValue());
+        densitySpinner.setSelection(((Integer) densityValueAttr.getAttrValue())
+                .intValue());
         densitySpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                densityValueAttr.setAttrValue(new Integer(densitySpinner.getSelection()));
+                densityValueAttr.setAttrValue(new Integer(densitySpinner
+                        .getSelection()));
             }
         });
         densitySpinner.setEnabled(densityButton.getSelection());
@@ -478,26 +561,32 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         densityLabel1.setText("(1-99) regardless of zoom level");
         densityLabel1.setEnabled(densityButton.getSelection());
 
-        //  Time Stamp
+        // Time Stamp
 
         timeStampButton = new Button(topComp, SWT.CHECK);
         fd = new FormData();
         fd.left = new FormAttachment(8, 0);
         fd.top = new FormAttachment(densityButton, 30, SWT.BOTTOM);
         timeStampButton.setLayoutData(fd);
-        timeStampButton.setSelection(((Boolean) timeStampEnableAttr.getAttrValue()).booleanValue());
+        timeStampButton.setSelection(((Boolean) timeStampEnableAttr
+                .getAttrValue()).booleanValue());
         timeStampButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                timeStampEnableAttr.setAttrValue(new Boolean(timeStampButton.getSelection()));
+                timeStampEnableAttr.setAttrValue(new Boolean(timeStampButton
+                        .getSelection()));
                 timeStampLabel1.setEnabled(timeStampButton.getSelection());
-                timeStampIntervalSpinner.setEnabled(timeStampButton.getSelection());
+                timeStampIntervalSpinner.setEnabled(timeStampButton
+                        .getSelection());
                 timeStampColorComp.setEnabled(timeStampButton.getSelection());
-                timeStampLineWidthSpinner.setEnabled(timeStampButton.getSelection());
+                timeStampLineWidthSpinner.setEnabled(timeStampButton
+                        .getSelection());
                 timeStampLabel2.setEnabled(timeStampButton.getSelection());
             }
         });
         timeStampButton.setText("Time Stamp");
-        timeStampButton.setToolTipText("Draw lines at specified time intervals across track");
+        timeStampButton
+                .setToolTipText("Draw lines at specified time intervals across track");
 
         timeStampLabel1 = new Label(topComp, SWT.None);
         fd = new FormData();
@@ -508,7 +597,8 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         timeStampLabel1.setEnabled(timeStampButton.getSelection());
 
         timeStampIntervalSpinner = new Spinner(topComp, SWT.BORDER);
-        timeStampIntervalSpinner.setToolTipText("Minutes between time stamps/lines");
+        timeStampIntervalSpinner
+                .setToolTipText("Minutes between time stamps/lines");
         fd = new FormData();
         fd.left = new FormAttachment(timeStampLabel1, 8, SWT.RIGHT);
         fd.top = new FormAttachment(timeStampButton, 0, SWT.CENTER);
@@ -518,10 +608,13 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         timeStampIntervalSpinner.setMaximum(60);
         timeStampIntervalSpinner.setIncrement(1);
         timeStampIntervalSpinner.setPageIncrement(1);
-        timeStampIntervalSpinner.setSelection(((Integer) timeStampIntervalAttr.getAttrValue()).intValue());
+        timeStampIntervalSpinner.setSelection(((Integer) timeStampIntervalAttr
+                .getAttrValue()).intValue());
         timeStampIntervalSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                timeStampIntervalAttr.setAttrValue(new Integer(timeStampIntervalSpinner.getSelection()));
+                timeStampIntervalAttr.setAttrValue(new Integer(
+                        timeStampIntervalSpinner.getSelection()));
             }
         });
         timeStampIntervalSpinner.setEnabled(timeStampButton.getSelection());
@@ -539,15 +632,19 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         fd.left = new FormAttachment(timeStampLabel2, 28, SWT.RIGHT);
         fd.top = new FormAttachment(timeStampButton, 0, SWT.CENTER);
         timeStampColorComp.setLayoutData(fd);
-        timeStampColorComp.setToolTipText("Color for time stamps and associated lines");
+        timeStampColorComp
+                .setToolTipText("Color for time stamps and associated lines");
         GridLayout gl = new GridLayout();
         gl.marginHeight = 0;
         gl.marginWidth = 0;
         timeStampColorComp.setLayout(gl);
-        timeStampColorSelector = new ColorButtonSelector(timeStampColorComp, 50, 25);
-        timeStampColorSelector.setColorValue(((RGB) timeStampColorAttr.getAttrValue()));
+        timeStampColorSelector = new ColorButtonSelector(timeStampColorComp,
+                50, 25);
+        timeStampColorSelector.setColorValue(((RGB) timeStampColorAttr
+                .getAttrValue()));
         timeStampColorSelector.addListener(new IPropertyChangeListener() {
             // forward the property change of the color selector
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 timeStampColorAttr.setAttrValue(event.getNewValue());
             }
@@ -562,7 +659,8 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         timeStampLabel3.setText("Color");
 
         timeStampLineWidthSpinner = new Spinner(topComp, SWT.BORDER);
-        timeStampLineWidthSpinner.setToolTipText("Width of cross-track line drawn at each time stamp");
+        timeStampLineWidthSpinner
+                .setToolTipText("Width of cross-track line drawn at each time stamp");
         fd = new FormData();
         fd.left = new FormAttachment(timeStampColorComp, 32, SWT.RIGHT);
         fd.top = new FormAttachment(timeStampButton, 0, SWT.CENTER);
@@ -572,10 +670,14 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         timeStampLineWidthSpinner.setMaximum(10);
         timeStampLineWidthSpinner.setIncrement(1);
         timeStampLineWidthSpinner.setPageIncrement(1);
-        timeStampLineWidthSpinner.setSelection(((Integer) timeStampLineWidthAttr.getAttrValue()).intValue());
+        timeStampLineWidthSpinner
+                .setSelection(((Integer) timeStampLineWidthAttr.getAttrValue())
+                        .intValue());
         timeStampLineWidthSpinner.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                timeStampLineWidthAttr.setAttrValue(new Integer(timeStampLineWidthSpinner.getSelection()));
+                timeStampLineWidthAttr.setAttrValue(new Integer(
+                        timeStampLineWidthSpinner.getSelection()));
             }
         });
         timeStampLineWidthSpinner.setEnabled(timeStampButton.getSelection());
@@ -587,7 +689,7 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         timeStampLabel4.setLayoutData(fd);
         timeStampLabel4.setText("Line Width");
 
-        //  Color Bar - Main
+        // Color Bar - Main
 
         colorBarGrp1 = new Group(topComp, SWT.NONE);
         colorBarGrp1.setText("Edit Main Color Bar");
@@ -599,13 +701,12 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         colorBarGrp1.setLayout(new FormLayout());
 
-        //editedColorBar1 = null;
-
         editedColorBar1 = (ColorBar) colorBarAttr01.getAttrValue();
 
-        colorBarEditor1 = new ColorBarEditor(colorBarGrp1, editedColorBar1, true);
+        colorBarEditor1 = new ColorBarEditor(colorBarGrp1, editedColorBar1,
+                true);
 
-        //  Color Bar - Alternate
+        // Color Bar - Alternate
 
         colorBarGrp2 = new Group(topComp, SWT.NONE);
         colorBarGrp2.setText("Edit ALTERNATE Color Bar");
@@ -617,15 +718,14 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         colorBarGrp2.setLayout(new FormLayout());
 
-        //editedColorBar2 = null;
-
         editedColorBar2 = (ColorBar) colorBarAttr02.getAttrValue();
 
-        colorBarEditor2 = new ColorBarEditor(colorBarGrp2, editedColorBar2, false);
+        colorBarEditor2 = new ColorBarEditor(colorBarGrp2, editedColorBar2,
+                false);
 
         colorBarGrp2.setVisible(false);
 
-        //  Label to introduce options to include flagged data points
+        // Label to introduce options to include flagged data points
 
         flagInclusionLabel = new Label(topComp, SWT.None);
         fd = new FormData();
@@ -634,53 +734,69 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         flagInclusionLabel.setLayoutData(fd);
         flagInclusionLabel.setText("Display Even Points Flagged As ...");
 
-        //  High Wind Speed Option
+        // High Wind Speed Option
 
         highWindSpeedButton = new Button(topComp, SWT.CHECK);
         highWindSpeedButton.setText("High Wind Speed");
-        highWindSpeedButton.setToolTipText("Show wind vectors even for points flagged as high wind speed");
+        highWindSpeedButton
+                .setToolTipText("Show wind vectors even for points flagged as high wind speed");
         fd = new FormData();
         fd.left = new FormAttachment(10, 0);
         fd.top = new FormAttachment(flagInclusionLabel, 16, SWT.BOTTOM);
         highWindSpeedButton.setLayoutData(fd);
-        highWindSpeedButton.setSelection(((Boolean) highWindSpeedEnableAttr.getAttrValue()).booleanValue());
+        highWindSpeedButton.setSelection(((Boolean) highWindSpeedEnableAttr
+                .getAttrValue()).booleanValue());
         highWindSpeedButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                highWindSpeedEnableAttr.setAttrValue(new Boolean(highWindSpeedButton.getSelection()));
+                highWindSpeedEnableAttr.setAttrValue(new Boolean(
+                        highWindSpeedButton.getSelection()));
             }
         });
 
-        //  Low Wind Speed Option
+        // Low Wind Speed Option
 
         lowWindSpeedButton = new Button(topComp, SWT.CHECK);
         lowWindSpeedButton.setText("Low Wind Speed");
-        lowWindSpeedButton.setToolTipText("Show wind vectors even for points flagged as low wind speed");
+        lowWindSpeedButton
+                .setToolTipText("Show wind vectors even for points flagged as low wind speed");
         fd = new FormData();
         fd.left = new FormAttachment(10, 0);
         fd.top = new FormAttachment(highWindSpeedButton, 16, SWT.BOTTOM);
         lowWindSpeedButton.setLayoutData(fd);
-        lowWindSpeedButton.setSelection(((Boolean) lowWindSpeedEnableAttr.getAttrValue()).booleanValue());
+        lowWindSpeedButton.setSelection(((Boolean) lowWindSpeedEnableAttr
+                .getAttrValue()).booleanValue());
         lowWindSpeedButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                lowWindSpeedEnableAttr.setAttrValue(new Boolean(lowWindSpeedButton.getSelection()));
+                lowWindSpeedEnableAttr.setAttrValue(new Boolean(
+                        lowWindSpeedButton.getSelection()));
             }
         });
 
-        //  Availability or Redundancy Flag Option
+        // Availability or Redundancy Flag Option
 
-        boolean isInAscatFamily = EnumSet.range(NcscatMode.ASCAT, NcscatMode.EXASCT_HI).contains(ncscatMode);
+        boolean isInAscatFamily = EnumSet.range(NcscatMode.ASCAT,
+                NcscatMode.EXASCT_HI).contains(ncscatMode);
         availRedunFlagButton = new Button(topComp, SWT.CHECK);
-        availRedunFlagButton.setText(isInAscatFamily ? "Redundant" : "Some Data Unavailable");
-        availRedunFlagButton.setToolTipText("Show wind vectors even for points flagged " + (isInAscatFamily ? "as redundant data" : "some data unavailable"));
+        availRedunFlagButton.setText(isInAscatFamily ? "Redundant"
+                : "Some Data Unavailable");
+        availRedunFlagButton
+                .setToolTipText("Show wind vectors even for points flagged "
+                        + (isInAscatFamily ? "as redundant data"
+                                : "some data unavailable"));
         fd = new FormData();
         fd.left = new FormAttachment(10, 0);
         fd.top = new FormAttachment(lowWindSpeedButton, 16, SWT.BOTTOM);
         fd.bottom = new FormAttachment(100, -20);
         availRedunFlagButton.setLayoutData(fd);
-        availRedunFlagButton.setSelection(((Boolean) availabilityFlagEnableAttr.getAttrValue()).booleanValue());
+        availRedunFlagButton.setSelection(((Boolean) availabilityFlagEnableAttr
+                .getAttrValue()).booleanValue());
         availRedunFlagButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                availabilityFlagEnableAttr.setAttrValue(new Boolean(availRedunFlagButton.getSelection()));
+                availabilityFlagEnableAttr.setAttrValue(new Boolean(
+                        availRedunFlagButton.getSelection()));
             }
         });
 
@@ -691,56 +807,76 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         }
 
-        //  Rain Flag or QC Flag Option
+        // Rain Flag or QC Flag Option
 
         rainQcFlagButton = new Button(topComp, SWT.CHECK);
-        rainQcFlagButton.setText(isInAscatFamily ? "Quality Control Fail ..." : "Rained ...");
-        rainQcFlagButton.setToolTipText("Show wind vectors even for points marked " + (isInAscatFamily ? "quality-control failure" : "rain flag"));
+        rainQcFlagButton.setText(isInAscatFamily ? "Quality Control Fail ..."
+                : "Rained ...");
+        rainQcFlagButton
+                .setToolTipText("Show wind vectors even for points marked "
+                        + (isInAscatFamily ? "quality-control failure"
+                                : "rain flag"));
         fd = new FormData();
         fd.left = new FormAttachment(44, 0);
         fd.top = new FormAttachment(flagInclusionLabel, 16, SWT.BOTTOM);
         rainQcFlagButton.setLayoutData(fd);
-        rainQcFlagButton.setSelection(((Boolean) rainFlagEnableAttr.getAttrValue()).booleanValue());
+        rainQcFlagButton.setSelection(((Boolean) rainFlagEnableAttr
+                .getAttrValue()).booleanValue());
         rainQcFlagButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                rainFlagEnableAttr.setAttrValue(new Boolean(rainQcFlagButton.getSelection()));
-                use2ndColorForRainQcButton.setEnabled(rainQcFlagButton.getSelection());
-                plotCirclesForRainQcButton.setEnabled(rainQcFlagButton.getSelection());
+                rainFlagEnableAttr.setAttrValue(new Boolean(rainQcFlagButton
+                        .getSelection()));
+                use2ndColorForRainQcButton.setEnabled(rainQcFlagButton
+                        .getSelection());
+                plotCirclesForRainQcButton.setEnabled(rainQcFlagButton
+                        .getSelection());
                 if (!rainQcFlagButton.getSelection()) {
                     edit2ndColorButton.setSelection(false);
                     colorBarGrp1.setVisible(true);
                     colorBarGrp2.setVisible(false);
                 }
-                edit2ndColorButton.setEnabled(rainQcFlagButton.getSelection() && use2ndColorForRainQcButton.getSelection());
-                edit2ndColorLabel.setEnabled(rainQcFlagButton.getSelection() && use2ndColorForRainQcButton.getSelection());
+                edit2ndColorButton.setEnabled(rainQcFlagButton.getSelection()
+                        && use2ndColorForRainQcButton.getSelection());
+                edit2ndColorLabel.setEnabled(rainQcFlagButton.getSelection()
+                        && use2ndColorForRainQcButton.getSelection());
             }
         });
 
-        //  Use Alternate Color for Rain or QC Flagged Points Option
+        // Use Alternate Color for Rain or QC Flagged Points Option
 
         use2ndColorForRainQcButton = new Button(topComp, SWT.CHECK);
         use2ndColorForRainQcButton.setText("...using Alternate Colors");
-        use2ndColorForRainQcButton.setToolTipText("Use alternate color for wind vectors marked " + (isInAscatFamily ? "quality-control failure" : "rain flag"));
+        use2ndColorForRainQcButton
+                .setToolTipText("Use alternate color for wind vectors marked "
+                        + (isInAscatFamily ? "quality-control failure"
+                                : "rain flag"));
         fd = new FormData();
         fd.left = new FormAttachment(48, 0);
         fd.top = new FormAttachment(rainQcFlagButton, 6, SWT.BOTTOM);
         use2ndColorForRainQcButton.setLayoutData(fd);
-        use2ndColorForRainQcButton.setSelection(((Boolean) use2ndColorForRainEnableAttr.getAttrValue()).booleanValue());
+        use2ndColorForRainQcButton
+                .setSelection(((Boolean) use2ndColorForRainEnableAttr
+                        .getAttrValue()).booleanValue());
         use2ndColorForRainQcButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                use2ndColorForRainEnableAttr.setAttrValue(new Boolean(use2ndColorForRainQcButton.getSelection()));
+                use2ndColorForRainEnableAttr.setAttrValue(new Boolean(
+                        use2ndColorForRainQcButton.getSelection()));
                 if (!use2ndColorForRainQcButton.getSelection()) {
                     edit2ndColorButton.setSelection(false);
                     colorBarGrp1.setVisible(true);
                     colorBarGrp2.setVisible(false);
                 }
-                edit2ndColorButton.setEnabled(use2ndColorForRainQcButton.getSelection());
-                edit2ndColorLabel.setEnabled(use2ndColorForRainQcButton.getSelection());
+                edit2ndColorButton.setEnabled(use2ndColorForRainQcButton
+                        .getSelection());
+                edit2ndColorLabel.setEnabled(use2ndColorForRainQcButton
+                        .getSelection());
             }
         });
         use2ndColorForRainQcButton.setEnabled(rainQcFlagButton.getSelection());
 
-        //  Edit Alternate Color (for Rain or QC Flagged Points, if enabled)
+        // Edit Alternate Color (for Rain or QC Flagged Points, if enabled)
 
         edit2ndColorLabel = new Label(topComp, SWT.None);
         fd = new FormData();
@@ -759,26 +895,35 @@ public class EditNcscatAttrsDialog extends AbstractEditResourceAttrsDialog {
         edit2ndColorButton.setLayoutData(fd);
         edit2ndColorButton.setSelection(false);
         edit2ndColorButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 colorBarGrp1.setVisible(!edit2ndColorButton.getSelection());
                 colorBarGrp2.setVisible(edit2ndColorButton.getSelection());
             }
         });
-        edit2ndColorButton.setEnabled(use2ndColorForRainQcButton.getSelection());
+        edit2ndColorButton
+                .setEnabled(use2ndColorForRainQcButton.getSelection());
 
-        //  Plot Circles for Rain or QC Flagged Points Option
+        // Plot Circles for Rain or QC Flagged Points Option
 
         plotCirclesForRainQcButton = new Button(topComp, SWT.CHECK);
         plotCirclesForRainQcButton.setText("...with Circles");
-        plotCirclesForRainQcButton.setToolTipText("Draw circles at base of wind vectors marked " + (isInAscatFamily ? "quality-control failure" : "rain flag"));
+        plotCirclesForRainQcButton
+                .setToolTipText("Draw circles at base of wind vectors marked "
+                        + (isInAscatFamily ? "quality-control failure"
+                                : "rain flag"));
         fd = new FormData();
         fd.left = new FormAttachment(48, 0);
         fd.top = new FormAttachment(use2ndColorForRainQcButton, 6, SWT.BOTTOM);
         plotCirclesForRainQcButton.setLayoutData(fd);
-        plotCirclesForRainQcButton.setSelection(((Boolean) plotCirclesForRainEnableAttr.getAttrValue()).booleanValue());
+        plotCirclesForRainQcButton
+                .setSelection(((Boolean) plotCirclesForRainEnableAttr
+                        .getAttrValue()).booleanValue());
         plotCirclesForRainQcButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                plotCirclesForRainEnableAttr.setAttrValue(new Boolean(plotCirclesForRainQcButton.getSelection()));
+                plotCirclesForRainEnableAttr.setAttrValue(new Boolean(
+                        plotCirclesForRainQcButton.getSelection()));
             }
         });
         plotCirclesForRainQcButton.setEnabled(rainQcFlagButton.getSelection());

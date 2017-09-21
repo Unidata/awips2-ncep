@@ -5,8 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.ui.nsharp;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.ui.nsharp.Activator
 Bundle-Vendor: SIB
-Eclipse-RegisterBuddy: gov.noaa.nws.ncep.resources, com.raytheon.viz.core, com.raytheon.uf.viz.core, com.raytheon.uf.common.serialization
-Eclipse-BuddyPolicy: ext, global
+Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization
 Require-Bundle: org.eclipse.ui;bundle-version="3.4.1",
  org.eclipse.core.runtime;bundle-version="3.4.0",
  org.eclipse.core.resources,
@@ -20,11 +19,11 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.4.1",
  gov.noaa.nws.ncep.viz.rsc.pgen;bundle-version="1.0.0",
  com.raytheon.uf.common.sounding,
  com.raytheon.viz.core.graphing
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Import-Package: com.raytheon.uf.common.serialization.comm,
+Import-Package: com.raytheon.uf.common.dataplugin.grid,
+ com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.common.sounding,
- com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.viz.core.drawables,
  com.raytheon.uf.viz.core.exception,
@@ -39,7 +38,6 @@ Import-Package: com.raytheon.uf.common.serialization.comm,
  gov.noaa.nws.ncep.common.dataplugin.gpd.product,
  gov.noaa.nws.ncep.common.dataplugin.gpd.query,
  gov.noaa.nws.ncep.common.dataplugin.ncuair,
- gov.noaa.nws.ncep.edex.common.ncinventory,
  gov.noaa.nws.ncep.edex.common.sounding,
  gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.overlays,

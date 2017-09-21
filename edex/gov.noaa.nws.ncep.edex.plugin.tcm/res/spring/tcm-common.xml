@@ -10,7 +10,7 @@
 	<bean id="tcmProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="tcmPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.tcm" />	
-        <property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.tcm.dao.TcmDao" />
+        <property name="dao" value="gov.noaa.nws.ncep.edex.plugin.tcm.dao.TcmDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.tcm.TcmRecord" />
 	</bean>
 

@@ -8,7 +8,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 
 import com.raytheon.uf.common.dataquery.db.OrderField.ResultOrder;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.core.RecordFactory;
 import com.raytheon.uf.viz.core.catalog.DbQuery;
 import com.raytheon.viz.pointdata.PlotInfo;
 import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
@@ -27,6 +26,8 @@ import com.raytheon.viz.pointdata.rsc.retrieve.AbstractDbPlotInfoRetriever;
  * Jul 23, 2014 3410       bclement    location changed to floats
  * Aug 08, 2014 3477       bclement    changed plot info locations to floats
  * Aug 05, 2015 4486       rjpeter     Changed Timestamp to Date.
+ * Nov 08, 2016 5976       bsteffen    Update deprecated method calls.
+ * 
  * </pre>
  * 
  * @author sgurung
@@ -58,10 +59,8 @@ public class TafPlotInfoRetriever extends AbstractDbPlotInfoRetriever {
         	 * will ensure that the latest one is displayed
         	 * 
         	 */
-            dq.addOrderBy("issue_time", ResultOrder.DESC, RecordFactory.getInstance()
-                    .getPluginClass("nctaf").getName());
-            dq.addOrderBy("sequenceId", ResultOrder.DESC, RecordFactory.getInstance()
-                    .getPluginClass("nctaf").getName());
+            dq.addOrderBy("issue_time", ResultOrder.DESC);
+            dq.addOrderBy("sequenceId", ResultOrder.DESC);
             } catch (Exception e) {
             	
         }  

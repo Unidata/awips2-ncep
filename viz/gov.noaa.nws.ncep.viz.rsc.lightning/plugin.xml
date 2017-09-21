@@ -6,7 +6,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.lightning.rsc.LightningResource"
             name="Lightning"
-            recordClass="com.raytheon.edex.plugin.binlightning.BinLightningRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.binlightning.BinLightningRecord"
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW"/>
    </extension>
@@ -52,7 +52,7 @@
             paramClass="Boolean"
             paramName="colorByIntensity"
             defaultValue="false"
-            paramType="EDITABLE_ATTRIBUTE"
+            paramType="IMPLEMENTATION_PARAM"
             ncResourceName="Lightning">
       </nc-resourceParameter>
       <nc-resourceParameter
@@ -61,14 +61,6 @@
             paramType="EDITABLE_ATTRIBUTE"
             paramRefLocation="ncep/ColorBars/Lightning"
             ncResourceName="Lightning">
-      </nc-resourceParameter>
-
-      <nc-resourceParameter
-            ncResourceName="Lightning"
-            paramClass="Boolean"
-            paramName="colorByIntensity"
-            defaultValue="false"
-            paramType="IMPLEMENTATION_PARAM">
       </nc-resourceParameter>
 
 <!-- Change this to a REQUEST_CONSTRAINT when our baseline is updated to get 

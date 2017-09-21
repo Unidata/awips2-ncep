@@ -17,5 +17,4 @@ pluginName=grid
 GDFILE=seaice25SH
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

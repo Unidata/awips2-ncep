@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<AttributeSetGroup>
+  <attrSetGroupName>wave_hght_m</attrSetGroupName>
+  <resource>ECMWF0P25WAVE</resource>
+  <attrSetLabels>
+    <attrSetLabel>
+      <name>grid_sig_wave_m</name>
+    </attrSetLabel>
+    <attrSetLabel>
+      <name>grid_sig_wave_m_color</name>
+    </attrSetLabel>
+    <attrSetLabel>
+      <name>sig_wave_cont_fill_drk_m</name>
+    </attrSetLabel>
+  </attrSetLabels>
+</AttributeSetGroup>
+

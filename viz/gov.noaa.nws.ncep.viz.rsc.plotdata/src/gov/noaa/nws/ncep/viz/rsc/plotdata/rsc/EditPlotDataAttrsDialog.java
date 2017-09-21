@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+
 /**
  * UI for editing Point data resource attributes.
  * 
@@ -38,7 +40,7 @@ import org.eclipse.swt.widgets.Text;
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 10/15/2009    172       	M. Li  		Initial creation.
+ * 10/15/2009    172        M. Li       Initial creation.
  * 12/05/2009               Greg Hull   
  * 04/27/2010    #245       Greg Hull   Added Apply Button
  * 07/26/2010    T285       qzhou       Modified createDialog for uair
@@ -52,6 +54,7 @@ import org.eclipse.swt.widgets.Text;
  * 12/25/2012    #947       Greg Hull   Allow pre-load conditional filter editing.
  * 12/29/2012    #947       Greg Hull   Add unimplemented level type
  * 11/17/2015   R9579       B. Hebbard  Cleanups
+ * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * </pre>
  * 
@@ -85,8 +88,8 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             "500", "400", "300", "250", "200", "150", "100" };
 
     public EditPlotDataAttrsDialog(Shell parentShell, INatlCntrsResourceData r,
-            Boolean apply) {
-        super(parentShell, r, apply);
+            Capabilities capabilities, Boolean apply) {
+        super(parentShell, r, capabilities, apply);
         if (!(r instanceof PlotResourceData)) {
             System.out
                     .println("EditPlotDataAttrsDialog: Resource is not a PlotResource");
@@ -185,6 +188,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         densityTxt.setLayoutData(fd);
 
         densityTxt.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyReleased(KeyEvent e) {
                 int ival;
                 try {
@@ -215,6 +219,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         plotAllBtn.setLayoutData(fd);
 
         densitySldr.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 plotDensityAttr.setAttrValue(new Integer(densitySldr
                         .getSelection()));
@@ -223,6 +228,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         });
 
         plotAllBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 if (plotAllBtn.getSelection()) {
@@ -290,6 +296,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
 
         editBtn.addSelectionListener(new SelectionAdapter() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 editConditionalFilter();
@@ -298,6 +305,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
         });
 
         condFilterCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
 
                 ConditionalFilter cf = ConditionalFilterMngr.getInstance()
@@ -388,6 +396,7 @@ public class EditPlotDataAttrsDialog extends AbstractEditResourceAttrsDialog {
             mblbl.setLayoutData(fd);
 
             levelCombo.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent event) {
                     String s = levelCombo.getText();
                     editedRscAttrSet.setAttrValue("levelKey", s);

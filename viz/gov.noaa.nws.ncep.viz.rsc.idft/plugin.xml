@@ -7,7 +7,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.idft.rsc.IDFTResource"
             name="IDFT"
-            recordClass="gov.noaa.nws.ncep.edex.plugin.idft.common.IdftRecord"
+            recordClass="gov.noaa.nws.ncep.common.dataplugin.idft.IdftRecord"
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW"/>
    </extension>

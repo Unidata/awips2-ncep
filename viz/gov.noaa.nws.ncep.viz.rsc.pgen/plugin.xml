@@ -6,7 +6,6 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.pgen.rsc.PgenDisplayResource"
             name="PGEN"
-            recordClass=""
             renderingOrderId="PLOT"
             resourceType="PLAN_VIEW"/>
    </extension>

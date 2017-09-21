@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Ffg Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ffg
 Bundle-Version: 1.0.0.qualifier
-Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
 Bundle-Vendor: NOAA/NWS/NCEP/NCO
 Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
  javax.persistence;bundle-version="1.0.0",

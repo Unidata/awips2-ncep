@@ -50,6 +50,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
+import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
 /**
  * Provides an interface to modify the day/night terminator overlay parameters
@@ -59,6 +60,7 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 04/29/2014   1130        S. Gurung     Initial creation
+ * 04/05/2016   R15715      dgilling      Refactored for new AbstractEditResourceAttrsDialog constructor.
  * 
  * @author sgurung
  * @version 1.0
@@ -66,9 +68,6 @@ import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 
 public class ChangeDayNightTerminatorAttributesDialog extends
         AbstractEditResourceAttrsDialog {
-
-    private final static org.apache.log4j.Logger log = org.apache.log4j.Logger
-            .getLogger(ChangeDayNightTerminatorAttributesDialog.class);
 
     protected ResourceAttrSet prevRscAttrSet = null;
 
@@ -129,8 +128,8 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             LineStyle.MEDIUM_DASH_DOT, };
 
     public ChangeDayNightTerminatorAttributesDialog(Shell parentShell,
-            INatlCntrsResourceData rd, Boolean apply) {
-        super(parentShell, rd, apply);
+            INatlCntrsResourceData rd, Capabilities capabilities, Boolean apply) {
+        super(parentShell, rd, capabilities, apply);
     }
 
     @Override
@@ -169,8 +168,8 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 .getRscAttr("displayMidnightMeridian");
 
         selSunMarkerType = (MarkerType) sunMarkerType.getAttrValue();
-        selFillPatternType = (FillPattern) getFillPattern(shadePattern
-                .getAttrValue().toString());
+        selFillPatternType = getFillPattern(shadePattern.getAttrValue()
+                .toString());
 
         // confirm the classes of the attributes..
         if (termLineStyle.getAttrClass() != LineStyle.class) {
@@ -412,6 +411,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         final int previewLineYctr = 16;
 
         linePreviewAreaCanvas.addPaintListener(new PaintListener() {
+            @Override
             public void paintControl(PaintEvent event) {
                 GC gc = event.gc;
                 gc.setLineWidth((Integer) termLineWidth.getAttrValue());
@@ -421,8 +421,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                         .getAttrValue()).getHSB()[2] > 0.2 ? black : white);
                 int x1 = previewLineXmin;
                 int x2 = previewLineXmin;
-                int[] segLengths = styleMap.get((LineStyle) termLineStyle
-                        .getAttrValue());
+                int[] segLengths = styleMap.get(termLineStyle.getAttrValue());
                 if (segLengths == null) {
                     return;
                 }
@@ -470,6 +469,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             selectLineWidthButtons[i].setData(i + 1);
             selectLineWidthButtons[i].setToolTipText("Width " + (i + 1));
             selectLineWidthButtons[i].addPaintListener(new PaintListener() {
+                @Override
                 public void paintControl(PaintEvent event) {
                     GC gc = event.gc;
                     int width = (Integer) event.widget.getData();
@@ -481,11 +481,11 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             });
             selectLineWidthButtons[i]
                     .addSelectionListener(new SelectionAdapter() {
+                        @Override
                         public void widgetSelected(SelectionEvent event) {
                             selectLineWidthButtons[(Integer) termLineWidth
                                     .getAttrValue() - 1].setSelection(false);
-                            termLineWidth.setAttrValue((Integer) event.widget
-                                    .getData());
+                            termLineWidth.setAttrValue(event.widget.getData());
                             linePreviewAreaCanvas.redraw();
                             linePreviewAreaCanvas.update();
                         }
@@ -508,14 +508,16 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             lineStyleButton.setData(ls);
             lineStyleButton.setToolTipText(ls.name());
             lineStyleButton.addPaintListener(new PaintListener() {
+                @Override
                 public void paintControl(PaintEvent event) {
                     GC gc = event.gc;
                     gc.setLineWidth(1);
                     gc.setForeground(black);
                     LineStyle ls = (LineStyle) event.widget.getData();
                     int[] segLengths = styleMap.get(ls);
-                    if (segLengths == null)
+                    if (segLengths == null) {
                         return;
+                    }
                     int x1 = buttonLineXmin;
                     int x2 = buttonLineXmin;
                     while (x2 < buttonLineXmax) {
@@ -536,19 +538,18 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 }
             });
             lineStyleButton.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent event) {
-                    termLineStyleButtonMap.get(
-                            (LineStyle) termLineStyle.getAttrValue())
+                    termLineStyleButtonMap.get(termLineStyle.getAttrValue())
                             .setSelection(false);
-                    termLineStyle.setAttrValue((LineStyle) event.widget
-                            .getData());
+                    termLineStyle.setAttrValue(event.widget.getData());
                     linePreviewAreaCanvas.redraw();
                     linePreviewAreaCanvas.update();
                 }
             });
         }
-        termLineStyleButtonMap.get((LineStyle) termLineStyle.getAttrValue())
-                .setSelection(true);
+        termLineStyleButtonMap.get(termLineStyle.getAttrValue()).setSelection(
+                true);
 
         // Line Color
 
@@ -556,6 +557,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 selectLineColorGroup, 85, 25);
         cms.setColorValue((RGB) termLineColor.getAttrValue());
         cms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 termLineColor.setAttrValue(cms.getColorValue());
                 linePreviewAreaCanvas.redraw();
@@ -653,6 +655,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         displaySunTog.setSelection((Boolean) displaySun.getAttrValue());
 
         displaySunTog.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 displaySun.setAttrValue(displaySunTog.getSelection());
             }
@@ -685,6 +688,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                  * A new marker type has been chosen off the pop-up menu:
                  * Remember it AND set its icon back on the main button.
                  */
+                @Override
                 public void handleEvent(Event event) {
                     selSunMarkerType = (MarkerType) event.widget.getData();
                     sunMarkerType.setAttrValue(selSunMarkerType);
@@ -698,6 +702,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         }
         ti.addListener(SWT.Selection, new Listener() {
             /* Main button clicked: Pop up the menu showing all the symbols. */
+            @Override
             public void handleEvent(Event event) {
                 Rectangle bounds = ti.getBounds();
                 Point point = tb.toDisplay(bounds.x, bounds.y + bounds.height);
@@ -729,10 +734,10 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         float mSize = ((Float) sunMarkerSize.getAttrValue()).floatValue();
         selectMarkerSizeSlider.setSelection((int) (mSize * 10f + 0.5));
         selectMarkerSizeSlider.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-                sunMarkerSize
-                        .setAttrValue((Float) ((float) selectMarkerSizeSlider
-                                .getSelection() / 10));
+                sunMarkerSize.setAttrValue((float) selectMarkerSizeSlider
+                        .getSelection() / 10);
                 selectMarkerSizeSliderText.setText(sunMarkerSize.getAttrValue()
                         .toString());
                 selectMarkerSizeSliderText.redraw();
@@ -759,10 +764,11 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         selectMarkerWidthSlider.setSelection((Integer) sunMarkerWidth
                 .getAttrValue());
         selectMarkerWidthSlider.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 selectMarkerWidthSliderText.setText(new Integer(
                         selectMarkerWidthSlider.getSelection()).toString());
-                sunMarkerWidth.setAttrValue((Integer) selectMarkerWidthSlider
+                sunMarkerWidth.setAttrValue(selectMarkerWidthSlider
                         .getSelection());
             }
         });
@@ -775,6 +781,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 selectMarkerColorGroup, 85, 25);
         cms.setColorValue((RGB) sunMarkerColor.getAttrValue());
         cms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 sunMarkerColor.setAttrValue(cms.getColorValue());
             }
@@ -867,6 +874,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 .getAttrValue());
 
         displayMMLineTog.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 displayMidnightMeridian.setAttrValue(displayMMLineTog
                         .getSelection());
@@ -924,6 +932,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         final int previewLineYctr = 16;
 
         linePreviewAreaCanvas.addPaintListener(new PaintListener() {
+            @Override
             public void paintControl(PaintEvent event) {
                 GC gc = event.gc;
                 gc.setLineWidth((Integer) midnightMeridianLineWidth
@@ -936,9 +945,8 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                                 : white);
                 int x1 = previewLineXmin;
                 int x2 = previewLineXmin;
-                int[] segLengths = styleMap
-                        .get((LineStyle) midnightMeridianLineStyle
-                                .getAttrValue());
+                int[] segLengths = styleMap.get(midnightMeridianLineStyle
+                        .getAttrValue());
                 if (segLengths == null) {
                     return;
                 }
@@ -986,6 +994,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             selectMmLineWidthButtons[i].setData(i + 1);
             selectMmLineWidthButtons[i].setToolTipText("Width " + (i + 1));
             selectMmLineWidthButtons[i].addPaintListener(new PaintListener() {
+                @Override
                 public void paintControl(PaintEvent event) {
                     GC gc = event.gc;
                     int width = (Integer) event.widget.getData();
@@ -997,12 +1006,12 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             });
             selectMmLineWidthButtons[i]
                     .addSelectionListener(new SelectionAdapter() {
+                        @Override
                         public void widgetSelected(SelectionEvent event) {
                             selectMmLineWidthButtons[(Integer) midnightMeridianLineWidth
                                     .getAttrValue() - 1].setSelection(false);
-                            midnightMeridianLineWidth
-                                    .setAttrValue((Integer) event.widget
-                                            .getData());
+                            midnightMeridianLineWidth.setAttrValue(event.widget
+                                    .getData());
                             linePreviewAreaCanvas.redraw();
                             linePreviewAreaCanvas.update();
                         }
@@ -1025,14 +1034,16 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             lineStyleButton.setData(ls);
             lineStyleButton.setToolTipText(ls.name());
             lineStyleButton.addPaintListener(new PaintListener() {
+                @Override
                 public void paintControl(PaintEvent event) {
                     GC gc = event.gc;
                     gc.setLineWidth(1);
                     gc.setForeground(black);
                     LineStyle ls = (LineStyle) event.widget.getData();
                     int[] segLengths = styleMap.get(ls);
-                    if (segLengths == null)
+                    if (segLengths == null) {
                         return;
+                    }
                     int x1 = buttonLineXmin;
                     int x2 = buttonLineXmin;
                     while (x2 < buttonLineXmax) {
@@ -1053,20 +1064,20 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 }
             });
             lineStyleButton.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent event) {
                     mmLineStyleButtonMap.get(
-                            (LineStyle) midnightMeridianLineStyle
-                                    .getAttrValue()).setSelection(false);
-                    midnightMeridianLineStyle
-                            .setAttrValue((LineStyle) event.widget.getData());
+                            midnightMeridianLineStyle.getAttrValue())
+                            .setSelection(false);
+                    midnightMeridianLineStyle.setAttrValue(event.widget
+                            .getData());
                     linePreviewAreaCanvas.redraw();
                     linePreviewAreaCanvas.update();
                 }
             });
         }
 
-        mmLineStyleButtonMap.get(
-                (LineStyle) midnightMeridianLineStyle.getAttrValue())
+        mmLineStyleButtonMap.get(midnightMeridianLineStyle.getAttrValue())
                 .setSelection(true);
 
         // Line Color
@@ -1075,6 +1086,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 selectLineColorGroup, 85, 25);
         cms.setColorValue((RGB) midnightMeridianLineColor.getAttrValue());
         cms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 midnightMeridianLineColor.setAttrValue(cms.getColorValue());
                 linePreviewAreaCanvas.redraw();
@@ -1173,6 +1185,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         applyShadingTog.setSelection((Boolean) applyShading.getAttrValue());
 
         applyShadingTog.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent ev) {
                 applyShading.setAttrValue(applyShadingTog.getSelection());
             }
@@ -1199,9 +1212,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         float alpha = ((Float) shadeAlpha.getAttrValue()).floatValue();
         selectAlphaSizeSlider.setSelection((int) (alpha * 10f));
         selectAlphaSizeSlider.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
-                shadeAlpha.setAttrValue((Float) ((float) selectAlphaSizeSlider
-                        .getSelection()) / 10.0f);
+                shadeAlpha.setAttrValue((selectAlphaSizeSlider.getSelection()) / 10.0f);
                 selectAlphaSliderText.setText(shadeAlpha.getAttrValue()
                         .toString());
                 selectAlphaSliderText.redraw();
@@ -1216,6 +1229,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 selectDayShadeColorGroup, 85, 25);
         dayCms.setColorValue((RGB) dayShadeColor.getAttrValue());
         dayCms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 dayShadeColor.setAttrValue(dayCms.getColorValue());
             }
@@ -1227,6 +1241,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                 selectNightShadeColorGroup, 85, 25);
         nightCms.setColorValue((RGB) nightShadeColor.getAttrValue());
         nightCms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 nightShadeColor.setAttrValue(nightCms.getColorValue());
             }
@@ -1243,8 +1258,9 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         final Menu fpMu = new Menu(shell, SWT.POP_UP);
         for (FillPattern fp : FillPatternList.FillPattern.values()) {
 
-            if (fp.equals(FillPattern.TRANSPARENCY))
+            if (fp.equals(FillPattern.TRANSPARENCY)) {
                 continue;
+            }
 
             MenuItem mi = new MenuItem(fpMu, SWT.PUSH);
             mi.setData(fp);
@@ -1262,6 +1278,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
                  * A new fill pattern has been chosen off the pop-up menu:
                  * Remember it AND set its icon back on the main button.
                  */
+                @Override
                 public void handleEvent(Event event) {
                     selFillPatternType = (FillPattern) event.widget.getData();
                     shadePattern.setAttrValue(selFillPatternType.name());
@@ -1274,6 +1291,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         }
         fpTi.addListener(SWT.Selection, new Listener() {
             /* Main button clicked: Pop up the menu showing all the symbols. */
+            @Override
             public void handleEvent(Event event) {
                 Rectangle bounds = fpTi.getBounds();
                 Point point = fpTb
@@ -1344,6 +1362,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         canBtn.setText(" Cancel ");
 
         canBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 ok = false;
                 rscData.setRscAttrSet(new ResourceAttrSet(prevRscAttrSet));
@@ -1356,6 +1375,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
             applyBtn.setText(" Apply ");
 
             applyBtn.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     rscData.setRscAttrSet(editedRscAttrSet);
                     rscData.setIsEdited(true);
@@ -1368,6 +1388,7 @@ public class ChangeDayNightTerminatorAttributesDialog extends
         okBtn.setText("    OK    ");
 
         okBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 ok = true;
                 shell.dispose();

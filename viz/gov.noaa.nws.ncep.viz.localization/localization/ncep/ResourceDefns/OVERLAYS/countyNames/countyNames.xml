@@ -3,8 +3,9 @@
     <resourceDefnName>countyNames</resourceDefnName>
     <resourceCategory>OVERLAY</resourceCategory>
     <resourceParameters>
-sourceType=LPI_FILE
-sourceName=us_county.lpi
+sourceType=MAPS_DB_TABLE
+sourceName=county_names
+sourceParams=name
 mapName=County Names
     </resourceParameters>
     <rscImplementation>PointOverlay</rscImplementation>

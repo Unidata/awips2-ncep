@@ -22,7 +22,6 @@
 package gov.noaa.nws.ncep.edex.plugin.gpd.handler;
 
 import gov.noaa.nws.ncep.common.dataplugin.gpd.GenericPointDataConstants;
-import gov.noaa.nws.ncep.common.dataplugin.gpd.dao.GenericPointDataDao;
 import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataLevel;
 import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataParameter;
 import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataProductContainer;
@@ -31,6 +30,7 @@ import gov.noaa.nws.ncep.common.dataplugin.gpd.product.GenericPointDataStationPr
 import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg;
 import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataQueryKey;
 import gov.noaa.nws.ncep.common.dataplugin.gpd.query.GenericPointDataReqMsg.GenericPointDataReqType;
+import gov.noaa.nws.ncep.edex.plugin.gpd.dao.GenericPointDataDao;
 import gov.noaa.nws.ncep.edex.plugin.gpd.decoder.GenericPointDataDecoder;
 
 import java.io.ByteArrayOutputStream;

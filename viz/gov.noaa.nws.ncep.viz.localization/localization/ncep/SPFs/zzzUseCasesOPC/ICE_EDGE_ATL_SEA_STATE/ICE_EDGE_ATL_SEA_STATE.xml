@@ -1,0 +1,1771 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ncMapRBD rbdName="ICE_EDGE_ATL_SEA_STATE">
+  <displayType>NMAP_DISPLAY</displayType>
+  <paneLayout numRows="1" numColumns="1" />
+  <selectedPaneId row="0" col="0" />
+  <geoSyncedPanes>true</geoSyncedPanes>
+  <autoUpdate>false</autoUpdate>
+  <rbdSequence>0</rbdSequence>
+  <timeMatcher dominantResourceName="MISC/ASCT/ambig1_a_hi"
+    numFrames="19" graphRange="12" hourSnap="3" skipValue="0" timeRange="24"
+    frameInterval="60" />
+  <displayList>
+    <displays xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:type="NC-MapRenderableDisplay" mapCenter="-115.6145380534441 44.862221354845495 0.0"
+      zoomLevel="0.5280095934867859">
+      <descriptor xsi:type="NCMapDescriptor">
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="true" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {0, 255, 0}</legendColor>
+            <groupName>Loop1 - ASCAT-A/B ICE EDGE</groupName>
+            <funcKeyNum>1</funcKeyNum>
+            <resource-in-group>
+              <loadProperties loadWithoutData="true">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-PgenResourceData"
+                isEdited="false" resourceName="PGEN/Ice_Edge/F000/default(LATEST)"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="site">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="operatingMode">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="OPERATIONAL" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="pgen" />
+                  </mapping>
+                  <mapping key="dataTime">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="desk">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activityName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activityType">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="Ice_Edge" />
+                  </mapping>
+                  <mapping key="activityLabel">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activitySubtype">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="F000" />
+                  </mapping>
+                  <mapping key="forecaster">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {155, 155, 155}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>2147483647</frameSpan>
+                <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+                <timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
+                <dfltNumFrames>1</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <monoColorEnable>false</monoColorEnable>
+                <monoColor>RGB {0, 255, 0}</monoColor>
+                <fillModeEnable>true</fillModeEnable>
+              </resourceData>
+              <loadProperties loadWithoutData="true">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+            </resource-in-group>
+            <resource-in-group>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-NcscatResourceData"
+                isEdited="false" resourceName="MISC/ASCT-A/default_a_hi"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="reportType">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="ascat-a-hi" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="ncscat" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>360</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>10</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <color>RGB {155, 155, 155}</color>
+                <skipEnable>false</skipEnable>
+                <skipValue>5</skipValue>
+                <densityValue>50</densityValue>
+                <timeStampEnable>true</timeStampEnable>
+                <timeStampColor>RGB {255, 255, 255}</timeStampColor>
+                <timeStampInterval>30</timeStampInterval>
+                <timeStampLineWidth>1</timeStampLineWidth>
+                <arrowStyle>WIND_BARB</arrowStyle>
+                <arrowWidth>1</arrowWidth>
+                <arrowSize>2</arrowSize>
+                <headSize>4</headSize>
+                <colorBar1>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>17.0</IntervalValue>
+                  <IntervalValue>23.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>48.0</IntervalValue>
+                  <IntervalValue>56.0</IntervalValue>
+                  <IntervalValue>63.0</IntervalValue>
+                  <IntervalValue>74.0</IntervalValue>
+                  <IntervalValue>150.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 228, 220}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {127, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 71, 38}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>false</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBar1>
+                <colorBar2>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>17.0</IntervalValue>
+                  <IntervalValue>23.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>48.0</IntervalValue>
+                  <IntervalValue>56.0</IntervalValue>
+                  <IntervalValue>63.0</IntervalValue>
+                  <IntervalValue>74.0</IntervalValue>
+                  <IntervalValue>150.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>false</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperLeft</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBar2>
+                <highWindSpeedEnable>true</highWindSpeedEnable>
+                <lowWindSpeedEnable>true</lowWindSpeedEnable>
+                <rainFlagEnable>true</rainFlagEnable>
+                <availabilityFlagEnable>true</availabilityFlagEnable>
+                <use2ndColorForRainEnable>false
+                </use2ndColorForRainEnable>
+                <plotCirclesForRainEnable>true
+                </plotCirclesForRainEnable>
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {0, 0, 255}</legendColor>
+            <groupName>Loop2 - sea-state_analysis</groupName>
+            <funcKeyNum>2</funcKeyNum>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-PlotResourceData"
+                isEdited="false" resourceName="SURFACE/Ships/sea-state_anal"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="reportType">
+                    <constraint constraintType="IN"
+                      constraintValue="1003" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sfcobs" />
+                  </mapping>
+                </metadataMap>
+                <alertParser xsi:type="plotAlertParser" />
+                <legendColor>RGB {0, 80, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>60</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>8</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>48</dfltTimeRange>
+                <legendString>Synop (All Reports) BRBK WHFT DAWV
+                </legendString>
+                <spiFile>synoptic.spi</spiFile>
+                <plotModel name="sea-state_anal" plugin="sfcobs"
+                  svgTemplate="standardPlotModelTemplate.svg">
+                  <PlotModelElement paramName="BRBK"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>WD</Position>
+                    <Color blue="0" green="238" red="238" />
+                    <conditionalParameter>SKNT</conditionalParameter>
+                    <conditionalColorBar>
+                      <label_Color>RGB {255, 255, 255}</label_Color>
+                      <Interval_Value>0.0</Interval_Value>
+                      <Interval_Value>6.0</Interval_Value>
+                      <Interval_Value>12.0</Interval_Value>
+                      <Interval_Value>17.0</Interval_Value>
+                      <Interval_Value>23.0</Interval_Value>
+                      <Interval_Value>27.0</Interval_Value>
+                      <Interval_Value>33.0</Interval_Value>
+                      <Interval_Value>42.0</Interval_Value>
+                      <Interval_Value>48.0</Interval_Value>
+                      <Interval_Value>56.0</Interval_Value>
+                      <Interval_Value>63.0</Interval_Value>
+                      <Interval_Value>INF</Interval_Value>
+                      <Interval_Color>RGB {255, 228, 220}
+                      </Interval_Color>
+                      <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+                      <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+                      <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+                      <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+                      <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+                      <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+                      <show_Labels>true</show_Labels>
+                      <draw_ToScale>false</draw_ToScale>
+                      <lengthRatio>0.5</lengthRatio>
+                      <widthPx>15</widthPx>
+                      <num_Decimals>0</num_Decimals>
+                    </conditionalColorBar>
+                  </PlotModelElement>
+                  <PlotModelElement paramName="WHFT"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>MR</Position>
+                    <Color blue="0" green="205" red="0" />
+                  </PlotModelElement>
+                </plotModel>
+                <levelKey>Surface</levelKey>
+                <plotDensity>99</plotDensity>
+                <plotMissingData>false</plotMissingData>
+                <plotInfoRetriever xsi:type="pointDataPlotInfoRetriever" />
+                <conditionalFilter name="NoFilter"
+                  description="" plugin="sfcobs" />
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {255, 255, 0}</legendColor>
+            <groupName>Loop3 - Sea Ice Concentration</groupName>
+            <funcKeyNum>3</funcKeyNum>
+            <resource-in-group>
+              <loadProperties xsi:type="gridLoadProperties"
+                displayType="CONTOUR" loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities>
+                  <capability xsi:type="imagingCapability"
+                    contrast="1.0" brightness="1.0" interpolationState="false"
+                    alpha="1.0" />
+                  <capability xsi:type="displayTypeCapability"
+                    displayType="CONTOUR" />
+                </capabilities>
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="CONTOUR">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-NcgridResourceData"
+                isEdited="false"
+                resourceName="GRID/ICE12TH/ice_concentration/ice_concentration_color(LATEST)"
+                isRequeryNecessaryOnTimeMatch="true"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="info.ensembleId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="info.datasetId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="SeaIce173" />
+                  </mapping>
+                  <mapping key="info.secondaryId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="grid" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>180</frameSpan>
+                <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS
+                </timelineGenMethod>
+                <timeMatchMethod>BINNING_FOR_GRID_RESOURCES
+                </timeMatchMethod>
+                <dfltNumFrames>999</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>384</dfltTimeRange>
+                <type>c/f</type>
+                <cint>15;25;35;50;70;80;100</cint>
+                <gdfile>SeaIce173</gdfile>
+                <gvcord>none</gvcord>
+                <glevel>0</glevel>
+                <gdpfun>mask(SLE(MUL(ICEC,100),100),sea)</gdpfun>
+                <skip></skip>
+                <filter>no</filter>
+                <scale>0</scale>
+                <wind></wind>
+                <title>5/-2/?~^ Ice Concentration (%) - color</title>
+                <lineAttributes></lineAttributes>
+                <colors>1</colors>
+                <marker>0</marker>
+                <grdlbl>0</grdlbl>
+                <fint>15;25;35;50;70;80;100</fint>
+                <fline>0;2;12;17;21;27;31;31</fline>
+                <hilo></hilo>
+                <hlsym></hlsym>
+                <clrbar>1/v/ll</clrbar>
+                <text>1/21/1.4/hw</text>
+              </resourceData>
+            </resource-in-group>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-PlotResourceData"
+                isEdited="false" resourceName="SURFACE/Ships/sea-state_anal"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="reportType">
+                    <constraint constraintType="IN"
+                      constraintValue="1003" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sfcobs" />
+                  </mapping>
+                </metadataMap>
+                <alertParser xsi:type="plotAlertParser" />
+                <legendColor>RGB {0, 80, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>60</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>8</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>48</dfltTimeRange>
+                <legendString>Synop (All Reports) BRBK WHFT DAWV
+                </legendString>
+                <spiFile>synoptic.spi</spiFile>
+                <plotModel name="sea-state_anal" plugin="sfcobs"
+                  svgTemplate="standardPlotModelTemplate.svg">
+                  <PlotModelElement paramName="BRBK"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>WD</Position>
+                    <Color blue="0" green="238" red="238" />
+                    <conditionalParameter>SKNT</conditionalParameter>
+                    <conditionalColorBar>
+                      <label_Color>RGB {255, 255, 255}</label_Color>
+                      <Interval_Value>0.0</Interval_Value>
+                      <Interval_Value>6.0</Interval_Value>
+                      <Interval_Value>12.0</Interval_Value>
+                      <Interval_Value>17.0</Interval_Value>
+                      <Interval_Value>23.0</Interval_Value>
+                      <Interval_Value>27.0</Interval_Value>
+                      <Interval_Value>33.0</Interval_Value>
+                      <Interval_Value>42.0</Interval_Value>
+                      <Interval_Value>48.0</Interval_Value>
+                      <Interval_Value>56.0</Interval_Value>
+                      <Interval_Value>63.0</Interval_Value>
+                      <Interval_Value>INF</Interval_Value>
+                      <Interval_Color>RGB {255, 228, 220}
+                      </Interval_Color>
+                      <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+                      <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+                      <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+                      <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+                      <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+                      <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+                      <show_Labels>true</show_Labels>
+                      <draw_ToScale>false</draw_ToScale>
+                      <lengthRatio>0.5</lengthRatio>
+                      <widthPx>15</widthPx>
+                      <num_Decimals>0</num_Decimals>
+                    </conditionalColorBar>
+                  </PlotModelElement>
+                  <PlotModelElement paramName="WHFT"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>MR</Position>
+                    <Color blue="0" green="205" red="0" />
+                  </PlotModelElement>
+                </plotModel>
+                <levelKey>Surface</levelKey>
+                <plotDensity>99</plotDensity>
+                <plotMissingData>false</plotMissingData>
+                <plotInfoRetriever xsi:type="pointDataPlotInfoRetriever" />
+                <conditionalFilter name="NoFilter"
+                  description="" plugin="sfcobs" />
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {0, 255, 255}</legendColor>
+            <groupName>Loop4 - sea-state_analysis RA1</groupName>
+            <funcKeyNum>4</funcKeyNum>
+            <resource-in-group>
+              <loadProperties loadWithoutData="true">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-PgenResourceData"
+                isEdited="false"
+                resourceName="PGEN/Atlantic_Reg_Wave/F000/full_color(LATEST)"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="site">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="operatingMode">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="OPERATIONAL" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="pgen" />
+                  </mapping>
+                  <mapping key="dataTime">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="desk">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activityName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activityType">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="Atlantic_Reg_Wave" />
+                  </mapping>
+                  <mapping key="activityLabel">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="activitySubtype">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="F000" />
+                  </mapping>
+                  <mapping key="forecaster">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="%" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {155, 155, 155}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>2147483647</frameSpan>
+                <timelineGenMethod>USE_DATA_TIMES</timelineGenMethod>
+                <timeMatchMethod>MATCH_ALL_DATA</timeMatchMethod>
+                <dfltNumFrames>1</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <monoColorEnable>false</monoColorEnable>
+                <monoColor>RGB {0, 255, 0}</monoColor>
+                <fillModeEnable>true</fillModeEnable>
+              </resourceData>
+            </resource-in-group>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-PlotResourceData"
+                isEdited="false" resourceName="SURFACE/Ships/sea-state_anal"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="reportType">
+                    <constraint constraintType="IN"
+                      constraintValue="1003" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sfcobs" />
+                  </mapping>
+                </metadataMap>
+                <alertParser xsi:type="plotAlertParser" />
+                <legendColor>RGB {0, 80, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>60</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>8</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>48</dfltTimeRange>
+                <legendString>Synop (All Reports) BRBK WHFT DAWV
+                </legendString>
+                <spiFile>synoptic.spi</spiFile>
+                <plotModel name="sea-state_anal" plugin="sfcobs"
+                  svgTemplate="standardPlotModelTemplate.svg">
+                  <PlotModelElement paramName="BRBK"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>WD</Position>
+                    <Color blue="0" green="238" red="238" />
+                    <conditionalParameter>SKNT</conditionalParameter>
+                    <conditionalColorBar>
+                      <label_Color>RGB {255, 255, 255}</label_Color>
+                      <Interval_Value>0.0</Interval_Value>
+                      <Interval_Value>6.0</Interval_Value>
+                      <Interval_Value>12.0</Interval_Value>
+                      <Interval_Value>17.0</Interval_Value>
+                      <Interval_Value>23.0</Interval_Value>
+                      <Interval_Value>27.0</Interval_Value>
+                      <Interval_Value>33.0</Interval_Value>
+                      <Interval_Value>42.0</Interval_Value>
+                      <Interval_Value>48.0</Interval_Value>
+                      <Interval_Value>56.0</Interval_Value>
+                      <Interval_Value>63.0</Interval_Value>
+                      <Interval_Value>INF</Interval_Value>
+                      <Interval_Color>RGB {255, 228, 220}
+                      </Interval_Color>
+                      <Interval_Color>RGB {0, 255, 255}</Interval_Color>
+                      <Interval_Color>RGB {0, 178, 238}</Interval_Color>
+                      <Interval_Color>RGB {16, 78, 139}</Interval_Color>
+                      <Interval_Color>RGB {127, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {0, 139, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 255, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 127, 0}</Interval_Color>
+                      <Interval_Color>RGB {139, 71, 38}</Interval_Color>
+                      <Interval_Color>RGB {139, 0, 0}</Interval_Color>
+                      <Interval_Color>RGB {255, 0, 0}</Interval_Color>
+                      <show_Labels>true</show_Labels>
+                      <draw_ToScale>false</draw_ToScale>
+                      <lengthRatio>0.5</lengthRatio>
+                      <widthPx>15</widthPx>
+                      <num_Decimals>0</num_Decimals>
+                    </conditionalColorBar>
+                  </PlotModelElement>
+                  <PlotModelElement paramName="WHFT"
+                    textSize="20" textFont="Courier" textStyle="Bold"
+                    symbolSize="1.0" symbolWidth="1.0" markerType="OCTAGON">
+                    <Position>MR</Position>
+                    <Color blue="0" green="205" red="0" />
+                  </PlotModelElement>
+                </plotModel>
+                <levelKey>Surface</levelKey>
+                <plotDensity>99</plotDensity>
+                <plotMissingData>false</plotMissingData>
+                <plotInfoRetriever xsi:type="pointDataPlotInfoRetriever" />
+                <conditionalFilter name="NoFilter"
+                  description="" plugin="sfcobs" />
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {255, 0, 255}</legendColor>
+            <groupName>Loop5 - QSCT_HI</groupName>
+            <funcKeyNum>5</funcKeyNum>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {139, 71, 38}</legendColor>
+            <groupName>Loop6 - 500mb_absv_wind</groupName>
+            <funcKeyNum>6</funcKeyNum>
+            <resource-in-group>
+              <loadProperties xsi:type="gridLoadProperties"
+                displayType="CONTOUR" loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities>
+                  <capability xsi:type="imagingCapability"
+                    contrast="1.0" brightness="1.0" interpolationState="false"
+                    alpha="1.0" />
+                  <capability xsi:type="displayTypeCapability"
+                    displayType="CONTOUR" />
+                </capabilities>
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="CONTOUR">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-NcgridResourceData"
+                isEdited="false" resourceName="GRID/GFS_0p5/500mb/500mb_absv(LATEST)"
+                isRequeryNecessaryOnTimeMatch="true"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="info.ensembleId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="info.datasetId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="GFS230" />
+                  </mapping>
+                  <mapping key="info.secondaryId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="grid" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>60</frameSpan>
+                <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS
+                </timelineGenMethod>
+                <timeMatchMethod>BINNING_FOR_GRID_RESOURCES
+                </timeMatchMethod>
+                <dfltNumFrames>999</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>240</dfltTimeRange>
+                <type>c !c !c</type>
+                <cint>2/12/80 !2/10/20 !2/4/8</cint>
+                <gdfile>GFS230</gdfile>
+                <gvcord>pres</gvcord>
+                <glevel>500</glevel>
+                <gdpfun>abs(avor(wnd))//v !v ! v</gdpfun>
+                <skip>0</skip>
+                <filter>yes</filter>
+                <scale>5</scale>
+                <wind></wind>
+                <title>5/-1/?~^ @ Absolute Vorticity!0</title>
+                <lineAttributes>11/5/1/2 !7/5/1/2 !29/5/1/2
+                </lineAttributes>
+                <colors>2</colors>
+                <marker>2</marker>
+                <grdlbl>5</grdlbl>
+                <fint>0</fint>
+                <fline>0</fline>
+                <hilo>2;6/X;N/10-99;10-99/10/200!0</hilo>
+                <hlsym></hlsym>
+                <clrbar>1</clrbar>
+                <text>0</text>
+              </resourceData>
+            </resource-in-group>
+            <resource-in-group>
+              <loadProperties xsi:type="gridLoadProperties"
+                displayType="CONTOUR" loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities>
+                  <capability xsi:type="imagingCapability"
+                    contrast="1.0" brightness="1.0" interpolationState="false"
+                    alpha="1.0" />
+                  <capability xsi:type="displayTypeCapability"
+                    displayType="CONTOUR" />
+                </capabilities>
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="CONTOUR">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-NcgridResourceData"
+                isEdited="false" resourceName="GRID/GFS_0p5/500mb/500mb_wind(LATEST)"
+                isRequeryNecessaryOnTimeMatch="true"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="info.ensembleId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="info.datasetId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="GFS230" />
+                  </mapping>
+                  <mapping key="info.secondaryId">
+                    <constraint constraintType="LIKE"
+                      constraintValue="%" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="grid" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>60</frameSpan>
+                <timelineGenMethod>USE_CYCLE_TIME_FCST_HOURS
+                </timelineGenMethod>
+                <timeMatchMethod>BINNING_FOR_GRID_RESOURCES
+                </timeMatchMethod>
+                <dfltNumFrames>999</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>240</dfltTimeRange>
+                <type>b</type>
+                <cint></cint>
+                <gdfile>GFS230</gdfile>
+                <gvcord>pres</gvcord>
+                <glevel>500</glevel>
+                <gdpfun>kntv(wnd)</gdpfun>
+                <skip>0/1;-1</skip>
+                <filter>yes</filter>
+                <scale>999</scale>
+                <wind>18/1/1/112</wind>
+                <title>5/-1/?~^ @ Wind (kts)!</title>
+                <lineAttributes></lineAttributes>
+                <colors>2</colors>
+                <marker>2</marker>
+                <grdlbl>5</grdlbl>
+                <fint></fint>
+                <fline></fline>
+                <hilo></hilo>
+                <hlsym></hlsym>
+                <clrbar>0</clrbar>
+                <text>0</text>
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {255, 130, 71}</legendColor>
+            <groupName>Loop7 - ASCAT-A/B</groupName>
+            <funcKeyNum>7</funcKeyNum>
+            <resource-in-group>
+              <loadProperties loadWithoutData="true">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-NcscatResourceData"
+                isEdited="false" resourceName="MISC/ASCT/ambig1_a_hi"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="true">
+                <metadataMap>
+                  <mapping key="reportType">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="ascat-a-hi-ambig1" />
+                  </mapping>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="ncscat" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>360</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>10</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <color>RGB {155, 155, 155}</color>
+                <skipEnable>false</skipEnable>
+                <skipValue>5</skipValue>
+                <densityValue>50</densityValue>
+                <timeStampEnable>true</timeStampEnable>
+                <timeStampColor>RGB {255, 255, 255}</timeStampColor>
+                <timeStampInterval>30</timeStampInterval>
+                <timeStampLineWidth>1</timeStampLineWidth>
+                <arrowStyle>WIND_BARB</arrowStyle>
+                <arrowWidth>1</arrowWidth>
+                <arrowSize>2</arrowSize>
+                <headSize>4</headSize>
+                <colorBar1>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>17.0</IntervalValue>
+                  <IntervalValue>23.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>48.0</IntervalValue>
+                  <IntervalValue>56.0</IntervalValue>
+                  <IntervalValue>63.0</IntervalValue>
+                  <IntervalValue>74.0</IntervalValue>
+                  <IntervalValue>150.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Vertical</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBar1>
+                <colorBar2>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>17.0</IntervalValue>
+                  <IntervalValue>23.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>48.0</IntervalValue>
+                  <IntervalValue>56.0</IntervalValue>
+                  <IntervalValue>63.0</IntervalValue>
+                  <IntervalValue>74.0</IntervalValue>
+                  <IntervalValue>150.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 0, 0}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Vertical</orientation>
+                  <anchorLoc>UpperLeft</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBar2>
+                <highWindSpeedEnable>true</highWindSpeedEnable>
+                <lowWindSpeedEnable>true</lowWindSpeedEnable>
+                <rainFlagEnable>true</rainFlagEnable>
+                <availabilityFlagEnable>true</availabilityFlagEnable>
+                <use2ndColorForRainEnable>false
+                </use2ndColorForRainEnable>
+                <plotCirclesForRainEnable>true
+                </plotCirclesForRainEnable>
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {255, 165, 79}</legendColor>
+            <groupName>Loop8 - SGWH2</groupName>
+            <funcKeyNum>8</funcKeyNum>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="false" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-WaveSatResourceData"
+                isEdited="false" resourceName="MISC/SGWH_Jason-2/default"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sgwhv" />
+                  </mapping>
+                  <mapping key="satelliteId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="261" />
+                  </mapping>
+                </metadataMap>
+                <alertParser xsi:type="waveSatAlertParser" />
+                <legendColor>RGB {255, 255, 0}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>180</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>6</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <useFeetInsteadOfMeters>true</useFeetInsteadOfMeters>
+                <colorBarForMeters>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>1.0</IntervalValue>
+                  <IntervalValue>2.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>4.0</IntervalValue>
+                  <IntervalValue>5.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>7.0</IntervalValue>
+                  <IntervalValue>8.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>10.0</IntervalValue>
+                  <IntervalValue>11.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>13.0</IntervalValue>
+                  <IntervalValue>14.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForMeters>
+                <colorBarForFeet>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>18.0</IntervalValue>
+                  <IntervalValue>21.0</IntervalValue>
+                  <IntervalValue>24.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>30.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>36.0</IntervalValue>
+                  <IntervalValue>39.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>45.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>false</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForFeet>
+                <timeDisplayInterval>5</timeDisplayInterval>
+                <timeDisplayColor>RGB {255, 255, 0}</timeDisplayColor>
+                <fontName>Courier</fontName>
+                <fontSize>12</fontSize>
+                <latParam>LAT</latParam>
+                <latParamInPdo>lat</latParamInPdo>
+                <lonParam>LON</lonParam>
+                <lonParamInPdo>lon</lonParamInPdo>
+                <satIdParam>SATELLITEID</satIdParam>
+                <satIdParamInPdo>satelliteId</satIdParamInPdo>
+                <waveHeightParam>HTWAVES</waveHeightParam>
+                <windSpeedParam>WSPD10</windSpeedParam>
+              </resourceData>
+            </resource-in-group>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-WaveSatResourceData"
+                isEdited="false" resourceName="MISC/SGWH_AltiKa/default"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sgwhv" />
+                  </mapping>
+                  <mapping key="satelliteId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="441" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {255, 0, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>180</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>6</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <useFeetInsteadOfMeters>true</useFeetInsteadOfMeters>
+                <colorBarForMeters>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>1.0</IntervalValue>
+                  <IntervalValue>2.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>4.0</IntervalValue>
+                  <IntervalValue>5.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>7.0</IntervalValue>
+                  <IntervalValue>8.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>10.0</IntervalValue>
+                  <IntervalValue>11.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>13.0</IntervalValue>
+                  <IntervalValue>14.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForMeters>
+                <colorBarForFeet>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>18.0</IntervalValue>
+                  <IntervalValue>21.0</IntervalValue>
+                  <IntervalValue>24.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>30.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>36.0</IntervalValue>
+                  <IntervalValue>39.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>45.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForFeet>
+                <timeDisplayInterval>5</timeDisplayInterval>
+                <timeDisplayColor>RGB {255, 0, 255}</timeDisplayColor>
+                <fontName>Courier</fontName>
+                <fontSize>12</fontSize>
+                <latParam>LAT</latParam>
+                <latParamInPdo>lat</latParamInPdo>
+                <lonParam>LON</lonParam>
+                <lonParamInPdo>lon</lonParamInPdo>
+                <satIdParam>SATELLITEID</satIdParam>
+                <satIdParamInPdo>satelliteId</satIdParamInPdo>
+                <waveHeightParam>HTWAVES</waveHeightParam>
+                <windSpeedParam>WSPD10</windSpeedParam>
+              </resourceData>
+            </resource-in-group>
+            <resource-in-group>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="false" isBlinking="false" isSystemResource="false"
+                renderingOrderId="PLOT">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-WaveSatResourceData"
+                isEdited="false" resourceName="MISC/SGWH_CryoSat-2/default"
+                isRequeryNecessaryOnTimeMatch="false"
+                isUpdatingOnMetadataOnly="false" retrieveData="false">
+                <metadataMap>
+                  <mapping key="pluginName">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="sgwhv" />
+                  </mapping>
+                  <mapping key="satelliteId">
+                    <constraint constraintType="EQUALS"
+                      constraintValue="-9999998" />
+                  </mapping>
+                </metadataMap>
+                <legendColor>RGB {0, 255, 255}</legendColor>
+                <resourceVersion></resourceVersion>
+                <frameSpan>180</frameSpan>
+                <timelineGenMethod>USE_FRAME_INTERVAL
+                </timelineGenMethod>
+                <timeMatchMethod>CLOSEST_BEFORE_OR_AFTER
+                </timeMatchMethod>
+                <dfltNumFrames>6</dfltNumFrames>
+                <dfltGraphRange>12</dfltGraphRange>
+                <dfltHourSnap>3</dfltHourSnap>
+                <dfltTimeRange>24</dfltTimeRange>
+                <useFeetInsteadOfMeters>true</useFeetInsteadOfMeters>
+                <colorBarForMeters>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>1.0</IntervalValue>
+                  <IntervalValue>2.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>4.0</IntervalValue>
+                  <IntervalValue>5.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>7.0</IntervalValue>
+                  <IntervalValue>8.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>10.0</IntervalValue>
+                  <IntervalValue>11.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>13.0</IntervalValue>
+                  <IntervalValue>14.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForMeters>
+                <colorBarForFeet>
+                  <labelColor>RGB {255, 255, 255}</labelColor>
+                  <IntervalValue>0.0</IntervalValue>
+                  <IntervalValue>3.0</IntervalValue>
+                  <IntervalValue>6.0</IntervalValue>
+                  <IntervalValue>9.0</IntervalValue>
+                  <IntervalValue>12.0</IntervalValue>
+                  <IntervalValue>15.0</IntervalValue>
+                  <IntervalValue>18.0</IntervalValue>
+                  <IntervalValue>21.0</IntervalValue>
+                  <IntervalValue>24.0</IntervalValue>
+                  <IntervalValue>27.0</IntervalValue>
+                  <IntervalValue>30.0</IntervalValue>
+                  <IntervalValue>33.0</IntervalValue>
+                  <IntervalValue>36.0</IntervalValue>
+                  <IntervalValue>39.0</IntervalValue>
+                  <IntervalValue>42.0</IntervalValue>
+                  <IntervalValue>45.0</IntervalValue>
+                  <IntervalValue>INF</IntervalValue>
+                  <IntervalColor>RGB {255, 255, 255}</IntervalColor>
+                  <IntervalColor>RGB {0, 238, 238}</IntervalColor>
+                  <IntervalColor>RGB {0, 178, 238}</IntervalColor>
+                  <IntervalColor>RGB {16, 78, 139}</IntervalColor>
+                  <IntervalColor>RGB {0, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 205, 0}</IntervalColor>
+                  <IntervalColor>RGB {0, 139, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 255, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 215, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 127, 0}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {205, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 0}</IntervalColor>
+                  <IntervalColor>RGB {139, 0, 139}</IntervalColor>
+                  <IntervalColor>RGB {137, 104, 205}</IntervalColor>
+                  <IntervalColor>RGB {255, 0, 255}</IntervalColor>
+                  <showLabels>true</showLabels>
+                  <reverseOrder>true</reverseOrder>
+                  <drawToScale>false</drawToScale>
+                  <orientation>Horizontal</orientation>
+                  <anchorLoc>UpperRight</anchorLoc>
+                  <lengthAsRatio>0.4</lengthAsRatio>
+                  <widthInPixels>15</widthInPixels>
+                  <numDecimals>0</numDecimals>
+                  <drawColorBar>true</drawColorBar>
+                  <drawBoxAroundColorBar>true</drawBoxAroundColorBar>
+                </colorBarForFeet>
+                <timeDisplayInterval>5</timeDisplayInterval>
+                <timeDisplayColor>RGB {0, 255, 255}</timeDisplayColor>
+                <fontName>Courier</fontName>
+                <fontSize>12</fontSize>
+                <latParam>LAT</latParam>
+                <latParamInPdo>lat</latParamInPdo>
+                <lonParam>LON</lonParam>
+                <lonParamInPdo>lon</lonParamInPdo>
+                <satIdParam>SATELLITEID</satIdParam>
+                <satIdParamInPdo>satelliteId</satIdParamInPdo>
+                <waveHeightParam>HTWAVES</waveHeightParam>
+                <windSpeedParam>WSPD10</windSpeedParam>
+              </resourceData>
+            </resource-in-group>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="false" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="NCP_GROUP">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="GroupResourceData"
+            isEdited="false" resourceName="">
+            <legendColor>RGB {255, 174, 185}</legendColor>
+            <groupName>Loop9 - GOES-R SPoRT_SST</groupName>
+            <funcKeyNum>9</funcKeyNum>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="true" isHoverOn="false"
+            isMapLayer="false" isBlinking="false" isSystemResource="false"
+            renderingOrderId="MAP_OUTLINE">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="NC-LatLonOverlayResourceData"
+            isEdited="true" resourceName="OVERLAY/LatLon/default">
+            <legendColor>RGB {255, 165, 79}</legendColor>
+            <color>RGB {255, 165, 79}</color>
+            <lineWidth>1</lineWidth>
+            <latitudeInterval>10</latitudeInterval>
+            <longitudeInterval>10</longitudeInterval>
+            <lineStyle>SHORT_DASHED</lineStyle>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="true" isHoverOn="false"
+            isMapLayer="true" isBlinking="false" isSystemResource="false"
+            renderingOrderId="MAP_OUTLINE">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="LocatorResourceData"
+            isEdited="false" resourceName="OVERLAY/Locator/default">
+            <legendColor>RGB {255, 255, 255}</legendColor>
+            <fontSize>14</fontSize>
+            <fontName>Monospace</fontName>
+            <pos1LocatorSource>LATLON</pos1LocatorSource>
+            <pos1RoundToNearest>1</pos1RoundToNearest>
+            <pos1DisplayUnit>degrees</pos1DisplayUnit>
+            <pos1DirectionUnit>omit</pos1DirectionUnit>
+            <pos2LocatorSource></pos2LocatorSource>
+            <pos2RoundToNearest>1</pos2RoundToNearest>
+            <pos2DisplayUnit>omit</pos2DisplayUnit>
+            <pos2DirectionUnit>omit</pos2DirectionUnit>
+            <pos3LocatorSource>None</pos3LocatorSource>
+            <pos3RoundToNearest>1</pos3RoundToNearest>
+            <pos3DisplayUnit>omit</pos3DisplayUnit>
+            <pos3DirectionUnit>omit</pos3DirectionUnit>
+            <pos4LocatorSource>None</pos4LocatorSource>
+            <pos4RoundToNearest>1</pos4RoundToNearest>
+            <pos4DisplayUnit>omit</pos4DisplayUnit>
+            <pos4DirectionUnit>omit</pos4DirectionUnit>
+            <pos5LocatorSource>None</pos5LocatorSource>
+            <pos5RoundToNearest>1</pos5RoundToNearest>
+            <pos5DisplayUnit>omit</pos5DisplayUnit>
+            <pos5DirectionUnit>omit</pos5DirectionUnit>
+            <color>RGB {255, 255, 255}</color>
+          </resourceData>
+        </resource>
+        <resource>
+          <loadProperties loadWithoutData="false">
+            <resourceType>PLAN_VIEW</resourceType>
+            <capabilities />
+          </loadProperties>
+          <properties isVisible="true" isHoverOn="false"
+            isMapLayer="true" isBlinking="false" isSystemResource="false"
+            renderingOrderId="MAP_OUTLINE">
+            <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+          </properties>
+          <resourceData xsi:type="NC-OverlayResourceGroupData"
+            isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+            <legendColor>RGB {255, 228, 220}</legendColor>
+            <resource>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="true" isBlinking="false" isSystemResource="false">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-dbOverlayResourceData"
+                isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <mapName>World</mapName>
+                <dbName>maps</dbName>
+                <table>mapdata.world</table>
+                <geomField>the_geom</geomField>
+                <labelField>name</labelField>
+                <color>RGB {255, 228, 220}</color>
+                <lineWidth>1</lineWidth>
+                <lineStyle>SOLID</lineStyle>
+              </resourceData>
+            </resource>
+            <resource>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="true" isBlinking="false" isSystemResource="false">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-dbOverlayResourceData"
+                isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <mapName>State Boundaries</mapName>
+                <dbName>maps</dbName>
+                <table>mapdata.states</table>
+                <geomField>the_geom</geomField>
+                <labelField>name</labelField>
+                <color>RGB {255, 228, 220}</color>
+                <lineWidth>1</lineWidth>
+                <lineStyle>SOLID</lineStyle>
+              </resourceData>
+            </resource>
+            <resource>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="true" isBlinking="false" isSystemResource="false">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="100000000" />
+              </properties>
+              <resourceData xsi:type="NC-dbOverlayResourceData"
+                isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <mapName>Canada</mapName>
+                <dbName>maps</dbName>
+                <table>mapdata.canada</table>
+                <geomField>the_geom</geomField>
+                <color>RGB {255, 228, 220}</color>
+                <lineWidth>1</lineWidth>
+                <lineStyle>SOLID</lineStyle>
+              </resourceData>
+            </resource>
+            <resource>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="true" isBlinking="false" isSystemResource="false">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="1" />
+              </properties>
+              <resourceData xsi:type="NC-dbOverlayResourceData"
+                isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <mapName>Mexico</mapName>
+                <dbName>maps</dbName>
+                <table>mapdata.mexico</table>
+                <geomField>the_geom</geomField>
+                <labelField>name</labelField>
+                <color>RGB {255, 228, 220}</color>
+                <lineWidth>1</lineWidth>
+                <lineStyle>SOLID</lineStyle>
+              </resourceData>
+            </resource>
+            <resource>
+              <loadProperties loadWithoutData="false">
+                <resourceType>PLAN_VIEW</resourceType>
+                <capabilities />
+              </loadProperties>
+              <properties isVisible="true" isHoverOn="false"
+                isMapLayer="true" isBlinking="false" isSystemResource="false">
+                <pdProps minDisplayWidth="0" maxDisplayWidth="1" />
+              </properties>
+              <resourceData xsi:type="NC-dbOverlayResourceData"
+                isEdited="false" resourceName="OVERLAY/GeoPolitical/default">
+                <legendColor>RGB {255, 255, 255}</legendColor>
+                <mapName>County Boundaries</mapName>
+                <dbName>maps</dbName>
+                <table>mapdata.county</table>
+                <geomField>the_geom</geomField>
+                <labelField>countyname</labelField>
+                <color>RGB {255, 228, 220}</color>
+                <lineWidth>1</lineWidth>
+                <lineStyle>SOLID</lineStyle>
+              </resourceData>
+            </resource>
+            <mapName>Geo-Political</mapName>
+            <color>RGB {255, 228, 220}</color>
+            <lineWidth>1</lineWidth>
+            <lineStyle>SOLID</lineStyle>
+          </resourceData>
+        </resource>
+        <limitedNumberOfFrames>2147483647</limitedNumberOfFrames>
+        <gridGeometry rangeX="0 18231" rangeY="0 9999"
+          envelopeMinX="-1.4455794249398155E7" envelopeMaxX="1.6679762595459407E7"
+          envelopeMinY="-4159352.416710777" envelopeMaxY="1.2918177724173004E7">
+          <CRS>PROJCS["Mercator_1SP",
+            GEOGCS["WGS84(DD)",
+            DATUM["WGS84",
+            SPHEROID["WGS84", 6378137.0, 298.257223563]],
+            PRIMEM["Greenwich", 0.0],
+            UNIT["degree", 0.017453292519943295],
+            AXIS["Geodetic longitude", EAST],
+            AXIS["Geodetic latitude", NORTH]],
+            PROJECTION["Mercator_1SP"],
+            PARAMETER["semi_major", 6371200.0],
+            PARAMETER["semi_minor", 6371200.0],
+            PARAMETER["latitude_of_origin", 0.0],
+            PARAMETER["central_meridian", -120.0],
+            PARAMETER["scale_factor", 1.0],
+            PARAMETER["false_easting", 0.0],
+            PARAMETER["false_northing", 0.0],
+            UNIT["m", 1.0],
+            AXIS["Easting", EAST],
+            AXIS["Northing", NORTH]]
+          </CRS>
+        </gridGeometry>
+        <numberOfFrames>12</numberOfFrames>
+        <timeMatcher xsi:type="ncTimeMatcher"
+          dominantResourceName="MISC/ASCT/ambig1_a_hi" numFrames="19"
+          graphRange="12" hourSnap="3" skipValue="0" timeRange="24"
+          frameInterval="60" />
+        <autoUpdate>false</autoUpdate>
+        <suspendZoom>false</suspendZoom>
+      </descriptor>
+      <paneId row="0" col="0" />
+      <initialArea areaName="Both_Oceans-OutlookDesk"
+        mapCenter="-109.44547962170681 51.558512676625035 0.0">
+        <ncDisplayType>NMAP_DISPLAY</ncDisplayType>
+        <areaSource>PREDEFINED_AREA</areaSource>
+        <zoomLevel>1.0</zoomLevel>
+        <description>N/A</description>
+        <gridGeometry rangeX="0 26645" rangeY="0 9999"
+          envelopeMinX="-2.000468632839339E7" envelopeMaxX="6783134.330361294"
+          envelopeMinY="1687370.6093603591" envelopeMaxY="1.1740455036258735E7">
+          <CRS>PROJCS[&quot;Mercator_2SP&quot;,
+            GEOGCS[&quot;WGS84(DD)&quot;,
+            DATUM[&quot;WGS84&quot;,
+            SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]],
+            PRIMEM[&quot;Greenwich&quot;, 0.0],
+            UNIT[&quot;degree&quot;, 0.017453292519943295],
+            AXIS[&quot;Geodetic longitude&quot;, EAST],
+            AXIS[&quot;Geodetic latitude&quot;, NORTH]],
+            PROJECTION[&quot;Mercator_2SP&quot;],
+            PARAMETER[&quot;semi_major&quot;, 6371229.0],
+            PARAMETER[&quot;semi_minor&quot;, 6371229.0],
+            PARAMETER[&quot;standard_parallel_1&quot;, 0.0],
+            PARAMETER[&quot;latitude_of_origin&quot;, 0.0],
+            PARAMETER[&quot;central_meridian&quot;, -50.0],
+            PARAMETER[&quot;false_easting&quot;, 0.0],
+            PARAMETER[&quot;false_northing&quot;, 0.0],
+            UNIT[&quot;m&quot;, 1.0],
+            AXIS[&quot;Easting&quot;, EAST],
+            AXIS[&quot;Northing&quot;, NORTH]]</CRS>
+        </gridGeometry>
+      </initialArea>
+    </displays>
+  </displayList>
+  <isDefaultRbd>false</isDefaultRbd>
+</ncMapRBD>

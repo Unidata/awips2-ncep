@@ -11,7 +11,7 @@
 	<bean id="ncpafmProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="ncpafmPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.ncpafm" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.ncpafm.dao.NcPafmDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.ncpafm.dao.NcPafmDao" />
         <property name="record" value="gov.noaa.nws.ncep.common.dataplugin.ncpafm.NcPafmRecord" />
 	</bean>
 

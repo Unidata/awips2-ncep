@@ -41,6 +41,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -74,8 +76,10 @@ import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationFile;
+import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
-import com.raytheon.uf.common.localization.exception.LocalizationOpFailedException;
+import com.raytheon.uf.common.serialization.JAXBManager;
+import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -106,6 +110,11 @@ import com.raytheon.uf.viz.core.exception.VizException;
  *                                      Pgen actions that only appear on in
  *                                      the Pgen context menu for Symbols
  * 11/18/2015   R12829      J. Wu       Add "Contours Parameter" in PgenLayer.
+ * 04/14/2016   R13245      B. Yin      Added reference time list field.
+ * 09/26/2016   R20482      Bugenhagen  Handle saving localization file without 
+ *                                      throwing exception due to updated 
+ *                                      checksum.  Replaced deprecated calls
+ *                                      to LocalizationFile.save method.
  * 
  * </pre>
  * 
@@ -248,6 +257,11 @@ public class ProductConfigureDialog extends ProductDialog {
     private static int autoSaveInterval;
 
     private Text saveOutputTxt = null;
+
+    /*
+     * Input field for reference time list
+     */
+    private Text refTimeText = null;
 
     private Button saveIndividualLayerBtn = null;
 
@@ -394,7 +408,7 @@ public class ProductConfigureDialog extends ProductDialog {
          */
         Group configGrp = new Group(topComp, SWT.SHADOW_IN);
         configGrp.setLayout(new GridLayout(1, false));
-        configGrp.setText("Activity Configuraton");
+        configGrp.setText("Activity Configuration");
 
         /*
          * create tab folders/items
@@ -689,7 +703,8 @@ public class ProductConfigureDialog extends ProductDialog {
             } else {
                 skey = new String(ptype.getType());
                 String subtyp = ptype.getSubtype();
-                if (subtyp != null && subtyp.trim().length() > 0
+                if (subtyp != null
+                        && subtyp.trim().length() > 0
                         && !subtyp
                                 .equalsIgnoreCase(PgenConstant.DEFAULT_SUBTYPE)) {
                     skey = new String(ptype.getType() + "(" + subtyp + ")");
@@ -1054,12 +1069,35 @@ public class ProductConfigureDialog extends ProductDialog {
                 throw new VizException("Unable to create Localization File");
             }
 
-            FileTools.write(ptypFile.getAbsolutePath(), prdTyps);
-
             try {
-                prdTypesFile.save();
-            } catch (LocalizationException e) {
-                throw new VizException(e);
+                // Read the localization file again to get the latest checksum
+                // from the EDEX server and attempt to save again. Otherwise,
+                // save will fail due to checksums not matching.
+                LocalizationContext userContext = PgenStaticDataProvider
+                        .getProvider()
+                        .getLocalizationContext(
+                                prdTypesFile.getContext().getLocalizationType(),
+                                LocalizationLevel.USER);
+                prdTypesFile = PgenStaticDataProvider.getProvider()
+                        .getLocalizationFile(
+                                userContext,
+                                PgenStaticDataProvider.getProvider()
+                                        .getPgenLocalizationRoot()
+                                        + PGEN_PRODUCT_TYPES);
+
+                JAXBManager jaxB = new JAXBManager(ProductTypes.class);
+                SaveableOutputStream outstream = prdTypesFile
+                        .openOutputStream();
+                jaxB.marshalToStream(prdTyps, outstream);
+                outstream.save();
+                outstream.close();
+            } catch (LocalizationException | IOException e) {
+                statusHandler.error("Error saving product types: ", e);
+            } catch (SerializationException e) {
+                statusHandler.error("Error marshalling product types", e);
+            } catch (JAXBException e) {
+                statusHandler.error(
+                        "Error creating JAXBManager for product types", e);
             }
         } catch (VizException ve) {
             MessageDialog errDlg = new MessageDialog(PlatformUI.getWorkbench()
@@ -1772,7 +1810,8 @@ public class ProductConfigureDialog extends ProductDialog {
         Label contourParameterLbl = new Label(contourParameterComp, SWT.LEFT);
         contourParameterLbl.setText("Contour Parameter:");
 
-        contourParameterCombo = new Combo(contourParameterComp, SWT.DROP_DOWN | SWT.READ_ONLY);
+        contourParameterCombo = new Combo(contourParameterComp, SWT.DROP_DOWN
+                | SWT.READ_ONLY);
 
         contourParameterCombo.add(PgenConstant.DEFAULT_SUBTYPE);
         for (String ceParm : ContoursInfoDlg.getContourParms()) {
@@ -2044,6 +2083,20 @@ public class ProductConfigureDialog extends ProductDialog {
         nameBtn.setText("Browse");
 
         nameBtn.setEnabled(false);
+
+        /*
+         * Input field for reference time list
+         */
+        Composite refTimeComp = new Composite(prdComp, SWT.NONE);
+
+        refTimeComp.setLayout(gl0);
+
+        Label refTimeLbl = new Label(refTimeComp, SWT.NONE);
+        refTimeLbl.setText("Ref. Time List: (0000;0100;...)");
+
+        refTimeText = new Text(refTimeComp, SWT.SINGLE | SWT.BORDER);
+        refTimeText.setLayoutData(new GridData(320, 15));
+        refTimeText.setEditable(true);
 
         /*
          * Check if each layer should be saved to a separate file.
@@ -2750,7 +2803,7 @@ public class ProductConfigureDialog extends ProductDialog {
                     } else {
                         metaTxt.setText("");
                     }
-                    
+
                     // Set contourParameter.
                     if (pgenlyr.getContourParm() != null
                             && pgenlyr.getContourParm().trim().length() == contourParameterLength) {
@@ -2927,6 +2980,14 @@ public class ProductConfigureDialog extends ProductDialog {
                     saveOutputTxt.setText(tmpFile);
                 }
 
+                /*
+                 * Sets the reference time list
+                 */
+                String refTimeList = pSave.getRefTimeList();
+                if (refTimeList != null) {
+                    refTimeText.setText(refTimeList);
+                }
+
                 saveIndividualLayerBtn.setSelection(pSave.isSaveLayers());
                 autoSaveBtn.setSelection(true);
                 autoSaveFreqTxt.setText("");
@@ -3039,6 +3100,14 @@ public class ProductConfigureDialog extends ProductDialog {
         String outfile = saveOutputTxt.getText();
         if (outfile != null) {
             pSave.setOutputFile(outfile);
+        }
+
+        /*
+         * Update the reference time list
+         */
+        String refTimeList = refTimeText.getText();
+        if (refTimeList != null) {
+            pSave.setRefTimeList(refTimeList);
         }
 
         pSave.setSaveLayers(saveIndividualLayerBtn.getSelection());

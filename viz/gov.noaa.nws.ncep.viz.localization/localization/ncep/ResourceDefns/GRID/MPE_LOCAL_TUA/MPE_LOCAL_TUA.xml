@@ -16,5 +16,4 @@ pluginName=grid
 GDFILE=MPE-Local-TUA
 
 </resourceParameters>
-    <inventoryEnabled>true</inventoryEnabled>
 </ResourceDefinition>

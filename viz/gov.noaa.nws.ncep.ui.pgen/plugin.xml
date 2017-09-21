@@ -610,7 +610,7 @@
    
     <extension
        point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?after=tools.Pg">
+        <menuContribution locationURI="menu:tools?after=tools.Pg">
             <command
                 commandId="gov.noaa.nws.ncep.ui.pgen.palette"
                 label="PGEN">
@@ -620,7 +620,18 @@
                     </reference>                        
                 </visibleWhen>
             </command>
-        </menuContribution>                           
+        </menuContribution>
+        <menuContribution locationURI="menu:gfe?after=com.raytheon.viz.gfe.SiteActivation">
+            <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
+                label="PGEN">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.viz.gfe.inGFEActionSet">
+                    </reference>                        
+                </visibleWhen>
+            </command>
+        </menuContribution>                            
    </extension> 
 
    <extension

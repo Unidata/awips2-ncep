@@ -9,7 +9,7 @@
 	<bean id="airepProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
 		<property name="pluginName" ref="airepPluginName" />
 		<property name="pluginFQN" value="gov.noaa.nws.ncep.common.dataplugin.airep" />
-		<property name="dao" value="gov.noaa.nws.ncep.common.dataplugin.airep.dao.AirepDao" />
+		<property name="dao" value="gov.noaa.nws.ncep.edex.plugin.airep.dao.AirepDao" />
 		<property name="record" value="gov.noaa.nws.ncep.common.dataplugin.airep.AirepRecord" />
 	</bean>
 	

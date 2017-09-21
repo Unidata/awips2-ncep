@@ -14,7 +14,6 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 11/18/2015    R12829    J. Wu       Add more common constants.
  * 12/17/2015    R12990    J. Wu       Add more constants.
  * 01/14/2016    R12989    P. Moyer    Constants used in PgenTextDrawingTool that can be shared.
- * 12/12/2016     17469    W. Kwock    Added CWA Formatter
  * 
  * </pre>
  * 
@@ -80,10 +79,4 @@ public final class PgenConstant {
     public static final String EVENT_PREV_COLOR = "usePrevColor";
 
     public static final String EVENT_OTHER = "Other";
-    
-    public static final String SIGMET = "SIGMET";
-    
-    public static final String CWA_SIGMET = "CWA_SIGMET";
-    
-    public static final String CWA_FORMATTER = "CWA_FORMATTER";
 }

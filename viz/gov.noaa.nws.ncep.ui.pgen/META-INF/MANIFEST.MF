@@ -40,15 +40,10 @@ Export-Package: gov.noaa.nws.ncep.ui.pgen,
  gov.noaa.nws.ncep.ui.pgen.store,
  gov.noaa.nws.ncep.ui.pgen.tca,
  gov.noaa.nws.ncep.ui.pgen.tools
-Import-Package: com.raytheon.uf.common.dataplugin.text,
- com.raytheon.uf.common.dataplugin.text.db,
- com.raytheon.uf.common.dataplugin.text.request,
- com.raytheon.uf.common.dissemination,
- com.raytheon.uf.viz.core.maps.display,
+Import-Package: com.raytheon.uf.viz.core.maps.display,
  com.raytheon.viz.core.contours.util,
  com.raytheon.viz.core.gl,
  com.raytheon.viz.core.gl.images,
  gov.noaa.nws.ncep.common.staticdata,
- gov.noaa.nws.ncep.viz.localization,
  javax.measure.unit
 Bundle-ClassPath: .

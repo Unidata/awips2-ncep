@@ -12,15 +12,15 @@ package gov.noaa.nws.ncep.edex.common.sounding;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date             Ticket#    	Engineer       Description
- * -------		      ---------   ---------------    ------------------
- * 09/13/2010	362		   Chin Chen	 Initial coding
- * 12/16/2010   362         Chin Chen    add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
- * 09/14/2011   457         S. Gurung     Renamed ObsSndType.H5UAIR to ObsSndType.NCUAIR
- *10/06/2011    465         Archana        Added a list of NcSoundingLayer2 objects to the sounding profile
- * 02/15/2012               Chin Chen      added fcsTime to support pfc sounding query
- * 07/23/2014              Chin Chen    Support PW
- * 03/05/2017   18784      wkwock       Handle not integer stationNum(stationID in DB)
+ * Date             Ticket#    Engineer       Description
+ * -------      ---------   ---------------   ------------------
+ * 09/13/2010   362         Chin Chen         Initial coding
+ * 12/16/2010   362         Chin Chen         add support of BUFRUA observed sounding and PFC (NAM and GFS) model sounding data
+ * 09/14/2011   457         S. Gurung         Renamed ObsSndType.H5UAIR to ObsSndType.NCUAIR
+ *10/06/2011    465         Archana           Added a list of NcSoundingLayer2 objects to the sounding profile
+ * 02/15/2012               Chin Chen         added fcsTime to support pfc sounding query
+ * 07/23/2014               Chin Chen         Support PW
+ * 03/05/2017   18784       wkwock            Handle not integer stationNum(stationID in DB)
  * </pre>
  * 
  * @author Chin Chen

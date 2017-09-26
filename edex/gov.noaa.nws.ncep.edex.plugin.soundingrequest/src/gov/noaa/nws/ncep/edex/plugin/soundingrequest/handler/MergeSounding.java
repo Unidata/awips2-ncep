@@ -37,6 +37,7 @@ import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
  * 09/15/2015  RM#11676    Chin Chen    interpolated values for single level are wrong; clean up software
  * 09/22/2016  RM15953     R.Reynolds   Added capability for wind interpolation
  * 01/23/2017  RM22658     J. Beck      Changed mergeUairSounding() to return below ground levels
+ * 03/02/2017  18784       wkwock       format the code use AWIPS standard.
  * </pre>
  * 
  * @author T. Lee
@@ -118,9 +119,8 @@ public class MergeSounding {
         } else {
             if (ppaa.size() < 1 && ttbb.size() < 1) {
                 return missingSounding();
-            } else {
-                man = missingSounding();
             }
+            man = missingSounding();
         }
 
         // Sorting the data

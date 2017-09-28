@@ -719,9 +719,6 @@
 	<ResourceDefinitionFilter rscDefnName="RTMA">
 	<filters>Analysis,NSBN</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="RTMA5">
-	<filters>Analysis,NSBN</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="SPCGUIDE">
 	<filters>Forecast</filters>
 	</ResourceDefinitionFilter>

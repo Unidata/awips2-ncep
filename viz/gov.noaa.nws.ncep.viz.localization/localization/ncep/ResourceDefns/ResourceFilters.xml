@@ -209,9 +209,6 @@
 	<ResourceDefinitionFilter rscDefnName="ATCF">
 	<filters>Hurricane</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="ASDI">
-	<filters>Aviation</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="WSTM">
 	<filters>AWW</filters>
 	</ResourceDefinitionFilter>
@@ -651,9 +648,6 @@
 	<filters>Forecast,Global</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GFS20">
-	<filters>Forecast,CONUS</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GFS80">
 	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GFSGUIDE">

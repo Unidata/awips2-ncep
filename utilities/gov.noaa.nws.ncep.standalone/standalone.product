@@ -59,7 +59,6 @@ Developed on the Raytheon Visualization Environment (viz)
       <plugin id="com.raytheon.uf.common.datastorage"/>
       <plugin id="com.raytheon.uf.common.datastorage.hdf5"/>
       <plugin id="com.raytheon.uf.common.derivparam"/>
-      <plugin id="com.raytheon.uf.common.dissemination"/>
       <plugin id="com.raytheon.uf.common.geospatial"/>
       <plugin id="com.raytheon.uf.common.localization"/>
       <plugin id="com.raytheon.uf.common.message"/>

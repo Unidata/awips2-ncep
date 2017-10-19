@@ -92,6 +92,7 @@ import gov.noaa.nws.ncep.viz.rsc.plotdata.rsc.Tracer;
  * 09/15/2016   R4151        jeff beck    Get pressureLevel from the sounding layer, and put it into a field in HeightAboveSeaLevel
  * 11/01/2016   R25655       K.Bugenhagen Check for null temperature and dew point in tenths entries in hashmap in requestSurfaceData method.
  *                                        Cleanup.
+ * 03/05/2017   18784        wkwock       Handle not integer stationNum(stationID in DB)
  * </pre>
  */
 
@@ -1121,13 +1122,10 @@ public class NcPlotDataRequestor {
                                 } else {
                                     newInstance.setValueToMissing();
                                 }
-                                // TODO: check stationId handling
                             } else if (newInstance.getMetParamName().equals(
                                     StationNumber.class.getSimpleName())) {
-                                if (soundingProfile.getStationNum() != 0) {
-                                    newInstance.setStringValue(new Integer(
-                                            soundingProfile.getStationNum())
-                                                    .toString());
+                                if (soundingProfile.getStationNumStr() != null) {
+                                    newInstance.setStringValue(soundingProfile.getStationNumStr());
                                 } else {
                                     newInstance.setValueToMissing();
                                 }

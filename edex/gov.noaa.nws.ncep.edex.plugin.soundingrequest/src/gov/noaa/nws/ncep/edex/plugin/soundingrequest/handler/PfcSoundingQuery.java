@@ -10,21 +10,22 @@ package gov.noaa.nws.ncep.edex.plugin.soundingrequest.handler;
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 09/13/2010	301			Chin Chen	Initial coding
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 09/13/2010   301         Chin Chen   Initial coding
  * 12/16/2010   301         Chin Chen   add support of PFC (NAM and GFS) model sounding data
  * 02/28/2012               Chin Chen   modify several sounding query algorithms for better performance
  * 12/20/2013   2537        bsteffen    Update ModelSoundingPointDataTransform
  ***********************************************************************************************************
  *
  *
- * 05/20/2015	RM#8306	   Chin Chen  eliminate NSHARP dependence on uEngine.
- *                                    Copy whole file PfcSoundingQuery.java from uEngine project to this serverRequestService project.
- *                                    "refactor" and clean up unused code for this ticket.
- * 07/02/2015   RM#8107    Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
+ * 05/20/2015   RM#8306     Chin Chen   eliminate NSHARP dependence on uEngine.
+ *                                      Copy whole file PfcSoundingQuery.java from uEngine project to this serverRequestService project.
+ *                                      "refactor" and clean up unused code for this ticket.
+ * 07/02/2015   RM#8107     Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
  * 07/21/2015   RM#9173    Chin Chen   Clean up NcSoundingQuery and Obsolete NcSoundingQuery2 and MergeSounging2
  * 04/19/2016   #17875     Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
+ * 03/05/2017   18784       wkwock      Handle not integer stationID.
  *  *
  * </pre>
  * 
@@ -292,7 +293,7 @@ public class PfcSoundingQuery {
                             + sndSite.getDataTime().getRefTime().getTime());
                     if (sndSite.getSiteId() != null
                             && sndSite.getSiteId().length() > 0)
-                        pf.setStationNum(Integer.parseInt(sndSite.getSiteId()));
+                        pf.setStationNumStr(sndSite.getSiteId());
                     pf.setStationId(sndSite.getStationId());
 
                     List<NcSoundingLayer> soundLyList = new ArrayList<>();

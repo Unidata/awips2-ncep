@@ -77,7 +77,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  Oct 03, 2014         B. Hebbard Performance improvement:  getObservedSndNcUairDataGeneric( )
  *                                  limits DB param set to retrieve, in cases where possible
  *                                  (mandatory level and no PW-for-full-sounding)
- *  05/20/2015	RM#8306	Chin Chen  eliminate NSHARP dependence on uEngine.
+ *  05/20/201    RM#8306 Chin Chen  eliminate NSHARP dependence on uEngine.
  *                                  Copy whole file ObservedSoundingQuery.java from uEngine project to this serverRequestService project
  *                                  "refactor" and clean up unused code for this ticket.
  *  07/02/2015   RM#8107 Chin Chen   change lat/lon data type from double to float to reflect its data type changes starting 14.4.1 
@@ -85,6 +85,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  *  04/19/2016   #17875  Chin Chen   change TimeStamp to Date while querying sounding station info + clean up
  *  07/19/2016   5736    bsteffen   Handle prSigW data.
  *  09/29/2016   RM15953 R.Reynolds  Added capability for wind interpolation
+ *  03/05/2017   18784   wkwock     Handle not integer stationID.
  *  
  *  @author Chin Chen
  * @version 1.0
@@ -161,8 +162,7 @@ public class ObsSoundingQuery {
                     pf.setStationElevation(lUairRecords.get(0).getElevation());
                     if ((lUairRecords.get(0).getStationId() != null)
                             && (lUairRecords.get(0).getStationId().length() > 0)) {
-                        pf.setStationNum(Integer.parseInt(lUairRecords.get(0)
-                                .getStationId()));
+                        pf.setStationNumStr(lUairRecords.get(0).getStationId());
                     }
                     pf.setStationId(lUairRecords.get(0).getStationName());
                     pf.setFcsTime(lUairRecords.get(0).getDataTime()
@@ -710,8 +710,7 @@ public class ObsSoundingQuery {
                     pf.setStationElevation(uairRecord.getElevation());
                     if ((uairRecord.getStationId() != null)
                             && (uairRecord.getStationId().length() > 0)) {
-                        pf.setStationNum(Integer.parseInt(uairRecord
-                                .getStationId()));
+                        pf.setStationNumStr(uairRecord.getStationId());
                     }
                     pf.setStationId(uairRecord.getStationName());
                     int hdfIndex = uairRecord.getIdx();
@@ -1169,8 +1168,7 @@ public class ObsSoundingQuery {
                     pf.setStationId(recordArray[0].getStationId());
                     if (recordArray[0].getStnum() != null
                             && recordArray[0].getStnum().length() > 0) {
-                        pf.setStationNum(Integer.parseInt(recordArray[0]
-                                .getStnum()));
+                        pf.setStationNumStr(recordArray[0].getStnum());
                     }
                     pf.setStationLatitude(recordArray[0].getLatitude());
                     pf.setStationLongitude(recordArray[0].getLongitude());

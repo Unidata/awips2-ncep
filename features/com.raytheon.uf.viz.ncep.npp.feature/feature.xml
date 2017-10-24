@@ -23,10 +23,4 @@
       <import feature="com.raytheon.uf.viz.npp.feature" version="1.0.0.qualifier"/>
    </requires>
 
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.viirs"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
 </feature>

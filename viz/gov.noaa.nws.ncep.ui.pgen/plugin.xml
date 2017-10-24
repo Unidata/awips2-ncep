@@ -3476,7 +3476,7 @@
     <extension
           point="com.raytheon.uf.viz.localization.perspective.localizationpath">
        <path
-             application="NCEP"
+             application="D2D"
              localizationType="CAVE_STATIC"
              name="PGEN"
              recursive="true"

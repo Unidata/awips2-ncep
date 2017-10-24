@@ -35,9 +35,6 @@ import gov.noaa.nws.ncep.ui.nsharp.SurfaceStationPointData;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpModelSoundingQuery;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceCategory;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefinition;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceDefnsMngr;
 import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 
 import java.text.DateFormatSymbols;
@@ -272,25 +269,8 @@ public class NsharpModelSoundingDialogContents {
 
     private static void createModelTypeToRscDefNameMapping()
             throws VizException {
-        ResourceDefnsMngr rscDefnsMngr = ResourceDefnsMngr.getInstance();
         gridModelToRscDefNameMap.clear();
         rscDefNameToGridModelMap.clear();
-        if (rscDefnsMngr != null) {
-            ResourceCategory cat = ResourceCategory.createCategory("GRID");
-            List<ResourceDefinition> rscTypes = rscDefnsMngr
-                    .getResourceDefnsForCategory(cat);
-            for (ResourceDefinition rd : rscTypes) {
-                HashMap<String, String> rpmap = rd.getResourceParameters(false);
-                if (rpmap != null) {
-                    String mdlType = rpmap.get("GDFILE");
-                    String rscDefName = rd.getResourceDefnName();
-                    gridModelToRscDefNameMap.put(mdlType, rscDefName);
-                    rscDefNameToGridModelMap.put(rscDefName, mdlType);
-                } else {
-                    continue;
-                }
-            }
-        }
     }
 
     private void createModelTypeList() {

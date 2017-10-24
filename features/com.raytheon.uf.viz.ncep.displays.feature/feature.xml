@@ -40,21 +40,7 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.ui.nctextui"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.ui.pgen"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.cloudHeight"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -82,83 +68,6 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.airmet"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.atcf"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-   
-<plugin
-         id="gov.noaa.nws.ncep.viz.rsc.convsigmet"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ffg"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.hrcn"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.idft"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.intlsig"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.lightning"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ncgrid"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ncscat"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.nonconvsigmet"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.viz.rsc.pgen"
          download-size="0"
          install-size="0"
@@ -167,48 +76,6 @@
 
    <plugin
          id="gov.noaa.nws.ncep.viz.rsc.plotdata"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.satellite"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.stormtrack"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.wcp"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.tools"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.ui.seek"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.ui.locator"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -229,20 +96,6 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.wavesat"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ncradar"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.common.staticdata"
          download-size="0"
          install-size="0"
@@ -257,31 +110,10 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.gempak.nativelib"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-<!--
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ntrans"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
--->
-   <plugin
          id="gov.noaa.nws.ncep.viz.soundingrequest"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.gempak.nativelib.linux64"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"/>
 
 </feature>

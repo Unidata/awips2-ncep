@@ -68,17 +68,6 @@
             name="gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor">
       </descriptor>
    </extension>
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Nsharp"
-             recursive="true"
-             value="ncep/nsharp"
-	         extensionFilter=".xml,.txt">
-       </path>
-    </extension>
     <extension
           point="org.eclipse.ui.contexts">
            <context 

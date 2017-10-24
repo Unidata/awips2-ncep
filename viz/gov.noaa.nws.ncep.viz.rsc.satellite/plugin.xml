@@ -451,17 +451,6 @@
                  
    </extension>
    
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Style Rules"
-             recursive="true"
-             value="ncep/styleRules"
-	         extensionFilter=".xml">
-       </path>
-    </extension>
     <extension point="gov.noaa.nws.ncep.viz.common.areaProvider">
        <areaProviderSource
              areaSourceName="MCIDAS_AREA_NAME"

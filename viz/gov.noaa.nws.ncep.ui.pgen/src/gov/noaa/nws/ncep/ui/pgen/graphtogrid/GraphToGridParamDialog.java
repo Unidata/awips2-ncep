@@ -24,7 +24,6 @@ import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
 import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
 import gov.noaa.nws.ncep.ui.pgen.elements.Outlook;
 import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-import gov.noaa.nws.ncep.viz.gempak.nativelib.LibraryLoader;
 
 import java.awt.Color;
 import java.io.File;
@@ -159,7 +158,7 @@ public class GraphToGridParamDialog extends CaveJFACEDialog {
         this.setShellStyle(SWT.TITLE | SWT.MODELESS | SWT.CLOSE);
 
         // Load the native library.
-        LibraryLoader.load("g2g");
+        //LibraryLoader.load("g2g");
 
         if (productMaps == null) {
             productMaps = GraphToGrid.loadParameters(grphgdTblName);

@@ -14,8 +14,7 @@ Require-Bundle: org.eclipse.core.runtime,
  gov.noaa.nws.ncep.viz.ui.display,
  com.raytheon.uf.common.colormap;bundle-version="1.11.22",
  gov.noaa.nws.ncep.viz.localization;bundle-version="1.0.0",
- com.raytheon.viz.alerts,
- gov.noaa.nws.ncep.viz.gempak
+ com.raytheon.viz.alerts
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ncep.viz.resources;
   uses:="gov.noaa.nws.ncep.viz.resources.manager,

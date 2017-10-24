@@ -245,42 +245,4 @@
       </page> 
    </extension>
    
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Plot Models"
-             recursive="true"
-             value="ncep/PlotModels"
-	         extensionFilter=".xml,.svg,.spi">
-       </path>
-    </extension>
-    <!-- 
-        The plot parameters and conditional filters show up in localization
-        under the plot models so there is no need to have a duplicate entry 
-        by extending the ext point again
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Plot Parameters"
-             recursive="false"
-             value="ncep/PlotModels/PlotParameters"
-	         extensionFilter=".xml">
-       </path>
-    </extension>
- 	<extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Conditional Filters"
-             recursive="false"
-             value="ncep/PlotModels/ConditionalFilters"
-	         extensionFilter=".xml">
-       </path>
-    </extension> 
-    -->
 </plugin>

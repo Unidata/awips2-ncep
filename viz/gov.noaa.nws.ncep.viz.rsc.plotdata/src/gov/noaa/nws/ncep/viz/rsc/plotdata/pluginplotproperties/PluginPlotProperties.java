@@ -60,7 +60,6 @@ public class PluginPlotProperties {
 //            pluginProps.put("textPoints",   new PluginPlotProperties(true, false));
             pluginProps.put("ncpirep",      new PluginPlotProperties(true, false));
             pluginProps.put("ncairep",      new PluginPlotProperties(true, false));
-            pluginProps.put("nctaf",        new PluginPlotProperties(true, false));
 //            pluginProps.put("bufrmosMRF", new PluginPlotProperties(true, false));
             /*
              * The good ones, these don't even need to be here because this is the

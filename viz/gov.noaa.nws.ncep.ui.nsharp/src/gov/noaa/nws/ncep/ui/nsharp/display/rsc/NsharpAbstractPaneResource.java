@@ -12,6 +12,8 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
  * 05/11/2015   5070        randerso    Adjust font sizes for dpi scaling
+ * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
+
  *
  * </pre>
  * 
@@ -28,7 +30,6 @@ import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative;
 import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -39,7 +40,6 @@ import javax.measure.unit.SI;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 
-import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
@@ -140,9 +140,8 @@ public class NsharpAbstractPaneResource extends
 
     public NsharpAbstractPaneResource(AbstractResourceData resourceData,
             LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
-        super(resourceData, loadProperties);
+        super(resourceData, loadProperties, false);
         descriptor = desc;
-        this.dataTimes = new ArrayList<DataTime>();
 
     }
 
@@ -233,7 +232,7 @@ public class NsharpAbstractPaneResource extends
             List<NcSoundingLayer> prevsoundingLys) {
         this.soundingLys = soundingLys;
         this.previousSoundingLys = prevsoundingLys;
-        descriptor.setFramesInfo(new FramesInfo(0));//setFrame(0);
+        descriptor.setFramesInfo(new FramesInfo(0));// setFrame(0);
     }
 
     public NsharpWGraphics getWorld() {
@@ -319,7 +318,7 @@ public class NsharpAbstractPaneResource extends
         super.setDescriptor(descriptor);
         RGB rgb = ColorUtil.getNewColor(descriptor);
         getCapability(ColorableCapability.class).setColor(rgb);
-        // System.out.println("screwT Rsc  setDescriptor called");
+        // System.out.println("screwT Rsc setDescriptor called");
     }
 
     public void setSoundingLys(List<NcSoundingLayer> soundingLys) {

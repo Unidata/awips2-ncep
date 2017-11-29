@@ -68,6 +68,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * 06/16/2014    #2061     bsteffen    update IRangeableResource
  * 06/18/2014    TTR1026   J. Wu (/bh) Fixed potential exceptions for loading local radar data.
  * 12/14            ?      B. Yin       Remove ScriptCreator, use Thrift Client.
+ * 11/29/2017    5863      bsteffen    Change dataTimes to a NavigableSet
  * 
  * </pre>
  * 
@@ -108,7 +109,6 @@ public abstract class AbstractRadarResource<D extends IDescriptor> extends
         super(resourceData, loadProperties);
         resourceData.addChangeListener(this);
 
-        dataTimes = new ArrayList<DataTime>();
         icao = "";
         getCapability(ColorMapCapability.class).setSuppressingMenuItems(true);
         getCapability(ImagingCapability.class).setSuppressingMenuItems(true);

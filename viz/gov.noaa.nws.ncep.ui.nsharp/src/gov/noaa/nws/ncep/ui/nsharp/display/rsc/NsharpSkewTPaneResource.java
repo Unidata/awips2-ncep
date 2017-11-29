@@ -20,6 +20,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * 02/03/2015   DR#17084    Chin Chen   Model soundings being interpolated below the surface for elevated sites                                     
  * 02/05/2015   DR16888     Chin Chen   fixed issue that "Comp(Src) button not functioning properly in NSHARP display"
  *									    merged 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
+ * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
  * </pre>
  * 
  * @author Chin Chen
@@ -277,7 +278,6 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         turbBackground = new NsharpTurbulencePaneBackground(
                 (NsharpSkewTPaneDescriptor) descriptor);
         // verticalWindBackground = new NsharpSKEWTBackground(descriptor);
-        this.dataTimes = new ArrayList<DataTime>();
         if (VizPerspectiveListener.getCurrentPerspectiveManager() != null) {
             myPerspective = VizPerspectiveListener
                     .getCurrentPerspectiveManager().getPerspectiveId();

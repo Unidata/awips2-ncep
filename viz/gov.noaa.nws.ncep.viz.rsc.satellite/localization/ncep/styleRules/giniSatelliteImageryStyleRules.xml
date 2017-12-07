@@ -147,7 +147,7 @@
 </styleRule>
 <styleRule>
   <paramLevelMatches>
-     <parameter>Imager 13 micron (IR)</parameter>
+     <parameter>Imager 13 micron IR</parameter>
   </paramLevelMatches>
   <imageStyle>
      <displayUnits>C</displayUnits>

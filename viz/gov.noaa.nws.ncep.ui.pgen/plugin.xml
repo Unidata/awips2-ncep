@@ -520,6 +520,10 @@
             commandId="gov.noaa.nws.ncep.ui.pgen.productRetrieveManage">
        </handler>
        <handler
+            class="gov.noaa.nws.ncep.ui.pgen.tools.RetrieveDisplayHandler"
+            commandId="gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette">
+       </handler>
+       <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenExitHandler"
             commandId="gov.noaa.nws.ncep.ui.pgen.exit">
        </handler>
@@ -612,12 +616,23 @@
        point="org.eclipse.ui.menus">
         <menuContribution locationURI="menu:tools?after=tools.Pg">
             <command
-                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-                label="PGEN">
+                commandId="gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette"
+                label="PGEN Display">
                 <visibleWhen>
                     <reference
                         definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-                    </reference>                        
+                    </reference>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="menu:tools?after=gov.noaa.nws.ncep.ui.pgen.retrieveWithoutPalette">
+            <command
+                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
+                label="PGEN Palette">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>
                 </visibleWhen>
             </command>
         </menuContribution>

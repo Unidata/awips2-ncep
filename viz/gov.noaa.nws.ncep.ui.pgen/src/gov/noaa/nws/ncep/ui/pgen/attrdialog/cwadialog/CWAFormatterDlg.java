@@ -82,6 +82,9 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
     /** product ID */
     private String productId;
 
+    /** product ID for retrieval from textDB */
+    private String retrievalProductId;
+
     /** CWA configurations */
     private CWAGeneratorConfigXML cwaConfigs;
 
@@ -130,7 +133,8 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
     public void setParameters(String site, String productId,
             CWAGeneratorConfigXML cwaConfigs) {
         this.site = site;
-        this.productId = productId;
+        this.retrievalProductId = cwaConfigs.getAwipsNode() + productId;
+        this.productId = cwaConfigs.getKcwsuId() + productId;
         this.cwaConfigs = cwaConfigs;
         volcanoComp.updateVolcano(cwaConfigs);
         cancelComp.updateCwsuId(site);
@@ -347,8 +351,8 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
         if (control instanceof AbstractCWAComp) {
             AbstractCWAComp cwaComp = (AbstractCWAComp) control;
             productStr = cwaComp.createText(wmoHeader, header, fromline, body,
-                    cwaConfigs.getCwsuId(), productId, corRdo.getSelection(),
-                    cwaConfigs.isOperational());
+                    cwaConfigs.getCwsuId(), retrievalProductId,
+                    corRdo.getSelection(), cwaConfigs.isOperational());
         }
 
         setProductText(productStr);
@@ -377,7 +381,7 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
         String header = cwaConfigs.getCwsuId()
                 + productId.substring(productId.length() - 1) + " CWA";
 
-        CWAProduct cwaProduct = new CWAProduct(productId,
+        CWAProduct cwaProduct = new CWAProduct(retrievalProductId,
                 cwaConfigs.getCwsuId(), cwaConfigs.isOperational());
         String[] lines = cwaProduct.getProductTxt().split("\n");
 

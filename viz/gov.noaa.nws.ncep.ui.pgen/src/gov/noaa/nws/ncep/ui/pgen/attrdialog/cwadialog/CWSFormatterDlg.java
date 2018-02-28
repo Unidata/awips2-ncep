@@ -79,6 +79,9 @@ public class CWSFormatterDlg extends CaveSWTDialog {
     /** product ID */
     private String productId;
 
+    /** product ID to retrieve product from textDB */
+    private String retrievalProductId;
+
     /** allow the product text modification */
     private boolean allowMod = false;
 
@@ -98,7 +101,8 @@ public class CWSFormatterDlg extends CaveSWTDialog {
     public CWSFormatterDlg(Shell parShell, String productId,
             CWAGeneratorConfigXML cwaConfigs) {
         super(parShell);
-        this.productId = productId;
+        this.retrievalProductId = cwaConfigs.getAwipsNode() + productId;
+        this.productId = cwaConfigs.getKcwsuId() + productId;
         this.cwaConfigs = cwaConfigs;
         setText("MIS/CWS Formatter - Site: " + cwaConfigs.getCwsuId()
                 + " - Product: " + productId);
@@ -276,7 +280,7 @@ public class CWSFormatterDlg extends CaveSWTDialog {
         calendar.add(Calendar.HOUR, duration);
         String endDateTime = sdfDate.format(calendar.getTime());
 
-        CWAProduct cwaProduct = new CWAProduct(productId, "",
+        CWAProduct cwaProduct = new CWAProduct(retrievalProductId, "",
                 cwaConfigs.isOperational());
         String[] lines = cwaProduct.getProductTxt().split("\n");
 
@@ -350,7 +354,7 @@ public class CWSFormatterDlg extends CaveSWTDialog {
         // Load previous CWA in to memory. The old header will
         // not be used. Operational products have two header lines.
         // WRK products omit the WMO header information.
-        CWAProduct cwaProduct = new CWAProduct(productId,
+        CWAProduct cwaProduct = new CWAProduct(retrievalProductId,
                 cwaConfigs.getCwsuId(), cwaConfigs.isOperational());
         String[] lines = cwaProduct.getProductTxt().split("\n");
 

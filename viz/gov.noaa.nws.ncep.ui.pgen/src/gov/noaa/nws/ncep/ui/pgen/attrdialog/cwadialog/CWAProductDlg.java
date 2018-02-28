@@ -309,8 +309,7 @@ public class CWAProductDlg extends AttrDlg {
             if (attrDlg instanceof CWAFormatterDlg) {
                 cwaDlg = (CWAFormatterDlg) attrDlg;
                 String site = productId.substring(productId.length() - 3);
-                cwaDlg.setParameters(site,
-                        cwaConfigs.getKcwsuId() + productId, cwaConfigs);
+                cwaDlg.setParameters(site, productId, cwaConfigs);
             }
         } catch (ExecutionException e) {
             logger.error("Failed to run CWA Formatter", e);
@@ -334,8 +333,7 @@ public class CWAProductDlg extends AttrDlg {
             csigDlg.close();
         }
 
-        cwsDlg = new CWSFormatterDlg(getShell(),
-                cwaConfigs.getKcwsuId() + misBtn.getText(), cwaConfigs);
+        cwsDlg = new CWSFormatterDlg(getShell(), misBtn.getText(), cwaConfigs);
         cwsDlg.open();
     }
 

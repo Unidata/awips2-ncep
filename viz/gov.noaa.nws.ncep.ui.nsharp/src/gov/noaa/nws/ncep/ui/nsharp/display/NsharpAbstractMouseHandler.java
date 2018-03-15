@@ -11,7 +11,8 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
- * 01/15/2018   6746        bsteffen    implement IContainerAwareInputHandler and add setCurrentPane()
+ * 01/15/2018   6746        bsteffen    Implement IContainerAwareInputHandler and add setCurrentPane()
+ * 03/15/2018   6792        bsteffen    Stop stealing focus from other windows.
  *
  * </pre>
  * 
@@ -262,10 +263,6 @@ public class NsharpAbstractMouseHandler extends InputHandlerDefaultImpl
 
     @Override
     public boolean handleMouseHover(int x, int y) {
-        // System.out.println("mouseHandler handleMouseHover");
-        if (editor != null) {
-            editor.setFocus();
-        }
         return true;
     }
 
@@ -300,9 +297,7 @@ public class NsharpAbstractMouseHandler extends InputHandlerDefaultImpl
 
     @Override
     public boolean handleMouseEnter(Event event) {
-    	//System.out.println("handleMouseEnter pane="+ getPaneDisplay().getPaneName());
         if (editor != null) {
-            editor.setFocus();
             editor.setSelectedPane(currentPane);
         }
         cursorInPane = true;

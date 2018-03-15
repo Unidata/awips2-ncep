@@ -10,6 +10,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
  * Date         Ticket#    	Engineer    Description
  * -------		------- 	-------- 	-----------
  * 04/23/2012	229			Chin Chen	Initial coding
+ * 03/15/2018   6792        bsteffen    Stop stealing focus from other windows.
  *
  * </pre>
  * 
@@ -217,9 +218,6 @@ public class NsharpSkewTPaneMouseHandler extends NsharpAbstractMouseHandler{
 
     @Override
     public boolean handleMouseMove(int x, int y) {
-    	if(editor != null) {
-    		editor.setFocus();
-    	}
     	if (getPaneDisplay() == null) {
     		return false;
     	}

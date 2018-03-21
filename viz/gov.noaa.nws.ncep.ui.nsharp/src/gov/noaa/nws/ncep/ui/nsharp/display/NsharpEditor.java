@@ -22,6 +22,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
  *              task#5930   Chin Chen   NSHARP Hodograph Does Not Loop in D2D Lite Configuration
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  * 01/15/2018   6746        bsteffen    Do not replace incoming display on swap.
+ * 03/21/2018   6914        bsteffen    Reuse display panes when changing pane layout.
  *
  * </pre>
  * 
@@ -113,10 +114,6 @@ public class NsharpEditor extends AbstractEditor implements
 
     private NsharpResourceHandler rscHandler;
 
-    private int baseWidth;
-
-    private int baseHeight;
-
     private double skewTHeightHintRatio;
 
     private double skewTWidthHintRatio;
@@ -147,38 +144,6 @@ public class NsharpEditor extends AbstractEditor implements
 
     private double topGroupHeightRatio, botGroupHeightRatio;
 
-    private int skewTHeightHint;
-
-    private int skewTWidthHint;
-
-    private int witoHeightHint;
-
-    private int witoWidthHint;
-
-    private int hodoHeightHint;
-
-    private int hodoWidthHint;
-
-    private int insetHeightHint;
-
-    private int insetWidthHint;
-
-    private int timeStnHeightHint;
-
-    private int timeStnWidthHint;
-
-    private int dataHeightHint;
-
-    private int dataWidthHint;
-
-    private int spcHeightHint;
-
-    private int spcWidthHint;
-
-    private int futureHeightHint;
-
-    private int futureWidthHint;
-    
     private String paneConfigurationName;
 
     private IRenderableDisplay[] displayArray;
@@ -192,13 +157,7 @@ public class NsharpEditor extends AbstractEditor implements
     // Note: nsharpComp used to store composite for each pane.
     private Composite[] nsharpComp;
 
-    private GridData leftGpGd, topGpGd, botGpGd;
-
-    private GridData rightGpGd;
-
-    private GridData rightTopGpGd, leftTopGpGd, leftBotGpGd;
-
-    private Composite parantComp, baseComposite;
+    private Composite parentComp, baseComposite;
 
     private Group rightTopGp = null, leftTopGp = null, leftBotGp = null,
             leftGp, rightGp, topGp, botGp;
@@ -228,7 +187,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private NsharpAbstractMouseHandler spcGraphsPaneMouseHandler = null;
 
-    protected VizDisplayPane displayPane[];
+    protected VizDisplayPane displayPanes[];
 
     protected VizDisplayPane selectedPane;
 
@@ -268,13 +227,11 @@ public class NsharpEditor extends AbstractEditor implements
      */
     @Override
     public void createPartControl(Composite comp) {
-        parantComp = comp;
+        parentComp = comp;
         if (baseComposite != null)
             baseComposite.dispose();
         baseComposite = new Composite(comp, SWT.NONE);
         final GridLayout mainGL;
-        baseHeight = baseComposite.getSize().y;
-        baseWidth = baseComposite.getSize().x;
         resizeLsner = new ResizeListener(paneConfigurationName);
         baseComposite.addListener(SWT.Resize, resizeLsner);
         if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
@@ -397,21 +354,21 @@ public class NsharpEditor extends AbstractEditor implements
         insetInputManager = new InputManager(this);
         spcGraphsInputManager = new InputManager(this);
         try {
-            for (int i = 0; i < displayPane.length; i++) {
-                if (displayPane[i] == null && nsharpComp[i] != null) {
-                    displayPane[i] = new VizDisplayPane(this, nsharpComp[i],
+            for (int i = 0; i < displayPanes.length; i++) {
+                if (displayPanes[i] == null && nsharpComp[i] != null) {
+                    displayPanes[i] = new VizDisplayPane(this, nsharpComp[i],
                             displaysToLoad[i]);
 
-                    displayPane[i].setRenderableDisplay(displaysToLoad[i]);
+                    displayPanes[i].setRenderableDisplay(displaysToLoad[i]);
                 }
             }
             registerHandlers();
             // set default selected pane to skewT pane
-            selectedPane = displayPane[0];
+            selectedPane = displayPanes[0];
 
-            for (int i = 0; i < displayPane.length; i++) {
-                if (displayPane[i] != null)
-                    displayPane[i].addListener(SWT.MouseEnter,
+            for (int i = 0; i < displayPanes.length; i++) {
+                if (displayPanes[i] != null)
+                    displayPanes[i].addListener(SWT.MouseEnter,
                             new PaneMouseListener(i));
             }
         } catch (Exception e) {
@@ -425,7 +382,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private void createSPCWsConfig(Composite comp) {
         topGp = new Group(baseComposite, SWT.NONE);
-        topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
         GridLayout topGpLayout = new GridLayout(3, false);
         topGpLayout.marginWidth = 0;
@@ -456,7 +413,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // right-top group : right part of top group
         rightTopGp = new Group(topGp, SWT.NONE);
-        rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         rightTopGp.setLayoutData(rightTopGpGd);
         GridLayout rightTopGpLayout = new GridLayout(1, true);
         rightTopGpLayout.marginWidth = 0;
@@ -486,7 +443,7 @@ public class NsharpEditor extends AbstractEditor implements
         nsharpComp[DISPLAY_INSET] = insetComp;
 
         botGp = new Group(baseComposite, SWT.NONE);
-        botGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData botGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         botGp.setLayoutData(botGpGd);
         GridLayout botGpLayout = new GridLayout(2, true);
         botGpLayout.marginWidth = 0;
@@ -515,7 +472,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private void createSimpleD2DConfig(Composite comp) {
         topGp = new Group(baseComposite, SWT.NONE);
-        topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
         GridLayout topGpLayout = new GridLayout(2, false);
         topGpLayout.marginWidth = 0;
@@ -536,7 +493,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // right-top group : right part of top group
         rightTopGp = new Group(topGp, SWT.NONE);
-        rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         rightTopGp.setLayoutData(rightTopGpGd);
         GridLayout rightTopGpLayout = new GridLayout(1, true);
         rightTopGpLayout.marginWidth = 0;
@@ -566,7 +523,7 @@ public class NsharpEditor extends AbstractEditor implements
         nsharpComp[DISPLAY_FUTURE] = futureComp;
 
         botGp = new Group(baseComposite, SWT.NONE);
-        botGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData botGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         botGp.setLayoutData(botGpGd);
         GridLayout botGpLayout = new GridLayout(2, false);
         botGpLayout.marginWidth = 0;
@@ -598,7 +555,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private void createLiteD2DConfig(Composite comp) {
         topGp = new Group(baseComposite, SWT.NONE);
-        topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         topGp.setLayoutData(topGpGd);
         GridLayout topGpLayout = new GridLayout(2, false);
         topGpLayout.marginWidth = 0;
@@ -631,7 +588,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // only has right group
         rightTopGp = new Group(topGp, SWT.NONE);
-        rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         rightTopGp.setLayoutData(rightTopGpGd);
         GridLayout rightTopGpLayout = new GridLayout(1, true);
         rightTopGpLayout.marginWidth = 0;
@@ -664,7 +621,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private void createDefConfig2(Composite comp) {
         leftGp = new Group(baseComposite, SWT.NONE);
-        leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         leftGp.setLayoutData(leftGpGd);
         GridLayout leftGpLayout = new GridLayout(1, true);
         leftGpLayout.marginWidth = 0;
@@ -674,7 +631,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // left-top group : upper part of left group
         leftTopGp = new Group(leftGp, SWT.NONE);
-        leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         leftTopGp.setLayoutData(leftTopGpGd);
         GridLayout leftTopGpLayout = new GridLayout(2, false);
         leftTopGpLayout.marginWidth = 0;
@@ -713,7 +670,7 @@ public class NsharpEditor extends AbstractEditor implements
         nsharpComp[DISPLAY_INSET] = insetComp;
         // right group
         rightGp = new Group(baseComposite, SWT.NONE);
-        rightGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData rightGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         rightGp.setLayoutData(rightGpGd);
         GridLayout rightGpLayout = new GridLayout(1, true);
         rightGpLayout.marginWidth = 0;
@@ -723,7 +680,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // right-top group : upper part of right group
         rightTopGp = new Group(rightGp, SWT.NONE);
-        rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         rightTopGp.setLayoutData(rightTopGpGd);
         GridLayout rightTopGpLayout = new GridLayout(2, false);
         rightTopGpLayout.marginWidth = 0;
@@ -763,7 +720,7 @@ public class NsharpEditor extends AbstractEditor implements
 
     private void createDefConfig1(Composite comp) {
         leftGp = new Group(baseComposite, SWT.NONE);
-        leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 
         leftGp.setLayoutData(leftGpGd);
         GridLayout leftGpLayout = new GridLayout(1, true);
@@ -774,7 +731,7 @@ public class NsharpEditor extends AbstractEditor implements
 
         // left-top group : upper part of left group
         leftTopGp = new Group(leftGp, SWT.NONE);
-        leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         leftTopGp.setLayoutData(leftTopGpGd);
         GridLayout leftTopGpLayout = new GridLayout(2, false);
         leftTopGpLayout.marginWidth = 0;
@@ -804,7 +761,7 @@ public class NsharpEditor extends AbstractEditor implements
         nsharpComp[DISPLAY_WITO] = witoComp;
         // left-bottom group
         leftBotGp = new Group(leftGp, SWT.NONE);
-        leftBotGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData leftBotGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
         leftBotGp.setLayoutData(leftBotGpGd);
         GridLayout leftBotGpLayout = new GridLayout(2, true);
         leftBotGpLayout.marginWidth = 0;
@@ -832,7 +789,7 @@ public class NsharpEditor extends AbstractEditor implements
         nsharpComp[DISPLAY_INSET] = insetComp;
         // right group
         rightGp = new Group(baseComposite, SWT.NONE);
-        rightGpGd = new GridData(SWT.END, SWT.FILL, true, true);
+        GridData rightGpGd = new GridData(SWT.END, SWT.FILL, true, true);
 
         rightGp.setLayoutData(rightGpGd);
         GridLayout rightGpLayout = new GridLayout(1, true);
@@ -863,9 +820,9 @@ public class NsharpEditor extends AbstractEditor implements
     }
 
     protected void registerHandlers() {
-        for (int i = 0; i < displayPane.length; i++) {
-            if (displayPane[i] != null) {
-                IDisplayPane pane = displayPane[i];
+        for (int i = 0; i < displayPanes.length; i++) {
+            if (displayPanes[i] != null) {
+                IDisplayPane pane = displayPanes[i];
                 InputHandlerDefaultImpl mouseHandler = null;
                 InputManager inputMgr;
                 // Enable the mouse inspect adapter
@@ -936,60 +893,27 @@ public class NsharpEditor extends AbstractEditor implements
                 && !paneConfigurationName
                         .equals(NsharpConstants.PANE_OPC_CFG_STR)) 
             paneConfigurationName = NsharpConstants.PANE_SIMPLE_D2D_CFG_STR;
-        initDisplayPublicParms();
-        createRenderableDisplayArray();
-        /*
-         * Chin note: we ignore "Renderable displays" sent with "editorInput"
-         * parameter here, as in D2D application the "Renderable displays" only
-         * contains skewTPaneDisplay. We recreate displayArray and reset them to
-         * EditorInput here based on current "paneConfigurationName"
-         */
-
+        initPaneIndices();
         EditorInput edInput = (EditorInput) editorInput;
-        boolean getRscHandlerDone = false;
-        // bsteffen: reuse any displays that already exist in the current
-        // editorInput
-        for (IRenderableDisplay display : edInput.getRenderableDisplays()) {
-            int index = -1;
-            if (display instanceof NsharpSkewTPaneDisplay) {
-                index = DISPLAY_SKEWT;
-            } else if (display instanceof NsharpWitoPaneDisplay) {
-                index = DISPLAY_WITO;
-            } else if (display instanceof NsharpInsetPaneDisplay) {
-                index = DISPLAY_INSET;
-            } else if (display instanceof NsharpHodoPaneDisplay) {
-                index = DISPLAY_HODO;
-            } else if (display instanceof NsharpTimeStnPaneDisplay) {
-                index = DISPLAY_TIMESTN;
-            } else if (display instanceof NsharpDataPaneDisplay) {
-                index = DISPLAY_DATA;
-            } else if (display instanceof NsharpSpcGraphsPaneDisplay) {
-                index = DISPLAY_SPC_GRAPHS;
-            } else if (display instanceof NsharpAbstractPaneDisplay) {
-                index = DISPLAY_FUTURE;
-            }
-            if (index >= 0) {
-                displayArray[index].dispose();
-                displayArray[index] = display;
-                // Chin: only do this once
-                if (!getRscHandlerDone) {
-
-                    // attempt to find and reuse rscHandler if possible
-                    List<NsharpAbstractPaneResource> paneRscs = display
-                            .getDescriptor()
-                            .getResourceList()
-                            .getResourcesByTypeAsType(
-                                    NsharpAbstractPaneResource.class);
-                    for (NsharpAbstractPaneResource paneRsc : paneRscs) {
-                        NsharpResourceHandler handler = paneRsc.getRscHandler();
-                        if (handler != null) {
-                            rscHandler = handler;
-                            getRscHandlerDone = true;
-
-                        }
-                    }
+        
+        displayArray = createRenderableDisplayArray(edInput.getRenderableDisplays());
+        nsharpComp = new Composite[DISPLAY_TOTAL];
+        displayPanes = new VizDisplayPane[DISPLAY_TOTAL];
+        
+        for (IRenderableDisplay display : displayArray) {
+            // attempt to find and reuse rscHandler if possible
+            List<NsharpAbstractPaneResource> paneRscs = display.getDescriptor()
+                    .getResourceList()
+                    .getResourcesByTypeAsType(NsharpAbstractPaneResource.class);
+            for (NsharpAbstractPaneResource paneRsc : paneRscs) {
+                NsharpResourceHandler handler = paneRsc.getRscHandler();
+                if (handler != null) {
+                    rscHandler = handler;
+                    break;
                 }
-
+            }
+            if (rscHandler != null) {
+                break;
             }
         }
 
@@ -1154,26 +1078,17 @@ public class NsharpEditor extends AbstractEditor implements
             timeStnInputManager = null;
         }
         baseComposite.removeListener(SWT.Resize, resizeLsner);
-        displayArray = null;
-        nsharpComp = null;
-        if (displayPane != null) {
-            for (VizDisplayPane pane : displayPane) {
-                if (pane != null)
-                    pane.dispose();
-            }
-        }
-        displayPane = null;
         rightTopGp = leftTopGp = leftBotGp = leftGp = rightGp = topGp = botGp = null;
         updateEditor();
         restarting = true;
-        createPartControl(parantComp);
+        createPartControl(parentComp);
         editorInput.setRenderableDisplays(getRenderableDisplays());
         // Chin: note: after reset all resource in editor, editor displays an
         // empty screen. Refresh() does not work.
         // Therefore, play the following trick. I.e. bring map editor to top and
         // then this editor to top. After this trick,
         // editor displays normally.
-        parantComp.layout(); 
+        parentComp.layout(); 
         NsharpPaletteWindow paletteWin = NsharpPaletteWindow.getInstance();
         if (paletteWin != null) {
             paletteWin.updateSpecialGraphBtn(paneConfigurationName);
@@ -1186,8 +1101,8 @@ public class NsharpEditor extends AbstractEditor implements
      */
     @Override
     public void refresh() {
-        if (displayPane != null)
-            for (IDisplayPane pane : displayPane) {
+        if (displayPanes != null)
+            for (IDisplayPane pane : displayPanes) {
                 if (pane != null)
                     pane.refresh();
             }
@@ -1212,10 +1127,10 @@ public class NsharpEditor extends AbstractEditor implements
 
     public void resetGraph() {
         for (int i = 0; i < DISPLAY_TOTAL; i++) {
-            if (displayPane[i] != null) {
-                displayPane[i].getRenderableDisplay().getExtent().reset();
-                displayPane[i].getRenderableDisplay().zoom(1.0);
-                displayPane[i].getRenderableDisplay().refresh();
+            if (displayPanes[i] != null) {
+                displayPanes[i].getRenderableDisplay().getExtent().reset();
+                displayPanes[i].getRenderableDisplay().zoom(1.0);
+                displayPanes[i].getRenderableDisplay().refresh();
             }
         }
         if (rscHandler != null) {
@@ -1236,7 +1151,7 @@ public class NsharpEditor extends AbstractEditor implements
                 }
                 skewtPaneMouseHandler = (NsharpSkewTPaneMouseHandler) handler;
                 skewtPaneMouseHandler.setEditor(this);
-                skewtPaneMouseHandler.setCurrentPane(displayPane[DISPLAY_SKEWT]);
+                skewtPaneMouseHandler.setCurrentPane(displayPanes[DISPLAY_SKEWT]);
                 
             }
             skewtInputManager.registerMouseHandler(handler, priority);
@@ -1259,7 +1174,7 @@ public class NsharpEditor extends AbstractEditor implements
                 }
                 skewtPaneMouseHandler = (NsharpSkewTPaneMouseHandler) handler;
                 skewtPaneMouseHandler.setEditor(this);
-                skewtPaneMouseHandler.setCurrentPane(displayPane[DISPLAY_SKEWT]);
+                skewtPaneMouseHandler.setCurrentPane(displayPanes[DISPLAY_SKEWT]);
             }
             skewtInputManager.registerMouseHandler(handler);
         }
@@ -1282,22 +1197,22 @@ public class NsharpEditor extends AbstractEditor implements
     @Override
     public IDisplayPane[] getDisplayPanes() {
         // changed for D2D
-        if (displayPane.length <= 0)
+        if (displayPanes.length <= 0)
             try {
                 throw new VizException("Display pane is not available!");
             } catch (VizException e) {
                 
                 e.printStackTrace();
             }
-        IDisplayPane[] pan = { displayPane[DISPLAY_Head] };
+        IDisplayPane[] pan = { displayPanes[DISPLAY_Head] };
         return pan;
 
     }
 
     public IRenderableDisplay[] getRenderableDisplays() {
-        IRenderableDisplay[] displays = new IRenderableDisplay[displayPane.length];
+        IRenderableDisplay[] displays = new IRenderableDisplay[displayPanes.length];
         int i = 0;
-        for (IDisplayPane pane : displayPane) {
+        for (IDisplayPane pane : displayPanes) {
             if (pane != null)
                 displays[i++] = pane.getRenderableDisplay();
         }
@@ -1343,7 +1258,7 @@ public class NsharpEditor extends AbstractEditor implements
         return null;
     }
 
-    private void initDisplayPublicParms() {
+    private void initPaneIndices() {
         if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
             DISPLAY_SKEWT = 0;
             DISPLAY_WITO = DISPLAY_SKEWT + 1;
@@ -1414,115 +1329,78 @@ public class NsharpEditor extends AbstractEditor implements
             DISPLAY_FUTURE = -1;
             DISPLAY_SPC_GRAPHS = -1;
         }
-        nsharpComp = new Composite[DISPLAY_TOTAL];
-        displayPane = new VizDisplayPane[DISPLAY_TOTAL];
-        displayArray = new IRenderableDisplay[DISPLAY_TOTAL];
     }
 
     /*
      * Note: initDisplayPublicParms() should be called before calling this
      * function
      */
-    private IRenderableDisplay[] createRenderableDisplayArray() {
-        if (paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+    private IRenderableDisplay[] createRenderableDisplayArray(IRenderableDisplay[] existing) {
+        IRenderableDisplay[] displayArray = new IRenderableDisplay[DISPLAY_TOTAL];
 
+        for(IRenderableDisplay display : existing){
+            int index = -1;
+            if (display instanceof NsharpSkewTPaneDisplay) {
+                index = DISPLAY_SKEWT;
+            } else if (display instanceof NsharpWitoPaneDisplay) {
+                index = DISPLAY_WITO;
+            } else if (display instanceof NsharpInsetPaneDisplay) {
+                index = DISPLAY_INSET;
+            } else if (display instanceof NsharpHodoPaneDisplay) {
+                index = DISPLAY_HODO;
+            } else if (display instanceof NsharpTimeStnPaneDisplay) {
+                index = DISPLAY_TIMESTN;
+            } else if (display instanceof NsharpDataPaneDisplay) {
+                index = DISPLAY_DATA;
+            } else if (display instanceof NsharpSpcGraphsPaneDisplay) {
+                index = DISPLAY_SPC_GRAPHS;
+            } else if (display instanceof NsharpAbstractPaneDisplay) {
+                index = DISPLAY_FUTURE;
+            }
+            if (index >= 0) {
+                displayArray[index] = display;
+                display.setContainer(null);
+            }
+        }
+        if(DISPLAY_SKEWT >= 0 && displayArray[DISPLAY_SKEWT] == null){
             displayArray[DISPLAY_SKEWT] = new NsharpSkewTPaneDisplay(
                     new PixelExtent(NsharpConstants.SKEWT_DISPLAY_REC),
                     DISPLAY_SKEWT);
+        }
+        if(DISPLAY_WITO >= 0 && displayArray[DISPLAY_WITO] == null){
             displayArray[DISPLAY_WITO] = new NsharpWitoPaneDisplay(
                     new PixelExtent(NsharpConstants.WITO_DISPLAY_REC),
                     DISPLAY_WITO);
-            displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
-                    new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
-                    DISPLAY_HODO);
-            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
-                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
-                    DISPLAY_DATA);
+        }
+        if(DISPLAY_INSET >= 0 && displayArray[DISPLAY_INSET] == null){
             displayArray[DISPLAY_INSET] = new NsharpInsetPaneDisplay(
                     new PixelExtent(NsharpConstants.INSET_DISPLAY_REC),
                     DISPLAY_INSET);
+        }
+        if(DISPLAY_HODO >= 0 && displayArray[DISPLAY_HODO] == null){
+            displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
+                    new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
+                    DISPLAY_HODO);
+        }
+        if(DISPLAY_TIMESTN >= 0 && displayArray[DISPLAY_TIMESTN] == null){
+            displayArray[DISPLAY_TIMESTN] = new NsharpTimeStnPaneDisplay(
+                    new PixelExtent(NsharpConstants.TIMESTN_DISPLAY_REC),
+                    DISPLAY_TIMESTN);
+        }
+        if(DISPLAY_DATA >= 0 && displayArray[DISPLAY_DATA] == null){
+            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
+                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
+                    DISPLAY_DATA);
+        }
+        if(DISPLAY_SPC_GRAPHS >= 0 && displayArray[DISPLAY_SPC_GRAPHS] == null){
             displayArray[DISPLAY_SPC_GRAPHS] = new NsharpSpcGraphsPaneDisplay(
                     new PixelExtent(NsharpConstants.SPC_GRAPH_DISPLAY_REC),
                     DISPLAY_SPC_GRAPHS);
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
-            displayArray[DISPLAY_SKEWT] = new NsharpSkewTPaneDisplay(
-                    new PixelExtent(NsharpConstants.SKEWT_DISPLAY_REC),
-                    DISPLAY_SKEWT);
-            displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
-                    new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
-                    DISPLAY_HODO);
-            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
-                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
-                    DISPLAY_DATA);
-            displayArray[DISPLAY_TIMESTN] = new NsharpTimeStnPaneDisplay(
-                    new PixelExtent(NsharpConstants.TIMESTN_DISPLAY_REC),
-                    DISPLAY_TIMESTN);
+        }
+        if(DISPLAY_FUTURE >= 0 && displayArray[DISPLAY_FUTURE] == null){
             displayArray[DISPLAY_FUTURE] = new NsharpAbstractPaneDisplay(
                     new PixelExtent(NsharpConstants.FUTURE_DISPLAY_REC),
                     DISPLAY_FUTURE);
-           
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
-        	NsharpPaletteWindow win = NsharpPaletteWindow.getInstance();
-            if (win != null &&
-                win.getCurrentGraphMode() == NsharpConstants.GRAPH_HODO) {
-                displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
-                        new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
-                        DISPLAY_HODO);
-            } else {
-                displayArray[DISPLAY_SKEWT] = new NsharpSkewTPaneDisplay(
-                        new PixelExtent(NsharpConstants.SKEWT_DISPLAY_REC),
-                        DISPLAY_SKEWT);
-            }
-            displayArray[DISPLAY_TIMESTN] = new NsharpTimeStnPaneDisplay(
-                    new PixelExtent(NsharpConstants.TIMESTN_DISPLAY_REC),
-                    DISPLAY_TIMESTN);
-            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
-                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
-                    DISPLAY_DATA);
-
-            
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
-        	
-        	NsharpPaletteWindow win = NsharpPaletteWindow.getInstance();
-            if (win != null &&
-                win.getCurrentGraphMode() == NsharpConstants.GRAPH_HODO) {
-           
-                displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
-                        new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
-                        DISPLAY_HODO);
-            } else {
-                displayArray[DISPLAY_SKEWT] = new NsharpSkewTPaneDisplay(
-                        new PixelExtent(NsharpConstants.SKEWT_DISPLAY_REC),
-                        DISPLAY_SKEWT);
-            }
-            displayArray[DISPLAY_TIMESTN] = new NsharpTimeStnPaneDisplay(
-                    new PixelExtent(NsharpConstants.TIMESTN_DISPLAY_REC),
-                    DISPLAY_TIMESTN);
-            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
-                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
-                    DISPLAY_DATA);
-        } else { // case of default1 and default 2 pane configurations
-            displayArray[DISPLAY_SKEWT] = new NsharpSkewTPaneDisplay(
-                    new PixelExtent(NsharpConstants.SKEWT_DISPLAY_REC),
-                    DISPLAY_SKEWT);
-            displayArray[DISPLAY_WITO] = new NsharpWitoPaneDisplay(
-                    new PixelExtent(NsharpConstants.WITO_DISPLAY_REC),
-                    DISPLAY_WITO);
-            displayArray[DISPLAY_HODO] = new NsharpHodoPaneDisplay(
-                    new PixelExtent(NsharpConstants.HODO_DISPLAY_REC),
-                    DISPLAY_HODO);
-            displayArray[DISPLAY_DATA] = new NsharpDataPaneDisplay(
-                    new PixelExtent(NsharpConstants.DATA_DISPLAY_REC),
-                    DISPLAY_DATA);
-            displayArray[DISPLAY_INSET] = new NsharpInsetPaneDisplay(
-                    new PixelExtent(NsharpConstants.INSET_DISPLAY_REC),
-                    DISPLAY_INSET);
-            displayArray[DISPLAY_TIMESTN] = new NsharpTimeStnPaneDisplay(
-                    new PixelExtent(NsharpConstants.TIMESTN_DISPLAY_REC),
-                    DISPLAY_TIMESTN);
         }
         return displayArray;
     }
@@ -1643,11 +1521,20 @@ public class NsharpEditor extends AbstractEditor implements
     }
 
     private void updateEditor() {
-        initDisplayPublicParms();
-        createRenderableDisplayArray();
+        IDisplayPane[] oldPanes = displayPanes;
+        IRenderableDisplay[] oldDisplayArray = displayArray;
+        initPaneIndices();
+        IRenderableDisplay[] newDisplayArray = createRenderableDisplayArray(oldDisplayArray);
+        for(IDisplayPane pane : oldPanes){
+            if(pane.getRenderableDisplay().getContainer() == null){
+                /* If the display was reused, remove it so it doesn't dispose. */
+                pane.setRenderableDisplay(null);
+            }
+            pane.dispose();
+        }
+        displayArray = newDisplayArray;
         nsharpComp = new Composite[DISPLAY_TOTAL];
-        displayPane = new VizDisplayPane[DISPLAY_TOTAL];
-
+        displayPanes = new VizDisplayPane[DISPLAY_TOTAL];
         //CHIN task#5930 use same loop properties
         EditorInput edInput = new EditorInput(this.editorInput.getLoopProperties(),
                 displayArray);
@@ -1732,14 +1619,6 @@ public class NsharpEditor extends AbstractEditor implements
         this.selectedPane = selectedPane;
     }
 
-    public int getBaseWidth() {
-        return baseWidth;
-    }
-
-    public int getBaseHeight() {
-        return baseHeight;
-    }
-
     class PaneMouseListener implements Listener {
         private int paneIndex;
 
@@ -1751,7 +1630,7 @@ public class NsharpEditor extends AbstractEditor implements
         @Override
         public void handleEvent(Event e) {
             if (e.button == 0) {
-                selectedPane = displayPane[paneIndex];
+                selectedPane = displayPanes[paneIndex];
             }
         }
     }
@@ -1766,8 +1645,24 @@ public class NsharpEditor extends AbstractEditor implements
 
         @Override
         public void handleEvent(Event event) {
-            baseHeight = baseComposite.getSize().y;
-            baseWidth = baseComposite.getSize().x;
+            int skewTHeightHint = 0;
+            int skewTWidthHint = 0;
+            int witoHeightHint = 0;
+            int witoWidthHint = 0;
+            int hodoHeightHint = 0;
+            int hodoWidthHint = 0;
+            int insetHeightHint = 0;
+            int insetWidthHint = 0;
+            int timeStnHeightHint = 0;
+            int timeStnWidthHint = 0;
+            int dataHeightHint = 0;
+            int dataWidthHint = 0;
+            int spcHeightHint = 0;
+            int spcWidthHint = 0;
+            int futureHeightHint = 0;
+            int futureWidthHint = 0;
+            int baseHeight = baseComposite.getSize().y;
+            int baseWidth = baseComposite.getSize().x;
             if (paneConfigurationName
                     .equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
                 skewTHeightHint = (int) (baseHeight * skewTHeightHintRatio);
@@ -1842,19 +1737,19 @@ public class NsharpEditor extends AbstractEditor implements
                     .equals(NsharpConstants.PANE_DEF_CFG_2_STR)
                     || paneConfigurationName
                             .equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
-                leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData leftGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 leftGpGd.widthHint = (int) (baseWidth * leftGroupWidthRatio);
                 leftGp.setLayoutData(leftGpGd);
 
-                rightGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData rightGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 rightGpGd.widthHint = (int) (baseWidth * (1 - leftGroupWidthRatio));
                 rightGp.setLayoutData(rightGpGd);
 
-                leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData leftTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 leftTopGpGd.heightHint = (int) (baseHeight * leftTopGroupHeightRatio);
                 leftTopGp.setLayoutData(leftTopGpGd);
                 if (leftBotGp != null) {
-                    leftBotGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                    GridData leftBotGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                     leftBotGpGd.heightHint = (int) (baseHeight * (1 - leftTopGroupHeightRatio));
                     leftBotGp.setLayoutData(leftBotGpGd);
                 }
@@ -1889,7 +1784,7 @@ public class NsharpEditor extends AbstractEditor implements
 
             } else if (paneConfigurationName
                     .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
-                topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 topGpGd.heightHint = (int) (baseHeight * topGroupHeightRatio);
                 topGp.setLayoutData(topGpGd);
 
@@ -1906,7 +1801,7 @@ public class NsharpEditor extends AbstractEditor implements
                 nsharpComp[DISPLAY_WITO].setLayoutData(witoGd);
 
                 // right-top group : right part of top group
-                rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 rightTopGpGd.widthHint = (int) (baseWidth * hodoWidthHintRatio);
                 rightTopGp.setLayoutData(rightTopGpGd);
 
@@ -1922,7 +1817,7 @@ public class NsharpEditor extends AbstractEditor implements
                 insetGd.widthHint = insetWidthHint;
                 nsharpComp[DISPLAY_INSET].setLayoutData(insetGd);
 
-                botGpGd = new GridData(SWT.FILL, SWT.END, true, true);
+                GridData botGpGd = new GridData(SWT.FILL, SWT.END, true, true);
                 botGpGd.heightHint = (int) (baseHeight * botGroupHeightRatio);
                 botGp.setLayoutData(botGpGd);
                 // data composite
@@ -1938,7 +1833,7 @@ public class NsharpEditor extends AbstractEditor implements
 
             } else if (paneConfigurationName
                     .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
-                topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 topGpGd.heightHint = skewTHeightHint;
                 topGp.setLayoutData(topGpGd);
 
@@ -1949,7 +1844,7 @@ public class NsharpEditor extends AbstractEditor implements
                 nsharpComp[DISPLAY_SKEWT].setLayoutData(skewtGd);
 
                 // right-top group : right part of top group
-                rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 rightTopGpGd.widthHint = timeStnWidthHint;
                 rightTopGp.setLayoutData(rightTopGpGd);
 
@@ -1965,7 +1860,7 @@ public class NsharpEditor extends AbstractEditor implements
                 futureGd.widthHint = futureWidthHint;
                 nsharpComp[DISPLAY_FUTURE].setLayoutData(futureGd);
 
-                botGpGd = new GridData(SWT.FILL, SWT.END, true, true);
+                GridData botGpGd = new GridData(SWT.FILL, SWT.END, true, true);
                 botGpGd.heightHint = (int) (baseHeight * botGroupHeightRatio);
                 botGp.setLayoutData(botGpGd);
                 // hodo composite
@@ -1981,7 +1876,7 @@ public class NsharpEditor extends AbstractEditor implements
             //RM#9396 OPC share code with d2dlite start
             else if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) 
             		|| paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
-                topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData topGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 topGpGd.heightHint = skewTHeightHint;
                 topGp.setLayoutData(topGpGd);
 
@@ -2002,7 +1897,7 @@ public class NsharpEditor extends AbstractEditor implements
                 }
 
                 // right-top group : right part of top group
-                rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+                GridData rightTopGpGd = new GridData(SWT.FILL, SWT.FILL, true, true);
                 rightTopGpGd.widthHint = timeStnWidthHint;
                 rightTopGp.setLayoutData(rightTopGpGd);
 
@@ -2057,7 +1952,7 @@ public class NsharpEditor extends AbstractEditor implements
         if (type == DisplayChangeType.ADD
                 && newRenderableDisplay instanceof NsharpAbstractPaneDisplay) {
             for (int i = 0; i < displayArray.length; i += 1) {
-                if (displayPane[i] == pane) {
+                if (displayPanes[i] == pane) {
                     displayArray[i] = newRenderableDisplay;
                 }
             }
@@ -2067,7 +1962,7 @@ public class NsharpEditor extends AbstractEditor implements
             if (newHandler != null && newHandler != rscHandler) {
                 rscHandler = newHandler;
                 for (int i = 0; i < displayArray.length; i += 1) {
-                    if (displayPane[i] != pane) {
+                    if (displayPanes[i] != pane) {
                         ResourceList resources = displayArray[i].getDescriptor()
                                 .getResourceList();
                         List<NsharpAbstractPaneResource> nsharpResources = resources

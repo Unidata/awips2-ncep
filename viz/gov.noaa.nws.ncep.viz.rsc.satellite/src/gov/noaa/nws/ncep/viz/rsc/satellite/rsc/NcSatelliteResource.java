@@ -73,6 +73,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
 import com.raytheon.uf.viz.core.tile.TileSetRenderable;
 import com.raytheon.viz.satellite.SatelliteConstants;
+import com.raytheon.viz.satellite.tileset.SatTileSetRenderable;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
@@ -142,6 +143,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  04/25/2017   R20558     bsteffen    Schedule all frames to load data in the background.
  *  05/09/2017   R27171     P. Moyer    Modified initResource to take parent resource's
  *                                      visibility and apply it to the newly created color bar
+ *  05/17/2017   R33818     bsteffen    Fixed units of GOES-R/Himawari data.
  * 
  * </pre>
  * 
@@ -420,10 +422,8 @@ public class NcSatelliteResource extends
                     tileMap.clear();
                 }
                 if (tileSet == null) {
-                    tileSet = new RecordTileSetRenderable(
-                            NcSatelliteResource.this, satRecord,
-                            satRecord.getGridGeometry(),
-                            satRecord.getInterpolationLevels() + 1);
+                    tileSet = new SatTileSetRenderable(NcSatelliteResource.this,
+                            satRecord);
                     tileSet.project(descriptor.getGridGeometry());
                     tileMap.put((T) satRecord.getCoverage(), tileSet);
                 }

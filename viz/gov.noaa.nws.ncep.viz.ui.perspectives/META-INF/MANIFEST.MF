@@ -27,4 +27,4 @@ Import-Package: com.raytheon.uf.common.derivparam.library,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
  gov.noaa.nws.ncep.viz.resources,
  gov.noaa.nws.ncep.viz.rsc.satellite.units
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

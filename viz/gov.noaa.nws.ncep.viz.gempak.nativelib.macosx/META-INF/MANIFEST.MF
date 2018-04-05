@@ -4,5 +4,5 @@ Bundle-Name: gempak native libs mac os x
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.gempak.nativelib.macosx
 Bundle-Version: 1.0.0.qualifier
 Fragment-Host: gov.noaa.nws.ncep.viz.gempak.nativelib;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-PlatformFilter: (& (osgi.os=macosx) (osgi.ws=cocoa) (osgi.arch=x86_64))

@@ -447,7 +447,7 @@ public class NcscatResource
                         ds1.horizontalAlignment = leftToRight
                                 ? HorizontalAlignment.RIGHT
                                 : HorizontalAlignment.LEFT;
-                        ds1.verticallAlignment = bottomToTop
+                        ds1.verticalAlignment = bottomToTop
                                 ? VerticalAlignment.BOTTOM
                                 : VerticalAlignment.TOP;
                         ds1.setText(timeString,
@@ -461,7 +461,7 @@ public class NcscatResource
                         ds2.horizontalAlignment = leftToRight
                                 ? HorizontalAlignment.LEFT
                                 : HorizontalAlignment.RIGHT;
-                        ds2.verticallAlignment = bottomToTop
+                        ds2.verticalAlignment = bottomToTop
                                 ? VerticalAlignment.TOP
                                 : VerticalAlignment.BOTTOM;
                         ds2.setText(timeString,

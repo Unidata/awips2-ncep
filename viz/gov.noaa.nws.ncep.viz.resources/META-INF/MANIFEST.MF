@@ -2,18 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Resource Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.viz.resources;singleton:=true
-Bundle-Version: 1.15.0.qualifier
+Bundle-Version: 1.16.0.qualifier
 Bundle-Activator: gov.noaa.nws.ncep.viz.resources.Activator
 Eclipse-BuddyPolicy: registered
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.viz.core,
- com.raytheon.uf.viz.core,
  com.raytheon.viz.ui,
- javax.measure;bundle-version="1.0.0",
  org.apache.commons.lang,
- org.geotools,
  gov.noaa.nws.ncep.viz.common,
  gov.noaa.nws.ncep.viz.ui.display,
  com.raytheon.uf.common.colormap;bundle-version="1.11.22",
@@ -70,9 +66,7 @@ Export-Package: gov.noaa.nws.ncep.viz.resources;
    com.raytheon.uf.common.time,
    gov.noaa.nws.ncep.viz.ui.display",
  gov.noaa.nws.ncep.viz.resources.util
-Import-Package: com.raytheon.uf.common.message.response,
- com.raytheon.uf.common.pointdata,
- com.raytheon.uf.viz.core.maps,
+Import-Package: com.raytheon.uf.viz.core.maps,
  com.raytheon.uf.viz.xy.graph,
  com.raytheon.viz.alerts.observers,
  com.raytheon.viz.core.graphing,
@@ -80,5 +74,5 @@ Import-Package: com.raytheon.uf.common.message.response,
  gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.gempak.parameters.colorbar
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 

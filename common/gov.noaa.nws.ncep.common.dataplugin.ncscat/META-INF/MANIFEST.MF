@@ -4,7 +4,7 @@ Bundle-Name: Ncscat Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.ncscat
 Bundle-Version: 1.0.0.qualifier
 Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.7",
  javax.persistence;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common;bundle-version="1.0.0"

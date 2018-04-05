@@ -94,8 +94,8 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
-   <plugin
+   
+<plugin
          id="gov.noaa.nws.ncep.viz.rsc.convsigmet"
          download-size="0"
          install-size="0"
@@ -132,13 +132,6 @@
 
    <plugin
          id="gov.noaa.nws.ncep.viz.rsc.lightning"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.mosaic"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -269,21 +262,14 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
+<!--
    <plugin
          id="gov.noaa.nws.ncep.viz.rsc.ntrans"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.ui.remotescript"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
+-->
    <plugin
          id="gov.noaa.nws.ncep.viz.soundingrequest"
          download-size="0"
@@ -292,7 +278,7 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.gempak.nativelib.macosx"
+         id="gov.noaa.nws.ncep.viz.gempak.nativelib.linux64"
          download-size="0"
          install-size="0"
          version="0.0.0"

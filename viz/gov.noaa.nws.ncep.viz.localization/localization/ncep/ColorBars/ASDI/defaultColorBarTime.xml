@@ -1,0 +1,24 @@
+   <colorBarTime>
+       <showLabels>true</showLabels>
+       <drawToScale>false</drawToScale>
+       <orientation>Vertical</orientation>
+       <anchorLoc>UpperRight</anchorLoc>
+       <lengthAsRatio>0.4</lengthAsRatio>
+       <widthInPixels>15</widthInPixels>
+       <numDecimals>0</numDecimals>
+       <IntervalValue>0</IntervalValue>
+       <IntervalValue>2</IntervalValue>
+       <IntervalValue>4</IntervalValue>
+       <IntervalValue>6</IntervalValue>
+       <IntervalValue>8</IntervalValue>
+       <IntervalValue>10</IntervalValue>
+       <IntervalValue>12</IntervalValue>
+       <IntervalColor>RGB {255,0,0}</IntervalColor>  
+       <IntervalColor>RGB {238,64,0}</IntervalColor>  
+       <IntervalColor>RGB {255,127,0}</IntervalColor>  
+       <IntervalColor>RGB {255,215,0}</IntervalColor>   
+       <IntervalColor>RGB {0,205,0}</IntervalColor>  
+       <IntervalColor>RGB {0,139,0}</IntervalColor>        
+         
+   </colorBarTime>
+   

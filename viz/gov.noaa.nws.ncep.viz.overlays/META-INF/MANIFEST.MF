@@ -23,5 +23,5 @@ Export-Package: gov.noaa.nws.ncep.viz.overlays,
  gov.noaa.nws.ncep.viz.overlays.resources
 Import-Package: com.raytheon.uf.common.time,
  com.raytheon.uf.viz.core.maps
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
  

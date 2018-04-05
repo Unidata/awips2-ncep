@@ -44,6 +44,7 @@ import gov.noaa.nws.ncep.viz.resources.IStaticDataNatlCntrsResource;
  * 02/17/2016       #13554        dgilling      Implement IStaticDataNatlCntrsResource.
  * 07/03/13         #1010         ghull         Initial creation
  * 11/05/2015       #5070         randerso      Adjust font sizes for dpi scaling
+ * 09/09/2016   -----     mjames@ucar Simple name.
  * 11/12/2016       R20573        jbeck         Change the legend string text, and the algorithm for creating it (for county names)
  * 
  * </pre>
@@ -107,16 +108,7 @@ public class PointOverlayResource
      */
     @Override
     public String getName() {
-
-        String legendString = ptOvrlyRscData.getMapName();
-
-        if (numVisPoints == 0
-                && (labelStrings == null || labelStrings.isEmpty())) {
-            legendString += " (...Hidden...)";
-        }
-
-        return legendString;
-
+        return ptOvrlyRscData.getMapName();
     }
 
     /*

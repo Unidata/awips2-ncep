@@ -62,6 +62,7 @@ java -jar MiscsetConvert.jar $GEMTBL/config/miscset.tbl $HOME/miscset
       output *.attr files under directories:
       $HOME/miscset/MISC/AIRMET
       $HOME/miscset/MISC/ATCF
+      $HOME/miscset/MISC/ASDI
       $HOME/miscset/MISC/CSIG
       $HOME/miscset/MISC/FFA
       $HOME/miscset/MISC/ISIG

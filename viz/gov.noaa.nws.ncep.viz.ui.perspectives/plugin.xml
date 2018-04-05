@@ -461,12 +461,6 @@
                     commandId="gov.noaa.nws.ncep.viz.CustomProjection"                    
                     label="Custom Area...">
               </command>
-              <command
-                    commandId="gov.noaa.nws.ncep.viz.ui.remotescript"
-                    label="Run Remote Script"
-                    mnemonic="R"
-                    style="push">
-              </command>
               <!--
               <command
                     commandId="sync.file.tool.command"
@@ -781,6 +775,11 @@
          <commandParameter
                id="overlayName"
                name="overlayName"
+               optional="false">
+         </commandParameter>
+	 <commandParameter
+               id="resourceMapName"
+               name="resourceMapName"
                optional="false">
          </commandParameter>
       </command>

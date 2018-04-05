@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.idft
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
 Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.idft,
  gov.noaa.nws.ncep.common.dataplugin.idft.dao
 Import-Package: com.raytheon.edex.db.dao,

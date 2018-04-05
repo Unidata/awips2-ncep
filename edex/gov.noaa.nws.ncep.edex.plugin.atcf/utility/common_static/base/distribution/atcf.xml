@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <requestPatterns xmlns:ns2="group">
-    <regex>^(WP|IO|SH|CP|EP|AL|SL).*</regex>
+    <regex>^(WP|IO|CP|EP|AL|SL).*</regex>
 </requestPatterns>

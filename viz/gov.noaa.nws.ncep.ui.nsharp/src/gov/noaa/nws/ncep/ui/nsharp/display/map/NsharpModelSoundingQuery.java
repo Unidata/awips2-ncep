@@ -84,6 +84,11 @@ public class NsharpModelSoundingQuery extends Job {
     private String selectedModelType;
     private String selectedRscDefName;
 
+    private boolean gridInterpolation;
+    private String[] refLTimeStrAry;
+    private String[] soundingRangeTimeStrArray;
+    private Coordinate[] coordArray;
+
     /**
      * Query and load the Sounding data.
      * 
@@ -165,16 +170,15 @@ public class NsharpModelSoundingQuery extends Job {
                 NsharpConfigManager mgr = NsharpConfigManager.getInstance();
                 NsharpConfigStore configStore = mgr
                         .retrieveNsharpConfigStoreFromFs();
-                boolean gridInterpolation;
                 if (configStore != null) {
                     gridInterpolation = configStore.getGraphProperty()
                             .isGridInterpolation();
                 } else
                     gridInterpolation = true; // by default
 
-                String[] refLTimeStrAry = { selectedFileStr + ":00:00" };
-                String[] soundingRangeTimeStrArray = { rangeStartStr };
-                Coordinate[] coordArray = { new Coordinate(lon, lat) };
+                refLTimeStrAry = new String[]{ selectedFileStr + ":00:00" };
+                soundingRangeTimeStrArray = new String[]{ rangeStartStr };
+                coordArray = new Coordinate[]{ new Coordinate(lon, lat) };
                 
                 /*
                  * Schedule all of the NcSoundingQueries. The executor service

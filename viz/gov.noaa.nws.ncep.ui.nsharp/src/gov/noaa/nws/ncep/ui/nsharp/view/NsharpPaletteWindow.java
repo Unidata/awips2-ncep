@@ -101,29 +101,29 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
     protected boolean interpolateIsOn = false, editGraphOn = false;
 
-    private static String INTP_OFF = "  Interp(off)    ";
+    private static String INTP_OFF = "Interp(off)";
 
-    private static String INTP_ON = "  Interp(on)     ";
+    private static String INTP_ON = "Interp(on)";
 
     private static String COMP_STN_OFF = "CompStn(off)";
 
-    private static String COMP_STN_ON = "CompStn(on)  ";
+    private static String COMP_STN_ON = "CompStn(on)";
 
     private static String COMP_TM_OFF = "CompTm(off)";
 
-    private static String COMP_TM_ON = "CompTm(on)  ";
+    private static String COMP_TM_ON = "CompTm(on)";
 
     private static String COMP_SND_OFF = "CompSrc(off)";
 
-    private static String COMP_SND_ON = "CompSrc(on)  ";
+    private static String COMP_SND_ON = "CompSrc(on)";
 
-    private static String OVLY_OFF = "Ovrlay2(off)  ";
+    private static String OVLY_OFF = "Ovrlay2(off)";
 
-    private static String OVLY_ON = "Ovrlay2(on)   ";
+    private static String OVLY_ON = "Ovrlay2(on)";
 
     protected static String EDIT_GRAPH_OFF = "EditGraph(off)";
 
-    protected static String EDIT_GRAPH_ON = "EditGraph(on) ";
+    protected static String EDIT_GRAPH_ON = "EditGraph(on)";
 
     private IWorkbenchPage page;
 
@@ -154,12 +154,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
     public static NsharpPaletteWindow getInstance() {
         if (VizPerspectiveListener.getCurrentPerspectiveManager() != null) {
-            if (VizPerspectiveListener.getCurrentPerspectiveManager()
-                    .getPerspectiveId().equals(D2D5Pane.ID_PERSPECTIVE)) {
+            if (VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(D2D5Pane.ID_PERSPECTIVE)) {
                 return d2dInstance;
-            } else if (VizPerspectiveListener.getCurrentPerspectiveManager()
-                    .getPerspectiveId()
-                    .equals(NmapCommon.NatlCntrsPerspectiveID)) {
+            } else if (VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(NmapCommon.NatlCntrsPerspectiveID)) {
                 return ncpInstance;
             }
         }
@@ -408,13 +405,10 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         super();
         instance = this;
         if (VizPerspectiveListener.getCurrentPerspectiveManager() != null) {
-            if (VizPerspectiveListener.getCurrentPerspectiveManager()
-                    .getPerspectiveId().equals(D2D5Pane.ID_PERSPECTIVE)) {
+            if (VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(D2D5Pane.ID_PERSPECTIVE)) {
                 d2dInstance = this;
                 imD2d = true;
-            } else if (VizPerspectiveListener.getCurrentPerspectiveManager()
-                    .getPerspectiveId()
-                    .equals(NmapCommon.NatlCntrsPerspectiveID)) {
+            } else if (VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId().equals(NmapCommon.NatlCntrsPerspectiveID)) {
                 ncpInstance = this;
             }
         }
@@ -424,10 +418,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
         mb.setMessage("Data is not loaded yet!");
         NsharpConfigManager configMgr = NsharpConfigManager.getInstance();
-        NsharpConfigStore configStore = configMgr
-                .retrieveNsharpConfigStoreFromFs();
-        NsharpGraphProperty graphConfigProperty = configStore
-                .getGraphProperty();
+        NsharpConfigStore configStore = configMgr.retrieveNsharpConfigStoreFromFs();
+        NsharpGraphProperty graphConfigProperty = configStore.getGraphProperty();
         paneConfigurationName = graphConfigProperty.getPaneConfigurationName();
     }
 
@@ -437,13 +429,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void init(IViewSite site) {
         try {
-
             super.init(site);
-
         } catch (PartInitException pie) {
-
             pie.printStackTrace();
-
         }
 
         page = site.getPage();
@@ -465,7 +453,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             compareSndIsOn = rsc.isCompareSndIsOn();
             compareTmIsOn = rsc.isCompareTmIsOn();
         }
-
     }
 
     /**
@@ -495,7 +482,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                             rsc.unload();
                             display.getDescriptor().getResourceList()
                                     .removePreRemoveListener(rsc);
-
                         }
                     }
                 }
@@ -551,7 +537,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
     public void createDataControlGp(Composite parent) {
         this.parent = parent;
-        Group textModeGp = new Group(parent, SWT.SHADOW_OUT);
+        Group textModeGp = new Group(parent, SWT.SHADOW_NONE);
+        
+        
         textModeGp.setLayout(new RowLayout(SWT.HORIZONTAL));
         textModeGp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         Font font = textModeGp.getFont();
@@ -563,7 +551,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
         loadBtn = new Button(textModeGp, SWT.PUSH);
         loadBtn.setFont(newFont);
-        loadBtn.setText("      Load      ");
+        loadBtn.setText("Load");
         loadBtn.setEnabled(true);
         loadBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -581,7 +569,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
         unloadBtn = new Button(textModeGp, SWT.PUSH);
         unloadBtn.setFont(newFont);
-        unloadBtn.setText("     UnLoad   ");
+        unloadBtn.setText("Unload");
         unloadBtn.setEnabled(true);
         unloadBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -595,32 +583,29 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
                     if (unloadDia != null) {
                         unloadDia.open();
-
                     }
                 }
             }
         });
+        
         // Push buttons for SAVE
         Button saveBtn = new Button(textModeGp, SWT.PUSH);
         saveBtn.setFont(newFont);
-        saveBtn.setText("      Save      ");
+        saveBtn.setText("Save");
         saveBtn.setEnabled(true);
         saveBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
             public void handleEvent(Event event) {
-
                 if (checkLoadedData()) {
-                    // Action to save text report
                     NsharpSaveHandle.saveFile(shell);
                 }
             }
-
         });
 
         // Push buttons for CONFIGURE
         cfgBtn = new Button(textModeGp, SWT.PUSH);
         cfgBtn.setFont(newFont);
-        cfgBtn.setText("  Configure  ");
+        cfgBtn.setText("Configure");
         cfgBtn.setEnabled(true);
         cfgBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -636,7 +621,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
         Button resetBtn = new Button(textModeGp, SWT.PUSH);
         resetBtn.setFont(newFont);
-        resetBtn.setText("     Reset      ");
+        resetBtn.setText("Reset");
         resetBtn.setEnabled(true);
         resetBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -695,7 +680,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         });
         Button resetGfBtn = new Button(textModeGp, SWT.PUSH);
         resetGfBtn.setFont(newFont);
-        resetGfBtn.setText("ResetDisplay");
+        resetGfBtn.setText("Reset Display");
         resetGfBtn.setEnabled(true);
         resetGfBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -707,7 +692,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
         Button parcelBtn = new Button(textModeGp, SWT.PUSH);
         parcelBtn.setFont(newFont);
-        parcelBtn.setText("     Parcel     ");
+        parcelBtn.setText("Parcel");
         parcelBtn.setEnabled(true);
         parcelBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -721,49 +706,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     if (parcelDia != null) {
                         parcelDia.open();
 
-                    }
-                }
-            }
-        });
-        // start d2dlite
-        Group dataGp = new Group(textModeGp, SWT.SHADOW_ETCHED_IN);
-        dataGp.setLayout(new RowLayout(SWT.HORIZONTAL));
-
-        // Push buttons for Prev PAGE info
-        Button prevpageBtn = new Button(dataGp, SWT.PUSH);
-        prevpageBtn.setFont(newFont);
-        // prevpageBtn.setText("  Prev Data    ");
-        prevpageBtn.setText("PvDt");
-        prevpageBtn.setEnabled(true);
-        prevpageBtn.addListener(SWT.MouseUp, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                        .getShell();
-                if (checkLoadedData()) {
-                    NsharpResourceHandler rsc = getRscHandler();
-                    if (rsc != null) {
-                        rsc.setPrevTextChapter();
-                        rsc.refreshPane();
-                    }
-                }
-            }
-        });
-        // Push buttons for NEXT PAGE info
-        Button nextpageBtn = new Button(dataGp, SWT.PUSH);
-        nextpageBtn.setFont(newFont);
-        nextpageBtn.setText("NxDt");
-        nextpageBtn.setEnabled(true);
-        nextpageBtn.addListener(SWT.MouseUp, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                        .getShell();
-                if (checkLoadedData()) {
-                    NsharpResourceHandler rsc = getRscHandler();
-                    if (rsc != null) {
-                        rsc.setNextTextChapter();
-                        rsc.refreshPane();
                     }
                 }
             }
@@ -1107,7 +1049,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
         dataEditBtn = new Button(textModeGp, SWT.PUSH);
         dataEditBtn.setFont(newFont);
-        dataEditBtn.setText("   EditData    ");
+        dataEditBtn.setText("Edit Data");
         if (editGraphOn) {
             dataEditBtn.setEnabled(false);
         } else {
@@ -1185,7 +1127,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         // Push buttons for show text info
         Button showtextBtn = new Button(textModeGp, SWT.PUSH);
         showtextBtn.setFont(newFont);
-        showtextBtn.setText("  ShowText   ");
+        showtextBtn.setText("ShowText");
         showtextBtn.setEnabled(true);
         showtextBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -1205,7 +1147,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         // Push buttons for Print
         Button printBtn = new Button(textModeGp, SWT.PUSH);
         printBtn.setFont(newFont);
-        printBtn.setText("      Print       ");
+        printBtn.setText("Print");
         printBtn.setEnabled(true);
         printBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -1214,6 +1156,45 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                         .getShell();
                 if (true) {
                     printHandle.handlePrint("");
+                }
+            }
+        });
+        
+        Group dataGp = new Group(parent, SWT.SHADOW_ETCHED_IN);
+        dataGp.setLayout(new RowLayout(SWT.HORIZONTAL));
+        Button prevpageBtn = new Button(dataGp, SWT.PUSH);
+        prevpageBtn.setFont(newFont);
+        prevpageBtn.setText("<<");
+        prevpageBtn.setEnabled(true);
+        prevpageBtn.addListener(SWT.MouseUp, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                        .getShell();
+                if (checkLoadedData()) {
+                    NsharpResourceHandler rsc = getRscHandler();
+                    if (rsc != null) {
+                        rsc.setPrevTextChapter();
+                        rsc.refreshPane();
+                    }
+                }
+            }
+        });
+        Button nextpageBtn = new Button(dataGp, SWT.PUSH);
+        nextpageBtn.setFont(newFont);
+        nextpageBtn.setText(">>");
+        nextpageBtn.setEnabled(true);
+        nextpageBtn.addListener(SWT.MouseUp, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                        .getShell();
+                if (checkLoadedData()) {
+                    NsharpResourceHandler rsc = getRscHandler();
+                    if (rsc != null) {
+                        rsc.setNextTextChapter();
+                        rsc.refreshPane();
+                    }
                 }
             }
         });
@@ -1492,9 +1473,13 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     private void createAwcGp() {
         awcGp = new Group(parent, SWT.SHADOW_ETCHED_IN);
         awcGp.setLayout(new RowLayout(SWT.HORIZONTAL));
+        // TODO: SWT.TOGGLE
         graphModeBtnSkew = new Button(awcGp, SWT.PUSH);
+        graphModeBtnTurb = new Button(awcGp, SWT.PUSH);
+        graphModeBtnIcing = new Button(awcGp, SWT.PUSH);
+        
         graphModeBtnSkew.setFont(newFont);
-        graphModeBtnSkew.setText("S");
+        graphModeBtnSkew.setText("Skew");
         graphModeBtnSkew.setEnabled(true);
         NsharpResourceHandler rscHandler = getRscHandler();
         if (rscHandler != null) {
@@ -1520,9 +1505,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-        graphModeBtnTurb = new Button(awcGp, SWT.PUSH);
+        
         graphModeBtnTurb.setFont(newFont);
-        graphModeBtnTurb.setText("T");
+        graphModeBtnTurb.setText("Turb");
         graphModeBtnTurb.setEnabled(true);
         graphModeBtnTurb.addListener(SWT.MouseUp, new Listener() {
             @Override
@@ -1540,9 +1525,9 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-        graphModeBtnIcing = new Button(awcGp, SWT.PUSH);
+        
         graphModeBtnIcing.setFont(newFont);
-        graphModeBtnIcing.setText("I");
+        graphModeBtnIcing.setText("Ice");
         graphModeBtnIcing.setEnabled(true);
         graphModeBtnIcing.addListener(SWT.MouseUp, new Listener() {
             @Override

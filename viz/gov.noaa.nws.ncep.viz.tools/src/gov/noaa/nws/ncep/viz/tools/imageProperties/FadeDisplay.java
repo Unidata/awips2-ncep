@@ -1,12 +1,5 @@
 package gov.noaa.nws.ncep.viz.tools.imageProperties;
 
-import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +25,13 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.viz.ui.editor.AbstractEditor;
+
+import gov.noaa.nws.ncep.viz.common.display.IPowerLegend;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
+import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource2;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
 
 /**
  * 
@@ -64,6 +64,7 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 05/26/2016   R17960     bsteffen     Search within IPowerLegend resources to find image resources.
  * 10/20/2016   R20700     pmoyer       Implemented inclusion of AbstractNatlCntrsResource2 for
  *                                      control activation.
+ * 04/09/2018   6889       njensen      Fix brightness compile error
  * </pre>
  * 
  * @author Q. Zhou
@@ -93,7 +94,7 @@ public class FadeDisplay extends ContributionItem {
      */
     public FadeDisplay() {
         super();
-        imageResources = new ArrayList<AbstractVizResource<?, ?>>();
+        imageResources = new ArrayList<>();
         if (fadeKeyListener == null) {
             fadeKeyListener = new FadeHotKeyListener();
         }
@@ -127,13 +128,14 @@ public class FadeDisplay extends ContributionItem {
         btn0.setFont(font);
 
         btn0.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 for (AbstractVizResource<?, ?> rsc : imageResources) {
                     if ((rsc instanceof AbstractNatlCntrsResource<?, ?>)
                             || (rsc instanceof AbstractNatlCntrsResource2<?, ?>)) {
                         ImagingCapability imgCap = rsc
                                 .getCapability(ImagingCapability.class);
-                        imgCap.setBrightness(0);
+                        imgCap.setBrightness(0.0f);
                     }
                 }
                 scale.setEnabled(true);
@@ -146,6 +148,7 @@ public class FadeDisplay extends ContributionItem {
         btn50.setText("N");
         btn50.setFont(font);
         btn50.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 for (AbstractVizResource<?, ?> rsc : imageResources) {
                     if ((rsc instanceof AbstractNatlCntrsResource<?, ?>)
@@ -169,6 +172,7 @@ public class FadeDisplay extends ContributionItem {
         scale.setSelection(50);
 
         scale.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
 
                 if (imageResources == null) {
@@ -278,12 +282,12 @@ public class FadeDisplay extends ContributionItem {
             if (resource instanceof AbstractNatlCntrsResource<?, ?>) {
                 if (resource.hasCapability(ImagingCapability.class)) {
                     imageResources
-                            .add((AbstractNatlCntrsResource<?, ?>) resource);
+                            .add(resource);
                 }
             } else if (resource instanceof AbstractNatlCntrsResource2<?, ?>) {
                 if (resource.hasCapability(ImagingCapability.class)) {
                     imageResources
-                            .add((AbstractNatlCntrsResource2<?, ?>) resource);
+                            .add(resource);
                 }
             } else if (resource instanceof IPowerLegend) {
                 imageResources

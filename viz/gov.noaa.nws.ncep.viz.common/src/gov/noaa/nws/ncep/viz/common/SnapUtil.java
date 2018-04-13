@@ -39,6 +39,7 @@ import com.vividsolutions.jts.geom.Envelope;
  * 11/2012		873			B. Yin		When snapping, check sigmet type to make sure
  * 										no space between distance and direction for CONV_SIGMET.
  * 10/2014      TTR726      J. Wu       Add "-" or " TO " at the end of vor text line.
+ * 01/2017      17469       W. Kwock    Added CWA Formatter.
  * 
  * </pre>
  * 
@@ -489,7 +490,8 @@ public class SnapUtil {
                 vs.setPgenType(GFA_TEXT);
             } else if ("CONV_SIGMET".equals(sigmetType)
                     || "NCON_SIGMET".equals(sigmetType)
-                    || "OUTL_SIGMET".equals(sigmetType)) {
+                    || "OUTL_SIGMET".equals(sigmetType)
+                    || "CWA_FORMATTER".equals(sigmetType)) {
                 vs.setPgenType(sigmetType);
             }
 
@@ -711,10 +713,10 @@ public class SnapUtil {
             if ("0".equals(distance)) {
                 return name;
             }
-
             if ("CONV_SIGMET".equalsIgnoreCase(pgenType)
                     || "NCON_SIGMET".equalsIgnoreCase(pgenType)
-                    || "OUTL_SIGMET".equalsIgnoreCase(pgenType)) {
+                    || "OUTL_SIGMET".equalsIgnoreCase(pgenType)
+                    || "CWA_FORMATTER".equalsIgnoreCase(pgenType)) {
                 return distance + azimuth + " " + name;
             }
             // For GFA - should be (30NNW LGC"), not "30 NNW LGC"

@@ -343,6 +343,11 @@
           id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenClip" 
           name="Pgen Clip"> 
       </command>
+      <command
+          categoryId="gov.noaa.nws.ncep.viz.ui.modalTool"
+          id="gov.noaa.nws.ncep.ui.pgen.rsc.PgenCwaFormatTool"
+          name="Pgen CWA selection">
+      </command>        
    </extension>
 
    <extension
@@ -594,6 +599,10 @@
        <handler
             class="gov.noaa.nws.ncep.ui.pgen.tools.PgenClippingTool"
             commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenClip">
+       </handler>
+       <handler
+            class="gov.noaa.nws.ncep.ui.pgen.tools.PgenCwaFormatTool"
+            commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenCwaFormatTool">
        </handler>
    </extension>
 
@@ -3163,6 +3172,12 @@
              className="SIGMET"
              commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenMultiDraw"
              icon="icons/sigvac.gif" />   
+          <object 
+             name="CWA_SIGMET"
+             label="CWA_SIGMET"
+             className="SIGMET"
+             commandId="gov.noaa.nws.ncep.ui.pgen.rsc.PgenCwaFormatTool"
+             icon="icons/cwa.gif" />   
    </extension>
    
       <extension

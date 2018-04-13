@@ -18,6 +18,7 @@ package gov.noaa.nws.ncep.ui.pgen;
  * 05/02/2016    R16076    J. Wu       Add more constants.
  * 05/16/2016    R18388    J. Wu       Add more constants.
  * 05/25/2016    R17940    J. Wu       Add more constants.
+ * 12/12/2016     17469    W. Kwock    Added CWA Formatter
  * 
  * </pre>
  * 
@@ -160,5 +161,11 @@ public final class PgenConstant {
     public static final String DESK = "DESK";
 
     public static final String G2G_BOUND_MARK = "9999";
+    
+    public static final String SIGMET = "SIGMET";
+    
+    public static final String CWA_SIGMET = "CWA_SIGMET";
+    
+    public static final String CWA_FORMATTER = "CWA_FORMATTER";
 
 }

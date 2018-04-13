@@ -8,6 +8,9 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.cwadialog.CWAFormatterDlg;
+import gov.noaa.nws.ncep.ui.pgen.attrdialog.cwadialog.CWAProductDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VaaCloudDlg;
 import gov.noaa.nws.ncep.ui.pgen.attrdialog.vaadialog.VolcanoVaaAttrDlg;
 import gov.noaa.nws.ncep.ui.pgen.elements.Track;
@@ -19,29 +22,30 @@ import org.eclipse.swt.widgets.Shell;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ------------	----------	-----------	--------------------------
- * 02/09					B. Yin   	Initial Creation.
- * 04/09		#88			J. Wu  		Added Text.
- * 04/09		#89			J. Wu  		Added Arc.
- * 05/09		#111		J. Wu  		Added Vector.
- * 06/09		#130		J. Wu  		Added Extrapolation.
- * 06/09		#116		B. Yin		Added labeled symbol and volcano
- * 07/09		#135		B. Yin		Added Jet 
+ * Date        Ticket#      Engineer    Description
+ * ------------ ----------  ----------- --------------------------
+ * 02/09                    B. Yin      Initial Creation.
+ * 04/09        #88         J. Wu       Added Text.
+ * 04/09        #89         J. Wu       Added Arc.
+ * 05/09        #111        J. Wu       Added Vector.
+ * 06/09        #130        J. Wu       Added Extrapolation.
+ * 06/09        #116        B. Yin      Added labeled symbol and volcano
+ * 07/09        #135        B. Yin      Added Jet 
  * 07/09        #104        S. Gilbert  Added AvnText
  * 08/09        #142        S. Gilbert  Added Interpolation dialog
- * 10/09		#167		J. Wu  		Added Contours dialog.
- * 10/09		#160		G. Zhang	Added Sigmet dialog
- * 01/10		#182		G. Zhang	Added ConvSigmet dialog
- * 01/10		#104?		S. Gilbert	Added MidLevelCloud dialog
- * 05/10		?			B. Yin		Added Outlook dialog 
- * 07/10		#223		M.Laryukhin	Added GfaFormatAttrDlg
- * 07/10		?			B. Yin		Seperated Front from lines
- * 09/10		#305/306	B. Yin		Added Cloud and Turbulence
+ * 10/09        #167        J. Wu       Added Contours dialog.
+ * 10/09        #160        G. Zhang    Added Sigmet dialog
+ * 01/10        #182        G. Zhang    Added ConvSigmet dialog
+ * 01/10        #104?       S. Gilbert  Added MidLevelCloud dialog
+ * 05/10        ?           B. Yin      Added Outlook dialog 
+ * 07/10        #223        M.Laryukhin Added GfaFormatAttrDlg
+ * 07/10        ?           B. Yin      Seperated Front from lines
+ * 09/10        #305/306    B. Yin      Added Cloud and Turbulence
  * 02/11        #318        S. Gilbert  Added Distance Display Options Dialog
- * 08/11		#?			B. Yin		Added Pgen Inc/Dec 
+ * 08/11        #?          B. Yin      Added Pgen Inc/Dec 
  * 06/12        #734        J. Zeng     Add SPENES
  * 11/13        #1065       J. Wu       Added kink lines.
+ * 12/16        17469       W. Kwock    Added CWA Product Dialog
  * </pre>
  * 
  * @author B. Yin
@@ -68,12 +72,10 @@ public class AttrDlgFactory {
         }
 
         if ((pgenCategory.equalsIgnoreCase("Lines"))
-                || ((pgenType != null) && pgenType
-                        .equalsIgnoreCase("STATUS_LINE"))) {
+                || "STATUS_LINE".equalsIgnoreCase(pgenType)) {
 
-            if ((pgenType != null)
-                    && (pgenType.equalsIgnoreCase("KINK_LINE_1") || pgenType
-                            .equalsIgnoreCase("KINK_LINE_2"))) {
+            if ((pgenType != null) && (pgenType.equalsIgnoreCase("KINK_LINE_1")
+                    || pgenType.equalsIgnoreCase("KINK_LINE_2"))) {
                 return KinkLineAttrDlg.getInstance(parShell);
             } else {
                 return LineAttrDlg.getInstance(parShell);
@@ -101,7 +103,8 @@ public class AttrDlgFactory {
 
         else if (pgenCategory.equalsIgnoreCase("Text")) {
 
-            if (pgenType != null && pgenType.equalsIgnoreCase("AVIATION_TEXT")) {
+            if (pgenType != null
+                    && pgenType.equalsIgnoreCase("AVIATION_TEXT")) {
                 return AvnTextAttrDlg.getInstance(parShell);
             } else if (pgenType != null
                     && pgenType.equalsIgnoreCase("MID_LEVEL_CLOUD")) {
@@ -181,7 +184,8 @@ public class AttrDlgFactory {
 
             return CloudAttrDlg.getInstance(parShell);
 
-        } else if (pgenType != null && pgenType.equalsIgnoreCase("Turbulence")) {
+        } else if (pgenType != null
+                && pgenType.equalsIgnoreCase("Turbulence")) {
 
             return TurbAttrDlg.getInstance(parShell);
 
@@ -218,6 +222,19 @@ public class AttrDlgFactory {
                 sigAttrDlg.setPgenCategory(pgenCategory);
                 sigAttrDlg.setPgenType(pgenType);
                 return sigAttrDlg;
+            } else if (pgenType != null
+                    && pgenType.equalsIgnoreCase(PgenConstant.CWA_SIGMET)) {
+                CWAProductDlg cwaDlg = CWAProductDlg.getInstance(parShell);
+                cwaDlg.setPgenCategory(pgenCategory);
+                cwaDlg.setPgenType(pgenType);
+                return cwaDlg;
+            } else if (pgenType != null
+                    && pgenType.equalsIgnoreCase(PgenConstant.CWA_FORMATTER)) {
+                CWAFormatterDlg cwaFormatterDlg = CWAFormatterDlg
+                        .getInstance(parShell);
+                cwaFormatterDlg.setPgenCategory(pgenCategory);
+                cwaFormatterDlg.setPgenType(pgenType);
+                return cwaFormatterDlg;
             } else {// (pgenType != null &&
                     // pgenType.equalsIgnoreCase("CONV_SIGMET")) {
                 SigmetCommAttrDlg sigAttrDlg = SigmetCommAttrDlg

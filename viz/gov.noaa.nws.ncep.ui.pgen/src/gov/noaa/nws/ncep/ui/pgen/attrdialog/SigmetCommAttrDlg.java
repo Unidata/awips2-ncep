@@ -8,6 +8,7 @@
 
 package gov.noaa.nws.ncep.ui.pgen.attrdialog;
 
+import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
 import gov.noaa.nws.ncep.ui.pgen.PgenSession;
 import gov.noaa.nws.ncep.ui.pgen.PgenStaticDataProvider;
 import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
@@ -64,25 +65,26 @@ import com.vividsolutions.jts.io.WKBReader;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date       	Ticket#		Engineer	Description
- * ---------	--------	----------	--------------------------
- * 12/09		182			G. Zhang 	Initial Creation. 
+ * Date         Ticket#     Engineer    Description
+ * ---------    --------   ----------   --------------------------
+ * 12/09        182         G. Zhang    Initial Creation. 
  * 03/10        231         Archana     Altered the common dialog for  
  *                                      ConvSigmet, NonConvSigmet,Airmet and Outlook
  *                                      to display only a button showing the 
  *                                      selected color instead of displaying 
  *                                      the complete color matrix.
- * 03/10		#223		M.Laryukhin	Refactored getVOR method to be used with gfa too.
- * 04/11		#?			B. Yin		Re-factor IAttribute
- * 12/11		#526		B. Yin		Close dialog after saving text.
- * 01/12		#597		S. Gurung	Removed Snapping for ConvSigmet
+ * 03/10        #223        M.Laryukhin Refactored getVOR method to be used with gfa too.
+ * 04/11        #?          B. Yin      Re-factor IAttribute
+ * 12/11        #526        B. Yin      Close dialog after saving text.
+ * 01/12        #597        S. Gurung   Removed Snapping for ConvSigmet
  * 02/12        #597        S. Gurung   Removed snapping for NonConvSigmet. Moved snap functionalities to SnapUtil from SigmetInfo.
  * 03/12        #611        S. Gurung   Fixed ability to change SIGMET type (from Area to Line/Isolated and back and forth)
- * 11/12		#873		B. Yin		Pass sigmet type "CONV_SIGMET" for snapping.
- * 03/13		#928		B. Yin		Made the button bar smaller.
+ * 11/12        #873        B. Yin      Pass sigmet type "CONV_SIGMET" for snapping.
+ * 03/13        #928        B. Yin      Made the button bar smaller.
  * 04/29        #977        S. Gilbert  PGEN Database support
  * 04/29        #726        J. Wu       Remove the line breaker when saving vor list into file.
  * 01/15        #5801       A. Su       Made tag ID part of the activity label.
+ * 12/12/2016   17469       W. Kwock    Added CWA Formatter
  * </pre>
  * 
  * @author gzhang
@@ -151,7 +153,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     protected SigmetCommAttrDlg(Shell parShell) throws VizException {
         super(parShell);
         if (txtfont == null) {
-            txtfont = new Font(parShell.getDisplay(), "Courier", 12, SWT.NORMAL);
+            txtfont = new Font(parShell.getDisplay(), "Courier", 12,
+                    SWT.NORMAL);
         }
     }
 
@@ -194,7 +197,6 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
                     if (md != null) {
                         md.open();
-
                     }
 
                 }
@@ -207,24 +209,24 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                     saveApplyPressed();
                 }
             });
-            this.getButton(20091229).setLayoutData(
-                    new GridData(ctrlBtnWidth, ctrlBtnHeight));
-            this.getButton(20091021).setLayoutData(
-                    new GridData(ctrlBtnWidth, ctrlBtnHeight));
+            this.getButton(20091229)
+                    .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
+            this.getButton(20091021)
+                    .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
 
         } else {
             createButton(parent, IDialogConstants.OK_ID,
                     IDialogConstants.OK_LABEL, true);
-            this.getButton(IDialogConstants.OK_ID).setLayoutData(
-                    new GridData(ctrlBtnWidth, ctrlBtnHeight));
+            this.getButton(IDialogConstants.OK_ID)
+                    .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
         }
         createButton(parent, IDialogConstants.CANCEL_ID,
                 IDialogConstants.CANCEL_LABEL, false);
         setMouseHandlerName(null);
         withExpandedArea = false;
 
-        this.getButton(IDialogConstants.CANCEL_ID).setLayoutData(
-                new GridData(ctrlBtnWidth, ctrlBtnHeight));
+        this.getButton(IDialogConstants.CANCEL_ID)
+                .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
     }
 
     @Override
@@ -249,8 +251,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         this.setEditableAttrFromLine(s);
         this.relatedState = this.getRelatedStates(coors, de);
         ((AbstractSigmet) de).setEditableAttrFromLine(s);
-        if (txtInfo != null && !txtInfo.isDisposed() && s != null)
+        if (txtInfo != null && !txtInfo.isDisposed() && s != null) {
             txtInfo.setText(s);
+        }
     }
 
     private void copyEditableAttrToAbstractSigmet(AbstractSigmet ba) {
@@ -260,8 +263,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         ba.setEditableAttrFromLine(this.getEditableAttrFromLine());
         ba.setEditableAttrId(this.getEditableAttrId());
         if (this.getEditableAttrSequence() == null
-                || this.getEditableAttrSequence().length() == 0)
+                || this.getEditableAttrSequence().length() == 0) {
             this.setEditableAttrSequence("1");
+        }
         ba.setEditableAttrSeqNum(this.getEditableAttrSequence());
         ba.setType(this.getLineType());
         ba.setWidth(this.getWidth());
@@ -332,9 +336,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     @Override
     public void setAttrForDlg(IAttribute attr) {
         Color clr = attr.getColors()[0];
-        if (clr != null)
+        if (clr != null) {
             this.setColor(clr);
-
+        }
     }
 
     @Override
@@ -347,14 +351,15 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         mainLayout.marginWidth = 3;
         top.setLayout(mainLayout);
 
-        if ("CONV_SIGMET".equals(this.pgenType))
+        if ("CONV_SIGMET".equals(this.pgenType)) {
             this.getShell().setText("Convective SIGMET Edit");
-        else if ("NCON_SIGMET".equals(this.pgenType))
+        } else if ("NCON_SIGMET".equals(this.pgenType)) {
             this.getShell().setText("Non-convective SIGMET Edit");
-        else if ("AIRM_SIGMET".equals(this.pgenType))
+        } else if ("AIRM_SIGMET".equals(this.pgenType)) {
             this.getShell().setText("AIRMET Edit");
-        else if ("OUTL_SIGMET".equals(this.pgenType))
+        } else if ("OUTL_SIGMET".equals(this.pgenType)) {
             this.getShell().setText("Convective Outlook Edit");
+        }
 
         if ("NCON_SIGMET".equals(this.pgenType)
                 || "AIRM_SIGMET".equals(this.pgenType)
@@ -365,8 +370,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         final Button btnArea = new Button(top, SWT.RADIO);
         btnArea.setSelection(true); // default
         btnArea.setText("Area");
-        if (mouseHandlerName == null)
+        if (mouseHandlerName == null) {
             setLineType(AREA);// when NOT selecting element
+        }
 
         final Button btnLine = new Button(top, SWT.RADIO);
         btnLine.setText("Line");
@@ -387,8 +393,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         attrControlMap.put("width", txtWidth);
         txtWidth.setText("10.00");
         txtWidth.setEnabled(false);
-        attrButtonMap.put("lineType", new Button[] { btnArea, btnLine,
-                btnIsolated });
+        attrButtonMap.put("lineType",
+                new Button[] { btnArea, btnLine, btnIsolated });
 
         btnArea.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event e) {
@@ -440,7 +446,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));// new
                                                                                // RGB(0,255,0));
 
-        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)) {
+        if (!"INTL_SIGMET".equals(pgenType) && !"CONV_SIGMET".equals(pgenType)
+                && !PgenConstant.CWA_FORMATTER.equals(pgenType)) {
             btnLine.setEnabled(false);
             btnIsolated.setEnabled(false);
             comboLine.setEnabled(false);
@@ -449,10 +456,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
         if ("Pgen Select".equals(mouseHandlerName) || withExpandedArea) {
 
-            String[] MWO_ITEMS = SigmetInfo.AREA_MAP.get(SigmetInfo
-                    .getSigmetTypeString(pgenType));
-            String[] ID_ITEMS = SigmetInfo.ID_MAP.get(SigmetInfo
-                    .getSigmetTypeString(pgenType));
+            String[] MWO_ITEMS = SigmetInfo.AREA_MAP
+                    .get(SigmetInfo.getSigmetTypeString(pgenType));
+            String[] ID_ITEMS = SigmetInfo.ID_MAP
+                    .get(SigmetInfo.getSigmetTypeString(pgenType));
 
             Composite topSelect = (Composite) super.createDialogArea(parent);
 
@@ -462,8 +469,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             topSelect.setLayout(mainLayout2);
 
             Group top2 = new Group(topSelect, SWT.LEFT);
-            top2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true,
-                    8, 1));
+            top2.setLayoutData(
+                    new GridData(SWT.FILL, SWT.CENTER, true, true, 8, 1));
             top2.setLayout(new GridLayout(8, false));
 
             Label lblMWO = new Label(top2, SWT.LEFT);
@@ -473,13 +480,13 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             comboMWO.setItems(MWO_ITEMS);
             comboMWO.select(0);
             // this.setEditableAttrArea(comboMWO.getText());
-            comboMWO.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
-                    true, 1, 1));
+            comboMWO.setLayoutData(
+                    new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
 
             comboMWO.addListener(SWT.Selection, new Listener() {
                 public void handleEvent(Event e) {
-                    SigmetCommAttrDlg.this.setEditableAttrArea(comboMWO
-                            .getText());
+                    SigmetCommAttrDlg.this
+                            .setEditableAttrArea(comboMWO.getText());
                 }
             });
 
@@ -490,8 +497,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             comboID.setItems(ID_ITEMS);
             comboID.select(0);
 
-            comboID.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
-                    true, 1, 1));
+            comboID.setLayoutData(
+                    new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
 
             comboID.addListener(SWT.Selection, new Listener() {
                 public void handleEvent(Event e) {
@@ -506,33 +513,33 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             spiSeq.setMinimum(1);
             spiSeq.setMaximum(300);
 
-            spiSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-                    false, 3, 1));
+            spiSeq.setLayoutData(
+                    new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 
             spiSeq.addListener(SWT.Selection, new Listener() {
                 public void handleEvent(Event e) {
-                    SigmetCommAttrDlg.this.setEditableAttrSequence(""
-                            + spiSeq.getSelection());
+                    SigmetCommAttrDlg.this.setEditableAttrSequence(
+                            "" + spiSeq.getSelection());
                 }
             });
 
             final Button btnNew = new Button(top2, SWT.RADIO);
             // btnNew.setSelection(true);
             btnNew.setText("New(Prepend dir)");
-            btnNew.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
-                    false, 2, 1));
+            btnNew.setLayoutData(
+                    new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
             btnNew.setEnabled(false);
 
             final Button btnOld = new Button(top2, SWT.RADIO);
             btnOld.setText("Old(Postpend dir)");
-            btnOld.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
-                    false, 2, 1));
+            btnOld.setLayoutData(
+                    new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
             btnOld.setEnabled(false);
 
             final Button btnVor = new Button(top2, SWT.RADIO);
             btnVor.setText("VOR");
-            btnVor.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true,
-                    false, 4, 1));
+            btnVor.setLayoutData(
+                    new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
             btnVor.setEnabled(true);
             btnVor.setSelection(true);
 
@@ -544,17 +551,19 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             gData.horizontalSpan = 8;
             txtInfo.setLayoutData(gData);
             txtInfo.setText(this.getEditableAttrFromLine());
-            if (editableAttrFromLine == null || editableAttrFromLine.equals(""))
+            if (editableAttrFromLine == null
+                    || editableAttrFromLine.equals("")) {
                 this.setEditableAttrFromLine(txtInfo.getText());
+            }
 
-            attrButtonMap.put("editableAttrFromLine", new Button[] { btnNew,
-                    btnOld, btnVor });
+            attrButtonMap.put("editableAttrFromLine",
+                    new Button[] { btnNew, btnOld, btnVor });
 
             final StringBuilder coorsLatLon = new StringBuilder();
             final AbstractDrawableComponent elSelected = PgenSession
                     .getInstance().getPgenResource().getSelectedComp();
-            final Coordinate[] coors = (elSelected == null) ? null : elSelected
-                    .getPoints().toArray(new Coordinate[] {});
+            final Coordinate[] coors = (elSelected == null) ? null
+                    : elSelected.getPoints().toArray(new Coordinate[] {});
 
             if (coors != null) {
                 if (editableAttrFromLine == null
@@ -590,20 +599,13 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     }
 
     private String getVOR(Coordinate[] coors) {
-        boolean isSnapped = false;// "NCON_SIGMET".equals(pgenType)||"OUTL_SIGMET".equals(pgenType)||"CONV_SIGMET".equals(pgenType);
-        String vorConnector = ("NCON_SIGMET".equals(pgenType) || "AIRM_SIGMET"
-                .equals(pgenType)) ? " TO " : "-";
+        boolean isSnapped = false;
+        String vorConnector = ("NCON_SIGMET".equals(pgenType)
+                || "AIRM_SIGMET".equals(pgenType)) ? " TO " : "-";
 
-        /*
-         * if("OUTL_SIGMET".equals(pgenType)) {//20100824 outlook GUI NOT
-         * snapped but text is with 16 pts ArrayList<Coordinate> p =
-         * SigmetInfo.getSnapWithStation(Arrays.asList(coors),
-         * SigmetInfo.VOR_STATION_LIST, 10, 16); return
-         * SigmetInfo.getVORText(p.toArray(new Coordinate[]{}), vorConnector,
-         * lineType, 6, true); }
-         */
         if ("OUTL_SIGMET".equals(pgenType) || "CONV_SIGMET".equals(pgenType)
-                || "NCON_SIGMET".equals(pgenType)) {
+                || "NCON_SIGMET".equals(pgenType)
+                || PgenConstant.CWA_FORMATTER.equals(pgenType)) {
             return SnapUtil.getVORText(coors, vorConnector, lineType, 6,
                     isSnapped, true, false, pgenType);
         }
@@ -611,9 +613,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     }
 
     private void init() {
-        if (this.asig == null)
+        if (this.asig == null) {
             return;
-        else {
+        } else {
             Button[] btns = attrButtonMap.get("lineType");
             if (btns != null) {
                 if (lineType.equals(AREA) || "NCON_SIGMET".equals(pgenType)
@@ -642,35 +644,39 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             String lt = this.getLineType();
             if (comboLine != null && !comboLine.isDisposed() && lt != null
                     && lt.contains(this.LINE_SEPERATER)) {
-                if (lt.length() > 7)
+                if (lt.length() > 7) {
                     comboLine.setText(lt.substring(7));
-                else
+                } else {
                     comboLine.select(0);
+                }
             }
 
             Text txtWidth = (Text) attrControlMap.get("width");
             String width = this.width == null ? "10.00" : this.width;
-            if (txtWidth != null && !txtWidth.isDisposed())
+            if (txtWidth != null && !txtWidth.isDisposed()) {
                 txtWidth.setText(width);
+            }
 
             Combo comboMWO = (Combo) attrControlMap.get("editableAttrArea");
             if (comboMWO != null && !comboMWO.isDisposed()
                     && this.getEditableAttrArea() != null) {
                 String area = this.getEditableAttrArea();
-                if (area != null && area.length() > 0)
+                if (area != null && area.length() > 0) {
                     comboMWO.setText(area);
-                else
+                } else {
                     comboMWO.select(0);
+                }
             }
 
             Combo comboId = (Combo) attrControlMap.get("editableAttrId");
             if (comboId != null && !comboId.isDisposed()
                     && this.getEditableAttrId() != null) {
                 String id = this.getEditableAttrId();
-                if (id != null && id.length() > 0)
+                if (id != null && id.length() > 0) {
                     comboId.setText(id);
-                else
+                } else {
                     comboId.select(0);
+                }
             }
 
             Spinner seq = (Spinner) attrControlMap.get("editableAttrSeqNum");
@@ -749,10 +755,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             createButton(parent, IDialogConstants.CANCEL_ID,
                     IDialogConstants.CANCEL_LABEL, false);
 
-            getButton(IDialogConstants.OK_ID).setLayoutData(
-                    new GridData(ctrlBtnWidth, ctrlBtnHeight));
-            getButton(IDialogConstants.CANCEL_ID).setLayoutData(
-                    new GridData(ctrlBtnWidth, ctrlBtnHeight));
+            getButton(IDialogConstants.OK_ID)
+                    .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
+            getButton(IDialogConstants.CANCEL_ID)
+                    .setLayoutData(new GridData(ctrlBtnWidth, ctrlBtnHeight));
         }
 
         @Override
@@ -771,14 +777,11 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         public void okPressed() {
 
             String dataURI = storeActivity();
-            // FileTools.writeFile(PgenUtil.getPgenActivityTextProdPath()+File.separator+txtSave.getText(),
-            // txtInfo.getText());
 
             if (dataURI != null) {
                 try {
-                    StorageUtils.storeDerivedProduct(dataURI,
-                            txtSave.getText(), "TEXT", txtInfo.getText()
-                                    .replaceAll("-\n", "-"));
+                    StorageUtils.storeDerivedProduct(dataURI, txtSave.getText(),
+                            "TEXT", txtInfo.getText().replaceAll("-\n", "-"));
                 } catch (PgenStorageException e) {
                     StorageUtils.showError(e);
                 }
@@ -796,58 +799,43 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             String dataURI;
 
             Layer defaultLayer = new Layer();
-            defaultLayer.addElement(SigmetCommAttrDlg.this.drawingLayer
-                    .getSelectedDE());
+            defaultLayer.addElement(
+                    SigmetCommAttrDlg.this.drawingLayer.getSelectedDE());
             ArrayList<Layer> layerList = new ArrayList<Layer>();
             layerList.add(defaultLayer);
 
             String forecaster = System.getProperty("user.name");
             ProductTime refTime = new ProductTime();
 
-            /*
-            String pname = SigmetCommAttrDlg.this.drawingLayer
-                    .getActiveProduct().getName();
-            String ptype = SigmetCommAttrDlg.this.drawingLayer
-                    .getActiveProduct().getType();
-
-            pname = (pname == null) ? "Default" : pname;
-            ptype = (ptype == null) ? "Default" : ptype;
-
-            Product defaultProduct = new Product(pname, ptype, forecaster,
-                    null, refTime, layerList);
-            */
-            
             // Use (hardcode) pgenType as the name and type of a new Product.
             Product defaultProduct = new Product(
-                     SigmetCommAttrDlg.this.pgenType, SigmetCommAttrDlg.this.pgenType,
-                     forecaster, null, refTime, layerList);
-             
+                    SigmetCommAttrDlg.this.pgenType,
+                    SigmetCommAttrDlg.this.pgenType, forecaster, null, refTime,
+                    layerList);
+
             String plabel = SigmetCommAttrDlg.this.drawingLayer
                     .getActiveProduct().getOutputFile();
             if (plabel == null) {
                 plabel = SigmetCommAttrDlg.this.drawingLayer
                         .buildActivityLabel(defaultProduct);
             }
-            
+
             // Construct a new label name and activity xml filename by using
-            //      (1) pgenType as the prefix, and 
-            //      (2) its tag name inserted before the filename extension "xml"
-            //      with a dot connecting each field in the filename,
-            //      e.g., "CONV_SIGMET.08012015.15.24W.xml".
-            String prefix = SigmetCommAttrDlg.this.pgenType.replaceAll("\\s", "");
+            // (1) pgenType as the prefix, and
+            // (2) its tag name inserted before the filename extension "xml"
+            // with a dot connecting each field in the filename,
+            // e.g., "CONV_SIGMET.08012015.15.24W.xml".
+            String prefix = SigmetCommAttrDlg.this.pgenType.replaceAll("\\s",
+                    "");
             String fromFileName = getFileName();
-            String tagName = fromFileName.substring(0, fromFileName.indexOf('.'));
-            int insertionPoint = plabel.lastIndexOf('.'); 
+            String tagName = fromFileName.substring(0,
+                    fromFileName.indexOf('.'));
+            int insertionPoint = plabel.lastIndexOf('.');
             String filename = prefix
-                    + plabel.substring( plabel.indexOf('.'), insertionPoint + 1) 
-                    + tagName
-                    + plabel.substring(insertionPoint);
-            
-            // defaultProduct.setOutputFile(plabel);
+                    + plabel.substring(plabel.indexOf('.'), insertionPoint + 1)
+                    + tagName + plabel.substring(insertionPoint);
+
             defaultProduct.setOutputFile(filename);
-            
-            // defaultProduct.setOutputFile(SigmetCommAttrDlg.this.drawingLayer
-            // .buildActivityLabel(defaultProduct));
 
             defaultProduct.setCenter(PgenUtil.getCurrentOffice());
 
@@ -876,8 +864,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
             this.getShell().setText("SIGMET Save");
 
-            txtInfo = new Text(top, SWT.MULTI | SWT.BORDER | SWT.READ_ONLY
-                    | SWT.WRAP);
+            txtInfo = new Text(top,
+                    SWT.MULTI | SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
             txtInfo.setFont(txtfont);
             GridData gData = new GridData(672, 300);
             gData.horizontalSpan = 3;
@@ -885,8 +873,8 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             txtInfo.setText(getFileContent());
 
             txtSave = new Text(top, SWT.BORDER | SWT.READ_ONLY);
-            txtSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-                    false, 3, 1));
+            txtSave.setLayoutData(
+                    new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
             txtSave.setText(getFileName());
 
             return top;
@@ -895,35 +883,40 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         private String getFileContent() {
             String s = "From "
                     + SigmetCommAttrDlg.this.getEditableAttrFromLine();
-            if (s == null || s.contains("null"))
+            if (s == null || s.contains("null")) {
                 s = "";
+            }
 
             if ("NCON_SIGMET".equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
                     || "AIRM_SIGMET"
                             .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)
-                    || "OUTL_SIGMET"
-                            .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType))
+                    || "OUTL_SIGMET".equalsIgnoreCase(
+                            SigmetCommAttrDlg.this.pgenType)) {
                 return s.toUpperCase();
+            }
 
             return SigmetCommAttrDlg.this.relatedState + "\n" + s.toUpperCase();
         }
 
         private String getFileName() {
             String s = "";
-            if ("CONV_SIGMET".equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType))
+            if ("CONV_SIGMET"
+                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
                 s = SigmetCommAttrDlg.this.getAbstractSigmet().getTopText();
-            else if ("OUTL_SIGMET"
-                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType))
+            } else if ("OUTL_SIGMET"
+                    .equalsIgnoreCase(SigmetCommAttrDlg.this.pgenType)) {
                 s = SigmetCommAttrDlg.this.getAbstractSigmet().getTopText()
                         + "O";// TTR#111 upper case letter o, NOT number zero
-            else
+            } else {
                 s = SigmetCommAttrDlg.this.editableAttrId + "_"
                         + SigmetCommAttrDlg.this.editableAttrSequence;
+            }
 
-            if (s == null || s.contains("null"))
+            if (s == null || s.contains("null")) {
                 s = "";
-            else
+            } else {
                 s = s + ".from";
+            }
             return s;
         }
     }
@@ -933,7 +926,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         StringBuilder sb = new StringBuilder();
 
         String lineType = ((Sigmet) de).getType();// 20100810
-                                                  // PgenSession.getInstance().getPgenResource().getSelectedDE()).getType();
+
         Polygon cSigPoly = null;
         com.raytheon.uf.viz.core.map.IMapDescriptor mapDescriptor = PgenSession
                 .getInstance().getPgenResource().getDescriptor();
@@ -970,33 +963,7 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 "bounds.adjcstlbnds");
 
         return getStates(s, l, c);
-        /*
-         * WKBReader wkbReader = new WKBReader();
-         * 
-         * for (Object[] state : SigmetInfo.ALL_STATES) {
-         * 
-         * byte[] wkb = (byte[]) state[0];
-         * 
-         * MultiPolygon stateGeo = null;
-         * 
-         * try { stateGeo = (MultiPolygon) wkbReader.read(wkb); } catch
-         * (Exception e) {
-         * System.out.println("++++++++++++ read geometry exception: "
-         * +e.getMessage()); }
-         * 
-         * if ( stateGeo != null ){ for(int i=0; i<stateGeo.getNumGeometries();
-         * i++){ Geometry g = stateGeo.getGeometryN(i); if(g != null){
-         * Coordinate[] cc = g.getCoordinates(); Coordinate[] ccc = new
-         * Coordinate[cc.length+1]; ccc = (Coordinate[]) Arrays.copyOf(cc,
-         * cc.length); ccc[ccc.length-1] = cc[0];
-         * 
-         * Polygon sp = SigmetInfo.getPolygon(ccc, mapDescriptor); if
-         * (cSigPoly.intersects(sp)||cSigPoly.covers(sp)||cSigPoly.within(sp) ){
-         * String s = (String) state[1]; if( s != null && (!
-         * sb.toString().contains(s)) ) sb.append(s).append(" "); } }
-         * 
-         * } } } //sb.append("\n").append("From "); return sb.toString();
-         */}
+    }
 
     public void saveApplyPressed() {
         ArrayList<AbstractDrawableComponent> adcList = null;
@@ -1037,8 +1004,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             drawingLayer.addSelected(adc);
         }
 
-        if (mapEditor != null)
+        if (mapEditor != null) {
             mapEditor.refresh();
+        }
 
     }
 
@@ -1053,16 +1021,26 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     }
 
     static Color getDefaultColor(String pType) {
-        if ("INTL_SIGMET".equalsIgnoreCase(pType))
+        if ("INTL_SIGMET".equalsIgnoreCase(pType)) {
             return Color.cyan;
-        else if ("CONV_SIGMET".equalsIgnoreCase(pType))
+        }
+
+        if ("CONV_SIGMET".equalsIgnoreCase(pType)
+                || PgenConstant.CWA_FORMATTER.equalsIgnoreCase(pType)) {
             return Color.yellow;
-        else if ("AIRM_SIGMET".equalsIgnoreCase(pType))
+        }
+
+        if ("AIRM_SIGMET".equalsIgnoreCase(pType)) {
             return Color.green;
-        else if ("NCON_SIGMET".equalsIgnoreCase(pType))
+        }
+
+        if ("NCON_SIGMET".equalsIgnoreCase(pType)) {
             return Color.magenta;
-        else if ("OUTL_SIGMET".equalsIgnoreCase(pType))
+        }
+
+        if ("OUTL_SIGMET".equalsIgnoreCase(pType)) {
             return Color.orange;
+        }
 
         return Color.green;
     }
@@ -1107,8 +1085,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                         if (cSigPoly.intersects(sp) || cSigPoly.covers(sp)
                                 || cSigPoly.within(sp)) {
                             String s = (String) state[1];
-                            if (s != null && (!list.contains(s)))
+                            if (s != null && (!list.contains(s))) {
                                 list.add(s.toUpperCase());
+                            }
                         }
                     }
 
@@ -1132,8 +1111,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
 
         // NO lakes & coastal together without states involved
         if (states == null || states.size() == 0) {
-            if (lakes == null || lakes.size() == 0)
+            if (lakes == null || lakes.size() == 0) {
                 return list2String(coastal) + " CSTL WTRS";
+            }
 
             return list2String(lakes);
         }
@@ -1157,8 +1137,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                     + " CSTL WTRS";
         } else {// need to see if states and coastal are the same
 
-            if (is2ListSame(states, coastal))
+            if (is2ListSame(states, coastal)) {
                 return list2String(states) + " AND CSTL WTRS";
+            }
 
             states.addAll(lakes);
             return list2String(states) + " AND " + list2String(coastal)
@@ -1170,8 +1151,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
     public static boolean is2ListSame(List<String> s, List<String> c) {
 
         for (String ss : s) {
-            if (!c.contains(ss))
+            if (!c.contains(ss)) {
                 return false;
+            }
         }
 
         return true;
@@ -1240,10 +1222,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
             ArrayList<Coordinate> ptsCopy = newEl.getPoints();
             ArrayList<Coordinate> newPtsCopy = new ArrayList<Coordinate>();
 
-            if (ISOLATED.equals(origLineType)) { /*
-                                                  * converting from a point
-                                                  * (Isolated)
-                                                  */
+            if (ISOLATED.equals(
+                    origLineType)) { /*
+                                      * converting from a point (Isolated)
+                                      */
 
                 Coordinate centerCoor = ptsCopy.get(0);
 
@@ -1271,10 +1253,10 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
                 }
 
                 newEl.setPoints(newPtsCopy);
-            } else if (ISOLATED.equals(newLineType)) { /*
-                                                        * converting to a point
-                                                        * (Isolated)
-                                                        */
+            } else if (ISOLATED
+                    .equals(newLineType)) { /*
+                                             * converting to a point (Isolated)
+                                             */
                 newPtsCopy.add(ptsCopy.get(0));
                 newEl.setPoints(newPtsCopy);
             }
@@ -1294,8 +1276,9 @@ public class SigmetCommAttrDlg extends AttrDlg implements ISigmet {
         String fromLineText = s.append("VOR").toString();
         SigmetCommAttrDlg.this.setEditableAttrFromLine(fromLineText);
 
-        if (txtInfo != null && !txtInfo.isDisposed() && s != null)
+        if (txtInfo != null && !txtInfo.isDisposed() && s != null) {
             this.txtInfo.setText(s.toString());
+        }
     }
 
     public void copyEditableAttrToSigmetAttrDlg(AbstractSigmet sig) {

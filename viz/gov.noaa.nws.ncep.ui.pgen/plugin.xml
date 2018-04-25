@@ -3459,4 +3459,8 @@
              </contextId>
          </classContext>
    </extension>
+   <extension
+         point="com.raytheon.uf.viz.kml.export.disable">
+         <kmlDisable class="gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource"/>
+   </extension>
 </plugin>

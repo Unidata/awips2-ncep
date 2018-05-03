@@ -1,13 +1,9 @@
 package gov.noaa.nws.ncep.viz.tools.colorMapEditor;
 
-import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
-import gov.noaa.nws.ncep.viz.common.LockedColorMaps;
-import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.measure.converter.UnitConverter;
 
@@ -30,6 +26,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.common.colormap.ColorMap;
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.dialogs.colordialog.ColorData;
@@ -38,29 +36,42 @@ import com.raytheon.viz.ui.dialogs.colordialog.ColorWheelComp;
 import com.raytheon.viz.ui.dialogs.colordialog.IColorBarAction;
 import com.raytheon.viz.ui.dialogs.colordialog.IColorWheelAction;
 
+import gov.noaa.nws.ncep.viz.common.ColorMapUtil;
+import gov.noaa.nws.ncep.viz.common.LockedColorMaps;
+import gov.noaa.nws.ncep.viz.ui.display.AbstractNcEditor;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+
 /**
  * This is the main dialog for the Color Edit Dialog.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- *                         lvenable    Initial Creation.
- * Jul 24, 2007            njensen     Hooked into backend.
- * Apr 10, 2010   #259     ghull       Copied and modified from Raytheon
- * July 18 2011   #450     ghull       use NcPathManager
- * Feb 10 2012    #686     sgurung     Added fix for java.lang.IndexOutOfBoundsException while updating colormaps
- * March 15 2012  #621     sgurung     Check for locked colormaps
- * 02/11/13      #972        G. Hull     AbstractEditor instead of NCMapEditor
- * May 16, 2016  5647      tgurney     Remove minimize button
- * 
+ *
+ * Date          Ticket#     Engineer     Description
+ * ------------- ----------- ------------ --------------------------
+ *                           lvenable     Initial Creation.
+ * Jul 24, 2007              njensen      Hooked into backend.
+ * Apr 10, 2010  259         ghull        Copied and modified from Raytheon
+ * Jul 18, 2011  450         ghull        use NcPathManager
+ * Feb 10, 2012  686         sgurung      Added fix for
+ *                                        java.lang.IndexOutOfBoundsException
+ *                                        while updating colormaps
+ * Mar 15, 2012  621         sgurung      Check for locked colormaps
+ * Feb 11, 2013  972         G. Hull      AbstractEditor instead of NCMapEditor
+ * May 16, 2016  5647        tgurney      Remove minimize button
+ * May 03, 2018  7285        randerso     Changed visibility of updateColorMap()
+ *                                        for compatibility with change to
+ *                                        IColorBarAction
+ *
  * </pre>
- * 
+ *
  * @author lvenable
- * @version 1.0
  */
-public class ColormapEditDialog extends Dialog implements IColorBarAction,
-        IColorWheelAction {
+public class ColormapEditDialog extends Dialog
+        implements IColorBarAction, IColorWheelAction {
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(ColormapEditDialog.class);
+
     private Shell shell;
 
     /**
@@ -139,40 +150,46 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
      */
     private ArrayList<ColorData> colorArray;
 
-//    private final ColorMapCapability cap;
-//
+    // private final ColorMapCapability cap;
+    //
     private ColorMapParameters cmapParams;
+
     private ColorMap colorMap;
 
     private String seldCmapCat;
+
     private String seldCmapName;
 
     private ArrayList<String> availColorMaps;
-    private String[]          availColorMapCats;
-    
-    private  Combo selCmapCombo;
-    
+
+    private String[] availColorMapCats;
+
+    private Combo selCmapCombo;
+
     private LockedColorMaps lockedCmaps;
-    
+
     /**
      * Constructor.
-     * 
+     *
      * @param parent
      *            Parent shell.
      */
-    public ColormapEditDialog(Shell parent, String cmapName ) { //, ColorMapCapability aCap) {
+    public ColormapEditDialog(Shell parent, String cmapName) { // ,
+                                                               // ColorMapCapability
+                                                               // aCap) {
         super(parent, 0);
         seldCmapName = cmapName; // cap.getColorMapParameters().getColorMapName();
         cmapParams = new ColorMapParameters();
-//        cmapParams.setColorMapMin(0);
-//        cmapParams.setColorMapMax(256);
-//        colorMap = new ColorMap( seldCmapName, new float[256], new float[256], new float[256] );
-//        cmapParams.setColorMap( colorMap );
+        // cmapParams.setColorMapMin(0);
+        // cmapParams.setColorMapMax(256);
+        // colorMap = new ColorMap( seldCmapName, new float[256], new
+        // float[256], new float[256] );
+        // cmapParams.setColorMap( colorMap );
     }
 
     /**
      * Opens the dialog (makes visible).
-     * 
+     *
      * @return Null
      */
     public Object open() {
@@ -190,8 +207,9 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         // Wait until the shell is disposed.
         Display display = parent.getDisplay();
         while (!shell.isDisposed()) {
-            if (!display.readAndDispatch())
+            if (!display.readAndDispatch()) {
                 display.sleep();
+            }
         }
 
         return null;
@@ -203,50 +221,53 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
     private void setup() {
         // Set the shell layout to a Grid layout.
         shell.setLayout(new GridLayout(1, false));
-        
+
         // Read lockedColorMaps.tbl to get the list of locked color maps
         lockedCmaps = ColorMapUtil.readLockedColorMapFile();
-        
-        availColorMaps = new ArrayList<String>();
+
+        availColorMaps = new ArrayList<>();
         availColorMapCats = ColorMapUtil.getColorMapCategories();
-        
-        if( seldCmapCat == null ) {
-        	seldCmapCat = availColorMapCats[0];
+
+        if (seldCmapCat == null) {
+            seldCmapCat = availColorMapCats[0];
         }
-        
-//      for( String cat : availColorMapCats ) {
-        for( String cmap : ColorMapUtil.listColorMaps(seldCmapCat) ) {
-        	if( seldCmapName == null ) {
-        		seldCmapName = cmap;
-        		if( !initColorMap() ) {
-            		seldCmapName = null;
-        			continue; // don't add to the list
-        		}
-        	}
-        	availColorMaps.add(cmap);
+
+        // for( String cat : availColorMapCats ) {
+        for (String cmap : ColorMapUtil.listColorMaps(seldCmapCat)) {
+            if (seldCmapName == null) {
+                seldCmapName = cmap;
+                if (!initColorMap()) {
+                    seldCmapName = null;
+                    continue; // don't add to the list
+                }
+            }
+            availColorMaps.add(cmap);
         }
-//        }
-        	
+        // }
+
         createSliderData();
 
         // Initialize the components.
-        initComponents();        
-        
+        initComponents();
+
         // Pack the components.
         shell.pack();
     }
-    
-    private boolean initColorMap( ) {
-		try {
-			colorMap = (ColorMap) ColorMapUtil.loadColorMap( seldCmapCat, seldCmapName, lockedCmaps != null && lockedCmaps.isLocked(seldCmapName));
-			cmapParams.setColorMap(colorMap);
-			cmapParams.setColorMapMin(0);
-			cmapParams.setColorMapMax(colorMap.getSize()-1);
-			return true;
-		} catch (VizException e) {
-			System.out.println("Error Loading colorMap "+seldCmapCat+File.separator+seldCmapName);
-			return false;
-		}
+
+    private boolean initColorMap() {
+        try {
+            colorMap = (ColorMap) ColorMapUtil.loadColorMap(seldCmapCat,
+                    seldCmapName,
+                    lockedCmaps != null && lockedCmaps.isLocked(seldCmapName));
+            cmapParams.setColorMap(colorMap);
+            cmapParams.setColorMapMin(0);
+            cmapParams.setColorMapMax(colorMap.getSize() - 1);
+            return true;
+        } catch (VizException e) {
+            statusHandler.error("Error Loading colorMap " + seldCmapCat
+                    + File.separator + seldCmapName, e);
+            return false;
+        }
     }
 
     /**
@@ -256,8 +277,6 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         // Create the RGB and the HSB radio buttons.
         createRgbHsbButtons();
 
-        
-        
         ColorData initial = new ColorData(new RGB(255, 255, 255), 255);
 
         // Create the upper color wheel for the display.
@@ -279,10 +298,11 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
     }
 
     /**
-     * Create the RGB and the HSB radio buttons and the select colormapname dropdown.
+     * Create the RGB and the HSB radio buttons and the select colormapname
+     * dropdown.
      */
     private void createRgbHsbButtons() {
-    	
+
         Composite comp1 = new Composite(shell, SWT.NONE);
         GridLayout gl = new GridLayout(3, false);
         gl.horizontalSpacing = 10;
@@ -324,52 +344,54 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
                 changeColorWheels();
             }
         });
-        
+
         Composite catComp = new Composite(comp1, SWT.NONE);
         gl = new GridLayout(1, false);
         gl.horizontalSpacing = 20;
         catComp.setLayout(gl);
         gd = new GridData(GridData.CENTER);
         gd.horizontalAlignment = SWT.CENTER;
-        
+
         catComp.setLayoutData(gd);
 
-        Label selCatLbl = new Label( catComp, SWT.None );
+        Label selCatLbl = new Label(catComp, SWT.None);
         selCatLbl.setText("Category");
-        
-        final Combo selCmapCatCombo = new Combo( catComp, SWT.DROP_DOWN | SWT.READ_ONLY );
-        selCmapCatCombo.setItems( availColorMapCats );
+
+        final Combo selCmapCatCombo = new Combo(catComp,
+                SWT.DROP_DOWN | SWT.READ_ONLY);
+        selCmapCatCombo.setItems(availColorMapCats);
         selCmapCatCombo.select(0);
-        
-        selCmapCatCombo.addSelectionListener( new SelectionAdapter() {
-        	public void widgetSelected(SelectionEvent event) {
-        		String seldCat = selCmapCatCombo.getText();
-        		if( seldCat.equals( seldCmapCat ) ) {
-        			return;
-        		}
-        		
-        		seldCmapCat = seldCat;
-        		seldCmapName = null;
-        		availColorMaps.clear();
-        		
-                for( String cmap : ColorMapUtil.listColorMaps(seldCmapCat) ) {
-                	if( seldCmapName == null ) {
-                		seldCmapName = cmap;
-                		if( !initColorMap() ) {
-                    		seldCmapName = null;
-                			continue; // don't add to the list
-                		}
-                	}
-                	availColorMaps.add(cmap);
+
+        selCmapCatCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                String seldCat = selCmapCatCombo.getText();
+                if (seldCat.equals(seldCmapCat)) {
+                    return;
                 }
-                	
+
+                seldCmapCat = seldCat;
+                seldCmapName = null;
+                availColorMaps.clear();
+
+                for (String cmap : ColorMapUtil.listColorMaps(seldCmapCat)) {
+                    if (seldCmapName == null) {
+                        seldCmapName = cmap;
+                        if (!initColorMap()) {
+                            seldCmapName = null;
+                            continue; // don't add to the list
+                        }
+                    }
+                    availColorMaps.add(cmap);
+                }
+
                 createSliderData();
-                selCmapCombo.setItems( availColorMaps.toArray(new String[0] ) );
+                selCmapCombo.setItems(availColorMaps.toArray(new String[0]));
                 selCmapCombo.select(0);
                 colorBar.setNewColorMap(sliderText, colorArray);
-        	}
+            }
         });
-        
+
         Composite cmapComp = new Composite(comp1, SWT.NONE);
         gl = new GridLayout(1, false);
         gl.horizontalSpacing = 10;
@@ -377,35 +399,36 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         gd = new GridData(GridData.FILL_HORIZONTAL);
         cmapComp.setLayoutData(gd);
 
-        Label selCmapLbl = new Label( cmapComp, SWT.None );
+        Label selCmapLbl = new Label(cmapComp, SWT.None);
         selCmapLbl.setText("Colormap");
-        
-        selCmapCombo = new Combo( cmapComp, SWT.DROP_DOWN );
-        selCmapCombo.setItems( availColorMaps.toArray(new String[0] ) );
-        selCmapCombo.select(0);
-        
-        selCmapCombo.addSelectionListener( new SelectionAdapter() {
-        	public void widgetSelected(SelectionEvent event) {
-        		String seldCmap = selCmapCombo.getText();
-        		if( seldCmap.equals( seldCmapName ) ) {
-        			return;
-        		}
-        		
-        		seldCmapName = seldCmap;
 
-        		if( initColorMap() ) {
+        selCmapCombo = new Combo(cmapComp, SWT.DROP_DOWN);
+        selCmapCombo.setItems(availColorMaps.toArray(new String[0]));
+        selCmapCombo.select(0);
+
+        selCmapCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                String seldCmap = selCmapCombo.getText();
+                if (seldCmap.equals(seldCmapName)) {
+                    return;
+                }
+
+                seldCmapName = seldCmap;
+
+                if (initColorMap()) {
                     createSliderData();
-        		}
+                }
                 colorBar.setNewColorMap(sliderText, colorArray);
-        	}
+            }
         });
-        
-//        selCmapCombo.addModifyListener( new ModifyListener() {
-//			@Override
-//			public void modifyText(ModifyEvent e) { 
-//				seldCmapName = selCmapCombo.getText();
-//			}
-//        });
+
+        // selCmapCombo.addModifyListener( new ModifyListener() {
+        // @Override
+        // public void modifyText(ModifyEvent e) {
+        // seldCmapName = selCmapCombo.getText();
+        // }
+        // });
     }
 
     /**
@@ -431,8 +454,8 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
                 ColorData upperColorData = upperColorWheel.getColorData();
                 ColorData lowerColorData = lowerColorWheel.getColorData();
 
-                colorBar.interpolate(upperColorData, lowerColorData, rgbRdo
-                        .getSelection());
+                colorBar.interpolate(upperColorData, lowerColorData,
+                        rgbRdo.getSelection());
                 undoBtn.setEnabled(true);
                 updateColorMap();
             }
@@ -488,73 +511,76 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         saveBtn = new Button(bottonBtnComposite, SWT.PUSH);
         saveBtn.setText("Save");
         saveBtn.setLayoutData(gd);
-        if( seldCmapName == null ) {
+        if (seldCmapName == null) {
             saveBtn.setEnabled(false);
         }
-        
+
         saveBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 ColorMap cm = (ColorMap) cmapParams.getColorMap();
                 seldCmapName = selCmapCombo.getText();
-                
-//                int sepIndx = seldCmapName.indexOf(File.separator);
-//                String cmapCat = seldCmapName.substring(0,seldCmapName.indexOf(File.separator));
-//                String cmapName = seldCmapName.substring( seldCmapName.indexOf(File.separator));
-                if (lockedCmaps != null && lockedCmaps.isLocked(seldCmapName)) {
-                	MessageDialog confirmDlg = new MessageDialog( 
-                			NcDisplayMngr.getCaveShell(), 
-                			"Save Colormap", null, 
-                			"Colormap " +seldCmapCat+File.separator +seldCmapName + 
-                			" already exists and is locked.\n\n" +
-                			"You cannot overwrite it.",
-                			MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-                	confirmDlg.open();
-                	colorBar.undoColorBar();
-                    updateColorMap();
-                	return;
-                }                
-                else if( ColorMapUtil.colorMapExists( seldCmapCat, seldCmapName ) ) {
-                	MessageDialog confirmDlg = new MessageDialog( 
-                			NcDisplayMngr.getCaveShell(), 
-                			"Save Colormap", null, 
-                			"Colormap " +seldCmapCat+File.separator +seldCmapName + 
-                			" already exists.\n\n" +
-                			"Do you want to overwrite it?",
-                			MessageDialog.QUESTION, new String[]{"Yes", "No"}, 0);
-                	confirmDlg.open();
 
-                	if( confirmDlg.getReturnCode() == MessageDialog.CANCEL ) {
-                		return;
-                	}
+                // int sepIndx = seldCmapName.indexOf(File.separator);
+                // String cmapCat =
+                // seldCmapName.substring(0,seldCmapName.indexOf(File.separator));
+                // String cmapName = seldCmapName.substring(
+                // seldCmapName.indexOf(File.separator));
+                if (lockedCmaps != null && lockedCmaps.isLocked(seldCmapName)) {
+                    MessageDialog confirmDlg = new MessageDialog(
+                            NcDisplayMngr.getCaveShell(), "Save Colormap", null,
+                            "Colormap " + seldCmapCat + File.separator
+                                    + seldCmapName
+                                    + " already exists and is locked.\n\n"
+                                    + "You cannot overwrite it.",
+                            MessageDialog.INFORMATION, new String[] { "OK" },
+                            0);
+                    confirmDlg.open();
+                    colorBar.undoColorBar();
+                    updateColorMap();
+                    return;
+                } else if (ColorMapUtil.colorMapExists(seldCmapCat,
+                        seldCmapName)) {
+                    MessageDialog confirmDlg = new MessageDialog(
+                            NcDisplayMngr.getCaveShell(), "Save Colormap", null,
+                            "Colormap " + seldCmapCat + File.separator
+                                    + seldCmapName + " already exists.\n\n"
+                                    + "Do you want to overwrite it?",
+                            MessageDialog.QUESTION,
+                            new String[] { "Yes", "No" }, 0);
+                    confirmDlg.open();
+
+                    if (confirmDlg.getReturnCode() == MessageDialog.CANCEL) {
+                        return;
+                    }
                 }
 
                 try {
-                    ColorMapUtil.saveColorMap( cm, seldCmapCat, seldCmapName );
-                    
-                    MessageDialog msgDlg = new MessageDialog( 
-                			NcDisplayMngr.getCaveShell(), 
-                			"Colormap Saved", null, 
-                			"Colormap " +seldCmapCat+File.separator +seldCmapName + 
-                			" Saved.",
-                			MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-                	msgDlg.open();
+                    ColorMapUtil.saveColorMap(cm, seldCmapCat, seldCmapName);
+
+                    MessageDialog msgDlg = new MessageDialog(
+                            NcDisplayMngr.getCaveShell(), "Colormap Saved",
+                            null,
+                            "Colormap " + seldCmapCat + File.separator
+                                    + seldCmapName + " Saved.",
+                            MessageDialog.INFORMATION, new String[] { "OK" },
+                            0);
+                    msgDlg.open();
                 } catch (VizException e) {
-                    MessageDialog msgDlg = new MessageDialog( 
-                			NcDisplayMngr.getCaveShell(), 
-                			"Error", null, 
-                			"Error Saving Colormap " +seldCmapCat+File.separator +seldCmapName + 
-                			"\n"+e.getMessage(),
-                			MessageDialog.ERROR, new String[]{"OK"}, 0);
-                	msgDlg.open();
+                    MessageDialog msgDlg = new MessageDialog(
+                            NcDisplayMngr.getCaveShell(), "Error", null,
+                            "Error Saving Colormap " + seldCmapCat
+                                    + File.separator + seldCmapName + "\n"
+                                    + e.getMessage(),
+                            MessageDialog.ERROR, new String[] { "OK" }, 0);
+                    msgDlg.open();
                 }
 
                 completeSave();
             }
         });
 
-
-        // 
+        //
         // Create the Delete button.
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.grabExcessHorizontalSpace = false;
@@ -564,14 +590,14 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         deleteBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-            	deleteColormap();
+                deleteColormap();
             }
         });
-        Label sep = new Label(shell, SWT.SEPARATOR|SWT.HORIZONTAL);
+        Label sep = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         sep.setLayoutData(gd);
 
-        // 
+        //
         // Create the Delete button.
         gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
         Button closeBtn = new Button(shell, SWT.PUSH);
@@ -580,7 +606,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
         closeBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-            	shell.dispose();
+                shell.dispose();
             }
         });
     }
@@ -590,7 +616,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
      * HSB.
      */
     private void changeColorWheels() {
-        if (rgbRdo.getSelection() == true) {
+        if (rgbRdo.getSelection()) {
             upperColorWheel.showRgbSliders(true);
             lowerColorWheel.showRgbSliders(true);
         } else {
@@ -601,7 +627,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
 
     private void createSliderData() {
         sliderText = new String[256];
-        colorArray = new ArrayList<ColorData>();
+        colorArray = new ArrayList<>();
 
         DecimalFormat format = new DecimalFormat("0.0");
 
@@ -663,14 +689,14 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
             start += increment;
         }
 
-        colorArray = ColorUtil.buildColorData((ColorMap)cmapParams.getColorMap());
+        colorArray = ColorUtil.buildColorData(cmapParams.getColorMap());
 
         /*
          * If the colorArray is less then 256, then we spread all of the
          * elements of the colorArray out to fill a 256 element array.
          */
         if (colorArray.size() < 256) {
-            ArrayList<ColorData> tmpColorArray = new ArrayList<ColorData>(256);
+            List<ColorData> tmpColorArray = new ArrayList<>(256);
             double adjustNum = colorArray.size() / 256.0;
 
             ColorData colorData;
@@ -678,24 +704,26 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
             for (int j = 0; j < 256; j++) {
 
                 int index = (int) Math.round(j * adjustNum);
-                index = (index < colorArray.size() ? index : colorArray.size()-1 );
+                index = (index < colorArray.size() ? index
+                        : colorArray.size() - 1);
                 colorData = new ColorData(colorArray.get(index).rgbColor,
                         colorArray.get(index).alphaValue);
                 tmpColorArray.add(colorData);
             }
 
-            colorArray = new ArrayList<ColorData>(tmpColorArray);
+            colorArray = new ArrayList<>(tmpColorArray);
         }
     }
 
     /**
      * Fill the area between the sliders in the color bar using the color data
      * provided.
-     * 
+     *
      * @param colorData
      *            The color data object containing the RGB color and the alpha
      *            value.
      */
+    @Override
     public void fillColor(ColorData colorData) {
         colorBar.fillColorBarColor(colorData);
         updateColorMap();
@@ -706,13 +734,14 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
      * Set the color where the top or bottom slider is pointing. The color wheel
      * title is used to determine if the color is from the upper color wheel or
      * the lower color wheel.
-     * 
+     *
      * @param colorData
      *            The color data object containing the RGB color and the alpha
      *            value.
      * @param colorWheelTitle
      *            The title of the color wheel that is calling the method.
      */
+    @Override
     public void setColor(ColorData colorData, String colorWheelTitle) {
         if (colorWheelTitle.compareTo(upperWheelTitle) == 0) {
             colorBar.setColorBarColor(colorData, true);
@@ -727,7 +756,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
      * A callback method used by the ColorBar class. This method is called to
      * update the upper or lower color wheel when the mouse is clicked in the
      * color bar and moved around.
-     * 
+     *
      * @param colorData
      *            The color data object containing the RGB color and the alpha
      *            value.
@@ -735,6 +764,7 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
      *            A flag indicating if the upper or lower color wheel is to be
      *            updated.
      */
+    @Override
     public void updateColor(ColorData colorData, boolean upperFlag) {
         if (upperFlag) {
             upperColorWheel.setColor(colorData);
@@ -746,14 +776,14 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
     /**
      * Updates the color map currently displayed
      */
-    private void updateColorMap() {
-        //if (colorMap == null) {
-            colorMap = ColorUtil.buildColorMap(colorBar.getCurrentColors(),
-                    null);
-       /* } else {
-            colorMap = ColorUtil.updateColorMap(colorBar.getCurrentColors(),
-                    colorMap);
-        }*/
+    @Override
+    public void updateColorMap() {
+        // if (colorMap == null) {
+        colorMap = ColorUtil.buildColorMap(colorBar.getCurrentColors(), null);
+        /*
+         * } else { colorMap =
+         * ColorUtil.updateColorMap(colorBar.getCurrentColors(), colorMap); }
+         */
         cmapParams.setColorMap(colorMap);
         cmapParams.setColorMapName(null);
         ((AbstractNcEditor) EditorUtil.getActiveEditor()).refresh();
@@ -772,48 +802,46 @@ public class ColormapEditDialog extends Dialog implements IColorBarAction,
     }
 
     private void deleteColormap() {
-    	try{
-    		ColorMapUtil.deleteColorMap(seldCmapCat, seldCmapName);
+        try {
+            ColorMapUtil.deleteColorMap(seldCmapCat, seldCmapName);
 
-    		MessageDialog msgDlg = new MessageDialog( 
-    				NcDisplayMngr.getCaveShell(), 
-    				"Deleted", null, 
-    				"Colormap " +seldCmapCat+File.separator +seldCmapName + 
-    				" Deleted.",
-    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-    		msgDlg.open();
+            MessageDialog msgDlg = new MessageDialog(
+                    NcDisplayMngr.getCaveShell(), "Deleted", null,
+                    "Colormap " + seldCmapCat + File.separator + seldCmapName
+                            + " Deleted.",
+                    MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+            msgDlg.open();
 
-    		shell.dispose();
-//    		availColorMaps = new ArrayList<String>();
-//
-//    		seldCmapName = null;
-//    		selCmapCombo.setText("");
-//
-//    		for( String cmap : ColorMapUtil.listColorMaps(seldCmapCat) ) {
-//    			if( seldCmapName == null ) {
-//    				seldCmapName = cmap;
-//            		if( initColorMap() ) {
-//                        createSliderData();
-//            		}
-//            		else {
-//            			seldCmapName = null;
-//    					continue; // don't add to the list
-//    				}
-//                    colorBar.setNewColorMap(sliderText, colorArray);
-//
-//    			}
-//    			availColorMaps.add(cmap);
-//    		}
+            shell.dispose();
+            // availColorMaps = new ArrayList<String>();
+            //
+            // seldCmapName = null;
+            // selCmapCombo.setText("");
+            //
+            // for( String cmap : ColorMapUtil.listColorMaps(seldCmapCat) ) {
+            // if( seldCmapName == null ) {
+            // seldCmapName = cmap;
+            // if( initColorMap() ) {
+            // createSliderData();
+            // }
+            // else {
+            // seldCmapName = null;
+            // continue; // don't add to the list
+            // }
+            // colorBar.setNewColorMap(sliderText, colorArray);
+            //
+            // }
+            // availColorMaps.add(cmap);
+            // }
 
-    	} catch (VizException e) {
-    		MessageDialog msgDlg = new MessageDialog( 
-    				NcDisplayMngr.getCaveShell(), 
-    				"Error", null, 
-    				"Error Deleting Colormap " +seldCmapCat+File.separator +seldCmapName + 
-    				"\n"+e.getMessage(),
-    				MessageDialog.ERROR, new String[]{"OK"}, 0);
-    		msgDlg.open();
-    	}
+        } catch (VizException e) {
+            MessageDialog msgDlg = new MessageDialog(
+                    NcDisplayMngr.getCaveShell(), "Error", null,
+                    "Error Deleting Colormap " + seldCmapCat + File.separator
+                            + seldCmapName + "\n" + e.getMessage(),
+                    MessageDialog.ERROR, new String[] { "OK" }, 0);
+            msgDlg.open();
+        }
     }
-   
+
 }

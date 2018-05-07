@@ -4,7 +4,6 @@ Bundle-Name: SoundingRequest
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.soundingrequest
 Bundle-Version: 1.0.0.qualifier
 Import-Package: com.raytheon.edex.plugin.bufrua.dao,
- com.raytheon.edex.uengine.tasks.query,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataplugin.bufrua,
  com.raytheon.uf.common.dataplugin.grid,

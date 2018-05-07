@@ -39,7 +39,6 @@
 			<fileset dir="../com.raytheon.edex.plugin.obs/bin" includes="**/*.class"/>
 			<fileset dir="../com.raytheon.edex.plugin.satellite/bin" includes="**/*.class"/>
 			<fileset dir="../com.raytheon.edex.plugin.warning/bin" includes="**/*.class"/>
-			<fileset dir="../com.raytheon.edex.uengine/bin" includes="**/*.class"/>
 			<fileset dir="../com.raytheon.uf.common.colormap/bin" includes="**/*.class"/>
 			<fileset dir="../com.raytheon.uf.common.dataplugin/bin" includes="**/*.class"/>
 			<fileset dir="../com.raytheon.uf.common.dataplugin.level/bin" includes="**/*.class"/>

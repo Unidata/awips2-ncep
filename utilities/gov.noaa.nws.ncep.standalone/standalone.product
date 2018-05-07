@@ -46,7 +46,6 @@ Developed on the Raytheon Visualization Environment (viz)
       <plugin id="com.raytheon.edex.plugin.text"/>
       <plugin id="com.raytheon.edex.plugin.warning"/>
       <plugin id="com.raytheon.edex.textdb"/>
-      <plugin id="com.raytheon.edex.uengine"/>
       <plugin id="com.raytheon.uf.common.activetable"/>
       <plugin id="com.raytheon.uf.common.colormap"/>
       <plugin id="com.raytheon.uf.common.dataplugin"/>

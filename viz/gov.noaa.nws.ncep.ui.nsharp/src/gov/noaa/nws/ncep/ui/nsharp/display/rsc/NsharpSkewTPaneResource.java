@@ -96,6 +96,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * 09/1/2017    RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
+ * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
  * Apr 18, 2018   17341 mgamazaychikov  Fix the cursor plotting for station with negative surface elevation,
  *                                      add scaling for pressure surface height labels
  *
@@ -291,7 +292,6 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
         icingBackground = new NsharpIcingPaneBackground((NsharpSkewTPaneDescriptor) descriptor);
         turbBackground = new NsharpTurbulencePaneBackground((NsharpSkewTPaneDescriptor) descriptor);
 
-        this.dataTimes = new ArrayList<>();
         if (VizPerspectiveListener.getCurrentPerspectiveManager() != null) {
             myPerspective = VizPerspectiveListener.getCurrentPerspectiveManager().getPerspectiveId();
         }

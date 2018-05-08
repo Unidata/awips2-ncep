@@ -91,6 +91,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
  * 12/19/2012     #960        Greg Hull   override propertiesChanged() to update colorBar.
  * 06/15/2016     R19647      bsteffen    Improve performance
  * 10/20/2016     R20700      pmoyer      Added image brightness adjustment to paintFrame
+ * 11/29/2017     5863        bsteffen    Change dataTimes to a NavigableSet
  * 
  * </pre>
  * 
@@ -214,8 +215,6 @@ public class MosaicResource extends
     public MosaicResource(MosaicResourceData rrd, LoadProperties loadProps) {
         super(rrd, loadProps);
         rrd.addChangeListener(this);
-
-        this.dataTimes = new ArrayList<>();
 
         ColorableCapability colorCap = getCapability(ColorableCapability.class);
         if (colorCap.getColor() == null) {

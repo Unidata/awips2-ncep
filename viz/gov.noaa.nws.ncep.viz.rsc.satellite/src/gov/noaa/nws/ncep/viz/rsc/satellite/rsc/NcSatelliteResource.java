@@ -131,6 +131,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *  12/14/2016    R20988    kbugenhagen Remove setting colormap capability in 
  *                                      setColorMapUnits so colormap name isn't
  *                                      overwritten.
+ * 11/29/2017    5863       bsteffen    Change dataTimes to a NavigableSet
  * 
  * 
  * </pre>
@@ -229,7 +230,6 @@ public class NcSatelliteResource extends
                 }
             }
 
-            Collections.sort(NcSatelliteResource.this.dataTimes);
             int imageTypeNumber = getImageTypeNumber(satRec);
 
             if (isExistingDataBetterTimeMatch(satRec)) {

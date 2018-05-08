@@ -86,6 +86,7 @@ import gov.noaa.nws.ncep.viz.ui.display.ColorBarFromColormap;
  *                                        Updated isCloudHeightCapable() method
  *  12/14/2016    R20988     kbugenhagen  Update initializeFirstFrame to allow 
  *                                        for override of colormap name in SPF.
+ *  11/29/2017    5863       bsteffen     Change dataTimes to a NavigableSet
  * 
  * </pre>
  * 
@@ -248,7 +249,6 @@ public class McidasSatResource extends NcSatelliteResource
                 }
             }
 
-            Collections.sort(McidasSatResource.this.dataTimes);
             int imageTypeNumber = getImageTypeNumber(satRec);
 
             generateAndStoreColorBarLabelingInformation(satRec,

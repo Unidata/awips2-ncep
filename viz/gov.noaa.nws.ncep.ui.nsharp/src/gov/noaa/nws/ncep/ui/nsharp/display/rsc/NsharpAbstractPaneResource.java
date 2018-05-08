@@ -14,6 +14,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * 07/05/2016   RM#15923     Chin Chen    NSHARP - Native Code replacement
  * 07/10/2017   RM#34796     Chin Chen    NSHARP - Updates for March 2017 bigSharp version
  *                                        - Reformat the lower left data page
+ * 11/29/2017   5863         bsteffen     Change dataTimes to a NavigableSet
  *
  * </pre>
  * 
@@ -29,7 +30,6 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
 import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -137,9 +137,8 @@ public class NsharpAbstractPaneResource extends
 
     public NsharpAbstractPaneResource(AbstractResourceData resourceData,
             LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
-        super(resourceData, loadProperties);
+        super(resourceData, loadProperties, false);
         descriptor = desc;
-        this.dataTimes = new ArrayList<>();
 
     }
 

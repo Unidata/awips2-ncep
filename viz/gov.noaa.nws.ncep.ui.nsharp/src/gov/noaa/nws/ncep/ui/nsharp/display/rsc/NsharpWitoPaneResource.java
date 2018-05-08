@@ -15,6 +15,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products 
  *                                      in Volume Browser
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
  * 
  * </pre>
  * 
@@ -109,7 +110,6 @@ public class NsharpWitoPaneResource extends NsharpAbstractPaneResource {
     public NsharpWitoPaneResource(AbstractResourceData resourceData,
             LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
         super(resourceData, loadProperties, desc);
-        this.dataTimes = new ArrayList<>();
     }
 
     @Override

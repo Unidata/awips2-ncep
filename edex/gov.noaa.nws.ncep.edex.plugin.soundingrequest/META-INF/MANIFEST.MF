@@ -41,4 +41,5 @@ Import-Package: com.raytheon.edex.plugin.bufrua.dao,
 Require-Bundle: com.raytheon.uf.edex.database,
  com.raytheon.uf.edex.core;bundle-version="1.14.0",
  com.raytheon.uf.common.dataplugin,
- com.raytheon.uf.common.status;bundle-version="1.15.0"
+ com.raytheon.uf.common.status;bundle-version="1.15.0",
+ org.slf4j;bundle-version="1.7.21"

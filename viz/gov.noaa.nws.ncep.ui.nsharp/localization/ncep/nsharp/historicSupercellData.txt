@@ -1,4 +1,10 @@
-FILENAME      CAT     MLMIXR  ML CAPE ML CIN MLCL(MAGL) 0-1SRH 0-6KT   STPC   500 T (C) 500DIR 7-5 LR 0-3(KT) 0-9(KT) 0-3 KM SRH (M2/S2)
+
+ historicSupercellData.txt file contains lines of previous super cell information.
+ Each line contains 15 parameters, however only the following 11 are currently used in Nsharp:
+
+1           2           3               4           5       6               7               8       9       10      11
+
+FILENAME    CAT MLMIXR  MLCAPE  MLCIN   MLCL(MAGL)  0-1SRH  0-6KT   STPC    500T(C) 500DIR  7-5LR   0-3(KT) 0-9(KT) 0-3KMSRH(M2/S2)
 00042320.TXK	2	12.9	1702	-1	657	134	61.7	2.3	-14.0	250	6.5	32.8	76.6	166
 00042001.PPF	2	13.5	2614	-50	1216	227	59.9	4.7	-12.9	234	7.5	39.7	73.5	244
 00032900.FTW	2	13.1	2058	-42	1069	83	49.7	1.3	-15.2	245	8.0	21.9	87.1	126

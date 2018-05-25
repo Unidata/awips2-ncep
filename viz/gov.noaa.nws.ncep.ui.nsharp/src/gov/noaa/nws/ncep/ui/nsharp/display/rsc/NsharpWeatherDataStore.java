@@ -1,36 +1,11 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system. 
- * 
- * All methods developed in this class are based on the algorithm developed in BigSharp 
- * native C file, basics.c , by John A. Hart/SPC.
- * All methods name are defined with same name as the C function name defined in native code.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 06/13/2017   RM#34793    Chin Chen   Add max lapse rate bar on skewT pane
- * 07/10/2017   RM#34796    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
- *                                     - Reformat the lower left data page
- * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
- *                                      - Added output for the "large hail parameter" and 
- *                                      the "modified SHERBE" parameter,..etc.
- * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
- *                                      - Update the dendritic growth layer calculations and other skewT
- *                                      updates.
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- * 
- */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.swt.graphics.RGB;
 
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSkparams;
@@ -52,13 +27,38 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpHailInfo.HailInfoContainer;
 import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.swt.graphics.RGB;
-
+/**
+ *
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * All methods developed in this class are based on the algorithm developed in
+ * BigSharp native C file, basics.c , by John A. Hart/SPC. All methods name are
+ * defined with same name as the C function name defined in native code.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 06/13/2017   RM#34793    Chin Chen   Add max lapse rate bar on skewT pane
+ * 07/10/2017   RM#34796    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                     - Reformat the lower left data page
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and
+ *                                      the "modified SHERBE" parameter,..etc.
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for muParcel (line 1140), fixed formatting
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ *
+ */
 public class NsharpWeatherDataStore {
     public class ParcelMiscParams {
         // mean wind at LFC-EL
@@ -93,9 +93,9 @@ public class NsharpWeatherDataStore {
 
         // CHI2
         private float chi2;
-        
-        //MU parcel name dynamically created
-        private String muName="";
+
+        // MU parcel name dynamically created
+        private String muName = "";
 
         public ParcelMiscParams() {
             super();
@@ -170,18 +170,15 @@ public class NsharpWeatherDataStore {
             return muName;
         }
 
-        public void setSrMeanWindCompSfcToLfc(
-                WindComponent srMeanWindCompSfcToLfc) {
+        public void setSrMeanWindCompSfcToLfc(WindComponent srMeanWindCompSfcToLfc) {
             this.srMeanWindCompSfcToLfc = srMeanWindCompSfcToLfc;
         }
 
-        public void setSrMeanWindCompLfcToLFCP4km(
-                WindComponent srMeanWindCompLfcToLFCP4km) {
+        public void setSrMeanWindCompLfcToLFCP4km(WindComponent srMeanWindCompLfcToLFCP4km) {
             this.srMeanWindCompLfcToLFCP4km = srMeanWindCompLfcToLFCP4km;
         }
 
-        public void setSrMeanWindCompElM4kmToEl(
-                WindComponent srMeanWindCompElM4kmToEl) {
+        public void setSrMeanWindCompElM4kmToEl(WindComponent srMeanWindCompElM4kmToEl) {
             this.srMeanWindCompElM4kmToEl = srMeanWindCompElM4kmToEl;
         }
 
@@ -205,30 +202,22 @@ public class NsharpWeatherDataStore {
     /*
      * data pane PAGE2 string definitions
      */
-    public static final String[] STORM_MOTION_TYPE_STR = { "SFC-1km",
-            "SFC-2km", "SFC-3km", "Eff Inflow", "SFC-6km", "SFC-8km",
-            "LCL-EL(Cloud Layer)", "Eff Shear(EBWD)" };
+    public static final String[] STORM_MOTION_TYPE_STR = { "SFC-1km", "SFC-2km", "SFC-3km", "Eff Inflow", "SFC-6km",
+            "SFC-8km", "LCL-EL(Cloud Layer)", "Eff Shear(EBWD)" };
 
-    public static final float[][] STORM_MOTION_HEIGHT = { { 0, 1000 },
-            { 0, 2000 }, { 0, 3000 }, { 0, 0 }, { 0, 6000 }, { 0, 8000 },
-            { 0, 0 }, { 0, 0 } };
+    public static final float[][] STORM_MOTION_HEIGHT = { { 0, 1000 }, { 0, 2000 }, { 0, 3000 }, { 0, 0 }, { 0, 6000 },
+            { 0, 8000 }, { 0, 0 }, { 0, 0 } };
 
     public static final Map<Integer, Float> parcelToLayerPressMap = new HashMap<Integer, Float>() {
         private static final long serialVersionUID = 1L;
 
         {
-            put(NsharpLibSndglib.PARCELTYPE_OBS_SFC,
-                    NsharpLibSndglib.OBS_LAYER_PRESS);
-            put(NsharpLibSndglib.PARCELTYPE_FCST_SFC,
-                    NsharpLibSndglib.FCST_LAYER_PRESS);
-            put(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING,
-                    NsharpLibSndglib.MML_LAYER_PRESS);
-            put(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE,
-                    NsharpLibSndglib.MU_LAYER_PRESS);
-            put(NsharpLibSndglib.PARCELTYPE_USER_DEFINED,
-                    NsharpLibSndglib.USER_LAYER_PRESS);
-            put(NsharpLibSndglib.PARCELTYPE_EFF,
-                    NsharpLibSndglib.EFF_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_OBS_SFC, NsharpLibSndglib.OBS_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_FCST_SFC, NsharpLibSndglib.FCST_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING, NsharpLibSndglib.MML_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE, NsharpLibSndglib.MU_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_USER_DEFINED, NsharpLibSndglib.USER_LAYER_PRESS);
+            put(NsharpLibSndglib.PARCELTYPE_EFF, NsharpLibSndglib.EFF_LAYER_PRESS);
         }
     };
 
@@ -257,7 +246,7 @@ public class NsharpWeatherDataStore {
 
     // AGL height in ft of freezing level
     private float fgzft = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-    
+
     // height in ft of freezing level
     private float frzft = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
 
@@ -266,7 +255,7 @@ public class NsharpWeatherDataStore {
 
     // AGL height in ft of Wet-bulb at freezing level
     private float wbzft = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-    
+
     // msl height in ft of Wet-bulb at freezing level
     private float wbzmslft = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
 
@@ -372,13 +361,13 @@ public class NsharpWeatherDataStore {
 
     // STP lR
     private float stpLr = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-    
+
     // large hail parameter
-    private float lhp  = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-    
+    private float lhp = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+
     // Modified SHERBE
-    private float modSherbe  = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
-    
+    private float modSherbe = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+
     /*******************************************************************
      * Data Pane Page 3 ("PARCEL DATA" page) weather parameters
      *******************************************************************/
@@ -466,7 +455,7 @@ public class NsharpWeatherDataStore {
     // ParcelMap
     // Kindex stored in page 1
     // MeanRH, Top of Moist Lyr stored in page 4
-    // Eff SREH 
+    // Eff SREH
     private float effSreh;
     // Melting level pressure and height stored in page 1 as wbzp and wbzft
 
@@ -545,10 +534,10 @@ public class NsharpWeatherDataStore {
     private RGB wwTypeColor;
 
     private String wwtypeStr;
-    
+
     // lapse rate max parameters
-    private LapseRateMax lrm; 
-    
+    private LapseRateMax lrm;
+
     private RGB lrmColor;
 
     /*******************************************************************
@@ -670,15 +659,15 @@ public class NsharpWeatherDataStore {
      * Important Note:::: This method should only be called when sounding layer
      * list is set. I.e. only be called when nsharp "current" displaying
      * sounding layer list is modified.
-     * 
+     *
      * Results: All weather parameters used for Nsharp GUI are computed and
      * saved in this instance and used by all Nsharp pane resources.
-     * 
-     * @param : newly modified NcSoundingLayer List - List<NcSoundingLayer>
-     * 
+     *
+     * @param :
+     *            newly modified NcSoundingLayer List - List<NcSoundingLayer>
+     *
      ***************************************************************************/
-    public void computeWeatherParameters(List<NcSoundingLayer> soundingLys,
-            String paneConfigurationName) {
+    public void computeWeatherParameters(List<NcSoundingLayer> soundingLys, String paneConfigurationName) {
         if (soundingLys == null) {
             return;
         }
@@ -717,7 +706,9 @@ public class NsharpWeatherDataStore {
             /************** COMPUTE INSET PANE parameters *****************/
             computeInsetPaneParameters();
 
-            /************** COMPUTE SPC graphs PANE parameters *****************/
+            /**************
+             * COMPUTE SPC graphs PANE parameters
+             *****************/
             computeSPCGraphPaneParameters();
         }
     }
@@ -726,22 +717,22 @@ public class NsharpWeatherDataStore {
      * Important Note:::: This method should only be called when storm wind is
      * manually set by user, i.e. when user click on HODO pane with left mouse
      * button
-     * 
+     *
      * Results: All weather parameters effected by storm wind should be
      * recomputed.
-     * 
-     * @param : speed - storm wind speed
-     * @param : direction - storm wind direction
-     * 
+     *
+     * @param :
+     *            speed - storm wind speed
+     * @param :
+     *            direction - storm wind direction
+     *
      ***************************************************************************/
     public void setStorm(float speed, float direction) {
         smdir = direction;
         smspd = speed;
         computeParcelSrWindParameters();
-        Parcel mlParcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
-        Parcel muParcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+        Parcel mlParcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
+        Parcel muParcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
         // Compute the Supercell Composite Parameter, SCP
         if (muParcel == null) {
             scp = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
@@ -752,8 +743,7 @@ public class NsharpWeatherDataStore {
         if (muParcel == null || mlParcel == null) {
             stpCin = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         } else {
-            stpCin = NsharpLibXwvid.sigtorn_cin(soundingLys, smdir, smspd,
-                    muParcel, mlParcel);
+            stpCin = NsharpLibXwvid.sigtorn_cin(soundingLys, smdir, smspd, muParcel, mlParcel);
         }
         // compute Significant Tornado Parameter (fixed layer)
         stpFixed = NsharpLibXwvid.sigtorn_fixed(soundingLys, smdir, smspd,
@@ -772,56 +762,41 @@ public class NsharpWeatherDataStore {
             float upperLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             if (STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")) {
 
-                if (effLyPress.getBottomPress() > 0
-                        && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
+                if (effLyPress.getBottomPress() > 0 && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
                     lowerLayerPres = effLyPress.getBottomPress();
-                    h1 = NsharpLibBasics
-                            .agl(soundingLys, NsharpLibBasics.i_hght(
-                                    soundingLys, lowerLayerPres));
+                    h1 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, lowerLayerPres));
                     upperLayerPres = effLyPress.getTopPress();
-                    h2 = NsharpLibBasics
-                            .agl(soundingLys, NsharpLibBasics.i_hght(
-                                    soundingLys, upperLayerPres));
+                    h2 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, upperLayerPres));
                 }
-            } else if (STORM_MOTION_TYPE_STR[i]
-                    .equals("Lower Half SR Depth")) {
-                Parcel parcel = parcelMap
-                        .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+            } else if (STORM_MOTION_TYPE_STR[i].equals("Lower Half SR Depth")) {
+                Parcel parcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
                 if (parcel != null) {
-                    float el = NsharpLibBasics.agl(
-                            soundingLys,
-                            NsharpLibBasics.i_hght(soundingLys,
-                                    parcel.getElpres()));
+                    float el = NsharpLibBasics.agl(soundingLys,
+                            NsharpLibBasics.i_hght(soundingLys, parcel.getElpres()));
                     if (parcel.getBplus() >= 100.0) {
                         lowerLayerPres = effLyPress.getBottomPress();
                         float base = NsharpLibBasics.agl(soundingLys,
-                                NsharpLibBasics.i_hght(soundingLys,
-                                        lowerLayerPres));
+                                NsharpLibBasics.i_hght(soundingLys, lowerLayerPres));
                         float depth = (el - base);
                         h1 = base;
                         h2 = base + (depth * 0.5f);
-                        upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                                NsharpLibBasics.msl(soundingLys, h2));
+                        upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h2));
                     }
                 }
             } else {
                 h1 = STORM_MOTION_HEIGHT[i][0];
                 h2 = STORM_MOTION_HEIGHT[i][1];
-                lowerLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, h1));
-                upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, h2));
+                lowerLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h1));
+                upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h2));
             }
 
             // calculate pressure-weighted SR mean wind
-            WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys,
-                    lowerLayerPres, upperLayerPres, smdir, smspd);
-            stormTypeToSrMeanWindMap.put(STORM_MOTION_TYPE_STR[i],
-                    srMeanWindComp);
+            WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys, lowerLayerPres, upperLayerPres, smdir,
+                    smspd);
+            stormTypeToSrMeanWindMap.put(STORM_MOTION_TYPE_STR[i], srMeanWindComp);
 
             // calculate SRH helicity
-            Helicity helicity = NsharpLibWinds.helicity(soundingLys, h1, h2,
-                    smdir, smspd);
+            Helicity helicity = NsharpLibWinds.helicity(soundingLys, h1, h2, smdir, smspd);
             stormTypeToHelicityMap.put(STORM_MOTION_TYPE_STR[i], helicity);
 
         }
@@ -833,8 +808,7 @@ public class NsharpWeatherDataStore {
         if (muParcel == null || mlParcel == null) {
             stpLr = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         } else {
-            stpLr = NsharpLibXwvid.sigtorn_lr(soundingLys, smdir, smspd,
-                    muParcel, mlParcel,effLyPress);
+            stpLr = NsharpLibXwvid.sigtorn_lr(soundingLys, smdir, smspd, muParcel, mlParcel, effLyPress);
         }
 
         // calcute 9-11km SR mean wind
@@ -850,10 +824,8 @@ public class NsharpWeatherDataStore {
         // height form 0 to 16000m with step of 250m
         verticalSrWindMap.clear();
         for (float h = 0; h <= 16000; h += 250) {
-            float layerPres = NsharpLibBasics.i_pres(soundingLys,
-                    NsharpLibBasics.msl(soundingLys, h));
-            WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys,
-                    layerPres, layerPres, smdir, smspd);
+            float layerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h));
+            WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys, layerPres, layerPres, smdir, smspd);
             verticalSrWindMap.put(h, srWindComp.getWspd());
         }
         // compute stormSlinkyInfoMap for Storm Slinky inset pane
@@ -863,10 +835,8 @@ public class NsharpWeatherDataStore {
             Parcel parcel = parcelMap.get(parcelNumber);
             NsharpStormSlinkyInfo stormSlinkyInfo = null;
             if (parcel != null) {
-                stormSlinkyInfo = NsharpStormSlinkyInfo.computeStormSlinky(
-                        parcel.getLfcpres(), parcel.getElpres(),
-                        parcel.getLplpres(), parcel.getLpltemp(),
-                        parcel.getLpldwpt(), soundingLys, smdir, smspd);
+                stormSlinkyInfo = NsharpStormSlinkyInfo.computeStormSlinky(parcel.getLfcpres(), parcel.getElpres(),
+                        parcel.getLplpres(), parcel.getLpltemp(), parcel.getLpldwpt(), soundingLys, smdir, smspd);
             }
             stormSlinkyInfoMap.put(parcelNumber, stormSlinkyInfo);
 
@@ -876,8 +846,7 @@ public class NsharpWeatherDataStore {
     /********************************************************************
      * remove sounding data with pressure below 100mb for computation
      *******************************************************************/
-    private List<NcSoundingLayer> organizeSoundingForComputation(
-            List<NcSoundingLayer> soundingLys) {
+    private List<NcSoundingLayer> organizeSoundingForComputation(List<NcSoundingLayer> soundingLys) {
         // since sounding data are listed from highest pressure layer, we
         // perform
         // removal action from list bottom
@@ -902,11 +871,9 @@ public class NsharpWeatherDataStore {
                 // get user set parcel pressure, if available
                 layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
             }
-            LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(
-                    soundingLys, parcelNumber, layerPressure);
-            Parcel parcel = NsharpLibSkparams.parcel(soundingLys, -1.0F, -1.0F,
-                    lparcelVs.getPres(), lparcelVs.getTemp(),
-                    lparcelVs.getDwpt());
+            LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(soundingLys, parcelNumber, layerPressure);
+            Parcel parcel = NsharpLibSkparams.parcel(soundingLys, -1.0F, -1.0F, lparcelVs.getPres(),
+                    lparcelVs.getTemp(), lparcelVs.getDwpt());
             if (parcel == null) {
                 continue;
             }
@@ -915,23 +882,19 @@ public class NsharpWeatherDataStore {
             if (parcelNumber == NsharpLibSndglib.PARCELTYPE_OBS_SFC
                     || parcelNumber == NsharpLibSndglib.PARCELTYPE_FCST_SFC
                     || parcelNumber == NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE) {
-                pressTop = NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, 6000.0f));
+                pressTop = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 6000.0f));
                 pressBot = NsharpLibBasics.sfcPressure(soundingLys);
             } else {
-                pressBot = NsharpLibBasics.i_pres(
-                        soundingLys,
-                        (NsharpLibBasics.i_hght(soundingLys,
-                                parcel.getLplpres()) - 500.0f));
+                pressBot = NsharpLibBasics.i_pres(soundingLys,
+                        (NsharpLibBasics.i_hght(soundingLys, parcel.getLplpres()) - 500.0f));
                 if (!NsharpLibBasics.qc(pressBot)) {
                     pressBot = NsharpLibBasics.sfcPressure(soundingLys);
                 }
-                pressTop = NsharpLibBasics
-                        .i_pres(soundingLys,
-                                (NsharpLibBasics.i_hght(soundingLys, pressBot) + 6000.0f));
+                pressTop = NsharpLibBasics.i_pres(soundingLys,
+                        (NsharpLibBasics.i_hght(soundingLys, pressBot) + 6000.0f));
             }
-            float brnshear = NsharpLibSkparams.bulk_rich(soundingLys, pressTop,
-                    pressBot, parcel.getLplpres(), parcel.getBplus());
+            float brnshear = NsharpLibSkparams.bulk_rich(soundingLys, pressTop, pressBot, parcel.getLplpres(),
+                    parcel.getBplus());
 
             float brn = parcel.getBplus() / brnshear;
             parcel.setBrnShear(brnshear);
@@ -939,27 +902,26 @@ public class NsharpWeatherDataStore {
 
             ParcelMiscParams parcelMiscParams = new ParcelMiscParams();
             // Calculate mean wind at LFC to EL
-            WindComponent meanWindCompLfcToEl = NsharpLibWinds.mean_wind(
-                    soundingLys, parcel.getLfcpres(), parcel.getElpres());
+            WindComponent meanWindCompLfcToEl = NsharpLibWinds.mean_wind(soundingLys, parcel.getLfcpres(),
+                    parcel.getElpres());
             parcelMiscParams.setMeanWindCompLfcToEl(meanWindCompLfcToEl);
 
             // Calculate mean wind at LCL to EL
-            WindComponent meanWindCompLclToEl = NsharpLibWinds.mean_wind(
-                    soundingLys, parcel.getLclpres(), parcel.getElpres());
+            WindComponent meanWindCompLclToEl = NsharpLibWinds.mean_wind(soundingLys, parcel.getLclpres(),
+                    parcel.getElpres());
             parcelMiscParams.setMeanWindCompLclToEl(meanWindCompLclToEl);
 
             // Calculate wind shear at LCL to EL
-            WindComponent windShearLclToEl = NsharpLibWinds.wind_shear(
-                    soundingLys, parcel.getLclpres(), parcel.getElpres());
+            WindComponent windShearLclToEl = NsharpLibWinds.wind_shear(soundingLys, parcel.getLclpres(),
+                    parcel.getElpres());
             parcelMiscParams.setWindShearLclToEl(windShearLclToEl.getWspd());
-            
-            //construct MU parcel name for data page 1 to use
-            parcelMiscParams.setMuName("MU ("+Math.round(parcel.getLplpres())+" mb)");
-            
+
+            // construct MU parcel name for data page 1 to use
+            parcelMiscParams.setMuName("MU (" + Math.round(parcel.getLplpres()) + " mb)");
+
             parcelMiscParamsMap.put(parcelNumber, parcelMiscParams);
             // calculate mix ratio
-            parcel.setMixRatio(NsharpLibThermo.mixratio(lparcelVs.getPres(),
-                    lparcelVs.getDwpt()));
+            parcel.setMixRatio(NsharpLibThermo.mixratio(lparcelVs.getPres(), lparcelVs.getDwpt()));
             parcelMap.put(parcelNumber, parcel);
         }
         // Note: bunkers_storm_motion() and effective_inflow_layer() algorithms
@@ -971,8 +933,7 @@ public class NsharpWeatherDataStore {
         // parameters computations. Therefore, should be done before other
         // computations.
         // also save storm motion wind components for PAGE 2 to use
-        bunkersStormMotionWindComp = NsharpLibXwvid.bunkers_storm_motion(
-                soundingLys,
+        bunkersStormMotionWindComp = NsharpLibXwvid.bunkers_storm_motion(soundingLys,
                 parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE));
         // BigSharp uses bunkers' storm motion right for global storm
         // direction/speed
@@ -980,8 +941,8 @@ public class NsharpWeatherDataStore {
         smspd = bunkersStormMotionWindComp[0].getWspd();
 
         // set global effect layer pressure for alter use
-        effLyPress = NsharpLibXwvid.effective_inflow_layer(soundingLys, 100,
-                -250, parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE));
+        effLyPress = NsharpLibXwvid.effective_inflow_layer(soundingLys, 100, -250,
+                parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE));
 
         // need smdir and smspd for SR mean wind computation, therefore does it
         // after smdir and smapd are set
@@ -989,8 +950,7 @@ public class NsharpWeatherDataStore {
         avgWetbulbTemp = NsharpLibSkparams.Mean_WBtemp(soundingLys, -1, -1);
         for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_MAX; parcelNumber++) {
             Parcel parcel = parcelMap.get(parcelNumber);
-            ParcelMiscParams parcelMiscParams = parcelMiscParamsMap
-                    .get(parcelNumber);
+            ParcelMiscParams parcelMiscParams = parcelMiscParamsMap.get(parcelNumber);
             if (parcelMiscParams == null || parcel == null) {
                 continue;
             }
@@ -999,16 +959,14 @@ public class NsharpWeatherDataStore {
             float chi1 = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             float chi2 = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
 
-            chi1 = (parcel.getBplus() * parcel.getBrnShear())
-                    / NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(
-                            soundingLys,
-                            NsharpLibSkparams.wb_lvl(soundingLys, 0)));
+            chi1 = (parcel.getBplus() * parcel.getBrnShear()) / NsharpLibBasics.agl(soundingLys,
+                    NsharpLibBasics.i_hght(soundingLys, NsharpLibSkparams.wb_lvl(soundingLys, 0)));
             chi2 = chi1 / avgWetbulbTemp;
 
             parcelMiscParams.setChi1(chi1);
             parcelMiscParams.setChi2(chi2);
         }
-        
+
     }
 
     /*******************************************************************
@@ -1017,54 +975,41 @@ public class NsharpWeatherDataStore {
     private void computeParcelSrWindParameters() {
         for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_MAX; parcelNumber++) {
             Parcel parcel = parcelMap.get(parcelNumber);
-            ParcelMiscParams parcelMiscParams = parcelMiscParamsMap
-                    .get(parcelNumber);
+            ParcelMiscParams parcelMiscParams = parcelMiscParamsMap.get(parcelNumber);
             if (parcel == null || parcelMiscParams == null) {
                 continue;
             }
             // Calculate SR mean wind at LCL to EL
-            WindComponent srMeanWindCompSrLclToEl = NsharpLibWinds.sr_wind(
-                    soundingLys, parcel.getLclpres(), parcel.getElpres(),
-                    smdir, smspd);
+            WindComponent srMeanWindCompSrLclToEl = NsharpLibWinds.sr_wind(soundingLys, parcel.getLclpres(),
+                    parcel.getElpres(), smdir, smspd);
 
             parcelMiscParams.setSrMeanWindCompLclToEl(srMeanWindCompSrLclToEl);
             // SR wind at sfc-lfc
-            WindComponent srMeanWindCompSfcToLfc = NsharpLibWinds.sr_wind(
-                    soundingLys, NsharpLibBasics.sfcPressure(soundingLys),
-                    parcel.getLfcpres(), smdir, smspd);
+            WindComponent srMeanWindCompSfcToLfc = NsharpLibWinds.sr_wind(soundingLys,
+                    NsharpLibBasics.sfcPressure(soundingLys), parcel.getLfcpres(), smdir, smspd);
             parcelMiscParams.setSrMeanWindCompSfcToLfc(srMeanWindCompSfcToLfc);
             // SR wind at lfc- lfc+4km
-            float lfcP4km = NsharpLibBasics
-                    .i_pres(soundingLys,
-                            NsharpLibBasics.i_hght(soundingLys,
-                                    parcel.getLfcpres()) + 4000);
-            WindComponent srMeanWindCompLfcToLFCP4km = NsharpLibWinds.sr_wind(
-                    soundingLys, parcel.getLfcpres(), lfcP4km, smdir, smspd);
-            parcelMiscParams
-                    .setSrMeanWindCompLfcToLFCP4km(srMeanWindCompLfcToLFCP4km);
+            float lfcP4km = NsharpLibBasics.i_pres(soundingLys,
+                    NsharpLibBasics.i_hght(soundingLys, parcel.getLfcpres()) + 4000);
+            WindComponent srMeanWindCompLfcToLFCP4km = NsharpLibWinds.sr_wind(soundingLys, parcel.getLfcpres(), lfcP4km,
+                    smdir, smspd);
+            parcelMiscParams.setSrMeanWindCompLfcToLFCP4km(srMeanWindCompLfcToLFCP4km);
 
             // SR wind at el-4km - el
-            float elM4km = NsharpLibBasics
-                    .i_pres(soundingLys,
-                            NsharpLibBasics.i_hght(soundingLys,
-                                    parcel.getElpres()) - 4000);
-            WindComponent srMeanWindCompElM4kmToEl = NsharpLibWinds.sr_wind(
-                    soundingLys, elM4km, parcel.getElpres(), smdir, smspd);
-            parcelMiscParams
-                    .setSrMeanWindCompElM4kmToEl(srMeanWindCompElM4kmToEl);
+            float elM4km = NsharpLibBasics.i_pres(soundingLys,
+                    NsharpLibBasics.i_hght(soundingLys, parcel.getElpres()) - 4000);
+            WindComponent srMeanWindCompElM4kmToEl = NsharpLibWinds.sr_wind(soundingLys, elM4km, parcel.getElpres(),
+                    smdir, smspd);
+            parcelMiscParams.setSrMeanWindCompElM4kmToEl(srMeanWindCompElM4kmToEl);
 
             // SR wind at el
-            WindComponent srWindCompEl = NsharpLibWinds.sr_wind(soundingLys,
-                    parcel.getElpres() + 25, parcel.getElpres() - 25, smdir,
-                    smspd);
+            WindComponent srWindCompEl = NsharpLibWinds.sr_wind(soundingLys, parcel.getElpres() + 25,
+                    parcel.getElpres() - 25, smdir, smspd);
             parcelMiscParams.setSrWindCompEl(srWindCompEl);
 
             // calculate LPL-LFC sw helicity
-            float lplHeight = NsharpLibBasics.ftom(NsharpLibBasics.agl(soundingLys,
-                    NsharpLibBasics.i_hght(soundingLys, parcel.getLplpres())));
-            float lfcHeight = NsharpLibBasics.ftom(parcel.getLfcAgl());
-            Helicity helicity = NsharpLibWinds.helicity(soundingLys, -1/*lplHeight,*/,
-                    -1/*lfcHeight*/, smdir, smspd);
+            Helicity helicity = NsharpLibWinds.helicity(soundingLys, -1/* lplHeight, */, -1/* lfcHeight */, smdir,
+                    smspd);
             parcelMiscParams.setHelicityLplToLfc(helicity);
         }
 
@@ -1077,33 +1022,28 @@ public class NsharpWeatherDataStore {
         // All parcel relevant parameters, e.g., CAPE, CINH, LCL, LI, LFC, EL
         // etc, are computed @ computeParcelParameters()
 
-        Parcel mlParcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
-        Parcel muParcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+        Parcel mlParcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
+        Parcel muParcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
 
         // compute mean mix ratio
         meanMixRatio = NsharpLibSkparams.mean_mixratio(soundingLys, -1f, -1f);
         // compute AGL fgz in ft
         fgzPress = NsharpLibSkparams.temp_lvl(soundingLys, 0);
-        fgzft = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, fgzPress)));
+        fgzft = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, fgzPress)));
         // compute MSL frz in ft
         frzft = NsharpLibBasics.mtof(NsharpLibBasics.i_hght(soundingLys, fgzPress));
-        
+
         // compute precipitable water in inch
-        pw = NcSoundingTools.precip_water(soundingLys,  400, -1) / 25.4f;
+        pw = NcSoundingTools.precip_water(soundingLys, 400, -1) / 25.4f;
 
         // compute wbz pressure
         wbzp = NsharpLibSkparams.wb_lvl(soundingLys, 0);
 
         // AGL wbz to ft
-        wbzft = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, wbzp)));
+        wbzft = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, wbzp)));
 
         // MSL wbz to ft
-        wbzmslft = NsharpLibBasics.mtof(
-                NsharpLibBasics.i_hght(soundingLys, wbzp));
+        wbzmslft = NsharpLibBasics.mtof(NsharpLibBasics.i_hght(soundingLys, wbzp));
 
         // compute WNDG
         wndg = NsharpLibXwvid.damaging_wind(soundingLys, mlParcel);
@@ -1127,26 +1067,21 @@ public class NsharpWeatherDataStore {
         // compute MidRh & LowRh
         float surfacePressure = NsharpLibBasics.sfcPressure(soundingLys);
         if (NsharpLibBasics.qc(surfacePressure)) {
-            midRh = NsharpLibSkparams.mean_relhum(soundingLys,
-                    surfacePressure - 150, surfacePressure - 350);
-            lowRh = NsharpLibSkparams.mean_relhum(soundingLys, -1.0F,
-                    surfacePressure - 150);
+            midRh = NsharpLibSkparams.mean_relhum(soundingLys, surfacePressure - 150, surfacePressure - 350);
+            lowRh = NsharpLibSkparams.mean_relhum(soundingLys, -1.0F, surfacePressure - 150);
         }
 
         // compute mmp
         mmp = NsharpLibSkparams.coniglio1(soundingLys);
 
         // comp maxTemp (F) at default level
-        maxTemp = NsharpLibBasics.ctof(NsharpLibSkparams.max_temp(soundingLys,
-                -1));
+        maxTemp = NsharpLibBasics.ctof(NsharpLibSkparams.max_temp(soundingLys, -1));
 
         // compute NCAPE
         if (muParcel != null) {
             float j1 = muParcel.getBplus();
-            float j2 = NsharpLibBasics
-                    .i_hght(soundingLys, muParcel.getElpres())
-                    - NsharpLibBasics
-                            .i_hght(soundingLys, muParcel.getLfcpres());
+            float j2 = NsharpLibBasics.i_hght(soundingLys, muParcel.getElpres())
+                    - NsharpLibBasics.i_hght(soundingLys, muParcel.getLfcpres());
             if (j2 != 0 && NsharpLibBasics.qc(j1 / j2)) {
                 ncape = j1 / j2;
             }
@@ -1157,14 +1092,12 @@ public class NsharpWeatherDataStore {
         float pressThreeKm = 0;
         if (NsharpLibBasics.qc(surfacePressure)) {
             htsfc = NsharpLibBasics.i_hght(soundingLys, surfacePressure);
-            float tempSfc = NsharpLibBasics
-                    .i_temp(soundingLys, surfacePressure);
+            float tempSfc = NsharpLibBasics.i_temp(soundingLys, surfacePressure);
             // get sfc+ 3 km pressure
             pressThreeKm = NsharpLibBasics.i_pres(soundingLys, (htsfc + 3000));
             tempThreeKm = NsharpLibBasics.i_temp(soundingLys, pressThreeKm);
             sfcTo3kmTempDelta = tempSfc - tempThreeKm;
-            sfcTo3kmLapseRate = NsharpLibSkparams.lapse_rate(soundingLys,
-                    surfacePressure, pressThreeKm);
+            sfcTo3kmLapseRate = NsharpLibSkparams.lapse_rate(soundingLys, surfacePressure, pressThreeKm);
         }
         // compute 3km-6km Agl Lapse Rate (C/km) and temperature delta
         // get 6km pressure
@@ -1172,27 +1105,22 @@ public class NsharpWeatherDataStore {
         // get 6 km temperature
         float tempSixKm = NsharpLibBasics.i_temp(soundingLys, pressSixKm);
         threeKmTo6kmTempDelta = tempThreeKm - tempSixKm;
-        threeKmTo6kmLapseRate = NsharpLibSkparams.lapse_rate(soundingLys,
-                pressThreeKm, pressSixKm);
+        threeKmTo6kmLapseRate = NsharpLibSkparams.lapse_rate(soundingLys, pressThreeKm, pressSixKm);
 
         // compute 850-500 mb Lapse Rate (C/km) and temperature delta
-        eight50To500mbTempDelta = NsharpLibBasics.i_temp(soundingLys, 850)
-                - NsharpLibBasics.i_temp(soundingLys, 500);
-        eight50To500mbLapseRate = NsharpLibSkparams.lapse_rate(soundingLys,
-                850.0F, 500.0F);
+        eight50To500mbTempDelta = NsharpLibBasics.i_temp(soundingLys, 850) - NsharpLibBasics.i_temp(soundingLys, 500);
+        eight50To500mbLapseRate = NsharpLibSkparams.lapse_rate(soundingLys, 850.0F, 500.0F);
 
         // compute 700-500 mb Lapse Rate (C/km) and temperature delta
         sevenHundredTo500mbTempDelta = NsharpLibBasics.i_temp(soundingLys, 700)
                 - NsharpLibBasics.i_temp(soundingLys, 500);
-        sevenHundredTo500mbLapseRate = NsharpLibSkparams.lapse_rate(
-                soundingLys, 700.0F, 500.0F);
+        sevenHundredTo500mbLapseRate = NsharpLibSkparams.lapse_rate(soundingLys, 700.0F, 500.0F);
 
         // Compute the Supercell Composite Parameter, SCP
         scp = NsharpLibXwvid.scp(soundingLys, smdir, smspd, muParcel);
 
         // compute Significant Tornado Parameter (effective layer with CIN)
-        stpCin = NsharpLibXwvid.sigtorn_cin(soundingLys, smdir, smspd,
-                muParcel, mlParcel);
+        stpCin = NsharpLibXwvid.sigtorn_cin(soundingLys, smdir, smspd, muParcel, mlParcel);
 
         // compute Significant Tornado Parameter (fixed layer)
         stpFixed = NsharpLibXwvid.sigtorn_fixed(soundingLys, smdir, smspd,
@@ -1201,33 +1129,26 @@ public class NsharpWeatherDataStore {
         // compute Hail Tornado Parameter, based on MU parcel
         // follow algorithm at cave_ship() in caveNsharp.c
 
-        WindComponent windComp = NsharpLibWinds.wind_shear(
-                soundingLys,
-                NsharpLibBasics.sfcPressure(soundingLys),
-                NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, 6000)));
+        WindComponent windComp = NsharpLibWinds.wind_shear(soundingLys, NsharpLibBasics.sfcPressure(soundingLys),
+                NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 6000)));
         // effective bulk shear, used for SPC STP graph
         effShear = windComp.getWspd();
-        float base = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(
-                soundingLys, effLyPress.getBottomPress()));
+        float base = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, effLyPress.getBottomPress()));
         if (base > 0.0) {
-            float el = NsharpLibBasics.agl(soundingLys,
-                    NsharpLibBasics.i_hght(soundingLys, muParcel.getElpres()));
+            float height = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+            if (muParcel != null) {
+                float el = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, muParcel.getElpres()));
+                float depth = el - base;
+                height = base + (depth * 0.5f);
+            }
 
-            float depth = el - base;
-            WindComponent windCompEff = NsharpLibWinds.wind_shear(
-                    soundingLys,
-                    effLyPress.getBottomPress(),
-                    NsharpLibBasics.i_pres(
-                            soundingLys,
-                            NsharpLibBasics.msl(soundingLys, base
-                                    + (depth * 0.5f))));
+            WindComponent windCompEff = NsharpLibWinds.wind_shear(soundingLys, effLyPress.getBottomPress(),
+                    NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, height)));
             effShear = windCompEff.getWspd();
         }
-        ship = NsharpLibXwvid.sig_hail(soundingLys,
-                sevenHundredTo500mbLapseRate,
-                NsharpLibBasics.i_temp(soundingLys, 500),
-                NsharpLibBasics.kt_to_mps(effShear), fgzft, mlParcel, muParcel);
+        ship = NsharpLibXwvid.sig_hail(soundingLys, sevenHundredTo500mbLapseRate,
+                NsharpLibBasics.i_temp(soundingLys, 500), NsharpLibBasics.kt_to_mps(effShear), fgzft, mlParcel,
+                muParcel);
     }
 
     /*******************************************************************
@@ -1252,68 +1173,49 @@ public class NsharpWeatherDataStore {
             float upperLayerPres = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             if (STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")) {
 
-                if (effLyPress.getBottomPress() > 0
-                        && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
+                if (effLyPress.getBottomPress() > 0 && NsharpLibBasics.qc(effLyPress.getBottomPress())) {
                     lowerLayerPres = effLyPress.getBottomPress();
-                    h1 = NsharpLibBasics
-                            .agl(soundingLys, NsharpLibBasics.i_hght(
-                                    soundingLys, lowerLayerPres));
+                    h1 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, lowerLayerPres));
                     upperLayerPres = effLyPress.getTopPress();
-                    h2 = NsharpLibBasics
-                            .agl(soundingLys, NsharpLibBasics.i_hght(
-                                    soundingLys, upperLayerPres));
+                    h2 = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, upperLayerPres));
                 }
-            } else if (STORM_MOTION_TYPE_STR[i]
-                    .equals("Eff Shear(EBWD)")) {
-                Parcel parcel = parcelMap
-                        .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+            } else if (STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+                Parcel parcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
                 if (parcel != null) {
-                    float el = NsharpLibBasics.agl(
-                            soundingLys,
-                            NsharpLibBasics.i_hght(soundingLys,
-                                    parcel.getElpres()));
+                    float el = NsharpLibBasics.agl(soundingLys,
+                            NsharpLibBasics.i_hght(soundingLys, parcel.getElpres()));
                     if (parcel.getBplus() >= 100.0) {
                         lowerLayerPres = effLyPress.getBottomPress();
                         float base = NsharpLibBasics.agl(soundingLys,
-                                NsharpLibBasics.i_hght(soundingLys,
-                                        lowerLayerPres));
+                                NsharpLibBasics.i_hght(soundingLys, lowerLayerPres));
                         float depth = (el - base);
                         h1 = base;
                         h2 = base + (depth * 0.5f);
-                        upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                                NsharpLibBasics.msl(soundingLys, h2));
+                        upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h2));
                     }
                 }
             } else {
                 h1 = STORM_MOTION_HEIGHT[i][0];
                 h2 = STORM_MOTION_HEIGHT[i][1];
-                lowerLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, h1));
-                upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, h2));
+                lowerLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h1));
+                upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h2));
             }
 
             // Calculate mean wind
-            WindComponent meanwindWindComp = NsharpLibWinds.mean_wind(
-                    soundingLys, lowerLayerPres, upperLayerPres);
-            stormTypeToMeanWindMap.put(STORM_MOTION_TYPE_STR[i],
-                    meanwindWindComp);
+            WindComponent meanwindWindComp = NsharpLibWinds.mean_wind(soundingLys, lowerLayerPres, upperLayerPres);
+            stormTypeToMeanWindMap.put(STORM_MOTION_TYPE_STR[i], meanwindWindComp);
 
             // calculate pressure-weighted SR mean wind
-            WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys,
-                    lowerLayerPres, upperLayerPres, smdir, smspd);
-            stormTypeToSrMeanWindMap.put(STORM_MOTION_TYPE_STR[i],
-                    srMeanWindComp);
+            WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys, lowerLayerPres, upperLayerPres, smdir,
+                    smspd);
+            stormTypeToSrMeanWindMap.put(STORM_MOTION_TYPE_STR[i], srMeanWindComp);
 
             // Calculate wind shear
-            WindComponent shearWindComp = NsharpLibWinds.wind_shear(
-                    soundingLys, lowerLayerPres, upperLayerPres);
-            stormTypeToWindShearMap.put(STORM_MOTION_TYPE_STR[i],
-                    shearWindComp.getWspd());
+            WindComponent shearWindComp = NsharpLibWinds.wind_shear(soundingLys, lowerLayerPres, upperLayerPres);
+            stormTypeToWindShearMap.put(STORM_MOTION_TYPE_STR[i], shearWindComp.getWspd());
 
             // calculate SRH helicity
-            Helicity helicity = NsharpLibWinds.helicity(soundingLys, h1, h2,
-                    smdir, smspd);
+            Helicity helicity = NsharpLibWinds.helicity(soundingLys, h1, h2, smdir, smspd);
             stormTypeToHelicityMap.put(STORM_MOTION_TYPE_STR[i], helicity);
 
         }
@@ -1327,14 +1229,13 @@ public class NsharpWeatherDataStore {
         // compute STP-lr
         stpLr = NsharpLibXwvid.sigtorn_lr(soundingLys, smdir, smspd,
                 parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE),
-                parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING),effLyPress);
-        
+                parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING), effLyPress);
+
         // compute large hail parameter
         lhp = NsharpLibXwvid.large_hail_param(soundingLys, smdir, smspd);
-       
-        // compute  Modified SHERBE
-        Parcel muParcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+
+        // compute Modified SHERBE
+        Parcel muParcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
         if (muParcel != null) {
             modSherbe = NsharpLibXwvid.moshe(soundingLys, muParcel, effLyPress);
         }
@@ -1352,15 +1253,14 @@ public class NsharpWeatherDataStore {
         // compute meanRh
         float surfacePressure = NsharpLibBasics.sfcPressure(soundingLys);
         if (NsharpLibBasics.qc(surfacePressure)) {
-            meanRh = NsharpLibSkparams.mean_relhum(soundingLys, -1.0F,  -1.0F);
+            meanRh = NsharpLibSkparams.mean_relhum(soundingLys, -1.0F, -1.0F);
         }
         // Top of MoistLyr pressure in mb
         topMoistLyrPress = NsharpLibSkparams.top_moistlyr(soundingLys);
 
         // Top of MoistLyr height in ft
-        topMoistLyrHeight = NsharpLibBasics.mtof(NsharpLibBasics.agl(
-                soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, topMoistLyrPress)));
+        topMoistLyrHeight = NsharpLibBasics
+                .mtof(NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, topMoistLyrPress)));
 
         // Total Totals
         totTots = NsharpLibSkparams.t_totals(soundingLys);
@@ -1383,8 +1283,7 @@ public class NsharpWeatherDataStore {
 
         // compute lowest inversion height
         LayerParameters lowInvParams = NsharpLibSkparams.low_inv(soundingLys);
-        lowestInvHeight = NsharpLibBasics.i_hght(soundingLys,
-                lowInvParams.getPressure());
+        lowestInvHeight = NsharpLibBasics.i_hght(soundingLys, lowInvParams.getPressure());
 
         // lowest inversion pressure
         lowestInvPressure = lowInvParams.getPressure();
@@ -1400,13 +1299,11 @@ public class NsharpWeatherDataStore {
 
         // layer Based mix height parameters
         mixHeightLayerBased = NsharpLibSkparams.mix_height(soundingLys, 1);
-        mixHeightLayerBased.setMh_hgt(NsharpLibBasics.i_hght(soundingLys,
-                mixHeightLayerBased.getMh_pres()));
+        mixHeightLayerBased.setMh_hgt(NsharpLibBasics.i_hght(soundingLys, mixHeightLayerBased.getMh_pres()));
 
         // Surface Based mix height parameters
         mixHeightSurfaceBased = NsharpLibSkparams.mix_height(soundingLys, 0);
-        mixHeightSurfaceBased.setMh_hgt(NsharpLibBasics.i_hght(soundingLys,
-                mixHeightSurfaceBased.getMh_pres()));
+        mixHeightSurfaceBased.setMh_hgt(NsharpLibBasics.i_hght(soundingLys, mixHeightSurfaceBased.getMh_pres()));
     }
 
     /*******************************************************************
@@ -1432,15 +1329,12 @@ public class NsharpWeatherDataStore {
         // mean wind at 0-6 km is already computed at computePage2Parameters()
 
         // Calculate mean wind at 850 to 200 mb
-        meanWindComp850To200mb = NsharpLibWinds
-                .mean_wind(soundingLys, 850, 200);
+        meanWindComp850To200mb = NsharpLibWinds.mean_wind(soundingLys, 850, 200);
 
         // Calculate wind shear at sfc-12km
-        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                NsharpLibBasics.msl(soundingLys, 12000));
+        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 12000));
         float surfacePressure = NsharpLibBasics.sfcPressure(soundingLys);
-        shearWindCompSfcTo12km = NsharpLibWinds.wind_shear(soundingLys,
-                surfacePressure, upperLayerPres);
+        shearWindCompSfcTo12km = NsharpLibWinds.wind_shear(soundingLys, surfacePressure, upperLayerPres);
     }
 
     /*******************************************************************
@@ -1455,15 +1349,13 @@ public class NsharpWeatherDataStore {
         // Kindex computed stored in page 1
         // MeanRH, Top of Moist Lyr stored in page 4
         // Melting level pressure and height stored in page 1 as wbzp and wbzft
-        
-        // Eff SREH, 
-        Helicity helicity = NsharpLibWinds.helicity(soundingLys, -1, -1,
-                smdir, smspd);
+
+        // Eff SREH,
+        Helicity helicity = NsharpLibWinds.helicity(soundingLys, -1, -1, smdir, smspd);
         effSreh = helicity.getTotalHelicity();
-        
+
         // 3km shear, use default input as used by BigSharp
-        windShear3km = NsharpLibWinds.wind_shear(soundingLys, -1f, -1f)
-                .getWspd();
+        windShear3km = NsharpLibWinds.wind_shear(soundingLys, -1f, -1f).getWspd();
         windShear3km = NsharpLibBasics.kt_to_mps(windShear3km);
 
         // Rogash rain fall rate
@@ -1496,22 +1388,23 @@ public class NsharpWeatherDataStore {
 
         // compute -20C pressure in mb and height in ft
         n20CPress = NsharpLibSkparams.temp_lvl(soundingLys, -20);
-        n20CHeightFt = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, n20CPress)));
+        n20CHeightFt = NsharpLibBasics
+                .mtof(NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, n20CPress)));
 
         // compute -30C pressure in mb and height in ft
         n30CPress = NsharpLibSkparams.temp_lvl(soundingLys, -30);
-        n30CHeightFt = NsharpLibBasics.mtof(NsharpLibBasics.agl(soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, n30CPress)));
+        n30CHeightFt = NsharpLibBasics
+                .mtof(NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, n30CPress)));
 
         // compute possible storm watch type
         computeWWType();
-        
-        // compute lapse rate maximum, between 2000m and 6000m AGL, with depth 2000m
+
+        // compute lapse rate maximum, between 2000m and 6000m AGL, with depth
+        // 2000m
         lrm = NsharpLibXwvid.lapse_rate_max(soundingLys, 2000, 6000, 2000);
-        
+
         // lrm return Gempak color 2, 7, 8, 18 and 19
-        switch(lrm.getColor()){
+        switch (lrm.getColor()) {
         case 7:
         default:
             lrmColor = NsharpConstants.color_magenta;
@@ -1538,8 +1431,7 @@ public class NsharpWeatherDataStore {
         float surfPressure = sfcLayer.getPressure();
         advectionMap.clear();
         for (float pressure = surfPressure; pressure >= 200; pressure -= 100) {
-            float advt = NsharpLibSkparams.advection_layer(soundingLys,
-                    pressure, pressure - 100);
+            float advt = NsharpLibSkparams.advection_layer(soundingLys, pressure, pressure - 100);
             advectionMap.put(pressure, advt);
         }
     }
@@ -1559,10 +1451,8 @@ public class NsharpWeatherDataStore {
         // compute height vs storm wind map for SRWind inset
         // height form 0 to 16000m with step of 250m
         for (float h = 0; h <= 16000; h += 250) {
-            float layerPres = NsharpLibBasics.i_pres(soundingLys,
-                    NsharpLibBasics.msl(soundingLys, h));
-            WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys,
-                    layerPres, layerPres, smdir, smspd);
+            float layerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, h));
+            WindComponent srWindComp = NsharpLibWinds.sr_wind(soundingLys, layerPres, layerPres, smdir, smspd);
             verticalSrWindMap.put(h, srWindComp.getWspd());
         }
 
@@ -1579,25 +1469,21 @@ public class NsharpWeatherDataStore {
         thetaE850 = NsharpLibThermo.thetae(850, temp850, dewPt850);
 
         // theta E at surface
-        thetaESurface = NsharpLibThermo.thetae(sfcLayer.getPressure(),
-                sfcLayer.getTemperature(), sfcLayer.getDewpoint());
+        thetaESurface = NsharpLibThermo.thetae(sfcLayer.getPressure(), sfcLayer.getTemperature(),
+                sfcLayer.getDewpoint());
 
         // AGL at 500mb
-        agl500mb = NsharpLibBasics.agl(soundingLys,
-                NsharpLibBasics.i_hght(soundingLys, 500));
+        agl500mb = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, 500));
 
         // compute pressThetaEMap, thetaEHeightMap
         // for each sounding layer >= 500mb
         for (NcSoundingLayer lys : soundingLys) {
-            if ((lys.getPressure() >= 500)
-                    && (NsharpLibBasics.qc(lys.getDewpoint()))) {
-                float thetaE = NsharpLibThermo.thetae(lys.getPressure(),
-                        lys.getTemperature(), lys.getDewpoint());
+            if ((lys.getPressure() >= 500) && (NsharpLibBasics.qc(lys.getDewpoint()))) {
+                float thetaE = NsharpLibThermo.thetae(lys.getPressure(), lys.getTemperature(), lys.getDewpoint());
                 // add (press,thetaE) to map<Pressure, thetaE>
                 pressThetaEMap.put(lys.getPressure(), thetaE);
                 // add (thetaE, aglHeight) to map<thetaE, Agl Height>
-                float height = NsharpLibBasics.agl(soundingLys,
-                        NsharpLibBasics.i_hght(soundingLys, lys.getPressure()));
+                float height = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, lys.getPressure()));
                 thetaEHeightMap.put(thetaE, height);
             }
         }
@@ -1605,8 +1491,7 @@ public class NsharpWeatherDataStore {
         // pressure vs height from 600 mb to 1000 with step of 100mb
         // used for plotting height legend for
         for (float pres = 1000; pres > 500; pres -= 100) {
-            float height = NsharpLibBasics.agl(soundingLys,
-                    NsharpLibBasics.i_hght(soundingLys, pres));
+            float height = NsharpLibBasics.agl(soundingLys, NsharpLibBasics.i_hght(soundingLys, pres));
             if (NsharpLibBasics.qc(height)) {
                 pressHeightMap.put(pres, height);
             }
@@ -1620,10 +1505,8 @@ public class NsharpWeatherDataStore {
             Parcel parcel = parcelMap.get(parcelNumber);
             NsharpStormSlinkyInfo stormSlinkyInfo = null;
             if (parcel != null) {
-                stormSlinkyInfo = NsharpStormSlinkyInfo.computeStormSlinky(
-                        parcel.getLfcpres(), parcel.getElpres(),
-                        parcel.getLplpres(), parcel.getLpltemp(),
-                        parcel.getLpldwpt(), soundingLys, smdir, smspd);
+                stormSlinkyInfo = NsharpStormSlinkyInfo.computeStormSlinky(parcel.getLfcpres(), parcel.getElpres(),
+                        parcel.getLplpres(), parcel.getLpltemp(), parcel.getLpldwpt(), soundingLys, smdir, smspd);
             }
             stormSlinkyInfoMap.put(parcelNumber, stormSlinkyInfo);
 
@@ -1637,23 +1520,16 @@ public class NsharpWeatherDataStore {
         /********************
          * compute EBS graph
          ********************/
-        Parcel parcel = parcelMap
-                .get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
+        Parcel parcel = parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE);
         if (parcel != null) {
-            float base = NsharpLibBasics.agl(
-                    soundingLys,
-                    NsharpLibBasics.i_hght(soundingLys,
-                            effLyPress.getBottomPress()));
+            float base = NsharpLibBasics.agl(soundingLys,
+                    NsharpLibBasics.i_hght(soundingLys, effLyPress.getBottomPress()));
             float depth = (NsharpLibBasics.ftom(parcel.getElAgl()) - base);
             ebsMap.clear();
             for (int i = 10; i <= 100; i = i + 10) {
-                WindComponent shearWindComp = NsharpLibWinds.wind_shear(
-                        soundingLys,
-                        effLyPress.getBottomPress(),
-                        NsharpLibBasics.i_pres(
-                                soundingLys,
-                                NsharpLibBasics.msl(soundingLys, base
-                                        + (depth * 0.1f * (i / 10)))));
+                WindComponent shearWindComp = NsharpLibWinds.wind_shear(soundingLys, effLyPress.getBottomPress(),
+                        NsharpLibBasics.i_pres(soundingLys,
+                                NsharpLibBasics.msl(soundingLys, base + (depth * 0.1f * (i / 10)))));
                 float ebs = shearWindComp.getWspd();
                 if (NsharpLibBasics.qc(ebs)) {
                     if (ebs > 70) {
@@ -1688,22 +1564,17 @@ public class NsharpWeatherDataStore {
          * compute HAIL graph
          ***********************/
         NsharpHailInfo hailInfo = new NsharpHailInfo();
-        hailInfoContainer = hailInfo.computeHailInfo(soundingLys, this,
-                sarsInfo);
+        hailInfoContainer = hailInfo.computeHailInfo(soundingLys, this, sarsInfo);
     }
 
     /*******************************************************************
      * compute all Hodo pane weather parameters
      *******************************************************************/
     private void computeHodoPaneParameters() {
-        effLayerTopWindUComp = NsharpLibBasics.i_wndu(soundingLys,
-                effLyPress.getTopPress());
-        effLayerTopWindVComp = NsharpLibBasics.i_wndv(soundingLys,
-                effLyPress.getTopPress());
-        effLayerBotWindUComp = NsharpLibBasics.i_wndu(soundingLys,
-                effLyPress.getBottomPress());
-        effLayerBotWindVComp = NsharpLibBasics.i_wndv(soundingLys,
-                effLyPress.getBottomPress());
+        effLayerTopWindUComp = NsharpLibBasics.i_wndu(soundingLys, effLyPress.getTopPress());
+        effLayerTopWindVComp = NsharpLibBasics.i_wndv(soundingLys, effLyPress.getTopPress());
+        effLayerBotWindUComp = NsharpLibBasics.i_wndu(soundingLys, effLyPress.getBottomPress());
+        effLayerBotWindVComp = NsharpLibBasics.i_wndv(soundingLys, effLyPress.getBottomPress());
         computeCriticalAngle();
     }
 
@@ -1716,16 +1587,12 @@ public class NsharpWeatherDataStore {
             criticalAngle = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
             return;
         }
-        WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys,
-                effLyPress.getBottomPress(), effLyPress.getTopPress(), smdir,
-                smspd);
+        WindComponent srMeanWindComp = NsharpLibWinds.sr_wind(soundingLys, effLyPress.getBottomPress(),
+                effLyPress.getTopPress(), smdir, smspd);
         float srDir = srMeanWindComp.getWdir();
 
-        WindComponent shearWindComp = NsharpLibWinds.wind_shear(
-                soundingLys,
-                effLyPress.getBottomPress(),
-                NsharpLibBasics.i_pres(soundingLys,
-                        NsharpLibBasics.msl(soundingLys, 500)));
+        WindComponent shearWindComp = NsharpLibWinds.wind_shear(soundingLys, effLyPress.getBottomPress(),
+                NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 500)));
         float shearDir = shearWindComp.getWdir();
 
         if (srDir <= 180) {
@@ -1741,31 +1608,23 @@ public class NsharpWeatherDataStore {
 
     private void computeSrWind9To11km() {
         // calcute 9-11km SR mean wind
-        float lowerLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                NsharpLibBasics.msl(soundingLys, 9000));
-        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                NsharpLibBasics.msl(soundingLys, 11000));
-        srMeanWindComp9To11km = NsharpLibWinds.sr_wind(soundingLys,
-                lowerLayerPres, upperLayerPres, smdir, smspd);
+        float lowerLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 9000));
+        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 11000));
+        srMeanWindComp9To11km = NsharpLibWinds.sr_wind(soundingLys, lowerLayerPres, upperLayerPres, smdir, smspd);
     }
 
     private void computeSrWind4To6km() {
         // calcute 4-6km SR mean wind
-        float lowerLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                NsharpLibBasics.msl(soundingLys, 4000));
-        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys,
-                NsharpLibBasics.msl(soundingLys, 6000));
-        srMeanWindComp4To6km = NsharpLibWinds.sr_wind(soundingLys,
-                lowerLayerPres, upperLayerPres, smdir, smspd);
+        float lowerLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 4000));
+        float upperLayerPres = NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 6000));
+        srMeanWindComp4To6km = NsharpLibWinds.sr_wind(soundingLys, lowerLayerPres, upperLayerPres, smdir, smspd);
     }
 
     private void computeWWType() {
         // compute possible storm watch type
-        wwtype = NsharpLibXwvid.ww_type(soundingLys,
-                parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING),
+        wwtype = NsharpLibXwvid.ww_type(soundingLys, parcelMap.get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING),
                 parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE),
-                parcelMap.get(NsharpLibSndglib.PARCELTYPE_OBS_SFC), smdir,
-                smspd);
+                parcelMap.get(NsharpLibSndglib.PARCELTYPE_OBS_SFC), smdir, smspd);
 
         switch (wwtype) {
         case 1:
@@ -1806,7 +1665,7 @@ public class NsharpWeatherDataStore {
     public float getFgzft() {
         return fgzft;
     }
-    
+
     public float getFrzft() {
         return frzft;
     }
@@ -1830,7 +1689,7 @@ public class NsharpWeatherDataStore {
     public float getWbzft() {
         return wbzft;
     }
-    
+
     public float getWbzMslft() {
         return wbzmslft;
     }
@@ -2199,11 +2058,11 @@ public class NsharpWeatherDataStore {
         return lrmColor;
     }
 
-	public float getLhp() {
-	    return lhp;
-	}
+    public float getLhp() {
+        return lhp;
+    }
 
-	public float getModSherbe() {
-	    return modSherbe;
-	}
+    public float getModSherbe() {
+        return modSherbe;
+    }
 }

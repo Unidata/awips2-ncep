@@ -99,6 +99,7 @@ import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
  * 11/29/2017   5863        bsteffen    Change dataTimes to a NavigableSet
  * Apr 18, 2018   17341 mgamazaychikov  Fix the cursor plotting for station with negative surface elevation,
  *                                      add scaling for pressure surface height labels
+ * May, 5, 2018 49896       mgamazaychikov  Reconciled with RODO 5070
  *
  * </pre>
  *
@@ -3088,7 +3089,7 @@ public class NsharpSkewTPaneResource extends NsharpAbstractPaneResource {
     protected void adjustFontSize(float canvasW, float canvasH) {
         super.adjustFontSize(canvasW, canvasH);
         // make a bit bigger font10 size for skewT
-        float font10Size = 10;
+        float font10Size = 8;
         if (font10 != null) {
             font10Size = font10.getFontSize() + 1;
             font10.dispose();

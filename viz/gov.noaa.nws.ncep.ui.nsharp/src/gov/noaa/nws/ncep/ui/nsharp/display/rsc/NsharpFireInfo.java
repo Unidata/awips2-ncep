@@ -1,27 +1,7 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system. 
- * 
- * All methods developed in this class are based on the algorithm developed in BigSharp 
- * native C file, basics.c , by John A. Hart/SPC.
- * All methods name are defined with same name as the C function name defined in native code.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- * 
- */
+import java.util.List;
+
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSkparams;
 import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
@@ -33,8 +13,29 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
 
-import java.util.List;
-
+/**
+ *
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * All methods developed in this class are based on the algorithm developed in
+ * BigSharp native C file, basics.c , by John A. Hart/SPC. All methods name are
+ * defined with same name as the C function name defined in native code.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for pcl, fixed formatting
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ *
+ */
 public class NsharpFireInfo {
     private int sfcRhColor;
 
@@ -110,37 +111,28 @@ public class NsharpFireInfo {
         // compute surface mean wind using sfc pressure.
         p1 = NsharpLibBasics.sfcPressure(sndLys);
         p2 = p1;
-        WindComponent meanWindCompSfc = NsharpLibWinds
-                .mean_wind(sndLys, p1, p2);
+        WindComponent meanWindCompSfc = NsharpLibWinds.mean_wind(sndLys, p1, p2);
         String sfcStr;
         if (NsharpLibBasics.qc(meanWindCompSfc.getWdir())) {
-            sfcStr = String.format("SFC = %4.0f/%.0f",
-                    meanWindCompSfc.getWdir(), meanWindCompSfc.getWspd());
+            sfcStr = String.format("SFC = %4.0f/%.0f", meanWindCompSfc.getWdir(), meanWindCompSfc.getWspd());
         } else {
             sfcStr = "M";
         }
         fireInfo.setSfc(sfcStr);
 
         // 0-1km mean rh
-        float zeroOneKmRh = NsharpLibSkparams.mean_relhum(
-                sndLys,
-                p1,
-                NsharpLibBasics.i_pres(sndLys,
-                        NsharpLibBasics.msl(sndLys, 1000)));
-        String zeroOneKmRhStr = String.format("0-1 km RH  = %.0f", zeroOneKmRh)
-                + "%";
+        float zeroOneKmRh = NsharpLibSkparams.mean_relhum(sndLys, p1,
+                NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, 1000)));
+        String zeroOneKmRhStr = String.format("0-1 km RH  = %.0f", zeroOneKmRh) + "%";
         fireInfo.setZeroOneKmRh(zeroOneKmRhStr);
 
         // 0-1 km mean wind
-        WindComponent meanWindComp0To1km = NsharpLibWinds.mean_wind(
-                sndLys,
-                p1,
-                NsharpLibBasics.i_pres(sndLys,
-                        NsharpLibBasics.msl(sndLys, 1000)));
+        WindComponent meanWindComp0To1km = NsharpLibWinds.mean_wind(sndLys, p1,
+                NsharpLibBasics.i_pres(sndLys, NsharpLibBasics.msl(sndLys, 1000)));
         String zeroOneKmMeanWindStr;
         if (NsharpLibBasics.qc(meanWindComp0To1km.getWdir())) {
-            zeroOneKmMeanWindStr = String.format("0-1 km mean = %4.0f/%.0f",
-                    meanWindComp0To1km.getWdir(), meanWindComp0To1km.getWspd());
+            zeroOneKmMeanWindStr = String.format("0-1 km mean = %4.0f/%.0f", meanWindComp0To1km.getWdir(),
+                    meanWindComp0To1km.getWspd());
         } else {
             zeroOneKmMeanWindStr = "0-1 km mean = M";
         }
@@ -158,27 +150,25 @@ public class NsharpFireInfo {
         fireInfo.setBlMeanRh(blMeanRhStr);
 
         // BL mean wind
-        WindComponent meanWindCompBl = NsharpLibWinds.mean_wind(sndLys, p1,
-                topP);
+        WindComponent meanWindCompBl = NsharpLibWinds.mean_wind(sndLys, p1, topP);
         String blMeanWindStr;
         if (NsharpLibBasics.qc(meanWindCompBl.getWdir())) {
-            blMeanWindStr = String.format("BL mean = %4.0f/%.0f",
-                    meanWindCompBl.getWdir(), meanWindCompBl.getWspd());
+            blMeanWindStr = String.format("BL mean = %4.0f/%.0f", meanWindCompBl.getWdir(), meanWindCompBl.getWspd());
         } else {
             blMeanWindStr = "BL mean = M";
         }
         fireInfo.setBlMean(blMeanWindStr);
 
         // original code calls define_parcel(3, 500); and then calls parcel()
-        LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(sndLys,
-                NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE, 500);
-        Parcel pcl = NsharpLibSkparams.parcel(sndLys, -1.0F, -1.0F,
-                lparcelVs.getPres(), lparcelVs.getTemp(), lparcelVs.getDwpt());
+        LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(sndLys, NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE,
+                500);
+        Parcel pcl = NsharpLibSkparams.parcel(sndLys, -1.0F, -1.0F, lparcelVs.getPres(), lparcelVs.getTemp(),
+                lparcelVs.getDwpt());
 
         float pw = NcSoundingTools.precip_water(sndLys, -1, -1);
         String pwStr;
         int pwColor;
-        if (pw == -1) {
+        if (pw == -1 || pcl == null) {
             pwStr = "PW = M";
             pwColor = 31;
         } else {
@@ -197,8 +187,7 @@ public class NsharpFireInfo {
         String blMaxWindStr;
         float blMaxSpd = maxWindCompBl.getWspd();
         if (NsharpLibBasics.qc(blMaxSpd)) {
-            blMaxWindStr = String.format("BL max = %4.0f/%.0f",
-                    maxWindCompBl.getWdir(), blMaxSpd);
+            blMaxWindStr = String.format("BL max = %4.0f/%.0f", maxWindCompBl.getWdir(), blMaxSpd);
         } else {
             blMaxWindStr = "BL max = M";
         }
@@ -223,8 +212,7 @@ public class NsharpFireInfo {
         float fosbergIndex = NsharpLibSkparams.fosberg(sndLys);
         String forsbergIndexStr;
         if (NsharpLibBasics.qc(fosbergIndex)) {
-            forsbergIndexStr = String.format("Fosberg FWI = %4.0f",
-                    fosbergIndex);
+            forsbergIndexStr = String.format("Fosberg FWI = %4.0f", fosbergIndex);
         } else {
             forsbergIndexStr = "Fosberg FWI = M";
         }

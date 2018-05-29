@@ -1,22 +1,3 @@
-/**
- * 
- * 
- * This java class performs the NSHARP NsharpLoadDialog functions.
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 10/06/2015   RM#10295    Chin Chen   initial coding - moving query and loading code form NsharpModelSoundingDialogContents.java
- *                                      Let sounding data query run in its own thread to avoid gui locked out during load
- *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
 package gov.noaa.nws.ncep.ui.nsharp.display.map;
 
 import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingCube;
@@ -34,9 +15,15 @@ import gov.noaa.nws.ncep.viz.soundingrequest.NcSoundingQuery;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -50,13 +37,41 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.vividsolutions.jts.geom.Coordinate;
 
+/**
+ * 
+ * 
+ * This java class performs the NSHARP NsharpLoadDialog functions.
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ * 
+ * <pre>
+ * SOFTWARE HISTORY
+ * 
+ * Date         Ticket#     Engineer    Description
+ * -------      -------     --------    -----------
+ * 10/06/2015   RM#10295    Chin Chen   initial coding - moving query and loading code form NsharpModelSoundingDialogContents.java
+ *                                      Let sounding data query run in its own thread to avoid gui locked out during load
+ * 04/10/2017   DR#30518    nabowle     Run sounding queries in parallel.
+ *
+ * </pre>
+ * 
+ * @author Chin Chen
+ */
 public class NsharpModelSoundingQuery extends Job {
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(NsharpModelSoundingQuery.class);
+    
+    /**
+     * Used to run sounding queries in parallel. CAVE restricts the number of
+     * concurrent connections to EDEX, so we can't achieve parallelism
+     * beyond that limit, but that limit also prevents us from overwhelming
+     * EDEX.
+     */
+    private static final ExecutorService QUERY_EXECUTOR = Executors
+            .newFixedThreadPool(
+                    Integer.getInteger("nsharp.concurrent.model.queries", 8));
 
     public NsharpModelSoundingQuery(String name) {
         super(name);
-
     }
 
     private boolean stnQuery;
@@ -69,6 +84,29 @@ public class NsharpModelSoundingQuery extends Job {
     private String selectedModelType;
     private String selectedRscDefName;
 
+    /**
+     * Query and load the Sounding data.
+     * 
+     * @param stnQuery
+     *            true if this is a station query, false if a point query.
+     * @param skewtEdt
+     *            The skew editor to display the data on.
+     * @param soundingLysLstMap
+     *            The map location+times to sounding layers to store results in.
+     * @param selectedTimeList
+     *            The list of selected times.
+     * @param timeLineToFileMap
+     * @param lat
+     *            The latitude
+     * @param lon
+     *            The longitude
+     * @param stnStr
+     *            The station
+     * @param selectedModelType
+     *            The model name used for database queries.
+     * @param selectedRscDefName
+     *            The displayed name.
+     */
     public void queryAndLoadData(boolean stnQuery, NsharpEditor skewtEdt,
             Map<String, List<NcSoundingLayer>> soundingLysLstMap,
             List<String> selectedTimeList,
@@ -89,6 +127,14 @@ public class NsharpModelSoundingQuery extends Job {
         }
     }
 
+    /**
+     * Request the sounding cubes for the selected times and display the
+     * resource as long as one valid cube was returned.
+     * 
+     * NcSoundingQueries are run in parallel (limited by the thread limit on
+     * {@link #QUERY_EXECUTOR} and the EDEX Http Connections limit) which
+     * increases overall throughput when multiple times are selected.
+     */
     @Override
     protected IStatus run(IProgressMonitor monitor) {
         try {
@@ -101,6 +147,7 @@ public class NsharpModelSoundingQuery extends Job {
             // This is not the case of PFC sounding (modelsounding db). It
             // has all time lines of one forecast report saved in one file.
             // Therefore, PFC query is much faster.
+            List<Future<NcSoundingCube>> runningQueries = new ArrayList<>(selectedTimeList.size());
             for (String timeLine : selectedTimeList) {
                 // avail file, ie. its refTime
                 String selectedFileStr = timeLineToFileMap.get(timeLine);
@@ -128,12 +175,46 @@ public class NsharpModelSoundingQuery extends Job {
                 String[] refLTimeStrAry = { selectedFileStr + ":00:00" };
                 String[] soundingRangeTimeStrArray = { rangeStartStr };
                 Coordinate[] coordArray = { new Coordinate(lon, lat) };
-                NcSoundingCube cube = NcSoundingQuery.genericSoundingDataQuery(
-                        null, null, refLTimeStrAry, soundingRangeTimeStrArray,
-                        coordArray, null, MdlSndType.ANY.toString(),
-                        NcSoundingLayer.DataType.ALLDATA, false, "-1",
-                        selectedModelType, gridInterpolation, false, false);
+                
+                /*
+                 * Schedule all of the NcSoundingQueries. The executor service
+                 * will handle running these queries in the background and does
+                 * not require Future#get() to be called on completed queries
+                 * before running more NcSoundingQueries.
+                 */
+                runningQueries.add(QUERY_EXECUTOR.submit(new Callable<NcSoundingCube>() {
+                    @Override
+                    public NcSoundingCube call() throws Exception {
+                        return NcSoundingQuery.genericSoundingDataQuery(null,
+                                null, refLTimeStrAry, soundingRangeTimeStrArray,
+                                coordArray, null, MdlSndType.ANY.toString(),
+                                NcSoundingLayer.DataType.ALLDATA, false, "-1",
+                                selectedModelType, gridInterpolation, false,
+                                false);
+                    }
 
+                }));
+            }
+            for (int i = 0; i < runningQueries.size(); i++) {
+                String timeLine = selectedTimeList.get(i);
+                
+                Future<NcSoundingCube> soundingQuery = runningQueries.get(i);
+                NcSoundingCube cube;
+                try {
+                    /*
+                     * soundingQuery.get() will immediately return the resultant
+                     * Sounding Cube if the query has already completed, or
+                     * block this thread until it has finished. If there was an
+                     * exception running the query, an ExecutionException is
+                     * thrown by get() and handled here.
+                     */
+                    cube = soundingQuery.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    statusHandler.handle(Priority.ERROR,
+                            "NsharpModelSoundingQuery: exception retrieving sounding cube for "
+                                    + timeLine, e);
+                    cube = null;
+                }
                 if (cube != null
                         && cube.getRtnStatus() == NcSoundingCube.QueryStatus.OK) {
 
@@ -168,13 +249,13 @@ public class NsharpModelSoundingQuery extends Job {
                         NsharpSoundingQueryCommon
                                 .postToMsgBox("Sounding query with lat/lon ("
                                         + lat + "/" + lon + ") at " + timeLine
-                                        + ": Returned\n But without vlaid data");
+                                        + ": Returned\n But without valid data");
                     } else {
                         NsharpSoundingQueryCommon
                                 .postToMsgBox("Sounding query with stn "
                                         + stnStr + "at lat/lon (" + lat + "/"
                                         + lon + ") at " + timeLine
-                                        + ": Returned\n But without vlaid data");
+                                        + ": Returned\n But without valid data");
                     }
                 } else {
                     if (!stnQuery) {

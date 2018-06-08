@@ -45,13 +45,6 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.modis"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.atcf"
          download-size="0"
          install-size="0"
@@ -60,41 +53,6 @@
 
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.aww"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.sgwh"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.sgwhv"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.ffg"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.idft"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.ncscat"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -129,13 +87,6 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.nctaf"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.stormtrack"
          download-size="0"
          install-size="0"
@@ -164,29 +115,17 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.airep"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-         
-   <plugin
-         id="gov.noaa.nws.ncep.common.dataplugin.pirep"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.soundingrequest"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
+
    <plugin
          id="gov.noaa.nws.ncep.common.dataplugin.ncgrib"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
+
 </feature>

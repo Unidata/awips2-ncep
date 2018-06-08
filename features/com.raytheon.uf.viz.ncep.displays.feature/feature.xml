@@ -103,21 +103,7 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ffg"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="gov.noaa.nws.ncep.viz.rsc.hrcn"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.idft"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -132,13 +118,6 @@
 
    <plugin
          id="gov.noaa.nws.ncep.viz.rsc.lightning"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="gov.noaa.nws.ncep.viz.rsc.ncscat"
          download-size="0"
          install-size="0"
          version="0.0.0"

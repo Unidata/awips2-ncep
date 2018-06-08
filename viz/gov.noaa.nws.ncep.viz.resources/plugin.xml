@@ -33,17 +33,6 @@
             name="NC Move to Bottom"
             sortID="893"/>
    </extension>   
-   <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       	<path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Resource Templates"
-             recursive="true"
-             value="ncep/resourceTemplates"
-	         extensionFilter=".xml">
-       </path>
-    </extension>
     <extension
          point="com.raytheon.uf.viz.core.renderingOrder">
       <renderingOrder

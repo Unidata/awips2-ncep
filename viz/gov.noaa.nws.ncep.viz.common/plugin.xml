@@ -3,47 +3,6 @@
 <plugin>
    <extension-point id="areaProvider" name="areaProvider" schema="schema/areaProvider.exsd"/>
    
-    <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Color Maps"
-             recursive="true"
-             value="ncep/ColorMaps"
-	         extensionFilter=".tbl,.cmap">
-       </path>
-    </extension>
-    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Predefined Areas"
-             recursive="false"
-             value="ncep/PredefinedAreas"
-	          extensionFilter=".xml">
-       </path>
-    </extension>
-    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="GempakGeogAreas"
-             recursive="false"
-             value="ncep/PredefinedAreas/gempak"
-	          extensionFilter=".xml">
-       </path>
-    </extension>
-    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="Predefined Area Menus"
-             recursive="false"
-             value="ncep/PredefinedAreas/menus"
-	          extensionFilter=".xml">
-       </path>
-    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">   
       <page

@@ -3473,17 +3473,6 @@
 
     </extension>
 
-    <extension
-          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
-       <path
-             application="NCEP"
-             localizationType="CAVE_STATIC"
-             name="PGEN"
-             recursive="true"
-             value="ncep/pgen"
-	         extensionFilter=".xml,.tbl,.png,.txt,.xsl,.xlt,.xslt">
-       </path>
-    </extension>
    <extension
          point="com.raytheon.uf.viz.core.classContext">
          <classContext

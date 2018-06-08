@@ -803,12 +803,6 @@
 	<ResourceDefinitionFilter rscDefnName="MTSAT2">
 	<filters>McIdas</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="VIIRS">
-	<filters>VIIRS</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MODIS">
-	<filters>MODIS</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="DayNightTerminator">
 	<filters>Misc</filters>
 	</ResourceDefinitionFilter>

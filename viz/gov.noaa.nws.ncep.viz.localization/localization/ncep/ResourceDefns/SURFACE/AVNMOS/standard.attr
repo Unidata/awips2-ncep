@@ -1,7 +1,0 @@
-! Attributes for the AVNMOS resource with "standard" plot model
-!
-plotModel=@PlotModels/bufrmosAVN/standard.xml
-! plotDensity range 1-30, or use 99 for "Plot All" points
-plotDensity=10
-conditionalFilter=
-legendString=AVNMOS Standard

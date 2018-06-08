@@ -686,20 +686,6 @@
         
    </extension>
    
-    <extension
-       point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?after=tools.Pg">
-            <command
-                commandId="gov.noaa.nws.ncep.ui.pgen.palette"
-                label="PGEN">
-                <visibleWhen>
-                    <reference
-                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-                    </reference>                        
-                </visibleWhen>
-            </command>
-        </menuContribution>                           
-   </extension> 
 
    <extension
        point="org.eclipse.ui.menus">

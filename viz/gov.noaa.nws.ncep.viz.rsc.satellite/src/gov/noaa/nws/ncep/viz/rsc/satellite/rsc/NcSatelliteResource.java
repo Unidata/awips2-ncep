@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.dataplugin.persist.PersistableDataObject;
 import com.raytheon.uf.common.dataplugin.satellite.SatMapCoverage;
+import com.raytheon.uf.common.dataplugin.satellite.SatelliteConstants;
 import com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord;
 import com.raytheon.uf.common.dataplugin.satellite.units.goes.PolarPrecipWaterPixel;
 import com.raytheon.uf.common.dataplugin.satellite.units.ir.IRPixel;
@@ -69,7 +69,6 @@ import com.raytheon.uf.viz.core.rsc.ResourceProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorMapCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.ImagingCapability;
 import com.raytheon.uf.viz.core.tile.RecordTileSetRenderable;
-import com.raytheon.viz.satellite.SatelliteConstants;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.common.dataplugin.mcidas.McidasConstants;
@@ -101,14 +100,14 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * Raytheon's SatResource, NCEP's AbstractSatelliteResource, and NCEP's
  * GiniSatResource. Therefore you can trace much of the logic in here to one of
  * those three classes.
- * 
+ *
  * TODO: The Raytheon SatRenderable and/or SatTileSetRenderable should become
  * more reusable and/or extendable to eliminate duplicate code.
- * 
+ *
  * <pre>
- * 
+ *
  *  SOFTWARE HISTORY
- * 
+ *
  *  Date         Ticket#    Engineer    Description
  *  ------------ ---------- ----------- --------------------------
  *  09/28/2015   R11385     njensen     Initial creation
@@ -123,19 +122,20 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                      need for AbstractSatelliteResource class.
  *  07/01/2016   R17376     kbugenhagen Added getColorMapName method to allow
  *                                      different satellite resources to use
- *                                      different methods for getting the colormap 
+ *                                      different methods for getting the colormap
  *                                      name (i.e. via stylerules or attribute files.
  *  07/29/2016   R17936     mkean       null in legendString for unaliased satellite.
  *  09/16/2016   R15716     SRussell    Added a new FrameData constructor,
  *                                      Added method getLastRecordAdded()
- *  12/14/2016    R20988    kbugenhagen Remove setting colormap capability in 
+ *  12/14/2016    R20988    kbugenhagen Remove setting colormap capability in
  *                                      setColorMapUnits so colormap name isn't
  *                                      overwritten.
  * 11/29/2017    5863       bsteffen    Change dataTimes to a NavigableSet
- * 
- * 
+ * 06/11/2018    7310       mapeters    Update SatelliteConstants import
+ *
+ *
  * </pre>
- * 
+ *
  */
 public class NcSatelliteResource extends
         AbstractNatlCntrsResource2<SatelliteResourceData, NCMapDescriptor>
@@ -192,7 +192,7 @@ public class NcSatelliteResource extends
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.
          * AbstractFrameData#dispose()
          */
@@ -203,7 +203,7 @@ public class NcSatelliteResource extends
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource.
          * AbstractFrameData#updateFrameData(gov.noaa.nws.ncep.viz.resources.
          * AbstractNatlCntrsResource.IRscDataObject)
@@ -253,7 +253,7 @@ public class NcSatelliteResource extends
         /**
          * Determine if the previously added satellite record's timestamp is a
          * closer time match than the current record's.
-         * 
+         *
          * @param newSatRec
          *            current satellite record
          * @return true if previous timestamp is closer
@@ -284,7 +284,7 @@ public class NcSatelliteResource extends
         }
 
         public void setRenderable(SatRenderable<?> renderable) {
-            this.renderable = (SatRenderable<SatMapCoverage>) renderable;
+            this.renderable = renderable;
         }
 
         public IPersistable getLastRecordAdded() {
@@ -302,11 +302,11 @@ public class NcSatelliteResource extends
     /**
      * Renderable for displaying satellite data. There is one renderable per
      * frame but potentially multiple tiles per renderable.
-     * 
+     *
      * This class is almost an exact copy of
      * com.raytheon.viz.satellite.rsc.SatResource.SatRenderable. The differences
      * are only in addRecord() and interrogate(). See TODO above.
-     * 
+     *
      * @param <T>
      *            satellite spatial coverage
      */
@@ -317,7 +317,7 @@ public class NcSatelliteResource extends
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * com.raytheon.uf.viz.core.drawables.IRenderable#paint(com.raytheon
          * .uf.viz.core.IGraphicsTarget,
@@ -336,7 +336,7 @@ public class NcSatelliteResource extends
 
         /**
          * Get DrawableImages for rendering.
-         * 
+         *
          * @param target
          *            graphics target
          * @param paintProps
@@ -346,7 +346,7 @@ public class NcSatelliteResource extends
          */
         public Collection<DrawableImage> getImagesToRender(
                 IGraphicsTarget target, PaintProperties paintProps)
-                        throws VizException {
+                throws VizException {
             List<DrawableImage> images = new ArrayList<>();
             synchronized (tileMap) {
                 for (RecordTileSetRenderable renderable : tileMap.values()) {
@@ -360,7 +360,7 @@ public class NcSatelliteResource extends
         /**
          * Create a tileset from a satellite data record and add it to the
          * collection of tilesets.
-         * 
+         *
          * @param record
          *            satellite data record
          */
@@ -414,7 +414,7 @@ public class NcSatelliteResource extends
 
         /**
          * Interrogate to get the data value at a lat/lon.
-         * 
+         *
          * @param latLon
          *            lat/long coordiate
          * @param requestUnit
@@ -463,7 +463,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.raytheon.uf.viz.core.rsc.AbstractVizResource#getName()
      */
     @Override
@@ -482,7 +482,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#createNewFrame
      * (com.raytheon.uf.common.time.DataTime, int)
@@ -490,12 +490,12 @@ public class NcSatelliteResource extends
     @Override
     protected AbstractFrameData createNewFrame(DataTime frameTime,
             int frameInterval) {
-        return (AbstractFrameData) new FrameData(frameTime, frameInterval);
+        return new FrameData(frameTime, frameInterval);
     }
 
     /**
      * One-time initialization to set up colormap.
-     * 
+     *
      * @param record
      *            satellite data record
      * @throws VizException
@@ -517,7 +517,7 @@ public class NcSatelliteResource extends
 
     /**
      * Create legend string from subtypes
-     * 
+     *
      * @return
      */
     private String createLegendString() {
@@ -649,7 +649,7 @@ public class NcSatelliteResource extends
 
     /**
      * Retrieves preferences specified in style rule
-     * 
+     *
      * @param dataRecord
      *            satellite data record
      * @return The preferences specified in the style rule file
@@ -693,7 +693,7 @@ public class NcSatelliteResource extends
 
     /**
      * Loads color map parameters from preferences.
-     * 
+     *
      * @param dataRecord
      *            satellite data record
      * @return colormap parameters
@@ -726,7 +726,7 @@ public class NcSatelliteResource extends
     /**
      * Gets the colormap name from the resource data (attributes file). If image
      * preferences (style rules) specify the name, get it from there.
-     * 
+     *
      * @param colorMapParameters
      * @return name of colormap
      */
@@ -747,7 +747,7 @@ public class NcSatelliteResource extends
 
     /**
      * Set color map attributes
-     * 
+     *
      * @param record
      *            satellite data record
      * @param colorMapParameters
@@ -868,7 +868,7 @@ public class NcSatelliteResource extends
 
     /**
      * Get parameters used in matching criteria used to locate style rule.
-     * 
+     *
      * @param dataRecord
      *            satellite data record
      * @return parameters
@@ -882,7 +882,7 @@ public class NcSatelliteResource extends
 
     /**
      * Get image type number used to generate color bar.
-     * 
+     *
      * @param dataRecord
      *            satellite data record
      * @return image type number
@@ -893,7 +893,7 @@ public class NcSatelliteResource extends
 
     /**
      * Get the record unit associated with the satellite data record.
-     * 
+     *
      * @param dataRecord
      *            satellite data record0
      * @return record unit
@@ -929,7 +929,7 @@ public class NcSatelliteResource extends
 
     /**
      * Get the file path for a satellite type
-     * 
+     *
      * @param type
      *            satellite type
      * @return file path
@@ -950,7 +950,7 @@ public class NcSatelliteResource extends
 
     /**
      * Get JAXB manager used in style rule lookup.
-     * 
+     *
      * @return JAXBManager
      * @throws JAXBException
      */
@@ -983,7 +983,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#disposeInternal
      * ()
@@ -1012,7 +1012,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#initResource
      * (com.raytheon.uf.viz.core.IGraphicsTarget)
@@ -1040,7 +1040,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#paintFrame(
      * gov.noaa
@@ -1066,7 +1066,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.raytheon.uf.viz.core.rsc.AbstractVizResource#project(org.opengis.
      * referencing.crs.CoordinateReferenceSystem)
@@ -1083,7 +1083,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.raytheon.uf.viz.core.rsc.AbstractVizResource#inspect(com.raytheon
      * .uf.common.geospatial.ReferencedCoordinate)
@@ -1117,7 +1117,7 @@ public class NcSatelliteResource extends
 
     /**
      * Look up the data value for a lat/lon
-     * 
+     *
      * @param coord
      *            lat/lon coordinate
      * @return data value
@@ -1145,7 +1145,7 @@ public class NcSatelliteResource extends
     /**
      * Determine whether this satellite resource is compatible with cloud height
      * tool
-     * 
+     *
      * @return
      */
     public boolean isCloudHeightCompatible() {
@@ -1172,7 +1172,7 @@ public class NcSatelliteResource extends
     /**
      * Gets the temp in the units set as the display units in the colormap
      * parameters.
-     * 
+     *
      * @param latlon
      *            coordinate
      * @return the temperature
@@ -1204,7 +1204,7 @@ public class NcSatelliteResource extends
      * This is an ICloudHeightCapable Interface method Get the display Units. If
      * it is Celsius, the resource is usable with the Cloud Height Tool which
      * calculates the height of clouds from temperature data
-     * 
+     *
      * @return Unit
      */
 
@@ -1224,7 +1224,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
      * resourceAttrsModified()
      */
@@ -1251,7 +1251,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.raytheon.uf.viz.core.rsc.IResourceDataChanged#resourceChanged(com
      * .raytheon.uf.viz.core.rsc.IResourceDataChanged.ChangeType,
@@ -1310,7 +1310,7 @@ public class NcSatelliteResource extends
 
     /**
      * Create color bar.
-     * 
+     *
      * @param record
      *            satellite data record
      * @param imageTypeNumber
@@ -1419,11 +1419,12 @@ public class NcSatelliteResource extends
 
         } else if (imagePreferences.getDataMapping() == null) {
             // no existing data mapping, so we generate it
-            if (imagePreferences.getDisplayUnitLabel() != null)
+            if (imagePreferences.getDisplayUnitLabel() != null) {
                 colorBar.setDisplayUnitStr(
                         imagePreferences.getDisplayUnitLabel());
-            else
+            } else {
                 colorBar.setDisplayUnitStr(dataUnitString);
+            }
 
             int imndlv = (int) Math.min(256, maxPixVal - minPixVal + 1);
             double ratio = (maxPixVal - minPixVal) / 255;
@@ -1464,8 +1465,9 @@ public class NcSatelliteResource extends
 
         }
         colorBar.setAlignLabelInTheMiddleOfInterval(false);
-        if (!colorBar.equals(resourceData.getColorBar()))
+        if (!colorBar.equals(resourceData.getColorBar())) {
             resourceData.setColorBar(colorBar);
+        }
     }
 
     protected String getUnits(IPersistable record) {
@@ -1474,7 +1476,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.raytheon.uf.viz.core.rsc.AbstractVizResource#propertiesChanged(com
      * .raytheon.uf.viz.core.rsc.ResourceProperties)
@@ -1497,9 +1499,9 @@ public class NcSatelliteResource extends
     /*
      * for IAreaProviderCapable which triggers the Fit To Screen and Size Of
      * Image context menus
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see
      * gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getSourceProvider
      * ()
@@ -1511,7 +1513,7 @@ public class NcSatelliteResource extends
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see gov.noaa.nws.ncep.viz.common.area.IAreaProviderCapable#getAreaName()
      */
     @Override

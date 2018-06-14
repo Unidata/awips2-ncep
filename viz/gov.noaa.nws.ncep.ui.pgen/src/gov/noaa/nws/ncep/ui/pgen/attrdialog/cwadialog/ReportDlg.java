@@ -38,7 +38,8 @@ import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
  * SOFTWARE HISTORY
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
- * 032/02/2017  17469    wkwock      Initial creation
+ * 03/02/2017  17469    wkwock      Initial creation
+ * 05/23/2018  17469    wkwock      Fix no practice mode report issue
  * 
  * </pre>
  * 
@@ -230,13 +231,14 @@ public class ReportDlg extends CaveSWTDialog {
         List<StdTextProduct> productList;
         if (typeCbo.getSelectionIndex() == 7) {
             productId = "ALL:" + awipsNode + nnnId + cwsuId;
-            productList = CWAProduct.executeAfosCmd(productId, true);
+            productList = CWAProduct.executeAfosCmd(productId, isOperational);
         } else {
             productList = new ArrayList<>();
             for (int i = 1; i < 7; i++) {
                 productId = "ALL:" + awipsNode + nnnId + cwsuId.substring(1)
                         + i;
-                productList.addAll(CWAProduct.executeAfosCmd(productId, true));
+                productList.addAll(
+                        CWAProduct.executeAfosCmd(productId, isOperational));
             }
         }
 

@@ -36,6 +36,7 @@ import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 05/23/2018  17469    wkwock      Fix practice mode issue
  * 
  * </pre>
  * 
@@ -103,6 +104,9 @@ public class CWSFormatterDlg extends CaveSWTDialog {
         super(parShell);
         this.retrievalProductId = cwaConfigs.getAwipsNode() + productId;
         this.productId = cwaConfigs.getKcwsuId() + productId;
+        if (!cwaConfigs.isOperational()) {
+            this.productId = cwaConfigs.getAwipsNode() + productId;
+        }
         this.cwaConfigs = cwaConfigs;
         setText("MIS/CWS Formatter - Site: " + cwaConfigs.getCwsuId()
                 + " - Product: " + productId);

@@ -34,6 +34,9 @@ import com.raytheon.uf.common.status.UFStatus;
  *                                      Support PW computation
  * 07/20/2015   R9173     Chin Chen   Clean up NcSoundingQuery, and Obsolete NcSoundingQuery2 and MergeSounding2
  * 10/20/2015   R12599    Chin Chen   negative PWAT value when surface layer dew point is missing
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
  * 
  * 
  * </pre>
@@ -86,12 +89,15 @@ public class NcSoundingTools {
         int topIndex = -1;
         // find bottom layer index
         if (bot == -1) {
-            // make sure surface layer dew point is NOT missing
-            if (sndlayers.get(0).getDewpoint() == -9999f) {
-                return -1;
-            } else {
-                botIndex = 0;
-            }
+        	// make sure surface layer dew point is NOT missing
+        	for (int i = 0; i < sndlayers.size(); i++) {
+        		if (sndlayers.get(i).getDewpoint() == NcSoundingLayer.MISSING) {
+        			continue;
+        		} else {
+        			botIndex = i;
+        			break;
+        		}
+        	}
         } else {
             // Note that lowest level has the greatest pressure
             // search from lowest level up and find bottom layer with valid

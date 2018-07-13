@@ -56,7 +56,7 @@ public class NcText extends Text implements INcCommand {
 
         ds.font = ib.getCurrentFont();
         ds.horizontalAlignment = ib.getHorizontalAlignment();
-        ds.verticallAlignment = ib.getVerticalAlignment();
+        ds.verticalAlignment = ib.getVerticalAlignment();
 
         ib.addString(ds);
 

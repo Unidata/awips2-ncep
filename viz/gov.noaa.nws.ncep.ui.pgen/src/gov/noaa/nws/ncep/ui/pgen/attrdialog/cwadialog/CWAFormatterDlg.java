@@ -289,15 +289,6 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
             }
         });
 
-        Button sendBtn = new Button(parent, SWT.PUSH);
-        sendBtn.setText("Send Text");
-        sendBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                sendProduct();
-            }
-        });
-
         Button exitBtn = new Button(parent, SWT.PUSH);
         exitBtn.setText("Exit");
         exitBtn.addSelectionListener(new SelectionAdapter() {
@@ -435,48 +426,4 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
         }
     }
 
-    /**
-     * save and send product
-     */
-    private void sendProduct() {
-        String product = productTxt.getText();
-        if (product.trim().isEmpty()) {
-            MessageBox messageBox = new MessageBox(top.getShell(), SWT.OK);
-            messageBox.setText("No Product to Save");
-            messageBox.setMessage("There's no product to save.");
-            messageBox.open();
-            return;
-        } else {
-            MessageBox messageBox = new MessageBox(top.getShell(),
-                    SWT.YES | SWT.NO);
-            messageBox.setText("Save Product");
-            String message = "Save product " + productId + " to textdb?";
-            if (cwaConfigs.isOperational()) {
-                message += "\nAnd distribute to DEFAULTNCF?";
-            }
-            messageBox.setMessage(message);
-            int buttonId = messageBox.open();
-            if (buttonId != SWT.YES) {
-                return;
-            }
-        }
-
-        CWAProduct cwaProduct = new CWAProduct(productId,
-                cwaConfigs.isOperational());
-        cwaProduct.setProductTxt(product);
-        boolean success = cwaProduct.sendText(site);
-
-        if (cwaConfigs.isOperational()) {
-            MessageBox messageBox = new MessageBox(top.getShell(), SWT.OK);
-            messageBox.setText("Product Distribution");
-            if (success) {
-                messageBox.setMessage(
-                        "Product " + productId + " successfully distributed.");
-            } else {
-                messageBox.setMessage(
-                        "Failed to distribute product " + productId + ".");
-            }
-            messageBox.open();
-        }
-    }
 }

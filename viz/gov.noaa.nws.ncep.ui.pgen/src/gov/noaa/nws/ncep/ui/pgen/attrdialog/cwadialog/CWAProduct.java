@@ -14,9 +14,6 @@ import com.raytheon.uf.common.dataplugin.text.StdTextProductContainer;
 import com.raytheon.uf.common.dataplugin.text.db.StdTextProduct;
 import com.raytheon.uf.common.dataplugin.text.request.ExecuteAfosCmdRequest;
 import com.raytheon.uf.common.dataplugin.text.request.WriteProductRequest;
-import com.raytheon.uf.common.dissemination.OUPRequest;
-import com.raytheon.uf.common.dissemination.OUPResponse;
-import com.raytheon.uf.common.dissemination.OfficialUserProduct;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
@@ -287,72 +284,6 @@ public class CWAProduct {
         } else {
             color = display.getSystemColor(SWT.COLOR_GRAY);
         }
-    }
-
-    /**
-     * save product to textdb and disseminate to DEFAULTNCF
-     * 
-     * @param site
-     * @param isOperational
-     * @return
-     */
-    public boolean sendText(String site) {
-        if (isOperational) {
-            // transmit product for operational only
-            OUPRequest req = new OUPRequest();
-            OfficialUserProduct oup = new OfficialUserProduct();
-            oup.setAwipsWanPil(productId);
-            oup.setSource("CWA Generator");
-            oup.setAddress("DEFAULTNCF");
-            oup.setNeedsWmoHeader(false);
-            oup.setFilename(productId + ".txt");
-            oup.setProductText(productTxt);
-
-            req.setCheckBBB(true);
-            req.setProduct(oup);
-            req.setUser(UserController.getUserObject());
-
-            OUPResponse response;
-            try {
-                response = (OUPResponse) ThriftClient.sendRequest(req);
-                boolean success = response.isSendLocalSuccess();
-                if (response.hasFailure()) {
-                    Priority p = Priority.EVENTA;
-                    if (!response.isAttempted()) {
-                        // if was never attempted to send or store even
-                        // locally
-                        p = Priority.CRITICAL;
-                    } else if (!response.isSendLocalSuccess()) {
-                        // if send/store locally failed
-                        p = Priority.CRITICAL;
-                    } else if (!response.isSendWANSuccess()) {
-                        // if send to WAN failed
-                        if (response.getNeedAcknowledgment()) {
-                            // if ack was needed, if it never sent then no
-                            // ack was recieved
-                            p = Priority.CRITICAL;
-                        } else {
-                            // if no ack was needed
-                            p = Priority.EVENTA;
-                        }
-                    } else if (response.getNeedAcknowledgment()
-                            && !response.isAcknowledged()) {
-                        // if sent but not acknowledged when acknowledgement
-                        // is needed
-                        p = Priority.CRITICAL;
-                    }
-
-                    logger.handle(p, response.getMessage());
-                }
-
-                return success;
-            } catch (VizException e) {
-                logger.error("Failed to transmit product " + productId, e);
-            }
-        } else {
-            storeProduct(productId, productTxt);
-        }
-        return false;
     }
 
     /**

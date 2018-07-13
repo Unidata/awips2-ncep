@@ -456,22 +456,5 @@ public class CWSFormatterDlg extends CaveSWTDialog {
             }
         }
 
-        CWAProduct cwaProduct = new CWAProduct(productId,
-                cwaConfigs.isOperational());
-        cwaProduct.setProductTxt(product);
-        boolean success = cwaProduct.sendText(cwaConfigs.getCwsuId());
-
-        if (cwaConfigs.isOperational()) {
-            MessageBox messageBox = new MessageBox(getShell(), SWT.OK);
-            messageBox.setText("Product Distribution");
-            if (success) {
-                messageBox.setMessage(
-                        "Product " + productId + " successfully distributed.");
-            } else {
-                messageBox.setMessage(
-                        "Failed to distribute product " + productId + ".");
-            }
-            messageBox.open();
-        }
     }
 }

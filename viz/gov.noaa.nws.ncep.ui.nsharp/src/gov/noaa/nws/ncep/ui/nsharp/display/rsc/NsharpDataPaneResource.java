@@ -1,46 +1,13 @@
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
-/**
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 04/23/2012	229			Chin Chen	Initial coding
- * 04/23/2014               Chin Chen   Add d2d lite page  
- * 08/11/2014               Chin Chen   fix typo
- * 01/27/2015   DR#17006,
- *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products 
- *                                      in Volume Browser
- * 08/10/2015   R9396     Chin Chen   implement new OPC pane configuration 
- * 10/20/2015   R12599    Chin Chen   negative PWAT value when surface layer dew point is missing 
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
-
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingTools;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._lplvalues;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNative.NsharpLibrary._parcel;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
-
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.DrawableString;
 import com.raytheon.uf.viz.core.IExtent;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -58,42 +25,70 @@ import com.raytheon.viz.core.graphing.WindBarbFactory;
 import com.sun.jna.ptr.FloatByReference;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Helicity;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.MixHeight;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.WindComponent;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.background.NsharpGenericPaneBackground;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpAbstractPaneDescriptor;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpWeatherDataStore.ParcelMiscParams;
+import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpNativeConstants;
+import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
+
+/**
+ *
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * <pre>
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#        Engineer    Description
+ * -------        -------     --------     -----------
+ * 04/23/2012    229            Chin Chen    Initial coding
+ * 04/23/2014               Chin Chen   Add d2d lite page
+ * 08/11/2014               Chin Chen   fix typo
+ * 01/27/2015   DR#17006,
+ *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products
+ *                                      in Volume Browser
+ * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration
+ * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
+ * 07/10/2017   RM#34796    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                     - Reformat the lower left data page
+ * 07/28/2017   RM#34795    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Added output for the "large hail parameter" and
+ *                                      the "modified SHERBE" parameter,..etc.
+ * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
+ *                                      - Update the dendritic growth layer calculations and other skewT
+ *                                      updates.
+ * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for parcelMiscs (line 492), fixed formatting
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ * @version 1.0
+ */
 public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
-    private static final transient IUFStatusHandler statusHandler = UFStatus
-            .getHandler(NsharpDataPaneResource.class);
+    // Note: SR Helicity only show first 4 storm types in PAGE2
+    private static final int STORM_HELICITY_MAX = 4;
+
     private int currentTextChapter = 1;
 
     // index is the real page defined in NsharpConstants to be shown, value is
     // the order number of this page. index 0 point to a dummy.
     private int[] pageDisplayOrderNumberArray;
 
-    private static final String NO_DATA = "NO VALID DATA AVAILABLE FOR THIS PAGE";
     private static final String INSUFFICIENT_DATA = "INSUFFICIENT DATA FOR PARAMETERS COMPUTATION";
-    private static final String DUMMY_STRING = "ABCDE=";
+
     private double curY;
 
     private double parcelLineYStart, parcelLineYEnd;
 
-    private double firstToken, secondToken, thirdToken, forthToken, fifthToken,
-            sixthToken;
-
-    private FloatByReference fValue = new FloatByReference(0);
-
-    private FloatByReference fValue1 = new FloatByReference(0);
-
-    private FloatByReference fValue2 = new FloatByReference(0);
-
-    private FloatByReference fValue3 = new FloatByReference(0);
-
-    private FloatByReference fValue4 = new FloatByReference(0);
-
-    private FloatByReference fValue5 = new FloatByReference(0);
-
-    private FloatByReference fValue6 = new FloatByReference(0);
-
-    private FloatByReference fValue7 = new FloatByReference(0);
-
-    private FloatByReference fValue8 = new FloatByReference(0);
+    private double firstToken, secondToken, thirdToken, forthToken, fifthToken, sixthToken;
 
     private PixelExtent extent;
 
@@ -123,66 +118,164 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
     private float yRatio = 1;
 
-    private IFont defaultFont = font10;
+    private IFont defaultFont = font8;
 
     private boolean initDone = false;
 
     private boolean resizedone = false;
 
-    private short currentParcel = NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE;;
+    private int currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;;
 
     private boolean sumP1Visible = false;
 
-    private static final float MM_PER_INCH = 25.4f;
+    /*
+     * Page Sum1 string definitions
+     */
+    public static final String PAGE1TEXT1_SB_STR = "SURFACE";
 
-    public NsharpDataPaneResource(AbstractResourceData resourceData,
-            LoadProperties loadProperties, NsharpAbstractPaneDescriptor desc) {
+    public static final String PAGE1TEXT1_ML_STR = "ML 100 mb";
+
+    public static final String PAGE1TEXT1_FCST_STR = "FCST SFC    ";
+
+    public static final String PAGE1TEXT1_MU_STR = "MU";
+
+    public static final String PAGE1TEXT1_USER_STR = "USER DEF";
+
+    public static final String PAGE1TEXT1_EFF_STR = "EFF LAYER";
+
+    // parcel header string
+    public static final String PARCEL_DATA_STR = "\t\t\t\tPARCEL DATA    \r\n";
+
+    public static final String PARCEL_OBS_SFC_STR = "\t\t*** SFC PARCEL ***\r\n";
+
+    public static final String PARCEL_FORECAST_SFC_STR = "\t\t*** FCST SFC PARCEL ***\r\n";
+
+    public static final String PARCEL_MEAN_MIXING_STR = "\t\t*** MEAN MIXING LAYER PARCEL ***\r\n";
+
+    public static final String PARCEL_MOST_UNSTABLE_STR = "\t\t*** MOST UNSTABLE PARCEL ***\r\n";
+
+    public static final String PARCEL_MEAN_EFF_STR = "\t\t*** MEAN EFFECTIVE PARCEL ***\r\n";
+
+    public static final String PARCEL_USR_DEFINED_STR = "\t\t*** %.1f mb PARCEL ***\r\n";
+
+    // parcel lines
+    public static final String PARCEL_LPL_LINE_ = "LPL:_%dmb_%dC/%dC_%dF/%dF";
+
+    public static final String PARCEL_LPL_MISSING = "LPL:   Missing";
+
+    public static final String PARCEL_CAPE_LINE = "CAPE =  %.0f  J/Kg";
+
+    public static final String PARCEL_CAPE_MISSING = "CAPE =  M";
+
+    public static final String PARCEL_LI_LINE = "LI(500mb) =%5.0fC\r\n";
+
+    public static final String PARCEL_LI_MISSING = "LI(500mb) =  M\r\n";
+
+    public static final String PARCEL_BFZL_LINE = "BFZL =  %.0f J/Kg";
+
+    public static final String PARCEL_BFZL_MISSING = "BFZL =  M";
+
+    public static final String PARCEL_LIMIN_LINE = "LImin =  %4.0fC /%4.0fmb\r\n";
+
+    public static final String PARCEL_LIMIN_MISSING = "LImin =  M / M\r\n";
+
+    public static final String PARCEL_CINH_LINE = "CINH =  %.0f J/Kg";
+
+    public static final String PARCEL_CINH_MISSING = "CINH =  M";
+
+    public static final String PARCEL_CAP_LINE = "Cap =  %4.0fC /%4.0fmb\r\n\r\n";
+
+    public static final String PARCEL_CAP_MISSING = "Cap =  M / M\r\n\r\n";
+
+    public static final String PARCEL_LEVEL_LINE_ = "LEVEL_PRES_HGT(AGL)_TEMP";
+
+    public static final String PARCEL_LCL_LINE_ = "LCL_%5.0fmb_%7.0fft_ ";
+
+    public static final String PARCEL_LCL_MISSING_ = "LCL_M_M_ ";
+
+    public static final String PARCEL_LFC_LINE_ = "LFC_%5.0fmb_%7.0fft_%6.0fC";
+
+    public static final String PARCEL_LFC_MISSING_ = "LFC_M_M_M";
+
+    public static final String PARCEL_EL_LINE_ = "EL_%5.0fmb_%7.0fft_%6.0fC";
+
+    public static final String PARCEL_EL_MISSING_ = "EL_M_M_M";
+
+    public static final String PARCEL_MPL_LINE_ = "MPL_%5.0fmb_%7.0fft_ ";
+
+    public static final String PARCEL_MPL_MISSING_ = "MPL_M_M_ ";
+
+    // use parcel type to retrieve parcel header string for display
+    public static final Map<Integer, String> parcelToHdrStrMap = new HashMap<Integer, String>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            put(NsharpLibSndglib.PARCELTYPE_OBS_SFC, PARCEL_OBS_SFC_STR);
+            put(NsharpLibSndglib.PARCELTYPE_FCST_SFC, PARCEL_FORECAST_SFC_STR);
+            put(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING, PARCEL_MEAN_MIXING_STR);
+            put(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE, PARCEL_MOST_UNSTABLE_STR);
+            put(NsharpLibSndglib.PARCELTYPE_USER_DEFINED, PARCEL_USR_DEFINED_STR);
+            put(NsharpLibSndglib.PARCELTYPE_EFF, PARCEL_MEAN_EFF_STR);
+        }
+    };
+
+    public static final Map<Integer, String> parcelToTypeStrMap = new HashMap<Integer, String>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            put(NsharpLibSndglib.PARCELTYPE_OBS_SFC, PAGE1TEXT1_SB_STR);
+            put(NsharpLibSndglib.PARCELTYPE_FCST_SFC, PAGE1TEXT1_FCST_STR);
+            put(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING, PAGE1TEXT1_ML_STR);
+            put(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE, PAGE1TEXT1_MU_STR);
+            put(NsharpLibSndglib.PARCELTYPE_USER_DEFINED, PAGE1TEXT1_USER_STR);
+            put(NsharpLibSndglib.PARCELTYPE_EFF, PAGE1TEXT1_EFF_STR);
+        }
+    };
+
+    public NsharpDataPaneResource(AbstractResourceData resourceData, LoadProperties loadProperties,
+            NsharpAbstractPaneDescriptor desc) {
         super(resourceData, loadProperties, desc);
-        dataPanel1Background = new NsharpGenericPaneBackground(new Rectangle(
-                NsharpConstants.DATAPANEL1_X_ORIG,
-                NsharpConstants.DATAPANEL1_Y_ORIG,
-                NsharpConstants.DATAPANEL1_WIDTH,
-                NsharpConstants.DATAPANEL1_HEIGHT));
-        dataPanel2Background = new NsharpGenericPaneBackground(new Rectangle(
-                NsharpConstants.DATAPANEL2_X_ORIG,
-                NsharpConstants.DATAPANEL2_Y_ORIG,
-                NsharpConstants.DATAPANEL2_WIDTH,
-                NsharpConstants.DATAPANEL2_HEIGHT));
+        dataPanel1Background = new NsharpGenericPaneBackground(
+                new Rectangle(NsharpConstants.DATAPANEL1_X_ORIG, NsharpConstants.DATAPANEL1_Y_ORIG,
+                        NsharpConstants.DATAPANEL1_WIDTH, NsharpConstants.DATAPANEL1_HEIGHT));
+        dataPanel2Background = new NsharpGenericPaneBackground(
+                new Rectangle(NsharpConstants.DATAPANEL2_X_ORIG, NsharpConstants.DATAPANEL2_Y_ORIG,
+                        NsharpConstants.DATAPANEL2_WIDTH, NsharpConstants.DATAPANEL2_HEIGHT));
     }
 
     @Override
-    protected void paintInternal(IGraphicsTarget target,
-            PaintProperties paintProps) throws VizException {
+    protected void paintInternal(IGraphicsTarget target, PaintProperties paintProps) throws VizException {
         super.paintInternal(target, paintProps);
         dataPanel1Background.paint(target, paintProps);
         if (numberPagePerDisplay == 2) {
             dataPanel2Background.paint(target, paintProps);
         }
-        if (rscHandler == null)
+        if (rscHandler == null) {
             return;
+        }
 
         if (!resizedone) {
             resizedone = true;
             handleResize();
         }
-
+        currentParcel = rscHandler.getCurrentParcel();
         if ((soundingLys != null) && (rscHandler.isGoodData())) {
             this.defaultFont.setSmoothing(false);
             this.defaultFont.setScaleFont(false);
             // write to panels
-            // Chin: Note:
-            // Current display algorithm is: One chapter = 2 pages. show 2 pages
-            // at one time.
-            // i.e. show current page and its next page with 2 physical panels.
-            // currently, we have total of 11 "pages" to display on 2 "physical
-            // display panels per design.
+
             sumP1Visible = false;
             currentTextChapter = rscHandler.getCurrentTextChapter();
             if (numberPagePerDisplay == 1) {
                 drawPanel(target, currentTextChapter, 1);
             } else if (numberPagePerDisplay == 2) {
-                for (int i = currentTextChapter * numberPagePerDisplay - 1, physicalPanelNum = 1; i <= currentTextChapter
-                        * numberPagePerDisplay; i++, physicalPanelNum++) {
+                // When One chapter = 2 pages. i.e. show current page and its
+                // next page with 2 physical panels.
+                // currently, we have total of 11 "pages" to display on 2
+                // "physical display panels per design.
+                for (int i = currentTextChapter * numberPagePerDisplay
+                        - 1, physicalPanelNum = 1; i <= currentTextChapter
+                                * numberPagePerDisplay; i++, physicalPanelNum++) {
                     int pageNum = i % NsharpConstants.PAGE_MAX_NUMBER;
                     if (pageNum == 0) {
                         pageNum = NsharpConstants.PAGE_MAX_NUMBER;
@@ -200,89 +293,68 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     protected void initInternal(IGraphicsTarget target) throws VizException {
         super.initInternal(target);
         if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_2_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
+                || paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
             myDefaultCanvasWidth = (int) (NsharpConstants.DISPLAY_WIDTH
-                    * (1 - NsharpConstants.PANE_DEF_CFG_2_LEFT_GP_WIDTH_RATIO) * NsharpConstants.PANE_DEF_CFG_2_DATA_WIDTH_RATIO);
-            myDefaultCanvasHeight = (int) (NsharpConstants.DISPLAY_HEIGHT * NsharpConstants.PANE_DEF_CFG_2_DATA_HEIGHT_RATIO);
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
+                    * (1 - NsharpConstants.PANE_DEF_CFG_2_LEFT_GP_WIDTH_RATIO)
+                    * NsharpConstants.PANE_DEF_CFG_2_DATA_WIDTH_RATIO);
+            myDefaultCanvasHeight = (int) (NsharpConstants.DISPLAY_HEIGHT
+                    * NsharpConstants.PANE_DEF_CFG_2_DATA_HEIGHT_RATIO);
+        } else if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
             myDefaultCanvasWidth = (int) (NsharpConstants.DISPLAY_WIDTH
-                    * (1 - NsharpConstants.PANE_DEF_CFG_1_LEFT_GP_WIDTH_RATIO) * NsharpConstants.PANE_DEF_CFG_1_DATA_WIDTH_RATIO);
-            myDefaultCanvasHeight = (int) (NsharpConstants.DISPLAY_HEIGHT * NsharpConstants.PANE_DEF_CFG_1_DATA_HEIGHT_RATIO);
+                    * (1 - NsharpConstants.PANE_DEF_CFG_1_LEFT_GP_WIDTH_RATIO)
+                    * NsharpConstants.PANE_DEF_CFG_1_DATA_WIDTH_RATIO);
+            myDefaultCanvasHeight = (int) (NsharpConstants.DISPLAY_HEIGHT
+                    * NsharpConstants.PANE_DEF_CFG_1_DATA_HEIGHT_RATIO);
         }
         panelRectArray[0] = dataPanel1Background.getRectangle();
         panelRectArray[1] = dataPanel2Background.getRectangle();
         dataPanel1Background.initInternal(target);
         dataPanel2Background.initInternal(target);
-        if (numberPagePerDisplay == 1) {
-            defaultFont = font12;
-        } else {
-            defaultFont = font10;
-        }
+        defaultFont = font8;
         handleResize();
         initDone = true;
     }
 
-    public void setCurrentParcel(short currentParcel) {
-        this.currentParcel = currentParcel;
-    }
-
-    public short getCurrentParcel() {
-        return currentParcel;
-    }
-
-    public void resetCurrentParcel() {
-        currentParcel = NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE;
-    }
-
     @Override
-    public void resetData(List<NcSoundingLayer> soundingLys,
-            List<NcSoundingLayer> prevsoundingLys) {
+    public void resetData(List<NcSoundingLayer> soundingLys, List<NcSoundingLayer> prevsoundingLys) {
 
         super.resetData(soundingLys, prevsoundingLys);
-        currentParcel = NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE;
+
     }
 
-    private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawInsuffDataMessage(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
             myfont = font9;
         } else {
             myfont = font20;
         }
-
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
         sumP1Visible = true;
         extent = new PixelExtent(rect);
         target.setupClippingPlane(extent);
-        target.drawString(myfont, INSUFFICIENT_DATA, rect.x, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_cyan,
+        target.drawString(myfont, INSUFFICIENT_DATA, rect.x, rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_cyan,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         return;
 
     }
 
-    private void drawPanel(IGraphicsTarget target, int pageOrderNumber,
-            int displayPanelNumber) throws VizException {
-        if (pageOrderNumber > NsharpConstants.PAGE_MAX_NUMBER
-                || displayPanelNumber > numberPagePerDisplay) {
+    private void drawPanel(IGraphicsTarget target, int pageOrderNumber, int dsiplayPanelNumber) throws VizException {
+        if (pageOrderNumber > NsharpConstants.PAGE_MAX_NUMBER || dsiplayPanelNumber > numberPagePerDisplay) {
             return;
         }
-        int physicalPanelNumber = displayPanelNumber - 1;
+        int physicalPanelNumber = dsiplayPanelNumber - 1;
         int displayPageNumber = 0;
         // find a page with its order number equal to pageOrderNumber
         for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
             if (pageDisplayOrderNumberArray[i] == pageOrderNumber) {
                 displayPageNumber = i; // array index is the page number and
                                        // value is the order number
+                break;
             }
-
         }
         switch (displayPageNumber) {
         case NsharpConstants.PAGE_SUMMARY1:
@@ -339,21 +411,17 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         if (c.y >= parcelLineYStart && c.y <= parcelLineYEnd) {
             int index = ((int) (c.y - parcelLineYStart)) / (int) charHeight;
             if (index < NsharpNativeConstants.PARCEL_MAX) {
-                currentParcel = (short) (index + 1);
-                // notify skewtRsc
-                rscHandler.updateParcelFromPanel(currentParcel);
+                currentParcel = (index + 1);
+                // notify rscHandler
+                rscHandler.setCurrentParcel(currentParcel);
             }
         }
     }
 
-    private void drawPanel1(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel1(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
-            myfont = font9;
-        } else {
-            myfont = defaultFont;
-        }
+
+        myfont = defaultFont;
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -362,37 +430,19 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         target.setupClippingPlane(extent);
 
         /*
-         * Chin's NOTE:::: This pages based on newer version nsharp from SPC. We
-         * dont have source code as of 7/8/2010. Therefore, coding is purely
-         * based on a captured screen shot given by SPC's John Hart. This
-         * function is coded based on native nsharp codes which can be found in
-         * other pages's show functions.
+         * Chin's NOTE:::: This pages based on BigSharp data page display
          */
-        // if we can not interpolate a temp with 700 mb pressure, then we dont
-        // have enough raw data
-        if ((nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0)) {
-            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            return;
-        }
 
-        // call get_topBotPres to set p_top and p_bot
-        FloatByReference topPF = new FloatByReference(0);
-        FloatByReference botPF = new FloatByReference(0);
-        nsharpNative.nsharpLib.get_effectLayertopBotPres(topPF, botPF);
-
-        String textStr, CAPE3Str = "", NCAPEStr = "";
+        String textStr = "", CAPE3Str = "", NCAPEStr = "";
         curY = rect.y;
 
         //
         // Start with Parcel Data
         //
-        Rectangle2D strBD = target.getStringBounds(myfont,
-                NsharpNativeConstants.PAGE1TEXT1_FCST_STR + "XX");
-        double hRatio = paintProps.getView().getExtent().getWidth()
-                / paintProps.getCanvasBounds().width;
+        Rectangle2D strBD = target.getStringBounds(myfont, PAGE1TEXT1_FCST_STR + "XX");
+        double hRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
         double startX = rect.x + 0.5 * charWidth;
+        // 6 parameters CAPE, CINH, LCL, LI, LFC, EL per line
         double widthGap = (rect.width - strBD.getWidth() * hRatio * xRatio) / 6;
         firstToken = rect.x + strBD.getWidth() * hRatio * xRatio;
         secondToken = firstToken + widthGap;
@@ -400,451 +450,424 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         forthToken = thirdToken + widthGap;
         fifthToken = forthToken + widthGap;
         sixthToken = fifthToken + widthGap;
-        target.drawString(myfont, "Sum1", startX, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        RGB textColor = NsharpConstants.color_white;
+        target.drawString(myfont, "PARCEL", startX, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                VerticalAlignment.TOP, null);
+        target.drawString(myfont, "CAPE", firstToken, rect.y, 0.0, TextStyle.NORMAL, textColor,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "CAPE", firstToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, "CIN", secondToken, rect.y, 0.0, TextStyle.NORMAL, textColor,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "CINH", secondToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "LCL", thirdToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "LI", forthToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "LFC", fifthToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "EL", sixthToken, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, "LCL", thirdToken, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                VerticalAlignment.TOP, null);
+        target.drawString(myfont, "LI", forthToken, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                VerticalAlignment.TOP, null);
+        target.drawString(myfont, "LFC", fifthToken, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                VerticalAlignment.TOP, null);
+        target.drawString(myfont, "EL", sixthToken, rect.y, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, textColor, 1);
         parcelLineYStart = curY;
-        float layerPressure = 0;
 
-        // get user selected parcel type
-        _lplvalues lpvls;
-        _parcel pcl;
-
-        for (short parcelNumber = 1; parcelNumber <= NsharpNativeConstants.PARCEL_MAX; parcelNumber++) {
-            if (parcelNumber == currentParcel) {
-                PixelExtent pixExt = new PixelExtent(rect.x, rect.x
-                        + rect.width, curY, curY + charHeight);
-
-                target.drawRect(pixExt, NsharpConstants.color_gold, 1.0f, 1.0f);
-            }
-            // call native define_parcel() with parcel type and user defined
-            // pressure (if user defined it)
-            textStr = NsharpNativeConstants.parcelToTypeStrMap
-                    .get(parcelNumber);
-            target.drawString(myfont, textStr, startX, curY, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_white,
-                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            float layerPressure1 = NsharpNativeConstants.parcelToLayerMap
-                    .get(parcelNumber);
-            if (parcelNumber == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-                // get user selected parcel type, if available
-                layerPressure1 = NsharpParcelDialog.getUserDefdParcelMb();
-            }
-
-            nsharpNative.nsharpLib.define_parcel(parcelNumber, layerPressure1);
-
-            lpvls = new _lplvalues();
-            nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-            float sfctemp, sfcdwpt, sfcpres;
-            sfctemp = lpvls.temp;
-            sfcdwpt = lpvls.dwpt;
-            sfcpres = lpvls.pres;
-            // get parcel data by calling native nsharp parcel() API. value is
-            // returned in pcl
-            pcl = new _parcel();
-            nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                    sfcdwpt, pcl);
+        strBD = target.getStringBounds(myfont, "CAPE");
+        firstToken = firstToken + strBD.getWidth() * hRatio * xRatio;
+        strBD = target.getStringBounds(myfont, "CIN");
+        secondToken = secondToken + strBD.getWidth() * hRatio * xRatio;
+        strBD = target.getStringBounds(myfont, "LCL");
+        thirdToken = thirdToken + strBD.getWidth() * hRatio * xRatio;
+        strBD = target.getStringBounds(myfont, "LI");
+        forthToken = forthToken + strBD.getWidth() * hRatio * xRatio;
+        strBD = target.getStringBounds(myfont, "LFC");
+        fifthToken = fifthToken + strBD.getWidth() * hRatio * xRatio;
+        strBD = target.getStringBounds(myfont, "EL   ");
+        sixthToken = sixthToken + strBD.getWidth() * hRatio * xRatio;
+        for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_MAX; parcelNumber++) {
+            Parcel parcel = weatherDataStore.getParcelMap().get(parcelNumber);
+            textColor = NsharpConstants.color_white;
             // draw parcel name
-            // draw CAPE
-            if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                target.drawString(myfont, String.format("%.0f", pcl.bplus),
-
-                firstToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
-            } else
-                target.drawString(myfont, "M", firstToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            // draw CINH
-            if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                target.drawString(myfont, String.format("%.0f", pcl.bminus),
-                        secondToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
+            if (parcelNumber == NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE) {
+                NsharpWeatherDataStore.ParcelMiscParams parcelMiscs = weatherDataStore.getParcelMiscParamsMap()
+                        .get(parcelNumber);
+                if (parcelMiscs != null) {
+                    textStr = parcelMiscs.getMuName();
+                }
             } else {
-                target.drawString(myfont, "M", secondToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+                textStr = parcelToTypeStrMap.get(parcelNumber);
+            }
+            if (parcelNumber == currentParcel) {
+                PixelExtent pixExt = new PixelExtent(rect.x, rect.x + rect.width, curY, curY + charHeight);
+                target.drawRect(pixExt, NsharpConstants.color_gold, 1.0f, 1.0f);
+                textColor = NsharpConstants.color_cyan_md;
+            }
+            target.drawString(myfont, textStr, startX, curY, 0.0, TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT,
+                    VerticalAlignment.TOP, null);
+
+            // draw CAPE
+            float cape = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+            if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
+                cape = parcel.getBplus();
+                if (parcelNumber == currentParcel) {
+                    if (cape < 100) {
+                        textColor = NsharpConstants.color_brown;// Gempak color
+                                                                // 8, Brown
+                    } else if (cape < 500) {
+                        textColor = NsharpConstants.color_darkorange;// Gempak
+                                                                     // color
+                                                                     // 18, Dk
+                                                                     // Orange
+                    } else if (cape < 1000) {
+                        textColor = NsharpConstants.color_apricot;// Gempak
+                                                                  // color 10,
+                                                                  // Apricot
+                    } else if (cape < 2500) {
+                        textColor = NsharpConstants.color_gold;// Gempak color
+                                                               // 19, Gold
+                    } else if (cape < 4000) {
+                        textColor = NsharpConstants.color_red;// Gempak color 2,
+                                                              // Red
+                    } else {
+                        textColor = NsharpConstants.color_magenta;// Gempak
+                                                                  // color 7,
+                                                                  // Megenta
+                    }
+                }
+                target.drawString(myfont, String.format("%.0f", cape), firstToken, curY, 0.0, TextStyle.NORMAL,
+                        textColor, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+            } else {
+                target.drawString(myfont, "M", firstToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+            }
+            // CIN
+            if (parcel != null && NsharpLibBasics.qc(parcel.getBminus())) {
+                if (parcelNumber == currentParcel) {
+                    // set color according to CAPE first
+                    if (cape != NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA && cape < 1) {
+                        textColor = NsharpConstants.color_brown;// Gempak color
+                                                                // 8, Brown
+                    } else {
+                        textColor = NsharpConstants.color_lawngreen;// Gempak
+                                                                    // color 21
+                    }
+                    // then set according to CIN value
+                    float cin = parcel.getBminus();
+                    if (cin < -100) {
+                        textColor = NsharpConstants.color_brown;// Gempak color
+                                                                // 8, Brown
+                    } else if (cin < -50) {
+                        textColor = NsharpConstants.color_darkorange;// Gempak
+                                                                     // color
+                                                                     // 18, Dk
+                                                                     // Orange
+                    } else if (cin < -25) {
+                        textColor = NsharpConstants.color_darkgreen;// Gempak
+                                                                    // color 23,
+                                                                    // Dk Green
+                    } else if (cin < -10) {
+                        textColor = NsharpConstants.color_mdgreen;// Gempak
+                                                                  // color 22,
+                                                                  // Md Green
+                    }
+                }
+                target.drawString(myfont, String.format("%.0f", parcel.getBminus()), secondToken, curY, 0.0,
+                        TextStyle.NORMAL, textColor, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+            } else {
+                target.drawString(myfont, "M", secondToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
             }
             // draw LCL
-            float lcl = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.lclpres));
-            if (lcl != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                target.drawString(myfont, String.format("%.0fm", lcl),
-                        thirdToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
-            }
-
-            else {
-                target.drawString(myfont, "M", thirdToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            if (parcel != null && NsharpLibBasics.qc(NsharpLibBasics.ftom(parcel.getLclAgl()))) {
+                float lcl = NsharpLibBasics.ftom(parcel.getLclAgl());
+                if (parcelNumber == currentParcel) {
+                    if (lcl < 500) {
+                        textColor = NsharpConstants.color_lawngreen;// Gempak
+                                                                    // color 21
+                    } else if (lcl < 1000) {
+                        textColor = NsharpConstants.color_mdgreen;// Gempak
+                                                                  // color 22,
+                                                                  // Md Green
+                    } else if (lcl < 1500) {
+                        textColor = NsharpConstants.color_darkgreen;// Gempak
+                                                                    // color 23,
+                                                                    // Dk Green
+                    } else if (lcl < 2000) {
+                        textColor = NsharpConstants.color_darkorange;// Gempak
+                                                                     // color
+                                                                     // 18, Dk
+                                                                     // Orange
+                    } else {
+                        textColor = NsharpConstants.color_brown;// Gempak color
+                                                                // 8, Brown
+                    }
+                }
+                target.drawString(myfont, String.format("%.0fm", lcl), thirdToken, curY, 0.0, TextStyle.NORMAL,
+                        textColor, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+            } else {
+                target.drawString(myfont, "M", thirdToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
             }
             // draw LI
-            if (pcl.li5 != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA
-                    && pcl.li5 < 100) {
-                target.drawString(myfont, String.format("%5.0f", pcl.li5),
-                        forthToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
+            if (parcel != null && NsharpLibBasics.qc(parcel.getLi5()) && parcel.getLi5() < 100) {
+                target.drawString(myfont, String.format("%5.0f", parcel.getLi5()), forthToken, curY, 0.0,
+                        TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.RIGHT, VerticalAlignment.TOP,
+                        null);
             } else {
-                target.drawString(myfont, "M", forthToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+                target.drawString(myfont, "M", forthToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
             }
             // draw LFC
-            float lfc = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.lfcpres));
-            if (lfc != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                target.drawString(myfont, String.format("%.0fm", lfc),
-                        fifthToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
+            if (parcel != null && NsharpLibBasics.qc(NsharpLibBasics.ftom(parcel.getLfcAgl()))) {
+                target.drawString(myfont, String.format("%.0fm", NsharpLibBasics.ftom(parcel.getLfcAgl())), fifthToken,
+                        curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.RIGHT,
                         VerticalAlignment.TOP, null);
             } else {
-                target.drawString(myfont, "M", fifthToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+                target.drawString(myfont, "M", fifthToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
             }
             // draw EL
-            float el = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.elpres));
-            if (el != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                target.drawString(
-                        myfont,
-                        String.format("%.0f'",
-                                NsharpConstants.metersToFeet.convert(el)),
-                        sixthToken, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
+            if (parcel != null && NsharpLibBasics.qc(parcel.getElAgl())) {
+                target.drawString(myfont, String.format("%.0f'", parcel.getElAgl()), sixthToken, curY, 0.0,
+                        TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.RIGHT, VerticalAlignment.TOP,
+                        null);
             } else {
-                target.drawString(myfont, "M", sixthToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+                target.drawString(myfont, "M", sixthToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                        HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
             }
-
             curY = curY + charHeight;
-            // get 3CAPE value for later to use
-            if (parcelNumber == NsharpNativeConstants.PARCELTYPE_MEAN_MIXING) {
-                if (nsharpNative.nsharpLib.qc(pcl.cape3km) == 1) {
-                    CAPE3Str = String.format("%.0fJ/kg", pcl.cape3km);
-                } else {
-                    CAPE3Str = " M";
-                }
-            }// get NCAPE value for later to use
-            else if (parcelNumber == NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE) {
-                float j1 = pcl.bplus;
-                float j2 = nsharpNative.nsharpLib.ihght(pcl.elpres)
-                        - nsharpNative.nsharpLib.ihght(pcl.lfcpres);
-                if (nsharpNative.nsharpLib.qc(j1 / j2) == 1) {
-                    NCAPEStr = String.format("%.2f", j1 / j2);
-                } else {
-                    NCAPEStr = "NCAPE= M";
-                }
-            }
+
         }
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
         parcelLineYEnd = curY;
-        if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-            layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else {
-            layerPressure = NsharpNativeConstants.parcelToLayerMap
-                    .get(currentParcel);
-        }
 
-        // reset and define current parcel
-        nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
-        lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        pcl = new _parcel();
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-        //
         // THERMO DYNAMIC DATA
-        //
         firstToken = rect.x + rect.width / 48 * 12 * xRatio;
         secondToken = rect.x + rect.width / 48 * 27 * xRatio;
-        thirdToken = rect.x + rect.width / 48 * 38 * xRatio;
-        DrawableString str = new DrawableString(DUMMY_STRING,
-                NsharpConstants.color_white);
+        thirdToken = rect.x + rect.width / 48 * 39 * xRatio;
+        DrawableString str = new DrawableString("ABCDEF", NsharpConstants.color_white);
         str.font = myfont;
-        double equalSignPos = (startX + target.getStringsBounds(str).getWidth())
-                * hRatio * xRatio;
+        double equalSignPos = (startX + target.getStringsBounds(str).getWidth()) * hRatio * xRatio;
 
-        // compute pw from surface layer to 400 mb layer
-        float pw = NcSoundingTools.precip_water(this.soundingLys, 400, -1)
-                / MM_PER_INCH;
+        float pw = weatherDataStore.getPw();
         if (pw >= 0) {
-            textStr = String.format("%.2f in", pw);
+            textStr = String.format("%.2fin", pw);
         } else {
             textStr = " M";
         }
-
         str.setCoordinates(startX, curY);
         str.horizontalAlignment = HorizontalAlignment.LEFT;
         str.verticallAlignment = VerticalAlignment.TOP;
         str.font = myfont;
-        str.setText("PW=", NsharpConstants.color_white);
-        DrawableString str1 = new DrawableString(textStr,
-                NsharpConstants.color_white);
+        str.setText("PW = " + textStr, NsharpConstants.color_white);
+        DrawableString str1 = new DrawableString(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
         str1.verticallAlignment = VerticalAlignment.TOP;
         str1.font = myfont;
-        target.drawStrings(str, str1);
+        target.drawStrings(str);
 
-        // 3CAPE...value was retrieved earlier
-        str.setText("3CAPE=", NsharpConstants.color_white);
+        // 3CAPE
+        Parcel parcel = weatherDataStore.getParcelMap().get(NsharpLibSndglib.PARCELTYPE_MEAN_MIXING);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getCape3km())) {
+            CAPE3Str = String.format("%.0fJ/kg", parcel.getCape3km());
+        } else {
+            CAPE3Str = " M";
+        }
+
+        str.setText("3CAPE = " + CAPE3Str, NsharpConstants.color_white);
         str.setCoordinates(firstToken, curY);
         str1.setText(CAPE3Str, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
-        fValue.setValue(0);
-        float wbzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .wb_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(wbzft) == 1) {
+        float wbzft = weatherDataStore.getWbzft();
+        if (NsharpLibBasics.qc(wbzft)) {
             textStr = String.format("%.0f'", wbzft);
         } else {
             textStr = " M";
         }
-        str.setText("WBZ=", NsharpConstants.color_white);
+        str.setText("WBZ = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
-        // WNDG
-        float wndg = nsharpNative.nsharpLib.damaging_wind();
-        if (nsharpNative.nsharpLib.qc(wndg) == 1) {
+        float wndg = weatherDataStore.getWndg();
+        if (NsharpLibBasics.qc(wndg)) {
             textStr = String.format("%.2f", wndg);
         } else {
             textStr = " M";
         }
-        str.setText("WNDG=", NsharpConstants.color_white);
+        str.setText("WNDG = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         curY = curY + charHeight; // move to new line
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.k_index(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.0f", fValue.getValue());
+        float kIndex = weatherDataStore.getkIndex();
+        if (NsharpLibBasics.qc(kIndex)) {
+            textStr = String.format("%.0f", kIndex);
         } else {
             textStr = " M";
         }
-        str.setText("K=", NsharpConstants.color_white);
+        str.setText("K = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
         // DCAPE
-        // fValue1 will be used for DownT to use
-        float dcape = nsharpNative.nsharpLib.dcape(fValue, fValue1);
-        float downT = fValue1.getValue();
-        if (nsharpNative.nsharpLib.qc(dcape) == 1) {
+        float dcape = weatherDataStore.getDcape();
+
+        if (NsharpLibBasics.qc(dcape)) {
             textStr = String.format("%.0fJ/kg", dcape);
         } else {
             textStr = " M";
         }
-        str.setText("DCAPE=", NsharpConstants.color_white);
+        str.setText("DCAPE = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         // FZL
-        fValue.setValue(0);
-        float fgzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .temp_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
+        float fgzft = weatherDataStore.getFgzft();
+        if (NsharpLibBasics.qc(fgzft)) {
             textStr = String.format("%.0f'", fgzft);
         } else {
             textStr = " M";
         }
-        str.setText("FZL=", NsharpConstants.color_white);
+        str.setText("FZL = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
         // ESP
-        float esp = nsharpNative.nsharpLib.esp();
-        if (nsharpNative.nsharpLib.qc(esp) == 1) {
+        float esp = weatherDataStore.getEsp();
+        if (NsharpLibBasics.qc(esp)) {
             textStr = String.format("%.2f", esp);
         } else {
             textStr = " M";
         }
-        str.setText("ESP=", NsharpConstants.color_white);
+        str.setText("ESP = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         curY = curY + charHeight; // move to new line
 
-        fValue.setValue(0);
         // MidRH
-        nsharpNative.nsharpLib.get_surface(fValue1, fValue2, fValue3);
-        nsharpNative.nsharpLib.mean_relhum(fValue, fValue1.getValue() - 150,
-                fValue1.getValue() - 350);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.0f%c", fValue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+        float midRh = weatherDataStore.getMidRh();
+        if (NsharpLibBasics.qc(midRh)) {
+            textStr = String.format("%.0f%c", midRh, NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = " M";
         }
-        str.setText("MidRH=", NsharpConstants.color_white);
+        str.setText("MidRH = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
         // DownT
-        downT = nsharpNative.nsharpLib.ctof(downT); // convert to F
-        if (nsharpNative.nsharpLib.qc(downT) == 1) {
+        float downT = weatherDataStore.getDownT();
+        if (NsharpLibBasics.qc(downT)) {
             textStr = String.format("%.0fF", downT);
         } else {
             textStr = " M";
         }
-        str.setText("DownT=", NsharpConstants.color_white);
+        str.setText("DownT = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
         // ConvT
-        fValue.setValue(0);
-        float conTempF = nsharpNative.nsharpLib.ctof(nsharpNative.nsharpLib
-                .cnvtv_temp(fValue, -1));
-
-        if (nsharpNative.nsharpLib.qc(conTempF) == 1) {
-            textStr = String.format("%.0fF", conTempF);
+        float conTempF = weatherDataStore.getConvT();
+        if (NsharpLibBasics.qc(conTempF)) {
+            textStr = String.format(" %.0fF", conTempF);
         } else {
             textStr = " M";
         }
-        str.setText("ConvT=", NsharpConstants.color_white);
+        str.setText("ConvT = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         // MMP: Coniglio MCS Maintenance Parameter
-        float mmp = nsharpNative.nsharpLib.coniglio1();
-        if (nsharpNative.nsharpLib.qc(mmp) == 1) {
+        float mmp = weatherDataStore.getMmp();
+        if (NsharpLibBasics.qc(mmp)) {
             textStr = String.format("%.2f", mmp);
         } else {
             textStr = " M";
         }
-        str.setText("MMP=", NsharpConstants.color_white);
+        str.setText("MMP = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(thirdToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         curY = curY + charHeight; // move to new line
-
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        // get surface pressure (fValue1) before getting mean LRH value
-        nsharpNative.nsharpLib.get_surface(fValue1, fValue2, fValue3);
-        nsharpNative.nsharpLib.mean_relhum(fValue, -1.0F,
-                fValue1.getValue() - 150);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.0f%c", fValue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+        // lowRH
+        float lowRh = weatherDataStore.getLowRh();
+        if (NsharpLibBasics.qc(lowRh)) {
+            textStr = String.format("%.0f%c", lowRh, NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = " M";
         }
-        str.setText("LowRH=", NsharpConstants.color_white);
+        str.setText("LowRH = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.mean_mixratio(fValue, -1.0F, -1.0F);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.1fg/kg", fValue.getValue());
+        if (NsharpLibBasics.qc(weatherDataStore.getMeanMixRatio())) {
+            textStr = String.format("%.1fg/kg", weatherDataStore.getMeanMixRatio());
         } else {
             textStr = " M";
         }
-        str.setText("MeanW=", NsharpConstants.color_white);
+        str.setText("MeanW =" + textStr, NsharpConstants.color_white);
         str.setCoordinates(firstToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(firstToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
-        fValue.setValue(0);
-        float maxT = nsharpNative.nsharpLib.ctof(nsharpNative.nsharpLib
-                .max_temp(fValue, -1));
-        if (nsharpNative.nsharpLib.qc(maxT) == 1) {
+        float maxT = weatherDataStore.getMaxTemp();
+        if (NsharpLibBasics.qc(maxT)) {
             textStr = String.format("%.0fF", maxT);
         } else {
             textStr = " M";
         }
-        str.setText("MaxT=", NsharpConstants.color_white);
+        str.setText("MaxT = " + textStr, NsharpConstants.color_white);
         str.setCoordinates(secondToken, curY);
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(secondToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         // NCAPE
-        str.setText("NCAPE=", NsharpConstants.color_white);
+        float ncape = weatherDataStore.getNcape();
+        if (NsharpLibBasics.qc(ncape)) {
+            NCAPEStr = String.format("%.2f", ncape);
+        } else {
+            NCAPEStr = " M";
+        }
+        str.setText("NCAPE =" + NCAPEStr, NsharpConstants.color_white);
         str.setCoordinates(thirdToken, curY);
         str1.setText(NCAPEStr, NsharpConstants.color_white);
         str1.setCoordinates(thirdToken + equalSignPos, curY);
-        target.drawStrings(str, str1);
+        target.drawStrings(str);// , str1);
 
         curY = curY + charHeight; // move to new line
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
         // draw a vertical line from 2/3 of x axis
-        str.setText("sfc-3km AglLapseRate=xxC/x.xC/kmX",
-                NsharpConstants.color_black);
+        str.setText("sfc-3km AglLapseRate=xxC/x.xC/kmX", NsharpConstants.color_black);
         str.font = myfont;
-        double lineXPos = target.getStringsBounds(str).getWidth() * hRatio
-                * xRatio;
+        double lineXPos = target.getStringsBounds(str).getWidth() * hRatio * xRatio;
         if (lineXPos < rect.width * 2 / 3) {
             lineXPos = rect.width * 2 / 3;
         }
         firstToken = rect.x + lineXPos;
-        target.drawLine(firstToken, curY, 0.0, firstToken,
-                rect.y + rect.height, 0.0, NsharpConstants.color_white, 1);
+        target.drawLine(firstToken, curY, 0.0, firstToken, rect.y + rect.height, 0.0, NsharpConstants.color_white, 1);
 
         firstToken = firstToken + 0.5 * charWidth;
 
@@ -853,67 +876,57 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // implementation
         // sfc-3km Lapse rate
         //
-        float htsfc = 0;
-        float tDelta = nsharpNative.nsharpLib.aglT(0, 3000);
-        fValue.setValue(0);
-        // get surface pressure (fValue)
-        nsharpNative.nsharpLib.get_surface(fValue, fValue1, fValue2);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            htsfc = nsharpNative.nsharpLib.ihght(fValue.getValue());
-            // get sfc to (sfc+ 3 km) pressure (fValue)
-            float threekmPre = nsharpNative.nsharpLib.ipres(htsfc + 3000);
-            fValue1.setValue(0);
-            nsharpNative.nsharpLib.lapse_rate(fValue1, fValue.getValue(),
-                    threekmPre);
-            if (nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-
-                textStr = String.format("%.0fC/%.1fC/km", tDelta,
-                        fValue1.getValue());
-            } else {
-                textStr = " M";
-            }
+        float sfcTo3kmTempDelta = weatherDataStore.getSfcTo3kmTempDelta();
+        float sfcTo3kmLapseRate = weatherDataStore.getSfcTo3kmLapseRate();
+        if (NsharpLibBasics.qc(sfcTo3kmLapseRate)) {
+            textStr = String.format("%.0fC/%.1fC/km", sfcTo3kmTempDelta, sfcTo3kmLapseRate);
         } else {
             textStr = " M";
         }
         str.setText("sfc-3km Agl LapseRate= ", NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
-        equalSignPos = rect.x + target.getStringsBounds(str).getWidth()
-                * hRatio * xRatio;
+        equalSignPos = rect.x + target.getStringsBounds(str).getWidth() * hRatio * xRatio;
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
 
-        // "Supercell"
-        float smdir = rscHandler.getSmWindDir();
-        float smspd = rscHandler.getSmWindSpd();
-        float superCell = nsharpNative.nsharpLib.scp(smdir, smspd);
-        if (nsharpNative.nsharpLib.qc(superCell) == 1) {
+        textColor = NsharpConstants.color_white;
+        // "Super cell"
+        float superCell = weatherDataStore.getScp();
+        if (NsharpLibBasics.qc(superCell)) {
             textStr = String.format("%.1f", superCell);
+            if (superCell < -0.45) {
+                textColor = NsharpConstants.color_cyan;// Gempak color 6, Cyan
+            } else if (superCell < 0.45) {
+                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+            } else if (superCell < 1.95) {
+                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
+                                                             // Dk Orange
+            } else if (superCell < 11.95) {
+                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+            } else if (superCell < 19.95) {
+                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+            } else {
+                textColor = NsharpConstants.color_magenta;// Gempak color 7,
+                                                          // Megenta
+            }
         } else {
             textStr = " M";
         }
-        str.setText("Supercell=  ", NsharpConstants.color_yellow);
-        double equalSignPos1 = firstToken
-                + target.getStringsBounds(str).getWidth() * hRatio * xRatio;
+        str.setText("Supercell=  ", textColor);
+        double equalSignPos1 = firstToken + target.getStringsBounds(str).getWidth() * hRatio * xRatio;
         str.setCoordinates(firstToken, curY);
-        str1.setText(textStr, NsharpConstants.color_yellow);
+        str1.setText(textStr, textColor);
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
         curY = curY + charHeight; // move to new line
 
         // 3km-6km Lapse rate
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        tDelta = nsharpNative.nsharpLib.aglT(3000, 6000);
-        // get 3 and 6km pressure (fValue)
-        float threekmPre = nsharpNative.nsharpLib.ipres(htsfc + 3000);
-        float sixkmPre = nsharpNative.nsharpLib.ipres(htsfc + 6000);
-        fValue1.setValue(0);
-        nsharpNative.nsharpLib.lapse_rate(fValue1, threekmPre, sixkmPre);
-        if (nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = String.format("%.0fC/%.1fC/km", tDelta,
-                    fValue1.getValue());
+        float threeKmTo6kmTempDelta = weatherDataStore.getThreeKmTo6kmTempDelta();
+        float threeKmTo6kmLapseRate = weatherDataStore.getThreeKmTo6kmLapseRate();
+        if (NsharpLibBasics.qc(threeKmTo6kmLapseRate)) {
+            textStr = String.format("%.0fC/%.1fC/km", threeKmTo6kmTempDelta, threeKmTo6kmLapseRate);
 
         } else {
             textStr = " M";
@@ -923,30 +936,42 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setText(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
-        // "STP (CIN)"
-        float cin = nsharpNative.nsharpLib.sigtorn_cin(smdir, smspd);
-        if (nsharpNative.nsharpLib.qc(cin) == 1) {
+        // "STP (eff)"
+        textColor = NsharpConstants.color_white;
+        float cin = weatherDataStore.getStpCin();
+        if (NsharpLibBasics.qc(cin)) {
             textStr = String.format("%.1f", cin);
+            if (cin < 0.5) {
+                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+            } else if (cin < 1) {
+                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
+                                                             // Dk Orange
+            } else if (cin < 2) {
+                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
+                                                        // Orange
+            } else if (cin < 4) {
+                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+            } else if (cin < 8) {
+                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+            } else {
+                textColor = NsharpConstants.color_magenta;// Gempak color 7,
+                                                          // Megenta
+            }
         } else {
             textStr = " M";
         }
-        str.setText("STP(CIN)=", NsharpConstants.color_white);
+        str.setText("STP(eff)=", textColor);
         str.setCoordinates(firstToken, curY);
-        str1.setText(textStr, NsharpConstants.color_white);
+        str1.setText(textStr, textColor);
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
         curY = curY + charHeight; // move to new line
 
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        float delta = nsharpNative.nsharpLib.itemp(850)
-                - nsharpNative.nsharpLib.itemp(500);
-        nsharpNative.nsharpLib.lapse_rate(fValue1, 850.0F, 500.0F);
-        if (nsharpNative.nsharpLib.qc(delta) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = String
-                    .format("%.0fC/%.1fC/km", delta, fValue1.getValue());
+        float eight50To500mbTempDelta = weatherDataStore.getEight50To500mbTempDelta();
+        float eight50To500mbLapseRate = weatherDataStore.getEight50To500mbLapseRate();
+        if (NsharpLibBasics.qc(eight50To500mbTempDelta) && NsharpLibBasics.qc(eight50To500mbLapseRate)) {
+            textStr = String.format("%.0fC/%.1fC/km", eight50To500mbTempDelta, eight50To500mbLapseRate);
         } else {
             textStr = " M";
         }
@@ -956,29 +981,41 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
         // "STP(fixed)"
-        float fixedStp = nsharpNative.nsharpLib.sigtorn_fixed(smdir, smspd);
-        if (nsharpNative.nsharpLib.qc(fixedStp) == 1) {
+        textColor = NsharpConstants.color_white;
+        float fixedStp = weatherDataStore.getStpFixed();
+        if (NsharpLibBasics.qc(fixedStp)) {
             textStr = String.format("%.1f", fixedStp);
+            if (fixedStp < 0.5) {
+                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+            } else if (fixedStp < 1) {
+                textColor = NsharpConstants.color_darkorange;// Gempak color 18,
+                                                             // Dk Orange
+            } else if (fixedStp < 2) {
+                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
+                                                        // Orange
+            } else if (fixedStp < 5) {
+                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+            } else if (fixedStp < 7) {
+                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+            } else {
+                textColor = NsharpConstants.color_magenta;// Gempak color 7,
+                                                          // Megenta
+            }
         } else {
             textStr = " M";
         }
-        str.setText("STP(fixed)=", NsharpConstants.color_white);
+        str.setText("STP(fixed)=", textColor);
         str.setCoordinates(firstToken, curY);
-        str1.setText(textStr, NsharpConstants.color_white);
+        str1.setText(textStr, textColor);
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
 
         curY = curY + charHeight; // move to new line
 
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        nsharpNative.nsharpLib.lapse_rate(fValue1, 700.0F, 500.0F);
-        delta = nsharpNative.nsharpLib.itemp(700)
-                - nsharpNative.nsharpLib.itemp(500);
-        if (nsharpNative.nsharpLib.qc(delta) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = String
-                    .format("%.0fC/%.1fC/km", delta, fValue1.getValue());
+        float sevenHundredTo500mbTempDelta = weatherDataStore.getSevenHundredTo500mbTempDelta();
+        float sevenHundredTo500mbLapseRate = weatherDataStore.getSevenHundredTo500mbLapseRate();
+        if (NsharpLibBasics.qc(sevenHundredTo500mbTempDelta) && NsharpLibBasics.qc(sevenHundredTo500mbLapseRate)) {
+            textStr = String.format("%.0fC/%.1fC/km", sevenHundredTo500mbTempDelta, sevenHundredTo500mbLapseRate);
         } else {
             textStr = " M";
         }
@@ -988,31 +1025,41 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
         // "SHIP"
-        float ship = nsharpNative.nsharpLib.cave_ship();
-        if (nsharpNative.nsharpLib.qc(ship) == 1) {
+        textColor = NsharpConstants.color_white;
+        float ship = weatherDataStore.getShip();
+        if (NsharpLibBasics.qc(ship)) {
             textStr = String.format("%.1f", ship);
-        } else
+            if (ship < 0.45) {
+                textColor = NsharpConstants.color_brown;// Gempak color 8, Brown
+            } else if (ship < 0.95) {
+                textColor = NsharpConstants.color_white;// Gempak color 31, Dk
+                                                        // Orange
+            } else if (ship < 1.95) {
+                textColor = NsharpConstants.color_gold;// Gempak color 19, Gold
+            } else if (ship < 4.95) {
+                textColor = NsharpConstants.color_red;// Gempak color 2, Red
+            } else {
+                textColor = NsharpConstants.color_magenta;// Gempak color 7,
+                                                          // Megenta
+            }
+        } else {
             textStr = " M";
-        str.setText("SHIP=", NsharpConstants.color_red);
+        }
+        str.setText("SHIP=", textColor);
         str.setCoordinates(firstToken, curY);
-        str1.setText(textStr, NsharpConstants.color_red);
+        str1.setText(textStr, textColor);
         str1.setCoordinates(equalSignPos1, curY);
         target.drawStrings(str, str1);
     }
 
-    private void drawPanel2(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel2(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
-            myfont = font10;
-        } else {
-            myfont = defaultFont;
-        }
+
         /*
          * Chin's NOTE:::: This pages based on BigNsharp show_shear_new() at
          * xwvid3.c
          */
-
+        myfont = defaultFont;
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -1021,338 +1068,124 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         curY = rect.y;
         String textStr;
 
-        // if we can not Interpolates a temp with 700 mb pressure, then we dont
-        // have enough raw data
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0) {
-            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            return;
-        }
-
         //
-        // Start with Header SRH(m%c/s%c) Shear(kt) MnWind SRW
+        // Start with Header
         //
         double startX = rect.x + 0.5 * charWidth;
+        // 4 parameters, SRH(m%c/s%c) Shear(kt) MnWind SRW, plus 1 header = 5
         double widthGap = (rect.width) / 5;
         firstToken = rect.x + widthGap;
         secondToken = firstToken + widthGap;
         thirdToken = secondToken + widthGap;
         forthToken = thirdToken + widthGap;
-        target.drawString(myfont, "Sum2", startX, rect.y, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, "Sum2", startX, rect.y, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-        textStr = String.format("SRH(m%c/s%c)", NsharpConstants.SQUARE_SYMBOL,
-                NsharpConstants.SQUARE_SYMBOL);
-        target.drawString(myfont, textStr, firstToken, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        textStr = String.format("SRH(m%c/s%c)", NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
+        target.drawString(myfont, textStr, firstToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "Shear(kt)", secondToken, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, "Shear(kt)", secondToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "MnWind", thirdToken, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, "MnWind", thirdToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        target.drawString(myfont, "SRW", forthToken, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, "SRW", forthToken, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight; // move to new line
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
-        FloatByReference smdir = new FloatByReference(0), smspd = new FloatByReference(
-                0);
-        nsharpNative.nsharpLib.get_storm(smspd, smdir);
-        FloatByReference topPF = new FloatByReference(0);
-        FloatByReference botPF = new FloatByReference(0);
-        nsharpNative.nsharpLib.get_effectLayertopBotPres(topPF, botPF);
-        for (int i = 0; i < NsharpNativeConstants.STORM_MOTION_TYPE_STR1.length; i++) {
-            float h1, h2;
-            if (NsharpNativeConstants.STORM_MOTION_TYPE_STR1[i]
-                    .equals("Eff Inflow Layer")) {
-
-                if (botPF.getValue() > 0) {
-                    h1 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                            .ihght(botPF.getValue()));
-                    h2 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                            .ihght(topPF.getValue()));
-                } else {
-                    h1 = -999;
-                    h2 = -999;
-                }
-            } else {
-                h1 = NsharpNativeConstants.STORM_MOTION_HEIGHT1[i][0];
-                h2 = NsharpNativeConstants.STORM_MOTION_HEIGHT1[i][1];
+        for (int i = 0; i < NsharpWeatherDataStore.STORM_MOTION_TYPE_STR.length; i++) {
+            RGB textColor = NsharpConstants.color_white;
+            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")
+                    || NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+                textColor = NsharpConstants.color_yellow;
             }
-            if (h1 != -999 && h2 != -999) {
-                // SRH
-                // calculate helicity
+            // draw row header
+            target.drawString(myfont, NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i], startX, curY, 0.0,
+                    TextStyle.NORMAL, textColor, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-                float totHeli = nsharpNative.nsharpLib.helicity(h1, h2,
-                        smdir.getValue(), smspd.getValue(), fValue, fValue1);
-                target.drawString(myfont,
-                        NsharpNativeConstants.STORM_MOTION_TYPE_STR1[i],
-                        startX, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
-                if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                        && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
+            // draw helicity only for the first 4 rows as Bigsharp does
+            if (i < STORM_HELICITY_MAX) {
+                float totHeli = weatherDataStore.getStormTypeToHelicityMap()
+                        .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i]).getTotalHelicity();
+
+                if (NsharpLibBasics.qc(totHeli)) {
                     textStr = String.format("%.0f", totHeli);
                 } else {
                     textStr = "M";
                 }
-                target.drawString(myfont, textStr, firstToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
+                target.drawString(myfont, textStr, firstToken, curY, 0.0, TextStyle.NORMAL, textColor,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                // Calculate wind shear
-                // Note: -1 as first parameter indicating bottom layer is
-                // surface layer, see wind.c for wind_shear() source code
-                nsharpNative.nsharpLib.wind_shear(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue3.getValue()) == 1) {
-                    textStr = String.format("%.0f", fValue3.getValue());
-
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, secondToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                // Calculate mean wind
-                nsharpNative.nsharpLib.mean_wind(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue2.getValue()) == 1
-                        && nsharpNative.nsharpLib.qc(fValue3.getValue()) == 1) {
-                    textStr = String.format("%.0f/%.0f", fValue2.getValue(),
-                            fValue3.getValue());
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, thirdToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                // calculate pressure-weighted SR mean wind
-                nsharpNative.nsharpLib.sr_wind(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), smdir.getValue(), smspd.getValue(),
-                        fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue2.getValue()) == 1) {
-                    textStr = String.format("%.0f/%.0f", fValue2.getValue(),
-                            fValue3.getValue());
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, forthToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                if (NsharpNativeConstants.STORM_MOTION_TYPE_STR1[i]
-                        .equals("Eff Inflow Layer")) {
-                    // draw bax around it
-                    Rectangle rectangle = new Rectangle(rect.x, (int) curY,
-                            rect.width, (int) charHeight);
-                    PixelExtent pixExt = new PixelExtent(rectangle);
-                    target.drawRect(pixExt, NsharpConstants.color_gold, 1.0f,
-                            1.0f);
-                }
             }
-            curY = curY + charHeight; // move to new line
 
-        }
-        float pres = 0;
-        short oldlplchoice = 3;
-        float sfctemp, sfcdwpt, sfcpres;
-        _lplvalues lpvls;
-        _parcel pcl;
-        lpvls = new _lplvalues();
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        pcl = new _parcel();
-        for (int i = 0; i < NsharpNativeConstants.STORM_MOTION_TYPE_STR2.length; i++) {
-            float h1, h2;
-
-            h1 = -999;
-            h2 = -999;
-            nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-            if (NsharpNativeConstants.STORM_MOTION_TYPE_STR2[i]
-                    .equals("LCL-EL(Cloud Layer)")) {
-                sfctemp = lpvls.temp;
-                sfcdwpt = lpvls.dwpt;
-                sfcpres = lpvls.pres;
-                nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                        sfcdwpt, pcl);
-                if (pcl.bplus > 0) {
-                    h1 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                            .ihght(pcl.lclpres));
-                    h2 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                            .ihght(pcl.elpres));
+            float windShear = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
+            WindComponent meanwindComp = null;
+            WindComponent srMeanwindComp = null;
+            // LCL layer -EL layer value is parcel relevant, get them from
+            // parcelMap
+            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("LCL-EL(Cloud Layer)")) {
+                NsharpWeatherDataStore.ParcelMiscParams parcelMiscs = weatherDataStore.getParcelMiscParamsMap()
+                        .get(this.currentParcel);
+                if (parcelMiscs != null) {
+                    windShear = parcelMiscs.getWindShearLclToEl();
+                    meanwindComp = parcelMiscs.getMeanWindCompLclToEl();
+                    srMeanwindComp = parcelMiscs.getSrMeanWindCompLclToEl();
                 }
-            } else if (NsharpNativeConstants.STORM_MOTION_TYPE_STR2[i]
-                    .equals("Lower Half Storm Depth")) {
-                oldlplchoice = lpvls.flag;
-                nsharpNative.nsharpLib.define_parcel(
-                        NsharpNativeConstants.PARCELTYPE_MOST_UNSTABLE,
-                        NsharpNativeConstants.MU_LAYER);
-                // regain lpvls value after defined parcel
-                nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-                sfctemp = lpvls.temp;
-                sfcdwpt = lpvls.dwpt;
-                sfcpres = lpvls.pres;
-                nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                        sfcdwpt, pcl);
-                float el = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                        .ihght(pcl.elpres));
-                if (pcl.bplus >= 100.0) {
-
-                    float base = nsharpNative.nsharpLib
-                            .agl(nsharpNative.nsharpLib.ihght(botPF.getValue()));
-                    float depth = (el - base);
-                    h1 = base;
-                    h2 = base + (depth * 0.5f);
-
-                    nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-                }
-
-                try {
-                    if (oldlplchoice == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-                        pres = NsharpParcelDialog.getUserDefdParcelMb();
-                    } else {
-                        pres = NsharpNativeConstants.parcelToLayerMap
-                                .get(oldlplchoice);
-                    }
-
-                    // reset and define oldchoice parcel
-                    nsharpNative.nsharpLib.define_parcel(oldlplchoice, pres);
-                } catch (NullPointerException e) {
-                    // when in changing pane configuration situation, an odd
-                    // scenario may happened that
-                    // "oldlplchoice" may be a null, and
-                    // parcelToLayerMap.get(oldlplchoice); throws a
-                    // NullPointerException. In that case, we do not
-                    // re-define_parcel and continue on
-                    statusHandler
-                            .handle(UFStatus.Priority.WARN,
-                                    "An NullPointerException occured while define_parcel()",
-                                    e);
-                }
-
             } else {
-                h1 = NsharpNativeConstants.STORM_MOTION_HEIGHT2[i][0];
-                h2 = NsharpNativeConstants.STORM_MOTION_HEIGHT2[i][1];
+                windShear = weatherDataStore.getStormTypeToWindShearMap()
+                        .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i]);
+                meanwindComp = weatherDataStore.getStormTypeToMeanWindMap()
+                        .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i]);
+                srMeanwindComp = weatherDataStore.getStormTypeToSrMeanWindMap()
+                        .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i]);
             }
-            if (h1 != -999 && h2 != -999) {
-                // SRH
-                // calculate helicity
-                float totHeli = nsharpNative.nsharpLib.helicity(h1, h2,
-                        smdir.getValue(), smspd.getValue(), fValue, fValue1);
-                target.drawString(myfont,
-                        NsharpNativeConstants.STORM_MOTION_TYPE_STR2[i],
-                        startX, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
-
-                if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                        && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-                    textStr = String.format("%.0f", totHeli);
-                } else {
-                    textStr = "M";
-                }
-                // SR Helicity is not shown for these 4 storm motions, see
-                // oroginal BigNsharp show_shear_new()
-
-                // Calculate wind shear
-                // Note: -1 as first parameter indicating bottom layer is
-                // surface layer, see wind.c for wind_shear() source code
-                nsharpNative.nsharpLib.wind_shear(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue3.getValue()) == 1) {
-                    textStr = String.format("%.0f", fValue3.getValue());
-
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, secondToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                // Calculate mean wind
-                nsharpNative.nsharpLib.mean_wind(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue2.getValue()) == 1
-                        && nsharpNative.nsharpLib.qc(fValue3.getValue()) == 1) {
-                    textStr = String.format("%.0f/%.0f", fValue2.getValue(),
-                            fValue3.getValue());
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, thirdToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-
-                // calculate pressure-weighted SR mean wind
-                nsharpNative.nsharpLib.sr_wind(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(h1)),
-                        nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                                .msl(h2)), smdir.getValue(), smspd.getValue(),
-                        fValue, fValue1, fValue2, fValue3);
-                if (nsharpNative.nsharpLib.qc(fValue2.getValue()) == 1) {
-                    textStr = String.format("%.0f/%.0f", fValue2.getValue(),
-                            fValue3.getValue());
-                } else {
-                    textStr = "M";
-                }
-                target.drawString(myfont, textStr, forthToken, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
-                        HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-                if (NsharpNativeConstants.STORM_MOTION_TYPE_STR2[i]
-                        .equals("Lower Half Storm Depth")) {
-                    // draw bax around it
-                    Rectangle rectangle = new Rectangle(rect.x, (int) curY,
-                            rect.width, (int) charHeight);
-                    PixelExtent pixExt = new PixelExtent(rectangle);
-                    target.drawRect(pixExt, NsharpConstants.color_gold, 1.0f,
-                            1.0f);
-                }
+            // draw wind shear
+            if (NsharpLibBasics.qc(windShear)) {
+                textStr = String.format("%.0f", windShear);
+            } else {
+                textStr = "M";
             }
+            target.drawString(myfont, textStr, secondToken, curY, 0.0, TextStyle.NORMAL, textColor,
+                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+            // draw mean wind
+            if (meanwindComp != null && NsharpLibBasics.qc(meanwindComp.getWdir())
+                    && NsharpLibBasics.qc(meanwindComp.getWspd())) {
+                textStr = String.format("%.0f/%.0f", meanwindComp.getWdir(), meanwindComp.getWspd());
+            } else {
+                textStr = "M";
+            }
+            target.drawString(myfont, textStr, thirdToken, curY, 0.0, TextStyle.NORMAL, textColor,
+                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+            // draw pressure-weighted SR mean wind
+            if (srMeanwindComp != null && NsharpLibBasics.qc(srMeanwindComp.getWdir())
+                    && NsharpLibBasics.qc(srMeanwindComp.getWspd())) {
+                textStr = String.format("%.0f/%.0f", srMeanwindComp.getWdir(), srMeanwindComp.getWspd());
+            } else {
+                textStr = "M";
+            }
+            target.drawString(myfont, textStr, forthToken, curY, 0.0, TextStyle.NORMAL, textColor,
+                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+            if (NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Inflow")
+                    || NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[i].equals("Eff Shear(EBWD)")) {
+                // draw bax around it
+                Rectangle rectangle = new Rectangle(rect.x, (int) curY, rect.width, (int) charHeight);
+                PixelExtent pixExt = new PixelExtent(rectangle);
+                target.drawRect(pixExt, NsharpConstants.color_darkorange, 1.0f, 1.0f);
+            }
+
             curY = curY + charHeight; // move to new line
-
         }
         // align all following parameters output with "Corfidi Downshear"
-        double hRatio = paintProps.getView().getExtent().getWidth()
-                / paintProps.getCanvasBounds().width;
-        DrawableString str = new DrawableString("Corfidi Downshear = ",
-                NsharpConstants.color_white);
+        double hRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
+        DrawableString str = new DrawableString("Corfidi Downshear = ", NsharpConstants.color_white);
         double equalSignPos = secondToken;
 
         // BRN Shear
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        // current parcel is reset earlief already we dont have to call
-        // define_parcel() again.
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-
-        nsharpNative.nsharpLib.cave_bulk_rich2(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.0f m%c/s%c", fValue.getValue(),
-                    NsharpConstants.SQUARE_SYMBOL,
+        Parcel parcel = weatherDataStore.getParcelMap().get(this.currentParcel);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBrnShear())) {
+            textStr = String.format("%.0f m%c/s%c", parcel.getBrnShear(), NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = "  M";
@@ -1362,8 +1195,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str.verticallAlignment = VerticalAlignment.TOP;
         str.font = myfont;
         str.setText("BRN Shear = ", NsharpConstants.color_white);
-        DrawableString str1 = new DrawableString(textStr,
-                NsharpConstants.color_white);
+        DrawableString str1 = new DrawableString(textStr, NsharpConstants.color_white);
         str1.setCoordinates(equalSignPos, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
         str1.verticallAlignment = VerticalAlignment.TOP;
@@ -1372,14 +1204,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         curY = curY + charHeight; // move to new line
         // 4-6km srw
-        nsharpNative.nsharpLib.sr_wind(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(4000)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(6000)),
-                smdir.getValue(), smspd.getValue(), fValue, fValue1, fValue2,
-                fValue3);
-        if (nsharpNative.nsharpLib.qc(fValue2.getValue()) == 1) {
-            textStr = String.format("%.0f/%.0f kt", fValue2.getValue(),
-                    fValue3.getValue());
+        WindComponent windComp = weatherDataStore.getSrMeanWindComp4To6km();
+        if (NsharpLibBasics.qc(windComp.getWdir()) && NsharpLibBasics.qc(windComp.getWspd())) {
+            textStr = String.format("%.0f/%.0f kt", windComp.getWdir(), windComp.getWspd());
         } else {
             textStr = " M";
         }
@@ -1391,12 +1218,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         curY = curY + charHeight; // move to new line
 
-        // Corfidi Downshear, we use fValue3, fValue4 only by calling
-        // corfidi_MCS_motion
-        nsharpNative.nsharpLib.corfidi_MCS_motion(fValue1, fValue2, fValue3,
-                fValue4, fValue5, fValue6, fValue7, fValue8);
-        textStr = String.format("%.0f/%.0f kt", fValue3.getValue(),
-                fValue4.getValue());
+        // Corfidi Downshear @[0]
+        WindComponent[] corfidiWindComp = weatherDataStore.getCofidiShearWindComp();
+        textStr = String.format("%.0f/%.0f kt", corfidiWindComp[0].getWdir(), corfidiWindComp[0].getWspd());
         str.setText("Corfidi Downshear =", NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
@@ -1404,10 +1228,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         target.drawStrings(str, str1);
         curY = curY + charHeight; // move to new line
 
-        // Corfidi Upshear, we use fValue7, fValue8 only by calling
-        // corfidi_MCS_motion
-        textStr = String.format("%.0f/%.0f kt", fValue7.getValue(),
-                fValue8.getValue());
+        // Corfidi Upshear @[1]
+        textStr = String.format("%.0f/%.0f kt", corfidiWindComp[1].getWdir(), corfidiWindComp[1].getWspd());
         str.setText("Corfidi Upshear =", NsharpConstants.color_white);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_white);
@@ -1415,23 +1237,18 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         target.drawStrings(str, str1);
         curY = curY + charHeight; // move to new line
 
-        // Bunkers Right
-        nsharpNative.nsharpLib.bunkers_storm_motion(fValue1, fValue2, fValue3,
-                fValue4);
-        textStr = String.format("%.0f/%.0f kt", fValue3.getValue(),
-                fValue4.getValue());
-        str.setText("Bunkers Right =", NsharpConstants.color_red);
+        // Bunkers Right @ [0]
+        WindComponent[] bunkerStormWndComp = weatherDataStore.getBunkersStormMotionWindComp();
+        textStr = String.format("%.0f/%.0f kt", bunkerStormWndComp[0].getWdir(), bunkerStormWndComp[0].getWspd());
+        str.setText("Bunkers Right =", NsharpConstants.color_dkpink);
         str.setCoordinates(startX, curY);
-        str1.setText(textStr, NsharpConstants.color_red);
+        str1.setText(textStr, NsharpConstants.color_dkpink);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
 
         curY = curY + charHeight; // move to new line
-        // Bunkers Left
-        nsharpNative.nsharpLib.bunkers_left_motion(fValue1, fValue2, fValue3,
-                fValue4);
-        textStr = String.format("%.0f/%.0f kt", fValue3.getValue(),
-                fValue4.getValue());
+        // Bunkers Left @ [1]
+        textStr = String.format("%.0f/%.0f kt", bunkerStormWndComp[1].getWdir(), bunkerStormWndComp[1].getWspd());
         str.setText("Bunkers Left =", NsharpConstants.color_cyan);
         str.setCoordinates(startX, curY);
         str1.setText(textStr, NsharpConstants.color_cyan);
@@ -1439,65 +1256,72 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         target.drawStrings(str, str1);
         curY = curY + charHeight; // move to new line
 
-        // STPC(test) - test STP using cape6km
-        // Chin Note: BigNsharp sigtorn_test always return -9999..a bug
-        float stpTest = nsharpNative.nsharpLib.sigtorn_test(smdir.getValue(),
-                smspd.getValue());
-        if (nsharpNative.nsharpLib.qc(stpTest) == 1) {
-            textStr = String.format("%.1f", stpTest);
+        // STP(eff)LR -
+        float stpLr = weatherDataStore.getStpLr();
+        // the following color setting is based on show_shear_new() at xwvid3.c
+        RGB textColor = NsharpConstants.color_brown;
+        if (stpLr >= 8) {
+            textColor = NsharpConstants.color_magenta;
+        } else if (stpLr >= 4) {
+            textColor = NsharpConstants.color_red;
+        } else if (stpLr >= 2) {
+            textColor = NsharpConstants.color_gold;
+        } else if (stpLr >= 1) {
+            textColor = NsharpConstants.color_white;
+        } else if (stpLr >= 0.5) {
+            textColor = NsharpConstants.color_darkorange;
+        }
+
+        if (NsharpLibBasics.qc(stpLr)) {
+            textStr = String.format("%.1f", stpLr);
         } else {
             textStr = " M";
         }
-        str.setText("STPC(test) =", NsharpConstants.color_white);
+        str.setText("STP(eff)LR =", textColor);
         str.setCoordinates(startX, curY);
-        str1.setText(textStr, NsharpConstants.color_white);
+        str1.setText(textStr, textColor);
         str1.setCoordinates(equalSignPos, curY);
         target.drawStrings(str, str1);
 
         // wind barb labels
         // rest str1 to get a right x position
-        str1.setText("12345SPACE", NsharpConstants.color_red);
         textStr = "1km";
         str.setText(textStr, NsharpConstants.color_red);
         str.setCoordinates(thirdToken, curY);
         textStr = " & ";
         str1.setText(textStr, NsharpConstants.color_white);
-        str1.setCoordinates(thirdToken
-                + target.getStringsBounds(str).getWidth() * hRatio * xRatio,
-                curY);
+        str1.setCoordinates(thirdToken + target.getStringsBounds(str).getWidth() * hRatio * xRatio, curY);
         textStr = "6km";
-        DrawableString str2 = new DrawableString(textStr,
-                NsharpConstants.color_cyan);
+        DrawableString str2 = new DrawableString(textStr, NsharpConstants.color_cyan);
         str2.horizontalAlignment = HorizontalAlignment.LEFT;
         str2.verticallAlignment = VerticalAlignment.TOP;
         str2.font = myfont;
-        str2.setCoordinates(thirdToken
-                + (target.getStringsBounds(str).getWidth() + target
-                        .getStringsBounds(str1).getWidth()) * hRatio * xRatio,
+        str2.setCoordinates(
+                thirdToken + (target.getStringsBounds(str).getWidth() + target.getStringsBounds(str1).getWidth())
+                        * hRatio * xRatio,
                 curY);
         textStr = " AGL Wind Barb";
-        DrawableString str3 = new DrawableString(textStr,
-                NsharpConstants.color_white);
+        DrawableString str3 = new DrawableString(textStr, NsharpConstants.color_white);
         str3.horizontalAlignment = HorizontalAlignment.LEFT;
         str3.verticallAlignment = VerticalAlignment.TOP;
         str3.font = myfont;
-        str3.setCoordinates(thirdToken
-                + (target.getStringsBounds(str).getWidth()
-                        + target.getStringsBounds(str1).getWidth() + target
-                        .getStringsBounds(str2).getWidth()) * hRatio * xRatio,
+        str3.setCoordinates(
+                thirdToken + (target.getStringsBounds(str).getWidth() + target.getStringsBounds(str1).getWidth()
+                        + target.getStringsBounds(str2).getWidth()) * hRatio * xRatio,
                 curY);
         target.drawStrings(str, str1, str2, str3);
 
         // 1 km wind barb
         double wbToken = (thirdToken + forthToken) / 2;
+        // rest str1 to get a right x position
         str1.setText("1234/56 ktSPACESPACESPACE", NsharpConstants.color_red);
         double yOri = curY - 3 * charHeight;
-        double barbScaleF = charHeight;// 12;
+        double barbScaleF = charHeight;
         List<LineStroke> barb = WindBarbFactory.getWindGraphics(
-                (double) nsharpNative.nsharpLib.iwspd(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(1000))),
-                (double) nsharpNative.nsharpLib.iwdir(nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(1000))));
+                (double) NsharpLibBasics.i_wspd(soundingLys,
+                        NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 1000))),
+                (double) NsharpLibBasics.i_wdir(soundingLys,
+                        NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 1000))));
         if (barb != null) {
             WindBarbFactory.scaleBarb(barb, barbScaleF);
 
@@ -1514,17 +1338,14 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 //
                 newY = yOri - (point.y - yOri);
                 // Note: stroke.render(gc, relativeX, relativeY) is not working
-                // here. Therefore, need to
-                // draw wind barb ourself.
+                // here. Therefore, need to draw wind barb ourself.
                 if (stroke.getType() == "M") {
                     cur0X = point.x;
                     cur0Y = newY;
                 } else if (stroke.getType() == "D") {
                     cur1X = point.x;
                     cur1Y = newY;
-                    target.drawLine(cur0X, cur0Y, 0.0, cur1X, cur1Y, 0.0,
-                            NsharpConstants.color_red, 1);
-                    // bsteffen added these two lines to fix 50 kts wind barbs
+                    target.drawLine(cur0X, cur0Y, 0.0, cur1X, cur1Y, 0.0, NsharpConstants.color_red, 1);
                     cur0X = cur1X;
                     cur0Y = cur1Y;
                 }
@@ -1532,11 +1353,11 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         }
         // 6 km wind barb
         barb.clear();
-        barb = WindBarbFactory.getWindGraphics((double) nsharpNative.nsharpLib
-                .iwspd(nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                        .msl(6000))), (double) nsharpNative.nsharpLib
-                .iwdir(nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                        .msl(6000))));
+        barb = WindBarbFactory.getWindGraphics(
+                (double) NsharpLibBasics.i_wspd(soundingLys,
+                        NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 6000))),
+                (double) NsharpLibBasics.i_wdir(soundingLys,
+                        NsharpLibBasics.i_pres(soundingLys, NsharpLibBasics.msl(soundingLys, 6000))));
         if (barb != null) {
             WindBarbFactory.scaleBarb(barb, barbScaleF);
 
@@ -1553,27 +1374,64 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 newY = yOri - (point.y - yOri);
                 //
                 // Note: stroke.render(gc, relativeX, relativeY) is not working
-                // here. Therefore, need to
-                // draw wind barb ourself.
+                // here. Therefore, need to draw wind barb ourself.
                 if (stroke.getType() == "M") {
                     cur0X = point.x;
                     cur0Y = newY;
                 } else if (stroke.getType() == "D") {
                     cur1X = point.x;
                     cur1Y = newY;
-                    target.drawLine(cur0X, cur0Y, 0.0, cur1X, cur1Y, 0.0,
-                            NsharpConstants.color_cyan, 1);
-                    // bsteffen added these two lines to fix 50 kts wind barbs
+                    target.drawLine(cur0X, cur0Y, 0.0, cur1X, cur1Y, 0.0, NsharpConstants.color_cyan, 1);
                     cur0X = cur1X;
                     cur0Y = cur1Y;
                 }
             }
         }
+        // move to new line
+        curY = curY + charHeight;
+        // draw lhp
+        float lhp = weatherDataStore.getLhp();
+        if (NsharpLibBasics.qc(lhp)) {
+            textStr = String.format("%.1f", lhp);
+        } else {
+            textStr = " M";
+        }
+        // the following color setting is based on show_shear_new() at xwvid3.c
+        textColor = NsharpConstants.color_white;
+        if (lhp >= 9) {
+            // use Gempak color 7 red
+            textColor = NsharpConstants.color_red;
+        } else if (lhp >= 7) {
+            // use Gempak color 2 magenta
+            textColor = NsharpConstants.color_magenta;
+        } else if (lhp >= 5) {
+            // use Gempak color 17 orange
+            textColor = NsharpConstants.color_orange;
+        } else if (lhp >= 3) {
+            // use Gempak color 12 dk pink
+            textColor = NsharpConstants.color_dkpink;
+        }
+        str.setText("LGHAIL =", textColor);
+        str.setCoordinates(startX, curY);
+        str1.setText(textStr, textColor);
+        str1.setCoordinates(equalSignPos, curY);
+        str.font = font9;
+        str1.font = font9;
+        target.drawStrings(str, str1);
 
+        // draw modSherbe
+        float modSherbe = weatherDataStore.getModSherbe();
+        if (NsharpLibBasics.qc(modSherbe)) {
+            textStr = String.format("%.1f", modSherbe);
+        } else {
+            textStr = " M";
+        }
+        str.setText("MOSHE = " + textStr, NsharpConstants.color_white);
+        str.setCoordinates(thirdToken, curY);
+        target.drawStrings(str);
     }
 
-    private void drawPanel3(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel3(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -1588,233 +1446,169 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // show_parcel() in xwvid3.c
         // moved from NsharpPaletteWindow.showParcelData()
 
-        // if we can not Interpolates a temp with 700 mb pressure, then we dont
-        // have enough raw data
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0) {
-            return;
-        }
-        String title = NsharpNativeConstants.PARCEL_DATA_STR;
+        String title = PARCEL_DATA_STR;
 
-        target.drawString(myfont, title, rect.x + rect.width / 3, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_cyan,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, title, rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
         String hdrStr;
         float layerPressure = 0;
-
         // get user selected parcel type
-        hdrStr = NsharpNativeConstants.parcelToHdrStrMap.get(currentParcel);
-        layerPressure = NsharpNativeConstants.parcelToLayerMap
-                .get(currentParcel);
-        if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
+        hdrStr = parcelToHdrStrMap.get(currentParcel);
+        layerPressure = NsharpWeatherDataStore.parcelToLayerPressMap.get(currentParcel);
+        if (currentParcel == NsharpLibSndglib.PARCELTYPE_USER_DEFINED) {
             layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
             hdrStr = String.format(hdrStr, layerPressure);
         }
         curY = curY + charHeight;
-        target.drawString(myfont, hdrStr, rect.x + rect.width / 4, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_yellow,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, hdrStr, rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        // call native define_parcel() with parcel type and user defined
-        // pressure (if user defined it)
-        nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
+        Parcel parcel = weatherDataStore.getParcelMap().get(currentParcel);
+        if (parcel != null) {
+            textStr = PARCEL_LPL_LINE_;
+            textStr = String.format(textStr, (int) parcel.getLplpres(), (int) parcel.getLpltemp(),
+                    (int) parcel.getLpldwpt(), (int) NsharpLibBasics.ctof(parcel.getLpltemp()),
+                    (int) NsharpLibBasics.ctof(parcel.getLpldwpt()));
 
-        _lplvalues lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        _parcel pcl = new _parcel();
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-        textStr = NsharpNativeConstants.PARCEL_LPL_LINE_;
-        textStr = String.format(textStr, (int) pcl.lplpres, (int) pcl.lpltemp,
-                (int) pcl.lpldwpt,
-                (int) nsharpNative.nsharpLib.ctof(pcl.lpltemp),
-                (int) nsharpNative.nsharpLib.ctof(pcl.lpldwpt));
-        // Chin: note: target.drawString does NOT handle formatted string. For
-        // example, "ABC\tabc" will be printed
-        // as "ABCabc" So, we have to add '_' to separate each value when
-        // formatting String.
-        // Then, use String.split() to have each value in a sub-string.
-
-        splitedStr = textStr.split("_", -1);
-        for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            // Chin: note: target.drawString does NOT handle formatted string.
+            // For
+            // example, "ABC\tabc" will be printed
+            // as "ABCabc" So, we have to add '_' to separate each value when
+            // formatting String.
+            // Then, use String.split() to have each value in a sub-string.
+            splitedStr = textStr.split("_", -1);
+            for (int i = 0; i < splitedStr.length; i++) {
+                target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                        NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
+        } else {
+            target.drawString(myfont, PARCEL_LPL_MISSING, rect.x, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         curY = curY + 2 * charHeight;
 
-        if (nsharpNative.nsharpLib.qc(pcl.bplus) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_CAPE_LINE;
-            textStr = String.format(textStr, pcl.bplus);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
+            textStr = PARCEL_CAPE_LINE;
+            textStr = String.format(textStr, parcel.getBplus());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_CAPE_MISSING;
+            textStr = PARCEL_CAPE_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-        if (nsharpNative.nsharpLib.qc(pcl.li5) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_LI_LINE;
-            textStr = String.format(textStr, pcl.li5);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getLi5())) {
+            textStr = PARCEL_LI_LINE;
+            textStr = String.format(textStr, parcel.getLi5());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_LI_MISSING;
+            textStr = PARCEL_LI_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        if (nsharpNative.nsharpLib.qc(pcl.bfzl) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_BFZL_LINE;
-            textStr = String.format(textStr, pcl.bfzl);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBfzl())) {
+            textStr = PARCEL_BFZL_LINE;
+            textStr = String.format(textStr, parcel.getBfzl());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_BFZL_MISSING;
+            textStr = PARCEL_BFZL_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        if (nsharpNative.nsharpLib.qc(pcl.limax) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_LIMIN_LINE;
-            textStr = String.format(textStr, pcl.limax, pcl.limaxpres);
-        } else {
-            textStr = NsharpNativeConstants.PARCEL_LIMIN_MISSING;
-        }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-        curY = curY + charHeight;
-        if (nsharpNative.nsharpLib.qc(pcl.bminus) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_CINH_LINE;
-            textStr = String.format(textStr, pcl.bminus);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getLimax())) {
+            textStr = PARCEL_LIMIN_LINE;
+            textStr = String.format(textStr, parcel.getLimax(), parcel.getLimaxpres());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_CINH_MISSING;
+            textStr = PARCEL_LIMIN_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        curY = curY + charHeight;
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBminus())) {
+            textStr = PARCEL_CINH_LINE;
+            textStr = String.format(textStr, parcel.getBminus());
+        } else {
+            textStr = PARCEL_CINH_MISSING;
+        }
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-        if (nsharpNative.nsharpLib.qc(pcl.cap) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_CAP_LINE;
-            textStr = String.format(textStr, pcl.cap, pcl.cappres);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getCap())) {
+            textStr = PARCEL_CAP_LINE;
+            textStr = String.format(textStr, parcel.getCap(), parcel.getCappres());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_CAP_MISSING;
+            textStr = PARCEL_CAP_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + 2 * charHeight;
 
-        textStr = NsharpNativeConstants.PARCEL_LEVEL_LINE_;
+        textStr = PARCEL_LEVEL_LINE_;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
-        if (nsharpNative.nsharpLib.qc(pcl.lclpres) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .mtof(nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                                .ihght(pcl.lclpres)))) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_LCL_LINE_;
-            textStr = String.format(textStr, pcl.lclpres,
-                    nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                            .agl(nsharpNative.nsharpLib.ihght(pcl.lclpres))));
+        if (parcel != null && NsharpLibBasics.qc(parcel.getLclpres()) && NsharpLibBasics.qc(parcel.getLclAgl())) {
+            textStr = PARCEL_LCL_LINE_;
+            textStr = String.format(textStr, parcel.getLclpres(), parcel.getLclAgl());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_LCL_MISSING_;
+            textStr = PARCEL_LCL_MISSING_;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(pcl.lfcpres) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .mtof(nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                                .ihght(pcl.lfcpres)))) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .itemp(pcl.lfcpres)) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_LFC_LINE_;
-            textStr = String.format(textStr, pcl.lfcpres,
-                    nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                            .agl(nsharpNative.nsharpLib.ihght(pcl.lfcpres))),
-                    nsharpNative.nsharpLib.itemp(pcl.lfcpres));
+        if (parcel != null && NsharpLibBasics.qc(parcel.getLfcpres()) && NsharpLibBasics.qc(parcel.getLfcAgl())
+                && NsharpLibBasics.qc(parcel.getLfcTemp())) {
+            textStr = PARCEL_LFC_LINE_;
+            textStr = String.format(textStr, parcel.getLfcpres(), parcel.getLfcAgl(), parcel.getLfcTemp());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_LFC_MISSING_;
+            textStr = PARCEL_LFC_MISSING_;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(pcl.elpres) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .mtof(nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                                .ihght(pcl.elpres)))) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .itemp(pcl.elpres)) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_EL_LINE_;
-            textStr = String.format(textStr, pcl.elpres, nsharpNative.nsharpLib
-                    .mtof(nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                            .ihght(pcl.elpres))), nsharpNative.nsharpLib
-                    .itemp(pcl.elpres));
+        if (parcel != null && NsharpLibBasics.qc(parcel.getElpres()) && NsharpLibBasics.qc(parcel.getElAgl())
+                && NsharpLibBasics.qc(parcel.getElTemp())) {
+            textStr = PARCEL_EL_LINE_;
+            textStr = String.format(textStr, parcel.getElpres(), parcel.getElAgl(), parcel.getElTemp());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_EL_MISSING_;
+            textStr = PARCEL_EL_MISSING_;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(pcl.mplpres) == 1
-                && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                        .mtof(nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                                .ihght(pcl.mplpres)))) == 1) {
-            textStr = NsharpNativeConstants.PARCEL_MPL_LINE_;
-            textStr = String.format(textStr, pcl.mplpres,
-                    nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                            .agl(nsharpNative.nsharpLib.ihght(pcl.mplpres))));
+        if (parcel != null && NsharpLibBasics.qc(parcel.getMplpres()) && NsharpLibBasics.qc(parcel.getMplAgl())) {
+            textStr = PARCEL_MPL_LINE_;
+            textStr = String.format(textStr, parcel.getMplpres(), parcel.getMplAgl());
         } else {
-            textStr = NsharpNativeConstants.PARCEL_MPL_MISSING_;
+            textStr = PARCEL_MPL_MISSING_;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
     }
 
-    private void drawPanel4(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel4(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -1829,302 +1623,207 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE::::this function is coded based on legacy native nsharp
          * software show_thermoparms(), show_moisture(),show_instability() in
          * xwvid3.c
-         * 
-         * Moved from NsharpPaletteWindow.showThermoparms()
          */
-
-        target.drawString(myfont, NsharpNativeConstants.THERMO_DATA_STR, rect.x
-                + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.THERMO_DATA_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        target.drawString(myfont, NsharpNativeConstants.THERMO_MOISTURE_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.THERMO_MOISTURE_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        float pw = NcSoundingTools.precip_water(this.soundingLys, 400, -1)
-                / MM_PER_INCH;
+        float pw = weatherDataStore.getPw();
         if (pw >= 0) {
             textStr = NsharpNativeConstants.THERMO_PWATER_LINE;
             textStr = String.format(textStr, pw);
         } else {
             textStr = NsharpNativeConstants.THERMO_PWATER_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.mean_relhum(fValue, -1.0F, -1.0F);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
+        float meanRh = weatherDataStore.getMeanRh();
+        if (NsharpLibBasics.qc(meanRh)) {
             textStr = NsharpNativeConstants.THERMO_MEANRH_LINE;
-            textStr = String.format(textStr, fValue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+            textStr = String.format(textStr, meanRh, NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.THERMO_MEANRH_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.mean_mixratio(fValue, -1.0F, -1.0F);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getMeanMixRatio())) {
             textStr = NsharpNativeConstants.THERMO_MEANW_LINE;
-            textStr = String.format(textStr, fValue.getValue());
+            textStr = String.format(textStr, weatherDataStore.getMeanMixRatio());
         } else {
             textStr = NsharpNativeConstants.THERMO_MEANW_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        // get surface pressure (fValue1) before getting mean LRH value
-        nsharpNative.nsharpLib.get_surface(fValue1, fValue2, fValue3);
-        nsharpNative.nsharpLib.mean_relhum(fValue, -1.0F,
-                fValue1.getValue() - 150);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+        // mean LRH value
+        if (NsharpLibBasics.qc(weatherDataStore.getLowRh())) {
             textStr = NsharpNativeConstants.THERMO_MEANLRH_LINE;
-            textStr = String.format(textStr, fValue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+            textStr = String.format(textStr, weatherDataStore.getLowRh(), NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.THERMO_MEANLRH_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.top_moistlyr(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getTopMoistLyrPress())) {
             textStr = NsharpNativeConstants.THERMO_TOP_LINE;
-            textStr = String
-                    .format(textStr, fValue.getValue(), nsharpNative.nsharpLib
-                            .mtof(nsharpNative.nsharpLib
-                                    .agl(nsharpNative.nsharpLib.ihght(fValue
-                                            .getValue()))));
+            textStr = String.format(textStr, weatherDataStore.getTopMoistLyrPress(),
+                    weatherDataStore.getTopMoistLyrHeight());
         } else {
             textStr = NsharpNativeConstants.THERMO_TOP_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // instability data--------------//
         // yellow and bold for parcel header
-        target.drawString(myfont, NsharpNativeConstants.THERMO_INSTABILITY_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.THERMO_INSTABILITY_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        fValue1.setValue(0);
-
-        nsharpNative.nsharpLib.delta_t(fValue);
-        nsharpNative.nsharpLib.lapse_rate(fValue1, 700.0F, 500.0F);
-
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
+        float sevenHundredTo500mbTempDelta = weatherDataStore.getSevenHundredTo500mbTempDelta();
+        float sevenHundredTo500mbLapseRate = weatherDataStore.getSevenHundredTo500mbLapseRate();
+        if (NsharpLibBasics.qc(sevenHundredTo500mbTempDelta) && NsharpLibBasics.qc(sevenHundredTo500mbLapseRate)) {
             textStr = NsharpNativeConstants.THERMO_700500mb_LINE;
-            textStr = String.format(textStr, fValue.getValue(),
-                    fValue1.getValue());
+            textStr = String.format(textStr, sevenHundredTo500mbTempDelta, sevenHundredTo500mbLapseRate);
         } else {
             textStr = NsharpNativeConstants.THERMO_700500mb_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        curY = curY + charHeight;
-
-        fValue.setValue(0);
-        fValue1.setValue(0);
-
-        nsharpNative.nsharpLib.vert_tot(fValue);
-        nsharpNative.nsharpLib.lapse_rate(fValue1, 850.0F, 500.0F);
-
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = NsharpNativeConstants.THERMO_850500mb_LINE;
-            textStr = String.format(textStr, fValue.getValue(),
-                    fValue1.getValue());
-        } else {
-            textStr = NsharpNativeConstants.THERMO_850500mb_MISSING;
-        }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        curY = curY + charHeight;
-
-        // misc parameters data--------------//
-        target.drawString(myfont, NsharpNativeConstants.THERMO_MISC_PARMS_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        curY = curY + charHeight;
-
-        fValue.setValue(0);
-        fValue1.setValue(0);
-        fValue2.setValue(0);
-        nsharpNative.nsharpLib.t_totals(fValue, fValue1, fValue2);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = NsharpNativeConstants.THERMO_TOTAL_LINE;
-            textStr = String.format(textStr, fValue.getValue());
-        } else {
-            textStr = NsharpNativeConstants.THERMO_TOTAL_MISSING;
-        }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.k_index(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = NsharpNativeConstants.THERMO_KINDEX_LINE;
-            textStr = String.format(textStr, fValue.getValue());
-        } else {
-            textStr = NsharpNativeConstants.THERMO_KINDEX_MISSING;
-        }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                 HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        nsharpNative.nsharpLib.sweat_index(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
+        float eight50To500mbTempDelta = weatherDataStore.getEight50To500mbTempDelta();
+        float eight50To500mbLapseRate = weatherDataStore.getEight50To500mbLapseRate();
+
+        if (NsharpLibBasics.qc(eight50To500mbTempDelta) && NsharpLibBasics.qc(eight50To500mbLapseRate)) {
+            textStr = NsharpNativeConstants.THERMO_850500mb_LINE;
+            textStr = String.format(textStr, eight50To500mbTempDelta, eight50To500mbLapseRate);
+        } else {
+            textStr = NsharpNativeConstants.THERMO_850500mb_MISSING;
+        }
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        curY = curY + charHeight;
+
+        // misc parameters data--------------//
+        target.drawString(myfont, NsharpNativeConstants.THERMO_MISC_PARMS_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        curY = curY + charHeight;
+
+        if (NsharpLibBasics.qc(weatherDataStore.getTotTots())) {
+            textStr = NsharpNativeConstants.THERMO_TOTAL_LINE;
+            textStr = String.format(textStr, weatherDataStore.getTotTots());
+        } else {
+            textStr = NsharpNativeConstants.THERMO_TOTAL_MISSING;
+        }
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+        if (NsharpLibBasics.qc(weatherDataStore.getkIndex())) {
+            textStr = NsharpNativeConstants.THERMO_KINDEX_LINE;
+            textStr = String.format(textStr, weatherDataStore.getkIndex());
+        } else {
+            textStr = NsharpNativeConstants.THERMO_KINDEX_MISSING;
+        }
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        curY = curY + charHeight;
+
+        if (NsharpLibBasics.qc(weatherDataStore.getSweatIndex())) {
             textStr = NsharpNativeConstants.THERMO_SWEAT_LINE;
-            textStr = String.format(textStr, fValue.getValue());
+            textStr = String.format(textStr, weatherDataStore.getSweatIndex());
         } else {
             textStr = NsharpNativeConstants.THERMO_SWEAT_MISSING;
         }
 
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-        fValue.setValue(0);
-        float maxTempF = nsharpNative.nsharpLib.ctof(nsharpNative.nsharpLib
-                .max_temp(fValue, -1));
-        if (nsharpNative.nsharpLib.qc(maxTempF) == 1) {
+        float maxTempF = weatherDataStore.getMaxTemp();
+        if (NsharpLibBasics.qc(maxTempF)) {
             textStr = NsharpNativeConstants.THERMO_MAXT_LINE;
             textStr = String.format(textStr, maxTempF);
         } else {
             textStr = NsharpNativeConstants.THERMO_MAXT_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        float theDiff = nsharpNative.nsharpLib.ThetaE_diff(fValue);
-        if (nsharpNative.nsharpLib.qc(theDiff) == 1) {
+        float theDiff = weatherDataStore.getThetaDiff();
+        if (NsharpLibBasics.qc(theDiff)) {
             textStr = NsharpNativeConstants.THERMO_THETAE_LINE;
             textStr = String.format(textStr, theDiff);
         } else {
             textStr = NsharpNativeConstants.THERMO_THETAE_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        fValue.setValue(0);
-        float conTempF = nsharpNative.nsharpLib.ctof(nsharpNative.nsharpLib
-                .cnvtv_temp(fValue, -1));
-        if (nsharpNative.nsharpLib.qc(conTempF) == 1) {
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+        float conTempF = weatherDataStore.getConvT();
+        if (NsharpLibBasics.qc(conTempF)) {
             textStr = NsharpNativeConstants.THERMO_CONVT_LINE;
             textStr = String.format(textStr, conTempF);
         } else {
             textStr = NsharpNativeConstants.THERMO_CONVT_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        fValue.setValue(0);
-        float wbzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .wb_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(wbzft) == 1) {
+        float wbzft = weatherDataStore.getWbzft();
+        if (NsharpLibBasics.qc(wbzft)) {
             textStr = NsharpNativeConstants.THERMO_WBZ_LINE;
             textStr = String.format(textStr, wbzft);
         } else {
             textStr = NsharpNativeConstants.THERMO_WBZ_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
-        fValue.setValue(0);
-        float fgzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .temp_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+        if (NsharpLibBasics.qc(weatherDataStore.getFgzft())) {
             textStr = NsharpNativeConstants.THERMO_FGZ_LINE;
-            textStr = String.format(textStr, fgzft);
+            textStr = String.format(textStr, weatherDataStore.getFgzft());
         } else {
             textStr = NsharpNativeConstants.THERMO_FGZ_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+
+        target.drawString(myfont, textStr, rect.x + rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         // LIs
-        String[] liStr = { "SBP LI = ", "FCP LI = ", "MUP LI = ", "MLP LI = ",
-                "USP LI = ", "EFP LI = " };
-        for (short parcelNumber = 1; parcelNumber <= NsharpNativeConstants.PARCEL_MAX; parcelNumber++) {
+        String[] liStr = { "SBP LI = ", "FCP LI = ", "MUP LI = ", "MLP LI = ", "USP LI = ", "EFP LI = " };
+        for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_MAX; parcelNumber++) {
             String li = liStr[parcelNumber - 1];
-            float layerPressure1 = NsharpNativeConstants.parcelToLayerMap
-                    .get(parcelNumber);
-            if (parcelNumber == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-                // get user selected parcel type, if available
-                layerPressure1 = NsharpParcelDialog.getUserDefdParcelMb();
-            }
+
             // display 2 parcels LI per line
             // Therefore, update Y position every 2 parcels,
             // and X position to rec.x and rec.x+rect.width/2 accordingly
             curY = curY + charHeight * ((parcelNumber) % 2);
             double x = rect.x + rect.width / 2 * ((parcelNumber + 1) % 2);
 
-            nsharpNative.nsharpLib.define_parcel(parcelNumber, layerPressure1);
-            _lplvalues lpvls;
-            _parcel pcl;
-            lpvls = new _lplvalues();
-            nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
+            Parcel parcel = weatherDataStore.getParcelMap().get(parcelNumber);
+            if (parcel != null && NsharpLibBasics.qc(parcel.getLi5()) && parcel.getLi5() < 100) {
+                target.drawString(myfont, String.format(li + "%5.0f", parcel.getLi5()), x, curY, 0.0, TextStyle.NORMAL,
+                        NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
-            float sfctemp, sfcdwpt, sfcpres;
-            sfctemp = lpvls.temp;
-            sfcdwpt = lpvls.dwpt;
-            sfcpres = lpvls.pres;
-            // get parcel data by calling native nsharp parcel() API. value is
-            // returned in pcl
-            pcl = new _parcel();
-            nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                    sfcdwpt, pcl);
-
-            if (pcl.li5 != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA
-                    && pcl.li5 < 100) {
-                target.drawString(myfont, String.format(li + "%5.0f", pcl.li5),
-                        x, curY, 0.0, TextStyle.NORMAL,
-                        NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                        VerticalAlignment.TOP, null);
-
-            } else
-                target.drawString(myfont, li + " M", x, curY, 0.0,
-                        TextStyle.NORMAL, NsharpConstants.color_white,
+            } else {
+                target.drawString(myfont, li + " M", x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
                         HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+            }
         }
-
     }
 
-    private void drawPanel5(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel5(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -2143,66 +1842,47 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         FloatByReference Surfpressure = new FloatByReference(0);
         FloatByReference surfTemp = new FloatByReference(0);
         FloatByReference surfDewpt = new FloatByReference(0);
-        target.drawString(myfont, NsharpNativeConstants.OPC_LOW_LEVEL_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_LOW_LEVEL_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        target.drawString(myfont, NsharpNativeConstants.OPC_SURFACE975_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_SURFACE975_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         textStr = NsharpNativeConstants.OPC_LEVEL_LINE_;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
-
-        float ht = nsharpNative.nsharpLib.ihght(975);
-        if (ht == NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
+        if (!NsharpLibBasics.qc(weatherDataStore.getHeight975())) {
             textStr = NsharpNativeConstants.OPC_975_LINE_MISSING_;
         } else {
             textStr = NsharpNativeConstants.OPC_975_LINE_;
-            textStr = String.format(textStr, nsharpNative.nsharpLib.ihght(975),
-                    nsharpNative.nsharpLib.itemp(975));
+            textStr = String.format(textStr, weatherDataStore.getHeight975(), weatherDataStore.getTemp975());
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        ht = 0;
-        // get surface pressure (fValue1), Surface_temp (fValue2)
-        nsharpNative.nsharpLib.get_surface(Surfpressure, surfTemp, surfDewpt);
-        if (nsharpNative.nsharpLib.qc(Surfpressure.getValue()) == 1) {
-            ht = nsharpNative.nsharpLib.ihght(Surfpressure.getValue());
-        }
-        if (nsharpNative.nsharpLib.qc(Surfpressure.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(surfTemp.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getSfcLayer().getPressure())
+                && NsharpLibBasics.qc(weatherDataStore.getSfcLayer().getGeoHeight())
+                && NsharpLibBasics.qc(weatherDataStore.getSfcLayer().getTemperature())) {
             textStr = NsharpNativeConstants.OPC_SURFACE_LINE_;
-            textStr = String.format(textStr, Surfpressure.getValue(), ht,
-                    surfTemp.getValue());
+            textStr = String.format(textStr, weatherDataStore.getSfcLayer().getPressure(),
+                    weatherDataStore.getSfcLayer().getGeoHeight(), weatherDataStore.getSfcLayer().getTemperature());
         } else {
             textStr = NsharpNativeConstants.OPC_SURFACE_MISSING_;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
@@ -2211,73 +1891,58 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * make sure both 975mb layer and surface layer temperatures are
          * available
          */
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(975)) == 1
-                && nsharpNative.nsharpLib.qc(surfTemp.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getTemp975())
+                && NsharpLibBasics.qc(weatherDataStore.getSfcLayer().getTemperature())) {
             textStr = NsharpNativeConstants.OPC_975_SURFACE_LINE;
-            textStr = String.format(textStr, nsharpNative.nsharpLib.itemp(975)
-                    - surfTemp.getValue());
+            textStr = String.format(textStr,
+                    weatherDataStore.getTemp975() - weatherDataStore.getSfcLayer().getTemperature());
         } else {
             textStr = NsharpNativeConstants.OPC_975_SURFACE_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         /*
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_inversion() in xwvid3.c
-         * 
-         * inv_mb - Pressure of inversion level (mb) inv_dC - Change in
-         * temperature (C)
          */
-        FloatByReference inv_mb = new FloatByReference(0);
-        FloatByReference inv_dC = new FloatByReference(0);
-
         // yellow and bold for parcel header
-        target.drawString(myfont, NsharpNativeConstants.OPC_LOWEST_INV_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_LOWEST_INV_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + 2 * charHeight;
-        nsharpNative.nsharpLib.low_inv(inv_mb, inv_dC);
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.ihght(inv_mb
-                .getValue())) == 1) {
+
+        if (NsharpLibBasics.qc(weatherDataStore.getLowestInvHeight())) {
             textStr = NsharpNativeConstants.OPC_BASEHEIGHT_LINE;
-            textStr = String.format(textStr,
-                    nsharpNative.nsharpLib.ihght(inv_mb.getValue()));
+            textStr = String.format(textStr, weatherDataStore.getLowestInvHeight());
         } else {
             textStr = NsharpNativeConstants.OPC_BASEHEIGHT_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(inv_mb.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getLowestInvPressure())) {
             textStr = NsharpNativeConstants.OPC_BASEPRESSURE_LINE;
-            textStr = String.format(textStr, inv_mb.getValue());
+            textStr = String.format(textStr, weatherDataStore.getLowestInvPressure());
         } else {
             textStr = NsharpNativeConstants.OPC_BASEPRESSURE_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(inv_dC.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getLowestInvTempChange())) {
             textStr = NsharpNativeConstants.OPC_CHANGE_IN_TEMP_LINE;
-            textStr = String.format(textStr, inv_dC.getValue());
+            textStr = String.format(textStr, weatherDataStore.getLowestInvTempChange());
         } else {
             textStr = NsharpNativeConstants.OPC_CHANGE_IN_TEMP_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
     }
 
-    private void drawPanel6(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel6(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -2293,258 +1958,179 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_mixheight() in xwvid3.c Calculates the mixing height using
          * legacy mix_height()
-         * 
-         * void mix_height ( float *mh_mb, float *mh_drct, float *mh_sped, float
-         * *mh_dC, float *mh_lr, float *mh_drct_max, float *mh_sped_max, short
-         * flag )
-         * 
-         * Where: flag = 0 Surface-based lapse rate flag = 1 Layer-based lapse
-         * rate
-         * 
-         * mh_mb - Pressure at mixing height (mb) mh_drct - Wind direction at
-         * mixing height (deg) mh_sped - Wind speed at mixing height (kt) mh_dC
-         * - Layer change in temperature (C) mh_lr - Layer lapse rate (C/km)
-         * mh_drct_max - Layer maximum wind direction (deg) mh_sped_max - Layer
-         * maximum wind speed (kt)
          */
-        FloatByReference mh_mb = new FloatByReference(0);
-        FloatByReference mh_drct = new FloatByReference(0);
-        FloatByReference mh_sped = new FloatByReference(0);
-        FloatByReference mh_dC = new FloatByReference(0);
-        FloatByReference mh_lr = new FloatByReference(0);
-        FloatByReference mh_drct_max = new FloatByReference(0);
-        FloatByReference mh_sped_max = new FloatByReference(0);
-        short flag;
 
         // yellow and bold for parcel header
-        target.drawString(myfont, NsharpNativeConstants.OPC_MIXING_HGT_STR,
-                rect.x + rect.width / 10, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_MIXING_HGT_STR, rect.x + rect.width / 10, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         textStr = NsharpNativeConstants.OPC_DRY_AD_LINE;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
         textStr = NsharpNativeConstants.OPC_THRESH_LAPSE_LINE;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
         // Cyan color for Layer Based string
-        target.drawString(myfont, NsharpNativeConstants.OPC_LAYER_BASED_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_LAYER_BASED_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        // calculate Layer-based lapse rate data
-        flag = 1;
-        nsharpNative.nsharpLib.mix_height(mh_mb, mh_drct, mh_sped, mh_dC,
-                mh_lr, mh_drct_max, mh_sped_max, flag);
 
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.ihght(mh_mb
-                .getValue())) == 1) {
+        // Layer-based lapse rate data
+        MixHeight mixHgt = weatherDataStore.getMixHeightLayerBased();
+
+        if (NsharpLibBasics.qc(mixHgt.getMh_hgt())) {
             textStr = NsharpNativeConstants.OPC_MIXINGHEIGHT_LINE;
-            textStr = String.format(textStr,
-                    nsharpNative.nsharpLib.ihght(mh_mb.getValue()));
+            textStr = String.format(textStr, mixHgt.getMh_hgt());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXINGHEIGHT_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_mb.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_pres())) {
             textStr = NsharpNativeConstants.OPC_MIXINGPRESSURE_LINE;
-            textStr = String.format(textStr, mh_mb.getValue());
+            textStr = String.format(textStr, mixHgt.getMh_pres());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXINGPRESSURE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_drct.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_sped.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_drct()) && NsharpLibBasics.qc(mixHgt.getMh_sped())) {
             textStr = NsharpNativeConstants.OPC_TOPMIXLAYER_LINE;
-            textStr = String.format(textStr, (int) mh_drct.getValue(),
-                    NsharpConstants.DEGREE_SYMBOL, (int) (mh_sped.getValue()));
+            textStr = String.format(textStr, (int) mixHgt.getMh_drct(), NsharpConstants.DEGREE_SYMBOL,
+                    (int) (mixHgt.getMh_sped()));
         } else {
             textStr = NsharpNativeConstants.OPC_TOPMIXLAYER_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_drct_max.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_sped_max.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_drct_max()) && NsharpLibBasics.qc(mixHgt.getMh_sped_max())) {
             textStr = NsharpNativeConstants.OPC_MIXLAYERMAX_LINE;
-            textStr = String
-                    .format(textStr, (int) mh_drct_max.getValue(),
-                            NsharpConstants.DEGREE_SYMBOL,
-                            (int) mh_sped_max.getValue());
+            textStr = String.format(textStr, (int) mixHgt.getMh_drct_max(), NsharpConstants.DEGREE_SYMBOL,
+                    (int) mixHgt.getMh_sped_max());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXLAYERMAX_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_dC.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_lr.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_dC()) && NsharpLibBasics.qc(mixHgt.getMh_lr())) {
             textStr = NsharpNativeConstants.OPC_LAYER_LAPSE_LINE;
-            textStr = String
-                    .format(textStr, mh_dC.getValue(), mh_lr.getValue());
+            textStr = String.format(textStr, mixHgt.getMh_dC(), mixHgt.getMh_lr());
         } else {
             textStr = NsharpNativeConstants.OPC_LAYER_LAPSE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
         // Purple color for Layer Based string
-        target.drawString(myfont, NsharpNativeConstants.OPC_SURFACE_BASED_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_violet, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.OPC_SURFACE_BASED_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_violet, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-        // calculate Surface-based lapse rate data
-        flag = 0;
-        mh_mb.setValue(0);
-        mh_drct.setValue(0);
-        mh_sped.setValue(0);
-        mh_dC.setValue(0);
-        mh_lr.setValue(0);
-        mh_drct_max.setValue(0);
-        mh_sped_max.setValue(0);
 
-        nsharpNative.nsharpLib.mix_height(mh_mb, mh_drct, mh_sped, mh_dC,
-                mh_lr, mh_drct_max, mh_sped_max, flag);
-
+        // Surface-based lapse rate data
+        mixHgt = weatherDataStore.getMixHeightSurfaceBased();
         // white color for text
-        if (nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.ihght(mh_mb
-                .getValue())) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_hgt())) {
             textStr = NsharpNativeConstants.OPC_MIXINGHEIGHT_LINE;
-            textStr = String.format(textStr,
-                    nsharpNative.nsharpLib.ihght(mh_mb.getValue()));
+            textStr = String.format(textStr, mixHgt.getMh_hgt());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXINGHEIGHT_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_mb.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_pres())) {
             textStr = NsharpNativeConstants.OPC_MIXINGPRESSURE_LINE;
-            textStr = String.format(textStr, mh_mb.getValue());
+            textStr = String.format(textStr, mixHgt.getMh_pres());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXINGPRESSURE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_drct.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_sped.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_drct()) && NsharpLibBasics.qc(mixHgt.getMh_sped())) {
             textStr = NsharpNativeConstants.OPC_TOPMIXLAYER_LINE;
-            textStr = String.format(textStr, (int) mh_drct.getValue(),
-                    NsharpConstants.DEGREE_SYMBOL, (int) mh_sped.getValue());
+            textStr = String.format(textStr, (int) mixHgt.getMh_drct(), NsharpConstants.DEGREE_SYMBOL,
+                    (int) mixHgt.getMh_sped());
         } else {
             textStr = NsharpNativeConstants.OPC_TOPMIXLAYER_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_drct_max.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_sped_max.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_drct_max()) && NsharpLibBasics.qc(mixHgt.getMh_sped_max())) {
             textStr = NsharpNativeConstants.OPC_MIXLAYERMAX_LINE;
-            textStr = String
-                    .format(textStr, (int) mh_drct_max.getValue(),
-                            NsharpConstants.DEGREE_SYMBOL,
-                            (int) mh_sped_max.getValue());
+            textStr = String.format(textStr, (int) mixHgt.getMh_drct_max(), NsharpConstants.DEGREE_SYMBOL,
+                    (int) mixHgt.getMh_sped_max());
         } else {
             textStr = NsharpNativeConstants.OPC_MIXLAYERMAX_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        if (nsharpNative.nsharpLib.qc(mh_dC.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(mh_lr.getValue()) == 1) {
+        if (NsharpLibBasics.qc(mixHgt.getMh_dC()) && NsharpLibBasics.qc(mixHgt.getMh_lr())) {
             textStr = NsharpNativeConstants.OPC_LAYER_LAPSE_LINE;
-            textStr = String
-                    .format(textStr, mh_dC.getValue(), mh_lr.getValue());
+            textStr = String.format(textStr, mixHgt.getMh_dC(), mixHgt.getMh_lr());
         } else {
             textStr = NsharpNativeConstants.OPC_LAYER_LAPSE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
     }
 
-    private void drawPanel7(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel7(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -2559,222 +2145,157 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_srdata() in xwvid3.c. Hard coded numerical numbers are directly
          * copied from it.
-         * 
-         * float helicity ( float lower, float upper, float sdir, float sspd,
-         * float *phel, float *nhel ) Calculates the storm-relative helicity
-         * (m2/s2) of a layer from LOWER(m, agl) to UPPER(m, agl). Uses the
-         * storm motion vector (sdir, sspd).
-         * 
-         * lower - Bottom level of layer (m, AGL)[-1=LPL] upper - Top level of
-         * layer (m, AGL) [-1=LFC] sdir - Storm motion direction (degrees) sspd
-         * - Storm motion speed (kt) phel - Positive helicity in layer (m2/s2)
-         * nhel - Negative helicity in layer (m2/s2) RETURN VALUE - Total
-         * helicity (m2/s2)
-         * 
-         * void sr_wind ( float pbot, float ptop, float sdir, float sspd, float
-         * *mnu, float *mnv, float *wdir, float *wspd ) Calculates a
-         * pressure-weighted SR mean wind thru the layer (pbot-ptop). Default
-         * layer is LFC-EL. pbot - Bottom level of layer (mb) ptop - Top level
-         * of layer (mb) sdir - Storm motion dirction (deg) sspd - Storm motion
-         * speed (kt) mnu - U-Component of mean wind (kt) mnv - V-Component of
-         * mean wind (kt) /
          */
-
-        FloatByReference phel = new FloatByReference(0);
-        FloatByReference nhel = new FloatByReference(0);
-        FloatByReference mnu = new FloatByReference(0);
-        FloatByReference mnv = new FloatByReference(0);
-        FloatByReference smdir = new FloatByReference(0);
-        FloatByReference smspd = new FloatByReference(0);
-        FloatByReference wdir = new FloatByReference(0);
-        FloatByReference wspd = new FloatByReference(0);
         float totHeli;
 
-        target.drawString(myfont, NsharpNativeConstants.STORM_RELATIVE_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.STORM_RELATIVE_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        nsharpNative.nsharpLib.get_storm(smspd, smdir);
-
-        if (nsharpNative.nsharpLib.qc(smspd.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(smdir.getValue()) == 1) {
+        float smDir = weatherDataStore.getSmdir();
+        float smSpd = weatherDataStore.getSmspd();
+        if (NsharpLibBasics.qc(smSpd) && NsharpLibBasics.qc(smDir)) {
             textStr = NsharpNativeConstants.STORM_MOTION_LINE;
-            textStr = String.format(textStr, smdir.getValue(),
-                    NsharpConstants.DEGREE_SYMBOL, smspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(smspd.getValue()));
+            textStr = String.format(textStr, smDir, NsharpConstants.DEGREE_SYMBOL, smSpd,
+                    NsharpLibBasics.kt_to_mps(smSpd));
         } else {
             textStr = NsharpNativeConstants.STORM_MOTION_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x + rect.width / 4, curY, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_white,
-                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // yellow and bold for parcel header
-        target.drawString(myfont, NsharpNativeConstants.STORM_HELICITY_STR,
-                rect.x + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.STORM_HELICITY_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         textStr = NsharpNativeConstants.STORM_LAYER_POS_STR;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
-        // calculate helicity for sfc-2 km
-        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 2000,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
-        if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
+        // get helicity for sfc-2 km
+        Helicity helicity = weatherDataStore.getStormTypeToHelicityMap()
+                .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[1]);
+        totHeli = helicity.getTotalHelicity();
+        if (NsharpLibBasics.qc(helicity.getPosHelicity()) && NsharpLibBasics.qc(helicity.getNegHelicity())) {
             textStr = NsharpNativeConstants.STORM_SFC2KM_LINE;
-            textStr = String.format(textStr, phel.getValue(), nhel.getValue(),
-                    totHeli, NsharpConstants.SQUARE_SYMBOL,
-                    NsharpConstants.SQUARE_SYMBOL);
+            textStr = String.format(textStr, helicity.getPosHelicity(), helicity.getNegHelicity(), totHeli,
+                    NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
 
         } else {
             textStr = NsharpNativeConstants.STORM_SFC2KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        // calculate helicity for sfc-3 km
-        totHeli = nsharpNative.nsharpLib.helicity((float) 0, (float) 3000,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
-        if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
+        // get helicity for sfc-3 km
+        helicity = weatherDataStore.getStormTypeToHelicityMap().get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[2]);
+        totHeli = helicity.getTotalHelicity();
+        if (NsharpLibBasics.qc(helicity.getPosHelicity()) && NsharpLibBasics.qc(helicity.getNegHelicity())) {
             textStr = NsharpNativeConstants.STORM_SFC3KM_LINE;
-            textStr = String.format(textStr, phel.getValue(), nhel.getValue(),
-                    totHeli, NsharpConstants.SQUARE_SYMBOL,
-                    NsharpConstants.SQUARE_SYMBOL);
+            textStr = String.format(textStr, helicity.getPosHelicity(), helicity.getNegHelicity(), totHeli,
+                    NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.STORM_SFC3KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        // calculate helicity for LPL - LFC
-        totHeli = nsharpNative.nsharpLib.helicity((float) -1, (float) -1,
-                smdir.getValue(), smspd.getValue(), phel, nhel);
-        if (nsharpNative.nsharpLib.qc(phel.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(nhel.getValue()) == 1) {
+        // get sw helicity for LPL - LFC
+        helicity = null;
+        NsharpWeatherDataStore.ParcelMiscParams parcelMiscs = weatherDataStore.getParcelMiscParamsMap()
+                .get(this.currentParcel);
+        if (parcelMiscs != null) {
+            helicity = parcelMiscs.getHelicityLplToLfc();
+        }
+        if (helicity != null && NsharpLibBasics.qc(helicity.getPosHelicity())
+                && NsharpLibBasics.qc(helicity.getNegHelicity())) {
             textStr = NsharpNativeConstants.STORM_LPL_LFC_LINE;
-            textStr = String.format(textStr, phel.getValue(), nhel.getValue(),
-                    totHeli, NsharpConstants.SQUARE_SYMBOL,
-                    NsharpConstants.SQUARE_SYMBOL);
+            textStr = String.format(textStr, helicity.getPosHelicity(), helicity.getNegHelicity(),
+                    helicity.getTotalHelicity(), NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.STORM_LPL_LFC_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
         // yellow and bold for header
-        target.drawString(myfont, NsharpNativeConstants.STORM_WIND_STR, rect.x
-                + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.STORM_WIND_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + 2 * charHeight;
         textStr = NsharpNativeConstants.STORM_LAYER_VECTOR_STR;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
-        // calculate pressure-weighted SR mean wind at sfc-2 km
-        nsharpNative.nsharpLib.sr_wind(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(0)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(2000)),
-                smdir.getValue(), smspd.getValue(), mnu, mnv, wdir, wspd);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1) {
+        // pressure-weighted SR mean wind at sfc-2 km
+        WindComponent srMeanwindComp = weatherDataStore.getStormTypeToSrMeanWindMap().get("SFC-2km");
+
+        if (NsharpLibBasics.qc(srMeanwindComp.getWdir())) {
             textStr = NsharpNativeConstants.STORM_SFC2KM_VECT_LINE;
-            textStr = String.format(textStr, wdir.getValue(), wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, srMeanwindComp.getWdir(), srMeanwindComp.getWspd(),
+                    NsharpLibBasics.kt_to_mps(srMeanwindComp.getWspd()));
         } else {
             textStr = NsharpNativeConstants.STORM_SFC2KM_VECT_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        // calculate pressure-weighted SR mean wind at 4-6 km
-        nsharpNative.nsharpLib.sr_wind(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(4000)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(6000)),
-                smdir.getValue(), smspd.getValue(), mnu, mnv, wdir, wspd);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1) {
+        // pressure-weighted SR mean wind at 4-6 km
+        srMeanwindComp = weatherDataStore.getSrMeanWindComp4To6km();
+        if (NsharpLibBasics.qc(srMeanwindComp.getWdir())) {
             textStr = NsharpNativeConstants.STORM_4_6KM_VECT_LINE;
-            textStr = String.format(textStr, wdir.getValue(), wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, srMeanwindComp.getWdir(), srMeanwindComp.getWspd(),
+                    NsharpLibBasics.kt_to_mps(srMeanwindComp.getWspd()));
         } else {
             textStr = NsharpNativeConstants.STORM_4_6KM_VECT_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        // calculate pressure-weighted SR mean wind at 9-11 km
-        nsharpNative.nsharpLib
-                .sr_wind(nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                        .msl(9000)), nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(11000)), smdir
-                        .getValue(), smspd.getValue(), mnu, mnv, wdir, wspd);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1) {
+        // pressure-weighted SR mean wind at 9-11 km
+        srMeanwindComp = weatherDataStore.getSrMeanWindComp9To11km();
+        if (NsharpLibBasics.qc(srMeanwindComp.getWdir())) {
             textStr = NsharpNativeConstants.STORM_9_11KM_VECT_LINE;
-            textStr = String.format(textStr, wdir.getValue(), wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, srMeanwindComp.getWdir(), srMeanwindComp.getWspd(),
+                    NsharpLibBasics.kt_to_mps(srMeanwindComp.getWspd()));
         } else {
             textStr = NsharpNativeConstants.STORM_9_11KM_VECT_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
     }
 
-    private void drawPanel8(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel8(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -2788,249 +2309,147 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         /*
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_meanwind() in xwvid3.c
-         * 
-         * void mean_wind ( float pbot, float ptop, float *mnu, float *mnv,
-         * float *wdir, float *wspd ) Calculates a pressure-weighted mean wind
-         * thru the layer (pbot-ptop). Default layer is LFC-EL.
-         * 
-         * pbot - Bottom level of layer (mb) ptop - Top level of layer (mb) mnu
-         * - U-Component of mean wind (kt) mnv - V-Component of mean wind (kt)
          */
-        FloatByReference mnu = new FloatByReference(0);
-        FloatByReference mnv = new FloatByReference(0);
-        FloatByReference wdir = new FloatByReference(0);
-        FloatByReference wspd = new FloatByReference(0);
-        target.drawString(myfont, NsharpNativeConstants.MEAN_WIND_STR, rect.x
-                + rect.width * 0.4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.MEAN_WIND_STR, rect.x + rect.width * 0.4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        // Calculate mean wind at 0-6 km, following the same algorithm used in
-        // drawPanel2() at BigNsharp page 2.
-        // Like this :
-        // mean_wind(nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(h1)),
-        // nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(h2)))
-        nsharpNative.nsharpLib.mean_wind(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(0)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(6000)),
-                mnu, mnv, wdir, wspd);
-
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(wspd.getValue()) == 1) {
+        // mean wind at 0-6 km
+        WindComponent windComp = weatherDataStore.getStormTypeToMeanWindMap().get("SFC-6km");
+        if (NsharpLibBasics.qc(windComp.getWdir()) && NsharpLibBasics.qc(windComp.getWspd())) {
             textStr = NsharpNativeConstants.MEANWIND_SFC6KM_LINE;
-            textStr = String.format(textStr, (wdir.getValue()),
-                    wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, windComp.getWdir(), windComp.getWspd(),
+                    NsharpConstants.KnotsToMetersPerSecond * windComp.getWspd());
         } else {
             textStr = NsharpNativeConstants.MEANWIND_SFC6KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-
-        // Calculate mean wind at LFC-EL, following the same algorithm used in
-        // drawPanel2() for LCL_EL for BigNsharp page Replacing LCL with LFC
-        _lplvalues lpvls;
-        _parcel pcl;
-        lpvls = new _lplvalues();
-        pcl = new _parcel();
-        float h1, h2;
-        h1 = -1;
-        h2 = -1;
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-        float sfctemp = lpvls.temp;
-        float sfcdwpt = lpvls.dwpt;
-        float sfcpres = lpvls.pres;
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-        if (pcl.bplus > 0) {
-            h1 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.lfcpres));
-            h2 = nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                    .ihght(pcl.elpres));
+        // mean wind at LFC-EL
+        windComp = null;
+        NsharpWeatherDataStore.ParcelMiscParams parcelMiscs = weatherDataStore.getParcelMiscParamsMap()
+                .get(currentParcel);
+        if (parcelMiscs != null) {
+            windComp = parcelMiscs.getMeanWindCompLfcToEl();
         }
-
-        // Calculate mean wind at LFC-EL
-        nsharpNative.nsharpLib.mean_wind(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(h1)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(h2)),
-                mnu, mnv, wdir, wspd);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(wspd.getValue()) == 1) {
+        if (windComp != null && NsharpLibBasics.qc(windComp.getWdir()) && NsharpLibBasics.qc(windComp.getWspd())) {
             textStr = NsharpNativeConstants.MEANWIND_LFC_EL_LINE;
-            textStr = String.format(textStr, wdir.getValue(), wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, windComp.getWdir(), windComp.getWspd(),
+                    NsharpConstants.KnotsToMetersPerSecond * windComp.getWspd());
         } else {
             textStr = NsharpNativeConstants.MEANWIND_LFC_EL_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        // Calculate mean wind at 850-200 mb
-        nsharpNative.nsharpLib.mean_wind(850, 200, mnu, mnv, wdir, wspd);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(wspd.getValue()) == 1) {
+        // mean wind at 850-200 mb
+        windComp = weatherDataStore.getMeanWindComp850To200mb();
+        if (NsharpLibBasics.qc(windComp.getWdir()) && NsharpLibBasics.qc(windComp.getWspd())) {
             textStr = NsharpNativeConstants.MEANWIND_850_200MB_LINE;
-            textStr = String.format(textStr, wdir.getValue(), wspd.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(wspd.getValue()));
+            textStr = String.format(textStr, windComp.getWdir(), windComp.getWspd(),
+                    NsharpConstants.KnotsToMetersPerSecond * windComp.getWspd());
         } else {
             textStr = NsharpNativeConstants.MEANWIND_850_200MB_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
+
         /*
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_shear() in xwvid3.c
-         * 
-         * void wind_shear ( float pbot, float ptop, float *shu, float *shv,
-         * float *sdir, float *smag )
-         * 
-         * Calculates the shear between the wind at (pbot) and (ptop). Default
-         * lower wind is a 1km mean wind, while the default upper layer is 3km.
-         * 
-         * pbot - Bottom level of layer (mb) ptop - Top level of layer (mb) shu
-         * - U-Component of shear (m/s) shv - V-Component of shear (m/s) sdir -
-         * Direction of shear vector (degrees) smag - Magnitude of shear vector
-         * (m/s)
          */
-        FloatByReference shu = new FloatByReference(0);
-        FloatByReference shv = new FloatByReference(0);
-        FloatByReference sdir = new FloatByReference(0);
-        FloatByReference smag = new FloatByReference(0);
-        target.drawString(myfont,
-                NsharpNativeConstants.ENVIRONMENTAL_SHEAR_STR, rect.x
-                        + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.ENVIRONMENTAL_SHEAR_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         textStr = NsharpNativeConstants.SHEAR_LAYER_DELTA_STR;
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 3, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
-        // Calculate wind shear at Low - 3 km
-        nsharpNative.nsharpLib.wind_shear(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(0)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(3000)),
-                shu, shv, sdir, smag);
-        if (nsharpNative.nsharpLib.qc(smag.getValue()) == 1) {
+        // get wind shear at Low - 3 km
+        float windShear = weatherDataStore.getStormTypeToWindShearMap().get("SFC-3km");
+        if (NsharpLibBasics.qc(windShear)) {
             textStr = NsharpNativeConstants.SHEAR_LOW_3KM_LINE;
-            textStr = String.format(textStr, smag.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()) / .3F);
+            textStr = String.format(textStr, windShear, NsharpLibBasics.kt_to_mps(windShear),
+                    NsharpLibBasics.kt_to_mps(windShear) / .3F);
         } else {
             textStr = NsharpNativeConstants.SHEAR_LOW_3KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 3, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        // Calculate wind shear at Sfc - 2 km
-        nsharpNative.nsharpLib.wind_shear(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(0)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(2000)),
-                shu, shv, sdir, smag);
-        if (nsharpNative.nsharpLib.qc(smag.getValue()) == 1) {
+        // get wind shear at Sfc - 2 km
+        windShear = weatherDataStore.getStormTypeToWindShearMap().get("SFC-2km");
+        if (NsharpLibBasics.qc(windShear)) {
             textStr = NsharpNativeConstants.SHEAR_SFC_2KM_LINE;
-            textStr = String.format(textStr, smag.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()) / .2F);
+            textStr = String.format(textStr, windShear, NsharpLibBasics.kt_to_mps(windShear),
+                    NsharpLibBasics.kt_to_mps(windShear) / .2F);
         } else {
             textStr = NsharpNativeConstants.SHEAR_SFC_2KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 3, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        // Calculate wind shear at Sfc - 6 km
-        nsharpNative.nsharpLib.wind_shear(
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(0)),
-                nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib.msl(6000)),
-                shu, shv, sdir, smag);
-        if (nsharpNative.nsharpLib.qc(smag.getValue()) == 1) {
+        // get wind shear at Sfc - 6 km
+        windShear = weatherDataStore.getStormTypeToWindShearMap().get("SFC-6km");
+        if (NsharpLibBasics.qc(windShear)) {
             textStr = NsharpNativeConstants.SHEAR_SFC_6KM_LINE;
-            textStr = String.format(textStr, smag.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()) / .6F);
+            textStr = String.format(textStr, windShear, NsharpLibBasics.kt_to_mps(windShear),
+                    NsharpLibBasics.kt_to_mps(windShear) / .6F);
         } else {
             textStr = NsharpNativeConstants.SHEAR_SFC_6KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 3, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
         // Calculate wind shear at Sfc - 12 km
-        nsharpNative.nsharpLib
-                .wind_shear(nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                        .msl(0)), nsharpNative.nsharpLib
-                        .ipres(nsharpNative.nsharpLib.msl(12000)), shu, shv,
-                        sdir, smag);
-        if (nsharpNative.nsharpLib.qc(smag.getValue()) == 1) {
+        windShear = weatherDataStore.getShearWindCompSfcTo12km().getWspd();
+        if (NsharpLibBasics.qc(windShear)) {
             textStr = NsharpNativeConstants.SHEAR_SFC_12KM_LINE;
-            textStr = String.format(textStr, smag.getValue(),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()),
-                    nsharpNative.nsharpLib.kt_to_mps(smag.getValue()) / 1.2F);
+            textStr = String.format(textStr, windShear, NsharpLibBasics.kt_to_mps(windShear),
+                    NsharpLibBasics.kt_to_mps(windShear) / 1.2F);
         } else {
             textStr = NsharpNativeConstants.SHEAR_SFC_12KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 3, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 3, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
     }
 
-    private void drawPanel9(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel9(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
-            myfont = font11;
-        } else {
-            myfont = defaultFont;
-        }
+        myfont = defaultFont;
+
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -3044,325 +2463,232 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * show_initiation(): Displays thunderstorm initiation parameters,
          * show_heavypcpn(), show_preciptype() and show_stormtype() in xwvid3.c
          */
-        FloatByReference fvalue2 = new FloatByReference(0);
-        FloatByReference fvalue3 = new FloatByReference(0);
-        FloatByReference wdir = new FloatByReference(0);
-        FloatByReference wspd = new FloatByReference(0);
-        FloatByReference fvalue = new FloatByReference(0);
-        FloatByReference fvalue1 = new FloatByReference(0);
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        // current parcel is already decided when page 1 is displyed. Note that
-        // page 1 is always
-        // displayed before this page (page 4). Therefore, we dont have to call
-        // define_parcel() again.
-        float layerPressure;
-        if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-            layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else {
-            layerPressure = NsharpNativeConstants.parcelToLayerMap
-                    .get(currentParcel);
-        }
-        nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
-
-        _parcel pcl = new _parcel();
-
-        _lplvalues lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
+        Parcel parcel = weatherDataStore.getParcelMap().get(currentParcel);
         // CONVECTIVE_INITIATION
-        target.drawString(myfont,
-                NsharpNativeConstants.CONVECTIVE_INITIATION_STR, rect.x
-                        + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.CONVECTIVE_INITIATION_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         // CINH
-        if (nsharpNative.nsharpLib.qc(pcl.bminus) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBminus())) {
             textStr = NsharpNativeConstants.CONVECTIVE_CINH_LINE;
-            textStr = String.format(textStr, pcl.bminus);
+            textStr = String.format(textStr, parcel.getBminus());
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_CINH_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // cap
-        if (nsharpNative.nsharpLib.qc(pcl.cap) == 1
-                && nsharpNative.nsharpLib.qc(pcl.cappres) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getCap()) && NsharpLibBasics.qc(parcel.getCappres())) {
             textStr = NsharpNativeConstants.CONVECTIVE_CAP_LINE;
-            textStr = String.format(textStr, pcl.cap, pcl.cappres);
+            textStr = String.format(textStr, parcel.getCap(), parcel.getCappres());
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_CAP_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
         // K-index
-        nsharpNative.nsharpLib.k_index(fvalue);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getkIndex())) {
             textStr = NsharpNativeConstants.CONVECTIVE_KINDEX_LINE;
-            textStr = String.format(textStr, fvalue.getValue());
+            textStr = String.format(textStr, weatherDataStore.getkIndex());
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_KINDEX_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // Mean RH
-        nsharpNative.nsharpLib.mean_relhum(fvalue, -1, -1);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getMeanRh())) {
             textStr = NsharpNativeConstants.CONVECTIVE_MEANRH_LINE;
-            textStr = String.format(textStr, fvalue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+            textStr = String.format(textStr, weatherDataStore.getMeanRh(), NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_MEANRH_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + 2 * charHeight;
 
         // Top of M layer
-        nsharpNative.nsharpLib.top_moistlyr(fvalue);
+        if (NsharpLibBasics.qc(weatherDataStore.getTopMoistLyrPress())
+                && NsharpLibBasics.qc(weatherDataStore.getTopMoistLyrHeight())) {
 
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
-            float ht = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                    .agl(nsharpNative.nsharpLib.ihght(fvalue.getValue())));
-            if (nsharpNative.nsharpLib.qc(ht) == 1) {
-                textStr = NsharpNativeConstants.CONVECTIVE_TOP_LINE;
-                textStr = String.format(textStr, fvalue.getValue(), ht);
-            } else {
-                textStr = NsharpNativeConstants.CONVECTIVE_TOP_MISSING;
-            }
+            textStr = NsharpNativeConstants.CONVECTIVE_TOP_LINE;
+            textStr = String.format(textStr, weatherDataStore.getTopMoistLyrPress(),
+                    weatherDataStore.getTopMoistLyrHeight());
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_TOP_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         // LFC height
-        if (nsharpNative.nsharpLib.qc(pcl.lfcpres) == 1) {
-            float ht = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                    .agl(nsharpNative.nsharpLib.ihght(pcl.lfcpres)));
-            if (nsharpNative.nsharpLib.qc(ht) == 1) {
-                textStr = NsharpNativeConstants.CONVECTIVE_LFC_LINE;
-                textStr = String.format(textStr, pcl.lfcpres, ht);
-            } else {
-                textStr = NsharpNativeConstants.CONVECTIVE_LFC_MISSING;
-            }
+        if (parcel != null && NsharpLibBasics.qc(parcel.getLfcpres()) && NsharpLibBasics.qc(parcel.getLfcAgl())) {
+            textStr = NsharpNativeConstants.CONVECTIVE_LFC_LINE;
+            textStr = String.format(textStr, parcel.getLfcpres(), parcel.getLfcAgl());
         } else {
             textStr = NsharpNativeConstants.CONVECTIVE_LFC_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // STORM TYPE
-        target.drawString(myfont, NsharpNativeConstants.STORM_TYPE_STR, rect.x
-                + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.STORM_TYPE_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // CAPE
-        if (nsharpNative.nsharpLib.qc(pcl.bplus) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
             textStr = NsharpNativeConstants.STORM_TYPE_CAPE_LINE;
-            textStr = String.format(textStr, pcl.bplus);
+            textStr = String.format(textStr, parcel.getBplus());
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_CAPE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // EFF. SREH
-        float hel = 0;
-        nsharpNative.nsharpLib.get_storm(wspd, wdir);
-        if (nsharpNative.nsharpLib.qc(wdir.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(wspd.getValue()) == 1) {
-            hel = nsharpNative.nsharpLib.helicity(-1.0F, -1.0F,
-                    wdir.getValue(), wspd.getValue(), fvalue, fvalue1);
-            if (nsharpNative.nsharpLib.qc(hel) == 1) {
-                textStr = NsharpNativeConstants.STORM_TYPE_EFF_LINE;
-                textStr = String.format(textStr, hel,
-                        NsharpConstants.SQUARE_SYMBOL,
-                        NsharpConstants.SQUARE_SYMBOL);
-            } else {
-                textStr = NsharpNativeConstants.STORM_TYPE_EFF_MISSING;
-            }
+        // Bigsharp uses default bottom/top pressure (i.e. sfc/3km pressure) as
+        // input.
+        // Therefore, it is the same as sfc-3km helicity in page2
+        // However, to be consistent with legacy Nsharp, we compute it with
+        // default value
+        float hel = weatherDataStore.getStormTypeToHelicityMap().get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[2])
+                .getTotalHelicity();
+        hel = weatherDataStore.getEffSreh();
+        if (NsharpLibBasics.qc(hel)) {
+            textStr = NsharpNativeConstants.STORM_TYPE_EFF_LINE;
+            textStr = String.format(textStr, hel, NsharpConstants.SQUARE_SYMBOL, NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_EFF_MISSING;
         }
+
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
-        // EHI
-        if (nsharpNative.nsharpLib.qc(pcl.bplus) == 1) {
-            float ehi = nsharpNative.nsharpLib.ehi(pcl.bplus, hel);
-            if (nsharpNative.nsharpLib.qc(ehi) == 1) {
-                textStr = NsharpNativeConstants.STORM_TYPE_EHI_LINE;
-                textStr = String.format(textStr, ehi);
-            } else {
-                textStr = NsharpNativeConstants.STORM_TYPE_EHI_MISSING;
-            }
+        // EHI : energy helicity
+        // @ Bigsharp skparams.c ehi(), it is a simple computation to
+        // get ehi as following.
+        // ehi = (cape * hel) / 160000.0
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBplus()) && NsharpLibBasics.qc(hel)) {
+            float ehi = (parcel.getBplus() * hel) / 160000.0f;
+            textStr = NsharpNativeConstants.STORM_TYPE_EHI_LINE;
+            textStr = String.format(textStr, ehi);
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_EHI_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // 3km Shear
-        nsharpNative.nsharpLib.wind_shear(-1, -1, fvalue, fvalue1, fvalue2,
-                fvalue3);
-        if (nsharpNative.nsharpLib.qc(fvalue3.getValue()) == 1) {
+        // Bigsharp uses default bottom/top pressure (i.e. sfc/3km pressure) as
+        // input params.
+        // Therefore, it is the same as sfc-3km shear in page2
+        float shear3km = weatherDataStore.getWindShear3km();
+        if (NsharpLibBasics.qc(shear3km)) {
             textStr = NsharpNativeConstants.STORM_TYPE_3KM_LINE;
-            textStr = String.format(textStr,
-                    nsharpNative.nsharpLib.kt_to_mps(fvalue3.getValue()));
+            textStr = String.format(textStr, shear3km);
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_3KM_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
         // BRN
-        if (nsharpNative.nsharpLib.qc(pcl.brn) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBrn())) {
             textStr = NsharpNativeConstants.STORM_TYPE_BRN_LINE;
-            textStr = String.format(textStr, pcl.brn);
+            textStr = String.format(textStr, parcel.getBrn());
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_BRN_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // BRN Shear
-        nsharpNative.nsharpLib.cave_bulk_rich2(fvalue);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBrnShear())) {
             textStr = NsharpNativeConstants.STORM_TYPE_BRNSHEAR_LINE;
-            textStr = String.format(textStr, fvalue.getValue(),
-                    NsharpConstants.SQUARE_SYMBOL,
+            textStr = String.format(textStr, parcel.getBrnShear(), NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.STORM_TYPE_BRNSHEAR_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
         // PRECIPITATION_TYPE
-        target.drawString(myfont, NsharpNativeConstants.PRECIPITATION_TYPE_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.PRECIPITATION_TYPE_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // Melting Level
-        float web = nsharpNative.nsharpLib.wb_lvl(0, fvalue);
-        if (nsharpNative.nsharpLib.qc(web) == 1) {
-
-            float aglft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                    .agl(nsharpNative.nsharpLib.ihght(web)));
-            if (nsharpNative.nsharpLib.qc(aglft) == 1) {
-                textStr = NsharpNativeConstants.PRECIPITATION_MELTING_LINE;
-                textStr = String.format(textStr, aglft, web);
-            } else
-                textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
+        if (NsharpLibBasics.qc(weatherDataStore.getWbzft()) && NsharpLibBasics.qc(weatherDataStore.getWbzp())) {
+            textStr = NsharpNativeConstants.PRECIPITATION_MELTING_LINE;
+            textStr = String.format(textStr, weatherDataStore.getWbzft(), weatherDataStore.getWbzp());
         } else {
             textStr = NsharpNativeConstants.PRECIPITATION_MELTING_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         // HEAVY_RAINFAL
-        target.drawString(myfont, NsharpNativeConstants.HEAVY_RAINFALL_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.HEAVY_RAINFALL_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        // Rogash_QPF, Chin: note: BigNsharp has different implementation of
-        // Rogash_QPF()
-        // We are using bigNsharp now.
-        nsharpNative.nsharpLib.Rogash_QPF(fvalue);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getRogashRainRate())) {
             textStr = NsharpNativeConstants.HEAVY_ROGASH_LINE;
-            textStr = String.format(textStr, fvalue.getValue());
+            textStr = String.format(textStr, weatherDataStore.getRogashRainRate());
         } else {
             textStr = NsharpNativeConstants.HEAVY_ROGASH_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
 
     }
 
-    private void drawPanel10(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
-        IFont myfont;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)) {
-            myfont = font11;
-        } else {
-            myfont = defaultFont;
-        }
+    private void drawPanel10(IGraphicsTarget target, Rectangle rect) throws VizException {
+        IFont myfont = defaultFont;
+
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
@@ -3375,281 +2701,178 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
          * Chin's NOTE::::this function is coded based on legacy nsharp software
          * show_hailpot(), show_torpot() in xwvid3.c
          */
-        FloatByReference fvalue2 = new FloatByReference(0);
-        FloatByReference fvalue3 = new FloatByReference(0);
-        FloatByReference wdir = new FloatByReference(0);
-        FloatByReference wspd = new FloatByReference(0);
-        FloatByReference fvalue = new FloatByReference(0);
-        FloatByReference fvalue1 = new FloatByReference(0);
 
-        target.drawString(myfont, NsharpNativeConstants.SEVERE_POTENTIAL_STR,
-                rect.x + rect.width / 3, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_cyan, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.SEVERE_POTENTIAL_STR, rect.x + rect.width / 3, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
-        target.drawString(myfont,
-                NsharpNativeConstants.SEVERE_HAIL_POTENTIAL_STR, rect.x
-                        + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.SEVERE_HAIL_POTENTIAL_STR, rect.x + rect.width / 4, curY, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
-
-        _parcel pcl = new _parcel();
-        _lplvalues lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
+        Parcel parcel = weatherDataStore.getParcelMap().get(currentParcel);
         // CAPE
-        if (nsharpNative.nsharpLib.qc(pcl.bplus) == 1) {
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
             textStr = NsharpNativeConstants.SEVERE_CAPE_LINE;
-            textStr = String.format(textStr, pcl.bplus);
+            textStr = String.format(textStr, parcel.getBplus());
         } else {
             textStr = NsharpNativeConstants.SEVERE_CAPE_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // WBZ level
-        float wbzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .wb_lvl(0, fvalue))));
-        if (nsharpNative.nsharpLib.qc(wbzft) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getWbzft())) {
             textStr = NsharpNativeConstants.SEVERE_WBZ_LINE;
-            textStr = String.format(textStr, wbzft);
+            textStr = String.format(textStr, weatherDataStore.getWbzft());
         } else {
             textStr = NsharpNativeConstants.SEVERE_WBZ_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
         // Mid Level RH
-        nsharpNative.nsharpLib.mean_relhum(fvalue, 700, 500);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getMidLvlRH500To700())) {
             textStr = NsharpNativeConstants.SEVERE_MIDRH_LINE;
-            textStr = String.format(textStr, fvalue.getValue(),
-                    NsharpConstants.PERCENT_SYMBOL);
+            textStr = String.format(textStr, weatherDataStore.getMidLvlRH500To700(), NsharpConstants.PERCENT_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.SEVERE_MIDSRW_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
 
         // FZG level
-        float fgzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .temp_lvl(0, fvalue))));
-        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getFgzft())) {
             textStr = NsharpNativeConstants.SEVERE_FGZ_LINE;
-            textStr = String.format(textStr, fgzft);
+            textStr = String.format(textStr, weatherDataStore.getFgzft());
         } else {
             textStr = NsharpNativeConstants.SEVERE_FGZ_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
+        ParcelMiscParams parcelMiscParams = weatherDataStore.getParcelMiscParamsMap().get(currentParcel);
         // EL Storm
-        nsharpNative.nsharpLib.get_storm(wspd, wdir);
-        nsharpNative.nsharpLib.sr_wind(pcl.elpres + 25, pcl.elpres - 25,
-                wdir.getValue(), wspd.getValue(), fvalue, fvalue1, fvalue2,
-                fvalue3);
-        if (nsharpNative.nsharpLib.qc(fvalue3.getValue()) == 1) {
+        if (parcelMiscParams != null && NsharpLibBasics.qc(parcelMiscParams.getSrWindCompEl().getWspd())) {
             textStr = NsharpNativeConstants.SEVERE_ELSTORM_LINE;
-            textStr = String.format(textStr, fvalue3.getValue());
+            textStr = String.format(textStr, parcelMiscParams.getSrWindCompEl().getWspd());
         } else {
             textStr = NsharpNativeConstants.SEVERE_ELSTORM_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
         // CHI1
-        nsharpNative.nsharpLib.cave_bulk_rich2(fvalue);
-        float rtn = (pcl.bplus * fvalue.getValue())
-                / nsharpNative.nsharpLib.agl(nsharpNative.nsharpLib
-                        .ihght(nsharpNative.nsharpLib.wb_lvl(0, fvalue1)));
-        if (nsharpNative.nsharpLib.qc(rtn) == 1) {
+        if (parcelMiscParams != null && NsharpLibBasics.qc(parcelMiscParams.getChi1())) {
             textStr = NsharpNativeConstants.SEVERE_CHI1_LINE;
-            textStr = String.format(textStr, rtn);
+            textStr = String.format(textStr, parcelMiscParams.getChi1());
         } else {
             textStr = NsharpNativeConstants.SEVERE_CHI1_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         // CHI2
-        nsharpNative.nsharpLib.Mean_WBtemp(fvalue2, -1, -1);
-        if (nsharpNative.nsharpLib.qc(rtn / fvalue2.getValue()) == 1) {
+        if (parcelMiscParams != null && NsharpLibBasics.qc(parcelMiscParams.getChi2())) {
             textStr = NsharpNativeConstants.SEVERE_CHI2_LINE;
-            textStr = String.format(textStr, rtn / fvalue2.getValue());
+            textStr = String.format(textStr, parcelMiscParams.getChi2());
         } else {
             textStr = NsharpNativeConstants.SEVERE_CHI2_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2
-                    + i * rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + rect.width / 2 + i * rect.width / 4, curY, 0.0,
+                    TextStyle.NORMAL, NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                    null);
         }
         curY = curY + charHeight;
 
         // Avg BL
-        nsharpNative.nsharpLib.Mean_WBtemp(fvalue, -1, -1);
-        if (nsharpNative.nsharpLib.qc(fvalue.getValue()) == 1) {
+        if (NsharpLibBasics.qc(weatherDataStore.getAvgWetbulbTemp())) {
             textStr = NsharpNativeConstants.SEVERE_AVGBL_LINE;
-            textStr = String.format(textStr, fvalue.getValue(),
-                    NsharpConstants.DEGREE_SYMBOL);
+            textStr = String.format(textStr, weatherDataStore.getAvgWetbulbTemp(), NsharpConstants.DEGREE_SYMBOL);
         } else {
             textStr = NsharpNativeConstants.SEVERE_AVGBL_MISSING;
         }
-        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, textStr, rect.x, curY, 0.0, TextStyle.NORMAL, NsharpConstants.color_white,
+                HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         curY = curY + charHeight;
 
         // TORNADO_POTENTIAL
-        target.drawString(myfont,
-                NsharpNativeConstants.SEVERE_TORNADO_POTENTIAL_STR, rect.x
-                        + rect.width / 4, curY, 0.0, TextStyle.NORMAL,
-                NsharpConstants.color_yellow, HorizontalAlignment.LEFT,
-                VerticalAlignment.TOP, null);
+        target.drawString(myfont, NsharpNativeConstants.SEVERE_TORNADO_POTENTIAL_STR, rect.x + rect.width / 4, curY,
+                0.0, TextStyle.NORMAL, NsharpConstants.color_yellow, HorizontalAlignment.LEFT, VerticalAlignment.TOP,
+                null);
         curY = curY + charHeight;
 
         // Low SRW Sfc
-        float blyr = nsharpNative.nsharpLib
-                .ipres(nsharpNative.nsharpLib.msl(0));
-        float tlyr = pcl.lfcpres;
-        if (tlyr > 0) {
-            nsharpNative.nsharpLib.sr_wind(blyr, tlyr, wdir.getValue(),
-                    wspd.getValue(), fvalue, fvalue1, fvalue2, fvalue3);
-            if (nsharpNative.nsharpLib.qc(fvalue3.getValue()) == 1) {
-                textStr = NsharpNativeConstants.SEVERE_LOWSRWSFC_LINE;
-                textStr = String.format(textStr, fvalue3.getValue());
-            } else {
-                textStr = NsharpNativeConstants.SEVERE_LOWSRWSFC_MISSING;
-            }
+        if (parcelMiscParams != null && NsharpLibBasics.qc(parcelMiscParams.getSrMeanWindCompSfcToLfc().getWspd())) {
+            textStr = NsharpNativeConstants.SEVERE_LOWSRWSFC_LINE;
+            textStr = String.format(textStr, parcelMiscParams.getSrMeanWindCompSfcToLfc().getWspd());
         } else {
             textStr = NsharpNativeConstants.SEVERE_LOWSRWSFC_MISSING;
         }
+
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        blyr = pcl.lfcpres;
-        tlyr = nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                .ihght(pcl.lfcpres) + 4000);
-        if ((tlyr > 0) && (blyr > 0)) {
-            nsharpNative.nsharpLib.sr_wind(blyr, tlyr, wdir.getValue(),
-                    wspd.getValue(), fvalue, fvalue1, fvalue2, fvalue3);
-            if (nsharpNative.nsharpLib.qc(fvalue3.getValue()) == 1) {
-                textStr = NsharpNativeConstants.SEVERE_MIDSRW_LINE;
-                textStr = String.format(textStr, fvalue3.getValue());
-            } else {
-                textStr = NsharpNativeConstants.SEVERE_MIDSRW_MISSING;
-            }
-
+        if (parcelMiscParams != null
+                && NsharpLibBasics.qc(parcelMiscParams.getSrMeanWindCompLfcToLFCP4km().getWspd())) {
+            textStr = NsharpNativeConstants.SEVERE_MIDSRW_LINE;
+            textStr = String.format(textStr, parcelMiscParams.getSrMeanWindCompLfcToLFCP4km().getWspd());
         } else {
             textStr = NsharpNativeConstants.SEVERE_MIDSRW_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
         curY = curY + charHeight;
 
-        blyr = nsharpNative.nsharpLib.ipres(nsharpNative.nsharpLib
-                .ihght(pcl.elpres) - 4000);
-        tlyr = pcl.elpres;
-        if ((tlyr > 0) && (blyr > 0)) {
-            nsharpNative.nsharpLib.sr_wind(blyr, tlyr, wdir.getValue(),
-                    wspd.getValue(), fvalue, fvalue1, fvalue2, fvalue3);
-            if (nsharpNative.nsharpLib.qc(fvalue3.getValue()) == 1) {
-                textStr = NsharpNativeConstants.SEVERE_UPPERSRWEL_LINE;
-                textStr = String.format(textStr, fvalue3.getValue());
-            } else {
-                textStr = NsharpNativeConstants.SEVERE_UPPERSRWEL_MISSING;
-            }
-
+        if (parcelMiscParams != null && NsharpLibBasics.qc(parcelMiscParams.getSrMeanWindCompElM4kmToEl().getWspd())) {
+            textStr = NsharpNativeConstants.SEVERE_UPPERSRWEL_LINE;
+            textStr = String.format(textStr, parcelMiscParams.getSrMeanWindCompElM4kmToEl().getWspd());
         } else {
             textStr = NsharpNativeConstants.SEVERE_UPPERSRWEL_MISSING;
         }
         splitedStr = textStr.split("_", -1);
         for (int i = 0; i < splitedStr.length; i++) {
-            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width
-                    / 2, curY, 0.0, TextStyle.NORMAL,
-                    NsharpConstants.color_white, HorizontalAlignment.LEFT,
-                    VerticalAlignment.TOP, null);
+            target.drawString(myfont, splitedStr[i], rect.x + i * rect.width / 2, curY, 0.0, TextStyle.NORMAL,
+                    NsharpConstants.color_white, HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
         }
     }
 
-    private void drawPanel11(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel11(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
-        if (paneConfigurationName
-                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
-            myfont = font11;
-        } else {
-            myfont = defaultFont;
-        }
+
+        myfont = defaultFont;
+
         defineCharHeight(myfont);
         myfont.setSmoothing(false);
         myfont.setScaleFont(false);
         extent = new PixelExtent(rect);
         target.setupClippingPlane(extent);
-        // if we can not Interpolates a temp with 700 mb pressure, then we dont
-        // have enough raw data
-        if ((nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib.itemp(700.0F)) == 0)) {
-            target.drawString(myfont, NO_DATA, rect.x, rect.y, 0.0,
-                    TextStyle.NORMAL, NsharpConstants.color_cyan,
-                    HorizontalAlignment.LEFT, VerticalAlignment.TOP, null);
-            return;
-        }
-
-        // call get_topBotPres to set p_top and p_bot
-        FloatByReference topPF = new FloatByReference(0);
-        FloatByReference botPF = new FloatByReference(0);
-        nsharpNative.nsharpLib.get_effectLayertopBotPres(topPF, botPF);
 
         String textStr;
         curY = rect.y;
@@ -3658,130 +2881,88 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // Start with Parcel Data
         //
         float layerPressure = 0;
-
-        // get user selected parcel type
-        _lplvalues lpvls;
-        _parcel pcl;
-        DrawableString str1 = new DrawableString(
-                NsharpNativeConstants.PAGE1TEXT1_FCST_STR + "XX",
+        DrawableString str1 = new DrawableString(NsharpNativeConstants.PAGE1TEXT1_FCST_STR + "XX",
                 NsharpConstants.color_white);
         str1.font = myfont;
-        double hRatio = paintProps.getView().getExtent().getWidth()
-                / paintProps.getCanvasBounds().width;
+        double hRatio = paintProps.getView().getExtent().getWidth() / paintProps.getCanvasBounds().width;
         double startX = rect.x + 0.5 * charWidth;
         double widthGap = rect.width / 4;
         str1.setText("12345ft", NsharpConstants.color_red);
-        double aglWidth = target.getStringsBounds(str1).getWidth() * hRatio
-                * xRatio;
+        double aglWidth = target.getStringsBounds(str1).getWidth() * hRatio * xRatio;
         str1.setText("D2D Lite Page", NsharpConstants.color_red);
         str1.setCoordinates(startX, curY);
         str1.horizontalAlignment = HorizontalAlignment.LEFT;
         str1.verticallAlignment = VerticalAlignment.TOP;
-        DrawableString str2 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str2 = new DrawableString("", NsharpConstants.color_white);
         str2.horizontalAlignment = HorizontalAlignment.LEFT;
         str2.verticallAlignment = VerticalAlignment.TOP;
         str2.font = myfont;
-        DrawableString str3 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str3 = new DrawableString("", NsharpConstants.color_white);
         str3.horizontalAlignment = HorizontalAlignment.RIGHT;
         str3.verticallAlignment = VerticalAlignment.TOP;
         str3.font = myfont;
-        DrawableString str4 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str4 = new DrawableString("", NsharpConstants.color_white);
         str4.horizontalAlignment = HorizontalAlignment.LEFT;
         str4.verticallAlignment = VerticalAlignment.TOP;
         str4.font = myfont;
-        DrawableString str5 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str5 = new DrawableString("", NsharpConstants.color_white);
         str5.horizontalAlignment = HorizontalAlignment.RIGHT;
         str5.verticallAlignment = VerticalAlignment.TOP;
         str5.font = myfont;
-        DrawableString str6 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str6 = new DrawableString("", NsharpConstants.color_white);
         str6.horizontalAlignment = HorizontalAlignment.LEFT;
         str6.verticallAlignment = VerticalAlignment.TOP;
         str6.font = myfont;
-        DrawableString str7 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str7 = new DrawableString("", NsharpConstants.color_white);
         str7.horizontalAlignment = HorizontalAlignment.RIGHT;
         str7.verticallAlignment = VerticalAlignment.TOP;
         str7.font = myfont;
-        DrawableString str8 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str8 = new DrawableString("", NsharpConstants.color_white);
         str8.horizontalAlignment = HorizontalAlignment.LEFT;
         str8.verticallAlignment = VerticalAlignment.TOP;
         str8.font = myfont;
-        DrawableString str9 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str9 = new DrawableString("", NsharpConstants.color_white);
         str9.horizontalAlignment = HorizontalAlignment.RIGHT;
         str9.verticallAlignment = VerticalAlignment.TOP;
         str9.font = myfont;
-        DrawableString str10 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str10 = new DrawableString("", NsharpConstants.color_white);
         str10.horizontalAlignment = HorizontalAlignment.LEFT;
         str10.verticallAlignment = VerticalAlignment.TOP;
         str10.font = myfont;
-        DrawableString str11 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str11 = new DrawableString("", NsharpConstants.color_white);
         str11.horizontalAlignment = HorizontalAlignment.RIGHT;
         str11.verticallAlignment = VerticalAlignment.TOP;
         str11.font = myfont;
-        DrawableString str12 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str12 = new DrawableString("", NsharpConstants.color_white);
         str12.horizontalAlignment = HorizontalAlignment.LEFT;
         str12.verticallAlignment = VerticalAlignment.TOP;
         str12.font = myfont;
-        DrawableString str13 = new DrawableString("",
-                NsharpConstants.color_white);
+        DrawableString str13 = new DrawableString("", NsharpConstants.color_white);
         str13.horizontalAlignment = HorizontalAlignment.RIGHT;
         str13.verticallAlignment = VerticalAlignment.TOP;
         str13.font = myfont;
 
         target.drawStrings(str1);
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
 
         if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
+                || paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             firstToken = rect.x + widthGap + aglWidth;
             secondToken = rect.x + 2 * widthGap - charWidth;
             thirdToken = rect.x + 3 * widthGap + aglWidth;
-
-            for (short parcelNumber = 1; parcelNumber <= NsharpNativeConstants.PARCEL_D2DLITE_MAX; parcelNumber++) {
-                // call native define_parcel() with parcel type and user defined
-                // pressure (if user defined it)
-                textStr = NsharpNativeConstants.parcelToTypeStrMap
-                        .get(parcelNumber);
+            for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_D2DLITE_MAX; parcelNumber++) {
+                textStr = parcelToTypeStrMap.get(parcelNumber);
                 str1.setText(textStr, NsharpConstants.color_gold);
 
                 str1.setCoordinates(startX, curY);
-                float layerPressure1 = NsharpNativeConstants.parcelToLayerMap
-                        .get(parcelNumber);
-                nsharpNative.nsharpLib.define_parcel(parcelNumber,
-                        layerPressure1);
-
-                lpvls = new _lplvalues();
-                nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-                float sfctemp, sfcdwpt, sfcpres;
-                sfctemp = lpvls.temp;
-                sfcdwpt = lpvls.dwpt;
-                sfcpres = lpvls.pres;
-                // get parcel data by calling native nsharp parcel() API. value
-                // is returned in pcl
-                pcl = new _parcel();
-                nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                        sfcdwpt, pcl);
+                Parcel parcel = weatherDataStore.getParcelMap().get(parcelNumber);
                 curY = curY + charHeight;
                 // draw CAPE
                 str2.setText("CAPE=", NsharpConstants.color_white);
                 str2.setCoordinates(startX, curY);
-                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                    str3.setText(String.format("%.0f", pcl.bplus),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
+                    str3.setText(String.format("%.0f", parcel.getBplus()), NsharpConstants.color_white);
                 } else {
                     str3.setText("M", NsharpConstants.color_white);
                 }
@@ -3791,33 +2972,22 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 str4.setText("CINH=", NsharpConstants.color_white);
                 str4.setCoordinates(secondToken, curY);
 
-                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                    str5.setText(String.format("%.0f", pcl.bminus),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getBminus())) {
+                    str5.setText(String.format("%.0f", parcel.getBminus()), NsharpConstants.color_white);
                 } else {
                     str5.setText("M", NsharpConstants.color_white);
                 }
                 str5.setCoordinates(thirdToken, curY);
                 curY = curY + charHeight;
                 // draw LCL
-                str6.setText("LCL(Pres)=", NsharpConstants.color_white);
+                str6.setText("LCL=", NsharpConstants.color_white);
                 str6.setCoordinates(startX, curY);
                 str8.setText("LCL(AGL)=", NsharpConstants.color_white);
                 str8.setCoordinates(secondToken, curY);
-                if (nsharpNative.nsharpLib.qc(pcl.lclpres) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .mtof(nsharpNative.nsharpLib
-                                        .agl(nsharpNative.nsharpLib
-                                                .ihght(pcl.lclpres)))) == 1) {
-                    float lcl = nsharpNative.nsharpLib
-                            .mtof(nsharpNative.nsharpLib
-                                    .agl(nsharpNative.nsharpLib
-                                            .ihght(pcl.lclpres)));
-
-                    str7.setText(String.format("%5.0fmb", pcl.lclpres),
-                            NsharpConstants.color_white);
-                    str9.setText(String.format("%7.0fft", lcl),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getLclpres())
+                        && NsharpLibBasics.qc(parcel.getLclAgl())) {
+                    str7.setText(String.format("%5.0fmb", parcel.getLclpres()), NsharpConstants.color_white);
+                    str9.setText(String.format("%7.0f'", parcel.getLclAgl()), NsharpConstants.color_white);
                 } else {
                     str7.setText("M", NsharpConstants.color_white);
                     str9.setText("M", NsharpConstants.color_white);
@@ -3826,77 +2996,42 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 str9.setCoordinates(thirdToken, curY);
                 curY = curY + charHeight;
                 // draw LFC
-                str10.setText("LFC(Pres)=", NsharpConstants.color_white);
+                str10.setText("LFC=", NsharpConstants.color_white);
                 str10.setCoordinates(startX, curY);
                 str12.setText("LFC(AGL)=", NsharpConstants.color_white);
                 str12.setCoordinates(secondToken, curY);
-                if (nsharpNative.nsharpLib.qc(pcl.lfcpres) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .mtof(nsharpNative.nsharpLib
-                                        .agl(nsharpNative.nsharpLib
-                                                .ihght(pcl.lfcpres)))) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .itemp(pcl.lfcpres)) == 1) {
-                    float lfc = nsharpNative.nsharpLib
-                            .mtof(nsharpNative.nsharpLib
-                                    .agl(nsharpNative.nsharpLib
-                                            .ihght(pcl.lfcpres)));
-                    str11.setText(String.format("%5.0fmb", pcl.lfcpres),
-                            NsharpConstants.color_white);
-                    str13.setText(String.format("%7.0fft", lfc),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getLfcpres())
+                        && NsharpLibBasics.qc(parcel.getLfcAgl())) {
+                    str11.setText(String.format("%5.0fmb", parcel.getLfcpres()), NsharpConstants.color_white);
+                    str13.setText(String.format("%7.0f'", parcel.getLfcAgl()), NsharpConstants.color_white);
                 } else {
                     str11.setText("M", NsharpConstants.color_white);
                     str13.setText("M", NsharpConstants.color_white);
                 }
                 str11.setCoordinates(firstToken, curY);
                 str13.setCoordinates(thirdToken, curY);
-                target.drawStrings(str1, str2, str3, str4, str5, str6, str7,
-                        str8, str9, str10, str11, str12, str13);
+                target.drawStrings(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13);
                 curY = curY + charHeight;
             }
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+        } else if (paneConfigurationName.equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
             widthGap = rect.width / 3;
             firstToken = rect.x + widthGap * 0.8;
             secondToken = rect.x + widthGap;
             thirdToken = secondToken + widthGap * 0.8;
             forthToken = rect.x + 2 * widthGap;
             fifthToken = forthToken + widthGap * 0.8;
-            for (short parcelNumber = 1; parcelNumber <= NsharpNativeConstants.PARCEL_D2DLITE_MAX; parcelNumber++) {
-                // call native define_parcel() with parcel type and user defined
-                // pressure (if user defined it)
-                textStr = NsharpNativeConstants.parcelToTypeStrMap
-                        .get(parcelNumber);
+            for (int parcelNumber = 1; parcelNumber <= NsharpLibSndglib.PARCEL_D2DLITE_MAX; parcelNumber++) {
+                textStr = parcelToTypeStrMap.get(parcelNumber);
                 str1.setText(textStr, NsharpConstants.color_gold);
-
                 str1.setCoordinates(startX, curY);
-                float layerPressure1 = NsharpNativeConstants.parcelToLayerMap
-                        .get(parcelNumber);
-                nsharpNative.nsharpLib.define_parcel(parcelNumber,
-                        layerPressure1);
-
-                lpvls = new _lplvalues();
-                nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-                float sfctemp, sfcdwpt, sfcpres;
-                sfctemp = lpvls.temp;
-                sfcdwpt = lpvls.dwpt;
-                sfcpres = lpvls.pres;
-                // get parcel data by calling native nsharp parcel() API. value
-                // is returned in pcl
-                pcl = new _parcel();
-                nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp,
-                        sfcdwpt, pcl);
+                Parcel parcel = weatherDataStore.getParcelMap().get(parcelNumber);
                 curY = curY + charHeight;
                 // draw CAPE
                 str2.setText("CAPE=", NsharpConstants.color_white);
                 str2.setCoordinates(startX, curY);
-                if (pcl.bplus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                    str3.setText(String.format("%.0f", pcl.bplus),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getBplus())) {
+                    str3.setText(String.format("%.0f", parcel.getBplus()), NsharpConstants.color_white);
                 } else {
                     str3.setText("M", NsharpConstants.color_white);
                 }
@@ -3907,20 +3042,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 str4.setCoordinates(secondToken, curY);
                 str6.setText("LCL(ft)=", NsharpConstants.color_white);
                 str6.setCoordinates(forthToken, curY);
-                if (nsharpNative.nsharpLib.qc(pcl.lclpres) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .mtof(nsharpNative.nsharpLib
-                                        .agl(nsharpNative.nsharpLib
-                                                .ihght(pcl.lclpres)))) == 1) {
-                    float lcl = nsharpNative.nsharpLib
-                            .mtof(nsharpNative.nsharpLib
-                                    .agl(nsharpNative.nsharpLib
-                                            .ihght(pcl.lclpres)));
-
-                    str5.setText(String.format("%5.0f", pcl.lclpres),
-                            NsharpConstants.color_white);
-                    str7.setText(String.format("%7.0f", lcl),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getLclpres())
+                        && NsharpLibBasics.qc(parcel.getLclAgl())) {
+                    str5.setText(String.format("%5.0f", parcel.getLclpres()), NsharpConstants.color_white);
+                    str7.setText(String.format("%7.0f", parcel.getLclAgl()), NsharpConstants.color_white);
                 } else {
                     str5.setText("M", NsharpConstants.color_white);
                     str7.setText("M", NsharpConstants.color_white);
@@ -3931,10 +3056,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 // draw CINH
                 str8.setText("CINH=", NsharpConstants.color_white);
                 str8.setCoordinates(startX, curY);
-
-                if (pcl.bminus != NsharpNativeConstants.NSHARP_LEGACY_LIB_INVALID_DATA) {
-                    str9.setText(String.format("%.0f", pcl.bminus),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getBminus())) {
+                    str9.setText(String.format("%.0f", parcel.getBminus()), NsharpConstants.color_white);
                 } else {
                     str9.setText("M", NsharpConstants.color_white);
                 }
@@ -3945,54 +3068,20 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 str10.setCoordinates(secondToken, curY);
                 str12.setText("LFC(ft)=", NsharpConstants.color_white);
                 str12.setCoordinates(forthToken, curY);
-                if (nsharpNative.nsharpLib.qc(pcl.lfcpres) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .mtof(nsharpNative.nsharpLib
-                                        .agl(nsharpNative.nsharpLib
-                                                .ihght(pcl.lfcpres)))) == 1
-                        && nsharpNative.nsharpLib.qc(nsharpNative.nsharpLib
-                                .itemp(pcl.lfcpres)) == 1) {
-                    float lfc = nsharpNative.nsharpLib
-                            .mtof(nsharpNative.nsharpLib
-                                    .agl(nsharpNative.nsharpLib
-                                            .ihght(pcl.lfcpres)));
-                    str11.setText(String.format("%5.0f", pcl.lfcpres),
-                            NsharpConstants.color_white);
-                    str13.setText(String.format("%7.0f", lfc),
-                            NsharpConstants.color_white);
+                if (parcel != null && NsharpLibBasics.qc(parcel.getLfcpres())
+                        && NsharpLibBasics.qc(parcel.getLfcAgl())) {
+                    str11.setText(String.format("%5.0f", parcel.getLfcpres()), NsharpConstants.color_white);
+                    str13.setText(String.format("%7.0f", parcel.getLfcAgl()), NsharpConstants.color_white);
                 } else {
                     str11.setText("M", NsharpConstants.color_white);
                     str13.setText("M", NsharpConstants.color_white);
                 }
                 str11.setCoordinates(thirdToken, curY);
                 str13.setCoordinates(fifthToken, curY);
-                target.drawStrings(str1, str2, str3, str4, str5, str6, str7,
-                        str8, str9, str10, str11, str12, str13);
+                target.drawStrings(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13);
                 curY = curY + charHeight;
             }
         }
-
-        if (currentParcel == NsharpNativeConstants.PARCELTYPE_USER_DEFINED) {
-            layerPressure = NsharpParcelDialog.getUserDefdParcelMb();
-        } else {
-            layerPressure = NsharpNativeConstants.parcelToLayerMap
-                    .get(currentParcel);
-        }
-
-        // reset and define current parcel
-        nsharpNative.nsharpLib.define_parcel(currentParcel, layerPressure);
-        lpvls = new _lplvalues();
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-
-        float sfctemp, sfcdwpt, sfcpres;
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        // get parcel data by calling native nsharp parcel() API. value is
-        // returned in pcl
-        pcl = new _parcel();
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
 
         str2.horizontalAlignment = HorizontalAlignment.RIGHT;
         str3.horizontalAlignment = HorizontalAlignment.LEFT;
@@ -4005,27 +3094,22 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str10.horizontalAlignment = HorizontalAlignment.RIGHT;
         str11.horizontalAlignment = HorizontalAlignment.LEFT;
         str12.horizontalAlignment = HorizontalAlignment.RIGHT;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
         str1.setText("PW =", NsharpConstants.color_white);
         str1.setCoordinates(startX, curY);
-        // compute pw from surface layer to 400 mb layer
-        float pw = NcSoundingTools.precip_water(this.soundingLys, 400, -1)
-                / MM_PER_INCH;
+        float pw = weatherDataStore.getPw();
         if (pw >= 0) {
             textStr = String.format("%.2fin", pw);
         } else {
-            textStr = " M";
+            textStr = "M";
         }
         str2.setText(textStr, NsharpConstants.color_white);
         str2.setCoordinates(firstToken, curY);
         str3.setText("ConvT =", NsharpConstants.color_white);
         str3.setCoordinates(secondToken, curY);
-        fValue.setValue(0);
-        float conTempF = nsharpNative.nsharpLib.ctof(nsharpNative.nsharpLib
-                .cnvtv_temp(fValue, -1));
+        float conTempF = weatherDataStore.getConvT();
 
-        if (nsharpNative.nsharpLib.qc(conTempF) == 1) {
+        if (NsharpLibBasics.qc(conTempF)) {
             textStr = String.format("%.0fF", conTempF);
         } else {
             textStr = "M";
@@ -4035,12 +3119,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         curY = curY + charHeight;
         str5.setText("WBZ =", NsharpConstants.color_white);
         str5.setCoordinates(startX, curY);
-        fValue.setValue(0);
-        float wbzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .wb_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(wbzft) == 1) {
-            textStr = String.format("%.0fft", wbzft);
+        float wbzft = weatherDataStore.getWbzft();
+        if (NsharpLibBasics.qc(wbzft)) {
+            textStr = String.format("%.0f'", wbzft);
         } else {
             textStr = "M";
         }
@@ -4048,12 +3129,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str6.setCoordinates(firstToken, curY);
         str7.setText("FGZ =", NsharpConstants.color_white);
         str7.setCoordinates(secondToken, curY);
-        fValue.setValue(0);
-        float fgzft = nsharpNative.nsharpLib.mtof(nsharpNative.nsharpLib
-                .agl(nsharpNative.nsharpLib.ihght(nsharpNative.nsharpLib
-                        .temp_lvl(0, fValue))));
-        if (nsharpNative.nsharpLib.qc(fgzft) == 1) {
-            textStr = String.format("%.0fft", fgzft);
+        if (NsharpLibBasics.qc(weatherDataStore.getFgzft())) {
+            textStr = String.format("%.0f'", weatherDataStore.getFgzft());
         } else {
             textStr = "M";
         }
@@ -4064,9 +3141,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         curY = curY + charHeight;
         str1.setText("BRN =", NsharpConstants.color_white);
         str1.setCoordinates(startX, curY);
-        if (nsharpNative.nsharpLib.qc(pcl.brn) == 1) {
+        Parcel parcel = weatherDataStore.getParcelMap().get(this.currentParcel);
+        if (parcel != null && NsharpLibBasics.qc(parcel.getBrn())) {
             textStr = NsharpNativeConstants.STORM_TYPE_BRN_LINE;
-            textStr = String.format("%6.0f", pcl.brn);
+            textStr = String.format("%6.0f", parcel.getBrn());
         } else {
             textStr = "M";
         }
@@ -4074,16 +3152,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str2.setCoordinates(firstToken, curY);
         str3.setText("BRN Shr=", NsharpConstants.color_white);
         str3.setCoordinates(secondToken, curY);
-        nsharpNative.nsharpLib.get_lpvaluesData(lpvls);
-        sfctemp = lpvls.temp;
-        sfcdwpt = lpvls.dwpt;
-        sfcpres = lpvls.pres;
-        nsharpNative.nsharpLib.parcel(-1.0F, -1.0F, sfcpres, sfctemp, sfcdwpt,
-                pcl);
-        nsharpNative.nsharpLib.cave_bulk_rich2(fValue);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1) {
-            textStr = String.format("%.0f m%c/s%c", fValue.getValue(),
-                    NsharpConstants.SQUARE_SYMBOL,
+        float brnShear = parcel.getBrnShear();
+        if (parcel != null && NsharpLibBasics.qc(brnShear)) {
+            textStr = String.format("  %.0f m%c/s%c", brnShear, NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = "M";
@@ -4091,14 +3162,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         str4.setText(textStr, NsharpConstants.color_white);
         str4.setCoordinates(thirdToken, curY);
         curY = curY + charHeight;
-        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0,
-                NsharpConstants.color_white, 1);
+        target.drawLine(rect.x, curY, 0.0, rect.x + rect.width, curY, 0.0, NsharpConstants.color_white, 1);
         str5.setText("Bunkers Right=", NsharpConstants.color_white);
         str5.setCoordinates(startX, curY);
-        nsharpNative.nsharpLib.bunkers_storm_motion(fValue1, fValue2, fValue3,
-                fValue4);
-        textStr = String.format("%.0f/%.0f kt", fValue3.getValue(),
-                fValue4.getValue());
+        float dir = weatherDataStore.getBunkersStormMotionWindComp()[0].getWdir();
+        float spd = weatherDataStore.getBunkersStormMotionWindComp()[0].getWspd();
+        textStr = String.format("%.0f/%.0f kt", dir, spd);
 
         str6.setText(textStr, NsharpConstants.color_white);
         str6.setCoordinates(thirdToken, curY);
@@ -4108,15 +3177,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
 
         str1.setText("0-1km Helicity=", NsharpConstants.color_white);
         str1.setCoordinates(startX, curY);
-        FloatByReference smdir = new FloatByReference(0), smspd = new FloatByReference(
-                0);
-        nsharpNative.nsharpLib.get_storm(smspd, smdir);
-        float totHeli = nsharpNative.nsharpLib.helicity(0, 1000,
-                smdir.getValue(), smspd.getValue(), fValue, fValue1);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = String.format("%.0f m%c/s%c", totHeli,
-                    NsharpConstants.SQUARE_SYMBOL,
+        // get helicity for sfc- 1km
+        Helicity helicity = weatherDataStore.getStormTypeToHelicityMap()
+                .get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[0]);
+        float totHeli = helicity.getTotalHelicity();
+        if (NsharpLibBasics.qc(helicity.getPosHelicity()) && NsharpLibBasics.qc(helicity.getPosHelicity())) {
+            textStr = String.format("%.0f m%c/s%c", totHeli, NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = "M";
@@ -4126,12 +3192,12 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         curY = curY + charHeight;
         str3.setText("0-3km Helicity=", NsharpConstants.color_white);
         str3.setCoordinates(startX, curY);
-        totHeli = nsharpNative.nsharpLib.helicity(0, 3000, smdir.getValue(),
-                smspd.getValue(), fValue, fValue1);
-        if (nsharpNative.nsharpLib.qc(fValue.getValue()) == 1
-                && nsharpNative.nsharpLib.qc(fValue1.getValue()) == 1) {
-            textStr = String.format("%.0f m%c/s%c", totHeli,
-                    NsharpConstants.SQUARE_SYMBOL,
+        // get helicity for sfc-3 km
+        helicity = weatherDataStore.getStormTypeToHelicityMap().get(NsharpWeatherDataStore.STORM_MOTION_TYPE_STR[2]);
+        totHeli = helicity.getTotalHelicity();
+
+        if (NsharpLibBasics.qc(helicity.getPosHelicity()) && NsharpLibBasics.qc(helicity.getPosHelicity())) {
+            textStr = String.format("%.0f m%c/s%c", totHeli, NsharpConstants.SQUARE_SYMBOL,
                     NsharpConstants.SQUARE_SYMBOL);
         } else {
             textStr = "M";
@@ -4142,8 +3208,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
     }
 
     // future (dummy) page
-    private void drawPanel12(IGraphicsTarget target, Rectangle rect)
-            throws VizException {
+    private void drawPanel12(IGraphicsTarget target, Rectangle rect) throws VizException {
         IFont myfont;
         myfont = defaultFont;
         defineCharHeight(myfont);
@@ -4151,12 +3216,8 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         myfont.setScaleFont(false);
         extent = new PixelExtent(rect);
         target.setupClippingPlane(extent);
-        // if we can not Interpolates a temp with 700 mb pressure, then we dont
-        // have enough raw data
-        target.drawString(myfont, "               FUTURE PAGE", rect.x
-                + rect.width / 2, rect.y + rect.height / 2, 0.0,
-                TextStyle.NORMAL, NsharpConstants.color_cyan,
-                HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
+        target.drawString(myfont, "               FUTURE PAGE", rect.x + rect.width / 2, rect.y + rect.height / 2, 0.0,
+                TextStyle.NORMAL, NsharpConstants.color_cyan, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, null);
         return;
     }
 
@@ -4172,32 +3233,25 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         return dataPanel2Background;
     }
 
-    public void setPageDisplayOrderNumberArray(
-            int[] pageDisplayOrderNumberArray, int numberPagePerDisplay) {
+    public void setPageDisplayOrderNumberArray(int[] pageDisplayOrderNumberArray, int numberPagePerDisplay) {
         this.pageDisplayOrderNumberArray = pageDisplayOrderNumberArray;
-        if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR))
-        // This configuration always show 2 pages layout vertically
-        {
+        if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
+            // This configuration always show 2 pages layout vertically
             this.numberPagePerDisplay = 2;
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
+        } else if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             this.numberPagePerDisplay = 1;
         } else {
             this.numberPagePerDisplay = numberPagePerDisplay;
         }
         if (rscHandler != null) {
-            int displayDataPageMax = NsharpConstants.PAGE_MAX_NUMBER
-                    / numberPagePerDisplay;
+            int displayDataPageMax = NsharpConstants.PAGE_MAX_NUMBER / numberPagePerDisplay;
             rscHandler.setDisplayDataPageMax(displayDataPageMax);
         }
         if (initDone) {
-            if (this.numberPagePerDisplay == 1) {
-                defaultFont = font12;
-            } else {
-                defaultFont = font10;
-            }
+
+            defaultFont = font8;
+
             handleResize();
         }
 
@@ -4213,8 +3267,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         // Chin Note; ext size is its view size Not canvas size
         IExtent ext = getDescriptor().getRenderableDisplay().getExtent();
         ext.reset();
-        this.rectangle = new Rectangle((int) ext.getMinX(),
-                (int) ext.getMinY(), (int) ext.getWidth(),
+        this.rectangle = new Rectangle((int) ext.getMinX(), (int) ext.getMinY(), (int) ext.getWidth(),
                 (int) ext.getHeight());
         pe = new PixelExtent(this.rectangle);
         getDescriptor().setNewPe(pe);
@@ -4224,14 +3277,10 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         dp1XOrig = (int) (ext.getMinX());
         dp1YOrig = (int) (ext.getMinY());
         if (paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                || paneConfigurationName
-                        .equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
+                || paneConfigurationName.equals(NsharpConstants.PANE_SPCWS_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
+                || paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_2_STR)) {
             if (numberPagePerDisplay == 2) {
                 // these 2 configurations lay 2 data panels side by side
                 dataPaneWidth = (int) (ext.getWidth() / 2);
@@ -4244,8 +3293,7 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
                 dp2XOrig = dp1XOrig;
                 dp2YOrig = dp1YOrig;
             }
-        } else if (paneConfigurationName
-                .equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
+        } else if (paneConfigurationName.equals(NsharpConstants.PANE_DEF_CFG_1_STR)) {
             // this configuration lays 2 data panels top/down
             // always display 2 pages
             dataPaneWidth = (int) ext.getWidth();
@@ -4260,11 +3308,9 @@ public class NsharpDataPaneResource extends NsharpAbstractPaneResource {
         yRatio = 1;// turn off
         charHeight = (int) (charHeight * yRatio);
 
-        Rectangle rectangle = new Rectangle(dp1XOrig, dp1YOrig, dataPaneWidth,
-                dataPaneHeight);
+        Rectangle rectangle = new Rectangle(dp1XOrig, dp1YOrig, dataPaneWidth, dataPaneHeight);
         dataPanel1Background.handleResize(rectangle);
-        rectangle = new Rectangle(dp2XOrig, dp2YOrig, dataPaneWidth,
-                dataPaneHeight);
+        rectangle = new Rectangle(dp2XOrig, dp2YOrig, dataPaneWidth, dataPaneHeight);
         dataPanel2Background.handleResize(rectangle);
         panelRectArray[0] = dataPanel1Background.getRectangle();
         panelRectArray[1] = dataPanel2Background.getRectangle();

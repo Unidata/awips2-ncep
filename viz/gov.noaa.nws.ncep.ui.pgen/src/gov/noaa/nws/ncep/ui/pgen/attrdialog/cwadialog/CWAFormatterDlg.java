@@ -33,6 +33,7 @@ import gov.noaa.nws.ncep.ui.pgen.attrdialog.SigmetCommAttrDlg;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 11/21/2016  17469    wkwock      Initial creation
+ * 05/23/2018  17469    wkwock      Fix practice mode issue
  * 
  * </pre>
  * 
@@ -135,6 +136,9 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg {
         this.site = site;
         this.retrievalProductId = cwaConfigs.getAwipsNode() + productId;
         this.productId = cwaConfigs.getKcwsuId() + productId;
+        if (!cwaConfigs.isOperational()) {
+            this.productId = cwaConfigs.getAwipsNode() + productId;
+        }
         this.cwaConfigs = cwaConfigs;
         volcanoComp.updateVolcano(cwaConfigs);
         cancelComp.updateCwsuId(site);

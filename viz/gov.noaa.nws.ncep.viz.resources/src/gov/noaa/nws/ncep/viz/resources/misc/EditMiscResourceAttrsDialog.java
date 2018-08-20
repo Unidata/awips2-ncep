@@ -1,14 +1,5 @@
 package gov.noaa.nws.ncep.viz.resources.misc;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.EditElement;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscResourceAttr;
-import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscRscAttrs;
-
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
@@ -29,10 +20,19 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.EditElement;
+import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscResourceAttr;
+import gov.noaa.nws.ncep.viz.resources.misc.IMiscResourceData.MiscRscAttrs;
+
 /**
  * an interface to edit resource attributes
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -43,9 +43,10 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  *  04/27/10     #245        Greg Hull    Added Apply Button
  *  12/14/12     #861        Greg Hull    Added COLOR_PALLETTE for Pgen Rsc
  *  04/05/2016   R15715      dgilling     Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ *  Aug 22, 2018 #7081       dgilling     Use refactor ColorMatrixSelector.
+ *
  * </pre>
- * 
+ *
  * @author ghull
  * @version 1
  */
@@ -232,7 +233,7 @@ public class EditMiscResourceAttrsDialog extends
                  * values for it.
                  */
                 final ColorMatrixSelector cms = new ColorMatrixSelector(
-                        colComp, false, true, 22, 60, 20, 25, 28, 90, 4, 8, 5);
+                        colComp, false, true, 22, 60, 20, 25, 4, 8, 5);
                 cms.setColorValue((RGB) rscAttr.getAttrValue());
 
                 cms.addListener(new IPropertyChangeListener() {

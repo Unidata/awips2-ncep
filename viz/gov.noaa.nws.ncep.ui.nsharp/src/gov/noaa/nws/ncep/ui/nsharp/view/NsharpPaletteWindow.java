@@ -1,13 +1,13 @@
 /**
- * 
+ *
  * gov.noaa.nws.ncep.ui.nsharp.palette.NsharpPaletteWindow
- * 
+ *
  * This java class performs the NSHARP GUI construction.
  * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#     Engineer    Description
  * -----------  ----------  ----------  -----------
  * 03/16/2010   229         Chin Chen   Initial coding
@@ -21,23 +21,13 @@
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration
  * 04/05/2016   RM#10435    rjpeter     Removed Inventory usage.
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- *  
+ * 08/21/2018   #7081       dgilling    Support refactored NsharpEditDataDialog.
+ *
  * </pre>
- * 
+ *
  * @author Chin Chen
- * @verFsion 1.0
  */
 package gov.noaa.nws.ncep.ui.nsharp.view;
-
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
-import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -73,6 +63,16 @@ import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.d2d.ui.perspectives.D2D5Pane;
 import com.raytheon.viz.ui.UiUtil;
 import com.raytheon.viz.ui.perspectives.VizPerspectiveListener;
+
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
+import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
+import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 
 public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         DisposeListener, IPartListener {
@@ -149,7 +149,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     private static NsharpConstants.SPCGraph rightGraph = NsharpConstants.SPCGraph.STP;
 
     private float userVrot = 0;
-    
+
     private boolean spcGpCreated = false;
 
     private boolean imD2d = false;
@@ -1133,8 +1133,8 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 if (checkLoadedData()) {
                     Shell shell = PlatformUI.getWorkbench()
                             .getActiveWorkbenchWindow().getShell();
-                    NsharpEditDataDialog editDia = NsharpEditDataDialog
-                            .getInstance(shell);
+                    NsharpEditDataDialog editDia = new NsharpEditDataDialog(
+                            shell);
                     if (editDia != null) {
                         editDia.open();
                     }
@@ -1459,7 +1459,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 if ((leftGraph != NsharpConstants.SPCGraph.VROT)
                         && (rightGraph != NsharpConstants.SPCGraph.VROT)) {
                     rightGraph = leftGraph;
-                    leftGraph = NsharpConstants.SPCGraph.VROT;                    
+                    leftGraph = NsharpConstants.SPCGraph.VROT;
                 }
                 // always update spc graph as vrot value may be changed
                 updateSPCGraphs();
@@ -1516,7 +1516,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
         vrotBtn = null;
         condTorBtn = null;
         spcGp = null;
-        
+
     }
 
     public boolean isEditorVisible() {
@@ -1873,7 +1873,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     @Override
     public void partActivated(IWorkbenchPart part) {
         if (context == null) {
-            IContextService ctxSvc = (IContextService) PlatformUI
+            IContextService ctxSvc = PlatformUI
                     .getWorkbench().getService(IContextService.class);
             context = ctxSvc
                     .activateContext("gov.noaa.nws.ncep.ui.nsharp.nsharpContext");
@@ -1902,7 +1902,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
     public void partDeactivated(IWorkbenchPart part) {
         if (context != null) {
 
-            IContextService ctxSvc = (IContextService) PlatformUI
+            IContextService ctxSvc = PlatformUI
                     .getWorkbench().getService(IContextService.class);
             ctxSvc.deactivateContext(context);
             context = null;

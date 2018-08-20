@@ -1,17 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.dialogs;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleIntervalMode;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleLatMode;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScalePosition;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextFont;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextSize;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextStyle;
-import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleUnit;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
@@ -20,6 +8,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -34,17 +23,29 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
-/*
- * 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleIntervalMode;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleLatMode;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScalePosition;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextFont;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextSize;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleTextStyle;
+import gov.noaa.nws.ncep.viz.overlays.IScaleOverlayResourceData.ScaleUnit;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+
+/**
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
  * ------------ ----------  ----------- --------------------------
  * 07 Oct 2010  311         B. Hebbard  Initial Creation (derived from ChangeLatLonAttributesDialog)
  * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ * Aug 22, 2018 #7081       dgilling    Use refactor ColorMatrixSelector.
+ *
  * @author bhebbard
- * @version 1
  */
 
 public class ChangeScaleAttributesDialog extends
@@ -113,7 +114,7 @@ public class ChangeScaleAttributesDialog extends
 
     /**
      * Constructor
-     * 
+     *
      * @param parentShell
      * @param dialogTitle
      */
@@ -196,12 +197,12 @@ public class ChangeScaleAttributesDialog extends
 
         Group selectColorGroup = new Group(composite, SWT.SHADOW_NONE);
         selectColorGroup.setText("Color");
+        selectColorGroup.setLayout(new FillLayout());
 
         FormData formData2 = new FormData();
         formData2.top = new FormAttachment(selectTextAttributesGroup, 6);
         formData2.left = new FormAttachment(2, 0);
         formData2.right = new FormAttachment(98, 0);
-        formData2.height = 170;
         selectColorGroup.setLayoutData(formData2);
 
         // Lay out individual components within the dialog and groups
@@ -402,7 +403,7 @@ public class ChangeScaleAttributesDialog extends
         // Scale Color
 
         colorMatrixSelector = new ColorMatrixSelector(selectColorGroup, false,
-                true, 22, 88, 18, 22, 28, 86, 0, 4, 5);
+                true, 22, 88, 18, 22, 0, 4, 5);
         colorMatrixSelector.setColorValue((RGB) color.getAttrValue());
         colorMatrixSelector.addListener(new IPropertyChangeListener() {
             @Override

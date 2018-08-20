@@ -1,53 +1,44 @@
-package gov.noaa.nws.ncep.ui.nsharp.view;
 /**
- * 
- * gov.noaa.nws.ncep.ui.nsharp.palette.NsharpDataDisplayConfigDialog
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#    	Engineer    Description
- * -------		------- 	-------- 	-----------
- * 03/21/2012	229			Chin Chen	Initial coding
+ * This software was developed and / or modified by Raytheon Company,
+ * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
  *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
-
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+ * U.S. EXPORT CONTROLLED TECHNICAL DATA
+ * This software product contains export-restricted data whose
+ * export/transfer/disclosure is restricted by U.S. law. Dissemination
+ * to non-U.S. persons whether in the United States or abroad requires
+ * an export license or other authorization.
+ *
+ * Contractor Name:        Raytheon Company
+ * Contractor Address:     6825 Pine Street, Suite 340
+ *                         Mail Stop B8
+ *                         Omaha, NE 68106
+ *                         402.291.0100
+ *
+ * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
+ * further licensing information.
+ **/
+package gov.noaa.nws.ncep.ui.nsharp.view;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -55,517 +46,367 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.exception.VizException;
 
-public class NsharpDataDisplayConfigDialog extends Dialog {
-	private Map<LineStyle,int[]> styleMap = new EnumMap<LineStyle,int[]>(LineStyle.class);
-    private LineStyle curLineStyle=LineStyle.SOLID;
-    private int curLineWidth=1;
-    private RGB curLineColor=null;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+
+/**
+ * gov.noaa.nws.ncep.ui.nsharp.palette.NsharpDataDisplayConfigDialog
+ *
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * <pre>
+ *
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 03/21/2012    229       Chin Chen    Initial coding
+ * Aug 17, 2018  #7081     dgilling     Refactor based on CaveJFACEDialog.
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ */
+
+public class NsharpDataDisplayConfigDialog extends AbstractNsharpConfigDlg {
+
+    private List<String> availLine = new ArrayList<>();
+
     private NsharpLineProperty curLineProperty;
-    private static NsharpDataDisplayConfigDialog instance=null;
-    private  ArrayList<String> availLine = new ArrayList<String>();
-	private Combo selLineCombo;
-	private String seldLineName= "";
-	private NsharpConfigStore configStore=null;
-	private Canvas currentLineAreaCanvas;
-	private Canvas linePreviewAreaCanvas;
-	private ColorMatrixSelector cms;
-	
-	public static NsharpDataDisplayConfigDialog getInstance(Shell parentShell) {
-		if(instance == null)
-			instance = new NsharpDataDisplayConfigDialog(parentShell);
-		return instance;
-	}
 
-	public NsharpDataDisplayConfigDialog(Shell parentShell) {
-		super(parentShell);
-        styleMap.put(LineStyle.SOLID,                        new int[] { 4 });                        // GEMPAK line type  1
-        styleMap.put(LineStyle.SHORT_DASHED,                 new int[] { 4, 4 });                     // GEMPAK line type  2 
-        styleMap.put(LineStyle.MEDIUM_DASHED,                new int[] { 8, 8 });                     // GEMPAK line type  3
-        styleMap.put(LineStyle.LONG_DASH_SHORT_DASH,         new int[] { 16, 8, 4, 8 });              // GEMPAK line type  4
-        styleMap.put(LineStyle.LONG_DASHED,                  new int[] { 16, 8 });                    // GEMPAK line type  5
-        styleMap.put(LineStyle.LONG_DASH_THREE_SHORT_DASHES, new int[] { 16, 8, 4, 8, 4, 8, 4, 8 });  // GEMPAK line type  6
-        styleMap.put(LineStyle.LONG_DASH_DOT,                new int[] { 16, 8, 2, 8 });              // GEMPAK line type  7
-        styleMap.put(LineStyle.LONG_DASH_THREE_DOTS,         new int[] { 16, 8, 2, 8, 2, 8, 2, 8 });  // GEMPAK line type  8
-        styleMap.put(LineStyle.MEDIUM_DASH_DOT,              new int[] { 8, 8, 2, 8 });               // GEMPAK line type  9
-        styleMap.put(LineStyle.DOTS,                         new int[] { 2, 4 });    			      // GEMPAK line type 10
-        
-        instance = this;
-        for(int i=0; i < NsharpConstants.lineNameArray.length; i++)
-        	availLine.add(NsharpConstants.lineNameArray[i]);
-        
-        NsharpConfigManager mgr =NsharpConfigManager.getInstance();
-        configStore = mgr.retrieveNsharpConfigStoreFromFs();
-        /*if (configStore== null) {
-        	configStore = new NsharpConfigStore();
-        	configStore = setDefaultLineConfig(configStore);
-        	configStore=NsharpParametersSelectionConfigDialog.setDefaultGraphConfig(configStore);
-        }
-        else if( configStore.getLinePropertyMap().size() == 0){
-        	configStore = setDefaultLineConfig(configStore);
-        }*/
-        curLineProperty = configStore.getLinePropertyMap().get(availLine.get(0));
-    	curLineStyle =curLineProperty.getLineStyle();
-    	curLineWidth = curLineProperty.getLineWidth();
-    	curLineColor = curLineProperty.getLineColor();
-    	//curLineName = availLine.get(0);
-	}
-	
-	
-	public LineStyle getLineStyle() {
-		return curLineStyle;
-	}
+    private LineStyle curLineStyle;
 
+    private int curLineWidth;
 
-	public int getLineWidth() {
-		return curLineWidth;
-	}
+    private RGB curLineColor;
 
+    private String selectedLineName = StringUtils.EMPTY;
 
-	public RGB getLineColor() {
-		return curLineColor;
-	}
+    private Combo selLineCombo;
 
+    private Canvas currentLinePreviewCanvas;
 
+    private Canvas newLinePreviewCanvas;
 
+    private ColorMatrixSelector colorSelector;
 
-	private  Composite createDialog(Composite composite) {
-		final Display display = composite.getDisplay();
+    private Color newLineCanvasColor;
 
-		FormLayout layout0 = new FormLayout();
-		composite.setLayout(layout0);
+    private Color curLineCanvasColor;
 
+    public NsharpDataDisplayConfigDialog(Shell parentShell) {
+        super(parentShell, "Nsharp Data Display");
 
-		//  Lay out the various groups within the dialog
+        availLine = Arrays.asList(NsharpConstants.lineNameArray);
 
-		Group linePreviewAreaGroup = new Group ( composite, SWT.SHADOW_NONE );
-		linePreviewAreaGroup.setLayout(new FillLayout());
-
-		FormData formData0 = new FormData();
-		formData0.top = new FormAttachment(5,0);
-		formData0.left = new FormAttachment(2,0);
-		formData0.width = 196;
-		formData0.height = 30;
-		linePreviewAreaGroup.setLayoutData(formData0);
-
-		Group selectLineWidthGroup = new Group ( composite, SWT.SHADOW_NONE );
-		selectLineWidthGroup.setText("Width");
-		GridLayout lineWidthGridLayout = new GridLayout();
-		lineWidthGridLayout.numColumns = 2;
-		lineWidthGridLayout.marginHeight = 18;
-		lineWidthGridLayout.marginWidth = 18;
-		lineWidthGridLayout.horizontalSpacing = 8;
-		lineWidthGridLayout.verticalSpacing = 8;
-		selectLineWidthGroup.setLayout(lineWidthGridLayout);
-
-		FormData formData1 = new FormData();
-		formData1.top = new FormAttachment(linePreviewAreaGroup, 16);
-		formData1.left = new FormAttachment(2,0);
-		selectLineWidthGroup.setLayoutData(formData1);
-
-		Group selectLineStyleGroup = new Group ( composite, SWT.SHADOW_NONE );
-		selectLineStyleGroup.setText("Style");
-		GridLayout lineStyleGridLayout = new GridLayout();
-		lineStyleGridLayout.numColumns = 2;
-		lineStyleGridLayout.marginHeight = 18;
-		lineStyleGridLayout.marginWidth = 18;
-		lineStyleGridLayout.horizontalSpacing = 8;
-		lineStyleGridLayout.verticalSpacing = 8;
-		selectLineStyleGroup.setLayout(lineStyleGridLayout);
-
-		FormData formData2 = new FormData();
-		formData2.top = new FormAttachment(selectLineWidthGroup, 16);
-		formData2.left = new FormAttachment(2,0);
-		selectLineStyleGroup.setLayoutData(formData2);
-
-		Group selectLineColorGroup = new Group ( composite, SWT.SHADOW_NONE );
-		selectLineColorGroup.setText("Color");
-
-		FormData formData5 = new FormData();
-		formData5.top   = new FormAttachment(5,0);
-		formData5.left  = new FormAttachment(selectLineWidthGroup, 10);
-		formData5.right = new FormAttachment(98, 0);
-		formData5.height = 300;
-		selectLineColorGroup.setLayoutData(formData5);
-
-
-		final Color black = composite.getDisplay().getSystemColor(SWT.COLOR_BLACK);
-		final Color white = composite.getDisplay().getSystemColor(SWT.COLOR_WHITE);
-
-		//  Associate with each line style a list of segment lengths (in pixels)
-		//  of the repeating pattern.  Numbers are pixels on, pixels off, on, off, ...
-		//  (Derived from similar structure in NMAP NxmLineA.c)
-		//  CAUTION:  Duplication (of a sort).  This governs only local display of
-		//  line patterns in this dialog (preview and line style selector buttons).
-		//  Actual drawing of lines with these styles is up to the implementation
-		//  of IGraphicsTarget being used.
-
-
-		//  Line Preview Area
-
-		linePreviewAreaCanvas = new Canvas(linePreviewAreaGroup, SWT.NONE);
-
-		final int previewLineXmin =  16;
-		final int previewLineXmax = 180;
-		final int previewLineYctr =  16;
-
-		linePreviewAreaCanvas.addPaintListener(new PaintListener() {
-			public void paintControl(PaintEvent event) {
-				GC gc = event.gc;
-				gc.setLineWidth(curLineWidth);
-				gc.setForeground(new Color(display, curLineColor));
-				linePreviewAreaCanvas.setBackground(
-						curLineColor.getHSB()[2] > 0.2 ? black : white);
-				int x1 = previewLineXmin;
-				int x2 = previewLineXmin; 
-				int [] segLengths = styleMap.get(curLineStyle);
-				while (x2 < previewLineXmax)
-				{
-					boolean draw = true;
-					for (int i : segLengths)
-					{	
-						x2 = Math.min(x1 + i, previewLineXmax);
-						if (draw)
-						{
-							gc.drawLine(x1, previewLineYctr, x2, previewLineYctr);
-						}
-						if (x2 >= previewLineXmax)
-						{
-							break;
-						}
-						draw = !draw;
-						x1 = x2;
-					}    				
-				}
-			}
-		});
-
-
-		//  Parameters to give a uniform look to all line width/style buttons
-
-		final int lineButtonHeight = 75;
-		final int lineButtonWidth  = 15;
-		final int buttonLineXmin = 8;
-		final int buttonLineXmax = 68;
-		final int buttonLineYctr = 7;
-
-
-		//  Line Width
-
-		final Button[] selectLineWidthButtons = new Button[4];
-		final int[] lineWidthButtonSequence = {0, 2,  // ...for 2-column grid layout
-				1, 3};
-		for (int i : lineWidthButtonSequence)
-		{
-			selectLineWidthButtons[i] = new Button(selectLineWidthGroup, SWT.TOGGLE);	        
-			GridData gridData = new GridData();
-			gridData.heightHint = lineButtonWidth;
-			gridData.widthHint = lineButtonHeight;
-			selectLineWidthButtons[i].setLayoutData(gridData);
-			selectLineWidthButtons[i].setData(i+1);
-			selectLineWidthButtons[i].setToolTipText("Width " + (i+1));
-			selectLineWidthButtons[i].addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent event) {
-					GC gc = event.gc;
-					int width = (Integer) event.widget.getData();
-					gc.setLineWidth(width);
-					gc.setForeground(black);
-					gc.drawLine(buttonLineXmin,buttonLineYctr,buttonLineXmax,buttonLineYctr);    	            
-				}
-			});
-			selectLineWidthButtons[i].addSelectionListener(new SelectionListener() 
-			{
-				public void widgetSelected(SelectionEvent event) 
-				{
-					selectLineWidthButtons[curLineWidth-1].setSelection(false);
-					curLineWidth= (Integer)event.widget.getData();
-					linePreviewAreaCanvas.redraw();
-					linePreviewAreaCanvas.update();
-				}
-				public void widgetDefaultSelected(SelectionEvent event) 
-				{
-				}
-			});
-		}
-		selectLineWidthButtons[curLineWidth-1].setSelection(true);  // set initial state
-
-		//  Line Style
-
-		final Map<LineStyle, Button> lineStyleButtonMap = new EnumMap<LineStyle, Button>(LineStyle.class);
-
-		final LineStyle [] lineStyleButtonSequence = {  // ...for 2-column grid layout
-				LineStyle.DOTS,                  LineStyle.LONG_DASHED,
-				LineStyle.SOLID,                 LineStyle.LONG_DASH_THREE_SHORT_DASHES,
-				LineStyle.SHORT_DASHED,          LineStyle.LONG_DASH_DOT,  
-				LineStyle.MEDIUM_DASHED,         LineStyle.LONG_DASH_THREE_DOTS,
-				LineStyle.LONG_DASH_SHORT_DASH,  LineStyle.MEDIUM_DASH_DOT,
-		};
-
-		for (LineStyle ls : lineStyleButtonSequence)
-		{
-			Button lineStyleButton = new Button(selectLineStyleGroup, SWT.TOGGLE);
-			lineStyleButtonMap.put(ls, lineStyleButton);
-			GridData gridData = new GridData();
-			gridData.heightHint = lineButtonWidth;
-			gridData.widthHint = lineButtonHeight;
-			lineStyleButton.setLayoutData(gridData);
-			lineStyleButton.setData(ls);
-			lineStyleButton.setToolTipText(ls.name());
-			lineStyleButton.addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent event) {
-					GC gc = event.gc;
-					gc.setLineWidth(1);
-					gc.setForeground(black);
-					LineStyle ls = (LineStyle) event.widget.getData();
-					int [] segLengths = styleMap.get(ls);
-					int x1 = buttonLineXmin;
-					int x2 = buttonLineXmin;        			
-					while (x2 < buttonLineXmax)
-					{
-						boolean draw = true;
-						for (int i : segLengths)
-						{
-							x2 = Math.min(x1 + i, buttonLineXmax);	
-							if (draw)
-							{
-								gc.drawLine(x1, buttonLineYctr, x2, buttonLineYctr);
-							}
-							if (x2 >= buttonLineXmax)
-							{
-								break;
-							}
-							draw = !draw;
-							x1 = x2;
-						}        				
-					}
-				}
-			});
-			lineStyleButton.addSelectionListener(new SelectionListener() 
-			{
-				public void widgetSelected(SelectionEvent event) 
-				{
-					lineStyleButtonMap.get(curLineStyle).setSelection(false);
-					curLineStyle=( (LineStyle)event.widget.getData() );
-					linePreviewAreaCanvas.redraw();
-					linePreviewAreaCanvas.update();
-				}
-				public void widgetDefaultSelected(SelectionEvent event) 
-				{
-				}
-			});
-		}
-		lineStyleButtonMap.get( curLineStyle).setSelection(true);  // set initial state
-
-
-		//  Line Color
-
-		cms = new ColorMatrixSelector(selectLineColorGroup, false, false,
-				28, 92, 18, 22, 28, 80, 4, 8, 5);
-		cms.setColorValue(curLineColor);
-		cms.addListener(new IPropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent event) {
-				curLineColor = cms.getColorValue() ;
-				linePreviewAreaCanvas.redraw();
-				linePreviewAreaCanvas.update();
-			}
-		});
-		return composite;
-	}
-	@Override   
-    protected void configureShell( Shell shell ) {
-        super.configureShell( shell );       
-        shell.setText( "Nsharp Data Display" );
-        
+        curLineProperty = configStore.getLinePropertyMap()
+                .get(availLine.get(0));
+        curLineStyle = curLineProperty.getLineStyle();
+        curLineWidth = curLineProperty.getLineWidth();
+        curLineColor = curLineProperty.getLineColor();
     }
-	@Override
-	public Control createDialogArea(Composite parent) {
-		Composite top;
-		top = (Composite) super.createDialogArea(parent);
 
-		GridLayout mainLayout = new GridLayout(1, true);
-		mainLayout.marginHeight = 1;
-		mainLayout.marginWidth = 1;
-		top.setLayout(mainLayout);
-		
-		Composite lineComp = new Composite(top, SWT.NONE);
-		GridLayout gl = new GridLayout(2, false);
-        gl.horizontalSpacing = 10;
-        lineComp.setLayout(gl);
-        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-        lineComp.setLayoutData(gd);
+    @Override
+    protected Control createDialogArea(Composite parent) {
+        Composite composite = (Composite) super.createDialogArea(parent);
+        composite.setLayout(new GridLayout(2, false));
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        //Label selCmapLbl = new Label( lineComp, SWT.None );
-        //selCmapLbl.setText("Nsharp Trace Lines:");
-		selLineCombo = new Combo( lineComp, SWT.DROP_DOWN );
-        selLineCombo.setItems( availLine.toArray(new String[0] ) );
+        final Color black = composite.getDisplay()
+                .getSystemColor(SWT.COLOR_BLACK);
+        final Color white = composite.getDisplay()
+                .getSystemColor(SWT.COLOR_WHITE);
+
+        selLineCombo = new Combo(composite, SWT.DROP_DOWN);
+        selLineCombo.setItems(availLine.toArray(new String[0]));
         selLineCombo.select(0);
-        
-        selLineCombo.addSelectionListener( new SelectionAdapter() {
-        	public void widgetSelected(SelectionEvent event) {
-        		String seldLine = selLineCombo.getText();
-        		if( seldLine.equals( seldLineName ) ) {
-        			return;
-        		}
-        		
-        		seldLineName = seldLine;
-        		curLineProperty = configStore.getLinePropertyMap().get(seldLineName);
-        		if(curLineProperty == null){
-        			//this only happened when configuration xml does not have this line property
-        			curLineProperty = new NsharpLineProperty();
-        			configStore.getLinePropertyMap().put(seldLineName, curLineProperty);
-        		}
-    			curLineStyle =curLineProperty.getLineStyle();
-    			curLineWidth = curLineProperty.getLineWidth();
-    			curLineColor = curLineProperty.getLineColor();
-    			//curLineName = seldLineName;
-    			linePreviewAreaCanvas.redraw();
-				linePreviewAreaCanvas.update();
-    			currentLineAreaCanvas.redraw();
-				currentLineAreaCanvas.update();
-				cms.setColorValue(curLineColor);
-        	}
+        selLineCombo.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String seldLine = selLineCombo.getText();
+                if (seldLine.equals(selectedLineName)) {
+                    return;
+                }
+
+                selectedLineName = seldLine;
+                curLineProperty = configStore.getLinePropertyMap()
+                        .get(selectedLineName);
+                if (curLineProperty == null) {
+                    // this only happened when configuration xml does not have
+                    // this line property
+                    curLineProperty = new NsharpLineProperty();
+                    configStore.getLinePropertyMap().put(selectedLineName,
+                            curLineProperty);
+                }
+                curLineStyle = curLineProperty.getLineStyle();
+                curLineWidth = curLineProperty.getLineWidth();
+                curLineColor = curLineProperty.getLineColor();
+
+                newLinePreviewCanvas.redraw();
+                currentLinePreviewCanvas.redraw();
+                colorSelector.setColorValue(curLineColor);
+            }
         });
-        Composite currentLineComp = new Composite( lineComp, SWT.NONE );
-        FormLayout layout0 = new FormLayout();
-        currentLineComp.setLayout(layout0);
-        Group currentLineAreaGroup = new Group ( currentLineComp, SWT.SHADOW_NONE );
-		currentLineAreaGroup.setLayout(new FillLayout());
+        selLineCombo.setLayoutData(
+                new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 
-		FormData formData0 = new FormData();
-		formData0.top = new FormAttachment(5,0);
-		formData0.left = new FormAttachment(2,0);
-		formData0.width = 130;
-		formData0.height = 30;
-		currentLineAreaGroup.setLayoutData(formData0);
-		currentLineAreaCanvas = new Canvas(currentLineAreaGroup, SWT.NONE);
+        currentLinePreviewCanvas = new Canvas(composite, SWT.BORDER);
+        currentLinePreviewCanvas.addPaintListener((e) -> {
+            if (curLineCanvasColor != null) {
+                curLineCanvasColor.dispose();
+            }
 
-		final int previewLineXmin =  10;//16;
-		final int previewLineXmax = 120;//180;
-		final int previewLineYctr =  16;
-		final Display display = top.getDisplay();
-		final Color black = display.getSystemColor(SWT.COLOR_BLACK);
-		final Color white = display.getSystemColor(SWT.COLOR_WHITE);
-		currentLineAreaCanvas.addPaintListener(new PaintListener() {
-			public void paintControl(PaintEvent event) {
-				GC gc = event.gc;
-				gc.setLineWidth(curLineWidth);
-				gc.setForeground(new Color(display, curLineColor));
-				currentLineAreaCanvas.setBackground(
-						curLineColor.getHSB()[2] > 0.2 ? black : white);
-				int x1 = previewLineXmin;
-				int x2 = previewLineXmin; 
-				int [] segLengths = styleMap.get(curLineStyle);
-				while (x2 < previewLineXmax)
-				{
-					boolean draw = true;
-					for (int i : segLengths)
-					{	
-						x2 = Math.min(x1 + i, previewLineXmax);
-						if (draw)
-						{
-							gc.drawLine(x1, previewLineYctr, x2, previewLineYctr);
-						}
-						if (x2 >= previewLineXmax)
-						{
-							break;
-						}
-						draw = !draw;
-						x1 = x2;
-					}    				
-				}
-			}
-		});
-		
-		Composite lineEditComp = new Composite( top, SWT.NONE );
-        createDialog(lineEditComp);
-        
-		//top.pack();
-		
-		return null;
-	}
-	@Override
-	public int open() {
-		if ( this.getShell() == null ){
-			this.create();
-		}
-		
-		return super.open();
-	}
-	private void notifyEditor(){
-		NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
-        if (editor != null) {
-        	NsharpResourceHandler rsc = editor.getRscHandler();
-        	//rsc.setWindBarbDistance(windBarbDistance);
-        	rsc.setLinePropertyMap(configStore.getLinePropertyMap());
-        	editor.refresh();
+            GC gc = e.gc;
+            gc.setLineWidth(curLineWidth);
+            currentLinePreviewCanvas.setBackground(
+                    curLineColor.getHSB()[2] > 0.2 ? black : white);
+            curLineCanvasColor = new Color(e.display, curLineColor);
+            gc.setForeground(curLineCanvasColor);
+            newLinePreviewCanvas.setBackground(
+                    curLineColor.getHSB()[2] > 0.2 ? black : white);
+            gc.setLineDash(curLineStyle.getSWTLineStyle());
+
+            Rectangle bounds = ((Canvas) e.widget).getClientArea();
+            int y = bounds.height / 2;
+            gc.drawLine(0, y, bounds.width, y);
+        });
+        currentLinePreviewCanvas.addDisposeListener((e) -> {
+            if (curLineCanvasColor != null) {
+                curLineCanvasColor.dispose();
+            }
+        });
+        GridData layoutData = new GridData(SWT.FILL, SWT.DEFAULT, true, false);
+        layoutData.heightHint = 30;
+        currentLinePreviewCanvas.setLayoutData(layoutData);
+
+        Composite leftControlsComp = new Composite(composite, SWT.NONE);
+        GridLayout layout = new GridLayout();
+        layout.marginHeight = 0;
+        leftControlsComp.setLayout(layout);
+        leftControlsComp
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        newLinePreviewCanvas = new Canvas(leftControlsComp, SWT.BORDER);
+        newLinePreviewCanvas.addPaintListener((e) -> {
+            if (newLineCanvasColor != null) {
+                newLineCanvasColor.dispose();
+            }
+
+            GC gc = e.gc;
+            gc.setLineWidth(curLineWidth);
+            newLineCanvasColor = new Color(e.display, curLineColor);
+            gc.setForeground(newLineCanvasColor);
+            newLinePreviewCanvas.setBackground(
+                    curLineColor.getHSB()[2] > 0.2 ? black : white);
+            gc.setLineDash(curLineStyle.getSWTLineStyle());
+
+            Rectangle bounds = ((Canvas) e.widget).getClientArea();
+            int y = bounds.height / 2;
+            gc.drawLine(0, y, bounds.width, y);
+        });
+        newLinePreviewCanvas.addDisposeListener((e) -> {
+            if (newLineCanvasColor != null) {
+                newLineCanvasColor.dispose();
+            }
+        });
+        layoutData = new GridData(SWT.FILL, SWT.DEFAULT, true, false);
+        layoutData.heightHint = 30;
+        newLinePreviewCanvas.setLayoutData(layoutData);
+
+        Group selectLineWidthGroup = new Group(leftControlsComp, SWT.DEFAULT);
+        selectLineWidthGroup.setText("Width");
+        selectLineWidthGroup.setLayout(new GridLayout(2, true));
+        selectLineWidthGroup
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        Map<Integer, Button> widthButtonMap = new HashMap<>();
+        Integer[] lineWidthButtonSequence = { 1, 3, 2, 4 };
+        for (Integer width : lineWidthButtonSequence) {
+            Button button = new Button(selectLineWidthGroup, SWT.TOGGLE);
+            button.setData(width);
+            button.setToolTipText("Width " + width);
+            Image image = createLineWidthImage(button, width);
+            button.setImage(image);
+
+            button.addDisposeListener((e) -> {
+                image.dispose();
+            });
+
+            button.addSelectionListener(new SelectionAdapter() {
+
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    widthButtonMap.get(curLineWidth).setSelection(false);
+                    curLineWidth = (Integer) e.widget.getData();
+                    newLinePreviewCanvas.redraw();
+                }
+            });
+
+            button.setLayoutData(
+                    new GridData(SWT.CENTER, SWT.DEFAULT, true, false));
+
+            widthButtonMap.put(width, button);
         }
-	}
-	@Override
-	public void createButtonsForButtonBar(Composite parent) {
-		Button appBtn = createButton(parent, IDialogConstants.INTERNAL_ID,
-				"Apply", false);
-		appBtn.addListener( SWT.MouseUp, new Listener() {
-			public void handleEvent(Event event) {    
-				//System.out.println("appBtn listener is called");
-				curLineProperty.setLineColor(curLineColor);
-				curLineProperty.setLineStyle(curLineStyle);
-				curLineProperty.setLineWidth(curLineWidth);
-				currentLineAreaCanvas.redraw();
-				currentLineAreaCanvas.update();
-				//configStore.getLinePropertyMap().put(curLineName, curLineProperty);
-				notifyEditor();
-			}          		            	 	
-		} );
-		Button saveBtn = createButton(parent, IDialogConstants.INTERNAL_ID,
-				"Save", false);
-		saveBtn.addListener( SWT.MouseUp, new Listener() {
-			public void handleEvent(Event event) {    
-				//System.out.println("saveBtn listener is called");
-				curLineProperty.setLineColor(curLineColor);
-				curLineProperty.setLineStyle(curLineStyle);
-				curLineProperty.setLineWidth(curLineWidth);
-				currentLineAreaCanvas.redraw();
-				currentLineAreaCanvas.update();
-				//configStore.getLinePropertyMap().put(curLineName, curLineProperty);
-				notifyEditor();
-				NsharpConfigManager mgr =NsharpConfigManager.getInstance();
-				/* for testing
-				NsharpConfigStore st = configStore;
-				HashMap<String, NsharpLineProperty> linePropertyMap = new HashMap<String, NsharpLineProperty>();
-				for(int i=0; i < NsharpConstants.lineNameArray.length; i++){
-					NsharpLineProperty tempLine = new NsharpLineProperty();
-					tempLine.setLineWidth(1);
-					tempLine.setLineStyle(LineStyle.SOLID);
-					tempLine.setLineColor(new RGB(155,0,220));
-					linePropertyMap.put(NsharpConstants.lineNameArray[i], tempLine);
-				} 
-				st.setLinePropertyMap(linePropertyMap);*/
-				try {
-					mgr.saveConfigStoreToFs(configStore);
-				} catch (VizException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}          		            	 	
-		} );
-		Button closeBtn = createButton(parent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL,
-				true);
-		closeBtn.addListener( SWT.MouseUp, new Listener() {
-			public void handleEvent(Event event) {  
-				close();
-				instance=null;
-				
-			}          		            	 	
-		} );  
-		
-	}
-	
+        widthButtonMap.get(curLineWidth).setSelection(true);
+
+        Group selectLineStyleGroup = new Group(leftControlsComp, SWT.DEFAULT);
+        selectLineStyleGroup.setText("Style");
+        selectLineStyleGroup.setLayout(new GridLayout(2, true));
+        selectLineStyleGroup
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        final Map<LineStyle, Button> lineStyleButtonMap = new EnumMap<>(
+                LineStyle.class);
+        final LineStyle[] lineStyleButtonSequence = { LineStyle.DOTS,
+                LineStyle.LONG_DASHED, LineStyle.SOLID,
+                LineStyle.LONG_DASH_THREE_SHORT_DASHES, LineStyle.SHORT_DASHED,
+                LineStyle.LONG_DASH_DOT, LineStyle.MEDIUM_DASHED,
+                LineStyle.LONG_DASH_THREE_DOTS, LineStyle.LONG_DASH_SHORT_DASH,
+                LineStyle.MEDIUM_DASH_DOT, };
+
+        for (LineStyle style : lineStyleButtonSequence) {
+            Button button = new Button(selectLineStyleGroup, SWT.TOGGLE);
+            button.setData(style);
+            button.setToolTipText(style.name());
+            Image image = createLineStyleImage(button, style);
+            button.setImage(image);
+
+            button.addDisposeListener((e) -> {
+                image.dispose();
+            });
+
+            button.addSelectionListener(new SelectionAdapter() {
+
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    lineStyleButtonMap.get(curLineStyle).setSelection(false);
+                    curLineStyle = (LineStyle) e.widget.getData();
+                    newLinePreviewCanvas.redraw();
+                }
+            });
+
+            button.setLayoutData(
+                    new GridData(SWT.CENTER, SWT.DEFAULT, true, false));
+
+            lineStyleButtonMap.put(style, button);
+        }
+        lineStyleButtonMap.get(curLineStyle).setSelection(true);
+
+        Group selectLineColorGroup = new Group(composite, SWT.DEFAULT);
+        selectLineColorGroup.setText("Color");
+        selectLineColorGroup.setLayout(new GridLayout());
+        selectLineColorGroup
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        colorSelector = new ColorMatrixSelector(selectLineColorGroup, false,
+                false, 28, 92, 18, 22, 4, 8, 5, false);
+        colorSelector.setColorValue(curLineColor);
+        colorSelector.addListener((e) -> {
+            curLineColor = colorSelector.getColorValue();
+            newLinePreviewCanvas.redraw();
+        });
+
+        colorSelector
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+
+        return composite;
+    }
+
+    @Override
+    protected void handleApplyClicked() {
+        applyChanges();
+    }
+
+    @Override
+    protected void handleSaveClicked() {
+        applyChanges();
+        try {
+            mgr.saveConfigStoreToFs(configStore);
+        } catch (VizException e) {
+            statusHandler.error("Unable to save data display settings.");
+        }
+    }
+
+    private void applyChanges() {
+        curLineProperty.setLineColor(curLineColor);
+        curLineProperty.setLineStyle(curLineStyle);
+        curLineProperty.setLineWidth(curLineWidth);
+        currentLinePreviewCanvas.redraw();
+        notifyEditor();
+    }
+
+    private void notifyEditor() {
+        NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
+        if (editor != null) {
+            NsharpResourceHandler rsc = editor.getRscHandler();
+            rsc.setLinePropertyMap(configStore.getLinePropertyMap());
+            editor.refresh();
+        }
+    }
+
+    private Image createLineWidthImage(Button button, int lineWidth) {
+        Point imageBounds = computeButtonSize(button);
+
+        Image image = new Image(button.getDisplay(), imageBounds.x,
+                imageBounds.y);
+        GC gc = new GC(image);
+        Color bgColor = gc.getBackground();
+        gc.fillRectangle(0, 0, imageBounds.x, imageBounds.y);
+        int y = imageBounds.y / 2;
+        gc.setLineWidth(lineWidth);
+        gc.drawLine(0, y, imageBounds.x, y);
+        gc.dispose();
+
+        ImageData imageData = image.getImageData();
+        int transparentPixel = imageData.palette.getPixel(bgColor.getRGB());
+        imageData.transparentPixel = transparentPixel;
+
+        image.dispose();
+
+        return new Image(button.getDisplay(), imageData);
+    }
+
+    private Image createLineStyleImage(Button button, LineStyle style) {
+        Point imageBounds = computeButtonSize(button);
+
+        Image image = new Image(button.getDisplay(), imageBounds.x,
+                imageBounds.y);
+        GC gc = new GC(image);
+        Color bgColor = gc.getBackground();
+        gc.fillRectangle(0, 0, imageBounds.x, imageBounds.y);
+        int y = imageBounds.y / 2;
+        gc.setLineDash(style.getSWTLineStyle());
+        gc.drawLine(0, y, imageBounds.x, y);
+        gc.dispose();
+
+        ImageData imageData = image.getImageData();
+        int transparentPixel = imageData.palette.getPixel(bgColor.getRGB());
+        imageData.transparentPixel = transparentPixel;
+
+        image.dispose();
+
+        return new Image(button.getDisplay(), imageData);
+    }
+
+    private Point computeButtonSize(final Control control) {
+        GC gc = new GC(control);
+        Font f = JFaceResources.getFontRegistry()
+                .get(JFaceResources.DIALOG_FONT);
+        gc.setFont(f);
+        int height = gc.getFontMetrics().getHeight();
+        int width = control.getDisplay().getDPI().x;
+        gc.dispose();
+        return new Point(width, height);
+    }
 }

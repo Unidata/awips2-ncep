@@ -1,25 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.plotdata.rsc;
 
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
-import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.Activator;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.ConditionalColorBar;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.EditPlotModelElementAdvancedDialog;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.PlotModelMngr;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
-import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,10 +43,30 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager.NcPathConstants;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
+import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.Activator;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.ConditionalColorBar;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.advanced.EditPlotModelElementAdvancedDialog;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefn;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefns;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.parameters.PlotParameterDefnsMngr;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.PlotModelMngr;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModel;
+import gov.noaa.nws.ncep.viz.rsc.plotdata.plotModels.elements.PlotModelElement;
+
 /**
  * UI for editing Point data resource attributes.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
@@ -75,15 +75,15 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  * 12/05/2009    217        Greg Hull   broke out from plot manager dialog and reworked.
  * 08/09/2010    291        G. Zhang    add support for more data resources
  * 03/07/2011               Greg Hull   remove duplicate topComposite which created a
- *                                      blank area at top of dialog.  
+ *                                      blank area at top of dialog.
  * 03/31/2011    425        Greg Hull   Refactor and created PlotModelElemCenterButton
- * 07/13/2011    264        Archana     Updated initWidgets() to sort the names of the plot  
+ * 07/13/2011    264        Archana     Updated initWidgets() to sort the names of the plot
  *                                      parameters before populating the list.
  * 08/10/2011    450        Greg Hull   use PlotParameterDefns instead of PlotParameterDefnsMngr
- * 11/01/2011    482        Greg Hull   add tooTips, move font/size/style 
+ * 11/01/2011    482        Greg Hull   add tooTips, move font/size/style
  * 11/03/2011    482        Greg Hull   add unimplemented Clear and Reset, move Text Attributes
  * 04/16/2012    615        S. Gurung   Adjusted size for PlotModelElemButton
- * 05/02/2012    778        Q. Zhou     Changed scale from integer to double  
+ * 05/02/2012    778        Q. Zhou     Changed scale from integer to double
  * 05/29/2012    654        S. Gurung   Added option "Apply to All" to apply text changes to all parameters;
  *                                      Added additional options to textFontOptions and textStyleOptions;
  *                                      Fixed the issue of Sky Coverage parameters not appearing in the Sky Coverage drop-down list.
@@ -96,7 +96,7 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  * 11/17/2015  R9579        B. Hebbard  Add marker type and symbol line width selection
  * 12/17/2015  R9579        B. Hebbard  Make sure PTND (combined text & symbol) enables symbol controls
  * 11/05/2015   5070        randerso    Adjust font sizes for dpi scaling
- * 
+ *
  * 03/29/2016  R7567        A. Su       Disabled Advanced button when empty plot model element is selected.
  *                                      Fixed the title of Edit Advanced Options dialog for center plot model element.
  *                                      Disabled and enabled Advanced button at right moments to
@@ -107,8 +107,9 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
  *                                      Enabled Clear and Reset buttons to close its associated Advanced Options Dialogs.
  *                                      Fixed to show initial rainbow color for center element of non-SKYC and non-BRBK.
  * 11/17/2016 R26156        J. Huber    Cleaned up parameter button tooltips.
+ * Aug 22, 2018 #7081       dgilling    Use refactor ColorMatrixSelector.
  * </pre>
- * 
+ *
  * @author ghull
  * @version 1.0
  */
@@ -167,9 +168,9 @@ public class EditPlotModelComposite extends Composite {
             "UC", "UR", "ML", ELEMENT_POSITION_MIDDLE_CENTER, "MR", "LL", "LC",
             "LR", "BC" };
 
-    private HashMap<String, PlotModelElemButton> plotModelElementsUIMap = new HashMap<String, PlotModelElemButton>();
+    private HashMap<String, PlotModelElemButton> plotModelElementsUIMap = new HashMap<>();
 
-    private HashMap<String, PlotModelElemButton> origPltMdlElmntsUIMap = new HashMap<String, PlotModelElemButton>();
+    private HashMap<String, PlotModelElemButton> origPltMdlElmntsUIMap = new HashMap<>();
 
     private PlotParameterDefns plotParamDefns = null;
 
@@ -227,7 +228,7 @@ public class EditPlotModelComposite extends Composite {
      * This set records the shells (windows) of associated Edit Advanced Options
      * dialogs that are being edited.
      */
-    private Set<Shell> childrenList = new HashSet<Shell>();
+    private Set<Shell> childrenList = new HashSet<>();
 
     /**
      * The marginal offset of x coordinate for Edit Advanced Options dialog.
@@ -281,7 +282,7 @@ public class EditPlotModelComposite extends Composite {
 
         createPlotModelGuiElements();
 
-        origPltMdlElmntsUIMap = new HashMap<String, PlotModelElemButton>(
+        origPltMdlElmntsUIMap = new HashMap<>(
                 plotModelElementsUIMap);
 
         createTextAttrControls();
@@ -310,6 +311,7 @@ public class EditPlotModelComposite extends Composite {
         textSizeCombo.setEnabled(false); // wait until a plot element is
                                          // selected.
         textSizeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement()
@@ -326,6 +328,7 @@ public class EditPlotModelComposite extends Composite {
         textFontCombo = new Combo(textAttrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
         textFontCombo.setEnabled(false);
         textFontCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement()
@@ -343,6 +346,7 @@ public class EditPlotModelComposite extends Composite {
         textStyleCombo = new Combo(textAttrGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
         textStyleCombo.setEnabled(false);
         textStyleCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
                     seldPlotModelElemButton.getPlotModelElement()
@@ -359,6 +363,7 @@ public class EditPlotModelComposite extends Composite {
         applyToAllBtn.setText("Apply to All");
         applyToAllBtn.setToolTipText("Apply changes to all text parameters");
         applyToAllBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (applyToAllBtn.getSelection()) {
                     applyTextChangesToAllParameters();
@@ -398,6 +403,7 @@ public class EditPlotModelComposite extends Composite {
         comboSky.add("None", 0);
 
         comboSky.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 String name = comboSky.getItem(comboSky.getSelectionIndex());
 
@@ -424,6 +430,7 @@ public class EditPlotModelComposite extends Composite {
         sepe.setText("          ");
 
         comboBrbk.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 String name = comboBrbk.getItem(comboBrbk.getSelectionIndex());
 
@@ -480,6 +487,7 @@ public class EditPlotModelComposite extends Composite {
                  * A new marker type has been chosen off the pop-up menu:
                  * Remember it AND set its icon back on the main button.
                  */
+                @Override
                 public void handleEvent(Event event) {
                     selectedMarkerType = (MarkerType) event.widget.getData();
                     if (seldPlotModelElemButton != null) {
@@ -496,6 +504,7 @@ public class EditPlotModelComposite extends Composite {
         }
         markerSelectToolItem.addListener(SWT.Selection, new Listener() {
             /* Main button clicked: Pop up the menu showing all the symbols. */
+            @Override
             public void handleEvent(Event event) {
                 Rectangle bounds = markerSelectToolItem.getBounds();
                 Point point = markerSelectToolBar.toDisplay(bounds.x,
@@ -563,6 +572,7 @@ public class EditPlotModelComposite extends Composite {
         symbolSizeScale.setEnabled(false); // wait until a plot element is
                                            // selected
         symbolSizeScale.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 double selection = symbolSizeScale.getSelection();
 
@@ -593,6 +603,7 @@ public class EditPlotModelComposite extends Composite {
         symbolWidthScale.setEnabled(false); // wait until a plot element is
                                             // selected
         symbolWidthScale.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 double selection = symbolWidthScale.getSelection();
 
@@ -607,11 +618,13 @@ public class EditPlotModelComposite extends Composite {
         // Color selector
         Group selColorGrp = new Group(comp, SWT.SHADOW_NONE);
         selColorGrp.setText("Color");
+        selColorGrp.setLayout(new GridLayout());
 
         cms = new ColorMatrixSelector(selColorGrp, false, true, 22, 88, 18, 22,
-                28, 86, 0, 4, 5);
+                0, 4, 5);
         cms.setColorValue(new RGB(0, 255, 0));
         cms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 if (seldPlotModelElemButton != null) {
                     RGB rgb = cms.getColorValue();
@@ -648,10 +661,12 @@ public class EditPlotModelComposite extends Composite {
         clearPlotModelBtn.setLayoutData(gd);
         clearPlotModelBtn.setEnabled(true);
         clearPlotModelBtn.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 clearPlotModel();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent event) {
             }
         });
@@ -682,10 +697,12 @@ public class EditPlotModelComposite extends Composite {
         resetPlotModelBtn.setLayoutData(gd);
         resetPlotModelBtn.setEnabled(true);
         resetPlotModelBtn.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 resetPlotModel();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent event) {
             }
         });
@@ -753,12 +770,14 @@ public class EditPlotModelComposite extends Composite {
         gd.horizontalAlignment = GridData.BEGINNING;
         gd.grabExcessHorizontalSpace = true;
         advancedBtn.setLayoutData(gd);
-        if (seldPlotModelElemButton == null)
+        if (seldPlotModelElemButton == null) {
             advancedBtn.setEnabled(false);
-        else if (!seldPlotModelElemButton.isParamNameSelected())
+        } else if (!seldPlotModelElemButton.isParamNameSelected()) {
             advancedBtn.setEnabled(false);
+        }
 
         advancedBtn.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent event) {
                 if (seldPlotModelElemButton != null) {
                     advancedBtn.setEnabled(false);
@@ -766,6 +785,7 @@ public class EditPlotModelComposite extends Composite {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent event) {
             }
         });
@@ -923,10 +943,11 @@ public class EditPlotModelComposite extends Composite {
         }
 
         public Double getSymbolSize() {
-            if (pltMdlElmt.getParamName() != null)
+            if (pltMdlElmt.getParamName() != null) {
                 return pltMdlElmt.getSymbolSize();
-            else
+            } else {
                 return 1.0;
+            }
         }
 
         public void setSymbolWidth(Double width) {
@@ -934,10 +955,11 @@ public class EditPlotModelComposite extends Composite {
         }
 
         public Double getSymbolWidth() {
-            if (pltMdlElmt.getParamName() != null)
+            if (pltMdlElmt.getParamName() != null) {
                 return pltMdlElmt.getSymbolWidth();
-            else
+            } else {
                 return 1.0;
+            }
         }
 
         public void setMarkerType(MarkerType markerType) {
@@ -945,10 +967,11 @@ public class EditPlotModelComposite extends Composite {
         }
 
         public MarkerType getMarkerType() {
-            if (pltMdlElmt.getParamName().equals(MARK_PARAMETER))
+            if (pltMdlElmt.getParamName().equals(MARK_PARAMETER)) {
                 return pltMdlElmt.getMarkerType();
-            else
+            } else {
                 return MarkerType.BOX;
+            }
         }
 
         public String getButtonLabel() {
@@ -1339,7 +1362,7 @@ public class EditPlotModelComposite extends Composite {
         // Remove "P03X" from the menu ( the dummy XML it comes from in
         // plotParameters_obs.xml is needed to make the code run without a
         // a significant amount of reworking
-        ArrayList<String> parameterNames = new ArrayList<String>();
+        ArrayList<String> parameterNames = new ArrayList<>();
         Collections.addAll(parameterNames, strArray);
         parameterNames.remove("P03X");
 
@@ -1755,12 +1778,13 @@ public class EditPlotModelComposite extends Composite {
 
                 // Not all plot models have a MIDDLE_CENTER button with sky &
                 // wind PMEs
-                if (oskypme != null)
+                if (oskypme != null) {
                     tpme = oskypme;
-                else if (owindpme != null)
+                } else if (owindpme != null) {
                     tpme = owindpme;
-                else
+                } else {
                     tpme = opme;
+                }
 
                 red = tpme.getColor().getRed();
                 green = tpme.getColor().getGreen();
@@ -1887,7 +1911,7 @@ public class EditPlotModelComposite extends Composite {
     }
 
     /**
-     * 
+     *
      */
     private boolean isValidSelectedPlotModelElement() {
         return !(seldPlotModelElemButton == null
@@ -1901,12 +1925,12 @@ public class EditPlotModelComposite extends Composite {
      * their Edit Advanced Options dialogs.
      */
     public void clearEditedList() {
-        plotModelElementsBeingEdited = new HashSet<String>();
+        plotModelElementsBeingEdited = new HashSet<>();
 
         for (Shell child : childrenList) {
             child.dispose();
         }
-        childrenList = new HashSet<Shell>();
+        childrenList = new HashSet<>();
     }
 
     /**
@@ -1915,7 +1939,7 @@ public class EditPlotModelComposite extends Composite {
     public static void clearAdvancedOptionsDialogPositionOffsetCount() {
         offsetCount = 0;
     }
-    
+
     private String getToolTipText (PlotParameterDefn paramDefn){
         if (paramDefn == null) {
             return "";
@@ -1927,7 +1951,7 @@ public class EditPlotModelComposite extends Composite {
                     String[] derivedParameters = paramDefn.getDeriveParams();
                     String derivedList = "";
                     if (derivedParameters.length > 1){
-                        for (int i = 0; i < derivedParameters.length; i++){                                
+                        for (int i = 0; i < derivedParameters.length; i++){
                             derivedList = derivedList + derivedParameters[i] + ", ";
                         }
                         derivedList = derivedList.replaceAll(", $", "");

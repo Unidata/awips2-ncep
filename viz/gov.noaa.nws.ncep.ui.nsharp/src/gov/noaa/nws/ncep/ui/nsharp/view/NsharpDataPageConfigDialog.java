@@ -1,123 +1,96 @@
-package gov.noaa.nws.ncep.ui.nsharp.view;
 /**
- * 
- * NsharpDataPageConfigDialog
- * 
- * 
- * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
- * 
- * <pre>
- * SOFTWARE HISTORY
- * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 05/23/2010               Chin Chen   Initial coding
- * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
+ * This software was developed and / or modified by Raytheon Company,
+ * pursuant to Contract DG133W-05-CQ-1067 with the US Government.
  *
- * </pre>
- * 
- * @author Chin Chen
- * @version 1.0
- */
+ * U.S. EXPORT CONTROLLED TECHNICAL DATA
+ * This software product contains export-restricted data whose
+ * export/transfer/disclosure is restricted by U.S. law. Dissemination
+ * to non-U.S. persons whether in the United States or abroad requires
+ * an export license or other authorization.
+ *
+ * Contractor Name:        Raytheon Company
+ * Contractor Address:     6825 Pine Street, Suite 340
+ *                         Mail Stop B8
+ *                         Omaha, NE 68106
+ *                         402.291.0100
+ *
+ * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
+ * further licensing information.
+ **/
+package gov.noaa.nws.ncep.ui.nsharp.view;
 
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpDataPageProperty;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
-
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
-public class NsharpDataPageConfigDialog extends Dialog {
-    private MessageBox mb;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpDataPageProperty;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 
-    private NsharpConfigStore configStore = null;
+/**
+ * NsharpDataPageConfigDialog
+ *
+ *
+ * This code has been developed by the NCEP-SIB for use in the AWIPS2 system.
+ *
+ * <pre>
+ *
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * 05/23/2010               Chin Chen   Initial coding
+ * 08/10/2015    RM#9396    Chin Chen   implement new OPC pane configuration
+ * Aug 20, 2018  #7081      dgilling    Refactor based on CaveJFACEDialog.
+ *
+ * </pre>
+ *
+ * @author Chin Chen
+ */
 
-    private NsharpConfigManager mgr;
+public class NsharpDataPageConfigDialog extends AbstractNsharpConfigDlg {
 
     private NsharpDataPageProperty dpp;
 
     private NsharpDataPageProperty editingDpp;
 
-    private String paneConfigurationName; // d2dlite
+    // element 0 is always empty--avoids +1/-1 index math in this code
+    private int[] pageOrderNumberArray;
 
-    private Group btnGp;
+    // element 0 is always empty--avoids +1/-1 index math in this code
+    private int[] editingOrderNumberArray;
 
-    private static NsharpDataPageConfigDialog instance = null;
+    private String paneConfigurationName;
 
-    // this array is used to store page display "order"
-    private int[] pageOrderNumberArray = new int[NsharpConstants.PAGE_MAX_NUMBER + 1];// element
-                                                                                      // 0
-                                                                                      // is
-                                                                                      // dummy
-                                                                                      // one
+    private int numberPagePerDisplay;
 
-    private int[] editingOrderNumberArray = new int[NsharpConstants.PAGE_MAX_NUMBER + 1];// element
-                                                                                         // 0
-                                                                                         // is
-                                                                                         // dummy
-                                                                                         // one
+    private Text[] currentOrderTextArray;
 
-    private int lblWidth = 200;
+    private Text[] newOrderTextArray;
 
-    private int lblHeight = 20;
+    public NsharpDataPageConfigDialog(Shell parentShell) {
+        super(parentShell, "Data Page Display Configuration");
 
-    private int textWidth = 80;
-
-    private int numberPagePerDisplay = 2;
-
-    private Label curLbl;
-
-    private Text newText;
-
-    private Text[] newOrderTextArray = new Text[NsharpConstants.PAGE_MAX_NUMBER + 1];// element
-                                                                                     // 0
-                                                                                     // is
-                                                                                     // dummy
-                                                                                     // one
-
-    private Label[] curOrderLblArray = new Label[NsharpConstants.PAGE_MAX_NUMBER + 1];// element
-                                                                                      // 0
-                                                                                      // is
-                                                                                      // dummy
-                                                                                      // one
-
-    private Label[] pageNameLblArray = new Label[NsharpConstants.PAGE_MAX_NUMBER + 1];// element
-                                                                                      // 0
-                                                                                      // is
-                                                                                      // dummy
-                                                                                      // one
-
-    public static NsharpDataPageConfigDialog getInstance(Shell parentShell) {
-        if (instance == null)
-            instance = new NsharpDataPageConfigDialog(parentShell);
-        return instance;
-    }
-
-    protected NsharpDataPageConfigDialog(Shell parentShell) {
-        super(parentShell);
-        instance = this;
-        mgr = NsharpConfigManager.getInstance();
-        configStore = mgr.retrieveNsharpConfigStoreFromFs();
         dpp = configStore.getDataPageProperty();
         paneConfigurationName = configStore.getGraphProperty()
                 .getPaneConfigurationName();
+
+        pageOrderNumberArray = new int[NsharpConstants.PAGE_MAX_NUMBER + 1];
         pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY1] = dpp
                 .getSummary1Page();
         pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY2] = dpp
@@ -140,99 +113,127 @@ public class NsharpDataPageConfigDialog extends Dialog {
                 .getSeverePotentialPage();
         pageOrderNumberArray[NsharpConstants.PAGE_D2DLITE] = dpp
                 .getD2dLitePage(); // d2dlite
-        pageOrderNumberArray[NsharpConstants.PAGE_FUTURE] = dpp.getFuturePage(); // d2dlite
+        // d2dlite
+        pageOrderNumberArray[NsharpConstants.PAGE_FUTURE] = dpp.getFuturePage();
+
         editingOrderNumberArray = pageOrderNumberArray.clone();
+
         numberPagePerDisplay = dpp.getNumberPagePerDisplay();
-        mb = new MessageBox(parentShell, SWT.ICON_WARNING | SWT.OK);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets
-     * .Shell)
-     */
-    @Override
-    protected void configureShell(Shell shell) {
-        super.configureShell(shell);
-        shell.setText("Data Page Display Configuration");
-
     }
 
     @Override
-    public int open() {
-        if (this.getShell() == null) {
-            this.create();
+    protected Control createDialogArea(Composite parent) {
+        Composite composite = (Composite) super.createDialogArea(parent);
+        composite.setLayout(new GridLayout());
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        Group pageGroup = new Group(composite, SWT.DEFAULT);
+        pageGroup.setText("number of page per display");
+        pageGroup.setLayout(new GridLayout());
+        pageGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        Button onePageBtn = new Button(pageGroup, SWT.RADIO);
+        onePageBtn.setText("1");
+        onePageBtn.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                numberPagePerDisplay = 1;
+            }
+        });
+
+        Button twoPageBtn = new Button(pageGroup, SWT.RADIO);
+        twoPageBtn.setText("2");
+        twoPageBtn.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                numberPagePerDisplay = 2;
+            }
+        });
+
+        if (numberPagePerDisplay == 1) {
+            onePageBtn.setSelection(true);
+        } else {
+            twoPageBtn.setSelection(true);
         }
-        this.getShell().setLocation(
-                this.getShell().getParent().getLocation().x + 1100,
-                this.getShell().getParent().getLocation().y + 200);
-        mgr = NsharpConfigManager.getInstance();
-        configStore = mgr.retrieveNsharpConfigStoreFromFs();
-        dpp = configStore.getDataPageProperty();
-        paneConfigurationName = configStore.getGraphProperty()
-                .getPaneConfigurationName();
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
-        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) 
-            btnGp.setVisible(false);
-        else
-            btnGp.setVisible(true);
-        return super.open();
 
-    }
+        if (NsharpConstants.PANE_LITE_D2D_CFG_STR.equals(paneConfigurationName)
+                || NsharpConstants.PANE_OPC_CFG_STR
+                        .equals(paneConfigurationName)) {
+            pageGroup.setVisible(false);
+        }
 
-    @Override
-    public void createButtonsForButtonBar(Composite parent) {
-        // create OK button but using Apply label for applying user entered data
-        // Chin note: when "apply" button is selected or Return key is entered,
-        // okPressed() will be called. So, handle event at one place, ie.e at
-        // okPressed().
-        createButton(parent, IDialogConstants.OK_ID, "Apply", true);
+        Composite fakeTableComp = new Composite(composite, SWT.BORDER);
+        GridLayout layout = new GridLayout(3, false);
+        layout.verticalSpacing = 0;
+        fakeTableComp.setLayout(layout);
+        fakeTableComp
+                .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        Button saveBtn = createButton(parent, IDialogConstants.INTERNAL_ID,
-                "Save", false);
-        saveBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                // System.out.println("save listener is called, also apply changes");
-                if (sanityCheck() == false) {
-                    //System.out.println("sanity check failed");
-                    return;
+        Label nameLbl = new Label(fakeTableComp, SWT.BORDER);
+        nameLbl.setText("Page Name");
+        nameLbl.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+
+        Label curOrderLbl = new Label(fakeTableComp, SWT.BORDER);
+        curOrderLbl.setText("Current");
+        curOrderLbl.setLayoutData(
+                new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+
+        Label newOrderLbl = new Label(fakeTableComp, SWT.BORDER);
+        newOrderLbl.setText("New Order");
+        newOrderLbl.setLayoutData(
+                new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+
+        currentOrderTextArray = new Text[NsharpConstants.PAGE_MAX_NUMBER + 1];
+        newOrderTextArray = new Text[NsharpConstants.PAGE_MAX_NUMBER + 1];
+        for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
+            Label pageNameLbl = new Label(fakeTableComp, SWT.BORDER);
+            pageNameLbl.setText(NsharpConstants.PAGE_NAME_ARRAY[i]);
+            pageNameLbl.setLayoutData(
+                    new GridData(SWT.FILL, SWT.CENTER, true, true));
+
+            currentOrderTextArray[i] = new Text(fakeTableComp,
+                    SWT.BORDER | SWT.READ_ONLY);
+            Text currentOrderText = currentOrderTextArray[i];
+            currentOrderText.setText(Integer.toString(pageOrderNumberArray[i]));
+            Color disabledColor = currentOrderText.getDisplay()
+                    .getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW);
+            currentOrderText.setBackground(disabledColor);
+            currentOrderText.setLayoutData(
+                    new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+
+            newOrderTextArray[i] = new Text(fakeTableComp, SWT.BORDER);
+            Text newOrderText = newOrderTextArray[i];
+            newOrderText.setText(Integer.toString(pageOrderNumberArray[i]));
+            // to make sure user enter digits only
+            newOrderText.addVerifyListener((e) -> {
+                /*
+                 * Chin note: when "Delete", "Backspace" entered, this handler
+                 * will be called, but its chars.length = 0
+                 */
+                String string = e.text;
+
+                if ((string.length() == 1) && (newOrderText != null)) {
+                    if ('-' == string.charAt(0)) {
+                        String textStr = newOrderText.getText();
+                        if ((textStr != null) && (textStr.length() >= 1)
+                                && (textStr.contains("-"))) {
+                            e.doit = false;
+                            return;
+                        }
+                    } else if (('0' > string.charAt(0))
+                            || ('9' < string.charAt(0))) {
+                        e.doit = false;
+                        return;
+                    }
                 }
-                applyChange();
-                dpp.setSummary1Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY1]);
-                dpp.setSummary2Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY2]);
-                dpp.setParcelDataPage(pageOrderNumberArray[NsharpConstants.PAGE_PARCEL_DATA]);
-                dpp.setThermodynamicDataPage(pageOrderNumberArray[NsharpConstants.PAGE_THERMODYNAMIC_DATA]);
-                dpp.setOpcDataPage(pageOrderNumberArray[NsharpConstants.PAGE_OPC_DATA]);
-                dpp.setMixingHeightPage(pageOrderNumberArray[NsharpConstants.PAGE_MIXING_HEIGHT]);
-                dpp.setStormRelativePage(pageOrderNumberArray[NsharpConstants.PAGE_STORM_RELATIVE]);
-                dpp.setMeanWindPage(pageOrderNumberArray[NsharpConstants.PAGE_MEAN_WIND]);
-                dpp.setConvectiveInitiationPage(pageOrderNumberArray[NsharpConstants.PAGE_CONVECTIVE_INITIATION]);
-                dpp.setSeverePotentialPage(pageOrderNumberArray[NsharpConstants.PAGE_SEVERE_POTENTIAL]);
-                dpp.setD2dLitePage(pageOrderNumberArray[NsharpConstants.PAGE_D2DLITE]);// d2dlite
-                dpp.setFuturePage(pageOrderNumberArray[NsharpConstants.PAGE_FUTURE]);// d2dlite
-                dpp.setNumberPagePerDisplay(numberPagePerDisplay);
-                try {
-                    // save to xml
-                    mgr.saveConfigStoreToFs(configStore);
-                } catch (VizException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+            });
+            newOrderText.setLayoutData(
+                    new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+        }
 
-            }
-        });
-
-        Button canBtn = createButton(parent, IDialogConstants.CLOSE_ID,
-                IDialogConstants.CLOSE_LABEL, false);
-        canBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                // System.out.println("close listener is called");
-                close();
-            }
-        });
+        return composite;
     }
 
     /*
@@ -244,13 +245,12 @@ public class NsharpDataPageConfigDialog extends Dialog {
             String textStr = newOrderTextArray[i].getText();
             if ((textStr != null) && !(textStr.isEmpty())) {
                 if (!textStr.contains("-") || textStr.length() > 1) {
-                    int pnum = Integer.decode(textStr);
-                    if (pnum >= 1 && pnum <= NsharpConstants.PAGE_MAX_NUMBER)
+                    int pnum = Integer.valueOf(textStr);
+                    if (pnum >= 1 && pnum <= NsharpConstants.PAGE_MAX_NUMBER) {
                         editingOrderNumberArray[i] = pnum;
-                    else {
-                        //System.out.println("wrong order =" + pnum);
-                        mb.setMessage("Wrong Configuration! Order number should be within [1-12]");
-                        mb.open();
+                    } else {
+                        MessageDialog.openWarning(getShell(), StringUtils.EMPTY,
+                                "Wrong Configuration! Order number should be within [1-12]");
                         return false;
                     }
                 }
@@ -260,8 +260,8 @@ public class NsharpDataPageConfigDialog extends Dialog {
             for (int j = 1; j < NsharpConstants.PAGE_MAX_NUMBER; j++) {
                 if ((i != j)
                         && editingOrderNumberArray[i] == editingOrderNumberArray[j]) {
-                    mb.setMessage("Wrong Configuration! Multiple pages with same order.");
-                    mb.open();
+                    MessageDialog.openWarning(getShell(), StringUtils.EMPTY,
+                            "Wrong Configuration! Multiple pages with same order.");
                     return false;
                 }
             }
@@ -272,191 +272,74 @@ public class NsharpDataPageConfigDialog extends Dialog {
     private void applyChange() {
         pageOrderNumberArray = editingOrderNumberArray.clone();
         for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
-            curOrderLblArray[i].setText(Integer
-                    .toString(pageOrderNumberArray[i]));
+            currentOrderTextArray[i]
+                    .setText(Integer.toString(pageOrderNumberArray[i]));
         }
         NsharpEditor editor = NsharpEditor.getActiveNsharpEditor();
         if (editor != null) {
             NsharpResourceHandler rsc = editor.getRscHandler();
             editingDpp = new NsharpDataPageProperty();
-            editingDpp
-                    .setSummary1Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY1]);
-            editingDpp
-                    .setSummary2Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY2]);
-            editingDpp
-                    .setParcelDataPage(pageOrderNumberArray[NsharpConstants.PAGE_PARCEL_DATA]);
-            editingDpp
-                    .setThermodynamicDataPage(pageOrderNumberArray[NsharpConstants.PAGE_THERMODYNAMIC_DATA]);
-            editingDpp
-                    .setOpcDataPage(pageOrderNumberArray[NsharpConstants.PAGE_OPC_DATA]);
-            editingDpp
-                    .setMixingHeightPage(pageOrderNumberArray[NsharpConstants.PAGE_MIXING_HEIGHT]);
-            editingDpp
-                    .setStormRelativePage(pageOrderNumberArray[NsharpConstants.PAGE_STORM_RELATIVE]);
-            editingDpp
-                    .setMeanWindPage(pageOrderNumberArray[NsharpConstants.PAGE_MEAN_WIND]);
-            editingDpp
-                    .setConvectiveInitiationPage(pageOrderNumberArray[NsharpConstants.PAGE_CONVECTIVE_INITIATION]);
-            editingDpp
-                    .setSeverePotentialPage(pageOrderNumberArray[NsharpConstants.PAGE_SEVERE_POTENTIAL]);
-            editingDpp
-                    .setD2dLitePage(pageOrderNumberArray[NsharpConstants.PAGE_D2DLITE]); // d2dlite
-            editingDpp
-                    .setFuturePage(pageOrderNumberArray[NsharpConstants.PAGE_FUTURE]); // d2dlite
+            editingDpp.setSummary1Page(
+                    pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY1]);
+            editingDpp.setSummary2Page(
+                    pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY2]);
+            editingDpp.setParcelDataPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_PARCEL_DATA]);
+            editingDpp.setThermodynamicDataPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_THERMODYNAMIC_DATA]);
+            editingDpp.setOpcDataPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_OPC_DATA]);
+            editingDpp.setMixingHeightPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_MIXING_HEIGHT]);
+            editingDpp.setStormRelativePage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_STORM_RELATIVE]);
+            editingDpp.setMeanWindPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_MEAN_WIND]);
+            editingDpp.setConvectiveInitiationPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_CONVECTIVE_INITIATION]);
+            editingDpp.setSeverePotentialPage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_SEVERE_POTENTIAL]);
+            editingDpp.setD2dLitePage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_D2DLITE]); // d2dlite
+            editingDpp.setFuturePage(
+                    pageOrderNumberArray[NsharpConstants.PAGE_FUTURE]); // d2dlite
             editingDpp.setNumberPagePerDisplay(numberPagePerDisplay);
             rsc.setDataPageProperty(editingDpp);
             editor.refresh();
         }
     }
 
-    /*
-     * private void setDisplay(){ int pageIndex = 0; for(int orderNum=1;
-     * orderNum <= NsharpConstants.PAGE_MAX_NUMBER; orderNum++){ for(int j=1; j
-     * <= NsharpConstants.PAGE_MAX_NUMBER; j++){ //find the page with order
-     * number equal to orderNum if(orderNum == pageOrderNumberArray[j]){
-     * pageIndex = j; break; } }
-     * curOrderLblArray[orderNum].setText(Integer.toString
-     * (pageOrderNumberArray[pageIndex]));
-     * newOrderTextArray[orderNum].setText(Integer
-     * .toString(pageOrderNumberArray[pageIndex]));
-     * pageNameLblArray[orderNum].setText
-     * (NsharpConstants.PAGE_NAME_ARRAY[pageIndex]); } }
-     */
     @Override
-    public void okPressed() {
-        // "Enter" key is pressed, or "Apply" button is pressed.
-        // Chin: handle user entered configuration, sanity checking and apply
-        // its changes.
-        // System.out.println("CR is pressed");
-        setReturnCode(OK);
+    protected void handleApplyClicked() {
+        if (sanityCheck()) {
+            applyChange();
+        }
+    }
+
+    @Override
+    protected void handleSaveClicked() {
         if (sanityCheck() == false) {
-            //System.out.println("sanity check failed");
-            return;
-        }
-        applyChange();
-    }
-
-    @Override
-    protected Control createDialogArea(Composite parent) {
-        Composite top;
-        top = (Composite) super.createDialogArea(parent);
-        // Create the main layout for the shell.
-        GridLayout mainLayout = new GridLayout(1, false);
-        mainLayout.marginHeight = 3;
-        mainLayout.marginWidth = 3;
-        top.setLayout(mainLayout);
-
-        btnGp = new Group(top, SWT.SHADOW_ETCHED_IN);
-        btnGp.setText("number of page per display");
-        if (paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
-        		paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR)) 
-            btnGp.setVisible(false);
-
-        Button oneBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
-        oneBtn.setText("1");
-        oneBtn.setEnabled(true);
-        oneBtn.setBounds(btnGp.getBounds().x + NsharpConstants.btnGapX,
-                btnGp.getBounds().y + NsharpConstants.labelGap,
-                NsharpConstants.btnWidth, NsharpConstants.btnHeight);
-        // oneBtn.setFont(newFont);
-        oneBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                numberPagePerDisplay = 1;
-                // System.out.println("new obvSnd dialog uair btn");
-            }
-        });
-
-        Button twoBtn = new Button(btnGp, SWT.RADIO | SWT.BORDER);
-        twoBtn.setText("2");
-        twoBtn.setEnabled(true);
-        twoBtn.setBounds(btnGp.getBounds().x + NsharpConstants.btnGapX,
-                oneBtn.getBounds().y + oneBtn.getBounds().height
-                        + NsharpConstants.btnGapY, NsharpConstants.btnWidth,
-                NsharpConstants.btnHeight);
-        // twoBtn.setFont(newFont);
-        twoBtn.addListener(SWT.MouseUp, new Listener() {
-            public void handleEvent(Event event) {
-                numberPagePerDisplay = 2;
-            }
-        });
-        if (numberPagePerDisplay == 1)
-            oneBtn.setSelection(true);
-        else
-            twoBtn.setSelection(true);
-        Group configGp = new Group(top, SWT.SHADOW_ETCHED_IN
-                | SWT.NO_RADIO_GROUP);
-        Label nameLbl = new Label(configGp, SWT.BORDER);
-        nameLbl.setText(" Page Name");
-        nameLbl.setBounds(configGp.getBounds().x, configGp.getBounds().y,
-                lblWidth, lblHeight);
-        Label curOrderLbl = new Label(configGp, SWT.BORDER);
-        curOrderLbl.setText("Current");
-        curOrderLbl.setBounds(
-                nameLbl.getBounds().x + nameLbl.getBounds().width,
-                nameLbl.getBounds().y, textWidth, lblHeight);
-        Label newOrderLbl = new Label(configGp, SWT.BORDER);
-        // newOrderLbl.setText(Integer.toString(summary1Page));
-        newOrderLbl.setBounds(
-                curOrderLbl.getBounds().x + curOrderLbl.getBounds().width,
-                nameLbl.getBounds().y, textWidth, lblHeight);
-        newOrderLbl.setText("New Order");
-        Label prevLbl = nameLbl;
-        Label pageLbl;
-        for (int i = 1; i <= NsharpConstants.PAGE_MAX_NUMBER; i++) {
-            pageLbl = pageNameLblArray[i] = new Label(configGp, SWT.BORDER);
-            pageLbl.setText(NsharpConstants.PAGE_NAME_ARRAY[i]);
-            pageLbl.setBounds(configGp.getBounds().x, prevLbl.getBounds().y
-                    + lblHeight, lblWidth, lblHeight);
-            curLbl = curOrderLblArray[i] = new Label(configGp, SWT.BORDER);
-            curLbl.setText(Integer.toString(pageOrderNumberArray[i]));
-            curLbl.setBounds(pageLbl.getBounds().x + pageLbl.getBounds().width,
-                    pageLbl.getBounds().y, textWidth, lblHeight);
-            newText = newOrderTextArray[i] = new Text(configGp, SWT.BORDER
-                    | SWT.SINGLE);
-            newText.setBounds(curLbl.getBounds().x + curLbl.getBounds().width,
-                    pageLbl.getBounds().y, textWidth, lblHeight);
-            newText.setEditable(true);
-            newText.setText(Integer.toString(pageOrderNumberArray[i]));
-            // to make sure user enter digits only
-            newText.addListener(SWT.Verify, new EditListener(newText));
-            prevLbl = pageLbl;
-        }
-        return top;
-    }
-
-    public class EditListener implements Listener {
-        Text newOrderText;
-
-        public void handleEvent(Event e) {
-            String string = e.text;
-            char[] chars = new char[string.length()];
-            string.getChars(0, chars.length, chars, 0);
-            // System.out.println("entered s="+ string);
-            // Chin note: when "Delete", "Backspace" entered, this handler will
-            // be called, but
-            // its chars.length = 0
-            if (chars.length == 1 && newOrderText != null) {
-                if (chars[0] == '-') {
-                    // if "-" is not first char
-                    String textStr = newOrderText.getText();
-                    if ((textStr != null) && (textStr.length() >= 1)
-                            && (textStr.contains("-"))) {
-                        e.doit = false;
-                        return;
-                    }
-                } else if (!('0' <= chars[0] && chars[0] <= '9')) {
-                    e.doit = false;
-                    return;
-                }
-
+            applyChange();
+            dpp.setSummary1Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY1]);
+            dpp.setSummary2Page(pageOrderNumberArray[NsharpConstants.PAGE_SUMMARY2]);
+            dpp.setParcelDataPage(pageOrderNumberArray[NsharpConstants.PAGE_PARCEL_DATA]);
+            dpp.setThermodynamicDataPage(pageOrderNumberArray[NsharpConstants.PAGE_THERMODYNAMIC_DATA]);
+            dpp.setOpcDataPage(pageOrderNumberArray[NsharpConstants.PAGE_OPC_DATA]);
+            dpp.setMixingHeightPage(pageOrderNumberArray[NsharpConstants.PAGE_MIXING_HEIGHT]);
+            dpp.setStormRelativePage(pageOrderNumberArray[NsharpConstants.PAGE_STORM_RELATIVE]);
+            dpp.setMeanWindPage(pageOrderNumberArray[NsharpConstants.PAGE_MEAN_WIND]);
+            dpp.setConvectiveInitiationPage(pageOrderNumberArray[NsharpConstants.PAGE_CONVECTIVE_INITIATION]);
+            dpp.setSeverePotentialPage(pageOrderNumberArray[NsharpConstants.PAGE_SEVERE_POTENTIAL]);
+            dpp.setD2dLitePage(pageOrderNumberArray[NsharpConstants.PAGE_D2DLITE]);// d2dlite
+            dpp.setFuturePage(pageOrderNumberArray[NsharpConstants.PAGE_FUTURE]);// d2dlite
+            dpp.setNumberPagePerDisplay(numberPagePerDisplay);
+            try {
+                // save to xml
+                mgr.saveConfigStoreToFs(configStore);
+            } catch (VizException e) {
+                statusHandler.error("Unable to save data page configuration.",
+                        e);
             }
         }
-
-        public EditListener(Text newOrderText) {
-            super();
-            this.newOrderText = newOrderText;
-        }
-
     }
-
 }

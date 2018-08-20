@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.dialogs;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -38,9 +33,14 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+
 /**
  * The upper part of this dialog is copied from ChangeLineAttributesDialog
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -50,9 +50,9 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 31 Jul 2009              ghull       Migrate to to11
  * 27 Apr 2010   #245       Greg Hull   Added Apply Button
  * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ * Aug 22, 2018 #7081       dgilling    Use refactored ColorMatrixSelector.
+ *
  * @author mgao
- * @version 1
  */
 
 public class ChangeLatLonAttributesDialog extends
@@ -95,7 +95,7 @@ public class ChangeLatLonAttributesDialog extends
 
     /**
      * Constructor
-     * 
+     *
      * @param parentShell
      * @param dialogTitle
      */
@@ -179,6 +179,7 @@ public class ChangeLatLonAttributesDialog extends
 
         Group selectLineColorGroup = new Group(composite, SWT.SHADOW_NONE);
         selectLineColorGroup.setText("Color");
+        selectLineColorGroup.setLayout(new FillLayout());
 
         FormData formData5 = new FormData();
         formData5.top = new FormAttachment(5, 0);
@@ -374,7 +375,7 @@ public class ChangeLatLonAttributesDialog extends
         // Line Color
 
         colorMatrixSelector = new ColorMatrixSelector(selectLineColorGroup,
-                false, false, 28, 92, 18, 22, 28, 80, 4, 8, 5);
+                false, false, 28, 92, 18, 22, 4, 8, 5);
         colorMatrixSelector.setColorValue((RGB) lineColor.getAttrValue());
         colorMatrixSelector.addListener(new IPropertyChangeListener() {
             @Override

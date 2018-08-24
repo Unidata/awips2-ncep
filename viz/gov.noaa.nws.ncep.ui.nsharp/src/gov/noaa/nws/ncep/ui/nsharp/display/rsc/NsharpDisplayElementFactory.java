@@ -12,6 +12,8 @@ package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
  * -------		------- 	-------- 	-----------
  * 09/2013			    	Chin Chen	Initial coding
  * 11/2016      5976        bsteffen    Update deprecated method call.
+ * 08/2018      7408        bsteffen    Offset lone half barb.
+ *
  * </pre>
  * 
  * @author Chin Chen
@@ -59,7 +61,7 @@ public class NsharpDisplayElementFactory extends DisplayElementFactory {
 	    /*
          * Create the List to be returned, and wireframe shape
          */
-        ArrayList<IDisplayable> slist = new ArrayList<IDisplayable>();
+        ArrayList<IDisplayable> slist = new ArrayList<>();
         IWireframeShape barb = target.createWireframeShape(false, iDescriptor);
         IShadedShape flags = target.createShadedShape(false,
                 iDescriptor.getGridGeometry());
@@ -174,6 +176,14 @@ public class NsharpDisplayElementFactory extends DisplayElementFactory {
 	        if ( vect.hasBackgroundMask() ) mask.addLineSegment(pts);
 			currentLoc -= segmentSpacing;
 		}
+		
+        if (currentLoc == lil.getEndIndex()) {
+            /*
+             * If there is only one half barb it should be offset from the end
+             * of the line.
+             */
+            currentLoc -= segmentSpacing;
+        }
 		
 		/*
 		 * Process half barbs

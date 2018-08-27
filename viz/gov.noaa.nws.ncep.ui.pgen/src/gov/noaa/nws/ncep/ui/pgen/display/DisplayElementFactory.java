@@ -350,26 +350,25 @@ public class DisplayElementFactory {
 
         // put line points in a coordinate array
         Coordinate[] coord;
+        Coordinate[] deLinePoints = drawableElement.getLinePoints();
 
         if (drawableElement.isClosedLine()) {
-            coord = new Coordinate[drawableElement.getLinePoints().length + 1];
-            for (int ii = 0; ii < drawableElement
-                    .getLinePoints().length; ii++) {
+            coord = new Coordinate[deLinePoints.length + 1];
+            for (int ii = 0; ii < deLinePoints.length; ii++) {
                 coord[ii] = new Coordinate(
-                        drawableElement.getLinePoints()[ii].x,
-                        drawableElement.getLinePoints()[ii].y);
+                        deLinePoints[ii].x,
+                        deLinePoints[ii].y);
             }
-            coord[drawableElement.getLinePoints().length] = new Coordinate(
-                    drawableElement.getLinePoints()[0].x,
-                    drawableElement.getLinePoints()[0].y);
+            coord[deLinePoints.length] = new Coordinate(
+                    deLinePoints[0].x,
+                    deLinePoints[0].y);
         } else {
-            coord = new Coordinate[drawableElement.getLinePoints().length];
+            coord = new Coordinate[deLinePoints.length];
 
-            for (int ii = 0; ii < drawableElement
-                    .getLinePoints().length; ii++) {
+            for (int ii = 0; ii < deLinePoints.length; ii++) {
                 coord[ii] = new Coordinate(
-                        drawableElement.getLinePoints()[ii].x,
-                        drawableElement.getLinePoints()[ii].y);
+                        deLinePoints[ii].x,
+                        deLinePoints[ii].y);
             }
 
         }

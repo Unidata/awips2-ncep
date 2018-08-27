@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.exception.VizException;
 
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
 import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
@@ -88,13 +89,18 @@ public class NsharpWindBarbConfigDialog extends AbstractNsharpConfigDlg {
     public NsharpWindBarbConfigDialog(Shell parentShell) {
         super(parentShell, "Nsharp Wind Barb");
 
+        this.curLineWidth = NsharpConstants.WINDBARB_WIDTH;
+        this.curColor = NsharpConstants.color_yellow;
+        this.curSize = NsharpConstants.WINDBARB_SIZE;
+        this.curDist = NsharpConstants.WINDBARB_DISTANCE_DEFAULT;
+
         if (configStore != null) {
-            curLineWidth = configStore.getGraphProperty()
+            this.curLineWidth = configStore.getGraphProperty()
                     .getWindBarbLineWidth();
-            curColor = configStore.getGraphProperty().getWindBarbColor();
-            curSize = configStore.getGraphProperty().getWindBarbSize();
-            curDist = configStore.getGraphProperty().getWindBarbDistance();
-            showFilteredWind = configStore.getGraphProperty()
+            this.curColor = configStore.getGraphProperty().getWindBarbColor();
+            this.curSize = configStore.getGraphProperty().getWindBarbSize();
+            this.curDist = configStore.getGraphProperty().getWindBarbDistance();
+            this.showFilteredWind = configStore.getGraphProperty()
                     .isShowFilteredWindInCircle();
         }
     }

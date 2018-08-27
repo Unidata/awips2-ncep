@@ -28,6 +28,8 @@ import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -36,10 +38,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 
 public class NsharpConfigDialog extends Dialog {
-    private Button parameterBtn, timeLineBtn, stnBtn, sndBtn, mdlDataBtn;
 
     private static NsharpConfigDialog thisDialog = null;
 
@@ -80,15 +80,14 @@ public class NsharpConfigDialog extends Dialog {
     }
 
     public void createDialogContents(Composite parent) {
-        parameterBtn = new Button(parent, SWT.PUSH);
+        Button parameterBtn = new Button(parent, SWT.PUSH);
         parameterBtn.setText("Parameters Selection");
         parameterBtn.setEnabled(true);
+        parameterBtn.addSelectionListener(new SelectionAdapter() {
 
-        parameterBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
-            public void handleEvent(Event event) {
-                Shell shell = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getShell();
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = e.display.getActiveShell();
                 parameterSelDialog = NsharpParametersSelectionConfigDialog
                         .getInstance(shell);
                 if (parameterSelDialog != null) {
@@ -146,16 +145,14 @@ public class NsharpConfigDialog extends Dialog {
         dataPageBtn.setLayoutData(
                 new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 
-        timeLineBtn = new Button(parent, SWT.PUSH);
+        Button timeLineBtn = new Button(parent, SWT.PUSH);
         timeLineBtn.setText("Time Line Activation");
-
         timeLineBtn.setEnabled(true);
+        timeLineBtn.addSelectionListener(new SelectionAdapter() {
 
-        timeLineBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
-            public void handleEvent(Event event) {
-                Shell shell = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getShell();
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = e.display.getActiveShell();
                 timelineDialog = NsharpTimeLineConfigDialog.getInstance(shell);
                 if (timelineDialog != null) {
                     timelineDialog.open();
@@ -165,15 +162,14 @@ public class NsharpConfigDialog extends Dialog {
         timeLineBtn.setLayoutData(
                 new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 
-        stnBtn = new Button(parent, SWT.PUSH);
+        Button stnBtn = new Button(parent, SWT.PUSH);
         stnBtn.setText("Station Activation");
         stnBtn.setEnabled(true);
+        stnBtn.addSelectionListener(new SelectionAdapter() {
 
-        stnBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
-            public void handleEvent(Event event) {
-                Shell shell = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getShell();
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = e.display.getActiveShell();
                 stnDialog = NsharpStnConfigDialog.getInstance(shell);
                 if (stnDialog != null) {
                     stnDialog.open();
@@ -182,15 +178,14 @@ public class NsharpConfigDialog extends Dialog {
         });
         stnBtn.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 
-        sndBtn = new Button(parent, SWT.PUSH);
+        Button sndBtn = new Button(parent, SWT.PUSH);
         sndBtn.setText("Sounding Source Activation");
         sndBtn.setEnabled(true);
+        sndBtn.addSelectionListener(new SelectionAdapter() {
 
-        sndBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
-            public void handleEvent(Event event) {
-                Shell shell = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getShell();
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = e.display.getActiveShell();
                 sndDialog = NsharpSndConfigDialog.getInstance(shell);
                 if (sndDialog != null) {
                     sndDialog.open();
@@ -222,15 +217,14 @@ public class NsharpConfigDialog extends Dialog {
         paneCfgBtn.setLayoutData(
                 new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 
-        mdlDataBtn = new Button(parent, SWT.PUSH);
+        Button mdlDataBtn = new Button(parent, SWT.PUSH);
         mdlDataBtn.setText("Grid Data Interpolation");
         mdlDataBtn.setEnabled(true);
+        mdlDataBtn.addSelectionListener(new SelectionAdapter() {
 
-        mdlDataBtn.addListener(SWT.MouseUp, new Listener() {
             @Override
-            public void handleEvent(Event event) {
-                Shell shell = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getShell();
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = e.display.getActiveShell();
                 mdlDataDialog = NsharpGridDataConfigDialog.getInstance(shell);
                 if (mdlDataDialog != null) {
                     mdlDataDialog.open();
@@ -298,18 +292,13 @@ public class NsharpConfigDialog extends Dialog {
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setText("Nsharp Configuration");
-        shell.setSize(250, 450);
     }
 
     @Override
-    public int open() {
-        if (this.getShell() == null) {
-            this.create();
-        }
-        this.getShell().setLocation(
-                this.getShell().getParent().getLocation().x + 1100,
-                this.getShell().getParent().getLocation().y + 200);
-        return super.open();
-
+    protected Point getInitialLocation(Point initialSize) {
+        Rectangle parentBounds = getParentShell().getBounds();
+        int x = parentBounds.x + parentBounds.width - initialSize.x;
+        int y = parentBounds.y + (parentBounds.height / 2) - initialSize.y;
+        return new Point(x, y);
     }
 }

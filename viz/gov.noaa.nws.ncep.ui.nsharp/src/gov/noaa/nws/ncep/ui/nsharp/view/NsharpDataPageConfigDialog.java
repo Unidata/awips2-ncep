@@ -25,6 +25,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -341,5 +343,13 @@ public class NsharpDataPageConfigDialog extends AbstractNsharpConfigDlg {
                         e);
             }
         }
+    }
+
+    @Override
+    protected Point getInitialLocation(Point initialSize) {
+        Rectangle parentBounds = getParentShell().getBounds();
+        int x = parentBounds.x + parentBounds.width - initialSize.x;
+        int y = parentBounds.y + parentBounds.height - initialSize.y;
+        return new Point(x, y);
     }
 }

@@ -4,7 +4,7 @@ Bundle-Name: Mcidas Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.mcidas
 Bundle-Version: 1.15.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.edex.exception,
  com.raytheon.edex.plugin,
  com.raytheon.uf.common.dataplugin,

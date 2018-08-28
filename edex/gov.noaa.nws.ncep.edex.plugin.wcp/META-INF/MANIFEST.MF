@@ -9,4 +9,4 @@ Require-Bundle: com.raytheon.edex.common;bundle-version="1.10.13",
  gov.noaa.nws.ncep.common.dataplugin.wcp;bundle-version="1.0.0"
 Import-Package: com.raytheon.uf.edex.decodertools.core,
  org.apache.commons.logging
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

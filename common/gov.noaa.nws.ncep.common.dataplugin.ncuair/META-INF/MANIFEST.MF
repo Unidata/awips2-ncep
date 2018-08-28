@@ -12,7 +12,7 @@ Require-Bundle:
  com.raytheon.uf.common.dataplugin;bundle-version="1.14.0",
  com.raytheon.uf.common.serialization;bundle-version="1.15.1",
  com.raytheon.uf.common.geospatial;bundle-version="1.15.1"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.ncuair,
  gov.noaa.nws.ncep.common.dataplugin.ncuair.dao
 Import-Package: com.raytheon.uf.common.pointdata,

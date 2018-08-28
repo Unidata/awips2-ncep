@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.4.1",
  gov.noaa.nws.ncep.viz.rsc.pgen;bundle-version="1.0.0",
  com.raytheon.uf.common.sounding,
  com.raytheon.viz.core.graphing
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: com.raytheon.uf.common.dataplugin.grid,
  com.raytheon.uf.common.serialization.comm,

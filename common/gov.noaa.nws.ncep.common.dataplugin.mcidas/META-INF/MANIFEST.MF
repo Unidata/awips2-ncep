@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Mcidas Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.mcidas
 Bundle-Version: 1.15.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-RegisterBuddy: org.geotools
 Require-Bundle: gov.noaa.nws.ncep.common;bundle-version="1.0.0",
  gov.noaa.nws.ncep.edex.common;bundle-version="1.0.0",

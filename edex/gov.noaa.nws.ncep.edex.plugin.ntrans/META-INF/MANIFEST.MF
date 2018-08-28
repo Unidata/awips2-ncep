@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: NTRANS PlugIn 
 Bundle-SymbolicName: gov.noaa.nws.ncep.edex.plugin.ntrans
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.edex.common;bundle-version="1.11.22",
  javax.persistence;bundle-version="1.0.0",
  gov.noaa.nws.ncep.common.dataplugin.ntrans;bundle-version="1.0.0"

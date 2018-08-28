@@ -7,7 +7,7 @@ Bundle-Activator: gov.noaa.nws.ncep.viz.soundingrequest.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.serialization.comm,
  com.raytheon.uf.viz.core.requests,
  com.vividsolutions.jts.geom,

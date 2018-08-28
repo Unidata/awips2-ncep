@@ -4,7 +4,7 @@ Bundle-Name: StormTrack Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ncep.common.dataplugin.stormtrack
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NOAA/NWS/NCEP/NCO/SIB
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: gov.noaa.nws.ncep.common.dataplugin.stormtrack,
  gov.noaa.nws.ncep.common.dataplugin.stormtrack.dao,
  gov.noaa.nws.ncep.edex.uengine.tasks.stormtrack

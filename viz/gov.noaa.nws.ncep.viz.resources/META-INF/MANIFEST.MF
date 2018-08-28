@@ -74,5 +74,5 @@ Import-Package: com.raytheon.uf.viz.core.maps,
  gov.noaa.nws.ncep.common.dataplugin.mcidas,
  gov.noaa.nws.ncep.common.dataplugin.pgen,
  gov.noaa.nws.ncep.gempak.parameters.colorbar
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 

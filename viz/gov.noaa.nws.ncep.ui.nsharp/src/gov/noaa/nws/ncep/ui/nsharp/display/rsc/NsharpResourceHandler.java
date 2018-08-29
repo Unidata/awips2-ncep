@@ -8,9 +8,9 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 04/30/2012   229         Chin Chen   Initial coding
+ * Date         Ticket#    	Engineer    Description
+ * -------		------- 	-------- 	-----------
+ * 04/30/2012	229			Chin Chen	Initial coding
  * 01/13/2014               Chin Chen   TTR829- when interpolation, edit graph is allowed
  * 02/03/2014   1106        Chin Chen   Need to be able to use clicking on the Src,Time, or StnId to select display 
  * 08/12/2014               Chin Chen   fixed issue that "load archive file with wrong time line displayed"
@@ -21,7 +21,6 @@
  * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
  * 02/05/2015   DR16888     CHin Chen   merge 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
- * 12/12/2017   17377       wkwock      Auto load new-arrivals.
  * </pre>
  * 
  * @author Chin Chen
@@ -120,7 +119,7 @@ public class NsharpResourceHandler {
 
     private int currentInsetPage = 1;
 
-    // private int cnYOrig = NsharpConstants.COLOR_NOTATION_Y_ORIG;
+//    private int cnYOrig = NsharpConstants.COLOR_NOTATION_Y_ORIG;
 
     private int dtNextPageEnd = NsharpConstants.DATA_TIMELINE_NEXT_PAGE_END_;
 
@@ -143,20 +142,19 @@ public class NsharpResourceHandler {
      * Hodograph Modes - definition is based on definitions in globals_xw.h of
      * BigNsharp
      */
-    // To be used later
-    // private static final int HODO_NORMAL = 0;
-    //
-    // // private static int HODO_EFFECTIVE= 1; not used in BigNsharp source
-    // code
-    // private static final int HODO_STORMRELATIVE = 2;
-    //
-    //// @SuppressWarnings("unused")
-    //// private static final int HODO_BNDRY = 3;
-    //
-    // private static final int HODO_MEANWIND = 4;
-    //
-    //// @SuppressWarnings("unused")
-    //// private int currentHodoWindMode = HODO_MEANWIND;
+    //To be used later
+//    private static final int HODO_NORMAL = 0;
+//
+//    // private static int HODO_EFFECTIVE= 1; not used in BigNsharp source code
+//    private static final int HODO_STORMRELATIVE = 2;
+//
+////    @SuppressWarnings("unused")
+////    private static final int HODO_BNDRY = 3;
+//
+//    private static final int HODO_MEANWIND = 4;
+//
+////    @SuppressWarnings("unused")
+////    private int currentHodoWindMode = HODO_MEANWIND;
 
     private NsharpConfigManager configMgr;
 
@@ -168,11 +166,10 @@ public class NsharpResourceHandler {
 
     private NsharpDataPageProperty dataPageProperty;
 
-    private int[] pageDisplayOrderNumberArray = new int[NsharpConstants.PAGE_MAX_NUMBER
-            + 1];
+    private int[] pageDisplayOrderNumberArray = new int[NsharpConstants.PAGE_MAX_NUMBER + 1];
 
-    // #5929
-    private boolean goodData = false;
+    //#5929
+    private boolean goodData=false;
     // index is the real page defined in NsharpConstants to be shown, value is
     // the order number of this page.
     // index 0 point to a dummy.
@@ -200,7 +197,7 @@ public class NsharpResourceHandler {
     private int currentSoundingLayerIndex = 0;
 
     private int hodoEditingSoundingLayerIndex = 0;
-
+    
     private boolean plotInteractiveTemp = false;
 
     private Coordinate interactiveTempPointCoordinate;
@@ -454,26 +451,23 @@ public class NsharpResourceHandler {
         } else {
             currentTextChapter++;
             // d2dlite or OCP if one page per chap case, skip future page
-            if ((dataPageProperty.getNumberPagePerDisplay() == 1
-                    || paneConfigurationName
-                            .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                    || paneConfigurationName
-                            .equals(NsharpConstants.PANE_OPC_CFG_STR))
+            if ((dataPageProperty.getNumberPagePerDisplay() == 1 || 
+            		paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) ||
+                    paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
                     && currentTextChapter == displayDataPageMax)
                 currentTextChapter = 1;
         }
     }
 
+    
     public void setPrevTextChapter() {
         currentTextChapter--;
         if (currentTextChapter == 0) {
             currentTextChapter = displayDataPageMax;
             // d2dlite or OPC if one page per chap case, skip future page
             if (dataPageProperty.getNumberPagePerDisplay() == 1
-                    || paneConfigurationName
-                            .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                    || paneConfigurationName
-                            .equals(NsharpConstants.PANE_OPC_CFG_STR))
+                    || paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
+                    || paneConfigurationName.equals(NsharpConstants.PANE_OPC_CFG_STR))
                 currentTextChapter = displayDataPageMax - 1;
         }
     }
@@ -525,8 +519,7 @@ public class NsharpResourceHandler {
                 // find a new available stn for current time and sndType
                 boolean found = false;
                 for (int i = 0; i < stnElementList.size(); i++) {
-                    if (stnElementList.get(i)
-                            .getActionState() == NsharpConstants.ActState.ACTIVE
+                    if (stnElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                             && stnTimeSndTable.get(i)
                                     .get(currentTimeElementListIndex)
                                     .get(currentSndElementListIndex) != null) {
@@ -575,11 +568,9 @@ public class NsharpResourceHandler {
                 // find a new available snd type for current time and stn
                 boolean found = false;
                 for (int i = 0; i < sndElementList.size(); i++) {
-                    if (sndElementList.get(i)
-                            .getActionState() == NsharpConstants.ActState.ACTIVE
+                    if (sndElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                             && stnTimeSndTable.get(currentStnElementListIndex)
-                                    .get(currentTimeElementListIndex)
-                                    .get(i) != null) {
+                                    .get(currentTimeElementListIndex).get(i) != null) {
                         found = true;
                         currentSndElementListIndex = i;
                     }
@@ -596,12 +587,12 @@ public class NsharpResourceHandler {
              * of user defined radius (minimum distance) to "current" station
              * and also has data loaded with same time line as "current" time
              * line. Note that we have two time line formats, YYMMDD/HHVxxx(day)
-             * and YYMMDD/HH(day) saved in NsharpSoundingElementStateProperty. A
-             * same time line is compared by "YYMMDD/HH" only. All qualified
-             * stations, including current station, found will be listed and
-             * used for SND comparison.
+             * and YYMMDD/HH(day) saved in NsharpSoundingElementStateProperty.
+             *  A same time line is compared by "YYMMDD/HH" only. All qualified 
+             *  stations, including current station, found will be listed and used 
+             *  for SND comparison.
              */
-            // DR#17079
+            //DR#17079 
             String TIME_COMPARE_STRING = "YYMMDD/HH";
             compSndSelectedElemList.clear();
             // CompSndSelectedElem curStnTimeIndexCouple = new
@@ -616,20 +607,19 @@ public class NsharpResourceHandler {
                     .get(currentSndElementListIndex).getStnInfo();
             gc.setStartingGeographicPoint(currentStnInfo.getLongitude(),
                     currentStnInfo.getLatitude());
-
-            // String curTimeString =
-            // timeElementList.get(currentTimeElementListIndex).getElementDescription();
-
+            
+           // String curTimeString = timeElementList.get(currentTimeElementListIndex).getElementDescription();
+            
             int timeLineLengthToComp = TIME_COMPARE_STRING.length();
-
+                    
+                    
             String currentTimeLineToComp = timeElementList
                     .get(currentTimeElementListIndex).getElementDescription()
                     .substring(0, timeLineLengthToComp);
             // loop through stns list to find "ACTIVE" stns which are within snd
             // comparison radius
             for (int i = 0; i < stnElementList.size(); i++) {
-                if (stnElementList.get(i)
-                        .getActionState() == NsharpConstants.ActState.ACTIVE) {
+                if (stnElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE) {
                     // check if target station is within minimum distance
                     // (radius) from current station
                     // we have to get this station's lat/lon for distance
@@ -645,8 +635,7 @@ public class NsharpResourceHandler {
                             String timeToCopm1 = timeElementList.get(k)
                                     .getElementDescription()
                                     .substring(0, timeLineLengthToComp);
-                            if (currentTimeLineToComp
-                                    .equals(timeToCopm1) == true) {
+                            if (currentTimeLineToComp.equals(timeToCopm1) == true) {
                                 goodTimeLine = true;
                             }
                         } else
@@ -659,8 +648,7 @@ public class NsharpResourceHandler {
                                         .get(i).get(k).get(j);
                                 if (stnTmElm != null) {
                                     if ((currentStnElementListIndex == i)
-                                            || (currentStnElementListIndex != i
-                                                    && currentSndElementListIndex != j)) {
+                                            || (currentStnElementListIndex != i && currentSndElementListIndex != j)) {
                                         NsharpStationInfo stnInfo = stnTmElm
                                                 .getStnInfo();
                                         gc.setDestinationGeographicPoint(
@@ -671,8 +659,7 @@ public class NsharpResourceHandler {
                                         // GeodeticCalculator return value in
                                         // meter
                                         // convert it to mile
-                                        if (distance
-                                                / 1609.344 <= sndCompRadius) {
+                                        if (distance / 1609.344 <= sndCompRadius) {
                                             CompSndSelectedElem selectedElem = new CompSndSelectedElem(
                                                     i, k, j);
                                             compSndSelectedElemList
@@ -755,11 +742,9 @@ public class NsharpResourceHandler {
                 // find a new available time line for current snd type and stn
                 boolean found = false;
                 for (int i = 0; i < timeElementList.size(); i++) {
-                    if (timeElementList.get(i)
-                            .getActionState() == NsharpConstants.ActState.ACTIVE
+                    if (timeElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                             && stnTimeSndTable.get(currentStnElementListIndex)
-                                    .get(i)
-                                    .get(currentSndElementListIndex) != null) {
+                                    .get(i).get(currentSndElementListIndex) != null) {
                         found = true;
                         currentTimeElementListIndex = i;
                     }
@@ -804,9 +789,10 @@ public class NsharpResourceHandler {
 
     public void setCurrentGraphMode(int currentGraphMode) {
         this.currentGraphMode = currentGraphMode;
-        if (!paneConfigurationName.equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                && !paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
+        if (!paneConfigurationName
+                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)&&
+                !paneConfigurationName
+                .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
             if (skewtPaneRsc != null)
                 skewtPaneRsc.setCurrentGraphMode(currentGraphMode);
             refreshPane();
@@ -834,20 +820,20 @@ public class NsharpResourceHandler {
         return smWindSpd;
     }
 
-    // public void setCurrentHodoWindMode(int cursorPositionIndex) {
-    // switch (cursorPositionIndex) {
-    // case 0:
-    // this.currentHodoWindMode = HODO_NORMAL;
-    // break;
-    // case 1:
-    // this.currentHodoWindMode = HODO_STORMRELATIVE;
-    // break;
-    // case 2:
-    // default:
-    // this.currentHodoWindMode = HODO_MEANWIND;
-    // break;
-    // }
-    // }
+//    public void setCurrentHodoWindMode(int cursorPositionIndex) {
+//        switch (cursorPositionIndex) {
+//        case 0:
+//            this.currentHodoWindMode = HODO_NORMAL;
+//            break;
+//        case 1:
+//            this.currentHodoWindMode = HODO_STORMRELATIVE;
+//            break;
+//        case 2:
+//        default:
+//            this.currentHodoWindMode = HODO_MEANWIND;
+//            break;
+//        }
+//    }
 
     public NsharpStationInfo getPickedStnInfo() {
         return pickedStnInfo;
@@ -974,8 +960,7 @@ public class NsharpResourceHandler {
 
     }
 
-    public void handleNsharpEditorPartEvent(
-            NsharpPartListener.PartEvent pStatus) {
+    public void handleNsharpEditorPartEvent(NsharpPartListener.PartEvent pStatus) {
         switch (pStatus) {
         case partActivated:
             if (editorPartStatus != NsharpPartListener.PartEvent.partDeactivated) {
@@ -1008,9 +993,9 @@ public class NsharpResourceHandler {
             compareTmIsOn = false;
             editGraphOn = false;
             if (skewtPaneRsc != null)
-                skewtPaneRsc.setCurrentSkewTEditMode(
-                        NsharpConstants.SKEWT_EDIT_MODE_EDITPOINT);
-            elem.setGoodData(checkDataIntegrity(soundingLys));// #5929
+                skewtPaneRsc
+                        .setCurrentSkewTEditMode(NsharpConstants.SKEWT_EDIT_MODE_EDITPOINT);
+            elem.setGoodData(checkDataIntegrity(soundingLys));//#5929
             resetData();
         }
 
@@ -1023,12 +1008,12 @@ public class NsharpResourceHandler {
 
         // update active sounding layer and picked stn info
         // re-populate snd data to nsharp native code lib for later calculating
-        // #5929 dont populate sounding data if data is bad
-
-        if (getCurSoundingElementStateProperty() != null)
-            goodData = getCurSoundingElementStateProperty().isGoodData();
-        if (goodData)
-            nsharpNative.populateSndgData(soundingLys);
+    	//#5929 dont populate sounding data if data is bad
+    	
+    	if(getCurSoundingElementStateProperty()!=null)
+    		goodData= getCurSoundingElementStateProperty().isGoodData();
+    	if(goodData)
+    		nsharpNative.populateSndgData(soundingLys);
 
         if (skewtPaneRsc != null)
             skewtPaneRsc.resetData(soundingLys, previousSoundingLys);
@@ -1079,7 +1064,7 @@ public class NsharpResourceHandler {
              * that really meant to reset parcel type.
              */
         }
-
+        
         if (skewtPaneRsc != null)
             skewtPaneRsc.createRscWireFrameShapes();
         if (hodoPaneRsc != null)
@@ -1088,7 +1073,7 @@ public class NsharpResourceHandler {
             insetPaneRsc.createInsetWireFrameShapes();
         if (witoPaneRsc != null)
             witoPaneRsc.createAllWireFrameShapes();
-        if (spcGraphsPaneRsc != null && (goodData)) {// #5929
+        if (spcGraphsPaneRsc != null && (goodData) ){//#5929
             // Chin: SPC graphs performance concern, as it need to call get
             // info functions from bigSharo.so and cause long delay.
             // Therefore, do it once only when reset data.
@@ -1096,20 +1081,18 @@ public class NsharpResourceHandler {
         }
     }
 
-    private class NsharpOperationElementComparator
-            implements Comparator<NsharpOperationElement> {
-
-        @Override
-        public int compare(NsharpOperationElement o1,
-                NsharpOperationElement o2) {
+    private class NsharpOperationElementComparator implements
+            Comparator<NsharpOperationElement> {
+    	
+		@Override
+        public int compare(NsharpOperationElement o1, NsharpOperationElement o2) {
 
             String s1tok1 = "";// , s1tok2="";
             String s2tok1 = "";// , s2tok2="";
-            String o1Desc = o1.getElementDescription();
+            String	o1Desc = o1.getElementDescription();
             StringTokenizer st1 = new StringTokenizer(o1Desc);
             int tkCount1 = st1.countTokens();
-            // System.out.println("ElementComparatorTimeLine
-            // o1="+o1.elementDescription+"c1 = "+tkCount1);
+            // System.out.println("ElementComparatorTimeLine o1="+o1.elementDescription+"c1 = "+tkCount1);
             if (tkCount1 >= 1) {
                 s1tok1 = st1.nextToken();
             } else {
@@ -1117,11 +1100,10 @@ public class NsharpResourceHandler {
 
             }
             // System.out.println("t1="+s1tok1+" t2="+s2tok1);
-            String o2Desc = o2.getElementDescription();
+            String 	o2Desc = o2.getElementDescription();
             StringTokenizer st2 = new StringTokenizer(o2Desc);
             int tkCount2 = st2.countTokens();
-            // System.out.println("ElementComparatorTimeLine
-            // o2="+o2.elementDescription+"c2 = "+tkCount2);
+            // System.out.println("ElementComparatorTimeLine o2="+o2.elementDescription+"c2 = "+tkCount2);
             if (tkCount2 >= 1) {
                 s2tok1 = st2.nextToken();
             } else {
@@ -1212,8 +1194,7 @@ public class NsharpResourceHandler {
 
     private void addElementToTableAndLists(String stnId_timeLine_sndType,
             String stnId, String tmLine, String sndType,
-            NsharpStationInfo stnInfo, List<NcSoundingLayer> sndLyLst,
-            boolean goodData) {
+            NsharpStationInfo stnInfo, List<NcSoundingLayer> sndLyLst, boolean goodData) {
         // System.out.println("stn to be added "+ stnId + " timeline "+tmLine);
         NsharpSoundingElementStateProperty newSndPropElem = null;
         int tmIndex = getIndexFromElementList(tmLine, timeElementList);
@@ -1225,26 +1206,17 @@ public class NsharpResourceHandler {
         // based on these 3 indexes, we have 8 cases to handle.
         if (tmIndex >= 0 && stnIndex >= 0 && sndTpyeIndex >= 0) {
             // CASE1: All 3 index are good (>=0)
-            NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
-                    .get(stnIndex).get(tmIndex).get(sndTpyeIndex);
-
-            if (tmpNewSndPropElem != null) {
-                if (sndLyLst.size() > tmpNewSndPropElem.getSndLyLst().size()) {
-                    tmpNewSndPropElem.getSndLyLst().clear();
-                    tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
-                    tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
-                    setCurrentSoundingLayerInfo();
-                } else {
-                    return;
-                }
-            } else {
+            if (stnTimeSndTable.get(stnIndex).get(tmIndex).get(sndTpyeIndex) != null)
+                // this sounding element is already loaded
+                return;
+            else {
                 // replace previously added "null" object with real
                 // NsharpSoundingElementStateProperty object
                 newSndPropElem = new NsharpSoundingElementStateProperty(
                         stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                        sndLyLst, goodData); // #5929
-                stnTimeSndTable.get(stnIndex).get(tmIndex).set(sndTpyeIndex,
-                        newSndPropElem);
+                        sndLyLst,goodData); //#5929
+                stnTimeSndTable.get(stnIndex).get(tmIndex)
+                        .set(sndTpyeIndex, newSndPropElem);
             }
         } else if (tmIndex >= 0) {
             if (stnIndex >= 0) {
@@ -1259,7 +1231,7 @@ public class NsharpResourceHandler {
                 // NsharpSoundingElementStateProperty object
                 newSndPropElem = new NsharpSoundingElementStateProperty(
                         stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                        sndLyLst, goodData);
+                        sndLyLst,goodData);
                 stnTimeSndTable.get(currentStnElementListIndex)
                         .get(currentTimeElementListIndex)
                         .set(currentSndElementListIndex, newSndPropElem);
@@ -1276,7 +1248,7 @@ public class NsharpResourceHandler {
                     // NsharpSoundingElementStateProperty object
                     newSndPropElem = new NsharpSoundingElementStateProperty(
                             stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
+                            sndLyLst,goodData);
                     stnTimeSndTable.get(currentStnElementListIndex)
                             .get(currentTimeElementListIndex)
                             .set(currentSndElementListIndex, newSndPropElem);
@@ -1298,7 +1270,7 @@ public class NsharpResourceHandler {
                     // NsharpSoundingElementStateProperty object
                     newSndPropElem = new NsharpSoundingElementStateProperty(
                             stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
+                            sndLyLst,goodData);
                     stnTimeSndTable.get(currentStnElementListIndex)
                             .get(currentTimeElementListIndex)
                             .set(currentSndElementListIndex, newSndPropElem);
@@ -1319,7 +1291,7 @@ public class NsharpResourceHandler {
                     // NsharpSoundingElementStateProperty object
                     newSndPropElem = new NsharpSoundingElementStateProperty(
                             stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
+                            sndLyLst,goodData);
                     stnTimeSndTable.get(currentStnElementListIndex)
                             .get(currentTimeElementListIndex)
                             .set(currentSndElementListIndex, newSndPropElem);
@@ -1341,7 +1313,7 @@ public class NsharpResourceHandler {
                     // NsharpSoundingElementStateProperty object
                     newSndPropElem = new NsharpSoundingElementStateProperty(
                             stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
+                            sndLyLst,goodData);
                     stnTimeSndTable.get(currentStnElementListIndex)
                             .get(currentTimeElementListIndex)
                             .set(currentSndElementListIndex, newSndPropElem);
@@ -1366,7 +1338,7 @@ public class NsharpResourceHandler {
                     // NsharpSoundingElementStateProperty object
                     newSndPropElem = new NsharpSoundingElementStateProperty(
                             stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                            sndLyLst, goodData);
+                            sndLyLst,goodData);
                     stnTimeSndTable.get(currentStnElementListIndex)
                             .get(currentTimeElementListIndex)
                             .set(currentSndElementListIndex, newSndPropElem);
@@ -1394,16 +1366,15 @@ public class NsharpResourceHandler {
                             // existing sndType
                             List<NsharpSoundingElementStateProperty> sndlistForTm = new ArrayList<NsharpSoundingElementStateProperty>();
                             for (NsharpOperationElement sndElem : sndElementList) {
-                                if (tmLine
-                                        .equals(tmElem.getElementDescription())
+                                if (tmLine.equals(tmElem
+                                        .getElementDescription())
                                         && sndType.equals(sndElem
                                                 .getElementDescription())) {
                                     // only one case falls in this route as only
                                     // one new loaded sounding data
                                     newSndPropElem = new NsharpSoundingElementStateProperty(
                                             stnId_timeLine_sndType, stnId,
-                                            tmLine, stnInfo, sndLyLst,
-                                            goodData);
+                                            tmLine, stnInfo, sndLyLst,goodData);
 
                                     sndlistForTm.add(newSndPropElem);
                                 } else {
@@ -1451,7 +1422,7 @@ public class NsharpResourceHandler {
 
                         newSndPropElem = new NsharpSoundingElementStateProperty(
                                 stnId_timeLine_sndType, stnId, tmLine, stnInfo,
-                                sndLyLst, goodData);
+                                sndLyLst,goodData);
                         newList.add(newSndPropElem);
                         newListList.add(newList);
                         stnTimeSndTable.add(newListList);
@@ -1559,8 +1530,9 @@ public class NsharpResourceHandler {
     public boolean deleteRsc(List<String> deletingDataTimeList) {
         boolean curSndDeleted = false;
         for (String dataTmLine : deletingDataTimeList) {
-            if (curSndProfileProp != null && curSndProfileProp
-                    .getElementDescription().equals(dataTmLine)) {
+            if (curSndProfileProp != null
+                    && curSndProfileProp.getElementDescription().equals(
+                            dataTmLine)) {
                 curSndDeleted = true;
             }
             // find deleting element from stnTimeSndTable and null it
@@ -1568,8 +1540,9 @@ public class NsharpResourceHandler {
             for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
                 for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
                     for (NsharpSoundingElementStateProperty elem : sndtyList) {
-                        if (elem != null && dataTmLine
-                                .equals(elem.getElementDescription())) {
+                        if (elem != null
+                                && dataTmLine.equals(elem
+                                        .getElementDescription())) {
                             int sndi = sndtyList.indexOf(elem);
                             int tmi = tlListList.indexOf(sndtyList);
                             int stni = stnTimeSndTable.indexOf(tlListList);
@@ -1602,12 +1575,9 @@ public class NsharpResourceHandler {
                     int sndi = 0;
                     for (NsharpSoundingElementStateProperty elem : sndtyList) {
                         if (elem != null
-                                && stnElementList.get(stni)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
-                                && timeElementList.get(timei)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
-                                && sndElementList.get(sndi)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE) {
+                                && stnElementList.get(stni).getActionState() == NsharpConstants.ActState.ACTIVE
+                                && timeElementList.get(timei).getActionState() == NsharpConstants.ActState.ACTIVE
+                                && sndElementList.get(sndi).getActionState() == NsharpConstants.ActState.ACTIVE) {
                             currentStnElementListIndex = stni;
                             currentSndElementListIndex = sndi;
                             currentTimeElementListIndex = timei;
@@ -1642,9 +1612,11 @@ public class NsharpResourceHandler {
                 for (List<List<NsharpSoundingElementStateProperty>> tmListListForStn : stnTimeSndTable) {
                     for (List<NsharpSoundingElementStateProperty> sndtyListForTm : tmListListForStn) {
                         for (NsharpSoundingElementStateProperty elem : sndtyListForTm) {
-                            if (elem != null && curSndProfileProp
-                                    .getElementDescription()
-                                    .equals(elem.getElementDescription())) {
+                            if (elem != null
+                                    && curSndProfileProp
+                                            .getElementDescription()
+                                            .equals(elem
+                                                    .getElementDescription())) {
                                 currentSndElementListIndex = sndtyListForTm
                                         .indexOf(elem);
                                 currentTimeElementListIndex = tmListListForStn
@@ -1715,7 +1687,8 @@ public class NsharpResourceHandler {
     }
 
     private NsharpSoundingElementStateProperty getCurSoundingElementStateProperty() {
-        if (currentTimeElementListIndex >= 0 && currentStnElementListIndex >= 0
+        if (currentTimeElementListIndex >= 0
+                && currentStnElementListIndex >= 0
                 && currentSndElementListIndex >= 0
                 && stnTimeSndTable.get(currentStnElementListIndex)
                         .get(currentTimeElementListIndex)
@@ -1820,19 +1793,19 @@ public class NsharpResourceHandler {
         }
     }
 
-    private boolean checkDataIntegrity(List<NcSoundingLayer> sndLayers) {
-        boolean gooddata = false;
-        int numberOfTemp = 0;
-        int numberOfGoodDewPt = 0;
-        for (NcSoundingLayer layer : sndLayers) {
-            if (layer.getTemperature() > -999)
-                numberOfTemp++;
-            if (layer.getDewpoint() > -999)
-                numberOfGoodDewPt++;
-        }
-        if (numberOfGoodDewPt >= 2 && numberOfTemp >= 2)
-            gooddata = true;
-        return gooddata;
+    private boolean checkDataIntegrity(List<NcSoundingLayer> sndLayers){
+    	boolean gooddata = false;
+    	int numberOfTemp=0;
+    	int numberOfGoodDewPt=0;
+    	for(NcSoundingLayer layer: sndLayers){
+    		if(layer.getTemperature() > -999)
+    			numberOfTemp++;
+    		if(layer.getDewpoint() > -999)
+    			numberOfGoodDewPt++;
+    	}
+    	if(numberOfGoodDewPt >= 2 && numberOfTemp>=2)
+    		gooddata=true;
+    	return gooddata;
     }
 
     // This api peforms real load data function
@@ -1840,22 +1813,23 @@ public class NsharpResourceHandler {
             Map<String, List<NcSoundingLayer>> soundMap,
             NsharpStationInfo stnInfo, boolean fromArchive) {
 
-        /*
+        /* 
          * testing code : this is helpful code. do not remove.
          *
-         * Set<String> keysettest = new HashSet<String>(soundMap.keySet()); for
-         * (String key : keysettest) { List<NcSoundingLayer> sndLy =
-         * soundMap.remove(key); String newkey= key.replace("NAMS", "SSS");
-         * //String newkey = key.replace("130925", "150102");
-         * soundMap.put(newkey, sndLy); } // //
-         * stnInfo.setSndType(stnInfo.getSndType().replace("NCUAIR", // // //
-         * "gpduair")); // stnInfo.setSndType(stnInfo.getSndType().replace( //
-         * // "NAMS","SSS"));
-         *
-         * END testing code
-         */
-        if (stnInfo.getStnId() != null
-                && stnInfo.getStnId().indexOf(" ") >= 0) {
+         Set<String> keysettest = new HashSet<String>(soundMap.keySet());
+         for (String key : keysettest) {
+         	List<NcSoundingLayer> sndLy = soundMap.remove(key);
+			 String newkey= key.replace("NAMS", "SSS");
+         	//String newkey = key.replace("130925", "150102");
+         	soundMap.put(newkey, sndLy);
+         } 
+        // // stnInfo.setSndType(stnInfo.getSndType().replace("NCUAIR", //
+        // // "gpduair")); // stnInfo.setSndType(stnInfo.getSndType().replace(
+        // // "NAMS","SSS"));
+		*
+		* END testing code 
+		*/
+        if (stnInfo.getStnId() != null && stnInfo.getStnId().indexOf(" ") >= 0) {
             // take care stnId with SPACE case.
             String stnId = stnInfo.getStnId();
             String newStnId = stnId.replace(" ", "_");
@@ -1901,36 +1875,34 @@ public class NsharpResourceHandler {
         Arrays.sort(tempTimeLineArr);
         for (int i = 0; i < tempTimeLineArr.length; i++) {
             // based on this KEY string format "KGRI 100616/03(Wed)Vxxx GFSSND"
-            String stnId, sndType, timeLine, timeLine_sndType,
-                    stnId_timeLine_sndType;
+            String stnId, sndType, timeLine, timeLine_sndType, stnId_timeLine_sndType;
             List<NcSoundingLayer> sndLyLst;
-
+            
             try {
                 stnId_timeLine_sndType = tempTimeLineArr[i].toString();
-                if (stnId_timeLine_sndType.equals("N/A")) {
-                    continue;
+                if(stnId_timeLine_sndType.equals("N/A"))
+                {
+                	continue;
                 }
                 sndLyLst = soundMap.get(stnId_timeLine_sndType);
-
+              
                 stnId = stnId_timeLine_sndType.substring(0,
                         stnId_timeLine_sndType.indexOf(" "));
                 timeLine_sndType = stnId_timeLine_sndType
                         .substring(stnId_timeLine_sndType.indexOf(" ") + 1);
                 timeLine = timeLine_sndType.substring(0,
                         timeLine_sndType.indexOf(" "));
-                sndType = timeLine_sndType
-                        .substring(timeLine_sndType.indexOf(" ") + 1);
+                sndType = timeLine_sndType.substring(timeLine_sndType
+                        .indexOf(" ") + 1);
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
             }
             if (!fromArchive) {
-                // For those sounding report with forecast time, e.g. model/pfc
-                // sounding
-                if (timeLine.contains("V")) { // fix D2D loading issue.
-                                              // 10/8/2014
-                    // if (!(sndType.contentEquals("NCUAIR") || sndType
-                    // .contentEquals("BUFRUA"))) {
+                // For those sounding report with forecast time, e.g. model/pfc sounding
+                if (timeLine.contains("V")) { //fix D2D loading issue. 10/8/2014
+               // if (!(sndType.contentEquals("NCUAIR") || sndType
+               //         .contentEquals("BUFRUA"))) {
                     // Chin's NOTE:
                     // Can Not use reference time directly from the stnInfo,
                     // Timestamp refTime = stnInfo.getReftime()
@@ -1953,23 +1925,18 @@ public class NsharpResourceHandler {
                         Calendar cal = Calendar.getInstance();
                         String vStr = timeLine.substring(15, 18);
                         int vNum = Integer.parseInt(vStr);
-                        // date.setTime(date.getTime() - vNum * 60 * 60 * 1000);
-                        cal.setTimeInMillis(
-                                date.getTime() - vNum * 60 * 60 * 1000);
+                        //date.setTime(date.getTime() - vNum * 60 * 60 * 1000);
+                        cal.setTimeInMillis(date.getTime() - vNum * 60 * 60 * 1000);
                         String dateOfMonthStr, hourStr;
-                        if (cal.get(Calendar.DAY_OF_MONTH) < 10) // date.getDate()
-                                                                 // < 10)
-                            dateOfMonthStr = "0"
-                                    + cal.get(Calendar.DAY_OF_MONTH);// date.getDate();
+                        if (cal.get(Calendar.DAY_OF_MONTH)<10) //date.getDate() < 10) 
+                            dateOfMonthStr = "0" + cal.get(Calendar.DAY_OF_MONTH);//date.getDate();
                         else
-                            dateOfMonthStr = ""
-                                    + cal.get(Calendar.DAY_OF_MONTH);// date.getDate();
+                            dateOfMonthStr = "" + cal.get(Calendar.DAY_OF_MONTH);//date.getDate();
 
-                        if (cal.get(Calendar.HOUR_OF_DAY) < 10)// date.getHours()
-                                                               // < 10)
-                            hourStr = "0" + cal.get(Calendar.HOUR_OF_DAY);// date.getHours();
+                        if (cal.get(Calendar.HOUR_OF_DAY)<10)//date.getHours() < 10)
+                            hourStr = "0" + cal.get(Calendar.HOUR_OF_DAY);//date.getHours();
                         else
-                            hourStr = "" + cal.get(Calendar.HOUR_OF_DAY);// date.getHours();
+                            hourStr = "" + cal.get(Calendar.HOUR_OF_DAY);//date.getHours();
                         sndType = dateOfMonthStr + "." + hourStr + "@"
                                 + sndType;
                     } catch (ParseException e) {
@@ -1981,31 +1948,37 @@ public class NsharpResourceHandler {
                 }
 
                 /*
-                 * Chin: 04092014, current time description string is defined as
-                 * "YYMMDD/HH(DOW)" or "YYMMDD/HH(DOW)Vxxx". Convert them to
-                 * "DD.HH(DOW)" or "DD.HHVxxx(DOW)" for GUI display.
+                 * Chin: 04092014, current time description string is
+                 * defined as "YYMMDD/HH(DOW)" or "YYMMDD/HH(DOW)Vxxx". Convert
+                 * them to "DD.HH(DOW)" or "DD.HHVxxx(DOW)" for GUI display.
                  */
-                /*
+                /* 
                  * Chin: 02032015
                  * "DR17079: Soundings listed out of order if frames go into new month"
-                 * To fix DR17079, keep time line format as yymmdd/hh(day)Vxxx
-                 * to be saved in NsharpSoundingElementStateProperty. We will
-                 * convert display string while drawing. This chunk code is to
-                 * convert time line format from yymmdd/hh(day)Vxxx to
-                 * dd.hh(day)Vxxx
+                 * To fix DR17079, keep time line format as yymmdd/hh(day)Vxxx to be saved
+                 * in NsharpSoundingElementStateProperty.
+                 * We will convert display string while drawing.
+                 * This chunk code is to convert time line format from yymmdd/hh(day)Vxxx to dd.hh(day)Vxxx 
                  *
-                 * timeLine = timeLine.substring(4); // get rid of YYMM if
-                 * (timeLine.contains("V")) { String[] s1Str =
-                 * timeLine.split("V"); // split // DD/HH(DOW)Vxxx to //
-                 * "DD/HH(DOW)" and // "xxx" String[] s2Str =
-                 * s1Str[0].split("\\("); // split // "DD/HH(DOW)" to // "DD/HH"
-                 * and // "DOW)" timeLine = s2Str[0] + "V" + s1Str[1] + "(" +
-                 * s2Str[1]; // put // together // to // "DD/HHVxxx(DOW)" }
-                 * timeLine = timeLine.replace("/", "."); // replace "/" with
-                 * "."
-                 * 
-                 * end DR17079
-                 */
+                timeLine = timeLine.substring(4); // get rid of YYMM
+                if (timeLine.contains("V")) {
+                    String[] s1Str = timeLine.split("V"); // split
+                                                          // DD/HH(DOW)Vxxx to
+                                                          // "DD/HH(DOW)" and
+                                                          // "xxx"
+                    String[] s2Str = s1Str[0].split("\\("); // split
+                                                            // "DD/HH(DOW)" to
+                                                            // "DD/HH" and
+                                                            // "DOW)"
+                    timeLine = s2Str[0] + "V" + s1Str[1] + "(" + s2Str[1]; // put
+                                                                           // together
+                                                                           // to
+                                                                           // "DD/HHVxxx(DOW)"
+                }
+                timeLine = timeLine.replace("/", "."); // replace "/" with "."
+                * 
+                * end DR17079
+                */
             }
             // recreate stnId_timeLine_sndType
             stnId_timeLine_sndType = stnId + " " + timeLine + " " + sndType;
@@ -2014,8 +1987,8 @@ public class NsharpResourceHandler {
             // No more needed? timeLine = timeLine.replace(" ", "-"); //fixed
             // DR15325 - sorting time line issue in D2D
             // add time line to stnTimeTable and set its index
-            // task#5929
-            boolean goodData = checkDataIntegrity(sndLyLst);
+          //task#5929
+            boolean goodData = checkDataIntegrity( sndLyLst);
             addElementToTableAndLists(stnId_timeLine_sndType, stnId, timeLine,
                     sndType, stnInfo, sndLyLst, goodData);
         }
@@ -2043,8 +2016,9 @@ public class NsharpResourceHandler {
         // set data time to descriptor
         // this is necessary for looping
         // starting 13.2.1, this line is changed by Raytheon
-        if ((skewtPaneRsc != null) && (skewtPaneRsc.getDescriptor()
-                .getFramesInfo().getFrameCount() == 0) && !getTimeMatcher) {
+        if ((skewtPaneRsc != null)
+                && (skewtPaneRsc.getDescriptor().getFramesInfo()
+                        .getFrameCount() == 0) && !getTimeMatcher) {
             // was this line before 13.2.1 if ((
             // skewtPaneRsc.getDescriptor().getTimeMatcher() == null ||
             // skewtPaneRsc.getDescriptor().getTimeMatcher().getTimeMatchBasis()
@@ -2062,8 +2036,7 @@ public class NsharpResourceHandler {
             }
             // no need to get a descriptor from a renderableDispaly since we
             // have a descriptor
-            skewtPaneRsc.getDescriptor()
-                    .setFramesInfo(new FramesInfo(dataTimes));// setDataTimes(dataTimes);
+            skewtPaneRsc.getDescriptor().setFramesInfo(new FramesInfo(dataTimes));//setDataTimes(dataTimes);
             getTimeMatcher = true;
         }
 
@@ -2075,11 +2048,7 @@ public class NsharpResourceHandler {
         if (win != null)
             currentGraphMode = win.getCurrentGraphMode();
 
-        if (getCurrentIndex() > 0 && getSoundingLys() != null) {
-            setCurrentIndex(0);
-        } else {
-            refreshPane();
-        }
+        refreshPane();
 
     }
 
@@ -2122,7 +2091,7 @@ public class NsharpResourceHandler {
              * ).get(i).get(currentSndElementListIndex)!=null){
              * currentTimeElementListIndex = i; found = true; break; } } }
              * if(!found){ currentTimeElementListIndex = -1; } else
-             */ {
+             */{
                 int colorIndex = NsharpConstants.LINE_COMP1;
                 for (NsharpOperationElement elm : timeElementList) {
                     if (elm.getActionState() == NsharpConstants.ActState.INACTIVE)
@@ -2205,8 +2174,8 @@ public class NsharpResourceHandler {
         }
         double dIndex;
         // recalculate index for time line
-        dIndex = ((c.y - dtNextPageEnd)) / lineHeight
-                + (curStnIdPage - 1) * numTimeLinePerPage;
+        dIndex = ((c.y - dtNextPageEnd)) / lineHeight + (curStnIdPage - 1)
+                * numTimeLinePerPage;
 
         index = (int) dIndex;
         if (index < this.stnElementList.size()) {
@@ -2221,15 +2190,15 @@ public class NsharpResourceHandler {
                 switch (actState) {
 
                 case INACTIVE:
-                    stnElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.ACTIVE);
+                    stnElementList.get(index).setActionState(
+                            NsharpConstants.ActState.ACTIVE);
                     break;
                 case ACTIVE:
                     // do not allow deactivate current stn
                     if (index == currentStnElementListIndex)
                         return;
-                    stnElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.INACTIVE);
+                    stnElementList.get(index).setActionState(
+                            NsharpConstants.ActState.INACTIVE);
                     break;
                 default:
                     return;
@@ -2260,7 +2229,7 @@ public class NsharpResourceHandler {
              * stnTimeSndTable.get(i).get(index).get(currentSndElementListIndex)
              * !=null){ currentStnElementListIndex = i; found = true; break; } }
              * } if(!found){ currentStnElementListIndex = -1; } else
-             */ {
+             */{
                 int colorIndex = NsharpConstants.LINE_COMP1;
                 for (NsharpOperationElement elm : stnElementList) {
                     int stnIndex = stnElementList.indexOf(elm);
@@ -2338,8 +2307,8 @@ public class NsharpResourceHandler {
         }
         double dIndex;
         // recalculate index for time line
-        dIndex = (c.y - dtNextPageEnd) / lineHeight
-                + (curTimeLinePage - 1) * numTimeLinePerPage;
+        dIndex = (c.y - dtNextPageEnd) / lineHeight + (curTimeLinePage - 1)
+                * numTimeLinePerPage;
         index = (int) dIndex;
         if (index < timeElementList.size() && index >= 0) {
             // FixMark:clickOnTimeStnPane start
@@ -2351,15 +2320,15 @@ public class NsharpResourceHandler {
             } else {
                 switch (actState) {// End FixMark:clickOnTimeStnPane
                 case INACTIVE:
-                    timeElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.ACTIVE);
+                    timeElementList.get(index).setActionState(
+                            NsharpConstants.ActState.ACTIVE);
                     break;
                 case ACTIVE:
                     if (index == currentTimeElementListIndex)
                         // dont allow to deactive current time line
                         return;
-                    timeElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.INACTIVE);
+                    timeElementList.get(index).setActionState(
+                            NsharpConstants.ActState.INACTIVE);
                     break;
 
                 default:
@@ -2393,7 +2362,7 @@ public class NsharpResourceHandler {
              * ).get(i).get(currentSndElementListIndex)!=null){
              * currentTimeElementListIndex = i; found = true; break; } } }
              * if(!found){ currentTimeElementListIndex = -1; } else
-             */ {
+             */{
                 int colorIndex = NsharpConstants.LINE_COMP1;
                 for (NsharpOperationElement elm : timeElementList) {
                     if (elm.getActionState() == NsharpConstants.ActState.INACTIVE)
@@ -2426,7 +2395,7 @@ public class NsharpResourceHandler {
              * currentSndElementListIndex) !=null){ currentStnElementListIndex =
              * i; found = true; break; } } } if(!found){
              * currentStnElementListIndex = -1; } else
-             */ {
+             */{
                 int colorIndex = NsharpConstants.LINE_COMP1;
                 for (NsharpOperationElement elm : stnElementList) {
                     int stnIndex = stnElementList.indexOf(elm);
@@ -2486,8 +2455,8 @@ public class NsharpResourceHandler {
         }
         double dIndex;
         // recalculate index for time line
-        dIndex = (c.y - dtNextPageEnd) / lineHeight
-                + (curSndPage - 1) * numTimeLinePerPage;
+        dIndex = (c.y - dtNextPageEnd) / lineHeight + (curSndPage - 1)
+                * numTimeLinePerPage;
         index = (int) dIndex;
         if (index < sndElementList.size() && index >= 0) {
             // FixMark:clickOnTimeStnPane start
@@ -2499,15 +2468,15 @@ public class NsharpResourceHandler {
             } else {
                 switch (actState) {// End FixMark:clickOnTimeStnPane
                 case INACTIVE:
-                    sndElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.ACTIVE);
+                    sndElementList.get(index).setActionState(
+                            NsharpConstants.ActState.ACTIVE);
                     break;
                 case ACTIVE:
                     if (index == currentSndElementListIndex)
                         // dont allow to deactive current time line
                         return;
-                    sndElementList.get(index)
-                            .setActionState(NsharpConstants.ActState.INACTIVE);
+                    sndElementList.get(index).setActionState(
+                            NsharpConstants.ActState.INACTIVE);
                     break;
 
                 default:
@@ -2611,8 +2580,7 @@ public class NsharpResourceHandler {
      * Note: looping only apply to curAggregateTimeLineList NOT stationIdList
      */
     public void setLoopingDataTimeLine(LoopProperties loopProperties) {
-        // System.out.println("setLoopingDataTimeLine loopmode
-        // ="+loopProperties.getMode().toString());
+        // System.out.println("setLoopingDataTimeLine loopmode ="+loopProperties.getMode().toString());
         if (this.timeElementList.size() > 0) {
             switch (loopProperties.getMode()) {
             case Forward:
@@ -2627,7 +2595,7 @@ public class NsharpResourceHandler {
                 break;
             }
             if (compareSndIsOn) {
-                handleUserPickNewTimeLine(currentTimeElementListIndex);
+                handleUserPickNewTimeLine(currentTimeElementListIndex)  ;
                 return;
             }
             curTimeLinePage = currentTimeElementListIndex / numTimeLinePerPage
@@ -2657,11 +2625,14 @@ public class NsharpResourceHandler {
     public void setSteppingTimeLine(
             IFrameCoordinator.FrameChangeOperation operation,
             IFrameCoordinator.FrameChangeMode mode) {
-        if (this.timeElementList.size() > 0 && getElemlistActiveNumber(
-                timeElementList) > 1/*
-                                     * && getAvailTimeLineNumber (
-                                     * currentStnStateListIndex )>1
-                                     */) {
+        if (this.timeElementList.size() > 0
+                && getElemlistActiveNumber(timeElementList) > 1/*
+                                                                * &&
+                                                                * getAvailTimeLineNumber
+                                                                * (
+                                                                * currentStnStateListIndex
+                                                                * )>1
+                                                                */) {
             int targetIndex = currentTimeElementListIndex;
             // previousTimeLineStateListIndex = currentTimeLineStateListIndex;
             // preset index for LAST and FIRST operation
@@ -2707,9 +2678,9 @@ public class NsharpResourceHandler {
                     return; // looped through whole list already, and index back
                             // to original
 
-                if (timeElementList.get(targetIndex)
-                        .getActionState() == NsharpConstants.ActState.ACTIVE) {
-                    if (compareTmIsOn && currentStnElementListIndex >= 0
+                if (timeElementList.get(targetIndex).getActionState() == NsharpConstants.ActState.ACTIVE) {
+                    if (compareTmIsOn
+                            && currentStnElementListIndex >= 0
                             && currentSndElementListIndex >= 0
                             && stnTimeSndTable.get(currentStnElementListIndex)
                                     .get(targetIndex)
@@ -2728,9 +2699,9 @@ public class NsharpResourceHandler {
                             // find an active and available stn for this
                             // timeline and set is as current
                             for (int i = 0; i < stnElementList.size(); i++) {
-                                if (stnElementList.get(i)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
-                                        && stnTimeSndTable.get(i)
+                                if (stnElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
+                                        && stnTimeSndTable
+                                                .get(i)
                                                 .get(targetIndex)
                                                 .get(currentSndElementListIndex) != null) {
                                     currentStnElementListIndex = i;
@@ -2763,38 +2734,55 @@ public class NsharpResourceHandler {
                         // we should get out of here
                         break;
                     } else if (compareSndIsOn) {
-                        handleUserPickNewTimeLine(targetIndex);
+                        handleUserPickNewTimeLine(targetIndex)  ;
                         return;
-                        /*
-                         * DR16888 02052015 boolean found = false; if
-                         * (currentStnElementListIndex >= 0 &&
-                         * currentSndElementListIndex >= 0 && stnTimeSndTable
-                         * .get(currentStnElementListIndex) .get(targetIndex)
-                         * .get(currentSndElementListIndex) != null) { found =
-                         * true; } else { // find an active and available snd
-                         * for this stn and // set is as current for (int i = 0;
-                         * i < sndElementList.size(); i++) { if
-                         * (sndElementList.get(i).getActionState() ==
-                         * NsharpConstants.ActState.ACTIVE && stnTimeSndTable
-                         * .get(currentStnElementListIndex)
-                         * .get(targetIndex).get(i) != null) {
-                         * currentSndElementListIndex = i; found = true; break;
-                         * } } } if (!found) { currentSndElementListIndex = -1;
-                         * } else { int colorIndex = NsharpConstants.LINE_COMP1;
-                         * for (NsharpOperationElement elm : sndElementList) {
-                         * if (elm.getActionState() ==
-                         * NsharpConstants.ActState.INACTIVE) continue; int
-                         * sndIndex = sndElementList.indexOf(elm);
-                         * NsharpSoundingElementStateProperty stnTmElm =
-                         * stnTimeSndTable .get(currentStnElementListIndex)
-                         * .get(targetIndex).get(sndIndex); if (stnTmElm !=
-                         * null) { stnTmElm.setCompColorIndex(colorIndex); }
-                         * colorIndex++; if (colorIndex >
-                         * NsharpConstants.LINE_COMP10) colorIndex =
-                         * NsharpConstants.LINE_COMP1; } } // no matter we find
-                         * current snd type for this stn or // not // we should
-                         * get out of here break;
-                         */
+                        /*  DR16888 02052015
+                         *  boolean found = false;
+                        if (currentStnElementListIndex >= 0
+                                && currentSndElementListIndex >= 0
+                                && stnTimeSndTable
+                                        .get(currentStnElementListIndex)
+                                        .get(targetIndex)
+                                        .get(currentSndElementListIndex) != null) {
+                            found = true;
+                        } else {
+                            // find an active and available snd for this stn and
+                            // set is as current
+                            for (int i = 0; i < sndElementList.size(); i++) {
+                                if (sndElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
+                                        && stnTimeSndTable
+                                                .get(currentStnElementListIndex)
+                                                .get(targetIndex).get(i) != null) {
+                                    currentSndElementListIndex = i;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            currentSndElementListIndex = -1;
+                        } else {
+                            int colorIndex = NsharpConstants.LINE_COMP1;
+                            for (NsharpOperationElement elm : sndElementList) {
+                                if (elm.getActionState() == NsharpConstants.ActState.INACTIVE)
+                                    continue;
+                                int sndIndex = sndElementList.indexOf(elm);
+                                NsharpSoundingElementStateProperty stnTmElm = stnTimeSndTable
+                                        .get(currentStnElementListIndex)
+                                        .get(targetIndex).get(sndIndex);
+                                if (stnTmElm != null) {
+                                    stnTmElm.setCompColorIndex(colorIndex);
+                                }
+                                colorIndex++;
+                                if (colorIndex > NsharpConstants.LINE_COMP10)
+                                    colorIndex = NsharpConstants.LINE_COMP1;
+                            }
+                        }
+                        // no matter we find current snd type for this stn or
+                        // not
+                        // we should get out of here
+                        break;
+                        */
                     } else {
                         break;
                     }
@@ -2847,7 +2835,8 @@ public class NsharpResourceHandler {
                             // to original
                 if (stnElementList.get(currentStnElementListIndex)
                         .getActionState() == NsharpConstants.ActState.ACTIVE) {
-                    if (compareStnIsOn && currentTimeElementListIndex >= 0
+                    if (compareStnIsOn
+                            && currentTimeElementListIndex >= 0
                             && currentSndElementListIndex >= 0
                             && stnTimeSndTable.get(currentStnElementListIndex)
                                     .get(currentTimeElementListIndex)
@@ -2869,8 +2858,7 @@ public class NsharpResourceHandler {
                             // find an active and available timeline for this
                             // stn and set is as current
                             for (int i = 0; i < timeElementList.size(); i++) {
-                                if (timeElementList.get(i)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
+                                if (timeElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                                         && stnTimeSndTable
                                                 .get(currentStnElementListIndex)
                                                 .get(i)
@@ -2919,8 +2907,7 @@ public class NsharpResourceHandler {
                             // find an active and available snd for this stn and
                             // set is as current
                             for (int i = 0; i < sndElementList.size(); i++) {
-                                if (sndElementList.get(i)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
+                                if (sndElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                                         && stnTimeSndTable
                                                 .get(currentStnElementListIndex)
                                                 .get(currentTimeElementListIndex)
@@ -3006,7 +2993,8 @@ public class NsharpResourceHandler {
                             // to original
                 if (sndElementList.get(currentSndElementListIndex)
                         .getActionState() == NsharpConstants.ActState.ACTIVE) {
-                    if (compareSndIsOn && currentTimeElementListIndex >= 0
+                    if (compareSndIsOn
+                            && currentTimeElementListIndex >= 0
                             && currentStnElementListIndex >= 0
                             && stnTimeSndTable.get(currentStnElementListIndex)
                                     .get(currentTimeElementListIndex)
@@ -3026,8 +3014,7 @@ public class NsharpResourceHandler {
                             // find an active and available timeline for this
                             // stn and set is as current
                             for (int i = 0; i < timeElementList.size(); i++) {
-                                if (timeElementList.get(i)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
+                                if (timeElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
                                         && stnTimeSndTable
                                                 .get(currentStnElementListIndex)
                                                 .get(i)
@@ -3075,9 +3062,9 @@ public class NsharpResourceHandler {
                             found = true;
                         } else {
                             for (int i = 0; i < stnElementList.size(); i++) {
-                                if (stnElementList.get(i)
-                                        .getActionState() == NsharpConstants.ActState.ACTIVE
-                                        && stnTimeSndTable.get(i)
+                                if (stnElementList.get(i).getActionState() == NsharpConstants.ActState.ACTIVE
+                                        && stnTimeSndTable
+                                                .get(i)
                                                 .get(currentTimeElementListIndex)
                                                 .get(currentSndElementListIndex) != null) {
                                     currentStnElementListIndex = i;
@@ -3153,7 +3140,7 @@ public class NsharpResourceHandler {
      * Return the closest point to the input point on Hodo graph
      */
     public Coordinate getClosestHodoPoint(Coordinate inputC) {
-        // System.out.println("picked pt CX "+ inputC.x + " CY "+ inputC.y);
+        // System.out.println("picked pt  CX "+ inputC.x + " CY "+ inputC.y);
         Coordinate closeptC = new Coordinate(0, 0);
         if (hodoPaneRsc == null)
             return closeptC;
@@ -3332,9 +3319,8 @@ public class NsharpResourceHandler {
                     && (paneConfigurationName
                             .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
                             || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
+                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR) || paneConfigurationName
+                                .equals(NsharpConstants.PANE_DEF_CFG_2_STR))) {
 
                 witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
                 witoPaneRsc.setLinePropertyMap(linePropertyMap);
@@ -3345,9 +3331,8 @@ public class NsharpResourceHandler {
                     && (paneConfigurationName
                             .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
                             || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
+                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR) || paneConfigurationName
+                                .equals(NsharpConstants.PANE_DEF_CFG_2_STR))) {
 
                 insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
                 insetPaneRsc.setLinePropertyMap(linePropertyMap);
@@ -3373,13 +3358,12 @@ public class NsharpResourceHandler {
                     && (paneConfigurationName
                             .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
                             || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
+                                    .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR) 
                             || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_OPC_CFG_STR)
+                                    .equals(NsharpConstants.PANE_OPC_CFG_STR) 
                             || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
+                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR) || paneConfigurationName
+                                .equals(NsharpConstants.PANE_DEF_CFG_2_STR))) {
                 timeStnPaneRsc = (NsharpTimeStnPaneResource) absPaneRsc;
                 timeStnPaneRsc.setLinePropertyMap(linePropertyMap);
                 timeStnPaneRsc.setGraphConfigProperty(graphConfigProperty);
@@ -3419,8 +3403,7 @@ public class NsharpResourceHandler {
         // elementColorMap.put(NsharpConstants.LoadState.AVAIL.name(),NsharpConstants.color_yellow);
         nsharpNative = new NsharpNative();
 
-        // System.out.println("NsharpResourceHandler
-        // constructed"+this.toString()
+        // System.out.println("NsharpResourceHandler constructed"+this.toString()
         // + " nsharpNative="+nsharpNative.toString());
         // based on BigNsharp storm slinky color used and gempak color
         // definition
@@ -3457,10 +3440,10 @@ public class NsharpResourceHandler {
     }
 
     public void setDisplayDataPageMax(int displayDataPageMax) {
-        this.displayDataPageMax = displayDataPageMax;
-    }
+		this.displayDataPageMax = displayDataPageMax;
+	}
 
-    public void disposeInternal() {
+	public void disposeInternal() {
         // System.out.println("NsharpResourceHandler disposeInternal called");
         // soundingMap= null;
         listenerList = null;
@@ -3476,8 +3459,7 @@ public class NsharpResourceHandler {
         nsharpNative = null;
     }
 
-    public void printHeightMark(NsharpWGraphics world, GC gc)
-            throws VizException {
+    public void printHeightMark(NsharpWGraphics world, GC gc) throws VizException {
         // print feet scales...
         double vyMax = world.getViewYmax();
         double vyMin = world.getViewYmin();
@@ -3489,9 +3471,8 @@ public class NsharpResourceHandler {
             double pressure = nsharpNative.nsharpLib.ipres(meters);
             double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, -50).y);
 
-            gc.drawString(
-                    Integer.toString(
-                            NsharpConstants.HEIGHT_LEVEL_FEET[j] / 1000),
+            gc.drawString(Integer
+                    .toString(NsharpConstants.HEIGHT_LEVEL_FEET[j] / 1000),
                     (int) vxMax + 40, (int) y, false);
 
             gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 45, (int) y);
@@ -3509,12 +3490,13 @@ public class NsharpResourceHandler {
             gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 55, (int) y);
         }
         // print surface level mark
-        double y = world.mapY(NsharpWxMath
-                .getSkewTXY(soundingLys.get(0).getPressure(), -50).y);
+        double y = world.mapY(NsharpWxMath.getSkewTXY(soundingLys.get(0)
+                .getPressure(), -50).y);
         gc.drawString(
-                "SFC(" + Integer.toString(
-                        (int) (soundingLys.get(0).getGeoHeight())) + "m)",
-                (int) vxMax + 50, (int) y, false);
+                "SFC("
+                        + Integer.toString((int) (soundingLys.get(0)
+                                .getGeoHeight())) + "m)", (int) vxMax + 50,
+                (int) y, false);
         gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 55, (int) y);
         // top level mark at 100 mbar
         y = world.mapY(NsharpWxMath.getSkewTXY(100, -50).y);
@@ -3544,8 +3526,8 @@ public class NsharpResourceHandler {
         for (int i = 0; i < NsharpConstants.PRESSURE_MAIN_LEVELS.length; i++) {
             // we only care about pressure for this case, temp is no important
             // when calling getSkewTXY
-            Coordinate coor = NsharpWxMath
-                    .getSkewTXY(NsharpConstants.PRESSURE_MAIN_LEVELS[i], 0);
+            Coordinate coor = NsharpWxMath.getSkewTXY(
+                    NsharpConstants.PRESSURE_MAIN_LEVELS[i], 0);
 
             gc.drawLine((int) vxMin, (int) world.mapY(coor.y), (int) vxMax,
                     (int) world.mapY(coor.y));
@@ -3554,11 +3536,11 @@ public class NsharpResourceHandler {
         for (int i = 0; i < NsharpConstants.PRESSURE_MARK_LEVELS.length; i++) {
             // we only care about pressure for this case, temp is no important
             // when calling getSkewTXY
-            Coordinate coor = NsharpWxMath
-                    .getSkewTXY(NsharpConstants.PRESSURE_MARK_LEVELS[i], 0);
+            Coordinate coor = NsharpWxMath.getSkewTXY(
+                    NsharpConstants.PRESSURE_MARK_LEVELS[i], 0);
 
-            gc.drawLine((int) vxMin, (int) world.mapY(coor.y), (int) vxMin + 10,
-                    (int) world.mapY(coor.y));
+            gc.drawLine((int) vxMin, (int) world.mapY(coor.y),
+                    (int) vxMin + 10, (int) world.mapY(coor.y));
 
         }
         for (int i = 0; i < NsharpConstants.PRESSURE_NUMBERING_LEVELS.length; i++) {
@@ -3607,8 +3589,7 @@ public class NsharpResourceHandler {
      * every 400m
      * 
      */
-    public void printNsharpWind(NsharpWGraphics world, GC gc)
-            throws VizException {
+    public void printNsharpWind(NsharpWGraphics world, GC gc) throws VizException {
         ArrayList<List<LineStroke>> windList = new ArrayList<List<LineStroke>>();
 
         double windX = world.getViewXmax() + 6 * BARB_LENGTH;
@@ -3633,8 +3614,7 @@ public class NsharpResourceHandler {
             windY = world.mapY(NsharpWxMath.getSkewTXY(pressure, 0).y);
 
             List<LineStroke> barb = WindBarbFactory.getWindGraphics(
-                    /* metersPerSecondToKnots.convert */(double) (spd),
-                    (double) dir);
+            /* metersPerSecondToKnots.convert */(double) (spd), (double) dir);
             if (barb != null) {
                 WindBarbFactory.scaleBarb(barb, -7);
                 WindBarbFactory.translateBarb(barb, windX, windY);
@@ -3728,12 +3708,12 @@ public class NsharpResourceHandler {
             Coordinate c1 = NsharpWxMath.getSkewTXY(sfcpres, vtemp);
             c1.x = world.mapX(c1.x);
             c1.y = world.mapY(c1.y);
-            FloatByReference p2 = new FloatByReference(0),
-                    t2 = new FloatByReference(0);
+            FloatByReference p2 = new FloatByReference(0), t2 = new FloatByReference(
+                    0);
             ;
             nsharpNative.nsharpLib.drylift(sfcpres, sfctemp, sfcdwpt, p2, t2);
-            vtemp = nsharpNative.nsharpLib.virtemp(p2.getValue(), t2.getValue(),
-                    t2.getValue());
+            vtemp = nsharpNative.nsharpLib.virtemp(p2.getValue(),
+                    t2.getValue(), t2.getValue());
             Coordinate c2 = NsharpWxMath.getSkewTXY(p2.getValue(), vtemp);
             c2.x = world.mapX(c2.x);
             c2.y = world.mapY(c2.y);
@@ -3773,15 +3753,15 @@ public class NsharpResourceHandler {
      * @throws VizException
      */
 
-    public void printNsharpPressureTempCurve(NsharpWGraphics world, int type,
-            GC gc, List<NcSoundingLayer> soundingLys) throws VizException {
+    public void printNsharpPressureTempCurve(NsharpWGraphics world, int type, GC gc,
+            List<NcSoundingLayer> soundingLys) throws VizException {
         if ((soundingLys == null) || (soundingLys.size() == 0))
             return;
 
-        double maxPressure = NsharpWxMath
-                .reverseSkewTXY(new Coordinate(0, world.getWorldYmax())).y;
-        double minPressure = NsharpWxMath
-                .reverseSkewTXY(new Coordinate(0, world.getWorldYmin())).y;
+        double maxPressure = NsharpWxMath.reverseSkewTXY(new Coordinate(0,
+                world.getWorldYmax())).y;
+        double minPressure = NsharpWxMath.reverseSkewTXY(new Coordinate(0,
+                world.getWorldYmin())).y;
         Coordinate c0 = null;
         for (NcSoundingLayer layer : soundingLys) {
             double t;
@@ -3854,8 +3834,8 @@ public class NsharpResourceHandler {
         plotInteractiveTemp = true;
         if (skewtPaneRsc != null) {
             skewtPaneRsc.setPlotInteractiveTemp(plotInteractiveTemp);
-            skewtPaneRsc.setInteractiveTempPointCoordinate(
-                    interactiveTempPointCoordinate);
+            skewtPaneRsc
+                    .setInteractiveTempPointCoordinate(interactiveTempPointCoordinate);
         }
     }
 
@@ -3893,8 +3873,8 @@ public class NsharpResourceHandler {
     public void applyMovingTempLine() {
         if (skewtPaneRsc == null)
             return;
-        Coordinate inC = NsharpWxMath.reverseSkewTXY(
-                skewtPaneRsc.getWorld().unMap(interactiveTempPointCoordinate));
+        Coordinate inC = NsharpWxMath.reverseSkewTXY(skewtPaneRsc.getWorld()
+                .unMap(interactiveTempPointCoordinate));
         float inTemp = (float) inC.x;
         currentSoundingLayerIndex = skewtPaneRsc.getCurrentSoundingLayerIndex();
         currentTempCurveType = skewtPaneRsc.getCurrentTempCurveType();
@@ -3959,8 +3939,8 @@ public class NsharpResourceHandler {
     public void applyInteractiveTempPoint() {
         if (skewtPaneRsc == null)
             return;
-        Coordinate inC = NsharpWxMath.reverseSkewTXY(
-                skewtPaneRsc.getWorld().unMap(interactiveTempPointCoordinate));
+        Coordinate inC = NsharpWxMath.reverseSkewTXY(skewtPaneRsc.getWorld()
+                .unMap(interactiveTempPointCoordinate));
         double inTemp = inC.x;
         currentSoundingLayerIndex = skewtPaneRsc.getCurrentSoundingLayerIndex();
         NcSoundingLayer layer = this.soundingLys.get(currentSoundingLayerIndex);
@@ -4034,13 +4014,13 @@ public class NsharpResourceHandler {
         // re-populate snd data to nsharp native code lib for later calculating
         Collections.sort(soundingLys,
                 NsharpDataHandling.reversePressureHeightWindComparator());
-        // #5929
-        goodData = checkDataIntegrity(soundingLys);
-        if (getCurSoundingElementStateProperty() != null) {
-            getCurSoundingElementStateProperty().setGoodData(goodData);
+        //#5929
+        goodData = checkDataIntegrity( soundingLys);
+        if(getCurSoundingElementStateProperty()!=null){
+        	getCurSoundingElementStateProperty().setGoodData(goodData);
         }
-        if (goodData)
-            nsharpNative.populateSndgData(soundingLys);
+        if(goodData)
+        	nsharpNative.populateSndgData(soundingLys);
         // get storm motion wind data after populate sounding from NsharpLib
         // refresh test area if it is shown now
         NsharpShowTextDialog textarea = NsharpShowTextDialog.getAccess();
@@ -4066,8 +4046,8 @@ public class NsharpResourceHandler {
         }
         if (dataPaneRsc != null)
             dataPaneRsc.setSoundingLys(soundingLys);
-
-        if (spcGraphsPaneRsc != null && (goodData)) {// #5929
+        
+        if (spcGraphsPaneRsc != null && (goodData) ){//#5929
             // Chin: SPC graphs performance concern, as it need to call get
             // info functions from bigSharo.so and cause long delay.
             // Therefore, do it once only when reset data.
@@ -4090,13 +4070,13 @@ public class NsharpResourceHandler {
         // re-populate snd data to nsharp native code lib for later calculating
         Collections.sort(soundingLys,
                 NsharpDataHandling.reversePressureHeightWindComparator());
-        // #5929
-        goodData = checkDataIntegrity(soundingLys);
-        if (getCurSoundingElementStateProperty() != null) {
-            getCurSoundingElementStateProperty().setGoodData(goodData);
+      //#5929
+        goodData = checkDataIntegrity( soundingLys);
+        if(getCurSoundingElementStateProperty()!=null){
+        	getCurSoundingElementStateProperty().setGoodData(goodData);
         }
-        if (goodData)
-            nsharpNative.populateSndgData(soundingLys);
+        if(goodData)
+        	nsharpNative.populateSndgData(soundingLys);
         // get storm motion wind data after populate sounding from NsharpLib
         // refresh text area if it is shown now
         NsharpShowTextDialog textarea = NsharpShowTextDialog.getAccess();
@@ -4122,7 +4102,7 @@ public class NsharpResourceHandler {
         }
         if (dataPaneRsc != null)
             dataPaneRsc.setSoundingLys(soundingLys);
-        if (spcGraphsPaneRsc != null && (goodData)) {// #5929
+        if (spcGraphsPaneRsc != null && (goodData) ){//#5929
             // Chin: SPC graphs performance concern, as it need to call get
             // info functions from bigSharo.so and cause long delay.
             // Therefore, do it once only when reset data.
@@ -4130,8 +4110,7 @@ public class NsharpResourceHandler {
         }
     }
 
-    public void setGraphConfigProperty(
-            NsharpGraphProperty graphConfigProperty) {
+    public void setGraphConfigProperty(NsharpGraphProperty graphConfigProperty) {
         this.graphConfigProperty = graphConfigProperty;
         int tempOffset = graphConfigProperty.getTempOffset();
         sndCompRadius = graphConfigProperty.getSndCompRadius();// FixMark:nearByStnCompSnd
@@ -4139,8 +4118,8 @@ public class NsharpResourceHandler {
         if (skewtPaneRsc != null) {
             skewtPaneRsc.setGraphConfigProperty(graphConfigProperty);
             skewtPaneRsc.handleResize();
-            skewtPaneRsc.getSkewTBackground()
-                    .setGraphConfigProperty(graphConfigProperty);
+            skewtPaneRsc.getSkewTBackground().setGraphConfigProperty(
+                    graphConfigProperty);
         }
         if (hodoPaneRsc != null) {
             hodoPaneRsc.setGraphConfigProperty(graphConfigProperty);
@@ -4339,7 +4318,7 @@ public class NsharpResourceHandler {
         this.dtYOrig = dtYOrig;
         this.dtXOrig = dtXOrig;
         this.dtWidth = dtWidth;
-        // this.cnYOrig = cnYOrig;
+//        this.cnYOrig = cnYOrig;
         this.dtNextPageEnd = dtNextPage_end;
         this.numTimeLinePerPage = numTimeLinePerPage;
         calculateTimeStnBoxData();
@@ -4362,16 +4341,15 @@ public class NsharpResourceHandler {
         currentGraphMode = NsharpConstants.GRAPH_SKEWT;
         this.paneConfigurationName = paneConfigName;
         if (this.paneConfigurationName
-                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                || this.paneConfigurationName
-                        .equals(NsharpConstants.PANE_OPC_CFG_STR)) {
-            int numberPagePerDisplay = 1;
-            dataPageProperty.setNumberPagePerDisplay(numberPagePerDisplay);
+                .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)||
+                this.paneConfigurationName
+                .equals(NsharpConstants.PANE_OPC_CFG_STR)){
+        	int numberPagePerDisplay= 1;
+        	dataPageProperty.setNumberPagePerDisplay(numberPagePerDisplay);
         }
         displayDataPageMax = NsharpConstants.PAGE_MAX_NUMBER
                 / dataPageProperty.getNumberPagePerDisplay();
     }
-
     private void calculateTimeStnBoxData() {
         // set total time line group and stn id list page number
 
@@ -4408,10 +4386,9 @@ public class NsharpResourceHandler {
         int index = 0;
         if (currentSndElementListIndex >= 0 && currentStnElementListIndex >= 0
                 && currentTimeElementListIndex >= 0) {
-            index = currentSndElementListIndex
-                    + currentTimeElementListIndex * sndElementList.size()
-                    + currentStnElementListIndex * timeElementList.size()
-                            * sndElementList.size();
+            index = currentSndElementListIndex + currentTimeElementListIndex
+                    * sndElementList.size() + currentStnElementListIndex
+                    * timeElementList.size() * sndElementList.size();
         }
         return index;
     }
@@ -4423,8 +4400,9 @@ public class NsharpResourceHandler {
      * successfully
      */
     public boolean setCurrentIndex(int index) {
-        if (index < 0 || index >= (timeElementList.size()
-                * sndElementList.size() * stnElementList.size())) {
+        if (index < 0
+                || index >= (timeElementList.size() * sndElementList.size() * stnElementList
+                        .size())) {
             // System.out.println("invalid index="+index);
             return false;
         }
@@ -4434,14 +4412,10 @@ public class NsharpResourceHandler {
                 / sndElementList.size();
         tempSndi = (index % (timeElementList.size() * sndElementList.size()))
                 % sndElementList.size();
-        if (timeElementList.get(tempTmi)
-                .getActionState() == NsharpConstants.ActState.INACTIVE
-                || stnElementList.get(tempStni)
-                        .getActionState() == NsharpConstants.ActState.INACTIVE
-                || sndElementList.get(tempSndi)
-                        .getActionState() == NsharpConstants.ActState.INACTIVE
-                || stnTimeSndTable.get(tempStni).get(tempTmi)
-                        .get(tempSndi) == null) {
+        if (timeElementList.get(tempTmi).getActionState() == NsharpConstants.ActState.INACTIVE
+                || stnElementList.get(tempStni).getActionState() == NsharpConstants.ActState.INACTIVE
+                || sndElementList.get(tempSndi).getActionState() == NsharpConstants.ActState.INACTIVE
+                || stnTimeSndTable.get(tempStni).get(tempTmi).get(tempSndi) == null) {
             // System.out.println("invalid element="+index);
             return false;
         }
@@ -4458,10 +4432,9 @@ public class NsharpResourceHandler {
         refreshPane();
         return true;
     }
-
-    // #5929
-    public boolean isGoodData() {
-        return goodData;
-    }
+    //#5929
+	public boolean isGoodData() {
+		return goodData;
+	}
 
 }

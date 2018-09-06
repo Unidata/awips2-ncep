@@ -3,34 +3,43 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
+import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+
 /**
  * Holds scaler and vector model grids and dimension information. An attempt is
  * made to store the grids in direct memory to save heap space.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    	Description
- * ------------ ----------  ----------- 	--------------------------
- * Apr 6, 2010  164          M. Li      	Modified from NcFloatDataRecord
- * Jun15, 2010	164			mgamazaychikov	Cleaned up, improved reduce method,
- * 											implemented cloneInternal, getSizeInBytes
- * Apr 25,2016  R17741       S. Gilbert     Modified from NcFloatDataRecord
+ * Date         Ticket#     Engineer        Description
+ * ------------ ----------  -----------     --------------------------
+ * Apr 06, 2010 164         M. Li          Modified from NcFloatDataRecord
+ * Jun 15, 2010 164         mgamazaychikov Cleaned up, improved reduce method,
+ *                                         implemented cloneInternal, getSizeInBytes
+ * Apr 25, 2016 R17741      S. Gilbert     Modified from NcFloatDataRecord
+ * Sep 05, 2018 7417        mapeters       Support DynamicSerialize
  * </pre>
- * 
+ *
  * @author mli
- * @version 1
  */
+@DynamicSerialize
 public class FloatGridData {
 
+    @DynamicSerializeElement
     private FloatBuffer xdata;
 
+    @DynamicSerializeElement
     private FloatBuffer ydata;
 
+    @DynamicSerializeElement
     private boolean vector = false;
 
+    @DynamicSerializeElement
     private int dimension;
 
+    @DynamicSerializeElement
     private long[] sizes;
 
     public FloatGridData() {
@@ -47,14 +56,21 @@ public class FloatGridData {
 
     /**
      * @param xdata
-     *            saves a float grid array into a FloatBuffer
+     *            the xdata to set
      */
-    public void setXdata(float[] aFloatData) {
-        this.xdata = toFloatBuffer(aFloatData);
+    public void setXdata(FloatBuffer xdata) {
+        this.xdata = xdata;
     }
 
     /**
-     * 
+     * @param aFloatData
+     *            saves a float grid array into a FloatBuffer
+     */
+    public void setXdata(float[] aFloatData) {
+        setXdata(toFloatBuffer(aFloatData));
+    }
+
+    /**
      * @return the reference to the v-component grid, if vector is true
      */
     public FloatBuffer getYdata() {
@@ -63,14 +79,29 @@ public class FloatGridData {
 
     /**
      * @param ydata
-     *            saves the v-component float grid array into a FloatBuffer
+     *            the ydata to set
      */
-    public void setYdata(float[] aFloatData) {
-        this.ydata = toFloatBuffer(aFloatData);
+    public void setYdata(FloatBuffer ydata) {
+        this.ydata = ydata;
     }
 
     /**
-     * 
+     * @param aFloatData
+     *            saves the v-component float grid array into a FloatBuffer
+     */
+    public void setYdata(float[] aFloatData) {
+        setYdata(toFloatBuffer(aFloatData));
+    }
+
+    /**
+     * @return the dimension of the grid data (usually 2)
+     */
+    public int getDimension() {
+        return dimension;
+    }
+
+    /**
+     *
      * @param dimension
      *            of grid data (usually 2)
      */
@@ -79,7 +110,7 @@ public class FloatGridData {
     }
 
     /**
-     * 
+     *
      * @return Number of grid points in each dimension
      */
     public long[] getSizes() {
@@ -87,7 +118,7 @@ public class FloatGridData {
     }
 
     /**
-     * 
+     *
      * @param ls
      *            Number of grid points in each dimension
      */
@@ -96,7 +127,7 @@ public class FloatGridData {
     }
 
     /**
-     * 
+     *
      * @return the scare grid (or u-component grid) as a float array
      */
     public float[] getXdataAsArray() {
@@ -111,7 +142,7 @@ public class FloatGridData {
         return array;
     }
 
-    /*
+    /**
      * Converts a float array to a FloatBuffer
      */
     private FloatBuffer toFloatBuffer(float[] aFloatData) {
@@ -122,9 +153,6 @@ public class FloatGridData {
         return fb;
     }
 
-    /*
-     * (non-Javadoc)
-     */
     public boolean validateDataSet() {
 
         long size = 1;
@@ -142,7 +170,7 @@ public class FloatGridData {
     }
 
     /**
-     * 
+     *
      * @return true if, u-componenet and v-component grids are stored otherwise,
      *         1 scaler grid is stored
      */
@@ -152,7 +180,7 @@ public class FloatGridData {
 
     /**
      * Are grids vector grids?
-     * 
+     *
      * @param vector
      */
     public void setVector(boolean vector) {

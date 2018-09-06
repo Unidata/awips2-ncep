@@ -71,7 +71,6 @@ import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
@@ -84,17 +83,19 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointMarkerDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointValueDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridRelativeHiLoDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GriddedVectorDisplay;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.Dgdriv;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.DgdrivException;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataRecord;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakProcessingManager;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
  * Grid contour Resource
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
@@ -123,9 +124,9 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 11/2011                  X. Guo          Updated contour attributes
  * 11/16/2011               X. Guo          Corrected Valid/Forecast time in Title
  * 11/22/2011               X. Guo          Used the current frame time to set dgdriv and add dumpNcGribInventory()
- * 12/12/2011               X. Guo          Updated Ensemble requests 
+ * 12/12/2011               X. Guo          Updated Ensemble requests
  * 12/06/2012   #538        Q. Zhou         Added skip and filter areas and implements.
- * 02/15/2012               X. Guo          Added schedule job to parallel updating data 
+ * 02/15/2012               X. Guo          Added schedule job to parallel updating data
  * 02/16/2012   #555        S. Gurung       Added call to setAllFramesAsPopulated() in queryRecords()
  * 03/01/2012               X. Guo          Added codes to handle attributes modification
  * 03/13/2012               X. Guo          Created multi-threads to generate contours
@@ -133,10 +134,10 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 04/03/2012               X. Guo          Created vector wireframe in contour job
  *                                          and changed constraint to query available times
  * 05/15/2012               X. Guo          Used getAvailableDataTimes() to get available times
- * 05/23/2012               X. Guo          Loaded ncgrib logger   
+ * 05/23/2012               X. Guo          Loaded ncgrib logger
  * 06/07/2012               X. Guo          Catch datauri&grid data for each frame
- * 09/26/2012               X. Guo          Fixed navigation query problems     
- * 08/19/2013   #743        S. Gurung       Added clrbar related changes  
+ * 09/26/2012               X. Guo          Fixed navigation query problems
+ * 08/19/2013   #743        S. Gurung       Added clrbar related changes
  * 09/14/2013   #1036       S. Gurung       Added TEXT attribute related changes
  * 11/19/2013   #619        T. Lee          Fixed DOW in Title string
  * 11/19/2013   #930        T. Lee          Replaced modelName with "Resource Type"
@@ -148,8 +149,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 06/27/2014   ?           B. Yin          Handle grid analysis (cycle time is null).
  * 08/01/2014   ?           B. Yin          Handle display type D (directional arrow).
  * 12/11/2014   R5113       J. Wu           Correct parsing for gdfunc.
- * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and 
- *                                          overrode processNewRscDataList for 
+ * 02/09/2015   RM4980      S. Russell      Updated NcgridLoaderJob.run() and
+ *                                          overrode processNewRscDataList for
  *                                          the super class
  * 07/28/2015   R8993       S. Russell      Updated NcGridLoaderJob.run() to
  *                                          ensure that preloading of grid data
@@ -157,14 +158,14 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 07/17/2015   R6916       B. Yin/R. Kean  Changes for Contour fill images
  * 12/28/2015   R8832       S. Russell      Altered NcgridLoaderJob.run() and
  *                                          processNewRscDataList() to switch
- *                                          between processing code for 
+ *                                          between processing code for
  *                                          binning and other time matching
  *                                          methods as appropriate
  * 02/08/2016   R8832       S.Russell       Updated processNewRscDataListWithBinning()
  *                                          to correct an error introduced
  *                                          into a conditional in the method.
- * 02/24/2016   R6821       K.Bugenhagen    Added capability to save grid and 
- *                                          consolidated multiple log messages 
+ * 02/24/2016   R6821       K.Bugenhagen    Added capability to save grid and
+ *                                          consolidated multiple log messages
  *                                          into one method. Replaced catching
  *                                          of nullpointerexceptions with
  *                                          null checks.
@@ -174,28 +175,28 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 04/21/2016   R17741      S. Gilbert      removed isseuRefresh() that was causing continuous paint.
  * 05/06/2016   R17323      K.Bugenhagen    Save ncgrid proxy with each frame.
  *                                          Remove unnecessary issueRefresh call in
- *                                          paintFrame. Removed getFileName method 
+ *                                          paintFrame. Removed getFileName method
  *                                          (not used anywhere). Use slf4j logger.
  * 08/16/2016   R17603      K.Bugenhagen    Added isDuplicateDatasetId method.
  *                                          Also, cleanup.
  * Aug 23, 2016 R15955      bsteffen        Use old spatial object for vector displays.
- * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods   
+ * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods
  *                                          since they are no longer static. Also, cleanup.
  * 11/07/2016    R20009     A. Su           Rewrote method replaceTitleSpecialCharacters() to implement
  *                                          requirements of escaping and substituting all special chars.
  *                                          Removed short title string from the legend.
  * 11/18/2016    R23069     A. Su           Added a null check in fixVectorSpatialData() for
  *                                          no Y data, such as directional arrows.
- * 12/05/2016    R26247     A. Su           Removed the setting of NcGridDataProxy object to currentFrame 
+ * 12/05/2016    R26247     A. Su           Removed the setting of NcGridDataProxy object to currentFrame
  *                                          in updateFrameData().
+ * Sep 05, 2018  7417       mapeters        GEMPAK processing done through {@link GempakProcessingManager}
+ *                                          instead of directly through Dgdriv
  * </pre>
- * 
+ *
  * @author mli
- * @version 1.0
  */
 public class NcgridResource
-        extends AbstractNatlCntrsResource<NcgridResourceData, NCMapDescriptor>
-        implements INatlCntrsResource {
+        extends AbstractNatlCntrsResource<NcgridResourceData, NCMapDescriptor> {
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(NcgridResource.class);
@@ -205,7 +206,7 @@ public class NcgridResource
     private static SimpleDateFormat QUERY_DATE_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
 
-    private final static String DATA_SET_ID_TAG = "datasetId";
+    private static final String DATA_SET_ID_TAG = "datasetId";
 
     // For Ensembles this will be the NcEnsembleResourceData
     protected NcgridResourceData gridRscData;
@@ -306,9 +307,10 @@ public class NcgridResource
             boolean isFirst = true;
 
             long t1 = System.currentTimeMillis();
-            if (ncgribLogger.enableRscLogs())
+            if (ncgribLogger.enableRscLogs()) {
                 logger.debug("==from init to run loadNcgridData took: "
                         + (t1 - initTime));
+            }
 
             // For each frame
             for (AbstractFrameData fd : frameDataMap.values()) {
@@ -465,47 +467,47 @@ public class NcgridResource
     private NcgridAttrModifiedJob ncgribAttrsModified;
 
     public class FrameData extends AbstractFrameData {
-        ContourRenderable[] contourRenderable;
+        private ContourRenderable[] contourRenderable;
 
-        NcGridDataProxy gdPrxy = null;
+        private NcGridDataProxy gdPrxy = null;
 
-        GriddedVectorDisplay[] vectorDisplay;
+        private GriddedVectorDisplay[] vectorDisplay;
 
-        GridPointMarkerDisplay gridPointMarkerDisplay;
+        private GridPointMarkerDisplay gridPointMarkerDisplay;
 
-        GridIndicesDisplay gridIndicesDisplay;
+        private GridIndicesDisplay gridIndicesDisplay;
 
-        NcgridDataCache cacheData = new NcgridDataCache();
+        private NcgridDataCache cacheData = new NcgridDataCache();
 
-        GridPointValueDisplay[] gridPointValueDisplay;
+        private GridPointValueDisplay[] gridPointValueDisplay;
 
-        boolean hasData = false;
+        private boolean hasData = false;
 
-        String gfunc = "";
+        private String gfunc = "";
 
-        String glevel = "";
+        private String glevel = "";
 
-        String gvcord = "";
+        private String gvcord = "";
 
-        String skip = "";
+        private String skip = "";
 
-        String filter = "";
+        private String filter = "";
 
-        String scale = "";
+        private String scale = "";
 
-        String colors = "";
+        private String colors = "";
 
-        String text = "";
+        private String text = "";
 
-        Boolean frameLoaded = false;
+        private Boolean frameLoaded = false;
 
-        Boolean paintAble = false;
+        private Boolean paintAble = false;
 
-        boolean isReProject = false;
+        private boolean isReProject = false;
 
-        boolean isAttrModified = false;
+        private boolean isAttrModified = false;
 
-        boolean isFirst = true;
+        private boolean isFirst = true;
 
         protected class GenerateContourJob extends Job {
 
@@ -586,10 +588,9 @@ public class NcgridResource
                                 + gridRscData.getPluginName() + " "
                                 + gridRscData.getGdfile(), e);
                     }
-                    ISpatialObject cov = (ISpatialObject) GempakGrid
-                            .getGridNavigation(gridRscData.getGdfile(),
-                                    dataLocation,
-                                    rscDataObj.getDataTime().toString());
+                    ISpatialObject cov = GempakGrid.getGridNavigation(
+                            gridRscData.getGdfile(), dataLocation,
+                            rscDataObj.getDataTime().toString());
                     gdPrxy.setSpatialObject(cov);
                     gdPrxy.setNewSpatialObject(cov);
                 } catch (Exception e) {
@@ -768,7 +769,7 @@ public class NcgridResource
                 if (displayType == DisplayType.ARROW
                         || displayType == DisplayType.BARB) {
                     t11 = System.currentTimeMillis();
-                    boolean isDirectionalArrow = attrType.equals("D");
+                    boolean isDirectionalArrow = "D".equals(attrType);
 
                     if (vectorDisplay[i] == null) {
                         FloatGridData rec = null;
@@ -992,7 +993,7 @@ public class NcgridResource
          * is centered on the data. This method checks for that case and removes
          * the redundant column so the original spatial object can be used which
          * has a CRS properly centered on the data.
-         * 
+         *
          * @param rec
          *            a record that may need to be resized.
          * @return a resized record or the input record if no resize is
@@ -1085,7 +1086,7 @@ public class NcgridResource
                     if (displayType == DisplayType.ARROW
                             || displayType == DisplayType.BARB) {
 
-                        boolean isDirectionalArrow = attrType.equals("D");
+                        boolean isDirectionalArrow = "D".equals(attrType);
 
                         if (vectorDisplay != null && vectorDisplay[i] != null) {
                             gridData = vectorDisplay[i].getData();
@@ -1524,7 +1525,7 @@ public class NcgridResource
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.raytheon.viz.core.rsc.IVizResource#getName()
      */
     @Override
@@ -1752,7 +1753,7 @@ public class NcgridResource
 
     /**
      * Retrieve the data record
-     * 
+     *
      * @param obj
      * @return
      * @throws FileNotFoundException
@@ -1761,8 +1762,7 @@ public class NcgridResource
      */
     protected FloatGridData getDataRecord(NcGridDataProxy gdPrxy,
             ContourAttributes cattr, NcgridDataCache cacheData)
-                    throws DgdrivException {
-
+            throws DgdrivException {
         if (gdPrxy == null) {
             return null;
         }
@@ -1773,71 +1773,57 @@ public class NcgridResource
 
         if (gridRscData.getEnsembelMember() != null) {
             inputGdfile = inputGdfile + ":" + gridRscData.getEnsembelMember();
-        } else {
-            if (gridRscData.getEventName() != null) {
-                inputGdfile = inputGdfile + ":" + gridRscData.getEventName();
-            }
+        } else if (gridRscData.getEventName() != null) {
+            inputGdfile = inputGdfile + ":" + gridRscData.getEventName();
+        }
+        if (gridRscData.isEnsemble()) {
+            inputGdfile = ((NcEnsembleResourceData) gridRscData)
+                    .convertGdfileToCycleTimeString(inputGdfile,
+                            gridRscData.getResourceName().getCycleTime());
         }
 
         ArrayList<DataTime> dataTimes = new ArrayList<>();
         dataTimes.add(gdPrxy.getDataTime());
-        synchronized (Dgdriv.class) {
-            Dgdriv aDgdriv = new Dgdriv();
-            aDgdriv.setResourceData(gridRscData);
-            aDgdriv.setCycleForecastTimes(dataTimes);
-            aDgdriv.setSpatialObject(gdPrxy.getSpatialObject());
-            aDgdriv.setGdattim(gdPrxy.getDataTime().toString());
-            aDgdriv.setGarea("dset");
-            aDgdriv.setGdfile(inputGdfile);
-            aDgdriv.setGdpfun(cattr.getGdpfun());
-            aDgdriv.setGlevel(cattr.getGlevel());
-            aDgdriv.setGvcord(cattr.getGvcord());
-            aDgdriv.setScale(cattr.getScale());
-            aDgdriv.setDataSource(gridRscData.getPluginName());
-            aDgdriv.setCacheData(cacheData);
-            if (ncgribPreferences != null) {
-                aDgdriv.setPreferences(ncgribPreferences);
-            }
+        GempakDataInput dataInput = new GempakDataInput();
+        dataInput.setEnsembleMember(gridRscData.getEnsembelMember());
+        dataInput.setCycleForecastTimes(dataTimes);
+        dataInput.setSpatialObject(gdPrxy.getSpatialObject());
+        dataInput.setGdattim(gdPrxy.getDataTime().toString());
+        dataInput.setGarea("dset");
+        dataInput.setGdfile(inputGdfile);
+        dataInput.setGdpfun(cattr.getGdpfun());
+        dataInput.setGlevel(cattr.getGlevel());
+        dataInput.setGvcord(cattr.getGvcord());
+        dataInput.setScale(cattr.getScale());
+        dataInput.setDataSource(gridRscData.getPluginName());
+        dataInput.setCacheData(cacheData);
+        dataInput.setPreferences(ncgribPreferences);
 
-            DisplayType displayType = getVectorType(cattr.getType());
-            if (displayType == DisplayType.ARROW
-                    || displayType == DisplayType.BARB
-                    || displayType == DisplayType.STREAMLINE) {
-                /*
-                 * Specify vector data retrieval from GEMPAK GD
-                 */
-                aDgdriv.setScalar(false);
-                if (displayType == DisplayType.ARROW) {
-                    aDgdriv.setArrowVector(true);
-                } else {
-                    aDgdriv.setArrowVector(false);
-                }
-
+        DisplayType displayType = getVectorType(cattr.getType());
+        if (displayType == DisplayType.ARROW || displayType == DisplayType.BARB
+                || displayType == DisplayType.STREAMLINE) {
+            if ("D".equalsIgnoreCase(cattr.getType())) {
                 // for directional arrow
-                if (cattr.getType().equalsIgnoreCase("D")) {
-                    aDgdriv.setScalar(true);
-                    aDgdriv.setArrowVector(false);
-                }
-
+                dataInput.setScalar(true);
+                dataInput.setArrowVector(false);
             } else {
-                /*
-                 * Specify scalar data retrieval from GEMPAK GD
-                 */
-                aDgdriv.setScalar(true);
-                aDgdriv.setArrowVector(false);
+                // Specify vector data retrieval from GEMPAK GD
+                dataInput.setScalar(false);
+                dataInput.setArrowVector(displayType == DisplayType.ARROW);
             }
-            FloatGridData data;
-            try {
-                data = aDgdriv.execute();
-                if (data != null) {
-                    subgObj = aDgdriv.getSubgSpatialObj();
-                }
-                return data;
-            } catch (DgdrivException e) {
-                statusHandler.error("GEMPAK GD error stack:", e);
-                return null;
-            }
+        } else {
+            // Specify scalar data retrieval from GEMPAK GD
+            dataInput.setScalar(true);
+            dataInput.setArrowVector(false);
         }
+
+        GempakDataRecord dataRecord = GempakProcessingManager.getInstance()
+                .getDataRecord(dataInput);
+        if (dataRecord != null) {
+            subgObj = dataRecord.getSpatialObject();
+            return dataRecord.getFloatData();
+        }
+        return null;
     }
 
     protected IGraphicsTarget getGraphicsTarget() {
@@ -2251,7 +2237,7 @@ public class NcgridResource
     /**
      * Substitutes alias referencedAlias in the String returnedFunc with String
      * referencedFunc.
-     * 
+     *
      * @param referencedAlias
      * @param referencedFunc
      * @param returnedFunc
@@ -2409,17 +2395,17 @@ public class NcgridResource
     /**
      * The output format of forecast time used in legend string.
      */
-    static final String LEGEND_STRING_FORECAST_TIME_FORMAT = "%02d%02d%02d/%02d%02dF%s";
+    private static final String LEGEND_STRING_FORECAST_TIME_FORMAT = "%02d%02d%02d/%02d%02dF%s";
 
     /**
      * The output format of valid time used in legend string.
      */
-    static final String LEGEND_STRING_VALID_TIME_FORMAT = "%02d%02d%02d/%02d%02dV%s";
+    private static final String LEGEND_STRING_VALID_TIME_FORMAT = "%02d%02d%02d/%02d%02dV%s";
 
     /**
      * The title string contains some special characters that are substituted
      * according to their meanings in order to form a legend string.
-     * 
+     *
      * The special characters include \ for escaping next character, ! for a
      * comment, ~ for valid time, ^ for forecast time, ? for day of the week, @
      * for vertical level, _ for Grid function, $ for nNonzero scaling factor, #
@@ -2572,14 +2558,14 @@ public class NcgridResource
     }
 
     /**
-     * 
+     *
      * Overridden from the super class to allow use of the the new time matching
      * method BINNING_FOR_GRID_RESOURCES. Removed unnecessary autoupdate code
      * and changed the order of the concentric for-loops to process data
      * appropriately for this new time match method
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource#
      *      processNewRscDataList()
      */
@@ -2679,7 +2665,7 @@ public class NcgridResource
     }
 
     /**
-     * 
+     *
      * @param userSaveInput
      * @return true if grid saved successfully
      */
@@ -2765,7 +2751,7 @@ public class NcgridResource
 
     /**
      * Checks if datasetid exists in database
-     * 
+     *
      * @param id
      *            datasetid to check
      * @return true, if it exists

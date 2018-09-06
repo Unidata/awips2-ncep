@@ -1,24 +1,5 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv;
 
-/**
- * 
- */
-
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
-import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLambertConformalCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLatLonCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomMercatorCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomPolarStereoCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache.NcgridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcEnsembleResourceData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc.NcgridResourceData;
-
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -67,41 +48,59 @@ import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
 
 /**
+ *
+ */
+
+import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
+import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
+import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
+import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLambertConformalCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLatLonCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomMercatorCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomPolarStereoCoverage;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache.NcgridData;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
+
+/**
  * The Dgdriv class provides setters GEMPAK for grid diagnostic parameters and
  * then executes the grid retrieval methods.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * Date			Ticket#		Engineer    	Description
- * ------------ ----------	----------- 	--------------------------
- * 3/2009 		168			T. Lee			Initial creation
- * 4/2010					mgamazaychikov	Added returnedObject, changed returned 
- * 											error message from StringDataRecord to String,
- * 											added return object type NcFloatDataVector;
- * 											added flipping of the data.
- * 6/2010		168			mgamazaychikov	Changed from NcFloatDataVector to NcFloatDataRecord
- * 											took out listing of the data
- * 10/2010		168			mgamazaychikov	Moved from uengine, added dbtimeToDattim, 
- * 											flipData, getSErver methods
- * 10/2010		168			mgamazaychikov	Added call to db_wsetnavtime_ native function
- * 10/2010	    277			M. Li			Add min and max printout
- * 11/2010		168			mgamazaychikov	Added call to db_init
- * 01/2011					M. Li			Fix vector scale problem
+ * Date         Ticket#     Engineer        Description
+ * ------------ ----------  -----------     --------------------------
+ * 3/2009       168         T. Lee          Initial creation
+ * 4/2010                   mgamazaychikov  Added returnedObject, changed returned
+ *                                          error message from StringDataRecord to String,
+ *                                          added return object type NcFloatDataVector;
+ *                                          added flipping of the data.
+ * 6/2010       168         mgamazaychikov  Changed from NcFloatDataVector to NcFloatDataRecord
+ *                                          took out listing of the data
+ * 10/2010      168         mgamazaychikov  Moved from uengine, added dbtimeToDattim,
+ *                                          flipData, getSErver methods
+ * 10/2010      168         mgamazaychikov  Added call to db_wsetnavtime_ native function
+ * 10/2010      277         M. Li           Add min and max printout
+ * 11/2010      168         mgamazaychikov  Added call to db_init
+ * 01/2011                  M. Li           Fix vector scale problem
  * 02/2011      168         mgamazaychikov  removed call to db_wsetserver_, getServer()
- * 03/2011                  M. Li			Add log and dataSource
+ * 03/2011                  M. Li           Add log and dataSource
  * 03/2011      168         mgamazaychikov  add inner class for callback functionality
- * 04/2011		168			mgamazaychikov	add flipping of data returned _to_ GEMPAK, and
- * 											flopping of data returned _from_ GEMPAK
- * 04/2011					M. Li			replace gvect and gfunc with gdpfun
- * 05/2011		168			mgamazaychikov  re-implemented data retrieval callback 
- * 											functionality in inner class
- * 06/2011		168			mgamazaychikov	added callback classes for dataURI, navigation 
- * 											retrievals, and for diagnostic (debug and info) 
- * 											messages from gempak.so
- * 09/2011		168			mgamazaychikov	added callback class for ensemble member name
- * 											retrievals, set native logging from Dgdriv,
- * 											made changes for ensemble functionality.
- * 10/2011		168			mgamazaychikov	added methods to removed dependency on datatype.tbl
+ * 04/2011      168         mgamazaychikov  add flipping of data returned _to_ GEMPAK, and
+ *                                          flopping of data returned _from_ GEMPAK
+ * 04/2011                  M. Li           replace gvect and gfunc with gdpfun
+ * 05/2011      168         mgamazaychikov  re-implemented data retrieval callback
+ *                                          functionality in inner class
+ * 06/2011      168         mgamazaychikov  added callback classes for dataURI, navigation
+ *                                          retrievals, and for diagnostic (debug and info)
+ *                                          messages from gempak.so
+ * 09/2011      168         mgamazaychikov  added callback class for ensemble member name
+ *                                          retrievals, set native logging from Dgdriv,
+ *                                          made changes for ensemble functionality.
+ * 10/2011      168         mgamazaychikov  added methods to removed dependency on datatype.tbl
  * 10/2011                  X. Guo          Added grib inventory
  * 11/22/2011               X. Guo          Re-contrain datauri request map
  * 12/12/2011               X. Guo          Updated Ensemble requests
@@ -117,28 +116,30 @@ import com.sun.jna.ptr.IntByReference;
  * 09/06/2012               X. Guo          Query glevel2
  * 09/26/2012               X. Guo          Fixed missing value problems
  * 04/26/2013               B. Yin          Fixed the world wrap problems.
- * 11/2013       845        T. Lee          Implemented parameter scaling
- * 04/11/2014    981        D.Sushon        Code cleanup, enforce explicit use of curly-brackets {}
+ * 11/2013      845         T. Lee          Implemented parameter scaling
+ * 04/11/2014   981         D.Sushon        Code cleanup, enforce explicit use of curly-brackets {}
  * 04/14/2014               S. Gilbert      Remove dataUri from query - cleanup old unused methods.
  * 07/2014                  T. Lee          Fixed specific humidity scaling for NAM
- * 01/26/2016    9817       dgilling        Ensure primary models' coverage is used for ensemble
+ * 01/26/2016   9817        dgilling        Ensure primary models' coverage is used for ensemble
  *                                          calculations.
- * 04/26/2016    R17741     S. Gilbert      Change to use FloatGridData, and replace NcepLogger
- * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
+ * 04/26/2016   R17741      S. Gilbert      Change to use FloatGridData, and replace NcepLogger
+ * 08/18/2016   R17569      K Bugenhagen    Modified calls to NcEnsembleResourceData methods
  *                                          since they are no longer static.
+ * 09/05/2018   7417        mapeters        Updates to support either running in CAVE or in subprocess
  * </pre>
- * 
+ *
  * @author tlee
- * @version 1.0
  */
 
 public class Dgdriv {
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(Dgdriv.class);
 
-    private final Logger logger = LoggerFactory.getLogger("PerformanceLogger");
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static GridDiag gd;
+
+    private String ensembleMember;
 
     private String gdfile, gdpfun, glevel, gvcord, scale, garea, dataSource;
 
@@ -147,8 +148,6 @@ public class Dgdriv {
     private boolean scalar, arrowVector, flop, flip;
 
     private String gdfileOriginal;
-
-    private NcgridResourceData gridRscData;
 
     private String ncgribPreferences;
 
@@ -182,32 +181,34 @@ public class Dgdriv {
 
     private static GempakGridVcrdInfoLookup gempakVcordInfo;
 
-    public Dgdriv() {
+    public Dgdriv(GempakDataInput dataInput) {
         /*
          * Initialize GEMPLT, DG and grid libraries.
          */
-        // gd.initialize();
         gempakParmInfo = GempakGridParmInfoLookup.getInstance();
         gempakVcordInfo = GempakGridVcrdInfoLookup.getInstance();
         gd = GridDiag.getInstance();
-        gdfile = "";
-        gdfileOriginal = "";
-        gdpfun = "";
-        glevel = "";
-        gvcord = "";
-        scale = "";
-        garea = "";
-        ncgribPreferences = null;
-        subgSpatialObj = null;
-        scalar = false;
-        arrowVector = false;
         flop = true;
         flip = true;
-        dataForecastTimes = new ArrayList<>();
+        setEnsembleMember(dataInput.getEnsembleMember());
+        setCycleForecastTimes(dataInput.getCycleForecastTimes());
+        setSpatialObject(dataInput.getSpatialObject());
+        setGdattim(dataInput.getGdattim());
+        setGarea(dataInput.getGarea());
+        setGdfile(dataInput.getGdfile());
+        setGdpfun(dataInput.getGdpfun());
+        setGlevel(dataInput.getGlevel());
+        setGvcord(dataInput.getGvcord());
+        setScale(dataInput.getScale());
+        setDataSource(dataInput.getDataSource());
+        setCacheData(dataInput.getCacheData());
+        setPreferences(dataInput.getPreferences());
+        setScalar(dataInput.isScalar());
+        setArrowVector(dataInput.isArrowVector());
     }
 
-    public void setResourceData(NcgridResourceData rscData) {
-        this.gridRscData = rscData;
+    public void setEnsembleMember(String ensembleMember) {
+        this.ensembleMember = ensembleMember;
     }
 
     public String getGdpfun() {
@@ -235,11 +236,6 @@ public class Dgdriv {
     }
 
     public void setGdfile(String gdfile) {
-        if (gridRscData.isEnsemble()) {
-            gdfile = ((NcEnsembleResourceData) gridRscData)
-                    .convertGdfileToCycleTimeString(gdfile, gridRscData
-                            .getResourceName().getCycleTime());
-        }
         this.gdfile = gdfile;
         this.gdfileOriginal = gdfile;
     }
@@ -289,111 +285,97 @@ public class Dgdriv {
     }
 
     public void setCacheData(NcgridDataCache data) {
+        if (data == null) {
+            /*
+             * TODO this is temporary, until the cache is moved from the
+             * subprocess to CAVE
+             */
+            data = new NcgridDataCache();
+        }
         this.cacheData = data;
     }
 
-    final int BUFRLENGTH = 128;
+    private static final int BUFRLENGTH = 128;
 
-    final int PRMLENGTH = 40;
+    private static final int PRMLENGTH = 40;
 
-    final int IMISSD = -9999;
+    private static final int IMISSD = -9999;
 
-    IntByReference iret = new IntByReference(0);
+    private IntByReference iret = new IntByReference(0);
 
-    IntByReference ier = new IntByReference(0);
+    private IntByReference ier = new IntByReference(0);
 
-    IntByReference iscale = new IntByReference(0);
+    private IntByReference iscale = new IntByReference(0);
 
-    IntByReference iscalv = new IntByReference(0);
+    private IntByReference iscalv = new IntByReference(0);
 
-    IntByReference chngnv = new IntByReference(1);
+    private IntByReference chngnv = new IntByReference(1);
 
-    IntByReference coladd = new IntByReference(0);
+    private IntByReference coladd = new IntByReference(0);
 
-    IntByReference gottm = new IntByReference(0);
+    private IntByReference gottm = new IntByReference(0);
 
-    IntByReference drpflg = new IntByReference(0);
+    private IntByReference level1 = new IntByReference(0);
 
-    IntByReference level1 = new IntByReference(0);
+    private IntByReference level2 = new IntByReference(0);
 
-    IntByReference level2 = new IntByReference(0);
+    private IntByReference ivcord = new IntByReference(0);
 
-    IntByReference ivcord = new IntByReference(0);
+    private IntByReference maxgrd = new IntByReference(LLMXGD);
 
-    IntByReference fileflg = new IntByReference(0);
+    private IntByReference ix1 = new IntByReference(0);
 
-    IntByReference termflg = new IntByReference(1);
+    private IntByReference iy1 = new IntByReference(0);
 
-    IntByReference maxgrd = new IntByReference(LLMXGD);
+    private IntByReference ix2 = new IntByReference(0);
 
-    IntByReference ix1 = new IntByReference(0);
+    private IntByReference iy2 = new IntByReference(0);
 
-    IntByReference iy1 = new IntByReference(0);
+    private IntByReference kx = new IntByReference(IMISSD);
 
-    IntByReference ix2 = new IntByReference(0);
+    private IntByReference ky = new IntByReference(IMISSD);
 
-    IntByReference iy2 = new IntByReference(0);
+    private IntByReference igx = new IntByReference(0);
 
-    IntByReference kx = new IntByReference(IMISSD);
+    private IntByReference igy = new IntByReference(0);
 
-    IntByReference ky = new IntByReference(IMISSD);
+    private IntByReference numerr = new IntByReference(0);
 
-    IntByReference igx = new IntByReference(0);
+    private FloatByReference rmax = new FloatByReference(0.F);
 
-    IntByReference igy = new IntByReference(0);
+    private FloatByReference rmin = new FloatByReference(0.F);
 
-    IntByReference numerr = new IntByReference(0);
+    private String skip = "N";
 
-    FloatByReference rmax = new FloatByReference(0.F);
+    private String errorURI = "";
 
-    FloatByReference rmin = new FloatByReference(0.F);
+    private byte[] pfunc = new byte[BUFRLENGTH];
 
-    String garout = "";
+    private byte[] parmu = new byte[PRMLENGTH];
 
-    String prjout = "";
+    private byte[] parmv = new byte[PRMLENGTH];
 
-    String satfil = "";
+    private byte[] time = new byte[PRMLENGTH];
 
-    String outfil = "";
+    private byte[] time1 = new byte[BUFRLENGTH];
 
-    String skip = "N";
+    private byte[] time2 = new byte[BUFRLENGTH];
 
-    String errorURI = "";
+    private boolean proces = true;
 
-    byte[] pfunc = new byte[BUFRLENGTH];
+    private DiagnosticsCallback diagCallback = null;
 
-    byte[] parmu = new byte[PRMLENGTH];
+    private ReturnFileNameCallback flnmCallback = null;
 
-    byte[] parmv = new byte[PRMLENGTH];
+    private ReturnCycleForecastHoursCallback fhrsCallback = null;
 
-    byte[] time = new byte[PRMLENGTH];
+    private ReturnNavigationCallback navCallback = null;
 
-    byte[] time1 = new byte[BUFRLENGTH];
+    private ReturnDataCallback dataCallback = null;
 
-    byte[] time2 = new byte[BUFRLENGTH];
+    private ReturnDataURICallback duriCallback = null;
 
-    byte[] gareabuf = new byte[BUFRLENGTH];
-
-    byte[] prjbuf = new byte[BUFRLENGTH];
-
-    boolean proces = true;
-
-    Map<Integer, String> hm = new HashMap<>();
-
-    // private String eventName;
-    DiagnosticsCallback diagCallback = null;
-
-    ReturnFileNameCallback flnmCallback = null;
-
-    ReturnCycleForecastHoursCallback fhrsCallback = null;
-
-    ReturnNavigationCallback navCallback = null;
-
-    ReturnDataCallback dataCallback = null;
-
-    ReturnDataURICallback duriCallback = null;
-
-    ReturnSubgridCRSCallback subgCrsCallback = null;
+    private ReturnSubgridCRSCallback subgCrsCallback = null;
 
     private class DiagnosticsCallback implements gempak.DbCallbackWithMessage {
 
@@ -456,8 +438,9 @@ public class Dgdriv {
                                 errorURI = msg;
                                 proces = false;
                                 if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.debug("??? retrieveDataFromRetriever return NULL for dataURI("
-                                            + dataURI + ")");
+                                    logger.debug(
+                                            "??? retrieveDataFromRetriever return NULL for dataURI("
+                                                    + dataURI + ")");
                                 }
                                 return true;
                             }
@@ -465,9 +448,8 @@ public class Dgdriv {
                             if (ncgribLogger.enableDiagnosticLogs()) {
                                 long t00 = System.currentTimeMillis();
                                 logger.debug("++++ retrieve data (nx:"
-                                        + gData.getNx() + "-ny:"
-                                        + gData.getNy() + ") from cache took: "
-                                        + (t00 - t0));
+                                        + gData.getNx() + "-ny:" + gData.getNy()
+                                        + ") from cache took: " + (t00 - t0));
                             }
                             rData = gData.getData();
                         }
@@ -513,8 +495,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnNavigationCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnNavigationCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -534,7 +516,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnDataURICallback implements gempak.DbCallbackWithMessage {
+    private class ReturnDataURICallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -543,7 +526,8 @@ public class Dgdriv {
                 String dataURI = getDataURIFromAssembler(msg);
                 gd.gem.db_returnduri(dataURI);
                 long t1 = System.currentTimeMillis();
-                logger.debug("return dataURI " + dataURI + " took " + (t1 - t0));
+                logger.debug(
+                        "return dataURI " + dataURI + " took " + (t1 - t0));
                 return true;
             } catch (VizException e) {
                 errorURI = msg;
@@ -553,8 +537,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnSubgridCRSCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnSubgridCRSCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -566,13 +550,14 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnCycleForecastHoursCallback implements
-            gempak.DbCallbackWithoutMessage {
+    private class ReturnCycleForecastHoursCallback
+            implements gempak.DbCallbackWithoutMessage {
 
         @Override
         public boolean callback() {
             long t0 = System.currentTimeMillis();
-            String cycleFcstHrsString = getCycleFcstHrsString(dataForecastTimes);
+            String cycleFcstHrsString = getCycleFcstHrsString(
+                    dataForecastTimes);
             gd.gem.db_returnfhrs(cycleFcstHrsString);
             long t1 = System.currentTimeMillis();
             logger.debug("return cycle forecast hours string "
@@ -581,8 +566,8 @@ public class Dgdriv {
         }
     }
 
-    private class ReturnFileNameCallback implements
-            gempak.DbCallbackWithMessage {
+    private class ReturnFileNameCallback
+            implements gempak.DbCallbackWithMessage {
 
         @Override
         public boolean callback(String msg) {
@@ -638,7 +623,8 @@ public class Dgdriv {
 
         gd.gem.in_bdta_(iret);
         if (iret.getValue() != 0) {
-            throw new DgdrivException("From in_bdta: error initializing GEMPAK");
+            throw new DgdrivException(
+                    "From in_bdta: error initializing GEMPAK");
         }
 
         gd.gem.gd_init_(iret);
@@ -842,8 +828,8 @@ public class Dgdriv {
                         parmu, parmv, iret);
             }
             if (!proces) {
-                throw new DgdrivException("Error retrieving data record "
-                        + errorURI);
+                throw new DgdrivException(
+                        "Error retrieving data record " + errorURI);
             }
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, Native.toString(pfunc), ier);
@@ -882,7 +868,8 @@ public class Dgdriv {
                             vgrid, rmin, rmax, iret);
                 }
                 if (flop) {
-                    fds.setYdata(flopData(vgrid, igx.getValue(), igy.getValue()));
+                    fds.setYdata(
+                            flopData(vgrid, igx.getValue(), igy.getValue()));
                 } else {
                     fds.setYdata(revertGempakData2CAVE(vgrid));
                 }
@@ -925,8 +912,7 @@ public class Dgdriv {
         String template = this.gdfileOriginal + "_db";
         if (this.gdfileOriginal.contains(":")) {
             template = this.gdfileOriginal.substring(0,
-                    this.gdfileOriginal.indexOf(":"))
-                    + "_db";
+                    this.gdfileOriginal.indexOf(":")) + "_db";
         }
         IntByReference iret = new IntByReference(0);
 
@@ -939,9 +925,10 @@ public class Dgdriv {
         StringBuilder sba = new StringBuilder();
         StringBuilder sbp = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
-        String[] gdfileArray = this.gdfileOriginal.substring(
-                this.gdfileOriginal.indexOf("{") + 1,
-                this.gdfileOriginal.indexOf("}")).split(",");
+        String[] gdfileArray = this.gdfileOriginal
+                .substring(this.gdfileOriginal.indexOf("{") + 1,
+                        this.gdfileOriginal.indexOf("}"))
+                .split(",");
         for (int igd = 0; igd < gdfileArray.length; igd++) {
             sbp.append(thePath);
             sbp.append("|");
@@ -1031,9 +1018,10 @@ public class Dgdriv {
              */
             if (this.gdfileOriginal.startsWith("{")
                     && this.gdfileOriginal.endsWith("}")) {
-                String[] gdfileArray = this.gdfileOriginal.substring(
-                        this.gdfileOriginal.indexOf("{") + 1,
-                        this.gdfileOriginal.indexOf("}")).split(",");
+                String[] gdfileArray = this.gdfileOriginal
+                        .substring(this.gdfileOriginal.indexOf("{") + 1,
+                                this.gdfileOriginal.indexOf("}"))
+                        .split(",");
                 StringBuilder strb = new StringBuilder();
 
                 for (int igd = 0; igd < gdfileArray.length; igd++) {
@@ -1054,35 +1042,35 @@ public class Dgdriv {
 
     /**
      * Create sub-grid coverage
-     * 
+     *
      * @param subgGempakFormat
      *            -- prj;nx;ny;lllat;lllon;urlat;urlon;angle1;angle2;angle3
      */
     private void createNewISpatialObj(String subgGempakFormat) {
         String[] gareaStr = subgGempakFormat.split(";");
 
-        if (subgSpatialObj == null && gareaStr != null && gareaStr.length >= 7) {
-            if (gareaStr[0].equalsIgnoreCase("CED")) {
+        if (subgSpatialObj == null && gareaStr != null
+                && gareaStr.length >= 7) {
+            if ("CED".equalsIgnoreCase(gareaStr[0])) {
                 createLatlonISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
                         Double.parseDouble(gareaStr[3]),
                         Double.parseDouble(gareaStr[4]),
                         Double.parseDouble(gareaStr[5]),
                         Double.parseDouble(gareaStr[6]));
-            } else if (gareaStr[0].equalsIgnoreCase("LCC")) {
-                createLambertConformalISPatialObj(
-                        Integer.parseInt(gareaStr[1]),
+            } else if ("LCC".equalsIgnoreCase(gareaStr[0])) {
+                createLambertConformalISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
                         Double.parseDouble(gareaStr[3]),
                         Double.parseDouble(gareaStr[4]));
-            } else if (gareaStr[0].equalsIgnoreCase("MER")) {
+            } else if ("MER".equalsIgnoreCase(gareaStr[0])) {
                 createMercatorISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
                         Double.parseDouble(gareaStr[3]),
                         Double.parseDouble(gareaStr[4]),
                         Double.parseDouble(gareaStr[5]),
                         Double.parseDouble(gareaStr[6]));
-            } else if (gareaStr[0].equalsIgnoreCase("STR")) {
+            } else if ("STR".equalsIgnoreCase(gareaStr[0])) {
                 createPolarStereoISPatialObj(Integer.parseInt(gareaStr[1]),
                         Integer.parseInt(gareaStr[2]),
                         Double.parseDouble(gareaStr[3]),
@@ -1093,7 +1081,7 @@ public class Dgdriv {
 
     /**
      * Create Latitude/longitude coverage
-     * 
+     *
      * @param nx
      *            - Number of points along a parallel
      * @param ny
@@ -1107,8 +1095,8 @@ public class Dgdriv {
      * @param lo2
      *            - Longitude of the last grid point
      */
-    private void createLatlonISPatialObj(int nx, int ny, double la1,
-            double lo1, double la2, double lo2) {
+    private void createLatlonISPatialObj(int nx, int ny, double la1, double lo1,
+            double la2, double lo2) {
 
         logger.debug("nx:" + nx + " ny:" + ny + " la1:" + la1 + " lo1:" + lo1
                 + " la2:" + la2 + " lo2:" + lo2);
@@ -1132,7 +1120,7 @@ public class Dgdriv {
 
     /**
      * Create Lambert-Conformal coverage
-     * 
+     *
      * @param nx
      *            - Number of points along the x-axis
      * @param ny
@@ -1169,7 +1157,7 @@ public class Dgdriv {
 
     /**
      * Create Mercator coverage
-     * 
+     *
      * @param nx
      *            - Number of points along a parallel
      * @param ny
@@ -1208,7 +1196,7 @@ public class Dgdriv {
 
     /**
      * Create Polar-Stereo coverage
-     * 
+     *
      * @param nx
      *            - Number of points along the x-axis
      * @param ny
@@ -1242,7 +1230,8 @@ public class Dgdriv {
         }
     }
 
-    private String getCycleFcstHrsString(ArrayList<DataTime> dataForecastTimes) {
+    private String getCycleFcstHrsString(
+            ArrayList<DataTime> dataForecastTimes) {
         // TODO Auto-generated method stub
         StringBuilder resultsBuf = new StringBuilder();
         for (DataTime dt : dataForecastTimes) {
@@ -1359,8 +1348,8 @@ public class Dgdriv {
         try {
             String gempakParm = cacheData.getGempakParam(dataURI);
             if (gempakParm != null) {
-                dataRetriever.setUnit(UnitConv.deserializer(gempakParmInfo
-                        .getParmUnit(gempakParm)));
+                dataRetriever.setUnit(UnitConv
+                        .deserializer(gempakParmInfo.getParmUnit(gempakParm)));
             }
         } catch (ConversionException | ParseException e) {
             logger.info("Problem with dataRetriever setUnit.", e);
@@ -1432,7 +1421,7 @@ public class Dgdriv {
         // + File.separator + path + File.separator + sb.toString());
         // } else if (DataMode.getSystemMode() == DataMode.PYPIES) {
         file = new File(
-        // TODO--OK?? VizApp.getServerDataDir() + File.separator +
+                // TODO--OK?? VizApp.getServerDataDir() + File.separator +
                 dataURI.split("/")[1] + File.separator + path + File.separator
                         + sb.toString());
         // } else {
@@ -1475,32 +1464,32 @@ public class Dgdriv {
 
             if (llgc.getFirstGridPointCorner() == Corner.UpperLeft) {
                 // upper left
-                dummy = llgc.getLa1() * 10000;
+                dummy = llgc.getLa1() * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
-                dummy = llgc.getLo1() * 10000;
+                dummy = llgc.getLo1() * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
                 // lower right
-                dummy = (llgc.getLa1() - ddy) * 10000;
+                dummy = (llgc.getLa1() - ddy) * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
-                dummy = (llgc.getLo1() + ddx) * 10000;
+                dummy = (llgc.getLo1() + ddx) * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
             } else { // assume there are only two options: UpperLeft and
                      // LowerLeft
-                dummy = (llgc.getLa1() + ddy) * 10000;
+                dummy = (llgc.getLa1() + ddy) * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
-                dummy = llgc.getLo1() * 10000;
+                dummy = llgc.getLo1() * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
 
-                dummy = llgc.getLa1() * 10000;
+                dummy = llgc.getLa1() * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
-                dummy = (llgc.getLo1() + ddx) * 10000;
+                dummy = (llgc.getLo1() + ddx) * 10_000;
                 resultsBuf.append(dummy.intValue());
                 resultsBuf.append(";");
             }
@@ -1508,10 +1497,10 @@ public class Dgdriv {
             dummy = -9999.0;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = llgc.getDx() * 10000;
+            dummy = llgc.getDx() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = llgc.getDy() * 10000;
+            dummy = llgc.getDy() * 10_000;
             resultsBuf.append(dummy.intValue());
         } else if (gc instanceof LambertConformalGridCoverage) {
             resultsBuf.append("LCC");
@@ -1524,25 +1513,25 @@ public class Dgdriv {
             resultsBuf.append(";");
             resultsBuf.append(lcgc.getNy());
             resultsBuf.append(";");
-            Double dummy = lcgc.getLa1() * 10000;
+            Double dummy = lcgc.getLa1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getLo1() * 10000;
+            dummy = lcgc.getLo1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getLatin1() * 10000;
+            dummy = lcgc.getLatin1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getLatin2() * 10000;
+            dummy = lcgc.getLatin2() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getLov() * 10000;
+            dummy = lcgc.getLov() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getDx() * 10000;
+            dummy = lcgc.getDx() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = lcgc.getDy() * 10000;
+            dummy = lcgc.getDy() * 10_000;
             resultsBuf.append(dummy.intValue());
         } else if (gc instanceof MercatorGridCoverage) {
             MercatorGridCoverage mgc = (MercatorGridCoverage) gc;
@@ -1555,25 +1544,25 @@ public class Dgdriv {
             resultsBuf.append(";");
             resultsBuf.append(mgc.getNy());
             resultsBuf.append(";");
-            Double dummy = mgc.getLa1() * 10000;
+            Double dummy = mgc.getLa1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getLo1() * 10000;
+            dummy = mgc.getLo1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getLatin() * 10000;
+            dummy = mgc.getLatin() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getLa2() * 10000;
+            dummy = mgc.getLa2() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getLo2() * 10000;
+            dummy = mgc.getLo2() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getDx() * 10000;
+            dummy = mgc.getDx() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = mgc.getDy() * 10000;
+            dummy = mgc.getDy() * 10_000;
             resultsBuf.append(dummy.intValue());
         } else if (gc instanceof PolarStereoGridCoverage) {
             /*
@@ -1589,25 +1578,25 @@ public class Dgdriv {
             resultsBuf.append(";");
             resultsBuf.append(psgc.getNy());
             resultsBuf.append(";");
-            Double dummy = psgc.getLa1() * 10000;
+            Double dummy = psgc.getLa1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = psgc.getLo1() * 10000;
-            resultsBuf.append(dummy.intValue());
-            resultsBuf.append(";");
-            dummy = -9999.0;
+            dummy = psgc.getLo1() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
             dummy = -9999.0;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = psgc.getLov() * 10000;
+            dummy = -9999.0;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = psgc.getDx() * 10000;
+            dummy = psgc.getLov() * 10_000;
             resultsBuf.append(dummy.intValue());
             resultsBuf.append(";");
-            dummy = psgc.getDy() * 10000;
+            dummy = psgc.getDx() * 10_000;
+            resultsBuf.append(dummy.intValue());
+            resultsBuf.append(";");
+            dummy = psgc.getDy() * 10_000;
             resultsBuf.append(dummy.intValue());
         }
 
@@ -1691,13 +1680,13 @@ public class Dgdriv {
         Pattern p = Pattern.compile(tmStr);
 
         HashMap<String, RequestConstraint> rcMap = new HashMap<>();
-        rcMap.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
-                GridDBConstants.GRID_TBL_NAME));
-        rcMap.put(GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint(
-                modelName, ConstraintType.EQUALS));
-        if (!eventName.equalsIgnoreCase("null")) {
-            rcMap.put(GridDBConstants.ENSEMBLE_ID_QUERY, new RequestConstraint(
-                    eventName, ConstraintType.EQUALS));
+        rcMap.put(GridDBConstants.PLUGIN_NAME,
+                new RequestConstraint(GridDBConstants.GRID_TBL_NAME));
+        rcMap.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(modelName, ConstraintType.EQUALS));
+        if (!"null".equalsIgnoreCase(eventName)) {
+            rcMap.put(GridDBConstants.ENSEMBLE_ID_QUERY,
+                    new RequestConstraint(eventName, ConstraintType.EQUALS));
         }
 
         try {
@@ -1732,10 +1721,10 @@ public class Dgdriv {
 
             String prefix = modelName + "_" + dbTag + "_" + eventName + "_";
             for (int i = 0; i < responseList.size(); i++) {
-                Object fSecValue = responseList.get(i).get(
-                        GridDBConstants.FORECAST_TIME_QUERY);
-                Object refValue = responseList.get(i).get(
-                        GridDBConstants.REF_TIME_QUERY);
+                Object fSecValue = responseList.get(i)
+                        .get(GridDBConstants.FORECAST_TIME_QUERY);
+                Object refValue = responseList.get(i)
+                        .get(GridDBConstants.REF_TIME_QUERY);
                 if (fSecValue != null && fSecValue instanceof Integer
                         && refValue != null && refValue instanceof Date) {
 
@@ -1758,11 +1747,7 @@ public class Dgdriv {
                         retFileNames = retFileNames + "|";
                     }
 
-                    retFileNames = retFileNames
-                            + prefix
-                            + dt
-                            + hh
-                            + "f"
+                    retFileNames = retFileNames + prefix + dt + hh + "f"
                             + CommonDateFormatUtil
                                     .getForecastTimeString(fcstTimeInSec);
                 }
@@ -1830,14 +1815,15 @@ public class Dgdriv {
         if (ncgribLogger.enableDiagnosticLogs()) {
             String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
                     .getConstraintValue();
-            int fcstTime = Integer.parseInt(rcMap.get(
-                    GridDBConstants.FORECAST_TIME_QUERY).getConstraintValue());
+            int fcstTime = Integer
+                    .parseInt(rcMap.get(GridDBConstants.FORECAST_TIME_QUERY)
+                            .getConstraintValue());
             String fcstTimeg = CommonDateFormatUtil
                     .getForecastColonTimeString(fcstTime);
             if (datauri != null) {
-                logger.debug("### getDataURIFromAssembler(" + datauri
-                        + ") for(" + parameters + ") reftime:" + refTime + "("
-                        + fcstTimeg + ") took: " + (t1 - t0));
+                logger.debug("### getDataURIFromAssembler(" + datauri + ") for("
+                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
+                        + ") took: " + (t1 - t0));
             } else {
                 logger.debug("??? getDataURIFromAssembler(null) for("
                         + parameters + ") reftime:" + refTime + "(" + fcstTimeg
@@ -1875,10 +1861,10 @@ public class Dgdriv {
         Map<String, RequestConstraint> queryList = new HashMap<>();
         queryList.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
                 GridDBConstants.GRID_TBL_NAME, ConstraintType.EQUALS));
-        queryList.put(GridDBConstants.MODEL_NAME_QUERY, new RequestConstraint(
-                tmpAttrs[0], ConstraintType.EQUALS));
+        queryList.put(GridDBConstants.MODEL_NAME_QUERY,
+                new RequestConstraint(tmpAttrs[0], ConstraintType.EQUALS));
         if (tmpAttrs[1] != null && tmpAttrs[1].length() > 0
-                && (!tmpAttrs[1].equalsIgnoreCase("null"))) {
+                && (!"null".equalsIgnoreCase(tmpAttrs[1]))) {
             queryList.put(GridDBConstants.ENSEMBLE_ID_QUERY,
                     new RequestConstraint(tmpAttrs[1], ConstraintType.EQUALS));
         }
@@ -1910,9 +1896,10 @@ public class Dgdriv {
 
             ISpatialObject cov = null;
             if (responseList.size() > 0) {
-                Object spatialObj = responseList.get(0).get(
-                        GridDBConstants.NAVIGATION_QUERY);
-                if (spatialObj != null && spatialObj instanceof ISpatialObject) {
+                Object spatialObj = responseList.get(0)
+                        .get(GridDBConstants.NAVIGATION_QUERY);
+                if (spatialObj != null
+                        && spatialObj instanceof ISpatialObject) {
                     cov = (ISpatialObject) spatialObj;
                 }
             }
@@ -1955,8 +1942,8 @@ public class Dgdriv {
         GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
         String[] parmList = parameters.split("\\|");
         if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("enter getRequestConstraint - parameters:"
-                    + parameters);
+            logger.debug(
+                    "enter getRequestConstraint - parameters:" + parameters);
         }
         qAssembler.setDatasetId(parmList[0]);
 
@@ -1966,7 +1953,7 @@ public class Dgdriv {
                     qAssembler.setEnsembleId(parmList[1]);
                 }
             } else {
-                if (gridRscData.getEnsembelMember() != null) {
+                if (ensembleMember != null) {
                     qAssembler.setEnsembleId(parmList[1]);
                 } else {
                     qAssembler.setSecondaryId(parmList[1]);
@@ -2031,16 +2018,16 @@ public class Dgdriv {
         }
         String refTimeg = parmList[5].toUpperCase().split("F")[0];
         String refTime = CommonDateFormatUtil.dattimToDbtime(refTimeg);
-        String fcstTimeInSec = Integer.toString(CommonDateFormatUtil
-                .getForecastTimeInSec(parmList[5]));
+        String fcstTimeInSec = Integer.toString(
+                CommonDateFormatUtil.getForecastTimeInSec(parmList[5]));
 
         rcMap.put(GridDBConstants.REF_TIME_QUERY,
                 new RequestConstraint(refTime));
-        rcMap.put(GridDBConstants.FORECAST_TIME_QUERY, new RequestConstraint(
-                fcstTimeInSec));
+        rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
+                new RequestConstraint(fcstTimeInSec));
         if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("exit getRequestConstraint - rcMap:"
-                    + rcMap.toString());
+            logger.debug(
+                    "exit getRequestConstraint - rcMap:" + rcMap.toString());
         }
         return rcMap;
     }

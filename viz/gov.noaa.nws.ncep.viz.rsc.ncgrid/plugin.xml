@@ -480,5 +480,19 @@
             name="SaveGrid"
             sortID="15">
       </contextualMenu>
-   </extension>    
-</plugin>   
+   </extension>
+    <extension point="com.raytheon.uf.viz.core.component">
+        <component key="gempak"
+            class="gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakSubprocessor"/>
+    </extension>
+    <extension point="com.raytheon.uf.viz.localization.perspective.localizationpath">
+        <path
+            application="NCEP"
+            localizationType="CAVE_STATIC"
+            name="GEMPAK Data Processing"
+            recursive="false"
+            value="ncep/gempak/"
+            extensionFilter=".xml">
+        </path>
+    </extension>
+</plugin>

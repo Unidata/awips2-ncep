@@ -19,9 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery.QueryLanguage;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.exception.VizServerSideException;
@@ -94,11 +91,6 @@ public class ClipVGF extends Thread {
 
 	/** An instance of JoinVGF to be used for joining touching parts. */
 	private JoinVGF			joinvgf;
-	
-	static{
-		// no logger needed in apache classes
-		Logger.getRootLogger().setLevel(Level.OFF);
-	}
 
 	/**
 	 * Constructor.

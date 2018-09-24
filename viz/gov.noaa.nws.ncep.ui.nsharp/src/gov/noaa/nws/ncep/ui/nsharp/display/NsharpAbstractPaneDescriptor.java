@@ -17,6 +17,8 @@
  *              task#5930   Chin Chen   NSHARP Hodograph Does Not Loop in D2D Lite Configuration
  *                                      moved "setFrameCoordinator()"  from NsharpSkewTPaneDescriptor to here,
  *                                      so it can be used by other descriptor
+ * 08/01/2018   7383        bsteffen    Switch first and last frame dwell.
+ *
  *
  * </pre>
  * 
@@ -146,9 +148,9 @@ public class NsharpAbstractPaneDescriptor extends GraphDescriptor implements
 				int frameSize= rscHandler.getTimeElementListSize();
 				int curFrameIndex = rscHandler.getCurrentTimeElementListIndex();
 				if(curFrameIndex == 0)
-					waitTime = loopProperties.getFirstFrameDwell();
-				else if(curFrameIndex == frameSize-1)
 					waitTime = loopProperties.getLastFrameDwell();
+				else if(curFrameIndex == frameSize-1)
+					waitTime = loopProperties.getFirstFrameDwell();
 
 				loopProperties.drawAfterWait(waitTime);
 				//System.out.println("wait time="+waitTime);

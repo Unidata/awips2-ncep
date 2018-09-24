@@ -4,10 +4,8 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -15,8 +13,8 @@ import org.eclipse.swt.widgets.Shell;
 /**
  * Provides a migration of the NMAP "Color Palette" dialog; presents a
  * ColorMatrixSelector in a standalone dialog.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -25,10 +23,10 @@ import org.eclipse.swt.widgets.Shell;
  * 11 Dec 2009              bhebbard    Extend (jface) Dialog rather than RTS CaveJFACEDialog,
  *                                      to avoid background repaint (and grey buttons) in TO11D6.
  * 11/25/2016   R21762      P. Moyer    Implemented alpha transparency transmission
+ * Aug 22, 2018  #7081      dgilling    Support refactored ColorMatrixSelector.
  * </pre>
- * 
+ *
  * @author bhebbard
- * @version 1
  */
 
 public class ColorMatrixDialog extends Dialog {
@@ -45,7 +43,7 @@ public class ColorMatrixDialog extends Dialog {
 
     /**
      * Constructor
-     * 
+     *
      * @param parentShell
      * @param dialogTitle
      */
@@ -56,22 +54,14 @@ public class ColorMatrixDialog extends Dialog {
         this.alphaActive = alpha;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
-     */
+
+    @Override
     protected void buttonPressed(int buttonId) {
         super.buttonPressed(buttonId);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets.
-     * Shell)
-     */
+
+    @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         if (title != null) {
@@ -79,13 +69,8 @@ public class ColorMatrixDialog extends Dialog {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.jface.dialogs.Dialog#createButtonsForButtonBar(org.eclipse.
-     * swt.widgets.Composite)
-     */
+
+    @Override
     protected void createButtonsForButtonBar(Composite parent) {
 
         createButton(parent, IDialogConstants.CANCEL_ID,
@@ -93,28 +78,18 @@ public class ColorMatrixDialog extends Dialog {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets
-     * .Composite)
-     */
+
+    @Override
     protected Control createDialogArea(final Composite parent) {
-
         Composite composite = (Composite) super.createDialogArea(parent);
+        composite.setLayout(new FillLayout());
 
-        FormLayout layout0 = new FormLayout();
-        composite.setLayout(layout0);
-
-        // Line Color
-
-        Composite colorGroup = new Composite(composite, SWT.NONE);
-        final ColorMatrixSelector cms = new ColorMatrixSelector(colorGroup,
-                true, true, 0, 0, 18, 22, 28, 108, 0, 6, 4, alphaActive);
+        final ColorMatrixSelector cms = new ColorMatrixSelector(composite,
+                true, true, 0, 0, 18, 22, 0, 6, 4, alphaActive);
         cms.setColorValue(color);
         cms.setAlphaValue(alpha);
         cms.addListener(new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 color = cms.getColorValue();
                 alpha = cms.getAlphaValue();
@@ -126,17 +101,6 @@ public class ColorMatrixDialog extends Dialog {
 
         applyDialogFont(composite);
         return composite;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.dialogs.Dialog#getInitialSize()
-     */
-    @Override
-    protected Point getInitialSize() {
-        // return new Point(272, 186);//TTR 44
-        return new Point(238, 226);
     }
 
     public RGB getColor() {

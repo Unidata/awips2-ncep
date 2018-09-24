@@ -1,17 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.dialogs;
 
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
-import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.localization.NcPathManager;
-import gov.noaa.nws.ncep.viz.overlays.Activator;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-
 import java.io.File;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -24,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -49,9 +38,21 @@ import com.raytheon.uf.viz.core.map.MapDescriptor;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerState;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerTextSize;
+import gov.noaa.nws.ncep.viz.common.ui.Markers.MarkerType;
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.localization.NcPathManager;
+import gov.noaa.nws.ncep.viz.overlays.Activator;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
+import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
+
 /**
  * Provides an interface to modify the point overlay parameters
- * 
+ *
  * This dialog must serve two purposes: Allow 'live' editing of an already
  * loaded resource, and selection of preferences for an RBD for future use. For
  * this reason, the dialog (1) allows a caller to set preselected values (say,
@@ -59,11 +60,11 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * resource type), (2) stores selected values in private member variables, and
  * (3) allows the caller to retrieve selected values after the dialog has been
  * closed.
- * 
+ *
  * (Design note: Item (2) above is required because we can't interrogate the
  * settings of widgets after the dialog has been closed, because they may have
  * been destroyed by then.)
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -78,14 +79,13 @@ import com.raytheon.viz.ui.editor.AbstractEditor;
  * 31 Jul 2009              ghull       Migrate to to11
  * 27 Apr 2010   #245       Greg Hull   Added Apply Button
  * 23 Apr 2012   #744       sgurung     Display Marker Text based on user specified zoom level
- * 07 Jul 2013   #1010      Greg Hull   
+ * 07 Jul 2013   #1010      Greg Hull
  * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
- * 
+ * Aug 22, 2018 #7081       dgilling    Use refactored ColorMatrixSelector.
+ *
  * </pre>
- * 
+ *
  * @author bhebbard
- * @version 1
  */
 
 public class PointOverlayAttributesDialog extends
@@ -256,12 +256,12 @@ public class PointOverlayAttributesDialog extends
 
         Group selectMarkerColorGroup = new Group(composite, SWT.SHADOW_NONE);
         selectMarkerColorGroup.setText("Color");
+        selectMarkerColorGroup.setLayout(new FillLayout());
 
         FormData formData7 = new FormData();
         formData7.top = new FormAttachment(lblZoomLevelGrp, 4);
         formData7.left = new FormAttachment(2, 0);
         formData7.right = new FormAttachment(98, 0);
-        formData7.height = 170;
         selectMarkerColorGroup.setLayoutData(formData7);
 
         // Marker Type
@@ -614,8 +614,7 @@ public class PointOverlayAttributesDialog extends
         // Marker and/or Text Color
 
         final ColorMatrixSelector cms = new ColorMatrixSelector(
-                selectMarkerColorGroup, false, true, 22, 88, 18, 22, 28, 86, 0,
-                4, 5);
+                selectMarkerColorGroup, false, true, 22, 88, 18, 22, 0, 4, 5);
         cms.setColorValue((RGB) markerColor.getAttrValue());
         cms.addListener(new IPropertyChangeListener() {
             @Override

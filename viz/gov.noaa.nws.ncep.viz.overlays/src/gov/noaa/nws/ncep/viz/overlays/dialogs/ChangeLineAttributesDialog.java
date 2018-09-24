@@ -1,10 +1,5 @@
 package gov.noaa.nws.ncep.viz.overlays.dialogs;
 
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
-import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
-import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
-import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -34,9 +29,14 @@ import org.eclipse.swt.widgets.Shell;
 import com.raytheon.uf.viz.core.IGraphicsTarget.LineStyle;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
+import gov.noaa.nws.ncep.viz.common.ui.color.ColorMatrixSelector;
+import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
+import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
+import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
+
 /**
  * Provides an interface to modify the line overlay parameters
- * 
+ *
  * This dialog must serve two purposes: Allow 'live' editing of an already
  * loaded resource, and selection of preferences for an RBD for future use. For
  * this reason, the dialog (1) allows a caller to set preselected values (say,
@@ -44,11 +44,11 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * resource type), (2) stores selected values in private member variables, and
  * (3) allows the caller to retrieve selected values after the dialog has been
  * closed.
- * 
+ *
  * (Design note: Item (2) above is required because we can't interrogate the
  * settings of widgets after the dialog has been closed, because they may have
  * been destroyed by then.)
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -62,9 +62,10 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * 17 Jun 2009  115         Greg Hull   Integrated with AbstractEditResourceAttrsDialog
  * 27 Apr 2010   #245       Greg Hull   Added Apply Button
  * 04/05/2016   R15715      dgilling    Refactored for new AbstractEditResourceAttrsDialog constructor.
- * 
+ * Aug 22, 2018 #7081       dgilling    Use refactored ColorMatrixSelector.
+ *
  * </pre>
- * 
+ *
  * @author bhebbard
  * @version 1
  */
@@ -155,6 +156,7 @@ public class ChangeLineAttributesDialog extends AbstractEditResourceAttrsDialog 
 
         Group selectLineColorGroup = new Group(composite, SWT.SHADOW_NONE);
         selectLineColorGroup.setText("Color");
+        selectLineColorGroup.setLayout(new FillLayout());
 
         FormData formData5 = new FormData();
         formData5.top = new FormAttachment(5, 0);
@@ -262,7 +264,7 @@ public class ChangeLineAttributesDialog extends AbstractEditResourceAttrsDialog 
 
         // Line Style
 
-        final Map<LineStyle, Button> lineStyleButtonMap = new EnumMap<LineStyle, Button>(
+        final Map<LineStyle, Button> lineStyleButtonMap = new EnumMap<>(
                 LineStyle.class);
 
         final LineStyle[] lineStyleButtonSequence = { // ...for 2-column grid
@@ -332,8 +334,7 @@ public class ChangeLineAttributesDialog extends AbstractEditResourceAttrsDialog 
         // Line Color
 
         final ColorMatrixSelector cms = new ColorMatrixSelector(
-                selectLineColorGroup, false, false, 28, 92, 18, 22, 28, 80, 4,
-                8, 5);
+                selectLineColorGroup, false, false, 28, 92, 18, 22, 4, 8, 5);
         cms.setColorValue((RGB) lineColor.getAttrValue());
         cms.addListener(new IPropertyChangeListener() {
             @Override

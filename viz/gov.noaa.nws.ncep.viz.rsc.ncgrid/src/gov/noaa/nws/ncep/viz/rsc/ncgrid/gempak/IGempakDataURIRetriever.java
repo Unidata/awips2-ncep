@@ -22,8 +22,7 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 
 /**
- * Handler for {@link IGempakRequest}s sent between a GEMPAK subprocess and
- * CAVE.
+ * Interface used for retrieving GEMPAK data URIs.
  *
  * <pre>
  *
@@ -31,24 +30,20 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
- * Sep 26, 2018 54483      mapeters    {@link #handleRequest} throws {@link GempakException}
+ * Sep 10, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
- * @param <T>
- *            the request type handled by this handler
  */
-public interface IGempakRequestHandler<T extends IGempakRequest> {
+public interface IGempakDataURIRetriever {
 
     /**
-     * Handle the given request and return the response.
+     * Get a GEMPAK data URI.
      *
      * @param request
-     * @return the response
+     * @return the data URI
      * @throws GempakException
-     *             if an error occurs processing the request
      */
-    Object handleRequest(T request) throws GempakException;
+    String getDataURI(GempakDataURIRequest request) throws GempakException;
 }

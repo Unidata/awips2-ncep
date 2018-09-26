@@ -19,11 +19,12 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
 
+import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 /**
- * Request object for GEMPAK to process the contained data.
+ * Response object corresponding to a {@link GempakDbDataRequest}.
  *
  * <pre>
  *
@@ -31,46 +32,67 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 10, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
 @DynamicSerialize
-public class GempakDataRecordRequest implements IGempakRequest {
+public class GempakDbDataResponse {
 
     @DynamicSerializeElement
-    private GempakDataInput dataInput;
+    private float[] data;
+
+    @DynamicSerializeElement
+    private ISpatialObject subgSpatialObj;
 
     /**
      * Empty constructor for serialization.
      */
-    public GempakDataRecordRequest() {
+    public GempakDbDataResponse() {
     }
 
     /**
      * Constructor.
      *
-     * @param dataInput
-     *            the input data needed to perform the GEMPAK processing
+     * @param data
+     *            the float data
+     * @param subgSpatialObj
+     *            the sub-grid coverage
      */
-    public GempakDataRecordRequest(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    public GempakDbDataResponse(float[] data, ISpatialObject subgSpatialObj) {
+        this.data = data;
+        this.subgSpatialObj = subgSpatialObj;
     }
 
     /**
-     * @return the dataInput
+     * @return the data
      */
-    public GempakDataInput getDataInput() {
-        return dataInput;
+    public float[] getData() {
+        return data;
     }
 
     /**
-     * @param dataInput
-     *            the dataInput to set
+     * @param data
+     *            the data to set
      */
-    public void setDataInput(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    public void setData(float[] data) {
+        this.data = data;
+    }
+
+    /**
+     * @return the subgSpatialObj
+     */
+    public ISpatialObject getSubgSpatialObj() {
+        return subgSpatialObj;
+    }
+
+    /**
+     * @param subgSpatialObj
+     *            the subgSpatialObj to set
+     */
+    public void setSubgSpatialObj(ISpatialObject subgSpatialObj) {
+        this.subgSpatialObj = subgSpatialObj;
     }
 }

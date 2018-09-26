@@ -51,6 +51,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakConnectionExcepti
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Register handlers for callback requests
+ *                                     from subprocess
  *
  * </pre>
  *
@@ -64,7 +66,7 @@ public class GempakSubprocessSpawner {
     private static final IPerformanceStatusHandler perfLog = PerformanceStatus
             .getHandler(GempakSubprocessSpawner.class.getSimpleName() + ":");
 
-    private final GempakDataRecordRequest dataRequest;
+    private final GempakDataInput dataInput;
 
     /**
      * Create a {@link GempakSubprocessSpawner} for spawning a GEMPAK subprocess
@@ -74,7 +76,7 @@ public class GempakSubprocessSpawner {
      *            the data to process
      */
     public GempakSubprocessSpawner(GempakDataInput dataInput) {
-        this.dataRequest = new GempakDataRecordRequest(dataInput);
+        this.dataInput = dataInput;
     }
 
     /**
@@ -115,7 +117,12 @@ public class GempakSubprocessSpawner {
              * processed data from it
              */
             IGempakCommunicator communicator = server.connect();
-            data = communicator.request(dataRequest, GempakDataRecord.class);
+            communicator.registerHandler(GempakDataURIRequest.class,
+                    new GempakDataURIRequestHandler(dataInput.getCacheData()));
+            communicator.registerHandler(GempakDbDataRequest.class,
+                    new GempakDbDataRequestHandler(dataInput.getCacheData()));
+            data = communicator.request(new GempakDataRecordRequest(dataInput),
+                    GempakDataRecord.class);
         } catch (GempakConnectionException | GempakCommunicationException e) {
             statusHandler.error(
                     "Error connecting/communicating with GEMPAK subprocess", e);

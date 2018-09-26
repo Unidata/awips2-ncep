@@ -27,6 +27,7 @@ import com.raytheon.uf.common.status.UFStatus;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.Dgdriv;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.DgdrivException;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
 
 /**
  * GEMPAK processing strategy that performs all data processing one at a time in
@@ -39,6 +40,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.DgdrivException;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 04, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Pass data URI and DB data retrievers to
+ *                                     Dgdriv
  *
  * </pre>
  *
@@ -59,7 +62,10 @@ public class GempakSameProcessStrategy implements IGempakProcessingStrategy {
         synchronized (LOCK) {
             long t0 = System.currentTimeMillis();
             GempakDataRecord data = null;
-            Dgdriv dgdriv = new Dgdriv(dataInput);
+            NcgridDataCache dataCache = dataInput.getCacheData();
+            Dgdriv dgdriv = new Dgdriv(dataInput,
+                    new GempakCaveDataURIRetriever(dataCache),
+                    new GempakCaveDbDataRetriever(dataCache));
             try {
                 FloatGridData floatData = dgdriv.execute();
                 if (floatData != null) {

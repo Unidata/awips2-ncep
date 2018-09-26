@@ -47,16 +47,25 @@ public class GempakDataRecord {
     private FloatGridData floatData;
 
     @DynamicSerializeElement
-    private ISpatialObject spatialObject;
+    private ISpatialObject subgSpatialObject;
 
+    /**
+     * Empty constructor for serialization.
+     */
     public GempakDataRecord() {
-        // For serialization
     }
 
+    /**
+     * Constructor.
+     *
+     * @param floatData
+     * @param subgSpatialObject
+     *            the sub-grid coverage
+     */
     public GempakDataRecord(FloatGridData floatData,
-            ISpatialObject spatialObject) {
+            ISpatialObject subgSpatialObject) {
         this.floatData = floatData;
-        this.spatialObject = spatialObject;
+        this.subgSpatialObject = subgSpatialObject;
     }
 
     /**
@@ -75,17 +84,17 @@ public class GempakDataRecord {
     }
 
     /**
-     * @return the spatialObject
+     * @return the subgSpatialObject
      */
-    public ISpatialObject getSpatialObject() {
-        return spatialObject;
+    public ISpatialObject getSubgSpatialObject() {
+        return subgSpatialObject;
     }
 
     /**
-     * @param spatialObject
-     *            the spatialObject to set
+     * @param subgSpatialObject
+     *            the subgSpatialObject to set
      */
-    public void setSpatialObject(ISpatialObject spatialObject) {
-        this.spatialObject = spatialObject;
+    public void setSubgSpatialObject(ISpatialObject subgSpatialObject) {
+        this.subgSpatialObject = subgSpatialObject;
     }
 }

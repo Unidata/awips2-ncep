@@ -19,6 +19,7 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ import com.raytheon.uf.common.serialization.SerializationException;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.IGempakRequest;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.IGempakRequestHandler;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakCommunicationException;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakProcessingException;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 
 /**
  * Handles GEMPAK requests/responses through provided input/output streams.
@@ -43,6 +44,7 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakProcessingExcepti
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Flush streams as needed
  *
  * </pre>
  *
@@ -90,6 +92,7 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
 
         try {
             manager.serialize(request, os);
+            os.flush();
 
             Object obj;
             while ((obj = manager.deserialize(is)) != null) {
@@ -115,6 +118,11 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
         } catch (SerializationException e) {
             throw new GempakCommunicationException(
                     "Serialization error occurred when processing request: "
+                            + request,
+                    e);
+        } catch (IOException e) {
+            throw new GempakCommunicationException(
+                    "Error flushing serialized request to output stream: "
                             + request,
                     e);
         }
@@ -155,23 +163,24 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
             throw new GempakCommunicationException(
                     "No registered handler for request: "
                             + request.getClass().getName());
-        } else {
-            // Process request
-            Object response;
-            try {
-                response = handler.handleRequest(request);
-            } catch (GempakProcessingException e) {
-                throw new GempakCommunicationException(
-                        "Error processing request: " + request, e);
-            }
+        }
 
-            // Send back response
-            try {
-                manager.serialize(response, os);
-            } catch (SerializationException e) {
-                throw new GempakCommunicationException(
-                        "Error serializing response: " + response, e);
-            }
+        // Process request
+        Object response;
+        try {
+            response = handler.handleRequest(request);
+        } catch (GempakException e) {
+            throw new GempakCommunicationException(
+                    "Error handling request: " + request, e);
+        }
+
+        // Send back response
+        try {
+            manager.serialize(response, os);
+            os.flush();
+        } catch (SerializationException | IOException e) {
+            throw new GempakCommunicationException(
+                    "Error sending response: " + response, e);
         }
     }
 

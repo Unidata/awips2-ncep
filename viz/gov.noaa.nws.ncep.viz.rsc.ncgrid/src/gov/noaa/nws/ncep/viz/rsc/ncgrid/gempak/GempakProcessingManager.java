@@ -32,6 +32,8 @@ import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
+
 /**
  * Manages processing data through GEMPAK.
  *
@@ -42,6 +44,8 @@ import com.raytheon.uf.common.status.UFStatus;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Propagate exception in
+ *                                     {@link #getDataRecord(GempakDataInput)}
  *
  * </pre>
  *
@@ -107,8 +111,11 @@ public class GempakProcessingManager {
      * @param dataInput
      *            the data to process
      * @return the processed data record
+     * @throws GempakException
+     *             if an error occurs processing the data
      */
-    public GempakDataRecord getDataRecord(GempakDataInput dataInput) {
+    public GempakDataRecord getDataRecord(GempakDataInput dataInput)
+            throws GempakException {
         return processingStrategy.getDataRecord(dataInput);
     }
 

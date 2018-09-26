@@ -38,20 +38,20 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakConnectionExcepti
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 07, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Extend {@link GempakSocketConnector}
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakClientSocketConnector implements IGempakConnector {
+public class GempakClientSocketConnector extends GempakSocketConnector {
 
     private final int port;
 
-    private Socket socket;
-
     /**
-     * Extract the server port from the given connectionData to prepare for
-     * connecting to that port on localhost.
+     * Create a {@link GempakClientSocketConnector}, extracting the server port
+     * from the given connectionData to prepare for connecting to that port on
+     * localhost.
      *
      * @param connectionData
      *            map of key-value pairs specifying data needed to connect (must
@@ -74,18 +74,10 @@ public class GempakClientSocketConnector implements IGempakConnector {
     public IGempakCommunicator connect() throws GempakConnectionException {
         try {
             socket = new Socket(InetAddress.getLoopbackAddress(), port);
-            return new GempakStreamCommunicator(socket.getInputStream(),
-                    socket.getOutputStream());
+            return createCommunicator();
         } catch (IOException e) {
             throw new GempakConnectionException(
                     "Error setting up socket on port " + port, e);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (socket != null) {
-            socket.close();
         }
     }
 }

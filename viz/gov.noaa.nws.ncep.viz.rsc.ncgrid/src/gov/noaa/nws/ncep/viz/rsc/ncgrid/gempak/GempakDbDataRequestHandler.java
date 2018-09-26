@@ -19,11 +19,12 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 
 /**
- * Request object for GEMPAK to process the contained data.
+ * Handler for taking a {@link GempakDbDataRequest}, processing it, and
+ * returning a {@link GempakDbDataResponse}. This is done in CAVE.
  *
  * <pre>
  *
@@ -31,46 +32,30 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 10, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
-@DynamicSerialize
-public class GempakDataRecordRequest implements IGempakRequest {
+public class GempakDbDataRequestHandler
+        implements IGempakRequestHandler<GempakDbDataRequest> {
 
-    @DynamicSerializeElement
-    private GempakDataInput dataInput;
-
-    /**
-     * Empty constructor for serialization.
-     */
-    public GempakDataRecordRequest() {
-    }
+    private final IGempakDbDataRetriever retriever;
 
     /**
      * Constructor.
      *
-     * @param dataInput
-     *            the input data needed to perform the GEMPAK processing
+     * @param dataCache
+     *            cache to use for retrieving/storing data
      */
-    public GempakDataRecordRequest(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    public GempakDbDataRequestHandler(NcgridDataCache dataCache) {
+        retriever = new GempakCaveDbDataRetriever(dataCache);
     }
 
-    /**
-     * @return the dataInput
-     */
-    public GempakDataInput getDataInput() {
-        return dataInput;
-    }
-
-    /**
-     * @param dataInput
-     *            the dataInput to set
-     */
-    public void setDataInput(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    @Override
+    public GempakDbDataResponse handleRequest(GempakDbDataRequest request)
+            throws GempakException {
+        return retriever.getDbData(request);
     }
 }

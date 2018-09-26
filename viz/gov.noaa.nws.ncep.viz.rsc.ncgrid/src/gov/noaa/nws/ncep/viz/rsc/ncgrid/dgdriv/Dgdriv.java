@@ -1,7 +1,6 @@
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv;
 
 import java.io.File;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,22 +11,14 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.measure.converter.ConversionException;
-
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.raytheon.uf.common.comm.CommunicationException;
-import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.dataplugin.grid.dataquery.GridQueryAssembler;
-import com.raytheon.uf.common.dataplugin.grid.datastorage.GridDataRetriever;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint.ConstraintType;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
-import com.raytheon.uf.common.datastorage.StorageException;
-import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.geospatial.util.GridGeometryWrapChecker;
 import com.raytheon.uf.common.gridcoverage.Corner;
@@ -40,30 +31,28 @@ import com.raytheon.uf.common.gridcoverage.exception.GridCoverageException;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.units.UnitConv;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.FloatByReference;
 import com.sun.jna.ptr.IntByReference;
 
-/**
- *
- */
-
 import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
 import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag.gempak;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
-import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridVcrdInfoLookup;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLambertConformalCoverage;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomLatLonCoverage;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomMercatorCoverage;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.customCoverage.CustomPolarStereoCoverage;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache.NcgridData;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataURIRequest;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDbDataRequest;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDbDataResponse;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.IGempakDataURIRetriever;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.IGempakDbDataRetriever;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 
 /**
  * The Dgdriv class provides setters GEMPAK for grid diagnostic parameters and
@@ -126,17 +115,23 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
  * 08/18/2016   R17569      K Bugenhagen    Modified calls to NcEnsembleResourceData methods
  *                                          since they are no longer static.
  * 09/05/2018   54480       mapeters        Updates to support either running in CAVE or in subprocess
+ * 09/26/2018   54483       mapeters        Extracted out data URI and DB data retrieval
  * </pre>
  *
  * @author tlee
  */
 
 public class Dgdriv {
+
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(Dgdriv.class);
 
     private final Logger logger = LoggerFactory
             .getLogger(getClass().getSimpleName() + "PerformanceLogger");
+
+    private final IGempakDataURIRetriever dataURIRetriever;
+
+    private final IGempakDbDataRetriever dbDataRetriever;
 
     private static GridDiag gd;
 
@@ -156,9 +151,7 @@ public class Dgdriv {
 
     private ArrayList<DataTime> dataForecastTimes;
 
-    private NcgridDataCache cacheData;
-
-    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();;
+    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();
 
     public static final int LLMXGD = 1000000; // Max # grid points
 
@@ -178,16 +171,14 @@ public class Dgdriv {
     // ENSEMBLE Calculation flag
     private static boolean isEnsCategory = false;
 
-    private static GempakGridParmInfoLookup gempakParmInfo;
-
-    private static GempakGridVcrdInfoLookup gempakVcordInfo;
-
-    public Dgdriv(GempakDataInput dataInput) {
+    public Dgdriv(GempakDataInput dataInput,
+            IGempakDataURIRetriever dataURIRetriever,
+            IGempakDbDataRetriever dbDataRetriever) {
         /*
          * Initialize GEMPLT, DG and grid libraries.
          */
-        gempakParmInfo = GempakGridParmInfoLookup.getInstance();
-        gempakVcordInfo = GempakGridVcrdInfoLookup.getInstance();
+        this.dataURIRetriever = dataURIRetriever;
+        this.dbDataRetriever = dbDataRetriever;
         gd = GridDiag.getInstance();
         flop = true;
         flip = true;
@@ -202,7 +193,6 @@ public class Dgdriv {
         setGvcord(dataInput.getGvcord());
         setScale(dataInput.getScale());
         setDataSource(dataInput.getDataSource());
-        setCacheData(dataInput.getCacheData());
         setPreferences(dataInput.getPreferences());
         setScalar(dataInput.isScalar());
         setArrowVector(dataInput.isArrowVector());
@@ -283,17 +273,6 @@ public class Dgdriv {
 
     public void setPreferences(String preferences) {
         this.ncgribPreferences = preferences;
-    }
-
-    public void setCacheData(NcgridDataCache data) {
-        if (data == null) {
-            /*
-             * TODO this is temporary, until the cache is moved from the
-             * subprocess to CAVE
-             */
-            data = new NcgridDataCache();
-        }
-        this.cacheData = data;
     }
 
     private static final int BUFRLENGTH = 128;
@@ -419,73 +398,65 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             if (msg.contains("/")) {
-                try {
-                    if (ncgribLogger.enableDiagnosticLogs()) {
-                        logger.debug(" enter ReturnDataCallback:" + msg);
+                if (ncgribLogger.enableDiagnosticLogs()) {
+                    logger.debug(" enter ReturnDataCallback:" + msg);
+                }
+                String[] msgArr = msg.split(";");
+                if (msgArr.length == 3) {
+                    String dataURI = msgArr[0];
+                    int nx = Integer.parseInt(msgArr[1].trim());
+                    int ny = Integer.parseInt(msgArr[2].trim());
+                    long t0 = System.currentTimeMillis();
+                    GempakDbDataRequest gempakRequest = new GempakDbDataRequest(
+                            dataURI, nx, ny, flip);
+                    GempakDbDataResponse response = null;
+                    try {
+                        response = dbDataRetriever.getDbData(gempakRequest);
+                        if (response == null) {
+                            statusHandler
+                                    .error("Received null response for GEMPAK DB data request: "
+                                            + gempakRequest);
+                        }
+                    } catch (GempakException e) {
+                        statusHandler
+                                .error("Error performing GEMPAK DB data request: "
+                                        + gempakRequest, e);
                     }
-                    String[] msgArr = msg.split(";");
-                    if (msgArr.length == 3) {
-                        boolean addData = false;
-                        String dataURI = msgArr[0];
-                        int nx = Integer.parseInt(msgArr[1].trim());
-                        int ny = Integer.parseInt(msgArr[2].trim());
-                        long t0 = System.currentTimeMillis();
-                        NcgridData gData = cacheData.getGridData(dataURI);
-                        float[] rData;
-                        if (gData == null) {
-                            addData = true;
-                            rData = retrieveDataFromRetriever(dataURI);
-                            if (rData == null) {
-                                errorURI = msg;
-                                proces = false;
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.debug(
-                                            "??? retrieveDataFromRetriever return NULL for dataURI("
-                                                    + dataURI + ")");
-                                }
-                                return true;
-                            }
-                        } else {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
-                                long t00 = System.currentTimeMillis();
-                                logger.debug("++++ retrieve data (nx:"
-                                        + gData.getNx() + "-ny:" + gData.getNy()
-                                        + ") from cache took: " + (t00 - t0));
-                            }
-                            rData = gData.getData();
-                        }
-                        long t1 = System.currentTimeMillis();
-                        int rDataSize = rData.length;
-                        IntByReference datSize = new IntByReference(rDataSize);
-
-                        if ((nx * ny) == rDataSize) {
-                            if (addData) {
-                                cacheData.addGridData(dataURI, nx, ny, rData);
-                            }
-                            if (flip) {
-                                gd.gem.db_returndata(flipData(rData, nx, ny),
-                                        datSize);
-                            } else {
-                                gd.gem.db_returndata(checkMissingData(rData),
-                                        datSize);
-                            }
-                        } else {
-                            logger.debug("retrieve data size(" + rDataSize
-                                    + ") mismatch with navigation nx=" + nx
-                                    + " ny=" + ny);
-                            errorURI = msg;
-                            proces = false;
-                        }
-                        long t2 = System.currentTimeMillis();
-                        logger.debug("retrieve data took " + (t1 - t0));
-                        logger.debug("return data took " + (t2 - t1));
-                        return true;
-                    } else {
+                    if (response == null) {
                         errorURI = msg;
                         proces = false;
-                        return true;
+                    } else {
+                        float[] data = response.getData();
+                        /*
+                         * For ensemble calculations, we need to be sure we
+                         * apply the primary model's grid coverage as the
+                         * coverage used for the entire ensemble calculation.
+                         * Fortunately, the native lib always passes the primary
+                         * model through this interface first when performing an
+                         * ensemble calculation, So, the first time we pass
+                         * through this code will be when subgSpatialObj has its
+                         * initial value: null.
+                         */
+                        if (subgSpatialObj == null
+                                && response.getSubgSpatialObj() != null) {
+                            ISpatialObject newSubgSpatialObj = response
+                                    .getSubgSpatialObj();
+                            if (NcgribLogger.getInstance()
+                                    .enableDiagnosticLogs()) {
+                                logger.debug("===new coverage nx:"
+                                        + newSubgSpatialObj.getNx() + " ny:"
+                                        + newSubgSpatialObj.getNy());
+                            }
+                            setSubgSpatialObj(newSubgSpatialObj);
+                        }
+                        IntByReference datSize = new IntByReference(
+                                data.length);
+                        gd.gem.db_returndata(data, datSize);
                     }
-                } catch (VizException e) {
+                    long t2 = System.currentTimeMillis();
+                    logger.debug("retrieve and return data took " + (t2 - t0));
+                    return true;
+                } else {
                     errorURI = msg;
                     proces = false;
                     return true;
@@ -522,19 +493,22 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
+            long t0 = System.currentTimeMillis();
+            GempakDataURIRequest gempakRequest = new GempakDataURIRequest(msg,
+                    isEnsCategory, ensembleMember);
             try {
-                long t0 = System.currentTimeMillis();
-                String dataURI = getDataURIFromAssembler(msg);
+                String dataURI = dataURIRetriever.getDataURI(gempakRequest);
                 gd.gem.db_returnduri(dataURI);
                 long t1 = System.currentTimeMillis();
                 logger.debug(
                         "return dataURI " + dataURI + " took " + (t1 - t0));
-                return true;
-            } catch (VizException e) {
+            } catch (GempakException e) {
+                statusHandler.error("Error performing GEMPAK data URI request: "
+                        + gempakRequest, e);
                 errorURI = msg;
                 proces = false;
-                return true;
             }
+            return true;
         }
     }
 
@@ -573,22 +547,13 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             // if (msg.contains("import")) {
-            try {
-                long t0 = System.currentTimeMillis();
-                String fileNames = executeScript(msg);
-                gd.gem.db_returnflnm(fileNames);
-                long t1 = System.currentTimeMillis();
-                logger.debug("return file names string " + fileNames + " took "
-                        + (t1 - t0));
-                return true;
-            } catch (VizException e) {
-                errorURI = msg;
-                proces = false;
-                return true;
-            }
-            // } else {
-            // return true;
-            // }
+            long t0 = System.currentTimeMillis();
+            String fileNames = executeScript(msg);
+            gd.gem.db_returnflnm(fileNames);
+            long t1 = System.currentTimeMillis();
+            logger.debug("return file names string " + fileNames + " took "
+                    + (t1 - t0));
+            return true;
         }
     }
 
@@ -1244,51 +1209,6 @@ public class Dgdriv {
     }
 
     /*
-     * Flips the data from CAVE order and changes the missing data value from
-     * CAVE -999999.0f to GEMPAK -9999.0f
-     */
-    private float[] flipData(float[] inGrid, int nx, int ny) {
-
-        float[] outGridFlipped = new float[inGrid.length];
-
-        int kk = 0;
-
-        for (int jj = 0; jj < ny; jj++) {
-            int m1 = nx * ny - nx * (jj + 1);
-            int m2 = nx * ny - nx * jj;
-            for (int ii = m1; ii < m2; ii++) {
-                if (inGrid[ii] < -900000.0) {
-                    outGridFlipped[kk] = -9999.0f;
-                    kk++;
-                } else {
-                    outGridFlipped[kk] = inGrid[ii];
-                    kk++;
-                }
-            }
-        }
-
-        return outGridFlipped;
-    }
-
-    /*
-     * Changes the missing data value from CAVE -999999.0f to GEMPAK -9999.0f
-     */
-    private float[] checkMissingData(float[] inGrid) {
-
-        float[] outGridFlipped = new float[inGrid.length];
-
-        for (int ii = 0; ii < inGrid.length; ii++) {
-            if (inGrid[ii] < -900000.0) {
-                outGridFlipped[ii] = -9999.0f;
-            } else {
-                outGridFlipped[ii] = inGrid[ii];
-            }
-        }
-
-        return outGridFlipped;
-    }
-
-    /*
      * Flops the data from GEMPAK order and changes the missing data value from
      * GEMPAK -9999.0f to CAVE -999999.0f
      */
@@ -1330,70 +1250,6 @@ public class Dgdriv {
         }
 
         return outGridFlopped;
-    }
-
-    private float[] retrieveDataFromRetriever(String dataURI)
-            throws VizException {
-
-        long t001 = System.currentTimeMillis();
-        // create GridDataRetriever using datauri
-        // setUnit for parameter
-        // setWorldWrapColumns (1);
-        // check its return value/exception and decide to update coverage or not
-        GridDataRetriever dataRetriever = new GridDataRetriever(dataURI);
-        try {
-            dataRetriever.setWorldWrapColumns(1);
-        } catch (GridCoverageException e) {
-            // ignore setWorldWrapColumns exception.
-        }
-        try {
-            String gempakParm = cacheData.getGempakParam(dataURI);
-            if (gempakParm != null) {
-                dataRetriever.setUnit(UnitConv
-                        .deserializer(gempakParmInfo.getParmUnit(gempakParm)));
-            }
-        } catch (ConversionException | ParseException e) {
-            logger.info("Problem with dataRetriever setUnit.", e);
-            // ignore setUnit exception. use default units
-        }
-        long t002 = System.currentTimeMillis();
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("***Initialize GridDataRetriever for " + dataURI
-                    + " took: " + (t002 - t001));
-        }
-        try {
-            t001 = System.currentTimeMillis();
-            FloatDataRecord dataRecord = dataRetriever.getDataRecord();
-            float[] data = dataRecord.getFloatData();
-
-            /*
-             * For ensemble calculations, we need to be sure we apply the
-             * primary model's grid coverage as the coverage used for the entire
-             * ensemble calculation. Fortunately, the native lib always passes
-             * the primary model through this interface first when performing an
-             * enemble calculation, So, the first time we pass through this code
-             * will be when subgSpatialObj has its initial value: null.
-             */
-            if (subgSpatialObj == null) {
-                if (ncgribLogger.enableDiagnosticLogs()) {
-                    logger.debug("===new coverage nx:"
-                            + dataRetriever.getCoverage().getNx() + " ny:"
-                            + dataRetriever.getCoverage().getNy());
-                }
-                setSubgSpatialObj(dataRetriever.getCoverage());
-            }
-            t002 = System.currentTimeMillis();
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("***Reading " + dataURI + " from hdf5 took: "
-                        + (t002 - t001) + ", return size:" + data.length);
-            }
-            return data;
-        } catch (StorageException s) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("???? getDataRecord --- throw StorageException");
-            }
-            return null;
-        }
     }
 
     public static String getFilename(String dataURI) {
@@ -1662,7 +1518,7 @@ public class Dgdriv {
         }
     }
 
-    private String executeScript(String scriptToRun) throws VizException {
+    private String executeScript(String scriptToRun) {
 
         if (scriptToRun == null) {
             return null;
@@ -1774,71 +1630,6 @@ public class Dgdriv {
         return timeStr;
     }
 
-    private String getDataURIFromAssembler(String parameters)
-            throws VizException {
-        long t0 = System.currentTimeMillis();
-
-        String datauri = cacheData.getDataURI(parameters);
-        if (datauri != null) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                long t00 = System.currentTimeMillis();
-                logger.debug("++++ getDataURIFromAssembler for(" + parameters
-                        + ") from cache took: " + (t00 - t0));
-            }
-            return datauri;
-        }
-        Map<String, RequestConstraint> rcMap = getRequestConstraint(parameters);
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            long t01 = System.currentTimeMillis();
-            logger.debug("++++ getRequestConstraint for(" + parameters
-                    + ") took: " + (t01 - t0));
-        }
-        if (rcMap == null) {
-            return null;
-        }
-
-        t0 = System.currentTimeMillis();
-        DbQueryRequest request = new DbQueryRequest();
-        // request.addRequestField(GridDBConstants.DATA_URI_QUERY);
-        request.setConstraints(rcMap);
-
-        DbQueryResponse response = (DbQueryResponse) ThriftClient
-                .sendRequest(request);
-        PluginDataObject[] pdos = response
-                .getEntityObjects(PluginDataObject.class);
-        if (pdos.length > 0) {
-            datauri = pdos[0].getDataURI();
-        } else {
-            datauri = null;
-        }
-
-        long t1 = System.currentTimeMillis();
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
-                    .getConstraintValue();
-            int fcstTime = Integer
-                    .parseInt(rcMap.get(GridDBConstants.FORECAST_TIME_QUERY)
-                            .getConstraintValue());
-            String fcstTimeg = CommonDateFormatUtil
-                    .getForecastColonTimeString(fcstTime);
-            if (datauri != null) {
-                logger.debug("### getDataURIFromAssembler(" + datauri + ") for("
-                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
-                        + ") took: " + (t1 - t0));
-            } else {
-                logger.debug("??? getDataURIFromAssembler(null) for("
-                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
-                        + ") took: " + (t1 - t0));
-            }
-        }
-
-        // datauri = rec.getDataURI();
-        if (datauri != null) {
-            cacheData.addDataURI(parameters, datauri);
-        }
-        return datauri;
-    }
-
     public void setCycleForecastTimes(ArrayList<DataTime> dataTimes) {
         this.dataForecastTimes = dataTimes;
     }
@@ -1933,103 +1724,5 @@ public class Dgdriv {
         reftime.append(String.valueOf(ft));
         reftime.append(")");
         return reftime.toString();
-    }
-
-    /*
-     * Use unified grid plugin mapping
-     */
-    private Map<String, RequestConstraint> getRequestConstraint(
-            String parameters) {
-        GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
-        String[] parmList = parameters.split("\\|");
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug(
-                    "enter getRequestConstraint - parameters:" + parameters);
-        }
-        qAssembler.setDatasetId(parmList[0]);
-
-        if (!parmList[1].isEmpty()) {
-            if (isEnsCategory) {
-                if (!parmList[1].equalsIgnoreCase("null")) {
-                    qAssembler.setEnsembleId(parmList[1]);
-                }
-            } else {
-                if (ensembleMember != null) {
-                    qAssembler.setEnsembleId(parmList[1]);
-                } else {
-                    qAssembler.setSecondaryId(parmList[1]);
-                }
-            }
-        }
-        qAssembler.setParameterAbbreviation(parmList[2]);
-        qAssembler.setMasterLevelName(parmList[3]);
-
-        int scale_vcord = 1;
-        String unitParm = gempakVcordInfo.getVcrdUnit(parmList[3]);
-        if ((unitParm == null) || unitParm.isEmpty() || unitParm.equals("-")) {
-            try {
-                scale_vcord = (int) Math.pow(10, Integer
-                        .valueOf(gempakVcordInfo.getParmScale((parmList[3]))));
-            } catch (NumberFormatException e) {
-                //
-            }
-        }
-
-        String ll1 = null, ll2 = null;
-        if (parmList[4].contains(":")) {
-            ll1 = parmList[4].split(":")[0];
-            ll2 = parmList[4].split(":")[1];
-        } else {
-            ll1 = parmList[4];
-        }
-        if (ll1 == null && ll2 == null) {
-            return null;
-        }
-        if (ll1 != null) {
-            Double level1;
-            try {
-                level1 = Double.valueOf(ll1);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            qAssembler.setLevelOneValue(level1 / scale_vcord);
-        }
-        if (ll2 != null) {
-            Double level2;
-            try {
-                level2 = Double.valueOf(ll2);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            qAssembler.setLevelTwoValue(level2 / scale_vcord);
-        } else {
-            qAssembler.setLevelTwoValue(-999999.0);
-        }
-
-        qAssembler.setLevelUnits(gempakVcordInfo.getVcrdUnit(parmList[3]));
-        Map<String, RequestConstraint> rcMap;
-        try {
-            rcMap = qAssembler.getConstraintMap();
-        } catch (CommunicationException e) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("getConstraintMap - CommunicationException:"
-                        + e.toString());
-            }
-            return null;
-        }
-        String refTimeg = parmList[5].toUpperCase().split("F")[0];
-        String refTime = CommonDateFormatUtil.dattimToDbtime(refTimeg);
-        String fcstTimeInSec = Integer.toString(
-                CommonDateFormatUtil.getForecastTimeInSec(parmList[5]));
-
-        rcMap.put(GridDBConstants.REF_TIME_QUERY,
-                new RequestConstraint(refTime));
-        rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
-                new RequestConstraint(fcstTimeInSec));
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug(
-                    "exit getRequestConstraint - rcMap:" + rcMap.toString());
-        }
-        return rcMap;
     }
 }

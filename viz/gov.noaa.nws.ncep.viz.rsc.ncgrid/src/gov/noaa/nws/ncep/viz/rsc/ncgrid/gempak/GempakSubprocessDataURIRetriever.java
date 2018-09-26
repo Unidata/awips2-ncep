@@ -19,11 +19,12 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms.IGempakCommunicator;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 
 /**
- * Request object for GEMPAK to process the contained data.
+ * Implementation of {@link IGempakDataURIRetriever} for retrieving GEMPAK data
+ * URIs from a GEMPAK subprocess.
  *
  * <pre>
  *
@@ -31,46 +32,31 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 10, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
-@DynamicSerialize
-public class GempakDataRecordRequest implements IGempakRequest {
+public class GempakSubprocessDataURIRetriever
+        implements IGempakDataURIRetriever {
 
-    @DynamicSerializeElement
-    private GempakDataInput dataInput;
-
-    /**
-     * Empty constructor for serialization.
-     */
-    public GempakDataRecordRequest() {
-    }
+    private final IGempakCommunicator communicator;
 
     /**
      * Constructor.
      *
-     * @param dataInput
-     *            the input data needed to perform the GEMPAK processing
+     * @param communicator
+     *            used for sending requests to CAVE, since that is where the
+     *            actual data URI retrieval/caching is done
      */
-    public GempakDataRecordRequest(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    public GempakSubprocessDataURIRetriever(IGempakCommunicator communicator) {
+        this.communicator = communicator;
     }
 
-    /**
-     * @return the dataInput
-     */
-    public GempakDataInput getDataInput() {
-        return dataInput;
-    }
-
-    /**
-     * @param dataInput
-     *            the dataInput to set
-     */
-    public void setDataInput(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    @Override
+    public String getDataURI(GempakDataURIRequest gempakRequest)
+            throws GempakException {
+        return communicator.request(gempakRequest, String.class);
     }
 }

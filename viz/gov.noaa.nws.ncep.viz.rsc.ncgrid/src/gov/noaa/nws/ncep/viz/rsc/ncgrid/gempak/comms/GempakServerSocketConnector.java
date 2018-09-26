@@ -22,7 +22,6 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Collections;
 import java.util.Map;
 
@@ -49,7 +48,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakConnectionExcepti
  *
  * @author mapeters
  */
-public class GempakServerSocketConnector implements IGempakServer {
+public class GempakServerSocketConnector extends GempakSocketConnector
+        implements IGempakServer {
 
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(GempakServerSocketConnector.class);
@@ -60,14 +60,13 @@ public class GempakServerSocketConnector implements IGempakServer {
      *
      * TODO set better value
      */
-    private static final int TIMEOUT = 10_000;
+    private static final int TIMEOUT = 30_000;
 
     private final ServerSocket serverSocket;
 
-    private Socket socket;
-
     /**
-     * Setup a {@link ServerSocket} for a GEMPAK subprocess to connect to.
+     * Create a {@link GempakServerSocketConnector}, setting up a
+     * {@link ServerSocket} for a GEMPAK subprocess to connect to.
      *
      * @throws GempakConnectionException
      *             if an error occurs when setting up the server socket
@@ -97,13 +96,7 @@ public class GempakServerSocketConnector implements IGempakServer {
     public IGempakCommunicator connect() throws GempakConnectionException {
         try {
             socket = serverSocket.accept();
-            /*
-             * The streams automatically provided by the socket are auto-closed
-             * when the socket is closed. If we wrap them in anything, we need
-             * to keep track of them and close them manually
-             */
-            return new GempakStreamCommunicator(socket.getInputStream(),
-                    socket.getOutputStream());
+            return createCommunicator();
         } catch (IOException e) {
             throw new GempakConnectionException(
                     "Error setting up socket connection on port "
@@ -114,15 +107,17 @@ public class GempakServerSocketConnector implements IGempakServer {
 
     @Override
     public void close() throws IOException {
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                statusHandler.warn(
-                        "Error closing socket on port " + socket.getLocalPort(),
-                        e);
-            }
+        try {
+            super.close();
+        } catch (IOException e) {
+            statusHandler.warn("Error closing socket connector on port "
+                    + socket.getLocalPort(), e);
         }
-        serverSocket.close();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            statusHandler.warn("Error closing server socket on port "
+                    + serverSocket.getLocalPort());
+        }
     }
 }

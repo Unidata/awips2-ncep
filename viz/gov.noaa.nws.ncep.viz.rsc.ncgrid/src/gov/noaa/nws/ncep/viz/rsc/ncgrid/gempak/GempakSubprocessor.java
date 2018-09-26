@@ -27,20 +27,16 @@ import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.viz.ui.personalities.awips.AbstractAWIPSComponent;
 
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.Dgdriv;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.DgdrivException;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms.GempakClientSocketConnector;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms.IGempakCommunicator;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.comms.IGempakConnector;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakCommunicationException;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakConnectionException;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakProcessingException;
 
 /**
  * This class is started as a subprocess from CAVE, and handles GEMPAK data
- * processing, communicating with a {@link GempakSubprocessSpawner} on the CAVE side
- * to take the data to process and return the processed data record.
+ * processing, communicating with a {@link GempakSubprocessSpawner} on the CAVE
+ * side to take the data to process and return the processed data record.
  *
  * <pre>
  *
@@ -49,6 +45,8 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakProcessingExcepti
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    Extract out data record request handler
+ *                                     to its own class
  *
  * </pre>
  *
@@ -61,30 +59,6 @@ public class GempakSubprocessor extends AbstractAWIPSComponent {
 
     private static final IPerformanceStatusHandler perfLog = PerformanceStatus
             .getHandler(GempakSubprocessor.class.getSimpleName() + ":");
-
-    /**
-     * Handler for taking a {@link GempakDataRecordRequest}, processing it, and
-     * returning a {@link GempakDataRecord}.
-     */
-    private static final IGempakRequestHandler<GempakDataRecordRequest> dataRecordRequestHandler = new IGempakRequestHandler<GempakDataRecordRequest>() {
-
-        @Override
-        public GempakDataRecord handleRequest(GempakDataRecordRequest request)
-                throws GempakProcessingException {
-            Dgdriv dgdriv = new Dgdriv(request.getDataInput());
-            try {
-                FloatGridData floatData = dgdriv.execute();
-                if (floatData != null) {
-                    return new GempakDataRecord(floatData,
-                            dgdriv.getSubgSpatialObj());
-                }
-            } catch (DgdrivException e) {
-                throw new GempakProcessingException(
-                        "Error performing GEMPAK data processing", e);
-            }
-            return null;
-        }
-    };
 
     @Override
     protected void startInternal(String componentName) throws Exception {
@@ -102,7 +76,7 @@ public class GempakSubprocessor extends AbstractAWIPSComponent {
              * tell the communicator to read the request and respond to it
              */
             communicator.registerHandler(GempakDataRecordRequest.class,
-                    dataRecordRequestHandler);
+                    new GempakDataRecordRequestHandler(communicator));
             communicator.respond();
         } catch (GempakConnectionException e) {
             statusHandler.error(

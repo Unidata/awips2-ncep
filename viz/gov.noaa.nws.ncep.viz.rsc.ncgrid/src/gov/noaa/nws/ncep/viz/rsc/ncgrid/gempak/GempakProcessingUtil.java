@@ -64,11 +64,16 @@ public class GempakProcessingUtil {
 
     private static final int MIN_SUBPROCESS_LIMIT = 1;
 
-    // TODO set better max limit
+    /*
+     * TODO: Set better max limit, should try to be dynamic with hardware
+     * changes as well, instead of hard-coded.
+     */
     private static final int MAX_SUBPROCESS_LIMIT = 10;
 
+    /**
+     * Private constructor to prevent instantiation (everything's static).
+     */
     private GempakProcessingUtil() {
-        // Everything's static, should not be instantiated
     }
 
     /**

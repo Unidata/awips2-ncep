@@ -19,6 +19,8 @@
  **/
 package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
 
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
+
 /**
  * Interface specifying a strategy for performing GEMPAK data processing.
  *
@@ -29,6 +31,7 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 04, 2018 54480      mapeters    Initial creation
+ * Sep 26, 2018 54483      mapeters    {@link #getDataRecord} throws {@link GempakException}
  *
  * </pre>
  *
@@ -44,6 +47,9 @@ public interface IGempakProcessingStrategy {
      * @param dataInput
      *            the data to process
      * @return the processed data
+     * @throws GempakException
+     *             if an error occurs processing the data
      */
-    GempakDataRecord getDataRecord(GempakDataInput dataInput);
+    GempakDataRecord getDataRecord(GempakDataInput dataInput)
+            throws GempakException;
 }

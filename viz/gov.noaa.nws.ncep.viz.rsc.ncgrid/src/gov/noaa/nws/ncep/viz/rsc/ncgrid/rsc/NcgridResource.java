@@ -83,12 +83,12 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointMarkerDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointValueDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridRelativeHiLoDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GriddedVectorDisplay;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.DgdrivException;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataRecord;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakProcessingManager;
+import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
@@ -191,6 +191,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                          in updateFrameData().
  * Sep 05, 2018  54480      mapeters        GEMPAK processing done through {@link GempakProcessingManager}
  *                                          instead of directly through Dgdriv
+ * Sep 26, 2018  54483      mapeters        Handle exceptions thrown by new GEMPAK processing framework
  * </pre>
  *
  * @author mli
@@ -1410,9 +1411,8 @@ public class NcgridResource
                                     + gdPrxy.getDataTime().toString()
                                     + ") took:" + (t2 - t1));
                 }
-            } catch (DgdrivException e) {
-                statusHandler.error("Error getting data from Dgdriv", e);
-
+            } catch (GempakException e) {
+                statusHandler.error("Error processing data through GEMPAK", e);
                 return null;
             }
             return gridData;
@@ -1762,7 +1762,7 @@ public class NcgridResource
      */
     protected FloatGridData getDataRecord(NcGridDataProxy gdPrxy,
             ContourAttributes cattr, NcgridDataCache cacheData)
-            throws DgdrivException {
+            throws GempakException {
         if (gdPrxy == null) {
             return null;
         }
@@ -1820,7 +1820,7 @@ public class NcgridResource
         GempakDataRecord dataRecord = GempakProcessingManager.getInstance()
                 .getDataRecord(dataInput);
         if (dataRecord != null) {
-            subgObj = dataRecord.getSpatialObject();
+            subgObj = dataRecord.getSubgSpatialObject();
             return dataRecord.getFloatData();
         }
         return null;
@@ -2187,6 +2187,10 @@ public class NcgridResource
     }
 
     private void getNcgridLoggerCfgInfo() {
+        /*
+         * TODO need to do this in GEMPAK subprocess...just add flags to
+         * GempakDataInput?
+         */
         IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
         boolean enableAll = prefs
                 .getBoolean(NcgribLoggerPreferences.ENABLE_ALL_LOGGER);
@@ -2201,36 +2205,19 @@ public class NcgridResource
         } else {
             boolean enableRsc = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_RSC_LOGGER);
-            if (enableRsc) {
-                ncgribLogger.setEnableRscLogs(true);
-            } else {
-
-                ncgribLogger.setEnableRscLogs(false);
-            }
+            ncgribLogger.setEnableRscLogs(enableRsc);
 
             boolean enableDiagnostic = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_DGD_LOGGER);
-            if (enableDiagnostic) {
-                ncgribLogger.setEnableDiagnosticLogs(true);
-            } else {
-                ncgribLogger.setEnableDiagnosticLogs(false);
-            }
+            ncgribLogger.setEnableDiagnosticLogs(enableDiagnostic);
 
             boolean enableCntr = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_CNTR_LOGGER);
-            if (enableCntr) {
-                ncgribLogger.setEnableCntrLogs(true);
-            } else {
-                ncgribLogger.setEnableCntrLogs(false);
-            }
+            ncgribLogger.setEnableCntrLogs(enableCntr);
 
             boolean enableTT = prefs
                     .getBoolean(NcgribLoggerPreferences.ENABLE_FINAL_LOGGER);
-            if (enableTT) {
-                ncgribLogger.setEnableTotalTimeLogs(true);
-            } else {
-                ncgribLogger.setEnableTotalTimeLogs(false);
-            }
+            ncgribLogger.setEnableTotalTimeLogs(enableTT);
         }
     }
 

@@ -3,6 +3,7 @@ package gov.noaa.nws.ncep.ui.nsharp.display;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -82,6 +83,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NCLoopProperties;
  * Mar 21, 2018  6914        bsteffen   Reuse display panes when changing pane
  *                                      layout.
  * Aug 01, 2018  6858        bsteffen   Clone loop properties on constructor.
+ * Sep 28, 2018  7479        bsteffen   Ensure reused panes have valid extents.
  * 
  * </pre>
  * 
@@ -1321,25 +1323,40 @@ public class NsharpEditor extends AbstractEditor
 
         for (IRenderableDisplay display : existing) {
             int index = -1;
+            /*
+             * Existing extents from bundles can have empty areas that cause
+             * problems so set a default area, actual extents will be filled in
+             * later.
+             */
+            Rectangle extentArea = null;
             if (display instanceof NsharpSkewTPaneDisplay) {
                 index = DISPLAY_SKEWT;
+                extentArea = NsharpConstants.SKEWT_DISPLAY_REC;
             } else if (display instanceof NsharpWitoPaneDisplay) {
                 index = DISPLAY_WITO;
+                extentArea = NsharpConstants.WITO_DISPLAY_REC;
             } else if (display instanceof NsharpInsetPaneDisplay) {
                 index = DISPLAY_INSET;
+                extentArea = NsharpConstants.INSET_DISPLAY_REC;
             } else if (display instanceof NsharpHodoPaneDisplay) {
                 index = DISPLAY_HODO;
+                extentArea = NsharpConstants.HODO_DISPLAY_REC;
             } else if (display instanceof NsharpTimeStnPaneDisplay) {
                 index = DISPLAY_TIMESTN;
+                extentArea = NsharpConstants.TIMESTN_DISPLAY_REC;
             } else if (display instanceof NsharpDataPaneDisplay) {
                 index = DISPLAY_DATA;
+                extentArea = NsharpConstants.DATA_DISPLAY_REC;
             } else if (display instanceof NsharpSpcGraphsPaneDisplay) {
                 index = DISPLAY_SPC_GRAPHS;
+                extentArea = NsharpConstants.SPC_GRAPH_DISPLAY_REC;
             } else if (display instanceof NsharpAbstractPaneDisplay) {
                 index = DISPLAY_FUTURE;
+                extentArea = NsharpConstants.FUTURE_DISPLAY_REC;
             }
             if (index >= 0) {
                 displayArray[index] = display;
+                display.setExtent(new PixelExtent(extentArea));
                 display.setContainer(null);
             }
         }

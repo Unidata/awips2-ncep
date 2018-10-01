@@ -62,6 +62,7 @@ import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
  * 07/16/2014    TTR828    Chin Chen    swapped wind direction and wind speed lines at edit dialog
  * 08/06/2014    TTR828    Chin Chen    Set "add new level" as default selection
  * Aug 20, 2018  #7081     dgilling     Refactor based on CaveJFACEDialog.
+ * Oct 01, 2018  7478      bsteffen     Allow 360 as a valid wind direction.
  *
  * </pre>
  *
@@ -179,7 +180,8 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
 
         pressureList = new List(pressureListGp, SWT.BORDER | SWT.V_SCROLL);
         if (NsharpEditor.getActiveNsharpEditor() != null) {
-            NsharpResourceHandler rsc = NsharpEditor.getActiveNsharpEditor().getRscHandler();
+            NsharpResourceHandler rsc = NsharpEditor.getActiveNsharpEditor()
+                    .getRscHandler();
             if (rsc != null && rsc.getSoundingLys() != null) {
                 curSoundingLayerList = rsc.getSoundingLys();
                 for (NcSoundingLayer layer : curSoundingLayerList) {
@@ -368,7 +370,6 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
         layoutData = new GridData(SWT.FILL, SWT.DEFAULT, true, false);
         layoutData.widthHint = textFieldBounds.width;
         newWSpText.setLayoutData(layoutData);
-
         return composite;
     }
 
@@ -433,7 +434,7 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
                     "Invalid value entered for wind direction.");
             return;
         }
-        if (windDirection >= 360f) {
+        if (windDirection > 360f) {
             MessageDialog.openWarning(getShell(), "Invalid Data",
                     "Wind direction is greater than 360 degrees.");
             return;
@@ -487,8 +488,7 @@ public class NsharpEditDataDialog extends CaveJFACEDialog {
     protected void buttonPressed(int buttonId) {
         switch (buttonId) {
         case APPLY_ID:
-            if ((EditType.NEW_LEVEL == currentEditType)
-                    && !isNoEmptyInput()) {
+            if ((EditType.NEW_LEVEL == currentEditType) && !isNoEmptyInput()) {
                 MessageDialog.openWarning(getShell(), StringUtils.EMPTY,
                         "Missing input data! Should fill up all 5 entries!");
                 return;

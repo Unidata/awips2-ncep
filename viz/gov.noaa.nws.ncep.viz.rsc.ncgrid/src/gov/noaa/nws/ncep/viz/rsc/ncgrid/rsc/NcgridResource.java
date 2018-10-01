@@ -50,6 +50,7 @@ import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.DisplayType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
@@ -191,6 +192,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  *                                          in updateFrameData().
  * Sep 05, 2018  54480      mapeters        GEMPAK processing done through {@link GempakProcessingManager}
  *                                          instead of directly through Dgdriv
+ * 09/17/2018    R54493     E. Debebe       Added the new 'NcgridLoaderTask.java' inner class to implement
+ *                                          a Job Pool.
  * Sep 26, 2018  54483      mapeters        Handle exceptions thrown by new GEMPAK processing framework
  * </pre>
  *
@@ -198,6 +201,17 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  */
 public class NcgridResource
         extends AbstractNatlCntrsResource<NcgridResourceData, NCMapDescriptor> {
+
+    //Get the config object
+    private static NcgridResourceConfig config = NcgridResourceManager.getInstance().getConfig();
+
+    //Get size of JobPool
+    private static int numEclipseJobs = config.getNumEclipseJobs();
+
+    //Instantiate the JobPool
+    private static final JobPool ncgridLoaderPool = new JobPool("Ncgrid Loading...", numEclipseJobs, false);
+
+    private NcgridLoaderTask ncgridLoaderTask = null;
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(NcgridResource.class);
@@ -292,16 +306,16 @@ public class NcgridResource
         }
     }
 
-    protected class NcgridLoaderJob extends Job {
-
-        private boolean cancel = false;
-
-        public NcgridLoaderJob(String name) {
-            super(name);
-        }
+    /*
+     * Used to create a Job in 'com.raytheon.uf.viz.core.jobs.JobPool.java'
+     */
+    protected class NcgridLoaderTask implements Runnable {
 
         @Override
-        protected IStatus run(IProgressMonitor monitor) {
+        public void run() {
+
+            logger.info("Executing NcgridLoaderTask.run() method for Thread: "
+                    + Thread.currentThread().getName());
 
             TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
 
@@ -324,10 +338,6 @@ public class NcgridResource
                     this.processDateTime(frameData);
                 }
 
-                if (cancel) {
-                    return Status.CANCEL_STATUS;
-                }
-
                 processNewRscDataList();
 
                 if (isFirst) {
@@ -342,28 +352,15 @@ public class NcgridResource
                             cnt++;
                         } catch (InterruptedException e) {
                             statusHandler.error(
-                                    "NcgridResource.NcgridLoaderJob.run()"
+                                    "NcgridResource.NcgridLoaderTask.run()"
                                             + " InterruptedException on thread",
                                     e);
                         }
                     }
-
                 }
 
                 issueRefresh();
             }
-
-            return Status.OK_STATUS;
-        }
-
-        public void loadNcgridData() {
-            if (this.getState() != Job.RUNNING) {
-                this.schedule();
-            }
-        }
-
-        public void setCancelFlag(boolean cl) {
-            cancel = cl;
         }
 
         private void processDateTime(FrameData frameData) {
@@ -423,9 +420,11 @@ public class NcgridResource
             }
 
         }// end method
+    }
 
-    }// end NcGridLoaderJob
-
+    /** TODO: Implement this Job as a Runnable task to be executed by the class below:
+     *  'com.raytheon.uf.viz.core.jobs.JobPool.java'
+     */
     protected class NcgridAttrModifiedJob extends Job {
 
         private boolean cancel = false;
@@ -462,8 +461,6 @@ public class NcgridResource
             cancel = cl;
         }
     }
-
-    private NcgridLoaderJob ncgridLoader;
 
     private NcgridAttrModifiedJob ncgribAttrsModified;
 
@@ -1560,10 +1557,7 @@ public class NcgridResource
     @Override
     public void disposeInternal() {
         this.dataTimesForDgdriv.clear();
-        if (ncgridLoader != null) {
-            ncgridLoader.setCancelFlag(true);
-            ncgridLoader.cancel();
-        }
+
         if (ncgribAttrsModified != null) {
             ncgribAttrsModified.setCancelFlag(true);
             ncgribAttrsModified.cancel();
@@ -1572,6 +1566,11 @@ public class NcgridResource
             frameData.dispose();
         }
         frameDataMap.clear();
+        
+        //Cancel the task
+        if (ncgridLoaderTask != null) {
+            ncgridLoaderPool.cancel(ncgridLoaderTask);
+        }
     }
 
     @Override
@@ -1594,15 +1593,19 @@ public class NcgridResource
                         "NcgridResource.initResource query all avariable times: "
                                 + (t1 - t0));
             }
-            if (ncgridLoader != null) {
-                ncgridLoader.cancel();
+
+            //Cancel the task if it's not null before starting a new one
+            if (ncgridLoaderTask != null) {
+                ncgridLoaderPool.cancel(ncgridLoaderTask);
             }
-            ncgridLoader = new NcgridLoaderJob("Ncgrid Loading...");
-            ncgridLoader.loadNcgridData();
+
+            //Schedule the task for execution
+            ncgridLoaderTask = new NcgridLoaderTask();
+            ncgridLoaderPool.schedule(ncgridLoaderTask);
+
             t1 = System.currentTimeMillis();
             logger.debug("\t\t NcgridResource.initResource took: " + (t1 - t0));
         }
-
     }
 
     @Override

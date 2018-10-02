@@ -338,6 +338,13 @@
             class="gov.noaa.nws.ncep.viz.tools.frame.BadFrameAction"
             commandId="gov.noaa.nws.ncep.viz.ui.actions.BadFrameAction">
        </handler>
+       <handler 
+            class="gov.noaa.nws.ncep.viz.tools.newEditors.NewAbstractNcEditor"
+            commandId="org.eclipse.ui.window.newEditor">
+         <activeWhen>
+           <reference definitionId="gov.noaa.nws.ncep.viz.ui.inNCPerspective" />
+         </activeWhen>
+       </handler>   
    </extension>
    <!-- Hot Keys-->
       <extension

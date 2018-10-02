@@ -1,37 +1,10 @@
-/**
- * International Significant Meteorological Information DecoderUtil
- * 
- * This java class intends to serve as a decoder utility for INTLSIGMET.
- * 
- * HISTORY
- *
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * Date         Ticket#         Engineer    Description
- * ------------ ----------      ----------- --------------------------
- * 06/2009      113				L. Lin     	Initial coding
- * 07/2009		113				L. Lin		Migration to TO11
- * 09/2009      113             L. Lin      Convert station ID to lat/lon
- *                                          if any exists.
- * 11/2011      512             S. Gurung   Fixed NullPointerException bug while processing lat/lon (from vors)
- * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage
- * </pre>
- * 
- * This code has been developed by the SIB for use in the AWIPS2 system.
- * @author L. Lin
- * @version 1.0
- */
-
 package gov.noaa.nws.ncep.edex.plugin.intlsigmet.util;
-
-import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetLocation;
-import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetRecord;
-import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,24 +15,110 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
+import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetLocation;
+import gov.noaa.nws.ncep.common.dataplugin.intlsigmet.IntlSigmetRecord;
+import gov.noaa.nws.ncep.common.tools.IDecoderConstantsN;
+import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
+/**
+ * International Significant Meteorological Information DecoderUtil
+ * <p>
+ * This java class intends to serve as a decoder utility for INTLSIGMET.
+ *
+ * <pre>
+ *
+ * SOFTWARE HISTORY
+ *
+ * Date         Ticket#    Engineer    Description
+ * ------------ ---------- ----------- --------------------------
+ * Jun ??, 2009  113       L. Lin       Initial coding
+ * Jul ??, 2009  113       L. Lin       Migration to TO11
+ * Sep ??, 2009  113       L. Lin       Convert station ID to lat/lon if any exists.
+ * Nov ??, 2011  512       S. Gurung    Fixed NullPointerException bug while processing lat/lon (from vors)
+ * May 14, 2014  2536      bclement     moved WMO Header to common, removed TimeTools usage
+ * Sep 13, 2018  #7460     dgilling     Improved getHazardType.
+ *
+ * </pre>
+ *
+ * @author L. Lin
+ */
 public class IntlSigmetParser {
 
-    private static final String CONUS_EXP = "([A-Z]{4}) SIGMET (ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|GOLF|HOTEL|"
-            + "INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|TANGO|"
-            + "UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) ([0-9]{1}|[0-9]{2}) VALID";
+    private static final Pattern CONUS_SIGMET_REGEX_1 = Pattern.compile(
+            "([A-Z]{4}) SIGMET (ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|GOLF|HOTEL|"
+                    + "INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|TANGO|"
+                    + "UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) ([0-9]{1,2}) VALID");
 
-    /**
-     * Constructor
-     */
-    public IntlSigmetParser() {
+    private static final Pattern CONUS_SIGMET_REGEX_2 = Pattern.compile(
+            "([A-Z]{4}) ([A-Z]{4} )?SIGMET ([A-Z])* ([0-9]{1,2}) "
+                    + "VALID ([0-9]{6})/([0-9]{6})( UTC)? ([A-Z]{4})-");
+
+    private static final Pattern CANADA_SIGMET_REGEX = Pattern.compile(
+            "SIGMET ([A-Z]{1})([0-9]{1,2}) (VALID ([0-9]{6})/|CANCELLED AT )([0-9]{6}) ([A-Z]{4})-");
+
+    private static final Pattern JAPAN_SIGMET_REGEX = Pattern.compile(
+            "([A-Z]{4}) SIGMET ([0-9]{1,2}) (VALID )?([0-9]{6})/([0-9]{6})(UTC)? ([A-Z]{4})-");
+
+    private static final Pattern OTHER_SIGMET_REGEX_1 = Pattern.compile(
+            "([A-Z]{4}) SIGMET ([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}) "
+                    + "VALID ([0-9]{6})/([0-9]{6})( UTC)? ([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_2 = Pattern.compile(
+            "(SIGMET) ([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}|[A-Z]{1}[0-9]{2}) "
+                    + "VALID ([0-9]{6})/([0-9]{6})");
+
+    private static final Pattern OTHER_SIGMET_REGEX_3 = Pattern.compile(
+            "([A-Z]{4}) SIGMET ([A-Z]* )?([0-9]{1}|[0-9]{2}) VALID ([0-9]{6})/([0-9]{6}) "
+                    + "([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_4 = Pattern.compile(
+            "([A-Z]{4}) SIGMET( )*([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}) "
+                    + "VALID( )*([0-9]{6})/([0-9]{6})( )*([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_5 = Pattern.compile(
+            "([A-Z]{4}) SIGMET( )*VALID( )*([0-9]{6})/([0-9]{6})( )*([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_6 = Pattern.compile(
+            "([A-Z]{4}) SIGMET( )*([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}) "
+                    + "VALID( )*([0-9]{6})Z/([0-9]{6})Z( )*([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_7 = Pattern.compile(
+            "([A-Z]{4}) SIGMET( )*([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}) "
+                    + "VALID( )*([0-9]{4})/([0-9]{4})( )*([A-Z]{4})(-)?");
+
+    private static final Pattern OTHER_SIGMET_REGEX_8 = Pattern.compile(
+            "([A-Z]{4}) SIGMET( |\\W)*VALID( |\\W)*([0-9]{6})/([0-9]{6})( )*([A-Z]{4})(-)?");
+
+    private static final Pattern HAZARD_TYPE_REGEX = Pattern
+            .compile("(HURRICANE|HURCN |TROPICAL STORM|TROPICAL DEPRESSION|"
+                    + " TD | SQL | TS | TS/|FRQ TS| TS| SH/TS |TURB| CB | VA | MTW |"
+                    + " ICE | TR | GR | TC | CT | CAT | DS | SS | WS | TSGR |VOLCANIC ASH|HVYSS|"
+                    + " ICG|ICING|LLWS|WATERSPOUTS|THUNDERSTORMS|WIND|TS OBS|CB/TS|TORNADO)");
+
+    private static final Pattern NIL_HAZARD_TYPE_REGEX = Pattern
+            .compile("(NIL)");
+
+    private static final Pattern MISSING_HAZARD_TYPE_REGEX = Pattern
+            .compile("(TAF |METAR )");
+
+    private static final Pattern CANCEL_HAZARD_TYPE_REGEX = Pattern
+            .compile("(CANCEL| CNL | CNCL |:CNL| CNL|INVALID|DISCARDED|"
+                    + "CNL SIGMET| CLN SIGMET|CNCLD|^CNL )", Pattern.MULTILINE);
+
+    private static final Pattern TEST_HAZARD_TYPE_REGEX = Pattern
+            .compile("(TEST |DISREGARD)");
+
+    private IntlSigmetParser() {
+        throw new AssertionError();
     }
 
     /**
      * Parse the WMO line and store WMO header, OfficeID, issue time, ...
-     * 
+     *
      * @param wmoline
      *            The bulletin message
-     * 
+     *
      * @return an IntlSigmetRecord
      */
     public static IntlSigmetRecord processWMO(String wmoline, Headers headers) {
@@ -97,38 +156,34 @@ public class IntlSigmetParser {
      * line), CT (CAT), IC (icing), GR (hail), DS (duststorm), SS (sandstorm),
      * CB (cumulonimbus), WS (low level wind shear), TEST, or CN (cancel),
      * etc...
-     * 
+     *
      * @param theReport
      *            Input report message.
      * @return a string for hazard type
      */
     public static String getHazardType(String theReport) {
+        Collection<Pattern> sigmetLinePatterns = Arrays.asList(
+                CONUS_SIGMET_REGEX_2, CANADA_SIGMET_REGEX, JAPAN_SIGMET_REGEX,
+                OTHER_SIGMET_REGEX_1, OTHER_SIGMET_REGEX_2,
+                OTHER_SIGMET_REGEX_2, OTHER_SIGMET_REGEX_3,
+                OTHER_SIGMET_REGEX_4, OTHER_SIGMET_REGEX_5,
+                OTHER_SIGMET_REGEX_6, OTHER_SIGMET_REGEX_7,
+                OTHER_SIGMET_REGEX_8);
+        for (Pattern p : sigmetLinePatterns) {
+            Matcher m = p.matcher(theReport);
+            if (m.find()) {
+                theReport = theReport.substring(m.end());
+                break;
+            }
+        }
+
+        Matcher theMatcher = HAZARD_TYPE_REGEX.matcher(theReport);
+        Matcher nilMatcher = NIL_HAZARD_TYPE_REGEX.matcher(theReport);
+        Matcher cnlMatcher = CANCEL_HAZARD_TYPE_REGEX.matcher(theReport);
+        Matcher misMatcher = MISSING_HAZARD_TYPE_REGEX.matcher(theReport);
+        Matcher testMatcher = TEST_HAZARD_TYPE_REGEX.matcher(theReport);
 
         String retHazardType = " ";
-        // Regular expression for hazardType
-        final String HAZARDTYPE_EXP = "(HURRICANE|HURCN |TROPICAL STORM|TROPICAL DEPRESSION|"
-                + " TD | SQL | TS | TS/|FRQ TS| TS| SH/TS |TURB| CB | VA | MTW |"
-                + " ICE | TR | GR | TC | CT | CAT | DS | SS | WS | TSGR |VOLCANIC ASH|HVYSS|"
-                + " ICG|ICING|LLWS|WATERSPOUTS|THUNDERSTORMS|WIND|TS OBS|CB/TS|TORNADO)";
-        final String NIL_EXP = "(NIL)";
-        final String MIS_EXP = "(TAF |METAR )";
-        final String CNL_EXP = "(CANCEL| CNL | CNCL |:CNL| CNL|INVALID|DISCARDED|"
-                + "CNL SIGMET| CLN SIGMET|CNCLD)";
-        final String TEST_EXP = "(TEST |DISREGARD)";
-
-        // Pattern used for extracting hazardType
-        final Pattern hazardTypePattern = Pattern.compile(HAZARDTYPE_EXP);
-        final Pattern nilPattern = Pattern.compile(NIL_EXP);
-        final Pattern cnlPattern = Pattern.compile(CNL_EXP);
-        final Pattern misPattern = Pattern.compile(MIS_EXP);
-        final Pattern testPattern = Pattern.compile(TEST_EXP);
-
-        Matcher theMatcher = hazardTypePattern.matcher(theReport);
-        Matcher nilMatcher = nilPattern.matcher(theReport);
-        Matcher cnlMatcher = cnlPattern.matcher(theReport);
-        Matcher misMatcher = misPattern.matcher(theReport);
-        Matcher testMatcher = testPattern.matcher(theReport);
-
         if (cnlMatcher.find()) {
             retHazardType = "CANCEL";
         } else if (testMatcher.find()) {
@@ -221,7 +276,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains the message ID.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @return a string for messageID
@@ -230,17 +285,8 @@ public class IntlSigmetParser {
 
         String messageID = " ";
 
-        // // Regular expression for CONUS message ID
-        // final String CONUS_EXP =
-        // "([A-Z]{4}) SIGMET (ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|" +
-        // "GOLF|HOTEL|INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|"
-        // +
-        // "ROMEO|SIERRA|TANGO|UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) " +
-        // "([0-9]{1}|[0-9]{2}) VALID";
-
         // Pattern used for extracting the message ID
-        final Pattern conusPattern = Pattern.compile(CONUS_EXP);
-        Matcher idconusMatcher = conusPattern.matcher(theBulletin);
+        Matcher idconusMatcher = CONUS_SIGMET_REGEX_1.matcher(theBulletin);
 
         // Regular expression for CANADA message ID
         final String CANADA_EXP = "SIGMET ([A-Z]{1})([0-9]{1}|[0-9]{2}) (VALID "
@@ -280,7 +326,7 @@ public class IntlSigmetParser {
         // Regular expression for others' message ID
         final String OTHER4_EXP = "([A-Z]{4}) SIGMET( )*([0-9]{1}|[0-9]{2}|[A-Z]{1}[0-9]{1}|[A-Z]{2}[0-9]{2}) "
                 + "VALID( )*([0-9]{6})/([0-9]{6})( )*([A-Z]{4})(-)?";
-        // Pattern used for extracting the message ID
+        // Pattern used for extracting the message ID[A-Z]{4}
         final Pattern other4Pattern = Pattern.compile(OTHER4_EXP);
         Matcher idother4Matcher = other4Pattern.matcher(theBulletin);
 
@@ -340,7 +386,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains the sequence number.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @return a string for sequenceNumber
@@ -350,16 +396,7 @@ public class IntlSigmetParser {
         String sequenceNumber = " ";
 
         // // Regular expression for CONUS sequence number
-        // final String CONUS_EXP =
-        // "([A-Z]{4}) SIGMET (ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|GOLF|HOTEL|"
-        // +
-        // "INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|TANGO|"
-        // +
-        // "UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) ([0-9]{1}|[0-9]{2}) VALID";
-
-        // Pattern used for extracting the sequence number
-        final Pattern conusPattern = Pattern.compile(CONUS_EXP);
-        Matcher seqnoconusMatcher = conusPattern.matcher(theBulletin);
+        Matcher seqnoconusMatcher = CONUS_SIGMET_REGEX_1.matcher(theBulletin);
 
         // Regular expression for CANADA sequence number
         final String CANADA_EXP = "SIGMET ([A-Z]{1}[0-9]{1}|[A-Z]{1}[0-9]{2}) "
@@ -460,7 +497,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains the Air Traffic Service Unit.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @return a string for atsu.
@@ -469,16 +506,8 @@ public class IntlSigmetParser {
 
         String atsu = null;
 
-        // // Regular expression for CONUS ATSU
-        // final String CONUS_EXP =
-        // "([A-Z]{4}) SIGMET (ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|GOLF|" +
-        // "HOTEL|INDIA|JULIETT|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|"
-        // +
-        // "TANGO|UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU) ([0-9]{1}|[0-9]{2}) VALID";
-
         // Pattern used for extracting the ATSU
-        final Pattern conusPattern = Pattern.compile(CONUS_EXP);
-        Matcher atsuconusMatcher = conusPattern.matcher(theBulletin);
+        Matcher atsuconusMatcher = CONUS_SIGMET_REGEX_1.matcher(theBulletin);
 
         // Regular expression for CANADA ATSU
         final String CANADA_EXP = "SIGMET ([A-Z]{1}[0-9]{1}|[A-Z]{1}[0-9]{2}) "
@@ -544,7 +573,7 @@ public class IntlSigmetParser {
     /**
      * Obtains the location indicator of the meteorological watch office
      * originating the message.
-     * 
+     *
      * @param theBulletin
      *            The input bulletin
      * @return a string for omwo.
@@ -554,11 +583,7 @@ public class IntlSigmetParser {
         String omwo = " ";
 
         // Regular expression for CONUS OMWO
-        final String CONUS_EXP = "([A-Z]{4}) ([A-Z]{4} )?SIGMET ([A-Z])* ([0-9]{1}|[0-9]{2}) "
-                + "VALID ([0-9]{6})/([0-9]{6})( UTC)? ([A-Z]{4})-";
-        // Pattern used for extracting the OMWO
-        final Pattern conusPattern = Pattern.compile(CONUS_EXP);
-        Matcher omwoconusMatcher = conusPattern.matcher(theBulletin);
+        Matcher omwoconusMatcher = CONUS_SIGMET_REGEX_2.matcher(theBulletin);
 
         // Regular expression for CANADA OMWO
         final String CANADA_EXP = "SIGMET ([A-Z]{1}[0-9]{1}|[A-Z]{1}[0-9]{2}) "
@@ -643,7 +668,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains start time from input bulletin.
-     * 
+     *
      * @param theReport
      *            The bulletin message
      * @return a calendar for start time
@@ -713,7 +738,7 @@ public class IntlSigmetParser {
 
     /**
      * Get the end time
-     * 
+     *
      * @param theBulletin
      *            The bulletin which contains end time
      * @return a calendar for end time
@@ -787,7 +812,7 @@ public class IntlSigmetParser {
 
     /**
      * Parse the bulletin and store flight level 1 or level 2 if any.
-     * 
+     *
      * @param theBulletin
      *            The bulletin message
      * @param record
@@ -870,7 +895,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains remarks from a bulletin
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for remarks
@@ -911,7 +936,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains speed from a bulletin
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return an integer for speed
@@ -961,7 +986,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains intensity from a bulletin
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for intensity
@@ -991,7 +1016,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains direction from a bulletin
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for direction
@@ -1053,7 +1078,7 @@ public class IntlSigmetParser {
 
     /**
      * Parse the location to set Lat/Lon or location name
-     * 
+     *
      * @param theLocation
      *            The location with lat/lon or location name
      * @param locTb
@@ -1237,7 +1262,7 @@ public class IntlSigmetParser {
             locTb.setLongitude(flon);
             locTb.setLocationName(latlon8Matcher.group());
         } else {
-            System.out.println("theLocation=" + theLocation);            
+            System.out.println("theLocation=" + theLocation);
             if ((index == 0)
                     && ((theLocation.substring(0, 3).equals("IN ")) || theLocation
                             .substring(0, 3).equals("OF "))) {
@@ -1267,7 +1292,7 @@ public class IntlSigmetParser {
 
     /**
      * Obtains distance or radius from a bulletin for a "LINE" type
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return an integer of distance
@@ -1298,7 +1323,7 @@ public class IntlSigmetParser {
 
     /**
      * Get name location for the VA, TC, or HU....
-     * 
+     *
      * @param bullMessage
      *            The bulletin message
      * @return a string for nameLocation
@@ -1358,26 +1383,26 @@ public class IntlSigmetParser {
 	/**
 	 * Obtains polygon extent from a bulletin for a "LINE" type
 	 * or a polygon type
-	 * 
+	 *
 	 *  @param bullMessage The bulletin message
-	 *  @return a string  
+	 *  @return a string
 	 */
 	public static String getPolygonExtent(String bullMessage) {
-		
+
 		String retStr = "";
-		
+
 		// Regular expression for distance
 	    final String DISTANCE_EXP = "(WI )?([0-9]{2}|[0-9]{3})( )?NM ";
 	    // Pattern used for extracting distance
 		final Pattern distancePattern = Pattern.compile(DISTANCE_EXP);
 		Matcher theMatcher = distancePattern.matcher( bullMessage );
-		
+
 		// Regular expression for line
 	    final String LINE_EXP = " ([0-9]{2}|[0-9]{3})( )?NM (EITHER SIDE OF)";
 	    // Pattern used for extracting line information
 		final Pattern linePattern = Pattern.compile(LINE_EXP);
 		Matcher lineMatcher = linePattern.matcher( bullMessage );
-		
+
 		// Regular expression distance for Canada
 	    final String CANADA_EXP = "(WTN|WITHIN) ([0-9]{2}|[0-9]{3})( )?NM OF (LN|LINE)";
 	    // Pattern used for extracting distance for CANADA sigmet
@@ -1389,7 +1414,7 @@ public class IntlSigmetParser {
 	    // Pattern used for extracting POLYGON information
 		final Pattern polygonPattern = Pattern.compile(POLYGON_EXP);
 		Matcher polygonMatcher = polygonPattern.matcher( bullMessage );
-		
+
 		if (canadaMatcher.find()) {
 			retStr = canadaMatcher.group(1);
 		} else if (lineMatcher.find()) {
@@ -1402,11 +1427,11 @@ public class IntlSigmetParser {
 
 		return retStr;
 	}
-	
+
     /**
      * Parse the location lines and add location table to the main record table
      * if any
-     * 
+     *
      * @param theBulletin
      *            The report from bulletin message
      * @param record
@@ -1422,7 +1447,7 @@ public class IntlSigmetParser {
         String retLocation = "?";
         int locPositionIndex = -1;
 
-        ArrayList<String> terminationList = new ArrayList<String>();
+        List<String> terminationList = new ArrayList<>();
         // Locations ends with these key words
         terminationList.addAll(Arrays
                 .asList(new String[] { "TOP", "SEV", "BKN", "STNR", "ISOL",
@@ -1518,7 +1543,7 @@ public class IntlSigmetParser {
                     .useDelimiter("\\x0d\\x0d\\x0a");
             String lines = " ";
             String curLine = null;
-            ArrayList<String> locationList = new ArrayList<String>();
+            List<String> locationList = new ArrayList<>();
             locationList.clear();
             Boolean notBreak = true;
 
@@ -1612,7 +1637,7 @@ public class IntlSigmetParser {
 
     /**
      * Get detail information for Thunderstorm.
-     * 
+     *
      * @param theReport
      *            the input bulletin
      * @return a string for Thunderstorm
@@ -1669,7 +1694,7 @@ public class IntlSigmetParser {
 
     /**
      * Remove a character from a string and return the result.
-     * 
+     *
      * @param s
      *            the string
      * @param c
@@ -1681,8 +1706,9 @@ public class IntlSigmetParser {
         String ret = "";
 
         for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) != c)
+            if (s.charAt(i) != c) {
                 ret += s.charAt(i);
+            }
         }
 
         return ret;

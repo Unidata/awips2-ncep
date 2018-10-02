@@ -23,12 +23,11 @@
  * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * 12/12/2017   17377       wkwock      Auto load new-arrivals.
- *
+ * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
  * 
  * </pre>
  * 
  * @author Chin Chen
- * @version 1.0
  */
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
 
@@ -2924,74 +2923,76 @@ public class NsharpResourceHandler {
         spcGraphsPaneRsc = null;
         futurePaneRsc = null;
         for (IRenderableDisplay disp : displayArray) {
-            ResourcePair rscP = disp.getDescriptor().getResourceList().get(0);
-            NsharpAbstractPaneResource absPaneRsc = (NsharpAbstractPaneResource) rscP
-                    .getResource();
-            if (absPaneRsc instanceof NsharpSkewTPaneResource) {
-                skewtPaneRsc = (NsharpSkewTPaneResource) absPaneRsc;
-                skewtPaneRsc.setLinePropertyMap(linePropertyMap);
-                skewtPaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpDataPaneResource) {
-                dataPaneRsc = (NsharpDataPaneResource) absPaneRsc;
-                dataPaneRsc.setLinePropertyMap(linePropertyMap);
-                dataPaneRsc.setGraphConfigProperty(graphConfigProperty);
-                dataPaneRsc.setPageDisplayOrderNumberArray(
-                        pageDisplayOrderNumberArray,
-                        dataPageProperty.getNumberPagePerDisplay());
-            } else if (absPaneRsc instanceof NsharpHodoPaneResource) {
-                hodoPaneRsc = (NsharpHodoPaneResource) absPaneRsc;
-                hodoPaneRsc.setLinePropertyMap(linePropertyMap);
-                hodoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpWitoPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
-
-                witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
-                witoPaneRsc.setLinePropertyMap(linePropertyMap);
-                witoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-
-            } else if (absPaneRsc instanceof NsharpInsetPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
-
-                insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
-                insetPaneRsc.setLinePropertyMap(linePropertyMap);
-                insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
-
-            } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource
-                    && paneConfigurationName
-                            .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
-                spcGraphsPaneRsc = (NsharpSpcGraphsPaneResource) absPaneRsc;
-                spcGraphsPaneRsc.setLinePropertyMap(linePropertyMap);
-                spcGraphsPaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpAbstractPaneResource
-                    && paneConfigurationName
-                            .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
-                futurePaneRsc = (NsharpAbstractPaneResource) absPaneRsc;
-                futurePaneRsc.setLinePropertyMap(linePropertyMap);
-                futurePaneRsc.setGraphConfigProperty(graphConfigProperty);
-            } else if (absPaneRsc instanceof NsharpTimeStnPaneResource
-                    && (paneConfigurationName
-                            .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_OPC_CFG_STR)
-                            || paneConfigurationName
-                                    .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
-                            || paneConfigurationName.equals(
-                                    NsharpConstants.PANE_DEF_CFG_2_STR))) {
-                timeStnPaneRsc = (NsharpTimeStnPaneResource) absPaneRsc;
-                timeStnPaneRsc.setLinePropertyMap(linePropertyMap);
-                timeStnPaneRsc.setGraphConfigProperty(graphConfigProperty);
+            List<NsharpAbstractPaneResource> paneResources = disp
+                    .getDescriptor().getResourceList()
+                    .getResourcesByTypeAsType(NsharpAbstractPaneResource.class);
+            for (NsharpAbstractPaneResource absPaneRsc : paneResources) {
+                if (absPaneRsc instanceof NsharpSkewTPaneResource) {
+                    skewtPaneRsc = (NsharpSkewTPaneResource) absPaneRsc;
+                    skewtPaneRsc.setLinePropertyMap(linePropertyMap);
+                    skewtPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                } else if (absPaneRsc instanceof NsharpDataPaneResource) {
+                    dataPaneRsc = (NsharpDataPaneResource) absPaneRsc;
+                    dataPaneRsc.setLinePropertyMap(linePropertyMap);
+                    dataPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                    dataPaneRsc.setPageDisplayOrderNumberArray(
+                            pageDisplayOrderNumberArray,
+                            dataPageProperty.getNumberPagePerDisplay());
+                } else if (absPaneRsc instanceof NsharpHodoPaneResource) {
+                    hodoPaneRsc = (NsharpHodoPaneResource) absPaneRsc;
+                    hodoPaneRsc.setLinePropertyMap(linePropertyMap);
+                    hodoPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                } else if (absPaneRsc instanceof NsharpWitoPaneResource
+                        && (paneConfigurationName
+                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
+                                || paneConfigurationName
+                                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
+                                || paneConfigurationName.equals(
+                                        NsharpConstants.PANE_DEF_CFG_2_STR))) {
+    
+                    witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
+                    witoPaneRsc.setLinePropertyMap(linePropertyMap);
+                    witoPaneRsc.setGraphConfigProperty(graphConfigProperty);
+    
+                } else if (absPaneRsc instanceof NsharpInsetPaneResource
+                        && (paneConfigurationName
+                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
+                                || paneConfigurationName
+                                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
+                                || paneConfigurationName.equals(
+                                        NsharpConstants.PANE_DEF_CFG_2_STR))) {
+    
+                    insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
+                    insetPaneRsc.setLinePropertyMap(linePropertyMap);
+                    insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
+    
+                } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource
+                        && paneConfigurationName
+                                .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
+                    spcGraphsPaneRsc = (NsharpSpcGraphsPaneResource) absPaneRsc;
+                    spcGraphsPaneRsc.setLinePropertyMap(linePropertyMap);
+                    spcGraphsPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                } else if (absPaneRsc instanceof NsharpAbstractPaneResource
+                        && paneConfigurationName
+                                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)) {
+                    futurePaneRsc = (NsharpAbstractPaneResource) absPaneRsc;
+                    futurePaneRsc.setLinePropertyMap(linePropertyMap);
+                    futurePaneRsc.setGraphConfigProperty(graphConfigProperty);
+                } else if (absPaneRsc instanceof NsharpTimeStnPaneResource
+                        && (paneConfigurationName
+                                .equals(NsharpConstants.PANE_SIMPLE_D2D_CFG_STR)
+                                || paneConfigurationName
+                                        .equals(NsharpConstants.PANE_LITE_D2D_CFG_STR)
+                                || paneConfigurationName
+                                        .equals(NsharpConstants.PANE_OPC_CFG_STR)
+                                || paneConfigurationName
+                                        .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
+                                || paneConfigurationName.equals(
+                                        NsharpConstants.PANE_DEF_CFG_2_STR))) {
+                    timeStnPaneRsc = (NsharpTimeStnPaneResource) absPaneRsc;
+                    timeStnPaneRsc.setLinePropertyMap(linePropertyMap);
+                    timeStnPaneRsc.setGraphConfigProperty(graphConfigProperty);
+                }
             }
         }
         this.displayArray = displayArray;

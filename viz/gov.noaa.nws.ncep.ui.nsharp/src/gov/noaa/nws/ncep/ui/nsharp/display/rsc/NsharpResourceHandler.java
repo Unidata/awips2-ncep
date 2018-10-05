@@ -24,6 +24,7 @@
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * 12/12/2017   17377       wkwock      Auto load new-arrivals.
  * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
+ * 10/05/2018   7480        bsteffen    Handle remove from d2d.
  * 
  * </pre>
  * 
@@ -1415,6 +1416,44 @@ public class NsharpResourceHandler {
 
     }
 
+    /**
+     * Delete method for d2d. This is necessary because d2d is not aware of the
+     * element descriptions that are used in the other delete method, so this
+     * can determine element descriptions based off the information available in
+     * d2d.
+     * 
+     * @param deletingDisplayInfo
+     *            the display infos of the stations to delete
+     * @param soundingType
+     *            the sounding type of the stations to delete.
+     * @return true if the current sounding was deleted.
+     */
+    public boolean deleteRsc(List<String> deletingDisplayInfo,
+            String soundingType) {
+        List<String> deletingDataTimeList = new ArrayList<>(
+                deletingDisplayInfo.size());
+        for (List<List<NsharpSoundingElementStateProperty>> tlListList : stnTimeSndTable) {
+            for (List<NsharpSoundingElementStateProperty> sndtyList : tlListList) {
+                for (NsharpSoundingElementStateProperty elem : sndtyList) {
+                    NsharpStationInfo stationInfo = elem.getStnInfo();
+                    if (soundingType.equals(stationInfo.getSndType())) {
+                        String displayInfo = stationInfo.getStnDisplayInfo();
+                        if (deletingDisplayInfo.contains(displayInfo)) {
+                            deletingDataTimeList
+                                    .add(elem.getElementDescription());
+                        }
+                    }
+                }
+            }
+        }
+        if (!deletingDataTimeList.isEmpty()) {
+            return deleteRsc(deletingDataTimeList);
+        } else {
+            return false;
+        }
+    }
+
+    
     public boolean deleteRsc(List<String> deletingDataTimeList) {
         boolean curSndDeleted = false;
         for (String dataTmLine : deletingDataTimeList) {
@@ -1823,8 +1862,6 @@ public class NsharpResourceHandler {
             // Set default parcel trace data
             currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
             currentParcelLayerPressure = NsharpLibSndglib.MU_LAYER_PRESS;
-            setCurrentSoundingLayerInfo();
-            resetData();
         } else {
             // Not display new data. Reset current "parameter"s after adding
             // data to map/lists
@@ -1836,6 +1873,8 @@ public class NsharpResourceHandler {
                     .get(currentTimeElementListIndex)
                     .get(currentSndElementListIndex);
         }
+        setCurrentSoundingLayerInfo();
+        resetData();
 
         // set total time line group and stn id list page number
         calculateTimeStnBoxData();

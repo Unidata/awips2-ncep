@@ -27,6 +27,7 @@ import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.DendriticZone;
  * 09/1/2017   RM#34794    Chin Chen   NSHARP - Updates for March 2017 bigSharp version
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
+ * 10/05/2018   7480        bsteffen    Handle undefined parcel better.
  *
  * </pre>
  * 
@@ -572,6 +573,10 @@ public class NsharpLibSkparams {
                     float muTemp = NsharpLibBasics.i_temp(sndLys, muPrese);
                     float muDew = NsharpLibBasics.i_dwpt(sndLys, muPrese);
                     Parcel pcl = parcel(sndLys, -1, -1, muPrese, muTemp, muDew);
+                    if(pcl == null){
+                        lplvals.setParcelFlag(parcelFlag);
+                        return lplvals;
+                    }
                     float mucape = pcl.getBplus();
                     float mucin = pcl.getBminus();
                     if (mucape >= 100 && mucin > -250) {
@@ -2546,7 +2551,7 @@ public class NsharpLibSkparams {
         Parcel parcel = parcel(sndLys, -1.0F, -1.0F, sfcpres, sfctemp + 25.0f,
                 sfcdwpt);
 
-        if ((parcel.getBplus() == 0.0f) || (parcel.getBminus() < mincinh)) {
+        if (parcel == null || parcel.getBplus() == 0.0f || parcel.getBminus() < mincinh) {
             return NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         }
 

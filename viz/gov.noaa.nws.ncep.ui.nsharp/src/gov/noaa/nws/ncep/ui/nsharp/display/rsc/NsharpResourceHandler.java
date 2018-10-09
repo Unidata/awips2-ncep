@@ -8,24 +8,23 @@
  * <pre>
  * SOFTWARE HISTORY
  * 
- * Date         Ticket#     Engineer    Description
- * -------      -------     --------    -----------
- * 04/30/2012   229         Chin Chen   Initial coding
- * 01/13/2014               Chin Chen   TTR829- when interpolation, edit graph is allowed
- * 02/03/2014   1106        Chin Chen   Need to be able to use clicking on the Src,Time, or StnId to select display 
- * 08/12/2014               Chin Chen   fixed issue that "load archive file with wrong time line displayed"
- * 12/04/2014   DR16888     Chin Chen   fixed issue that "Comp(Src) button not functioning properly in NSHARP display"
- * 01/27/2015   DR#17006,
- *              Task#5929   Chin Chen   NSHARP freezes when loading a sounding from MDCRS products 
- *                                      in Volume Browser
- * 02/03/2015   DR#17079    Chin Chen   Soundings listed out of order if frames go into new month
- * 02/05/2015   DR16888     CHin Chen   merge 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
- * 08/10/2015   RM#9396     Chin Chen   implement new OPC pane configuration 
- * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
- * 12/12/2017   17377       wkwock      Auto load new-arrivals.
+ * Date        Ticket#   Engineer   Description
+ * -------     --------  --------   -----------
+ * 04/30/2012  229       Chin Chen  Initial coding
+ * 01/13/2014            Chin Chen  TTR829- when interpolation, edit graph is allowed
+ * 02/03/2014  1106      Chin Chen  Need to be able to use clicking on the Src,Time, or StnId to select display
+ * 08/12/2014            Chin Chen  fixed issue that "load archive file with wrong time line displayed"
+ * 12/04/2014  DR16888   Chin Chen  fixed issue that "Comp(Src) button not functioning properly in NSHARP display"
+ * 01/27/2015  DR#17006,
+ *             Task#5929 Chin Chen  NSHARP freezes when loading a sounding from MDCRS products
+ *                                  in Volume Browser
+ * 02/03/2015  DR#17079  Chin Chen  Soundings listed out of order if frames go into new month
+ * 02/05/2015  DR16888   CHin Chen  merge 12/11/2014 fixes at version 14.2.2 and check in again to 14.3.1
+ * 08/10/2015  RM#9396   Chin Chen  implement new OPC pane configuration
+ * 07/05/2016  RM#15923  Chin Chen  NSHARP - Native Code replacement
+ * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
  * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
  * 10/05/2018   7480        bsteffen    Handle remove from d2d.
- * 
  * </pre>
  * 
  * @author Chin Chen
@@ -233,21 +232,21 @@ public class NsharpResourceHandler {
     // stnId/this time line/this sndType, then
     // the element allocated.
     //
-    // stn3-> T1--->T2--->T3->...
-    // ^
-    // /
-    // stn2-> T1--->T2--->T3->...
-    // ^
-    // /
+    //        stn3-> T1--->T2--->T3->...
+    //        ^
+    //       /
+    //      stn2-> T1--->T2--->T3->...
+    //      ^
+    //     /
     // stn1-> T1--->T2--->T3->...
-    // | | |
-    // V V V
-    // snd1 snd1 snd1
-    // | | |
-    // V V V
-    // snd2 snd2 snd2
-    // | | |
-    // V V V
+    //         |    |    |
+    //         V    V    V
+    //      snd1 snd1 snd1
+    //         |    |    |
+    //         V    V    V
+    //      snd2 snd2 snd2
+    //         |    |    |
+    //         V    V    V
     // stnTimeSndTable first dimension (station id) should be in sync with
     // stnElementList,
     // 2nd dimension (time line) should be in sync with timeElementList, and
@@ -635,7 +634,7 @@ public class NsharpResourceHandler {
                                         double distance = gc
                                                 .getOrthodromicDistance();
                                         // GeodeticCalculator return value in
-                                        // meter. convert it to mile
+                                        // meter. Convert it to mile.
                                         if (distance
                                                 / 1609.344 <= sndCompRadius) {
                                             CompSndSelectedElem selectedElem = new CompSndSelectedElem(
@@ -905,7 +904,6 @@ public class NsharpResourceHandler {
     }
 
     public synchronized void resetData() {
-
         if (skewtPaneRsc != null)
             skewtPaneRsc.resetData(soundingLys, previousSoundingLys);
         if (hodoPaneRsc != null)
@@ -972,7 +970,7 @@ public class NsharpResourceHandler {
             String o1Desc = o1.getElementDescription();
             StringTokenizer st1 = new StringTokenizer(o1Desc);
             int tkCount1 = st1.countTokens();
-            ;
+
             if (tkCount1 >= 1) {
                 s1tok1 = st1.nextToken();
             } else {
@@ -1086,18 +1084,10 @@ public class NsharpResourceHandler {
         // based on these 3 indexes, we have 8 cases to handle.
         if (tmIndex >= 0 && stnIndex >= 0 && sndTpyeIndex >= 0) {
             // CASE1: All 3 index are good (>=0)
-            NsharpSoundingElementStateProperty tmpNewSndPropElem = stnTimeSndTable
-                    .get(stnIndex).get(tmIndex).get(sndTpyeIndex);
-
-            if (tmpNewSndPropElem != null) {
-                if (sndLyLst.size() > tmpNewSndPropElem.getSndLyLst().size()) {
-                    tmpNewSndPropElem.getSndLyLst().clear();
-                    tmpNewSndPropElem.getSndLyLst().addAll(sndLyLst);
-                    tmpNewSndPropElem.setGoodData(checkDataIntegrity(sndLyLst));
-                    setCurrentSoundingLayerInfo();
-                } else {
-                    return;
-                }
+            if (stnTimeSndTable.get(stnIndex).get(tmIndex)
+                    .get(sndTpyeIndex) != null) {
+                // this sounding element is already loaded
+                return;
             } else {
                 // replace previously added "null" object with real
                 // NsharpSoundingElementStateProperty object
@@ -1908,11 +1898,7 @@ public class NsharpResourceHandler {
         if (win != null)
             currentGraphMode = win.getCurrentGraphMode();
 
-        if (getCurrentIndex() > 0 && getSoundingLys() != null) {
-            setCurrentIndex(0);
-        } else {
-            refreshPane();
-        }
+        refreshPane();
 
     }
 
@@ -3657,7 +3643,7 @@ public class NsharpResourceHandler {
         if (dataPaneRsc != null)
             dataPaneRsc.setSoundingLys(soundingLys);
 
-        if (spcGraphsPaneRsc != null && (goodData)) {
+        if (spcGraphsPaneRsc != null && (goodData)) {// #5929
             // Chin: SPC graphs performance concern, as it need to call get
             // info functions from bigSharo.so and cause long delay.
             // Therefore, do it once only when reset data.

@@ -195,6 +195,8 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
  * 09/17/2018    R54493     E. Debebe       Added the new 'NcgridLoaderTask.java' inner class to implement
  *                                          a Job Pool.
  * Sep 26, 2018  54483      mapeters        Handle exceptions thrown by new GEMPAK processing framework
+ * 10/09/2018    54494      E. Debebe       Created new 'processData()' method containing logic that was 
+ *                                          previously in 'NcgridLoaderTask.run()'.
  * </pre>
  *
  * @author mli
@@ -314,112 +316,17 @@ public class NcgridResource
         @Override
         public void run() {
 
-            logger.info("Executing NcgridLoaderTask.run() method for Thread: "
+            logger.debug("Inside NcgridLoaderTask.run() method in Thread: "
                     + Thread.currentThread().getName());
 
             TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
 
-            boolean isFirst = true;
-
-            long t1 = System.currentTimeMillis();
-            if (ncgribLogger.enableRscLogs()) {
-                logger.debug("==from init to run loadNcgridData took: "
-                        + (t1 - initTime));
-            }
-
-            // For each frame
-            for (AbstractFrameData fd : frameDataMap.values()) {
-                FrameData frameData = (FrameData) fd;
-
-                // Search each DataTime obj for one whose date matches the frame
-                if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
-                    this.processDateTimeWithBinning(frameData);
-                } else {
-                    this.processDateTime(frameData);
-                }
-
-                processNewRscDataList();
-
-                if (isFirst) {
-                    isFirst = false;
-                    int cnt = 0;
-                    while (!frameData.isPaintAble()) {
-                        try {
-                            Thread.sleep(5);
-                            if (cnt > 20) {
-                                break;
-                            }
-                            cnt++;
-                        } catch (InterruptedException e) {
-                            statusHandler.error(
-                                    "NcgridResource.NcgridLoaderTask.run()"
-                                            + " InterruptedException on thread",
-                                    e);
-                        }
-                    }
-                }
-
-                issueRefresh();
+            if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
+                processNewRscDataListWithBinning();
+            } else {
+                NcgridResource.super.processNewRscDataList();
             }
         }
-
-        private void processDateTime(FrameData frameData) {
-
-            for (DataTime dt : dataTimesForDgdriv) {
-
-                IRscDataObject[] dataObject = processRecord(dt);
-                if (frameData.isRscDataObjInFrame(dataObject[0])) {
-                    newRscDataObjsQueue.add(dataObject[0]);
-                    break;
-                }
-            }
-        }
-
-        private void processDateTimeWithBinning(FrameData frameData) {
-
-            int closestMatch = 0;
-            IRscDataObject lastDataObj = null;
-            boolean frameMatched = false;
-
-            // Scroll each available date for a date that matches the frame
-            for (DataTime dt : dataTimesForDgdriv) {
-
-                // Get the data associated with that date
-                IRscDataObject[] dataObject = processRecord(dt);
-
-                // If the date is in the range of the current frame
-                if (frameData.isRscDataObjInFrame(dataObject[0])) {
-
-                    closestMatch = frameData.closestToFrame(dataObject[0],
-                            lastDataObj);
-
-                    // Add the data for that date to a list of data objects
-                    if (closestMatch == 1) {
-                        newRscDataObjsQueue.add(dataObject[0]);
-                    } else if (closestMatch == 2) {
-                        newRscDataObjsQueue.add(lastDataObj);
-                    } else if (closestMatch == 0) {
-                        newRscDataObjsQueue.add(lastDataObj);
-                    }
-
-                    frameMatched = true;
-                    break;
-                }
-                lastDataObj = dataObject[0];
-
-            }
-
-            if (!frameMatched && lastDataObj != null) {
-                newRscDataObjsQueue.add(lastDataObj);
-            }
-
-            // Add the date based grid data to the frame it was matched to
-            if (!newRscDataObjsQueue.isEmpty()) {
-                addRscDataToFrame(frameData, newRscDataObjsQueue.poll());
-                frameData.setPopulated(true);
-            }
-
-        }// end method
     }
 
     /** TODO: Implement this Job as a Runnable task to be executed by the class below:
@@ -1594,18 +1501,117 @@ public class NcgridResource
                                 + (t1 - t0));
             }
 
-            //Cancel the task if it's not null before starting a new one
-            if (ncgridLoaderTask != null) {
-                ncgridLoaderPool.cancel(ncgridLoaderTask);
-            }
-
-            //Schedule the task for execution
-            ncgridLoaderTask = new NcgridLoaderTask();
-            ncgridLoaderPool.schedule(ncgridLoaderTask);
+            processData();
 
             t1 = System.currentTimeMillis();
             logger.debug("\t\t NcgridResource.initResource took: " + (t1 - t0));
         }
+    }
+
+    public void processData() {
+
+        TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
+
+        long t1 = System.currentTimeMillis();
+        if (ncgribLogger.enableRscLogs()) {
+            logger.debug("==from init to run loadNcgridData took: "
+                    + (t1 - initTime));
+        }
+
+        boolean isFirst = true;
+
+        // For each frame
+        for (AbstractFrameData fd : frameDataMap.values()) {
+            FrameData frameData = (FrameData) fd;
+
+            // Search each DataTime obj for one whose date matches the frame
+            if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
+                this.processDateTimeWithBinning(frameData);
+            } else {
+                this.processDateTime(frameData);
+            }
+
+            processNewRscDataList();
+
+            if (isFirst) {
+                isFirst = false;
+                int cnt = 0;
+                while (!frameData.isPaintAble()) {
+                    try {
+                        Thread.sleep(5);
+                        if (cnt > 20) {
+                            break;
+                        }
+                        cnt++;
+                    } catch (InterruptedException e) {
+                        statusHandler.error(
+                                "NcgridResource.processData()"
+                                        + " InterruptedException on thread",
+                                e);
+                    }
+                }
+            }
+
+            issueRefresh();
+        }
+    }
+
+    private void processDateTime(FrameData frameData) {
+
+        for (DataTime dt : dataTimesForDgdriv) {
+
+            IRscDataObject[] dataObject = processRecord(dt);
+            if (frameData.isRscDataObjInFrame(dataObject[0])) {
+                newRscDataObjsQueue.add(dataObject[0]);
+                break;
+            }
+        }
+    }
+
+    private void processDateTimeWithBinning(FrameData frameData) {
+
+        int closestMatch = 0;
+        IRscDataObject lastDataObj = null;
+        boolean frameMatched = false;
+
+        // Scroll each available date for a date that matches the frame
+        for (DataTime dt : dataTimesForDgdriv) {
+
+            // Get the data associated with that date
+            IRscDataObject[] dataObject = processRecord(dt);
+
+            // If the date is in the range of the current frame
+            if (frameData.isRscDataObjInFrame(dataObject[0])) {
+
+                closestMatch = frameData.closestToFrame(dataObject[0],
+                        lastDataObj);
+
+                // Add the data for that date to a list of data objects
+                if (closestMatch == 1) {
+                    newRscDataObjsQueue.add(dataObject[0]);
+                } else if (closestMatch == 2) {
+                    newRscDataObjsQueue.add(lastDataObj);
+                } else if (closestMatch == 0) {
+                    newRscDataObjsQueue.add(lastDataObj);
+                }
+
+                frameMatched = true;
+                break;
+            }
+            lastDataObj = dataObject[0];
+
+        }
+
+        if (!frameMatched && lastDataObj != null) {
+            newRscDataObjsQueue.add(lastDataObj);
+        }
+
+        // Add the date based grid data to the frame it was matched to
+        if (!newRscDataObjsQueue.isEmpty()) {
+            addRscDataToFrame(frameData, newRscDataObjsQueue.poll());
+            frameData.setPopulated(true);
+        }
+
     }
 
     @Override
@@ -2562,16 +2568,12 @@ public class NcgridResource
 
     @Override
     protected synchronized boolean processNewRscDataList() {
-        TimeMatchMethod timeMatchMethod = resourceData.getTimeMatchMethod();
 
-        if (timeMatchMethod == TimeMatchMethod.BINNING_FOR_GRID_RESOURCES) {
-            this.processNewRscDataListWithBinning();
-        } else {
-            super.processNewRscDataList();
-        }
+        //Schedule the task for execution
+        ncgridLoaderTask = new NcgridLoaderTask();
+        ncgridLoaderPool.schedule(ncgridLoaderTask);
 
         return true;
-
     }
 
     protected synchronized boolean processNewRscDataListWithBinning() {

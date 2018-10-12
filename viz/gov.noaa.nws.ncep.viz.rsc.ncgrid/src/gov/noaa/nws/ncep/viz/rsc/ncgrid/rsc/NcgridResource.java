@@ -54,6 +54,14 @@ import com.raytheon.uf.viz.core.jobs.JobPool;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.uf.viz.core.rsc.DisplayType;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
+import com.raytheon.uf.viz.gempak.cave.GempakProcessingManager;
+import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
+import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.ncep.grid.FloatGridData;
+import com.raytheon.uf.viz.ncep.grid.NcgribLogger;
+import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
+import com.raytheon.uf.viz.ncep.grid.util.GridDBConstants;
 
 import gov.noaa.nws.ncep.common.dataplugin.ncgrib.request.StoreGridRequest;
 import gov.noaa.nws.ncep.gempak.parameters.colors.COLORS;
@@ -68,13 +76,11 @@ import gov.noaa.nws.ncep.viz.common.preferences.GraphicsAreaPreferences;
 import gov.noaa.nws.ncep.viz.common.ui.HILORelativeMinAndMaxLocator;
 import gov.noaa.nws.ncep.viz.common.ui.ModelListInfo;
 import gov.noaa.nws.ncep.viz.common.ui.color.GempakColor;
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
+import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.util.GempakGrid;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsRequestableResourceData.TimeMatchMethod;
 import gov.noaa.nws.ncep.viz.resources.AbstractNatlCntrsResource;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.FloatGridData;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLogger;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.NcgribLoggerPreferences;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.actions.SaveGridInput;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.ContourAttributes;
@@ -84,12 +90,6 @@ import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointMarkerDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridPointValueDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GridRelativeHiLoDisplay;
 import gov.noaa.nws.ncep.viz.rsc.ncgrid.contours.GriddedVectorDisplay;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.GridDBConstants;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.dgdriv.NcgridDataCache;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataInput;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakDataRecord;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.GempakProcessingManager;
-import gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak.exception.GempakException;
 import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 
 /**
@@ -204,14 +204,16 @@ import gov.noaa.nws.ncep.viz.ui.display.NCMapDescriptor;
 public class NcgridResource
         extends AbstractNatlCntrsResource<NcgridResourceData, NCMapDescriptor> {
 
-    //Get the config object
-    private static NcgridResourceConfig config = NcgridResourceManager.getInstance().getConfig();
+    // Get the config object
+    private static NcgridResourceConfig config = NcgridResourceManager
+            .getInstance().getConfig();
 
-    //Get size of JobPool
+    // Get size of JobPool
     private static int numEclipseJobs = config.getNumEclipseJobs();
 
-    //Instantiate the JobPool
-    private static final JobPool ncgridLoaderPool = new JobPool("Ncgrid Loading...", numEclipseJobs, false);
+    // Instantiate the JobPool
+    private static final JobPool ncgridLoaderPool = new JobPool(
+            "Ncgrid Loading...", numEclipseJobs, false);
 
     private NcgridLoaderTask ncgridLoaderTask = null;
 
@@ -329,8 +331,9 @@ public class NcgridResource
         }
     }
 
-    /** TODO: Implement this Job as a Runnable task to be executed by the class below:
-     *  'com.raytheon.uf.viz.core.jobs.JobPool.java'
+    /**
+     * TODO: Implement this Job as a Runnable task to be executed by the class
+     * below: 'com.raytheon.uf.viz.core.jobs.JobPool.java'
      */
     protected class NcgridAttrModifiedJob extends Job {
 
@@ -1473,8 +1476,8 @@ public class NcgridResource
             frameData.dispose();
         }
         frameDataMap.clear();
-        
-        //Cancel the task
+
+        // Cancel the task
         if (ncgridLoaderTask != null) {
             ncgridLoaderPool.cancel(ncgridLoaderTask);
         }

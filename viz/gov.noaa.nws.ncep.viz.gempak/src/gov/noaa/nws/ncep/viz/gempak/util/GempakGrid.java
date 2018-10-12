@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.gempak.util;
 
-import gov.noaa.nws.ncep.viz.common.util.CommonDateFormatUtil;
 import gov.noaa.nws.ncep.viz.gempak.grid.jna.GridDiag;
 
 import javax.measure.converter.UnitConverter;

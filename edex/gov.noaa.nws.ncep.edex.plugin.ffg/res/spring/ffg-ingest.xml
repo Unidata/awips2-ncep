@@ -18,19 +18,7 @@
     <camelContext id="ffg-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-        <!--
-	    <endpoint id="ffgFileEndpoint" uri="file:${edex.home}/data/sbn/ffg?noop=true&amp;idempotent=false"/>
-        
-        <route id="ffgFileConsumerRoute">
-            <from ref="ffgFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>ffg</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.ffg"/>
-        </route>
-        -->
-        
+
         <!-- Begin Ffg routes -->
         <route id="ffgIngestRoute">
             <from uri="jms-durable:queue:Ingest.ffg"/>

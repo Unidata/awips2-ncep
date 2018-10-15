@@ -19,19 +19,7 @@
     <camelContext id="airmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-        <!--
-	    <endpoint id="airmetFileEndpoint" uri="file:${edex.home}/data/sbn/airmet?noop=true&amp;idempotent=false"/>
-        
-        <route id="airmetFileConsumerRoute">
-            <from ref="airmetFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>airmet</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.airmet"/>
-        </route>
-        -->
-        
+
         <!-- Begin Airmet routes -->
         <route id="airmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.airmet"/>

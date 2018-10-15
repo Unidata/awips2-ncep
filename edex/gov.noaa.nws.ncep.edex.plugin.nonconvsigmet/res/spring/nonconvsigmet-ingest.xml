@@ -20,19 +20,7 @@
     <camelContext id="nonconvsigmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-        <!--
-        <endpoint id="nonconvsigmetFileEndpoint" uri="file:${edex.home}/data/sbn/nonconvsigmet?noop=true&amp;idempotent=false"/>
-        
-        <route id="nonconvsigmetFileConsumerRoute">
-            <from ref="nonconvsigmetFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>nonconvsigmet</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.nonconvsigmet"/>
-        </route>
-        -->
-        
+
         <!-- Begin NonConvSigmet routes -->
         <route id="nonconvsigmetIngestRoute">
             <from uri="jms-durable:queue:Ingest.nonconvsigmet"/>

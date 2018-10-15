@@ -19,18 +19,6 @@
     <camelContext id="intlsigmet-camel" 
                   xmlns="http://camel.apache.org/schema/spring" 
                   errorHandlerRef="errorHandler">
-        <!--
-        <endpoint id="intlsigmetFileEndpoint" uri="file:${edex.home}/data/sbn/intlsigmet?noop=true&amp;idempotent=false"/>
-        
-        <route id="intlsigmetFileConsumerRoute">
-            <from ref="intlsigmetFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>intlsigmet</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.intlsigmet"/>
-        </route>
-        -->
         
         <!-- Begin IntlSigmet routes -->
         <route id="intlsigmetIngestRoute">

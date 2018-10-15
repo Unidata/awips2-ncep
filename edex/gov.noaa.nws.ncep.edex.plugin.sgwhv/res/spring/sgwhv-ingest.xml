@@ -25,17 +25,6 @@
 	<camelContext id="sgwhv-camel" 
 	              xmlns="http://camel.apache.org/schema/spring" 
 	              errorHandlerRef="errorHandler">
-		<endpoint id="sgwhvFileEndpoint" uri="file:${edex.home}/data/sbn/sgwhv?noop=true&amp;idempotent=false" />
-
-		<!-- Begin sgwhv routes -->
-		<route id="sgwhvFileConsumerRoute">
-			<from ref="sgwhvFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>sgwhv</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.sgwhv"/>
-		</route>
 
 		<route id="sgwhvIngestRoute">
 			<from uri="jms-durable:queue:Ingest.sgwhv"/>

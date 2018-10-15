@@ -21,21 +21,7 @@
     
     <camelContext id="pirep-camel" xmlns="http://camel.apache.org/schema/spring" 
         errorHandlerRef="errorHandler">
-        <!-- Allow use of sbn -->
-        <!--
-	    <endpoint id="pirepFileEndpoint" uri="file:${edex.home}/data/sbn/pirep?noop=true&amp;idempotent=false"/>
-        
-        <route id="pirepFileConsumerRoute">
-            <from ref="pirepFileEndpoint"/>
-            <bean ref="fileToString" />
-            <setHeader headerName="pluginName">
-                <constant>pirep</constant>
-            </setHeader>
-            <to uri="jms-generic:queue:Ingest.pirep"/>
-        </route>
-        -->
-        <!-- End of section to allow use of sbn -->
-        
+
         <!-- Begin pirep routes -->
         <route id="pirepIngestRoute">
             <from uri="jms-durable:queue:Ingest.pirep"/>

@@ -23,18 +23,6 @@
 	<camelContext id="ncscat-camel"
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
-		<endpoint id="ncscatFileEndpoint" uri="file:${edex.home}/data/sbn/ncscat??noop=true&amp;idempotent=false" />
-
-		<!-- Begin Ncscat routes -->
-		<route id="ncscatFileConsumerRoute">
-			<from ref="ncscatFileEndpoint" />
-			<bean ref="fileToString" />
-			<setHeader headerName="pluginName">
-				<constant>ncscat</constant>
-			</setHeader>
-			<to uri="jms-durable:queue:Ingest.Ncscat" />
-		</route>
-
 
 		<route id="ncscatIngestRoute">
 			<from uri="jms-durable:queue:Ingest.Ncscat" />

@@ -22,6 +22,7 @@
  * 04/05/2016   RM#10435    rjpeter     Removed Inventory usage.
  * 07/05/2016   RM#15923    Chin Chen   NSHARP - Native Code replacement
  * 08/21/2018   #7081       dgilling    Support refactored NsharpEditDataDialog.
+ * 10/16/2018   6835        bsteffen    Refactor printing.
  *
  * </pre>
  *
@@ -71,6 +72,7 @@ import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
 import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
 import gov.noaa.nws.ncep.ui.nsharp.display.rsc.NsharpResourceHandler;
+import gov.noaa.nws.ncep.ui.nsharp.print.NsharpPrintHandle;
 import gov.noaa.nws.ncep.viz.common.ui.NmapCommon;
 import gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor;
 
@@ -127,8 +129,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
 
     private IWorkbenchPage page;
 
-    private final NsharpPrintHandle printHandle;
-
     private Font newFont;
 
     private boolean isEditorVisible = true;
@@ -164,6 +164,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                     .equals(NmapCommon.NatlCntrsPerspectiveID)) {
                 return ncpInstance;
             }
+
         }
         return instance;
     }
@@ -432,7 +433,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 ncpInstance = this;
             }
         }
-        printHandle = NsharpPrintHandle.getPrintHandle();
         shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
         mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
@@ -1141,7 +1141,6 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
                 }
             }
         });
-
         graphEditBtn = new Button(textModeGp, SWT.PUSH);
         graphEditBtn.setFont(newFont);
         graphEditBtn.setEnabled(true);
@@ -1226,9 +1225,7 @@ public class NsharpPaletteWindow extends ViewPart implements SelectionListener,
             public void handleEvent(Event event) {
                 shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                         .getShell();
-                if (true) {
-                    printHandle.handlePrint("");
-                }
+                new NsharpPrintHandle().handlePrint(shell);
             }
         });
 

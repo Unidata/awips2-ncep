@@ -23,9 +23,11 @@
  * 08/10/2015  RM#9396   Chin Chen  implement new OPC pane configuration
  * 07/05/2016  RM#15923  Chin Chen  NSHARP - Native Code replacement
  * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
- * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
- * 10/05/2018   7480        bsteffen    Handle remove from d2d.
- * 10/16/2018   6835        bsteffen    Extract printing logic.
+ * 10/02/2018  7475      bsteffen   Fix casting error when D2D resources are present.
+ * 10/05/2018  7480      bsteffen   Handle remove from d2d.
+ * 10/16/2018  6835      bsteffen   Extract printing logic.
+ * 10/18/2018  7476      bsteffen   Do not reset parcel when data changes.
+ *
  * </pre>
  * 
  * @author Chin Chen
@@ -923,14 +925,7 @@ public class NsharpResourceHandler {
             goodData = getCurSoundingElementStateProperty().isGoodData();
         }
         if (soundingLys != null && (goodData)) {
-
-            // reset parcel
-            currentParcel = NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE;
-            currentParcelLayerPressure = NsharpLibSndglib.MU_LAYER_PRESS;
-            // reset parcel dialog as well
-            if (NsharpParcelDialog.getAccess() != null) {
-                NsharpParcelDialog.getAccess().resetUserDefParcel();
-            }
+            
             weatherDataStore.computeWeatherParameters(soundingLys,
                     paneConfigurationName);
         }

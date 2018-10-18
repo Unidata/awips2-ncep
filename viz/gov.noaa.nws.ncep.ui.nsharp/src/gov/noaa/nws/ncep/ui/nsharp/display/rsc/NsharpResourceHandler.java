@@ -25,35 +25,12 @@
  * 09/05/2018  DCS20492  a.rivera   Resolve merge conflicts resulting from reverting 18.1.1 DCS 17377.
  * 10/02/2018   7475        bsteffen    Fix casting error when D2D resources are present.
  * 10/05/2018   7480        bsteffen    Handle remove from d2d.
+ * 10/16/2018   6835        bsteffen    Extract printing logic.
  * </pre>
  * 
  * @author Chin Chen
  */
 package gov.noaa.nws.ncep.ui.nsharp.display.rsc;
-
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibThermo;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.LayerParameters;
-import gov.noaa.nws.ncep.edex.common.nsharpLib.struct.Parcel;
-import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpDataPageProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
-import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
-import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
-import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
-import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
-import gov.noaa.nws.ncep.ui.nsharp.view.NsharpShowTextDialog;
 
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
@@ -72,7 +49,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.datum.DefaultEllipsoid;
@@ -87,11 +63,28 @@ import com.raytheon.uf.viz.core.drawables.IDescriptor.FramesInfo;
 import com.raytheon.uf.viz.core.drawables.IFrameCoordinator;
 import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.IWireframeShape;
-import com.raytheon.uf.viz.core.drawables.ResourcePair;
-import com.raytheon.uf.viz.core.exception.VizException;
-import com.raytheon.viz.core.graphing.LineStroke;
-import com.raytheon.viz.core.graphing.WindBarbFactory;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibBasics;
+import gov.noaa.nws.ncep.edex.common.nsharpLib.NsharpLibSndglib;
+import gov.noaa.nws.ncep.edex.common.sounding.NcSoundingLayer;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigManager;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConfigStore;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpConstants;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpDataPageProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpGraphProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpLineProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpOperationElement;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpSoundingElementStateProperty;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpStationInfo;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWGraphics;
+import gov.noaa.nws.ncep.ui.nsharp.NsharpWxMath;
+import gov.noaa.nws.ncep.ui.nsharp.display.NsharpEditor;
+import gov.noaa.nws.ncep.ui.nsharp.display.map.NsharpMapResource;
+import gov.noaa.nws.ncep.ui.nsharp.natives.NsharpDataHandling;
+import gov.noaa.nws.ncep.ui.nsharp.view.NsharpPaletteWindow;
+import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
+import gov.noaa.nws.ncep.ui.nsharp.view.NsharpShowTextDialog;
 
 public class NsharpResourceHandler {
     private static final transient IUFStatusHandler statusHandler = UFStatus
@@ -193,7 +186,7 @@ public class NsharpResourceHandler {
 
     public static final float INVALID_DATA = NcSoundingLayer.MISSING;;
 
-    protected static final double BARB_LENGTH = 3.5;
+    public static final double BARB_LENGTH = 3.5;
 
     private String soundingType = null;
 
@@ -1443,7 +1436,6 @@ public class NsharpResourceHandler {
         }
     }
 
-    
     public boolean deleteRsc(List<String> deletingDataTimeList) {
         boolean curSndDeleted = false;
         for (String dataTmLine : deletingDataTimeList) {
@@ -2974,11 +2966,11 @@ public class NsharpResourceHandler {
                                         .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
                                 || paneConfigurationName.equals(
                                         NsharpConstants.PANE_DEF_CFG_2_STR))) {
-    
+
                     witoPaneRsc = (NsharpWitoPaneResource) absPaneRsc;
                     witoPaneRsc.setLinePropertyMap(linePropertyMap);
                     witoPaneRsc.setGraphConfigProperty(graphConfigProperty);
-    
+
                 } else if (absPaneRsc instanceof NsharpInsetPaneResource
                         && (paneConfigurationName
                                 .equals(NsharpConstants.PANE_SPCWS_CFG_STR)
@@ -2986,11 +2978,11 @@ public class NsharpResourceHandler {
                                         .equals(NsharpConstants.PANE_DEF_CFG_1_STR)
                                 || paneConfigurationName.equals(
                                         NsharpConstants.PANE_DEF_CFG_2_STR))) {
-    
+
                     insetPaneRsc = (NsharpInsetPaneResource) absPaneRsc;
                     insetPaneRsc.setLinePropertyMap(linePropertyMap);
                     insetPaneRsc.setGraphConfigProperty(graphConfigProperty);
-    
+
                 } else if (absPaneRsc instanceof NsharpSpcGraphsPaneResource
                         && paneConfigurationName
                                 .equals(NsharpConstants.PANE_SPCWS_CFG_STR)) {
@@ -3098,350 +3090,6 @@ public class NsharpResourceHandler {
         if (NsharpParcelDialog.getAccess() != null) {
             NsharpParcelDialog.getAccess().reset();
         }
-    }
-
-    public void printHeightMark(NsharpWGraphics world, GC gc)
-            throws VizException {
-        // print feet scales...
-        double vyMax = world.getViewYmax();
-        double vyMin = world.getViewYmin();
-        double vxMax = world.getViewXmax();
-        for (int j = 0; j < NsharpConstants.HEIGHT_LEVEL_FEET.length; j++) {
-            float meters = (float) NsharpConstants.feetToMeters
-                    .convert(NsharpConstants.HEIGHT_LEVEL_FEET[j]);
-
-            double pressure = NsharpLibBasics.i_pres(soundingLys, meters);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, -50).y);
-
-            gc.drawString(
-                    Integer.toString(
-                            NsharpConstants.HEIGHT_LEVEL_FEET[j] / 1000),
-                    (int) vxMax + 40, (int) y, false);
-
-            gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 45, (int) y);
-        }
-        // print meter scales...
-        for (int j = 0; j < NsharpConstants.HEIGHT_LEVEL_METERS.length; j++) {
-            int meters = NsharpConstants.HEIGHT_LEVEL_METERS[j];
-
-            double pressure = NsharpLibBasics.i_pres(soundingLys, meters);
-            double y = world.mapY(NsharpWxMath.getSkewTXY(pressure, -50).y);
-
-            gc.drawString(Integer.toString(meters / 1000), (int) vxMax + 52,
-                    (int) y, false);
-
-            gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 55, (int) y);
-        }
-        // print surface level mark
-        double y = world.mapY(NsharpWxMath
-                .getSkewTXY(soundingLys.get(0).getPressure(), -50).y);
-        gc.drawString(
-                "SFC(" + Integer.toString(
-                        (int) (soundingLys.get(0).getGeoHeight())) + "m)",
-                (int) vxMax + 50, (int) y, false);
-        gc.drawLine((int) vxMax + 50, (int) y, (int) vxMax + 55, (int) y);
-        // top level mark at 100 mbar
-        y = world.mapY(NsharpWxMath.getSkewTXY(100, -50).y);
-        float hgt = NsharpLibBasics.i_hght(soundingLys, 100);
-        gc.drawString(Float.toString(hgt / 1000F), (int) vxMax + 50, (int) y,
-                false);
-        gc.drawString("Kft  Km", (int) vxMax + 35, (int) y - 8);
-        gc.drawString("MSL", (int) vxMax + 45, (int) y - 15);
-        gc.drawLine((int) vxMax + 40, (int) y, (int) vxMax + 60, (int) y);
-
-        gc.drawLine((int) vxMax + 50, (int) vyMin, (int) vxMax + 50,
-                (int) vyMax);
-
-    }
-
-    /**
-     * Prints the pressure lines number at left side out of skewT bkgd for
-     * printing job
-     * 
-     * @throws VizException
-     */
-    public void printNsharpPressureLinesNumber(NsharpWGraphics world, GC gc)
-            throws VizException {
-        String s = null;
-        double vxMax = world.getViewXmax();
-        double vxMin = world.getViewXmin();
-        for (int i = 0; i < NsharpConstants.PRESSURE_MAIN_LEVELS.length; i++) {
-            // we only care about pressure for this case, temp is no important
-            // when calling getSkewTXY
-            Coordinate coor = NsharpWxMath
-                    .getSkewTXY(NsharpConstants.PRESSURE_MAIN_LEVELS[i], 0);
-
-            gc.drawLine((int) vxMin, (int) world.mapY(coor.y), (int) vxMax,
-                    (int) world.mapY(coor.y));
-
-        }
-        for (int i = 0; i < NsharpConstants.PRESSURE_MARK_LEVELS.length; i++) {
-            // we only care about pressure for this case, temp is no important
-            // when calling getSkewTXY
-            Coordinate coor = NsharpWxMath
-                    .getSkewTXY(NsharpConstants.PRESSURE_MARK_LEVELS[i], 0);
-
-            gc.drawLine((int) vxMin, (int) world.mapY(coor.y), (int) vxMin + 10,
-                    (int) world.mapY(coor.y));
-
-        }
-        for (int i = 0; i < NsharpConstants.PRESSURE_NUMBERING_LEVELS.length; i++) {
-            s = NsharpConstants.pressFormat
-                    .format(NsharpConstants.PRESSURE_NUMBERING_LEVELS[i]);
-            // we only care about pressure for this case, temp is no important
-            // when calling getSkewTXY
-            Coordinate coor = NsharpWxMath.getSkewTXY(
-                    NsharpConstants.PRESSURE_NUMBERING_LEVELS[i], 0);
-
-            gc.drawString(s, (int) vxMin - 20, (int) world.mapY(coor.y), false);
-        }
-    }
-
-    /**
-     * Print the temp number at bottom out of skewT bkgd for printing job
-     * 
-     * @throws VizException
-     */
-    public void printNsharpTempNumber(NsharpWGraphics world, GC gc)
-            throws VizException {
-        for (int i = 40; i > -50; i -= 10) {
-            Coordinate coorStart = NsharpWxMath.getSkewTXY(1050, i);
-            double startX = world.mapX(coorStart.x);
-            double startY = world.mapY(coorStart.y);
-
-            gc.drawString(Integer.toString(i), (int) startX, (int) startY + 5,
-                    false);
-        }
-        for (int i = -60; i > -120; i -= 10) {
-            Coordinate coorEnd = NsharpWxMath.getSkewTXY(100, i);
-            double endX = world.mapX(coorEnd.x);
-            double endY = world.mapY(coorEnd.y);
-
-            gc.drawString(Integer.toString(i), (int) endX, (int) endY - 10,
-                    false);
-        }
-    }
-
-    /**
-     * 
-     * Print Wind barb for printing job This function followed algorithm in
-     * plot_barbs (void) at xwvid1.c to choose wind bulb for drawing around
-     * every 400m
-     * 
-     */
-    public void printNsharpWind(NsharpWGraphics world, GC gc)
-            throws VizException {
-        ArrayList<List<LineStroke>> windList = new ArrayList<>();
-
-        double windX = world.getViewXmax() + 6 * BARB_LENGTH;
-        float lastHeight = -999;
-        double windY;
-        for (NcSoundingLayer layer : soundingLys) {
-            float pressure = layer.getPressure();
-            float spd = layer.getWindSpeed();
-            float dir = layer.getWindDirection();
-
-            if (pressure < 100) {
-                continue;
-            }
-
-            if ((layer.getGeoHeight() - lastHeight) < 400) {
-
-                continue;
-            }
-
-            // Get the vertical ordinate.
-            windY = world.mapY(NsharpWxMath.getSkewTXY(pressure, 0).y);
-
-            List<LineStroke> barb = WindBarbFactory
-                    .getWindGraphics((double) (spd), (double) dir);
-            if (barb != null) {
-                WindBarbFactory.scaleBarb(barb, -7);
-                WindBarbFactory.translateBarb(barb, windX, windY);
-                windList.add(barb);
-            }
-
-            lastHeight = layer.getGeoHeight();
-        }
-        Coordinate pt1 = new Coordinate(0, 0), pt2;
-        for (List<LineStroke> barb : windList) {
-            for (LineStroke stroke : barb) {
-                // stroke render: rewrite stroke.render() for our printing
-                // purpose
-                if (stroke.getType() == "M") {
-                    pt1 = stroke.getPoint();
-                    // change X coordinate by mirroring x coordinate at windX
-                    // axis. AS we scaleBarb with -5 time.
-                    // It is easier to mirror at x-axis for this case.
-                    pt1.x = windX - (pt1.x - windX);
-                } else if (stroke.getType() == "D") {
-                    pt2 = stroke.getPoint();
-                    pt2.x = windX - (pt2.x - windX);
-                    gc.drawLine((int) pt1.x, (int) pt1.y, (int) pt2.x,
-                            (int) pt2.y);
-                }
-            }
-        }
-        gc.drawLine((int) windX,
-                (int) world.mapY(NsharpWxMath.getSkewTXY(100, 0).y),
-                (int) windX,
-                (int) world.mapY(NsharpWxMath.getSkewTXY(1000, 0).y));
-    }
-
-    /**
-     * 
-     * Print the wetbulb trace curve
-     * 
-     * @throws VizException
-     */
-    public void printNsharpWetbulbTraceCurve(NsharpWGraphics world, GC gc)
-            throws VizException {
-        if ((soundingLys == null) || (soundingLys.size() == 0))
-            return;
-        float t1;
-
-        Coordinate c2 = null;
-        Coordinate c1;
-        // print trace
-        for (NcSoundingLayer layer : this.soundingLys) {
-            if (layer.getDewpoint() > -200) {
-                t1 = NsharpLibThermo.wetbulb(layer.getPressure(),
-                        layer.getTemperature(), layer.getDewpoint());
-
-                c1 = NsharpWxMath.getSkewTXY(layer.getPressure(), t1);
-                c1.x = world.mapX(c1.x);
-                c1.y = world.mapY(c1.y);
-                if (c2 != null) {
-                    gc.drawLine((int) c1.x, (int) c1.y, (int) c2.x, (int) c2.y);
-                }
-                c2 = c1;
-            }
-        }
-
-    }
-
-    public void printNsharpParcelTraceCurve(NsharpWGraphics world, GC gc)
-            throws VizException {
-        if (soundingLys.size() > 0) {
-
-            Parcel parcel = weatherDataStore.getParcelMap().get(currentParcel);
-            if (parcel == null) {
-                return;
-            }
-
-            float vtemp = NsharpLibThermo.virtemp(parcel.getLplpres(),
-                    parcel.getLpltemp(), parcel.getLpldwpt());
-            Coordinate c1 = NsharpWxMath.getSkewTXY(parcel.getLplpres(), vtemp);
-            c1.x = world.mapX(c1.x);
-            c1.y = world.mapY(c1.y);
-            LayerParameters dryLiftLayer = NsharpLibThermo.drylift(
-                    parcel.getLplpres(), parcel.getLpltemp(),
-                    parcel.getLpldwpt());
-            vtemp = NsharpLibThermo.virtemp(dryLiftLayer.getPressure(),
-                    dryLiftLayer.getTemperature(),
-                    dryLiftLayer.getTemperature());
-            Coordinate c2 = NsharpWxMath.getSkewTXY(dryLiftLayer.getPressure(),
-                    vtemp);
-            c2.x = world.mapX(c2.x);
-            c2.y = world.mapY(c2.y);
-
-            gc.drawLine((int) c1.x, (int) c1.y, (int) c2.x, (int) c2.y);
-            c1 = c2;
-
-            float t3;
-            for (float i = dryLiftLayer.getPressure() - 50; i >= 100; i = i
-                    - 50) {
-                t3 = NsharpLibThermo.wetlift(dryLiftLayer.getPressure(),
-                        dryLiftLayer.getTemperature(), i);
-                vtemp = NsharpLibThermo.virtemp(i, t3, t3);
-                c2 = NsharpWxMath.getSkewTXY(i, vtemp);
-                c2.x = world.mapX(c2.x);
-                c2.y = world.mapY(c2.y);
-
-                gc.drawLine((int) c1.x, (int) c1.y, (int) c2.x, (int) c2.y);
-                c1 = c2;
-            }
-
-            t3 = NsharpLibThermo.wetlift(dryLiftLayer.getPressure(),
-                    dryLiftLayer.getTemperature(), 100);
-            vtemp = NsharpLibThermo.virtemp(100, t3, t3);
-            c2 = NsharpWxMath.getSkewTXY(100, vtemp);
-            c2.x = world.mapX(c2.x);
-            c2.y = world.mapY(c2.y);
-
-            gc.drawLine((int) c1.x, (int) c1.y, (int) c2.x, (int) c2.y);
-
-        }
-    }
-
-    /**
-     * 
-     * Print the temperature curve when during overlap or compare mode
-     * 
-     * @throws VizException
-     */
-
-    public void printNsharpPressureTempCurve(NsharpWGraphics world, int type,
-            GC gc, List<NcSoundingLayer> soundingLys) throws VizException {
-        if ((soundingLys == null) || (soundingLys.size() == 0))
-            return;
-
-        double maxPressure = NsharpWxMath
-                .reverseSkewTXY(new Coordinate(0, world.getWorldYmax())).y;
-        double minPressure = NsharpWxMath
-                .reverseSkewTXY(new Coordinate(0, world.getWorldYmin())).y;
-        Coordinate c0 = null;
-        for (NcSoundingLayer layer : soundingLys) {
-            double t;
-            if (type == TEMP_TYPE)
-                t = layer.getTemperature();
-            else if (type == DEWPOINT_TYPE)
-                t = layer.getDewpoint();
-            else
-                break;
-            double pressure = layer.getPressure();
-            if (t != INVALID_DATA && pressure >= minPressure
-                    && pressure <= maxPressure) {
-
-                Coordinate c1 = NsharpWxMath.getSkewTXY(pressure, t);
-
-                c1.x = world.mapX(c1.x);
-                c1.y = world.mapY(c1.y);
-                if (c0 != null) {
-                    gc.drawLine((int) c0.x, (int) c0.y, (int) c1.x, (int) c1.y);
-                }
-                c0 = c1;
-            }
-        }
-
-    }
-
-    /**
-     * 
-     * Print the HODO
-     * 
-     * 
-     * @throws VizException
-     */
-
-    public void printNsharpHodoWind(NsharpWGraphics world, GC gc,
-            List<NcSoundingLayer> soundingLays) throws VizException {
-        Coordinate c0 = null;
-        Coordinate c1;
-        for (NcSoundingLayer layer : soundingLays) {
-            if (layer.getPressure() < 100 || layer.getWindSpeed() < 0)
-                continue;
-            float wspd = layer.getWindSpeed();
-            float wdir = layer.getWindDirection();
-            c1 = WxMath.uvComp(wspd, wdir);
-            if (c0 != null) {
-                gc.setLineWidth(1);
-                gc.drawLine((int) world.mapX(c0.x), (int) world.mapY(c0.y),
-                        (int) world.mapX(c1.x), (int) world.mapY(c1.y));
-            }
-            c0 = c1;
-        }
-
     }
 
     public boolean isPlotInteractiveTemp() {

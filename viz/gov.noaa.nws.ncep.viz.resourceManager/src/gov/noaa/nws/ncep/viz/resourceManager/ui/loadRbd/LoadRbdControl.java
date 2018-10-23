@@ -801,30 +801,12 @@ public class LoadRbdControl extends Composite {
         new IncrementalRbdLoader(rbdLoader, seldRbdsList,
                 !no_duplicate_displays_btn.getSelection()).run();
 
-        // In the loadRBD method, before start the rbdLoader, call
-        updateImportCombo();
-
         // They aren't going to like this if there is an error loading....
         if (close) {
             shell.dispose();
         }
 
         return true;
-    }
-
-    // If the active editor is changed, we need to update the “Import” menu when
-    // an SPF is loaded.
-    private void updateImportCombo() {
-
-        if (getParent() instanceof TabFolder) {
-            TabFolder tf = (TabFolder) getParent();
-            for (TabItem ti : tf.getItems()) {
-                if (ti.getControl() instanceof CreateRbdControl) {
-                    ((CreateRbdControl) ti.getControl()).updateImportCombo();
-                    break;
-                }
-            }
-        }
     }
 
     private void editRbd() {

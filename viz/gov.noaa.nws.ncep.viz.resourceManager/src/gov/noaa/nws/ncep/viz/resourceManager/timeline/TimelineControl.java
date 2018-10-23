@@ -287,7 +287,7 @@ public class TimelineControl extends Composite {
 
         dom_rsc_combo = new Combo(top_form, SWT.DROP_DOWN | SWT.READ_ONLY);
         FormData fd = new FormData();
-        fd.width = 330;
+        fd.width = 530;
         fd.top = new FormAttachment(0, 0);
         fd.left = new FormAttachment(30, 0);
         dom_rsc_combo.setLayoutData(fd);
@@ -1369,7 +1369,7 @@ public class TimelineControl extends Composite {
         numFramesSpnr.setTextLimit(3);
 
         Label numFramesLbl = new Label(top_form, SWT.NONE);
-        numFramesLbl.setText("Num\nFrames");
+        numFramesLbl.setText("Frames");
         fd = new FormData();
         fd.bottom = new FormAttachment(numFramesSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(numFramesSpnr, 0, SWT.LEFT);
@@ -1387,7 +1387,7 @@ public class TimelineControl extends Composite {
         numSkipSpnr.setTextLimit(2);
 
         Label skipLbl = new Label(top_form, SWT.NONE);
-        skipLbl.setText("Skip\nFrames");
+        skipLbl.setText("Skip");
         fd = new FormData();
         fd.bottom = new FormAttachment(numSkipSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(numSkipSpnr, 0, SWT.LEFT);
@@ -1400,7 +1400,7 @@ public class TimelineControl extends Composite {
         timeRangeDaysSpnr.setLayoutData(fd);
 
         Label dfltTimeRangeLbl = new Label(top_form, SWT.NONE);
-        dfltTimeRangeLbl.setText("Time Range\n(Days / Hours)");
+        dfltTimeRangeLbl.setText("Days / Hours");
         fd = new FormData();
         fd.bottom = new FormAttachment(timeRangeDaysSpnr, -3, SWT.TOP);
         fd.left = new FormAttachment(timeRangeDaysSpnr, 0, SWT.LEFT);
@@ -1434,7 +1434,7 @@ public class TimelineControl extends Composite {
         frameIntervalCombo.setItems(availFrameIntervalStrings);
 
         Label frameIntLbl = new Label(top_form, SWT.NONE);
-        frameIntLbl.setText("Frame\nInterval");
+        frameIntLbl.setText("Interval");
         fd = new FormData();
         fd.bottom = new FormAttachment(frameIntervalCombo, -3, SWT.TOP);
         fd.left = new FormAttachment(frameIntervalCombo, 0, SWT.LEFT);

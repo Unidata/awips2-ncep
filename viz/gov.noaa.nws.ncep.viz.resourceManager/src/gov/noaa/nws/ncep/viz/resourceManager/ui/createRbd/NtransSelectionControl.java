@@ -117,8 +117,7 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
     protected String selectedMetafile = "";
 
-    public NtransSelectionControl(Composite parent, Boolean replaceVisible,
-            Boolean replaceEnabled, ResourceName initRscName,
+    public NtransSelectionControl(Composite parent, ResourceName initRscName,
             Boolean multiPane, NcDisplayType dispType) throws VizException {
 
         // Skip parent's constructor, but call grandparent's constructor.
@@ -131,9 +130,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         onlyShowResourcesWithData = false;
 
         rscDefnsMngr = ResourceDefnsMngr.getInstance();
-
-        replaceBtnVisible = replaceVisible;
-        replaceBtnEnabled = replaceEnabled;
 
         sel_rsc_comp = this;
 
@@ -191,18 +187,11 @@ public class NtransSelectionControl extends ResourceSelectionControl {
 
         rscTypeLbl.setLayoutData(fd);
 
-        filterCombo = new Combo(sel_rsc_comp, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fd = new FormData();
-        fd.width = 130;
-        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -30, SWT.TOP);
-        fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
-        filterCombo.setLayoutData(fd);
-
         Label filt_lbl = new Label(sel_rsc_comp, SWT.NONE);
         filt_lbl.setText("Model Filter");
         fd = new FormData();
-        fd.left = new FormAttachment(filterCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(filterCombo, -3, SWT.TOP);
+        fd.bottom = new FormAttachment(rscTypeLViewer.getList(), -30, SWT.TOP);
+        fd.left = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.LEFT);
         filt_lbl.setLayoutData(fd);
 
         // first create the lists and then attach the label to the top of them
@@ -287,37 +276,13 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
 
         fd = new FormData();
-
-        if (replaceBtnVisible) {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.right = new FormAttachment(50, -20);
-        } else {
-            fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-            fd.left = new FormAttachment(50, 20);
-        }
+        fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
+        fd.left = new FormAttachment(50, 20);
+        
 
         addResourceBtn.setLayoutData(fd);
         addResourceBtn.setText("  Add Resource ");
-
-        replaceResourceBtn = new Button(sel_rsc_comp, SWT.None);
-        fd = new FormData();
-        fd.left = new FormAttachment(50, 20);
-        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
-        replaceResourceBtn.setLayoutData(fd);
-        replaceResourceBtn.setText(" Replace Resource ");
-
-        // both for now unless we change it to be one or the other
-        replaceResourceBtn.setVisible(replaceBtnVisible);
-
-        addToAllPanesBtn = new Button(sel_rsc_comp, SWT.CHECK);
-        fd = new FormData();
-        fd.left = new FormAttachment(seldRscNameTxt, 40, SWT.RIGHT);
-        fd.top = new FormAttachment(replaceResourceBtn, 0, SWT.TOP);
-        addToAllPanesBtn.setLayoutData(fd);
-        addToAllPanesBtn.setText("Add To All Panes");
-
-        addToAllPanesBtn.setVisible(multiPane);
-
+        
         // allow the user to enter any previous Datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
@@ -695,23 +660,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
      */
     protected void addSelectionListeners() {
 
-        filterCombo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-
-                String selectedFilter = filterCombo.getText();
-
-                if ((selectedFilter != null)
-                        && (selectedFilter.equals(prevSelectedFilter))) {
-                    return;
-                }
-
-                prevSelectedFilter = selectedFilter;
-
-                updateResourceTypes();
-            }
-        });
-
         rscTypeLViewer
                 .addSelectionChangedListener(new ISelectionChangedListener() {
                     @Override
@@ -809,16 +757,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         });
 
         /*
-         * TODO: do we want replace to pop down the dialog?
-         */
-        replaceResourceBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                selectResource(true, false);
-            }
-        });
-
-        /*
          * a double click will add the resource and close the dialog
          */
         rscAttrSetLViewer.getList().addListener(SWT.MouseDoubleClick,
@@ -851,47 +789,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             selectedRscName.setRscCategory(NTRANS_RSC_CATEGORY);
         }
 
-        addToAllPanesBtn.setSelection(false);
-
-        updateResourceFilters();
-    }
-
-    /**
-     * Update the contents of the filter combo.
-     */
-    @Override
-    protected void updateResourceFilters() {
-
-        List<String> filterList = rscDefnsMngr.getAllFilterLabelsForCategory(
-                NTRANS_RSC_CATEGORY, displayType);
-
-        Collections.sort(filterList);
-        filterList.add(0, RSC_FILTER_ALL);
-
-        String[] filterArray = new String[0];
-        filterArray = filterList.toArray(filterArray);
-        filterCombo.setItems(filterArray);
-
-        boolean isMatched = false;
-        for (int i = 0; i < filterArray.length; i++) {
-            if (filterArray[i].equals(prevSelectedFilter)) {
-                filterCombo.select(i);
-                isMatched = true;
-                break;
-            }
-        }
-
-        if (!isMatched) {
-            filterCombo.select(0);
-            prevSelectedFilter = RSC_FILTER_ALL;
-
-            selectedRscName.setRscType("");
-            selectedRscName.setRscGroup("");
-            selectedRscName.setRscAttrSetName("");
-            selectedRscName.setCycleTime(null);
-        }
-
-        updateResourceTypes();
     }
 
     /*
@@ -1135,7 +1032,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         if (enableSelections) {
 
             addResourceBtn.setEnabled(true);
-            replaceResourceBtn.setEnabled(replaceBtnEnabled);
 
             if (rscDefn.isForecast()) {
 
@@ -1158,7 +1054,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
             if (selectedRscName.isLatestCycleTime()) {
 
                 addResourceBtn.setEnabled(false);
-                replaceResourceBtn.setEnabled(false);
                 seldRscNameTxt.setText("");
             } else {
                 seldRscNameTxt.setText(selectedRscName.toString());
@@ -1166,7 +1061,6 @@ public class NtransSelectionControl extends ResourceSelectionControl {
         } else {
             seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
-            replaceResourceBtn.setEnabled(false);
 
             availDataTimeLbl.setVisible(true);
             availDataTimeLbl.setText(availMsg);

@@ -314,7 +314,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         loadSaveComp.setLayout(new FormLayout());
 
         clearRbdButton = new Button(loadSaveComp, SWT.PUSH);
-        clearRbdButton.setText(" Reset To Default ");
+        clearRbdButton.setText(" Clear ");
         FormData fd = new FormData();
         fd.width = 130;
         fd.top = new FormAttachment(0, 7);
@@ -322,7 +322,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         clearRbdButton.setLayoutData(fd);
 
         saveRbdButton = new Button(loadSaveComp, SWT.PUSH);
-        saveRbdButton.setText(" Save RBD ");
+        saveRbdButton.setText(" Save ");
         fd = new FormData();
         fd.width = 100;
         fd.top = new FormAttachment(0, 7);
@@ -330,7 +330,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         saveRbdButton.setLayoutData(fd);
 
         loadRbdButton = new Button(loadSaveComp, SWT.PUSH);
-        loadRbdButton.setText("Load RBD");
+        loadRbdButton.setText("Load ");
         fd = new FormData();
         fd.width = 100;
         fd.top = new FormAttachment(0, 7);
@@ -338,7 +338,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         loadRbdButton.setLayoutData(fd);
 
         loadAndCloseButton = new Button(loadSaveComp, SWT.PUSH);
-        loadAndCloseButton.setText("Load And Close");
+        loadAndCloseButton.setText("Load and Close");
         fd = new FormData();
         fd.width = 120;
         fd.top = new FormAttachment(0, 7);
@@ -773,10 +773,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     }
                 } else {
                     // Replace button is visible replace enabled
-                    rscSelDlg.open(true,
-                            (numSeldRscs == 1 && !isBaseLevelRscSeld),
-                            initRscName, false,
-                            rbdMngr.getRbdType(),
+                    rscSelDlg.open(initRscName, true, rbdMngr.getRbdType(),
                             SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS);
                 }
             }
@@ -1388,10 +1385,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             lastSelected = (seldRscsList.get(0) == selectedResourceViewer
                     .getElementAt(numRscs - 1));
         }
-
-        // the replace button is enabled if there is only 1 resource selected
-        // and it is not the base resource
-        rscSelDlg.setReplaceEnabled((numSeldRscs == 1 && !isBaseLevelRscSeld));
 
         // the delete button is only disabled if there is one the one base
         // resource selected.

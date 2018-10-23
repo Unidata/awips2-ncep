@@ -223,10 +223,7 @@ public class NewResourceAction extends AbstractHandler {
 
    		boolean isMultipane = (NcEditorUtil.getPaneLayout(editor).getNumberOfPanes() > 1 );
    		
-   	    rscSelDlg.open( false, // no replaceResource option  
-   						false, // replace button not enabled
-   						prevSeldRscName, isMultipane,
-   						dispType,
+   	    rscSelDlg.open( prevSeldRscName, isMultipane, dispType,
    						SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL );
 		return null;
 	}

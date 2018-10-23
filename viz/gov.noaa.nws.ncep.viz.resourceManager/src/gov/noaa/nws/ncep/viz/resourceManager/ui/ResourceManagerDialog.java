@@ -135,12 +135,12 @@ public class ResourceManagerDialog extends Dialog {
         mngrTabFolder.setLayoutData(gd);
 
         final TabItem loadTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        loadTabItem.setText("   Load RBD   ");
+        loadTabItem.setText("   Load   ");
 
         loadRbdCntrl = new LoadRbdControl(mngrTabFolder);
 
         final TabItem mngrTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        mngrTabItem.setText("   Create RBD   ");
+        mngrTabItem.setText("   Create   ");
 
         // get the active Display and set the rbd_mngr with it
         AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -170,7 +170,7 @@ public class ResourceManagerDialog extends Dialog {
         createRbdCntrl = new CreateRbdControl(mngrTabFolder, rbd_mngr);
 
         final TabItem manageSPFTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        manageSPFTabItem.setText("   Manage SPFs  ");
+        manageSPFTabItem.setText("   SPF Groups  ");
 
         manageRbdsCntrl = new ManageSpfControl(mngrTabFolder);
 

@@ -1,60 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourceDefinitionFilters xmlns:ns2="com.raytheon.uf.common.datadelivery.registry" xmlns:ns3="http://www.example.org/productType">
 	
-	<ResourceDefinitionFilter rscDefnName="GOES15-SXI-FM3">
-	<filters>GOES</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-A-EUVI">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-A-HI1">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-A-HI2">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-A-COR1">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-A-COR2">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-B-EUVI">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-B-HI1">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-B-HI2">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-B-COR1">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="STEREO-B-COR2">
-	<filters>STEREO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SDO-HMI-SIDE1">
-	<filters>SDO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SDO-AIA">
-	<filters>SDO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SDO-THEMATIC">
-	<filters>SDO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="NSO-GONG">
-	<filters>NSO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SOHO-EIT">
-	<filters>SOHO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SOHO-LASCO-C2">
-	<filters>SOHO</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="SOHO-LASCO-C3">
-	<filters>SOHO</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="PAFM">
 	<filters>Forecast</filters>
 	</ResourceDefinitionFilter>
@@ -72,9 +18,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="ETAMOS">
 	<filters>Forecast,MOS</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="FFG">
-	<filters></filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="IDFT">
 	<filters>Forecast</filters>
@@ -623,9 +566,6 @@
 	<ResourceDefinitionFilter rscDefnName="CMC">
 	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="ECMWF">
-	<filters>Forecast,Global</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="ESTOFS">
 	<filters>Forecast,Ocean</filters>
 	</ResourceDefinitionFilter>
@@ -634,15 +574,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="FNMOC-WW3">
 	<filters>Forecast,FNMOC,Ocean</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="FFG_TIR_HIRES">
-	<filters>Forecast</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="FFG_ALR">
-	<filters>Forecast</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GEFS">
-	<filters>Forecast,Ensemble,Global</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GFS">
 	<filters>Forecast,Global</filters>
@@ -653,14 +584,8 @@
 	<ResourceDefinitionFilter rscDefnName="GFSGUIDE">
 	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GFSLAMPTSTORM">
-	<filters>Forecast,CONUS</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GLERL">
 	<filters>Forecast,Regional</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="HPC_RAIN_CAT_US">
-	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="HPCQPF">
 	<filters>Forecast,CONUS</filters>
@@ -673,9 +598,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="HRRRX">
 	<filters>Forecast,Hourly,Subhourly,CONUS</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MOS">
-	<filters>Forecast,CONUS</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="NAM12">
 	<filters>Forecast,CONUS</filters>
@@ -719,9 +641,6 @@
 	<ResourceDefinitionFilter rscDefnName="WaveWatch">
 	<filters>Forecast,Ocean</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="WaveWatch-AK">
-	<filters>Forecast,Ocean</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="WaveWatch-ENP">
 	<filters>Forecast,Global,Ocean</filters>
 	</ResourceDefinitionFilter>
@@ -740,9 +659,6 @@
 	<ResourceDefinitionFilter rscDefnName="URMA25">
 	<filters>Analysis,NSBN</filters>
 	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="LocalRadar">
-	<filters>LocalRadar</filters>
-	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="NAM_00">
 	<filters>Forecast,Ensemble</filters>
 	</ResourceDefinitionFilter>
@@ -751,57 +667,6 @@
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="GFS_ENS">
 	<filters>Forecast,Ensemble,Global</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_POES-NPOESS">
-	<filters>GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES14">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES12">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES13">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_Composite">
-	<filters>GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES15">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MTS">
-	<filters>Standard,McIdas</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="FNEXRAD">
-	<filters>Radar</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="VAAC">
-	<filters>Standard,McIdas</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="METEOSAT8">
-	<filters>McIdas,METEOSAT</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="METEOSAT9">
-	<filters>Standard,McIdas,METEOSAT</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="METEOSAT10">
-	<filters>McIdas,METEOSAT</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES11">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="GINI_GOES10">
-	<filters>GOES,GINI</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="IND">
-	<filters>Standard,McIdas</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="Global">
-	<filters>Standard,McIdas</filters>
-	</ResourceDefinitionFilter>
-	<ResourceDefinitionFilter rscDefnName="MTSAT2">
-	<filters>McIdas</filters>
 	</ResourceDefinitionFilter>
 	<ResourceDefinitionFilter rscDefnName="DayNightTerminator">
 	<filters>Misc</filters>

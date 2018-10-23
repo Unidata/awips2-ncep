@@ -1,8 +1,0 @@
-colorMapName=nids_vel16
-colorBar=@ColorBars/Radar/dfltRadarColorBar.xml
-! .25km Radial reflectivity
-productCode=94
-elevationNumber=1
-alpha=1.0
-brightness=1.0
-contrast=1.0

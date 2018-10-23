@@ -1,8 +1,0 @@
-colorMapName=CA (Low Light Vis)
-colorBar=@ColorBars/Satellite/dfltMcidasColorBar.xml
-wavelength=1.378
-displayUnitStr=C
-alpha=1.0
-brightness=1.0
-contrast=1.0
-legendString= {RD} {channel}

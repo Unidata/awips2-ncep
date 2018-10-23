@@ -1,9 +1,0 @@
-! Parameters and Attributes for the default WaveSatV SGWHV2 (Jason-2) Resource
-!
-colorBarForMeters=@ColorBars/WaveSat/waveSatColorBarMeters.xml
-colorBarForFeet=@ColorBars/WaveSat/waveSatColorBarFeet.xml
-useFeetInsteadOfMeters=true
-fontSize=12
-fontName=Courier
-timeDisplayInterval=30
-timeDisplayColor=RGB {255, 255, 255}

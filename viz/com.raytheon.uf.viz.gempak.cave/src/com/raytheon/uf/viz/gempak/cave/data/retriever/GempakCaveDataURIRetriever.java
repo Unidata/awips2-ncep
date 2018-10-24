@@ -53,6 +53,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
+ * Oct 23, 2018 54476      tjensen     Change cache to singleton
  *
  * </pre>
  *
@@ -67,12 +68,9 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
 
     /**
      * Constructor.
-     *
-     * @param dataCache
-     *            cache to use for retrieving/storing data
      */
-    public GempakCaveDataURIRetriever(NcgridDataCache dataCache) {
-        this.dataCache = dataCache;
+    public GempakCaveDataURIRetriever() {
+        this.dataCache = NcgridDataCache.getInstance();
     }
 
     @Override

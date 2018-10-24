@@ -30,7 +30,6 @@ import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.DgdrivException;
 import com.raytheon.uf.viz.ncep.grid.FloatGridData;
-import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
 
 /**
  * GEMPAK processing strategy that performs all data processing one at a time in
@@ -45,6 +44,7 @@ import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
  * Sep 04, 2018 54480      mapeters    Initial creation
  * Sep 26, 2018 54483      mapeters    Pass data URI and DB data retrievers to
  *                                     Dgdriv
+ * Oct 23, 2018 54476      tjensen     Change cache to singleton
  *
  * </pre>
  *
@@ -65,10 +65,9 @@ public class GempakSameProcessStrategy implements IGempakProcessingStrategy {
         synchronized (LOCK) {
             long t0 = System.currentTimeMillis();
             GempakDataRecord data = null;
-            NcgridDataCache dataCache = dataInput.getCacheData();
             Dgdriv dgdriv = new Dgdriv(dataInput,
-                    new GempakCaveDataURIRetriever(dataCache),
-                    new GempakCaveDbDataRetriever(dataCache));
+                    new GempakCaveDataURIRetriever(),
+                    new GempakCaveDbDataRetriever());
             try {
                 FloatGridData floatData = dgdriv.execute();
                 if (floatData != null) {

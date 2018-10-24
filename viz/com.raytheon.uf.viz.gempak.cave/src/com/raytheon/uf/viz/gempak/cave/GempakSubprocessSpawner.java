@@ -56,6 +56,7 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  *                                     from subprocess
  * Oct 08, 2018 54483      mapeters    Moved from gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak,
  *                                     subprocess script is now installed to /awips2/gempak/
+ * Oct 23, 2018 54476      tjensen     Change cache to singleton
  *
  * </pre>
  *
@@ -111,9 +112,9 @@ public class GempakSubprocessSpawner {
              */
             IGempakCommunicator communicator = server.connect();
             communicator.registerHandler(GempakDataURIRequest.class,
-                    new GempakDataURIRequestHandler(dataInput.getCacheData()));
+                    new GempakDataURIRequestHandler());
             communicator.registerHandler(GempakDbDataRequest.class,
-                    new GempakDbDataRequestHandler(dataInput.getCacheData()));
+                    new GempakDbDataRequestHandler());
             data = communicator.request(new GempakDataRecordRequest(dataInput),
                     GempakDataRecord.class);
         } catch (GempakConnectionException | GempakCommunicationException e) {

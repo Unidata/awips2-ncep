@@ -25,7 +25,6 @@ import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
 
 /**
  * Input to GEMPAK that specifies the data to process and any other necessary
@@ -38,6 +37,7 @@ import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Oct 23, 2018 54476      tjensen     Change cache to singleton
  *
  * </pre>
  *
@@ -87,9 +87,6 @@ public class GempakDataInput {
 
     @DynamicSerializeElement
     private boolean arrowVector;
-
-    // Not serialized
-    private NcgridDataCache cacheData;
 
     public GempakDataInput() {
     }
@@ -302,20 +299,5 @@ public class GempakDataInput {
      */
     public void setArrowVector(boolean arrowVector) {
         this.arrowVector = arrowVector;
-    }
-
-    /**
-     * @return the cacheData
-     */
-    public NcgridDataCache getCacheData() {
-        return cacheData;
-    }
-
-    /**
-     * @param cacheData
-     *            the cacheData to set
-     */
-    public void setCacheData(NcgridDataCache cacheData) {
-        this.cacheData = cacheData;
     }
 }

@@ -24,7 +24,6 @@ import com.raytheon.uf.viz.gempak.common.data.retriever.IGempakDataURIRetriever;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataURIRequest;
 import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
-import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
 
 /**
  * Handler for taking a {@link GempakDataURIRequest}, processing it, and
@@ -37,6 +36,7 @@ import com.raytheon.uf.viz.ncep.grid.NcgridDataCache;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
+ * Oct 23, 2018 54476      tjensen     Change cache to singleton
  *
  * </pre>
  *
@@ -49,12 +49,9 @@ public class GempakDataURIRequestHandler
 
     /**
      * Constructor.
-     *
-     * @param dataCache
-     *            cache to use for retrieving/storing data
      */
-    public GempakDataURIRequestHandler(NcgridDataCache dataCache) {
-        retriever = new GempakCaveDataURIRetriever(dataCache);
+    public GempakDataURIRequestHandler() {
+        retriever = new GempakCaveDataURIRetriever();
     }
 
     @Override

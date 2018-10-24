@@ -9,6 +9,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.serialization.annotations,
  com.raytheon.uf.common.time,
+ com.raytheon.uf.common.time.util,
  com.vividsolutions.jts.geom,
  javax.measure.converter,
  javax.measure.unit,

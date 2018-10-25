@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.geotools.coverage.grid.GeneralGridGeometry;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -43,6 +44,7 @@ import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.RenderingOrderFactory;
 import com.raytheon.uf.viz.core.rsc.ResourceList;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
 /**
@@ -126,16 +128,17 @@ public class RscBundleDisplayMngr {
             rscBndlMngr = rbdm;
             seldResources = new Vector<ResourceSelection>();
 
-            try {
-                area = PredefinedAreaFactory
-                        .getDefaultPredefinedAreaForDisplayType(rbdType);
-            } catch (VizException e1) {
-                statusHandler.handle(
-                        Priority.PROBLEM,
-                        "Error getting default PredefinedArea: "
-                                + e1.getMessage());
-            }
+            IDisplayPane disp = EditorUtil.getActiveVizContainer().getActiveDisplayPane();
+            GeneralGridGeometry gridGeometry = disp.getDescriptor().getGridGeometry();
+            double[] mapCenter = {-90, 38.5, 0};
+            AreaSource source = new AreaSource();
+            
+            AreaName areaName = new AreaName(source.DISPLAY_AREA, "D2D Map View");
 
+            area = PredefinedAreaFactory.createPredefinedArea(areaName, 
+                		gridGeometry, mapCenter, "0.25");
+
+            
             // Reference the same base overlay for multi-pane displays.
             if (baseOverlayResources.containsKey(rbdType)) {
                 seldResources.add(baseOverlayResources.get(rbdType));

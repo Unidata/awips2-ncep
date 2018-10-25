@@ -117,17 +117,15 @@
 ! BUFR files
 !
 ! Operational model and grid data
-NAM104       A2DB_GRID                 NAM104_db                                        CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-NAM218       A2DB_GRID                 NAM218_db                                        CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-NAM          A2DB_GRID                 NAM_db                                           CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-ECMWF25      A2DB_GRID                 ECMWF25_db                                       CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-UKMET45      A2DB_GRID                 UKMET45_db                                       CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+NAM12        A2DB_GRID                 NAM12_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+NAM40        A2DB_GRID                 NAM40_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+ECMWF        A2DB_GRID                 ECMWF_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+UKMET        A2DB_GRID                 UKMET_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
 GFS          A2DB_GRID                 GFS_db                                           CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-GFS0.5       A2DB_GRID                 GFS0.5_db                                        CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-RUC          A2DB_GRID                 RUC_db                                           CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-RUC13        A2DB_GRID                 RUC13_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-RUC80        A2DB_GRID                 RUC80_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
-RUC40        A2DB_GRID                 RUC40_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+GFS20        A2DB_GRID                 GFS20_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+RAP13        A2DB_GRID                 RAP13_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+RAP20        A2DB_GRID                 RAP20_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
+RAP40        A2DB_GRID                 RAP40_db                                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
 GEFS         A2DB_GRID                 GEFS_db_*_YYYYMMDDHHfFFF                         CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
 GHM          A2DB_GRID                 GHM_db                                           CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4
 GHM_6TH      A2DB_GRID                 GHM_6TH_db                                       CAT_GRD  SCAT_FCT   -1     -1     -1 OFF/0/0                    4

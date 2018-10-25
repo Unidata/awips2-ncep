@@ -158,8 +158,7 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         Composite top_form = this;
 
         FormData fd = new FormData();
-        fd.top = new FormAttachment(0, 12); // offset from sash so the title
-                                            // shows up
+        fd.top = new FormAttachment(0, 0);
         fd.left = new FormAttachment(0, 0);
         fd.right = new FormAttachment(100, 0);
         fd.bottom = new FormAttachment(100, 0);
@@ -172,21 +171,20 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
         mngrControl = mgrCtl;
         rscDefnMngr = mngrControl.getRscDefnMngr();
 
+        Label rscTypeLbl = new Label(top_form, SWT.NONE);
+        rscTypeLbl.setText("Name");
+        fd = new FormData();
+        fd.left = new FormAttachment(0, 0);
+        rscTypeLbl.setLayoutData(fd);
+
         rscTypeTxt = new Text(top_form, SWT.SINGLE | SWT.BORDER);
         rscTypeTxt.setText("");
-
+        
         fd = new FormData();
         fd.width = 150;
-        fd.top = new FormAttachment(0, 30);
-        fd.left = new FormAttachment(0, 15);
+        fd.top = new FormAttachment(0, 0);
+        fd.left = new FormAttachment(rscTypeLbl, 10, SWT.RIGHT);
         rscTypeTxt.setLayoutData(fd);
-
-        Label rscTypeLbl = new Label(top_form, SWT.NONE);
-        rscTypeLbl.setText("Resource Type");
-        fd = new FormData();
-        fd.bottom = new FormAttachment(rscTypeTxt, -3, SWT.TOP);
-        fd.left = new FormAttachment(rscTypeTxt, 0, SWT.LEFT);
-        rscTypeLbl.setLayoutData(fd);
 
         dfltNumFramesSpnr = new Spinner(top_form, SWT.BORDER);
         fd = new FormData();
@@ -557,9 +555,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     @Override
     public void activate() {
         setVisible(true);
-        if (getParent() instanceof Group) {
-            ((Group) getParent()).setText(getTitle());
-        }
     }
 
     public void copySelectedResource(ResourceName rscName) {
@@ -790,11 +785,6 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     @Override
     public void deactivate() {
         setVisible(false);
-    }
-
-    @Override
-    public String getTitle() {
-        return "Edit Resource Type";
     }
 
     protected void createResourceDefinition() {
@@ -1055,4 +1045,10 @@ class EditResourceTypeComp extends Composite implements IEditResourceComposite {
     private String rscImplToolTipText = "This is the name of the NCP Resource implemenation for this "
             + "resource type. The implementation specifies the java class that displays the data and defines "
             + "what parameters are expected by the java code";
+
+	@Override
+	public String getTitle() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

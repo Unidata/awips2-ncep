@@ -39,7 +39,7 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * 09/28/2015      11385   njensen     construct NcSatelliteResource instead of GiniSatResource
  * 10/15/2015      R7190   R. Reynolds Added support for Mcidas
  * 10/28/2015      R7190   kbugenhagen Added support for Himawari
- * 04/12/2016      R16367  kbugenhagen Added support for SIMGOESR
+ * 04/12/2016      R16367  kbugenhagen Added support for GOESR
  * 04/13/2016      R15954  S Russell   Added method getDataLoader()
  * 06/01/2016      R18511  kbugenhagen Added support for MODIS, removed system.out's
  * 
@@ -58,7 +58,7 @@ public class SatelliteResourceData extends
         IAreaProviderCapable {
 
     enum SatelliteType {
-        GINI, MCIDAS, HIMAWARI, SIMGOESR, MODIS
+        GINI, MCIDAS, HIMAWARI, GOESR, MODIS
     }
 
     @XmlElement
@@ -110,7 +110,7 @@ public class SatelliteResourceData extends
             return new McidasSatResource(this, loadProperties);
         } else if (satelliteType == SatelliteType.HIMAWARI) {
             return new NcSatelliteResource(this, loadProperties);
-        } else if (satelliteType == SatelliteType.SIMGOESR) {
+        } else if (satelliteType == SatelliteType.GOESR) {
             return new NcSatelliteResource(this, loadProperties);
         } else {
             statusHandler.error("Unrecognized satellite type: "

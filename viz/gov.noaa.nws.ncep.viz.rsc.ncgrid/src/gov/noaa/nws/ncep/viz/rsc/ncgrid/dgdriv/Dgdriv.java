@@ -126,6 +126,7 @@ import com.sun.jna.ptr.IntByReference;
  * 04/26/2016    R17741     S. Gilbert      Change to use FloatGridData, and replace NcepLogger
  * 08/18/2016    R17569     K Bugenhagen    Modified calls to NcEnsembleResourceData methods 
  *                                          since they are no longer static.
+ * 10/23/2018               mjames@ucar     Remove logging for speed.
  * </pre>
  * 
  * @author tlee
@@ -135,8 +136,6 @@ import com.sun.jna.ptr.IntByReference;
 public class Dgdriv {
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(Dgdriv.class);
-
-    private final Logger logger = LoggerFactory.getLogger("PerformanceLogger");
 
     private static GridDiag gd;
 
@@ -158,22 +157,7 @@ public class Dgdriv {
 
     private NcgridDataCache cacheData;
 
-    private static NcgribLogger ncgribLogger = NcgribLogger.getInstance();;
-
     public static final int LLMXGD = 1000000; // Max # grid points
-
-    /*
-     * TODO Work around solution - need to find a way to set logging level
-     * programmatically
-     */
-    private static String[] nativeLogTypes = { "|critical", "|error", "|info",
-            "|debug" };
-
-    private static int nativeLogLevel = 10;
-
-    private static boolean nativeLogging = true;
-
-    // private static boolean nativeLogging = false;
 
     // ENSEMBLE Calculation flag
     private static boolean isEnsCategory = false;
@@ -399,34 +383,6 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
-            String sep = "::";
-            if (!nativeLogging) {
-                return true;
-            }
-
-            int lvl = checkNativeLoggerLevel(msg);
-            if (lvl > nativeLogLevel) {
-                return true;
-            }
-
-            if (msg.contains("|debug")) {
-                String logMessage = msg.split("\\|")[0] + ":"
-                        + msg.split(sep)[1];
-                logger.debug("C DEBUG MESSAGE " + logMessage);
-            } else if (msg.contains("|info")) {
-                String logMessage;
-                if (msg.split("\\|").length > 2) {
-                    logMessage = msg.split("\\|")[0] + ":" + msg.split(sep)[1];
-                } else {
-                    logMessage = msg;
-                }
-                logger.debug("C INFO MESSAGE " + logMessage);
-            } else if (msg.contains("|error")) {
-                String logMessage = msg.split("\\|")[0] + ":"
-                        + msg.split(sep)[1];
-                logger.error("C ERROR MESSAGE " + logMessage);
-            }
-
             return true;
         }
     }
@@ -437,9 +393,6 @@ public class Dgdriv {
         public boolean callback(String msg) {
             if (msg.contains("/")) {
                 try {
-                    if (ncgribLogger.enableDiagnosticLogs()) {
-                        logger.debug(" enter ReturnDataCallback:" + msg);
-                    }
                     String[] msgArr = msg.split(";");
                     if (msgArr.length == 3) {
                         boolean addData = false;
@@ -455,20 +408,9 @@ public class Dgdriv {
                             if (rData == null) {
                                 errorURI = msg;
                                 proces = false;
-                                if (ncgribLogger.enableDiagnosticLogs()) {
-                                    logger.debug("??? retrieveDataFromRetriever return NULL for dataURI("
-                                            + dataURI + ")");
-                                }
                                 return true;
                             }
                         } else {
-                            if (ncgribLogger.enableDiagnosticLogs()) {
-                                long t00 = System.currentTimeMillis();
-                                logger.debug("++++ retrieve data (nx:"
-                                        + gData.getNx() + "-ny:"
-                                        + gData.getNy() + ") from cache took: "
-                                        + (t00 - t0));
-                            }
                             rData = gData.getData();
                         }
                         long t1 = System.currentTimeMillis();
@@ -487,15 +429,9 @@ public class Dgdriv {
                                         datSize);
                             }
                         } else {
-                            logger.debug("retrieve data size(" + rDataSize
-                                    + ") mismatch with navigation nx=" + nx
-                                    + " ny=" + ny);
                             errorURI = msg;
                             proces = false;
                         }
-                        long t2 = System.currentTimeMillis();
-                        logger.debug("retrieve data took " + (t1 - t0));
-                        logger.debug("return data took " + (t2 - t1));
                         return true;
                     } else {
                         errorURI = msg;
@@ -519,17 +455,12 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             String navigationString = null;
-            logger.debug("request navigation for: " + msg);
-            long t0 = System.currentTimeMillis();
             if (gdfile.startsWith("{") && gdfile.endsWith("}")) {
                 navigationString = getEnsembleNavigation(msg);
             } else {
                 navigationString = getGridNavigationContent(spatialObj);
             }
             gd.gem.db_returnnav(navigationString);
-            long t1 = System.currentTimeMillis();
-            logger.debug("return navigation  " + navigationString + " took "
-                    + (t1 - t0));
             return true;
         }
     }
@@ -539,11 +470,8 @@ public class Dgdriv {
         @Override
         public boolean callback(String msg) {
             try {
-                long t0 = System.currentTimeMillis();
                 String dataURI = getDataURIFromAssembler(msg);
                 gd.gem.db_returnduri(dataURI);
-                long t1 = System.currentTimeMillis();
-                logger.debug("return dataURI " + dataURI + " took " + (t1 - t0));
                 return true;
             } catch (VizException e) {
                 errorURI = msg;
@@ -558,9 +486,6 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("Rcv'd new subg:" + msg);
-            }
             createNewISpatialObj(msg);
             return true;
         }
@@ -571,12 +496,8 @@ public class Dgdriv {
 
         @Override
         public boolean callback() {
-            long t0 = System.currentTimeMillis();
             String cycleFcstHrsString = getCycleFcstHrsString(dataForecastTimes);
             gd.gem.db_returnfhrs(cycleFcstHrsString);
-            long t1 = System.currentTimeMillis();
-            logger.debug("return cycle forecast hours string "
-                    + cycleFcstHrsString + " took " + (t1 - t0));
             return true;
         }
     }
@@ -586,23 +507,15 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
-            // if (msg.contains("import")) {
             try {
-                long t0 = System.currentTimeMillis();
                 String fileNames = executeScript(msg);
                 gd.gem.db_returnflnm(fileNames);
-                long t1 = System.currentTimeMillis();
-                logger.debug("return file names string " + fileNames + " took "
-                        + (t1 - t0));
                 return true;
             } catch (VizException e) {
                 errorURI = msg;
                 proces = false;
                 return true;
             }
-            // } else {
-            // return true;
-            // }
         }
     }
 
@@ -685,8 +598,6 @@ public class Dgdriv {
             prepareGridDTInfo();
         }
 
-        long t05 = System.currentTimeMillis();
-        logger.debug("init and settime took: " + (t05 - t0));
         /*
          * Process the GDFILE input.
          */
@@ -706,9 +617,6 @@ public class Dgdriv {
             }
         }
 
-        long t06 = System.currentTimeMillis();
-        logger.debug("dgc_nfil took: " + (t06 - t05));
-
         /*
          * Process the GDATTIM input; setup the time server.
          */
@@ -719,9 +627,6 @@ public class Dgdriv {
                 proces = false;
             }
         }
-
-        long t07 = System.currentTimeMillis();
-        logger.debug("dgc_ndtm took: " + (t07 - t06));
 
         if (proces) {
             /*
@@ -735,23 +640,17 @@ public class Dgdriv {
              * Set the attributes that do not vary within the time loop.
              */
             gd.gem.inc_scal(scale, iscale, iscalv, iret);
-            long t07b = System.currentTimeMillis();
-            logger.debug("inc_scal took: " + (t07b - t07));
 
             /*
              * Get the next time to process from time server.
              */
             gd.gem.dgc_ntim_(chngnv, coladd, time1, time2, gottm, iret);
-            long t08 = System.currentTimeMillis();
-            logger.debug("dgc_ntim took: " + (t08 - t07b));
 
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, "", ier);
                 proces = false;
             } else {
                 gd.gem.tgc_dual(time1, time2, time, iret);
-                long t08b = System.currentTimeMillis();
-                logger.debug("tgc_dual took: " + (t08b - t08));
             }
         }
 
@@ -759,27 +658,6 @@ public class Dgdriv {
          * Set the map projection and graphics area.
          */
         long t09a = System.currentTimeMillis();
-        /*
-         * if (proces) { gd.gem.dgc_fixa_ ( garea, proj, gareabuf, prjbuf,
-         * iret); if ( iret.getValue () != 0 ) { gd.gem.erc_wmsg ("DG", iret,
-         * "", ier); proces = false; } }
-         */
-
-        long t09 = System.currentTimeMillis();
-        logger.debug("dgc_fixa took: " + (t09 - t09a));
-
-        /*
-         * Fortran wrapper used and use byte array instead of String as input!!
-         */
-        // if (proces) {
-        // gd.gem.ggc_maps (prjbuf, gareabuf, satfil, drpflg, iret);
-        // if ( iret.getValue () != 0 ) {
-        // gd.gem.erc_wmsg ("DG", iret, "", ier);
-        // proces = false;
-        // }
-        // }
-        long t10 = System.currentTimeMillis();
-        logger.debug("ggc_maps took: " + (t10 - t09));
 
         /*
          * Setup the grid subset that covers the graphics area.
@@ -800,9 +678,6 @@ public class Dgdriv {
             }
         }
 
-        long t11 = System.currentTimeMillis();
-        logger.debug("dgc_subg took: " + (t11 - t10));
-
         /*
          * Return grid dimension for grid diagnostic calculation.
          */
@@ -814,7 +689,6 @@ public class Dgdriv {
             }
         }
 
-        logger.debug("kx:" + kx.getValue() + "  ky:" + ky.getValue());
         float[] ugrid = null;
         float[] vgrid = null;
         int grid_size = kx.getValue() * ky.getValue();
@@ -825,8 +699,6 @@ public class Dgdriv {
             proces = false;
         }
 
-        long t012 = System.currentTimeMillis();
-        logger.debug("From gdc_nfil to dgc_grid took: " + (t012 - t06));
         /*
          * Compute the requested grid.
          */
@@ -850,8 +722,6 @@ public class Dgdriv {
                 proces = false;
             }
         }
-        long t013 = System.currentTimeMillis();
-        logger.debug("dgc_grid took: " + (t013 - t012));
 
         /*
          * Compute the scaling factor and scale the grid data.
@@ -894,8 +764,6 @@ public class Dgdriv {
              * Free memory for all internal grids
              */
             gd.gem.dg_fall_(iret);
-            long t1 = System.currentTimeMillis();
-            logger.debug("Scaling took: " + (t1 - t013));
             return fds;
         } else {
             /*
@@ -920,8 +788,6 @@ public class Dgdriv {
     private void prepareGridDTInfo() {
         String alias = this.gdfile;
         String path = "A2DB_GRID";
-        logger.debug("prepareGridDTInfo-- alias:" + alias + " gdfileOriginal:"
-                + this.gdfileOriginal);
         String template = this.gdfileOriginal + "_db";
         if (this.gdfileOriginal.contains(":")) {
             template = this.gdfileOriginal.substring(0,
@@ -1001,17 +867,12 @@ public class Dgdriv {
                 sbt.toString().length() - 1);
         IntByReference iret = new IntByReference(0);
 
-        logger.debug("prepareEnsembleDTInfo: alias=" + alias + ", path=" + path
-                + ",template=" + template);
         gd.gem.db_seta2dtinfo_(alias, path, template, iret);
     }
 
     private String getEnsembleTemplate(String ensName, String perturbationNum) {
         String ensTemplate = ensName + "_db_" + perturbationNum
                 + "_YYYYMMDDHHfFFF";
-
-        logger.debug("getEnsembleTemplate(" + ensTemplate + ") for(" + ensName
-                + "," + perturbationNum + ")");
         return ensTemplate;
     }
 
@@ -1110,8 +971,6 @@ public class Dgdriv {
     private void createLatlonISPatialObj(int nx, int ny, double la1,
             double lo1, double la2, double lo2) {
 
-        logger.debug("nx:" + nx + " ny:" + ny + " la1:" + la1 + " lo1:" + lo1
-                + " la2:" + la2 + " lo2:" + lo2);
         CustomLatLonCoverage cv = new CustomLatLonCoverage();
         cv.setNx(nx);
         cv.setNy(ny);
@@ -1345,7 +1204,6 @@ public class Dgdriv {
     private float[] retrieveDataFromRetriever(String dataURI)
             throws VizException {
 
-        long t001 = System.currentTimeMillis();
         // create GridDataRetriever using datauri
         // setUnit for parameter
         // setWorldWrapColumns (1);
@@ -1363,16 +1221,9 @@ public class Dgdriv {
                         .getParmUnit(gempakParm)));
             }
         } catch (ConversionException | ParseException e) {
-            logger.info("Problem with dataRetriever setUnit.", e);
             // ignore setUnit exception. use default units
         }
-        long t002 = System.currentTimeMillis();
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("***Initialize GridDataRetriever for " + dataURI
-                    + " took: " + (t002 - t001));
-        }
         try {
-            t001 = System.currentTimeMillis();
             FloatDataRecord dataRecord = dataRetriever.getDataRecord();
             float[] data = dataRecord.getFloatData();
 
@@ -1385,23 +1236,10 @@ public class Dgdriv {
              * will be when subgSpatialObj has its initial value: null.
              */
             if (subgSpatialObj == null) {
-                if (ncgribLogger.enableDiagnosticLogs()) {
-                    logger.debug("===new coverage nx:"
-                            + dataRetriever.getCoverage().getNx() + " ny:"
-                            + dataRetriever.getCoverage().getNy());
-                }
                 setSubgSpatialObj(dataRetriever.getCoverage());
-            }
-            t002 = System.currentTimeMillis();
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("***Reading " + dataURI + " from hdf5 took: "
-                        + (t002 - t001) + ", return size:" + data.length);
             }
             return data;
         } catch (StorageException s) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("???? getDataRecord --- throw StorageException");
-            }
             return null;
         }
     }
@@ -1678,7 +1516,6 @@ public class Dgdriv {
             return null;
         }
 
-        logger.debug("executeScript: scriptToRun=" + scriptToRun);
         String[] parms = scriptToRun.split("\\|");
         if (parms.length < 4) {
             return null;
@@ -1740,8 +1577,6 @@ public class Dgdriv {
                         && refValue != null && refValue instanceof Date) {
 
                     String refString = sdf.format((Date) refValue);
-                    logger.debug("executeScript: match " + refString);
-                    logger.debug("executeScript:  with " + tmStr);
                     Matcher m = p.matcher(refString);
                     if (!m.matches()) {
                         continue;
@@ -1794,24 +1629,13 @@ public class Dgdriv {
 
         String datauri = cacheData.getDataURI(parameters);
         if (datauri != null) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                long t00 = System.currentTimeMillis();
-                logger.debug("++++ getDataURIFromAssembler for(" + parameters
-                        + ") from cache took: " + (t00 - t0));
-            }
             return datauri;
         }
         Map<String, RequestConstraint> rcMap = getRequestConstraint(parameters);
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            long t01 = System.currentTimeMillis();
-            logger.debug("++++ getRequestConstraint for(" + parameters
-                    + ") took: " + (t01 - t0));
-        }
         if (rcMap == null) {
             return null;
         }
 
-        t0 = System.currentTimeMillis();
         DbQueryRequest request = new DbQueryRequest();
         // request.addRequestField(GridDBConstants.DATA_URI_QUERY);
         request.setConstraints(rcMap);
@@ -1826,25 +1650,6 @@ public class Dgdriv {
             datauri = null;
         }
 
-        long t1 = System.currentTimeMillis();
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
-                    .getConstraintValue();
-            int fcstTime = Integer.parseInt(rcMap.get(
-                    GridDBConstants.FORECAST_TIME_QUERY).getConstraintValue());
-            String fcstTimeg = CommonDateFormatUtil
-                    .getForecastColonTimeString(fcstTime);
-            if (datauri != null) {
-                logger.debug("### getDataURIFromAssembler(" + datauri
-                        + ") for(" + parameters + ") reftime:" + refTime + "("
-                        + fcstTimeg + ") took: " + (t1 - t0));
-            } else {
-                logger.debug("??? getDataURIFromAssembler(null) for("
-                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
-                        + ") took: " + (t1 - t0));
-            }
-        }
-
         // datauri = rec.getDataURI();
         if (datauri != null) {
             cacheData.addDataURI(parameters, datauri);
@@ -1856,21 +1661,8 @@ public class Dgdriv {
         this.dataForecastTimes = dataTimes;
     }
 
-    private int checkNativeLoggerLevel(String msg) {
-        int lvl = 0;
-        for (String logType : nativeLogTypes) {
-            if (msg.contains(logType)) {
-                break;
-            }
-            lvl++;
-        }
-        return lvl;
-    }
-
     private String getEnsembleNavigation(String msg) {
         String navStr = null;
-        logger.debug("getEnsembleNavigation: " + msg + " dataTime:"
-                + dataForecastTimes.get(0).toString());
         String[] tmpAttrs = msg.split("\\|");
         Map<String, RequestConstraint> queryList = new HashMap<>();
         queryList.put(GridDBConstants.PLUGIN_NAME, new RequestConstraint(
@@ -1884,7 +1676,6 @@ public class Dgdriv {
         }
         if (tmpAttrs[2] != null && tmpAttrs[2].length() > 0) {
             String navTime = buildRefTime(tmpAttrs[2]);
-            logger.debug("getEnsembleNavigation: " + navTime);
             queryList.put(GridDBConstants.DATA_TIME_QUERY,
                     new RequestConstraint(navTime));
         } else {
@@ -1954,10 +1745,6 @@ public class Dgdriv {
             String parameters) {
         GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
         String[] parmList = parameters.split("\\|");
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("enter getRequestConstraint - parameters:"
-                    + parameters);
-        }
         qAssembler.setDatasetId(parmList[0]);
 
         if (!parmList[1].isEmpty()) {
@@ -2023,10 +1810,6 @@ public class Dgdriv {
         try {
             rcMap = qAssembler.getConstraintMap();
         } catch (CommunicationException e) {
-            if (ncgribLogger.enableDiagnosticLogs()) {
-                logger.debug("getConstraintMap - CommunicationException:"
-                        + e.toString());
-            }
             return null;
         }
         String refTimeg = parmList[5].toUpperCase().split("F")[0];
@@ -2038,10 +1821,6 @@ public class Dgdriv {
                 new RequestConstraint(refTime));
         rcMap.put(GridDBConstants.FORECAST_TIME_QUERY, new RequestConstraint(
                 fcstTimeInSec));
-        if (ncgribLogger.enableDiagnosticLogs()) {
-            logger.debug("exit getRequestConstraint - rcMap:"
-                    + rcMap.toString());
-        }
         return rcMap;
     }
 }

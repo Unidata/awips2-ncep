@@ -19,7 +19,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ModisSatResource"
             name="ModisSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>
@@ -32,8 +32,8 @@
       </resource>
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource"
-            name="SimgoesrSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            name="GoesrSatellite"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>
@@ -63,7 +63,7 @@
       <nc-resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.SatelliteResourceData"
             editDialogClass="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.EditSatelliteAttrsDialog"
-            name="SimgoesrSatellite">
+            name="GoesrSatellite">
       </nc-resource>
    </extension>
    <extension
@@ -349,9 +349,9 @@
             paramType="NON_EDITABLE_ATTRIBUTE">
       </nc-resourceParameter>      
       
-      <!-- Simgoesr -->
+      <!-- GoesrSatellite -->
       <nc-resourceParameter
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="RGB"
             paramName="legendColor"
             defaultValue="RGB {155, 155, 155}"
@@ -359,7 +359,7 @@
       </nc-resourceParameter>
       <nc-resourceParameter
             constraintName="creatingEntity"
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="String"
             paramName="satelliteName"
             paramType="REQUEST_CONSTRAINT">
@@ -369,38 +369,38 @@
             paramName="colorBar"
             paramType="EDITABLE_ATTRIBUTE"
             paramRefLocation="ncep/ColorBars/Satellite"
-            ncResourceName="SimgoesrSatellite">
+            ncResourceName="GoesrSatellite">
       </nc-resourceParameter>
       <nc-resourceParameter
             paramClass="String"
             paramName="colorMapName"
             paramType="EDITABLE_ATTRIBUTE"
-            ncResourceName="SimgoesrSatellite">
+            ncResourceName="GoesrSatellite">
       </nc-resourceParameter>       
       <nc-resourceParameter
             paramClass="Float"
             paramName="alpha"
             paramType="EDITABLE_ATTRIBUTE"
             defaultValue="1.0"
-            ncResourceName="SimgoesrSatellite">
+            ncResourceName="GoesrSatellite">
       </nc-resourceParameter>
       <nc-resourceParameter
             paramClass="Float"
             paramName="brightness"
             paramType="EDITABLE_ATTRIBUTE"
             defaultValue="1.0"
-            ncResourceName="SimgoesrSatellite">
+            ncResourceName="GoesrSatellite">
       </nc-resourceParameter>      
       <nc-resourceParameter
             paramClass="Float"
             paramName="contrast"
             paramType="EDITABLE_ATTRIBUTE"
             defaultValue="1.0"
-            ncResourceName="SimgoesrSatellite">
+            ncResourceName="GoesrSatellite">
       </nc-resourceParameter>      
       <nc-resourceParameter
             constraintName="creatingEntity"
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="String"
             paramName="satelliteName"
             paramType="REQUEST_CONSTRAINT">
@@ -409,7 +409,7 @@
            default value here to pass validity checking -->
       <nc-resourceParameter
             constraintName="physicalElement"
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="String"
             paramName="imageType"
             defaultValue="not-specified"
@@ -417,13 +417,13 @@
       </nc-resourceParameter>
       <nc-resourceParameter
             constraintName="sectorID"
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="String"
             paramName="sectorID"
             paramType="REQUEST_CONSTRAINT">
       </nc-resourceParameter>
       <nc-resourceParameter
-            ncResourceName="SimgoesrSatellite"
+            ncResourceName="GoesrSatellite"
             paramClass="String"
             paramName="displayUnitStr"
             defaultValue="BRIT"

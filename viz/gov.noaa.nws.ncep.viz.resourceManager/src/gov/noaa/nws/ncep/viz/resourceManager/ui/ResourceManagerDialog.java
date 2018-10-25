@@ -74,11 +74,7 @@ public class ResourceManagerDialog extends Dialog {
 
     protected CreateRbdControl createRbdCntrl = null;
 
-    protected LoadRbdControl loadRbdCntrl = null;
-
     protected ManageResourceControl manageRscCntrl = null;
-
-    protected ManageSpfControl manageRbdsCntrl;
 
     private static int prevHeight = 0;
 
@@ -134,11 +130,6 @@ public class ResourceManagerDialog extends Dialog {
         gd.verticalAlignment = SWT.FILL;
         mngrTabFolder.setLayoutData(gd);
 
-        final TabItem loadTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        loadTabItem.setText("   Load   ");
-
-        loadRbdCntrl = new LoadRbdControl(mngrTabFolder);
-
         final TabItem mngrTabItem = new TabItem(mngrTabFolder, SWT.NONE);
         mngrTabItem.setText("   Create   ");
 
@@ -169,19 +160,12 @@ public class ResourceManagerDialog extends Dialog {
 
         createRbdCntrl = new CreateRbdControl(mngrTabFolder, rbd_mngr);
 
-        final TabItem manageSPFTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        manageSPFTabItem.setText("   SPF Groups  ");
-
-        manageRbdsCntrl = new ManageSpfControl(mngrTabFolder);
-
         final TabItem cnfgTabItem = new TabItem(mngrTabFolder, SWT.NONE);
         cnfgTabItem.setText("   Manage Resources  ");
 
         manageRscCntrl = new ManageResourceControl(mngrTabFolder);
 
         mngrTabItem.setControl(createRbdCntrl);
-        loadTabItem.setControl(loadRbdCntrl);
-        manageSPFTabItem.setControl(manageRbdsCntrl);
         cnfgTabItem.setControl(manageRscCntrl);
 
         Button closeBtn = new Button(shell, SWT.PUSH);
@@ -198,17 +182,11 @@ public class ResourceManagerDialog extends Dialog {
 
         mngrTabFolder.layout();
 
-        if (mode == null || mode.equals("LOAD_RBD")) {
+        if (mode == null || mode.equals("CREATE_RBD")) {
             mngrTabFolder.setSelection(0);
-            loadRbdCntrl.updateDialog();
-        } else if (mode.equals("CREATE_RBD")) {
-            mngrTabFolder.setSelection(1);
             createRbdCntrl.updateDialog();
-        } else if (mode.equals("MANAGE_RBDS")) {
-            mngrTabFolder.setSelection(2);
-            manageRbdsCntrl.updateDialog();
         } else if (mode.equals("MANAGE_RESOURCES")) {
-            mngrTabFolder.setSelection(3);
+            mngrTabFolder.setSelection(1);
             manageRscCntrl.updateDialog();
         } else {
             mngrTabFolder.setSelection(0);

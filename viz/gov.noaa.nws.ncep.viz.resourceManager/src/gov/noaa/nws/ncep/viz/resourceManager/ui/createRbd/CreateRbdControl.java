@@ -47,6 +47,7 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
+import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.UiPlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -183,21 +184,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private Button moveResourceDownButton = null;
 
-    private Group paneLayoutGroup = null;
-
-    private Button paneSelectionButtons[][] = null;
-
-    private Button importPaneButton = null;
-
-    private Button loadPaneButton = null;
-
-    private Button clearPaneButton = null;
-
     private Button loadRbdButton = null;
 
     private Button loadAndCloseButton = null;
-
-    private Button saveRbdButton = null;
 
     private Button clearRbdButton = null;
 
@@ -321,20 +310,12 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         fd.left = new FormAttachment(17, -65);
         clearRbdButton.setLayoutData(fd);
 
-        saveRbdButton = new Button(loadSaveComp, SWT.PUSH);
-        saveRbdButton.setText(" Save ");
-        fd = new FormData();
-        fd.width = 100;
-        fd.top = new FormAttachment(0, 7);
-        fd.left = new FormAttachment(40, -50);
-        saveRbdButton.setLayoutData(fd);
-
         loadRbdButton = new Button(loadSaveComp, SWT.PUSH);
         loadRbdButton.setText("Load ");
         fd = new FormData();
         fd.width = 100;
         fd.top = new FormAttachment(0, 7);
-        fd.left = new FormAttachment(63, -50);
+        fd.left = new FormAttachment(40, -50);
         loadRbdButton.setLayoutData(fd);
 
         loadAndCloseButton = new Button(loadSaveComp, SWT.PUSH);
@@ -342,7 +323,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         fd = new FormData();
         fd.width = 120;
         fd.top = new FormAttachment(0, 7);
-        fd.left = new FormAttachment(83, -50);
+        fd.left = new FormAttachment(63, -50);
         loadAndCloseButton.setLayoutData(fd);
 
         cancelEditButton = new Button(loadSaveComp, SWT.PUSH);
@@ -406,8 +387,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         geoSyncPanesToggle.setLayoutData(form_data);
 
         createSeldRscsGroup();
-
-        createPaneLayoutGroup();
 
     }
 
@@ -522,172 +501,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                 }
             }
         });
-
-    }
-
-    private void createPaneLayoutGroup() {
-        paneLayoutGroup = new Group(selectedResourceGroup, SWT.SHADOW_NONE);
-        paneLayoutGroup.setText("Pane Layout");
-        paneLayoutGroup.setLayout(new FormLayout());
-        FormData fd = new FormData();
-        fd.left = new FormAttachment(selectedResourceGroup, 10, SWT.RIGHT);
-        fd.top = new FormAttachment(0, 3);
-        fd.right = new FormAttachment(100, 0);
-        fd.bottom = new FormAttachment(100, 0);
-        paneLayoutGroup.setLayoutData(fd);
-
-        Composite num_rows_cols_comp = new Composite(paneLayoutGroup, SWT.NONE);
-        GridLayout gl = new GridLayout(rbdMngr.getMaxPaneLayout().getColumns(),
-                false);
-
-        num_rows_cols_comp.setLayout(gl);
-
-        fd = new FormData();
-        fd.left = new FormAttachment(0, 100);
-        fd.top = new FormAttachment(0, 3);
-        fd.right = new FormAttachment(100, -10);
-        num_rows_cols_comp.setLayoutData(fd);
-
-        Button num_rows_btns[] = new Button[rbdMngr.getMaxPaneLayout()
-                .getRows()];
-        Button num_cols_btns[] = new Button[rbdMngr.getMaxPaneLayout()
-                .getColumns()];
-
-        for (int r = 0; r < rbdMngr.getMaxPaneLayout().getRows(); r++) {
-            num_rows_btns[r] = new Button(num_rows_cols_comp, SWT.PUSH);
-            num_rows_btns[r].setText(Integer.toString(r + 1));
-            num_rows_btns[r].setSize(20, 20);
-            num_rows_btns[r].setData(new Integer(r + 1));
-            num_rows_btns[r].addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    selectPane(
-                            rbdMngr.setPaneLayout(
-                                    new NcPaneLayout(
-                                            (Integer) e.widget.getData(),
-                                            ((NcPaneLayout) rbdMngr
-                                                    .getPaneLayout())
-                                                            .getColumns())));
-                    updatePaneLayout();
-                }
-            });
-        }
-
-        GridData gd = new GridData();
-        gd.widthHint = 50;
-        gd.grabExcessHorizontalSpace = true;
-
-        for (int c = 0; c < rbdMngr.getMaxPaneLayout().getColumns(); c++) {
-            num_cols_btns[c] = new Button(num_rows_cols_comp, SWT.PUSH);
-            num_cols_btns[c].setText(Integer.toString(c + 1));
-            num_cols_btns[c].setData(new Integer(c + 1));
-
-            num_cols_btns[c].addSelectionListener(new SelectionAdapter() {
-
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    selectPane(
-                            rbdMngr.setPaneLayout(
-                                    new NcPaneLayout(
-                                            ((NcPaneLayout) rbdMngr
-                                                    .getPaneLayout()).getRows(),
-                                            (Integer) e.widget.getData())));
-                    updatePaneLayout();
-                }
-            });
-        }
-
-        Label num_rows_lbl = new Label(paneLayoutGroup, SWT.NONE);
-        num_rows_lbl.setText("Rows:");
-        fd = new FormData();
-        fd.right = new FormAttachment(num_rows_cols_comp, -5, SWT.LEFT);
-        fd.top = new FormAttachment(num_rows_cols_comp, 10, SWT.TOP);
-        num_rows_lbl.setLayoutData(fd);
-
-        Label num_cols_lbl = new Label(paneLayoutGroup, SWT.NONE);
-        num_cols_lbl.setText("Columns:");
-        fd = new FormData();
-        fd.right = new FormAttachment(num_rows_cols_comp, -5, SWT.LEFT);
-        fd.top = new FormAttachment(num_rows_lbl, 15, SWT.BOTTOM);
-        num_cols_lbl.setLayoutData(fd);
-
-        Label sel_pane_lbl = new Label(paneLayoutGroup, SWT.NONE);
-        sel_pane_lbl.setText("Select Pane");
-        fd = new FormData();
-        fd.left = new FormAttachment(0, 5);
-        fd.top = new FormAttachment(num_rows_cols_comp, 2, SWT.BOTTOM);
-        sel_pane_lbl.setLayoutData(fd);
-
-        Label sep = new Label(paneLayoutGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
-        fd = new FormData();
-        fd.left = new FormAttachment(sel_pane_lbl, 5, SWT.RIGHT);
-        fd.right = new FormAttachment(100, 0);
-        fd.top = new FormAttachment(num_rows_cols_comp, 11, SWT.BOTTOM);
-        sep.setLayoutData(fd);
-
-        Composite pane_sel_comp = new Composite(paneLayoutGroup, SWT.NONE);
-        pane_sel_comp.setLayout(
-                new GridLayout(rbdMngr.getMaxPaneLayout().getColumns(), true));
-
-        fd = new FormData();
-        fd.left = new FormAttachment(0, 25);
-        fd.top = new FormAttachment(sep, 12);
-        fd.bottom = new FormAttachment(100, -45);
-        fd.right = new FormAttachment(100, -15);
-        pane_sel_comp.setLayoutData(fd);
-
-        paneSelectionButtons = new Button[rbdMngr.getMaxPaneLayout()
-                .getRows()][rbdMngr.getMaxPaneLayout().getColumns()];
-
-        int numPanes = rbdMngr.getMaxPaneLayout().getNumberOfPanes();
-        for (
-
-        int p = 0; p < numPanes; p++)
-
-        {
-            NcPaneID pid = (NcPaneID) rbdMngr.getMaxPaneLayout()
-                    .createPaneId(p);
-            int r = pid.getRow();
-            int c = pid.getColumn();
-
-            paneSelectionButtons[r][c] = new Button(pane_sel_comp, SWT.TOGGLE);
-            paneSelectionButtons[r][c].setText(pid.toString());
-
-            paneSelectionButtons[r][c].setData(pid);
-            paneSelectionButtons[r][c]
-                    .addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent e) {
-                            NcPaneID seldPane = (NcPaneID) e.widget.getData();
-                            selectPane(seldPane);
-                        }
-                    });
-            paneSelectionButtons[r][c].setSelection((r == 0 && c == 0));
-        }
-
-        importPaneButton = new Button(paneLayoutGroup, SWT.PUSH);
-        fd = new FormData();
-        fd.top = new FormAttachment(pane_sel_comp, 10, SWT.BOTTOM);
-        fd.left = new FormAttachment(50, -120);
-        importPaneButton.setLayoutData(fd);
-        importPaneButton.setText("Import...");
-        importPaneButton.setEnabled(true);
-
-        loadPaneButton = new Button(paneLayoutGroup, SWT.PUSH);
-        fd = new FormData();
-        fd.top = new FormAttachment(importPaneButton, 0, SWT.TOP);
-        fd.left = new FormAttachment(50, -38);
-        loadPaneButton.setLayoutData(fd);
-        loadPaneButton.setText(" Re-Load ");
-
-        clearPaneButton = new Button(paneLayoutGroup, SWT.PUSH);
-        clearPaneButton.setText("  Clear  ");
-        fd = new FormData();
-        fd.top = new FormAttachment(importPaneButton, 0, SWT.TOP);
-        fd.left = new FormAttachment(50, 50);
-        clearPaneButton.setLayoutData(fd);
-
-        paneLayoutGroup.setVisible(false);
 
     }
 
@@ -929,13 +742,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
         });
 
-        clearPaneButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                clearSeldResources();
-            }
-        });
-
         clearRbdButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
@@ -957,49 +763,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
         });
 
-        loadPaneButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                loadPane();
-            }
-        });
-
-        saveRbdButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                saveRBD(false);
-            }
-        });
-
-        importPaneButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                SelectRbdsDialog impDlg = new SelectRbdsDialog(shell,
-                        "Import Pane", true, false, true);
-
-                if (!impDlg.open()) {
-                    return;
-                }
-
-                AbstractRBD<?> impRbd = impDlg.getSelectedRBD();
-
-                if (impRbd != null) {
-                    impRbd.resolveLatestCycleTimes();
-
-                    try {
-                        importPane(impRbd, impRbd.getSelectedPaneId());
-                    } catch (VizException e) {
-                        MessageDialog errDlg = new MessageDialog(shell, "Error",
-                                null,
-                                "Error Importing Rbd, " + impRbd.getRbdName()
-                                        + ".\n" + e.getMessage(),
-                                MessageDialog.ERROR, new String[] { "OK" }, 0);
-                        errDlg.open();
-                    }
-                }
-            }
-        });
-
     }
 
     // import the current editor or initialize the widgets.
@@ -1018,8 +781,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     public void configureForEditRbd() {
         clearRbdButton.setVisible(false);
-        saveRbdButton.setVisible(false);
-        loadPaneButton.setVisible(false);
         loadRbdButton.setVisible(false);
         loadAndCloseButton.setVisible(false);
         cancelEditButton.setVisible(true);
@@ -1079,13 +840,12 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
                     @Override
                     public void dominantResourceChanged(
                             AbstractNatlCntrsRequestableResourceData newDomRsc) {
-                        if (newDomRsc.isAutoUpdateable()) {
                             if (rbdMngr.getRbdType()
                                     .equals(NcDisplayType.GRAPH_DISPLAY)) {
                                 geoSyncPanesToggle.setSelection(true);
                                 rbdMngr.syncPanesToArea();
                             }
-                        }
+                        
                     }
                 });
 
@@ -1097,13 +857,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         updateGUIforMultipane(rbdMngr.isMultiPane());
 
-        // set the pane sel buttons based on the combos also sets the rbdMngr's
-        // layout
-        if (rbdMngr.isMultiPane()) {
-            updatePaneLayout();
-        }
-
-        selectPane(rbdMngr.getSelectedPaneId());
+        updateSelectedResourcesView(true);
 
         INcPaneLayout paneLayout = rbdMngr.getPaneLayout();
 
@@ -1138,39 +892,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     }
 
-    // TODO : we could have the pane buttons indicate whether
-    // there are resources selected for them by changing the foreground color to
-    // yellow or green...
-    private void updatePaneLayout() {
 
-        int colCnt = ((NcPaneLayout) rbdMngr.getPaneLayout()).getColumns();
-        int rowCnt = ((NcPaneLayout) rbdMngr.getPaneLayout()).getRows();
-
-        for (int r = 0; r < rbdMngr.getMaxPaneLayout().getRows(); r++) {
-            for (int c = 0; c < rbdMngr.getMaxPaneLayout().getColumns(); c++) {
-                paneSelectionButtons[r][c].setVisible(r < rowCnt && c < colCnt);
-            }
-        }
-    }
-
-    // update the GUI with the selections (area/list of rscs) for the selected
-    // pane
-    private void selectPane(INcPaneID pane) {
-
-        NcPaneID seldPane = (NcPaneID) pane;
-
-        rbdMngr.setSelectedPaneId(seldPane);
-
-        // implement radio behavior
-        for (int r = 0; r < rbdMngr.getMaxPaneLayout().getRows(); r++) {
-            for (int c = 0; c < rbdMngr.getMaxPaneLayout().getColumns(); c++) {
-                paneSelectionButtons[r][c].setSelection(
-                        (r == seldPane.getRow() && c == seldPane.getColumn()));
-            }
-        }
-
-        updateSelectedResourcesView(true);
-    }
 
     public void removeSelectedResource(ResourceSelection rscSel) {
     	
@@ -1355,10 +1077,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         int numSeldRscs = selectedResourceViewer.getList().getSelectionCount();
         int numRscs = selectedResourceViewer.getList().getItemCount();
 
-        // the Clear button is enabled if there are more than 1 resources in the
-        // list.
-        clearPaneButton.setEnabled(numRscs > 1);
-
         // the edit button is enabled iff there is only one selected resource.
         editResourceButton.setEnabled(numSeldRscs == 1);
 
@@ -1418,11 +1136,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         // do this is to marshal and then unmarshal the rbd.
         try {
 
-            rbdMngr.setGeoSyncPanes(geoSyncPanesToggle.getSelection());
-            rbdMngr.setAutoUpdate(true);
+            //rbdMngr.setGeoSyncPanes(geoSyncPanesToggle.getSelection());
+            //rbdMngr.setAutoUpdate(true);
 
-            AbstractRBD<?> rbdBndl = rbdMngr.createRbdBundle(rbdName,
-                    timelineControl.getTimeMatcher());
+            AbstractRBD<?> rbdBndl = rbdMngr.createRbdBundle(rbdName, timelineControl.getTimeMatcher());
 
             rbdBndl = AbstractRBD.clone(rbdBndl);
             rbdBndl.resolveDominantResource();
@@ -1430,27 +1147,11 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             ResourceBndlLoader rbdLoader = null;
             rbdLoader = new ResourceBndlLoader("RBD Previewer");
 
-            // TODO : Allow the user to define preferences such as
-            // whether to prompt when re-loading into an existing editor,
-            // whether to look for an empty editor first before re-loading an
-            // exising one...
-            //
-            // Determine which Display Editor to use.
-            //
-            // 1-check if the name of the active editor is the same as the RBD
-            // and if so, re-load into this editor.
-            // 2-if the RBD was imported then look specifically for this display
-            // ID.
-            // 3-if no rbd name was given it will be called "GEMPAK" and look
-            // for an existing "GEMPAK" editor.
-            // 4-
-            // First look for a preview editor and if not found then check if
-            // the active editor name matches that of the current rbd name
-            // (Note: don't look for an editor matching the rbd name because it
-            // is possible to have the same named display for a different RBD.)
-            // If the active editor doesn't match then load into a new display
-            // editor
             AbstractEditor editor = null;
+            //AbstractEditor editor = (AbstractEditor) EditorUtil.getActiveEditor();
+            // Use the active editor
+            
+            
 
             // 1-if the active editor matches this rbdName, use the active
             // editor
@@ -1683,78 +1384,8 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         geoSyncPanesToggle.setVisible(isMultiPane);
 
-        paneLayoutGroup.setVisible(isMultiPane);
-
         shell.setSize(new Point(940, shell.getSize().y));
        
-    }
-
-    public void saveRBD(boolean new_pane) {
-        try {
-            NCTimeMatcher timeMatcher = timelineControl.getTimeMatcher();
-            boolean saveRefTime = !timeMatcher.isCurrentRefTime();
-            boolean saveTimeAsConstant = false; // TODO -- how should this be
-                                                // set???
-
-            SpfsManager spfsMgr = SpfsManager.getInstance();
-            savedSpfGroup = spfsMgr.getLatestSpfGroup();
-            savedSpfName = spfsMgr.getLatestSpfName();
-            savedRbdName = spfsMgr.getLatestRbdName();
-
-            // get the filename to save to.
-            SaveRbdDialog saveDlg = new SaveRbdDialog(shell, savedSpfGroup,
-                    savedSpfName, savedRbdName, saveRefTime, saveTimeAsConstant);
-
-            if ((Boolean) saveDlg.open() == false) {
-                return;
-            }
-
-            savedSpfGroup = saveDlg.getSeldSpfGroup();
-            savedSpfName = saveDlg.getSeldSpfName();
-            savedRbdName = saveDlg.getSeldRbdName();
-
-            saveRefTime = saveDlg.getSaveRefTime();
-            saveTimeAsConstant = saveDlg.getSaveTimeAsConstant();
-
-            rbdMngr.setGeoSyncPanes(geoSyncPanesToggle.getSelection());
-            rbdMngr.setAutoUpdate(true);
-
-            AbstractRBD<?> rbdBndl = rbdMngr.createRbdBundle(savedRbdName,
-                    timeMatcher);
-
-            spfsMgr.saveRbdToSpf(savedSpfGroup, savedSpfName, rbdBndl,
-                    saveRefTime, saveTimeAsConstant);
-
-            VizApp.runSync(new Runnable() {
-                @Override
-                public void run() {
-                    String msg = null;
-                    msg = new String(
-                            "Resource Bundle Display " + savedRbdName
-                                    + " Saved to SPF " + savedSpfGroup
-                                    + File.separator + savedSpfName + ".");
-                    MessageBox mb = new MessageBox(shell, SWT.OK);
-                    mb.setText("RBD Saved");
-                    mb.setMessage(msg);
-                    mb.open();
-
-                    rbdMngr.setRbdModified(false);
-                }
-            });
-        } catch (VizException e) {
-            final String msg = e.getMessage();
-            VizApp.runSync(new Runnable() {
-
-                @Override
-                public void run() {
-                    Status status = new Status(Status.ERROR, UiPlugin.PLUGIN_ID,
-                            0, msg, null);
-                    ErrorDialog.openError(Display.getCurrent().getActiveShell(),
-                            "ERROR", "Error.", status);
-                }
-
-            });
-        }
     }
 
     // if Editing then save the current rbd to an AbstractRBD<?>

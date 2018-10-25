@@ -937,8 +937,8 @@ public class NcSatelliteResource extends
     protected String getLocFilePathForImageryStyleRule(SatelliteType type) {
         if (type == SatelliteType.HIMAWARI) {
             return NcPathConstants.HIMAWARI_IMG_STYLE_RULES;
-        } else if (type == SatelliteType.SIMGOESR) {
-            return NcPathConstants.SIMGOESR_IMG_STYLE_RULES;
+        } else if (type == SatelliteType.GOESR) {
+            return NcPathConstants.GOESR_IMG_STYLE_RULES;
         } else if (type == SatelliteType.MODIS) {
             return NcPathConstants.MODIS_IMG_STYLE_RULES;
         } else if (type == SatelliteType.MCIDAS) {

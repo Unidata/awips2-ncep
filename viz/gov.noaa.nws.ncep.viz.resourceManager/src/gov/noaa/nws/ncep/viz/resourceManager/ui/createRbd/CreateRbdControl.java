@@ -1,6 +1,5 @@
 package gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,9 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -47,7 +44,6 @@ import com.raytheon.uf.viz.core.drawables.AbstractRenderableDisplay;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
-import com.raytheon.viz.ui.EditorUtil;
 import com.raytheon.viz.ui.UiPlugin;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
@@ -73,12 +69,9 @@ import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceFactory.ResourceSelection;
 import gov.noaa.nws.ncep.viz.resources.manager.ResourceName;
 import gov.noaa.nws.ncep.viz.resources.manager.RscBundleDisplayMngr;
-import gov.noaa.nws.ncep.viz.resources.manager.SpfsManager;
 import gov.noaa.nws.ncep.viz.resources.time_match.NCTimeMatcher;
 import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
 import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneID;
-import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
 /**
  * Creates the Resource Manager's Data Selection dialog.
@@ -158,7 +151,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcPaneLayout;
 
 public class CreateRbdControl extends Composite implements IPartListener2 {
 
-    private ResourceSelectionDialog rscSelDlg = null;
+    //private ResourceSelectionDialog rscSelDlg = null;
 
     private RscBundleDisplayMngr rbdMngr;
 
@@ -168,8 +161,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     
     private Group selectedResourceGroup = null;
 
-    private Button selectResourceButton = null;
-
     private Button geoSyncPanesToggle = null;
 
     private ListViewer selectedResourceViewer = null;
@@ -177,8 +168,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     private Button editResourceButton = null;
 
     private Button deleteResourceButton = null;
-
-    private Button disableResourceButton = null;
 
     private Button moveResourceUpButton = null;
 
@@ -201,15 +190,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private AbstractRBD<?> editedRbd = null;
 
-    // used to initialize the Save Dialog
-
-    private String savedSpfGroup = null;
-
-    private String savedSpfName = null;
-
     private String savedRbdName;
 
-    private Point initDlgSize = new Point(750, 860);
+    private Point initDlgSize = new Point(800, 900);
 
     private TimelineControl timelineControl = null;
 
@@ -217,6 +200,10 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
     private static final transient IUFStatusHandler statusHandler = UFStatus
             .getHandler(CreateRbdControl.class);
+    
+    private ResourceSelectionControl sel_rsc_cntrl = null;
+    
+    ResourceName initRscName;
 
     // the rbdMngr will be used to set the gui so it should either be
     // initialized/cleared or set with the initial RBD.
@@ -227,7 +214,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         rbdMngr = mngr;
 
-        rscSelDlg = new ResourceSelectionDialog(shell);
+        //rscSelDlg = new ResourceSelectionDialog(shell);
 
         Composite top_comp = this;
         top_comp.setLayout(new GridLayout(1, true));
@@ -241,6 +228,19 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         sashForm.setLayoutData(gd);
         sashForm.setSashWidth(10);
+        
+        Group sel_rscs_grp = new Group(sashForm, SWT.SHADOW_NONE);
+        sel_rscs_grp.setLayout(new GridLayout(1, true));
+
+        gd = new GridData();
+        gd.grabExcessHorizontalSpace = true;
+        gd.grabExcessVerticalSpace = true;
+        gd.horizontalAlignment = SWT.FILL;
+        gd.verticalAlignment = SWT.FILL;
+        sel_rscs_grp.setLayoutData(gd);
+
+        sel_rsc_cntrl = new ResourceSelectionControl(sel_rscs_grp,
+        		initRscName, NcDisplayType.NMAP_DISPLAY);
 
         selectedResourceGroup = new Group(sashForm, SWT.SHADOW_NONE);
         gd = new GridData();
@@ -255,8 +255,28 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
 
         createRBDGroup();
 
+        StructuredSelection sel_elems = (StructuredSelection) selectedResourceViewer
+                .getSelection();
+        List<ResourceSelection> seldRscsList = sel_elems.toList();
+        int numSeldRscs = selectedResourceViewer.getList()
+                .getSelectionCount();
+
+        Boolean isBaseLevelRscSeld = false;
+
+        ResourceName initRscName = null;
+
+        for (ResourceSelection rscSel : seldRscsList) {
+            isBaseLevelRscSeld |= rscSel.isBaseLevelResource();
+            if (initRscName == null && !rscSel.isBaseLevelResource()) {
+                initRscName = rscSel.getResourceName();
+            }
+        }
+
+        if (initRscName != null) {
+            setSelectedResource(initRscName);
+        }
+
         timelineGroup = new Group(sashForm, SWT.SHADOW_NONE);
-        timelineGroup.setText("Select Timeline");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -346,10 +366,11 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         cancelEditButton.setVisible(false);
         okEditButton.setVisible(false);
 
-        sashForm.setWeights(new int[] { 50, 35 });
+        sashForm.setWeights(new int[] { 45, 20, 35 });
 
         // set up the content providers for the ListViewers
         setContentProviders();
+        
         addSelectionListeners();
 
         initWidgets();
@@ -400,52 +421,35 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         form_data.top = new FormAttachment(0, 5);
         form_data.left = new FormAttachment(0, 5);
         form_data.right = new FormAttachment(100, -95);// -110 ); //80, 0 );
-        form_data.bottom = new FormAttachment(100, -47);
+        form_data.bottom = new FormAttachment(100, -10);
         selectedResourceViewer.getList().setLayoutData(form_data);
-
-        selectResourceButton = new Button(selectedResourceGroup, SWT.PUSH);
-        selectResourceButton.setText("New");
-        form_data = new FormData();
-        form_data.width = 75;
-        form_data.top = new FormAttachment(0, 10);
-        form_data.right = new FormAttachment(100, -10);
-        selectResourceButton.setLayoutData(form_data);
 
         editResourceButton = new Button(selectedResourceGroup, SWT.PUSH);
         editResourceButton.setText("Edit");
         form_data = new FormData();
-        form_data.width = 75;
-        form_data.top = new FormAttachment(selectResourceButton, 10, SWT.BOTTOM);
-        form_data.right = new FormAttachment(100, -10);
+        form_data.width = 85;
+        form_data.top = new FormAttachment(0, 5);
+        form_data.right = new FormAttachment(100, -5);
 
         editResourceButton.setLayoutData(form_data);
         editResourceButton.setEnabled(false);
 
-        
         deleteResourceButton = new Button(selectedResourceGroup, SWT.PUSH);
         deleteResourceButton.setText("Remove");
         form_data = new FormData();
-        form_data.width = 75;
-        form_data.top = new FormAttachment(editResourceButton, 10, SWT.BOTTOM);
-        form_data.right = new FormAttachment(100, -10);
+        form_data.width = 85;
+        form_data.top = new FormAttachment(editResourceButton, 5, SWT.BOTTOM);
+        form_data.right = new FormAttachment(100, -5);
         deleteResourceButton.setLayoutData(form_data);
         deleteResourceButton.setEnabled(false);
-
-        disableResourceButton = new Button(selectedResourceGroup, SWT.TOGGLE);
-        disableResourceButton.setText("Turn Off");
-        form_data = new FormData();
-        form_data.width = 75;
-        form_data.top = new FormAttachment(deleteResourceButton, 10, SWT.BOTTOM);
-        form_data.right = new FormAttachment(100, -10);
-        disableResourceButton.setLayoutData(form_data);
 
         moveResourceDownButton = new Button(selectedResourceGroup,
                 SWT.ARROW | SWT.DOWN);
         moveResourceDownButton.setToolTipText("Move Down");
         form_data = new FormData();
         form_data.width = 35;
-        form_data.top = new FormAttachment(50, -10);
-        form_data.right = new FormAttachment(100, -10);
+        form_data.top = new FormAttachment(deleteResourceButton, 5, SWT.BOTTOM);
+        form_data.right = new FormAttachment(100, -5);
         moveResourceDownButton.setLayoutData(form_data);
         moveResourceDownButton.setEnabled(false);
 
@@ -476,7 +480,7 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         form_data = new FormData();
         form_data.width = 35;
         form_data.top = new FormAttachment(moveResourceDownButton, 0, SWT.TOP);
-        form_data.left = new FormAttachment(disableResourceButton, 0, SWT.LEFT);
+        form_data.left = new FormAttachment(deleteResourceButton, 0, SWT.LEFT);
         moveResourceUpButton.setLayoutData(form_data);
         moveResourceUpButton.setEnabled(false);
 
@@ -557,113 +561,61 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
     // add all of the listeners for widgets on this dialog
     void addSelectionListeners() {
 
-        selectResourceButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                StructuredSelection sel_elems = (StructuredSelection) selectedResourceViewer
-                        .getSelection();
-                List<ResourceSelection> seldRscsList = sel_elems.toList();
-                int numSeldRscs = selectedResourceViewer.getList()
-                        .getSelectionCount();
 
-                Boolean isBaseLevelRscSeld = false;
-                // the initially selected resource is the first non-baselevel
-                // rsc
-                ResourceName initRscName = null;
+        sel_rsc_cntrl.addResourceSelectionListener(new IResourceSelectedListener() {
+        	            @Override
+        	            public void resourceSelected(ResourceName rscName, boolean replace,
+        	                    boolean addAllPanes, boolean done) {
+        	
+        	                try {
+        	                    ResourceSelection rbt = ResourceFactory
+        	                            .createResource(rscName);
+        	
+        	                    rbdMngr.getSelectedArea();
+      
+    	
+    	                        if (addAllPanes) {
+    	                            rbdMngr.addSelectedResourceToAllPanes(rbt);
+    	                        } else {
+    	                            if (!rbdMngr.addSelectedResource(rbt, null)) {
+    	                                selectedResourceViewer.refresh(true);
+    	                            }
+    	                        }
+    	                    
+        	
+        	                    // add the new resource to the timeline as a possible
+        	                    // dominant resource
+        	                    if (rbt.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
+        	                        timelineControl.addAvailDomResource(
+        	                                (AbstractNatlCntrsRequestableResourceData) rbt
+        	                                        .getResourceData());
+        	
+        	                        // if there is not a dominant resource selected then
+        	                        // select this one
+        	                        if (timelineControl.getDominantResource() == null) {
+        	                            timelineControl
+        	                                    .setDominantResource(
+        	                                            (AbstractNatlCntrsRequestableResourceData) rbt
+        	                                                    .getResourceData(),
+        	                                            replace);
+        	                        }
+        	                    }
+        	                } catch (VizException e) {
+        	                    statusHandler.handle(Priority.PROBLEM,
+        	                            "Error Adding Resource to List: " + e.getMessage());
+        	                    MessageDialog errDlg = new MessageDialog(shell, "Error",
+        	                            null,
+        	                            "Error Creating Resource:" + rscName.toString()
+        	                                    + "\n\n" + e.getMessage(),
+        	                            MessageDialog.ERROR, new String[] { "OK" }, 0);
+        	                    errDlg.open();
+        	                }
+        	
+        	                updateSelectedResourcesView(true);
+        	
 
-                for (ResourceSelection rscSel : seldRscsList) {
-                    isBaseLevelRscSeld |= rscSel.isBaseLevelResource();
-                    if (initRscName == null && !rscSel.isBaseLevelResource()) {
-                        initRscName = rscSel.getResourceName();
-                    }
-                }
-
-                // the replace button is enabled if there is only 1 resource
-                // selected and it is not the base resource
-                if (rscSelDlg.isOpen()) {
-                    if (initRscName != null) {
-                        rscSelDlg.setSelectedResource(initRscName);
-                    }
-                } else {
-                    // Replace button is visible replace enabled
-                    rscSelDlg.open(initRscName, true, rbdMngr.getRbdType(),
-                            SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS);
-                }
-            }
-        });
-
-        rscSelDlg.addResourceSelectionListener(new IResourceSelectedListener() {
-            @Override
-            public void resourceSelected(ResourceName rscName, boolean replace,
-                    boolean addAllPanes, boolean done) {
-
-                try {
-                    ResourceSelection rbt = ResourceFactory
-                            .createResource(rscName);
-
-                    rbdMngr.getSelectedArea();
-
-                    // if replacing existing resources, get the selected
-                    // resources (For now just replace the 1st if more than one
-                    // selected.)
-
-                    
-                        if (addAllPanes) {
-                            if (!rbdMngr.addSelectedResourceToAllPanes(rbt)) {
-                                if (done) {
-                                    rscSelDlg.close();
-                                }
-                                return;
-                            }
-                        } else {
-
-                            if (!rbdMngr.addSelectedResource(rbt, null)) {
-                                selectedResourceViewer.refresh(true);
-
-                                if (done) {
-                                    rscSelDlg.close();
-                                }
-                                return;
-                            }
-                        }
-                    
-
-                    // add the new resource to the timeline as a possible
-                    // dominant resource
-                    if (rbt.getResourceData() instanceof AbstractNatlCntrsRequestableResourceData) {
-                        timelineControl.addAvailDomResource(
-                                (AbstractNatlCntrsRequestableResourceData) rbt
-                                        .getResourceData());
-
-                        // if there is not a dominant resource selected then
-                        // select this one
-                        if (timelineControl.getDominantResource() == null) {
-                            timelineControl
-                                    .setDominantResource(
-                                            (AbstractNatlCntrsRequestableResourceData) rbt
-                                                    .getResourceData(),
-                                            replace);
-                        }
-                    }
-                } catch (VizException e) {
-                    statusHandler.handle(Priority.PROBLEM,
-                            "Error Adding Resource to List: " + e.getMessage());
-                    MessageDialog errDlg = new MessageDialog(shell, "Error",
-                            null,
-                            "Error Creating Resource:" + rscName.toString()
-                                    + "\n\n" + e.getMessage(),
-                            MessageDialog.ERROR, new String[] { "OK" }, 0);
-                    errDlg.open();
-                }
-
-                updateSelectedResourcesView(true);
-
-                if (done) {
-                    rscSelDlg.close();
-                }
-            }
-        });
-
+        	            }
+        	        });
         // if syncing the panes
         geoSyncPanesToggle.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -724,24 +676,6 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
             }
         });
 
-        disableResourceButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent ev) {
-                StructuredSelection sel_elems = (StructuredSelection) selectedResourceViewer
-                        .getSelection();
-                Iterator<?> itr = sel_elems.iterator();
-
-                while (itr.hasNext()) {
-                    ResourceSelection rscSel = (ResourceSelection) itr.next();
-                    rscSel.setIsVisible(!disableResourceButton.getSelection());
-                }
-
-                selectedResourceViewer.refresh(true);
-
-                updateSelectedResourcesView(false);
-            }
-        });
-
         clearRbdButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent ev) {
@@ -764,7 +698,17 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         });
 
     }
+    
+    public ResourceName getPrevSelectedResource() {
+        return (sel_rsc_cntrl != null ? sel_rsc_cntrl.getPrevSelectedResource()
+                : new ResourceName());
+    }
 
+    public void setSelectedResource(ResourceName rscName) {
+        initRscName = rscName;
+        sel_rsc_cntrl.initWidgets(initRscName);
+    }
+    
     // import the current editor or initialize the widgets.
 
     public void initWidgets() {
@@ -772,13 +716,14 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         shell.setSize(initDlgSize);
 
         updateGUIforMultipane(rbdMngr.isMultiPane());
-
+        
         timelineControl.clearTimeline();
+
     }
 
-    // if this is called from the Edit Rbd Dialog (from the LoadRbd tab), then
-    // remove widgets that don't apply. (ie, import, Save, and Load)
+    
 
+    
     public void configureForEditRbd() {
         clearRbdButton.setVisible(false);
         loadRbdButton.setVisible(false);
@@ -1109,18 +1054,9 @@ public class CreateRbdControl extends Composite implements IPartListener2 {
         deleteResourceButton.setEnabled(
                 numSeldRscs > 1 || (numSeldRscs == 1 && !isBaseLevelRscSeld));
 
-        // the disable_rsc_btn is always enabled.
-        disableResourceButton.setEnabled((numSeldRscs > 0));
         moveResourceDownButton.setEnabled((numSeldRscs == 1) && !lastSelected);
         moveResourceUpButton.setEnabled((numSeldRscs == 1) && !firstSelected);
 
-        if (allRscsAreVisible) {
-            disableResourceButton.setSelection(false);
-            disableResourceButton.setText("Turn Off");
-        } else {
-            disableResourceButton.setSelection(true);
-            disableResourceButton.setText("Turn On");
-        }
     }
 
     // This will load the currently configured RBD (all panes) into

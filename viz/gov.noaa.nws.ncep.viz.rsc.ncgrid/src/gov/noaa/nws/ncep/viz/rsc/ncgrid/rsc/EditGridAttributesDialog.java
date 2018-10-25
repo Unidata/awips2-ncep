@@ -3,19 +3,14 @@ package gov.noaa.nws.ncep.viz.rsc.ncgrid.rsc;
 import gov.noaa.nws.ncep.viz.resources.INatlCntrsResourceData;
 import gov.noaa.nws.ncep.viz.resources.attributes.AbstractEditResourceAttrsDialog;
 import gov.noaa.nws.ncep.viz.resources.attributes.ResourceAttrSet.RscAttrValue;
-import gov.noaa.nws.ncep.viz.ui.display.NcDisplayMngr;
-
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -38,6 +33,7 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  * Sep 07, 2012  #743        Archana    Added CLRBAR
  * Sep 11, 2013  #1036       S. Gurung  Added TEXT attribute
  * 04/05/2016   R15715       dgilling   Refactored for new AbstractEditResourceAttrsDialog constructor.
+ * Oct 17, 2016	 ----        M. James   Use single form text editor for attributes
  * 
  * @author mli
  * @version 1
@@ -86,45 +82,7 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
 
     private RscAttrValue gdfile = null;
 
-    private Text glevelText;
-
-    private Text gvcordText;
-
-    private Text skipText;
-
-    private Text filterText;
-
-    private Text scaleText;
-
-    private Text gdpfunText;
-
-    private Text typeText;
-
-    private Text cintText;
-
-    private Text lineAttrText;
-
-    private Text fintAttrText;
-
-    private Text flineAttrText;
-
-    private Text hiloAttrText;
-
-    private Text hlsymAttrText;
-
-    private Text windAttrText;
-
-    private Text titleAttrText;
-
-    private Text colorsText;
-
-    private Text markerText;
-
-    private Text grdlblText;
-
-    private Text clrbarText;
-
-    private Text textAttrText;
+    private StyledText gempakText;
 
     /**
      * Constructor
@@ -200,380 +158,74 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
             text.setAttrValue("");
         }
 
-        // contour attributes editing
-        Group contourAttributesGroup = new Group(composite, SWT.SHADOW_NONE);
-        GridLayout contourAttrGridLayout = new GridLayout();
-        contourAttrGridLayout.numColumns = 1;
-        contourAttrGridLayout.marginHeight = 8;
-        contourAttrGridLayout.marginWidth = 2;
-        contourAttrGridLayout.horizontalSpacing = 20;
-        contourAttrGridLayout.verticalSpacing = 8;
-        contourAttributesGroup.setLayout(contourAttrGridLayout);
-
-        Composite comp = new Composite(contourAttributesGroup, SWT.SHADOW_NONE);
         GridLayout contourIntervalsGridLayout = new GridLayout();
         contourIntervalsGridLayout.numColumns = 2;
-        comp.setLayout(contourIntervalsGridLayout);
-
-        // GLEVEL
-        Label glevelLabel = new Label(comp, SWT.NONE);
-        glevelLabel.setText("GLEVEL:");
-        glevelText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        glevelText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        glevelText.setText((String) glevel.getAttrValue());
-        glevelText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                glevel.setAttrValue(glevelText.getText().trim());
-            }
-
-        });
-
-        // GVCORD
-        Label gvcordLabel = new Label(comp, SWT.NONE);
-        gvcordLabel.setText("GVCORD:");
-        gvcordText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        gvcordText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        gvcordText.setText((String) gvcord.getAttrValue());
-        gvcordText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                gvcord.setAttrValue(gvcordText.getText().trim());
-            }
-        });
-
-        // SKIP
-        Label skipLabel = new Label(comp, SWT.NONE);
-        skipLabel.setText("SKIP:");
-        skipText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        skipText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        skipText.setText((String) skip.getAttrValue());
-        skipText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                skip.setAttrValue(skipText.getText().trim());
-            }
-        });
-
-        // filter
-        Label filterLabel = new Label(comp, SWT.NONE);
-        filterLabel.setText("FILTER:");
-        filterText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        filterText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        filterText.setText((String) filter.getAttrValue());
-        filterText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                filter.setAttrValue(filterText.getText().trim());
-            }
-        });
-
-        // SCALE
-        Label scaleLabel = new Label(comp, SWT.NONE);
-        scaleLabel.setText("SCALE:");
-        scaleText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        scaleText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        scaleText.setText((String) scale.getAttrValue());
-        scaleText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                scale.setAttrValue(scaleText.getText().trim());
-            }
-        });
-
-        // GDPFUN
-        Label gdpfunLabel = new Label(comp, SWT.NONE);
-        gdpfunLabel.setText("GDPFUN:");
-        gdpfunText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        gdpfunText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        gdpfunText.setText((String) gdpfun.getAttrValue());
-        gdpfunText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                gdpfun.setAttrValue(gdpfunText.getText().trim());
-            }
-        });
-
-        // TYPE
-        Label typeLabel = new Label(comp, SWT.NONE);
-        typeLabel.setText("TYPE:");
-        typeText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        typeText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        typeText.setText((String) type.getAttrValue());
-        typeText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                type.setAttrValue(typeText.getText().trim());
-            }
-        });
-
-        // Contour Intervals -- CINT
-        Label contourIntervalsLabel = new Label(comp, SWT.NONE);
-        contourIntervalsLabel.setText("CINT:");
-        cintText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        cintText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        cintText.setText((String) cintString.getAttrValue());
-        cintText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                cintString.setAttrValue(cintText.getText().trim());
-            }
-
-        });
-
-        // LINE
-        Label lineAttrLabel = new Label(comp, SWT.NONE);
-        lineAttrLabel.setText("LINE:");
-        lineAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        lineAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        lineAttrText.setText((String) lineAttr.getAttrValue());
-        lineAttrText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                lineAttr.setAttrValue(lineAttrText.getText().trim());
-            }
-        });
-
-        // FINT
-        Label fintAttrLabel = new Label(comp, SWT.NONE);
-        fintAttrLabel.setText("FINT:");
-        fintAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        fintAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        fintAttrText.setText((String) fint.getAttrValue());
-        fintAttrText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                fint.setAttrValue(fintAttrText.getText().trim());
-            }
-        });
-
-        // FLINE
-        Label flineAttrLabel = new Label(comp, SWT.NONE);
-        flineAttrLabel.setText("FLINE:");
-        flineAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        flineAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        flineAttrText.setText((String) fline.getAttrValue());
-        flineAttrText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                fline.setAttrValue(flineAttrText.getText().trim());
-            }
-        });
-
-        // HILO
-        if (hilo != null) {
-            Label hiloAttrLabel = new Label(comp, SWT.NONE);
-            hiloAttrLabel.setText("HILO:");
-            hiloAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-            hiloAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-            hiloAttrText.setText((String) hilo.getAttrValue());
-            hiloAttrText.addModifyListener(new ModifyListener() {
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    hilo.setAttrValue(hiloAttrText.getText().trim());
-                }
-            });
+        
+        
+        /**/
+        composite.setLayout(contourIntervalsGridLayout); 
+        
+        // Single form text editor. Must account for "lineAttribute" instead of "LINE"
+        String gempakEditable = "";
+        String gempakLabel = null;
+        for (String gempakCommand : editedRscAttrSet.getAttrNames()) {
+        	gempakLabel = editedRscAttrSet.getRscAttr(gempakCommand).attrName;
+        	if (gempakLabel.equalsIgnoreCase("lineAttributes")){
+        		gempakLabel = "line";
+        	}
+    		gempakEditable += 
+   				String.format("%-7s", gempakLabel.toUpperCase()) + " = " +
+    					editedRscAttrSet.getRscAttr(gempakCommand).getAttrValue().toString() 
+    					+ "\n";
         }
-        // HLSYM
-        if (hlsym != null) {
-            Label hlsymAttrLabel = new Label(comp, SWT.NONE);
-            hlsymAttrLabel.setText("HLSYM:");
-            hlsymAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-            hlsymAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-            hlsymAttrText.setText((String) hlsym.getAttrValue());
-            hlsymAttrText.addModifyListener(new ModifyListener() {
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    hlsym.setAttrValue(hlsymAttrText.getText().trim());
-                }
-            });
-        }
-        // CLRBAR
-        if (clrbar != null) {
-            Label hlsymAttrLabel = new Label(comp, SWT.NONE);
-            hlsymAttrLabel.setText("CLRBAR:");
-            clrbarText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-            clrbarText.setLayoutData(new GridData(230, SWT.DEFAULT));
-            clrbarText.setText((String) clrbar.getAttrValue());
-            clrbarText.addModifyListener(new ModifyListener() {
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    clrbar.setAttrValue(clrbarText.getText().trim());
-                    NcDisplayMngr.getActiveNatlCntrsEditor().refresh();
-                }
-            });
-        }
-
-        // TEXT
-        if (text != null) {
-            Label textAttrLabel = new Label(comp, SWT.NONE);
-            textAttrLabel.setText("TEXT:");
-            textAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-            textAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-            textAttrText.setText((String) text.getAttrValue());
-            textAttrText.addModifyListener(new ModifyListener() {
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    text.setAttrValue(textAttrText.getText().trim());
-                }
-            });
-        }
-
-        // WIND
-        Label windAttrLabel = new Label(comp, SWT.NONE);
-        windAttrLabel.setText("WIND:");
-        windAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        windAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        windAttrText.setText((String) wind.getAttrValue());
-        windAttrText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                wind.setAttrValue(windAttrText.getText().trim());
-            }
+        //Font mono = new Font(composite.getDisplay(), "Lucida Sans Typewriter", 7, SWT.NORMAL);
+        //mono.getFontData()[0].setHeight(6);
+        gempakText = new StyledText(composite,SWT.MULTI | SWT.H_SCROLL );
+        gempakText.setLayoutData(new GridData(760, 660));
+        gempakText.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
+        gempakText.setText(gempakEditable.substring(0, gempakEditable.length() - 2));
+        
+        gempakText.addModifyListener(new ModifyListener() {
+        	public void modifyText(ModifyEvent e) {
+	        	setGempakAttrValues();
+			}
         });
 
-        // TITLE
-        Label titleAttrLabel = new Label(comp, SWT.NONE);
-        titleAttrLabel.setText("TITLE:");
-        titleAttrText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        titleAttrText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        titleAttrText.setText((String) title.getAttrValue());
-        titleAttrText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                title.setAttrValue(titleAttrText.getText().trim());
-            }
-        });
-
-        // COLORS
-        Label colorsLabel = new Label(comp, SWT.NONE);
-        colorsLabel.setText("COLORS:");
-        colorsText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        colorsText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        colorsText.setText((String) colors.getAttrValue());
-        colorsText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                colors.setAttrValue(colorsText.getText().trim());
-            }
-        });
-
-        // MARKER
-        Label markerLabel = new Label(comp, SWT.NONE);
-        markerLabel.setText("MARKER:");
-        markerText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        markerText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        markerText.setText((String) marker.getAttrValue());
-        markerText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                marker.setAttrValue(markerText.getText().trim());
-            }
-        });
-
-        // GRDLBL
-        Label grdlblLabel = new Label(comp, SWT.NONE);
-        grdlblLabel.setText("GRDLBL:");
-        grdlblText = new Text(comp, SWT.SINGLE | SWT.BORDER);
-        grdlblText.setLayoutData(new GridData(230, SWT.DEFAULT));
-        grdlblText.setText(String.valueOf(grdlbl.getAttrValue()));
-        grdlblText.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                grdlbl.setAttrValue(Integer
-                        .valueOf(grdlblText.getText().trim()));
-            }
-        });
-
-        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-        Label sepLbl = new Label(contourAttributesGroup, SWT.SEPARATOR
-                | SWT.HORIZONTAL);
-        sepLbl.setLayoutData(gd);
-
-        final Button toolTipDisplay = new Button(contourAttributesGroup,
-                SWT.CHECK);
-        toolTipDisplay.setLayoutData(new GridData(SWT.DEFAULT, SWT.DEFAULT));
-        toolTipDisplay.setText("ToolTips OFF");
-        toolTipDisplay.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                if (toolTipDisplay.getSelection()) {
-                    toolTipDisplay.setText("ToolTips ON");
-                    EnableToolTip(true);
-                } else {
-                    toolTipDisplay.setText("ToolTips OFF");
-                    EnableToolTip(false);
-                }
-            }
-        });
         return composite;
     }
 
-    private void EnableToolTip(boolean on) {
-        if (on) {
-            glevelText.setToolTipText(NcgridAttributesHelp.GlevelToolTipText());
-            gvcordText.setToolTipText(NcgridAttributesHelp.GvcordToolTipText());
-            skipText.setToolTipText(NcgridAttributesHelp.SkipToolTipText());
-            filterText.setToolTipText(NcgridAttributesHelp.FilterToolTipText());
-            scaleText.setToolTipText(NcgridAttributesHelp.ScaleToolTipText());
-            gdpfunText.setToolTipText(NcgridAttributesHelp.GdpfunToolTipText());
-            typeText.setToolTipText(NcgridAttributesHelp.TypeToolTipText());
-            cintText.setToolTipText(NcgridAttributesHelp.CintToolTipText());
-            lineAttrText.setToolTipText(NcgridAttributesHelp.LineToolTipText());
-            fintAttrText.setToolTipText(NcgridAttributesHelp.FintToolTipText());
-            flineAttrText.setToolTipText(NcgridAttributesHelp
-                    .FlineToolTipText());
-            windAttrText.setToolTipText(NcgridAttributesHelp.WindToolTipText());
-            if (hilo != null) {
-                hiloAttrText.setToolTipText(NcgridAttributesHelp
-                        .HiloToolTipText());
-            }
-            if (hlsym != null) {
-                hlsymAttrText.setToolTipText(NcgridAttributesHelp
-                        .HlsymToolTipText());
-            }
-            clrbarText.setToolTipText(NcgridAttributesHelp.ClrbarToolTipText());
-            titleAttrText.setToolTipText(NcgridAttributesHelp
-                    .TitleToolTipText());
-            colorsText.setToolTipText(NcgridAttributesHelp.ColorsToolTipText());
-            markerText.setToolTipText(NcgridAttributesHelp.MarkerToolTipText());
-            grdlblText.setToolTipText(NcgridAttributesHelp.GrdlblToolTipText());
-            if (text != null) {
-                textAttrText.setToolTipText(NcgridAttributesHelp
-                        .TextToolTipText());
-            }
-        } else {
-            glevelText.setToolTipText(null);
-            gvcordText.setToolTipText(null);
-            scaleText.setToolTipText(null);
-            gdpfunText.setToolTipText(null);
-            typeText.setToolTipText(null);
-            cintText.setToolTipText(null);
-            lineAttrText.setToolTipText(null);
-            fintAttrText.setToolTipText(null);
-            flineAttrText.setToolTipText(null);
-            windAttrText.setToolTipText(null);
-            if (hilo != null) {
-                hiloAttrText.setToolTipText(null);
-            }
-            if (hlsym != null) {
-                hlsymAttrText.setToolTipText(null);
-            }
-            clrbarText.setToolTipText(null);
-            windAttrText.setToolTipText(null);
-            titleAttrText.setToolTipText(null);
-            colorsText.setToolTipText(null);
-            markerText.setToolTipText(null);
-            grdlblText.setToolTipText(null);
-            if (text != null) {
-                textAttrText.setToolTipText(null);
-            }
-        }
-    }
 
     @Override
     public void initWidgets() {
         // TODO Auto-generated method stub
     }
+    
+    public void setGempakAttrValues() {
+ 		String[] gempakVars = gempakText.getText().trim().split("\n", -1);
+ 		// There's surely a better way to do this.
+ 		for (String gemParm: gempakVars) {
+ 			if (gemParm.toLowerCase().startsWith("glevel")) glevel.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("line")) lineAttr.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("cint")) cintString.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("glevel")) glevel.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("gvcord")) gvcord.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("skip")) skip.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("filter")) filter.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("scale")) scale.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("gdpfun")) gdpfun.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("type")) type.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("fint")) fint.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("fline")) fline.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("hilo")) hilo.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			if (gemParm.toLowerCase().startsWith("hlsym")) hlsym.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("wind")) wind.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("title")) title.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("colors")) colors.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("marker")) marker.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("grdlbl")) grdlbl.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("clrbar")) clrbar.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 	    	if (gemParm.toLowerCase().startsWith("text")) text.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 		}
+ 	}
 
 }

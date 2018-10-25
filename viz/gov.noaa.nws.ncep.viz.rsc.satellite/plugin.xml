@@ -19,7 +19,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.ModisSatResource"
             name="ModisSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>
@@ -33,7 +33,7 @@
       <resource
             class="gov.noaa.nws.ncep.viz.rsc.satellite.rsc.NcSatelliteResource"
             name="GoesrSatellite"
-            recordClass="com.raytheon.edex.plugin.satellite.SatelliteRecord"
+            recordClass="com.raytheon.uf.common.dataplugin.satellite.SatelliteRecord"
             renderingOrderId="IMAGE_COUNTRY"
             resourceType="PLAN_VIEW">
       </resource>

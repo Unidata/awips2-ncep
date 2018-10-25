@@ -176,11 +176,7 @@ public class ResourceSelectionControl extends Composite {
 
     protected Composite sel_rsc_comp = null;
 
-    protected Text seldRscNameTxt = null;
-
     protected Label availDataTimeLbl = null;
-
-    protected Label cycleTimeLbl = null;
 
     protected Combo cycleTimeCombo = null;
 
@@ -204,8 +200,6 @@ public class ResourceSelectionControl extends Composite {
 
     protected static final int RSC_LIST_VIEWER_HEIGHT = 220;
 
-    protected static Rectangle prevShellBounds = new Rectangle(0, 0, 800, 460);
-
     protected Boolean showLatestTimes = false;
 
     protected Boolean onlyShowResourcesWithData = false;
@@ -222,7 +216,7 @@ public class ResourceSelectionControl extends Composite {
 
     private Cursor waitCursor = null;
 
-    public ResourceSelectionControl(Composite parent, ResourceName initRscName, Boolean multiPane,
+    public ResourceSelectionControl(Composite parent, ResourceName initRscName,
             NcDisplayType dispType) throws VizException {
         super(parent, SWT.SHADOW_NONE);
 
@@ -242,20 +236,12 @@ public class ResourceSelectionControl extends Composite {
         gd.grabExcessVerticalSpace = true;
         gd.horizontalAlignment = SWT.FILL;
         gd.verticalAlignment = SWT.FILL;
-        gd.widthHint = prevShellBounds.width;
-        gd.heightHint = prevShellBounds.height;
+
         sel_rsc_comp.setLayoutData(gd);
 
         sel_rsc_comp.setLayout(new FormLayout());
 
-        sel_rsc_comp.addListener(SWT.Resize, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                prevShellBounds = sel_rsc_comp.getBounds();
-            }
-        });
-
-        createSelectResourceGroup(multiPane);
+        createSelectResourceGroup();
 
         setContentProviders();
         addSelectionListeners();
@@ -288,18 +274,18 @@ public class ResourceSelectionControl extends Composite {
      * create all the widgets in the Resource Selection (top) section of the
      * sashForm.
      */
-    private void createSelectResourceGroup(Boolean multiPane) {
+    private void createSelectResourceGroup() {
 
         rscCatLViewer = new ListViewer(sel_rsc_comp,
                 SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         FormData fd = new FormData();
         fd.height = RSC_LIST_VIEWER_HEIGHT;
         fd.top = new FormAttachment(0, 0);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(0, 110);
+        fd.left = new FormAttachment(0, 0);
+        fd.right = new FormAttachment(0, 120);
 
         // This allows a resize to change the size of the lists.
-        fd.bottom = new FormAttachment(100, -125);
+        fd.bottom = new FormAttachment(100, -40);
         rscCatLViewer.getList().setLayoutData(fd);
 
         Label rscCatLbl = new Label(sel_rsc_comp, SWT.NONE);
@@ -314,9 +300,10 @@ public class ResourceSelectionControl extends Composite {
                 SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();
         fd.height = RSC_LIST_VIEWER_HEIGHT;
+        fd.width = 160;
         fd.top = new FormAttachment(rscCatLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscCatLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(37, 0);
+        //fd.right = new FormAttachment(37, 0);
 
         fd.bottom = new FormAttachment(rscCatLViewer.getList(), 0, SWT.BOTTOM);
         rscTypeLViewer.getList().setLayoutData(fd);
@@ -334,10 +321,10 @@ public class ResourceSelectionControl extends Composite {
                 SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fd = new FormData();
         fd.height = RSC_LIST_VIEWER_HEIGHT;
+        fd.width = 180;
         fd.top = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscTypeLViewer.getList(), 8, SWT.RIGHT);
-        fd.right = new FormAttachment(62, 0);
-
+        //fd.right = new FormAttachment(62, 0);
         fd.bottom = new FormAttachment(rscTypeLViewer.getList(), 0, SWT.BOTTOM);
         rscGroupLViewer.getList().setLayoutData(fd);
 
@@ -355,16 +342,15 @@ public class ResourceSelectionControl extends Composite {
         fd.top = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.TOP);
         fd.left = new FormAttachment(rscGroupLViewer.getList(), 8, SWT.RIGHT);
         fd.right = new FormAttachment(100, -10);
-        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), 0,
-                SWT.BOTTOM);
+        fd.bottom = new FormAttachment(rscGroupLViewer.getList(), 0, SWT.BOTTOM);
         rscAttrSetLViewer.getList().setLayoutData(fd);
 
         Label rscAttrsLbl = new Label(sel_rsc_comp, SWT.NONE);
         rscAttrsLbl.setText("Resource Attributes");
         fd = new FormData();
+        fd.width = 200;
         fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(rscAttrSetLViewer.getList(), -3,
-                SWT.TOP);
+        fd.bottom = new FormAttachment(rscAttrSetLViewer.getList(), -3, SWT.TOP);
         rscAttrsLbl.setLayoutData(fd);
 
         availDataTimeLbl = new Label(sel_rsc_comp, SWT.None);
@@ -372,46 +358,27 @@ public class ResourceSelectionControl extends Composite {
         fd = new FormData();
         fd.left = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.LEFT);
         fd.top = new FormAttachment(rscAttrSetLViewer.getList(), 5, SWT.BOTTOM);
-        fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0,
-                SWT.RIGHT);
+        fd.right = new FormAttachment(rscAttrSetLViewer.getList(), 0, SWT.RIGHT);
         availDataTimeLbl.setLayoutData(fd);
-
-        seldRscNameTxt = new Text(sel_rsc_comp,
-                SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
-        fd = new FormData();
-        fd.top = new FormAttachment(rscCatLViewer.getList(), 40, SWT.BOTTOM);
-        fd.left = new FormAttachment(rscCatLViewer.getList(), 0, SWT.LEFT);
-        fd.right = new FormAttachment(75, 0);
-        seldRscNameTxt.setLayoutData(fd);
 
         addResourceBtn = new Button(sel_rsc_comp, SWT.None);
 
         fd = new FormData();
-        fd.top = new FormAttachment(seldRscNameTxt, 20, SWT.BOTTOM);
-        fd.left = new FormAttachment(50, 20);
+        fd.top = new FormAttachment(rscCatLViewer.getList(), 10, SWT.BOTTOM);
+        fd.right = new FormAttachment(100, -10);
         
         addResourceBtn.setLayoutData(fd);
-        addResourceBtn.setText("  Add Resource "); // Add To RBD
+        addResourceBtn.setText(" Add Resource "); // Add To RBD
 
         // allow the user to enter any previous datatime
         cycleTimeCombo = new Combo(sel_rsc_comp, SWT.READ_ONLY);
         fd = new FormData();
-        fd.left = new FormAttachment(80, 0);
-        fd.right = new FormAttachment(100, -20);
-        fd.top = new FormAttachment(seldRscNameTxt, 0, SWT.TOP);
+        fd.width = 200;
+        fd.right = new FormAttachment(addResourceBtn, -10, SWT.LEFT);
+        fd.top = new FormAttachment(addResourceBtn, 0, SWT.TOP);
 
         cycleTimeCombo.setLayoutData(fd);
 
-        cycleTimeLbl = new Label(sel_rsc_comp, SWT.None);
-        // Default to the maximum string (length) the label might be:
-        // We use "Available Times" (for PGEN) and "Cycle Time" for all others
-        // If it's not used for PGEN, it will be set to "Cycle Time" in the
-        // listener
-        cycleTimeLbl.setText("Available Times");
-        fd = new FormData();
-        fd.left = new FormAttachment(cycleTimeCombo, 0, SWT.LEFT);
-        fd.bottom = new FormAttachment(cycleTimeCombo, -3, SWT.TOP);
-        cycleTimeLbl.setLayoutData(fd);
     }
 
     private void setContentProviders() {
@@ -910,7 +877,7 @@ public class ResourceSelectionControl extends Composite {
             @Override
             public void widgetSelected(SelectionEvent ev) {
                 prevSelectedRscName = selectedRscName;
-                selectResource(false, false);
+                selectResource(true, true);
             }
         });
 
@@ -1218,9 +1185,7 @@ public class ResourceSelectionControl extends Composite {
 
             // combo box will now be enabled for PGEN Available times
             if (usingCycleTimes(rscDefn)) {
-                cycleTimeLbl.setEnabled(true);
                 cycleTimeCombo.setEnabled(true);
-                cycleTimeLbl.setVisible(true);
                 cycleTimeCombo.setVisible(true);
 
                 if (!openingDialogWithResources) {
@@ -1251,38 +1216,26 @@ public class ResourceSelectionControl extends Composite {
             } else {
                 availDataTimeLbl.setVisible(true);
                 availDataTimeLbl.setText(availMsg);
-                cycleTimeLbl.setEnabled(false);
                 cycleTimeCombo.setEnabled(false);
-                cycleTimeLbl.setVisible(false);
                 cycleTimeCombo.setVisible(false);
             }
 
             // For now, don't let the user select 'Latest'
             if (selectedRscName.isLatestCycleTime()) {
                 addResourceBtn.setEnabled(false);
-                seldRscNameTxt.setText("");
             } else {
-                String selectedRscNameStr = selectedRscName.toString();
                 // chop off seconds and milliseconds, leaving just hours and
                 // minutes
                 if (selectedRscName.getCycleTime() != null) {
                     String cycleTimeStr = selectedRscName.getCycleTimeString();
-                    selectedRscNameStr = selectedRscName.getRscCategory() + "/"
-                            + selectedRscName.getRscType() + "/"
-                            + selectedRscName.getRscGroup() + "/"
-                            + selectedRscName.getRscAttrSetName() + "("
-                            + cycleTimeStr + ")";
                 }
-                seldRscNameTxt.setText(selectedRscNameStr);
             }
         } else {
-            seldRscNameTxt.setText("");
             addResourceBtn.setEnabled(false);
 
             availDataTimeLbl.setVisible(true);
             availDataTimeLbl.setText(availMsg);
 
-            cycleTimeLbl.setVisible(false);
             cycleTimeCombo.setVisible(false);
         }
 
@@ -1326,27 +1279,17 @@ public class ResourceSelectionControl extends Composite {
                 .getResourceDefinition(selectedRscName);
 
         if (rscDefn == null) {
-            cycleTimeLbl.setEnabled(false);
             cycleTimeCombo.setEnabled(false);
             clearCycleTimeCombo();
             return;
         }
 
-        cycleTimeLbl.setEnabled(true);
         cycleTimeCombo.setEnabled(true);
 
         boolean cycleTimeEnabled = (rscDefn.isForecast()
                 || rscDefn.isPgenResource());
-        cycleTimeLbl.setVisible(cycleTimeEnabled);
         cycleTimeCombo.setVisible(cycleTimeEnabled);
         availDataTimeLbl.setVisible(!cycleTimeEnabled);
-
-        // use a different label name if PGEN
-        if (rscDefn.isPgenResource()) {
-            cycleTimeLbl.setText("Available Times");
-        } else {
-            cycleTimeLbl.setText("Cycle Time");
-        }
 
         if (!isForecast() && !rscDefn.isPgenResource()) {
             selectedRscName.setCycleTime(null);
@@ -1468,7 +1411,6 @@ public class ResourceSelectionControl extends Composite {
                 if (currentTimes.isEmpty()) {
                     cycleTimeCombo.removeAll();
                     cycleTimeCombo.setVisible(false);
-                    cycleTimeLbl.setVisible(false);
                     availDataTimeLbl.setVisible(true);
                     availDataTimeLbl.setText("No Data Available");
                 } else {

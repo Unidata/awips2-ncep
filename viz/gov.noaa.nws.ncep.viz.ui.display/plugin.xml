@@ -6,25 +6,29 @@
       <editor
             class="gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor"
             default="true"
-            id=   "gov.noaa.nws.ncep.viz.ui.display.NcMapEditor"
+            icon="icons/globe.png"
+            id="gov.noaa.nws.ncep.viz.ui.display.NcMapEditor"
             name="NcMAP Display">
       </editor>
       <editor
             class="gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor"
             default="true"
-            id=   "gov.noaa.nws.ncep.viz.ui.display.SolarDisplay"
+            icon="icons/solar.png"
+            id="gov.noaa.nws.ncep.viz.ui.display.SolarDisplay"
             name="SOLAR Display">
       </editor>      
       <editor
             class="gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor"
             default="true"
-            id=   "gov.noaa.nws.ncep.viz.ui.display.NTransDisplay"
+            icon="icons/ntrans.png"
+            id="gov.noaa.nws.ncep.viz.ui.display.NTransDisplay"
             name="NTRANS Display">
       </editor>
       <editor
             class="gov.noaa.nws.ncep.viz.ui.display.NatlCntrsEditor"
             default="true"
-            id=   "gov.noaa.nws.ncep.viz.ui.display.GraphDisplay"
+            icon="icons/graph.png"
+            id="gov.noaa.nws.ncep.viz.ui.display.GraphDisplay"
             name="GRAPH Display">
       </editor>
    </extension>

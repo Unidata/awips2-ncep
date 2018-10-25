@@ -49,10 +49,12 @@ public class ManageResourceControl extends Composite {
 	private ResourceDefnsMngr rscDefnMngr;
 		
     private SashForm sashForm = null;
+    
     private Group selRscGrp = null;
+    
     private Group editRscGrp = null;
     
-    private Point initDlgSize = new Point( 750, 860 );
+    private Point initDlgSize = new Point( 830, 800 );
 
     private ResourceEditSelectionComposite selectResourceComp = null;
     
@@ -93,9 +95,7 @@ public class ManageResourceControl extends Composite {
 
         Composite top_comp = this;        
         top_comp.setLayout( new GridLayout(1,true) );
-        
-        top_comp.setSize( 500, 450 );
-        
+                
         sashForm = new SashForm( top_comp, SWT.VERTICAL );
         GridData gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
@@ -107,7 +107,6 @@ public class ManageResourceControl extends Composite {
         sashForm.setSashWidth(10);
                 
         selRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
-        selRscGrp.setText("Select Resource");
         gd = new GridData();
         gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
@@ -115,7 +114,6 @@ public class ManageResourceControl extends Composite {
         gd.verticalAlignment = SWT.FILL;
 
         selRscGrp.setLayoutData( gd );
-
         selRscGrp.setLayout( new FormLayout() );
         
     	try {
@@ -125,14 +123,6 @@ public class ManageResourceControl extends Composite {
 		} catch ( Exception e ) {
 			e.printStackTrace();
 		}
-		
-//		sel_rsc_cntrl.addResourceSelectionListener( new IResourceSelectedListener() {
-//			@Override
-//			public void resourceSelected(ResourceName rscName,
-//					DataTime fcstTime, boolean done) {
-//				
-//			}
-//		});
 
 		editRscGrp = new Group( sashForm, SWT.SHADOW_NONE );
 		editRscGrp.setLayout( new FormLayout() );
@@ -152,7 +142,7 @@ public class ManageResourceControl extends Composite {
 		editAttrSetGroupComp.deactivate();
 		editAttrSetComp.deactivate();
 				
-		sashForm.setWeights( new int[] { 4, 3 } );
+		sashForm.setWeights( new int[] { 3, 3 } );
         
         initWidgets();        
     }
@@ -250,10 +240,8 @@ public class ManageResourceControl extends Composite {
    				
    			}
 
-   			//boolean isPgen = rscName.getRscCategory().equals("PGEN" );
    			ResourceDefinition rscDefn = rscDefnMngr.getResourceDefinition( rscName );
    			
-//   		List<String> asgList = rscDefn.getAttrSetGroupNames()
    			List<AttrSetGroup> asgList = 
    						rscDefnMngr.getAttrSetGroupsForResource( 
    									rscDefn.getResourceDefnName() );
@@ -262,37 +250,6 @@ public class ManageResourceControl extends Composite {
    			//
    			Boolean rscReplaced = rscDefnMngr.removeResourceDefn( rscDefn );
 
-   			if( !rscReplaced && !asgList.isEmpty() ) {
-   				// TODO : do we want to prompt user if they want to delete any AttrSetGroups that
-   				// apply to this resource?
-//   				MessageDialog confirmDlg = new MessageDialog( getShell(), 
-//   						"Confirm", null, 
-//   						"Do you also want to remove the "+
-//   						   Integer.toString( asgList.size() ) +"\nAttribute Set Groups?",				
-//   						MessageDialog.QUESTION, new String[]{"Yes", "No"}, 0);
-//   				confirmDlg.open();
-//
-//   				if( confirmDlg.getReturnCode() == MessageDialog.CANCEL ) {
-//   					return;
-//   				}
-//
-//   				// This won't work because the ResourceDefinition is gone now. 
-//   				// 
-//   				for( AttrSetGroup asg : asgList ) {
-//   					try {
-//   						rscDefnMngr.removeAttrSetGroup( 
-//   								rscName.getRscGroup(), rscName.getRscType() ); 
-//   					}
-//   					catch (VizException e ) {
-//   						MessageDialog msgDlg = new MessageDialog( getShell(), 
-//   								"Error", null, 
-//   								"Failed to remove the "+rscName.getRscGroup()+" Attribute Set Group.",				
-//   								MessageDialog.ERROR, new String[]{"OK"}, 0);
-//   						msgDlg.open();
-//   					}
-//
-//   				}
-   			}
    		}
    		catch ( VizException e ) {
    			MessageDialog msgDlg = new MessageDialog( getShell(), 

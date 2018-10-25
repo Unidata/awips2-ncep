@@ -61,10 +61,10 @@ public class ResourceManagerAction extends AbstractHandler {
         	// TODO : create a user preference for the default display type.
         	// (SWPC probably doesn't want to constantly change the type every time.)        	
         	RscBundleDisplayMngr rbdMngr = new RscBundleDisplayMngr( 
-        			new NcPaneLayout(6,6), NcDisplayType.NMAP_DISPLAY );
+        			new NcPaneLayout(1,1), NcDisplayType.NMAP_DISPLAY );
 
             id = new ResourceManagerDialog( NcDisplayMngr.getCaveShell(),
-            		                        "Resource Manager", rbdMngr, mode );    
+            		                        "GEMPAK Data Manager", rbdMngr, mode );    
             id.open();
             id = null;
 

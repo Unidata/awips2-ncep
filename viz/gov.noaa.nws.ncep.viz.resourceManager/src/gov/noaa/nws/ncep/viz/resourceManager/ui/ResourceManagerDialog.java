@@ -131,7 +131,7 @@ public class ResourceManagerDialog extends Dialog {
         mngrTabFolder.setLayoutData(gd);
 
         final TabItem mngrTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        mngrTabItem.setText("   Create   ");
+        mngrTabItem.setText(" Load Resource ");
 
         // get the active Display and set the rbd_mngr with it
         AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -161,7 +161,7 @@ public class ResourceManagerDialog extends Dialog {
         createRbdCntrl = new CreateRbdControl(mngrTabFolder, rbd_mngr);
 
         final TabItem cnfgTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        cnfgTabItem.setText("   Manage Resources  ");
+        cnfgTabItem.setText(" Manage Resources ");
 
         manageRscCntrl = new ManageResourceControl(mngrTabFolder);
 

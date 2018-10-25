@@ -90,13 +90,10 @@ public class ResourceSelectionDialog extends Dialog {
         sel_rscs_grp.setLayoutData(gd);
 
         try {
-            if (dispType == NcDisplayType.NTRANS_DISPLAY) {
-                sel_rsc_cntrl = new NtransSelectionControl(sel_rscs_grp,
-                        initRscName ,multiPane, dispType);
-            } else {
+
                 sel_rsc_cntrl = new ResourceSelectionControl(sel_rscs_grp,
-                        initRscName,multiPane, dispType);
-            }
+                        initRscName, dispType);
+            
         } catch (VizException e) {
             e.printStackTrace();
             close();

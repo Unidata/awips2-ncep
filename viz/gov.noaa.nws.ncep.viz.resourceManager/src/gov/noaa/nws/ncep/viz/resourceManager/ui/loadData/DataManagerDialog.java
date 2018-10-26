@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui;
+package gov.noaa.nws.ncep.viz.resourceManager.ui.loadData;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -22,7 +22,6 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
-import gov.noaa.nws.ncep.viz.resourceManager.ui.createRbd.CreateRbdControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.loadRbd.LoadRbdControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageResources.ManageResourceControl;
 import gov.noaa.nws.ncep.viz.resourceManager.ui.manageSpf.ManageSpfControl;
@@ -58,7 +57,7 @@ import gov.noaa.nws.ncep.viz.ui.display.NcEditorUtil;
  * @author
  * @version 1
  */
-public class ResourceManagerDialog extends Dialog {
+public class DataManagerDialog extends Dialog {
 
     private RscBundleDisplayMngr rbd_mngr;
 
@@ -72,19 +71,15 @@ public class ResourceManagerDialog extends Dialog {
 
     protected Control activeMngr = null;
 
-    protected CreateRbdControl createRbdCntrl = null;
-
-    protected LoadRbdControl loadRbdCntrl = null;
+    protected DataLoadControl createRbdCntrl = null;
 
     protected ManageResourceControl manageRscCntrl = null;
-
-    protected ManageSpfControl manageRbdsCntrl;
 
     private static int prevHeight = 0;
 
     private Point prevLocation = new Point(0, 0);
 
-    public ResourceManagerDialog(Shell parShell, String title,
+    public DataManagerDialog(Shell parShell, String title,
             RscBundleDisplayMngr mngr, String mode) throws VizException {
         super(parShell);
         rbd_mngr = mngr;
@@ -134,13 +129,8 @@ public class ResourceManagerDialog extends Dialog {
         gd.verticalAlignment = SWT.FILL;
         mngrTabFolder.setLayoutData(gd);
 
-        final TabItem loadTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        loadTabItem.setText("   Load RBD   ");
-
-        loadRbdCntrl = new LoadRbdControl(mngrTabFolder);
-
         final TabItem mngrTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        mngrTabItem.setText("   Create RBD   ");
+        mngrTabItem.setText(" Load Resource ");
 
         // get the active Display and set the rbd_mngr with it
         AbstractEditor currEditor = NcDisplayMngr.getActiveNatlCntrsEditor();
@@ -167,21 +157,14 @@ public class ResourceManagerDialog extends Dialog {
             }
         }
 
-        createRbdCntrl = new CreateRbdControl(mngrTabFolder, rbd_mngr);
-
-        final TabItem manageSPFTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        manageSPFTabItem.setText("   Manage SPFs  ");
-
-        manageRbdsCntrl = new ManageSpfControl(mngrTabFolder);
+        createRbdCntrl = new DataLoadControl(mngrTabFolder, rbd_mngr);
 
         final TabItem cnfgTabItem = new TabItem(mngrTabFolder, SWT.NONE);
-        cnfgTabItem.setText("   Manage Resources  ");
+        cnfgTabItem.setText(" Manage Resources ");
 
         manageRscCntrl = new ManageResourceControl(mngrTabFolder);
 
         mngrTabItem.setControl(createRbdCntrl);
-        loadTabItem.setControl(loadRbdCntrl);
-        manageSPFTabItem.setControl(manageRbdsCntrl);
         cnfgTabItem.setControl(manageRscCntrl);
 
         Button closeBtn = new Button(shell, SWT.PUSH);
@@ -198,17 +181,11 @@ public class ResourceManagerDialog extends Dialog {
 
         mngrTabFolder.layout();
 
-        if (mode == null || mode.equals("LOAD_RBD")) {
+        if (mode == null || mode.equals("CREATE_RBD")) {
             mngrTabFolder.setSelection(0);
-            loadRbdCntrl.updateDialog();
-        } else if (mode.equals("CREATE_RBD")) {
-            mngrTabFolder.setSelection(1);
             createRbdCntrl.updateDialog();
-        } else if (mode.equals("MANAGE_RBDS")) {
-            mngrTabFolder.setSelection(2);
-            manageRbdsCntrl.updateDialog();
         } else if (mode.equals("MANAGE_RESOURCES")) {
-            mngrTabFolder.setSelection(3);
+            mngrTabFolder.setSelection(1);
             manageRscCntrl.updateDialog();
         } else {
             mngrTabFolder.setSelection(0);
@@ -222,8 +199,8 @@ public class ResourceManagerDialog extends Dialog {
                 if (seldTab[0].getControl() instanceof LoadRbdControl) {
                     ((LoadRbdControl) seldTab[0].getControl()).updateDialog();
                 } else if (seldTab[0]
-                        .getControl() instanceof CreateRbdControl) {
-                    ((CreateRbdControl) seldTab[0].getControl()).updateDialog();
+                        .getControl() instanceof DataLoadControl) {
+                    ((DataLoadControl) seldTab[0].getControl()).updateDialog();
                 } else if (seldTab[0]
                         .getControl() instanceof ManageSpfControl) {
                     ((ManageSpfControl) seldTab[0].getControl()).updateDialog();

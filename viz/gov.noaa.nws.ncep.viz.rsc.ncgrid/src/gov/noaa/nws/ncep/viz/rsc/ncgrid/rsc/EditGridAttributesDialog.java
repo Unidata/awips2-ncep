@@ -12,7 +12,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
 
@@ -40,7 +39,8 @@ import com.raytheon.uf.viz.core.rsc.capabilities.Capabilities;
  */
 
 public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
-    private RscAttrValue cintString = null;
+	
+    private RscAttrValue cint = null;
 
     private RscAttrValue glevel = null;
 
@@ -80,8 +80,6 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
 
     private RscAttrValue text = null;
 
-    private RscAttrValue gdfile = null;
-
     private StyledText gempakText;
 
     /**
@@ -99,58 +97,67 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
     public Composite createDialog(Composite composite) {
 
         lineAttr = editedRscAttrSet.getRscAttr("lineAttributes");
-        cintString = editedRscAttrSet.getRscAttr("cint");
+        
+        cint = editedRscAttrSet.getRscAttr("cint");
+        
         glevel = editedRscAttrSet.getRscAttr("glevel");
+        
         gvcord = editedRscAttrSet.getRscAttr("gvcord");
+        
         skip = editedRscAttrSet.getRscAttr("skip");
+        
         filter = editedRscAttrSet.getRscAttr("filter");
+        
         scale = editedRscAttrSet.getRscAttr("scale");
+        
         gdpfun = editedRscAttrSet.getRscAttr("gdpfun");
+        
         type = editedRscAttrSet.getRscAttr("type");
+        
         fint = editedRscAttrSet.getRscAttr("fint");
+        
         fline = editedRscAttrSet.getRscAttr("fline");
+        
         hilo = editedRscAttrSet.getRscAttr("hilo");
+        
         hlsym = editedRscAttrSet.getRscAttr("hlsym");
+        
         wind = editedRscAttrSet.getRscAttr("wind");
+        
         title = editedRscAttrSet.getRscAttr("title");
+        
         colors = editedRscAttrSet.getRscAttr("colors");
+        
         marker = editedRscAttrSet.getRscAttr("marker");
+        
         grdlbl = editedRscAttrSet.getRscAttr("grdlbl");
+        
         clrbar = editedRscAttrSet.getRscAttr("clrbar");
+        
         text = editedRscAttrSet.getRscAttr("text");
-
-        if (!editedRscAttrSet.hasAttrName("gdfile")) {
-            editedRscAttrSet.setAttrValue("gdfile", "{}");
-        }
-        gdfile = editedRscAttrSet.getRscAttr("gdfile");
 
         // confirm the classes of the attributes..
         if (clrbar.getAttrClass() != String.class) {
-            System.out.println("line is not of expected class? "
-                    + clrbar.getAttrClass().toString());
+        	printWarning(clrbar);
         }
 
         if (lineAttr.getAttrClass() != String.class) {
-            System.out.println("line is not of expected class? "
-                    + lineAttr.getAttrClass().toString());
+        	printWarning(lineAttr);
         }
 
-        if (cintString.getAttrClass() != String.class) {
-            System.out.println("cint is not of expected class? "
-                    + cintString.getAttrClass().toString());
+        if (cint.getAttrClass() != String.class) {
+        	printWarning(cint);
         }
 
-        if (cintString == null
-                || ((String) cintString.getAttrValue()).trim().length() <= 0) {
-            cintString.setAttrValue("");
+        if (cint == null || ((String) cint.getAttrValue()).trim().length() <= 0) {
+            cint.setAttrValue("");
         }
 
         if (hilo != null && ((String) hilo.getAttrValue()).trim().length() <= 0) {
             hilo.setAttrValue("");
         }
 
-        if (hlsym != null
-                && ((String) hlsym.getAttrValue()).trim().length() <= 0) {
+        if (hlsym != null && ((String) hlsym.getAttrValue()).trim().length() <= 0) {
             hlsym.setAttrValue("");
         }
 
@@ -160,7 +167,6 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
 
         GridLayout contourIntervalsGridLayout = new GridLayout();
         contourIntervalsGridLayout.numColumns = 2;
-        
         
         /**/
         composite.setLayout(contourIntervalsGridLayout); 
@@ -178,10 +184,9 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
     					editedRscAttrSet.getRscAttr(gempakCommand).getAttrValue().toString() 
     					+ "\n";
         }
-        //Font mono = new Font(composite.getDisplay(), "Lucida Sans Typewriter", 7, SWT.NORMAL);
-        //mono.getFontData()[0].setHeight(6);
+        
         gempakText = new StyledText(composite,SWT.MULTI | SWT.H_SCROLL );
-        gempakText.setLayoutData(new GridData(760, 660));
+        gempakText.setLayoutData(new GridData(760, 400));
         gempakText.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
         gempakText.setText(gempakEditable.substring(0, gempakEditable.length() - 2));
         
@@ -194,38 +199,45 @@ public class EditGridAttributesDialog extends AbstractEditResourceAttrsDialog {
         return composite;
     }
 
-
+    public void printWarning(RscAttrValue val) {
+        System.out.println("value is not of expected class? "
+                + val.getAttrClass().toString());
+    }
     @Override
     public void initWidgets() {
         // TODO Auto-generated method stub
     }
     
+    public void setAttribute(String gemParm, String parm, RscAttrValue parmObject) {
+    	if (gemParm.toLowerCase().startsWith(parm)){
+    		parmObject.setAttrValue((String)gemParm.split("=",2)[1].trim());
+    	}
+    }
+    
     public void setGempakAttrValues() {
  		String[] gempakVars = gempakText.getText().trim().split("\n", -1);
- 		// There's surely a better way to do this.
  		for (String gemParm: gempakVars) {
- 			if (gemParm.toLowerCase().startsWith("glevel")) glevel.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("line")) lineAttr.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("cint")) cintString.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("glevel")) glevel.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("gvcord")) gvcord.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("skip")) skip.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("filter")) filter.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("scale")) scale.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("gdpfun")) gdpfun.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("type")) type.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("fint")) fint.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("fline")) fline.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("hilo")) hilo.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 			if (gemParm.toLowerCase().startsWith("hlsym")) hlsym.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("wind")) wind.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("title")) title.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("colors")) colors.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("marker")) marker.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("grdlbl")) grdlbl.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("clrbar")) clrbar.setAttrValue((String)gemParm.split("=",2)[1].trim());
- 	    	if (gemParm.toLowerCase().startsWith("text")) text.setAttrValue((String)gemParm.split("=",2)[1].trim());
+ 			setAttribute(gemParm, "glevel", glevel);
+ 			setAttribute(gemParm, "line", lineAttr);
+ 			setAttribute(gemParm, "cint", cint);
+ 			setAttribute(gemParm, "gvcord", gvcord);
+ 			setAttribute(gemParm, "skip", skip);
+ 			setAttribute(gemParm, "filter", filter);
+ 			setAttribute(gemParm, "scale", scale);
+ 			setAttribute(gemParm, "gdpfun", gdpfun);
+ 			setAttribute(gemParm, "type", type);
+ 			setAttribute(gemParm, "fint", fint);
+ 			setAttribute(gemParm, "fline", fline);
+ 			setAttribute(gemParm, "hilo", hilo);
+ 			setAttribute(gemParm, "hlsym", hlsym);
+ 			setAttribute(gemParm, "wind", wind);
+ 			setAttribute(gemParm, "title", title);
+ 			setAttribute(gemParm, "colors", colors);
+ 			setAttribute(gemParm, "marker", marker);
+ 			setAttribute(gemParm, "grdlbl", grdlbl);
+ 			setAttribute(gemParm, "clrbar", clrbar);
+ 			setAttribute(gemParm, "text", text);
  		}
  	}
-
+    
 }

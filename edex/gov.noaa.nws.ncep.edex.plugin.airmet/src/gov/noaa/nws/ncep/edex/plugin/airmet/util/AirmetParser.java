@@ -11,6 +11,8 @@
  * 07/2009		39				L. Lin		Migration to TO11
  * 09/2009		39				L. Lin		Add latitude/longitude to location table
  * May 14, 2014 2536            bclement    moved WMO Header to common, removed TimeTools usage
+ * Oct 26, 2018 7548            bsteffen    More flexible Flight Level parsing.
+ * 
  * </pre>
  * 
  * This code has been developed by the SIB for use in the AWIPS2 system.
@@ -19,12 +21,6 @@
  */
 
 package gov.noaa.nws.ncep.edex.plugin.airmet.util;
-
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetLocation;
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
-import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
-import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
-import gov.noaa.nws.ncep.edex.util.UtilN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,9 +38,21 @@ import com.raytheon.uf.common.wmo.WMOHeader;
 import com.raytheon.uf.common.wmo.WMOTimeParser;
 import com.raytheon.uf.edex.decodertools.core.LatLonPoint;
 
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetLocation;
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetRecord;
+import gov.noaa.nws.ncep.common.dataplugin.airmet.AirmetReport;
+import gov.noaa.nws.ncep.edex.tools.decoder.LatLonLocTbl;
+import gov.noaa.nws.ncep.edex.util.UtilN;
+
 public class AirmetParser {
 
     public static final Log logger = LogFactory.getLog(AirmetParser.class);
+
+    private static final Pattern FL_RANGE_PATTERN = Pattern
+            .compile(" (BTN) (FL)?(FRZLVL|[0-9]{3})( AND |-)(FL)?([0-9]{3})");
+
+    private static final Pattern FL_BLW_PATTERN = Pattern
+            .compile(" (BLW) (FL)?([0-9]{3})");
 
     /**
      * Constructor
@@ -82,8 +90,8 @@ public class AirmetParser {
 
             // Decode the issue time.
             String fileName = (String) headers.get(WMOHeader.INGEST_FILE_NAME);
-            Calendar issueTime = WMOTimeParser.findDataTime(
-                    theMatcher.group(3), fileName);
+            Calendar issueTime = WMOTimeParser.findDataTime(theMatcher.group(3),
+                    fileName);
 
             record.setIssueTime(issueTime);
             DataTime dataTime = new DataTime(issueTime);
@@ -304,17 +312,8 @@ public class AirmetParser {
      * @return an AirmetReport table
      */
     public static AirmetReport processReport(String theReport) {
-
-        // Regular expression for flight levels
-        final String FLIGHT_EXP = " (BTN) (FL)?(FRZLVL|[0-9]{3})( AND |-)FL([0-9]{3})";
-        final String BLW_EXP = " (BLW) FL([0-9]{3})";
-
-        // Pattern used for extracting flight levels
-        final Pattern flightPattern = Pattern.compile(FLIGHT_EXP);
-        final Pattern blwPattern = Pattern.compile(BLW_EXP);
-
-        Matcher flightMatcher = flightPattern.matcher(theReport);
-        Matcher blwMatcher = blwPattern.matcher(theReport);
+        Matcher flightMatcher = FL_RANGE_PATTERN.matcher(theReport);
+        Matcher blwMatcher = FL_BLW_PATTERN.matcher(theReport);
 
         AirmetReport currentReport = new AirmetReport();
         // Find and set the flight levels.
@@ -323,14 +322,14 @@ public class AirmetParser {
                 if ((flightMatcher.group(3).equals("FRZLVL"))) {
                     currentReport.setFlightLevel1("FRZLVL");
                 } else {
-                    currentReport.setFlightLevel1(flightMatcher.group(3)
-                            .toString());
+                    currentReport
+                            .setFlightLevel1(flightMatcher.group(3).toString());
                 }
                 currentReport
-                        .setFlightLevel2(flightMatcher.group(5).toString());
+                        .setFlightLevel2(flightMatcher.group(6).toString());
             }
         } else if (blwMatcher.find()) {
-            currentReport.setFlightLevel2(blwMatcher.group(2).toString());
+            currentReport.setFlightLevel2(blwMatcher.group(3).toString());
         }
         // Get and set reportType
         currentReport.setHazardType(getHazardType(theReport));
@@ -599,10 +598,10 @@ public class AirmetParser {
         Boolean hasLocationLine = true;
         String locationDelimiter = "-| TO ";
 
-        ArrayList<String> terminationList = new ArrayList<String>();
-        terminationList.addAll(Arrays.asList(new String[] { "CIG", "MTNS",
-                "ICE", "MOD", "LLWS", "SUSTAINED", "VIS", "TURB", "CANCEL",
-                "CNCL" }));
+        ArrayList<String> terminationList = new ArrayList<>();
+        terminationList.addAll(Arrays
+                .asList(new String[] { "CIG", "MTNS", "ICE", "MOD", "LLWS",
+                        "SUSTAINED", "VIS", "TURB", "CANCEL", "CNCL" }));
 
         Scanner scLines = new Scanner(theReport)
                 .useDelimiter("FROM|BOUNDED BY");
@@ -619,7 +618,7 @@ public class AirmetParser {
                     .useDelimiter("\\x0d\\x0d\\x0a");
             String lines = " ";
             String curLine = null;
-            ArrayList<String> locationList = new ArrayList<String>();
+            ArrayList<String> locationList = new ArrayList<>();
             locationList.clear();
             Boolean notBreak = true;
 
@@ -666,10 +665,10 @@ public class AirmetParser {
                         hasLocationLine = false;
                         break;
                     }
-                    currentLocation.setLatitude(point
-                            .getLatitude(LatLonPoint.INDEGREES));
-                    currentLocation.setLongitude(point
-                            .getLongitude(LatLonPoint.INDEGREES));
+                    currentLocation.setLatitude(
+                            point.getLatitude(LatLonPoint.INDEGREES));
+                    currentLocation.setLongitude(
+                            point.getLongitude(LatLonPoint.INDEGREES));
 
                     currentLocation.setIndex(idxLocation + 1);
                     idxLocation++;

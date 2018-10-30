@@ -16,14 +16,15 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
-package com.raytheon.uf.viz.gempak.common.request;
+ */
+package com.raytheon.uf.viz.gempak.common.message.handler;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.message.IGempakMessage;
 
 /**
- * Interface used to denote requests that are sent between CAVE and subprocesses
- * for GEMPAK data processing. Unlike messages, requests expect responses.
+ * Handler for {@link IGempakMessage}s sent between a GEMPAK subprocess and
+ * CAVE.
  *
  * <pre>
  *
@@ -31,13 +32,23 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Oct 16, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
+ * @param <T>
+ *            the message type handled by this handler
  */
-@DynamicSerialize
-public interface IGempakRequest {
-    // Empty, just provides consistent supertype for GEMPAK requests
+public interface IGempakMessageHandler<T extends IGempakMessage> {
+
+    /**
+     * Handle the given message.
+     *
+     * @param message
+     * @return whether or not to continue GEMPAK data processing
+     * @throws GempakException
+     *             if an error occurs processing the message
+     */
+    boolean handleMessage(T message) throws GempakException;
 }

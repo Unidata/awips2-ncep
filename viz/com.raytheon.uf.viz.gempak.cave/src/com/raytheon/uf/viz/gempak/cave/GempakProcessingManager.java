@@ -22,10 +22,12 @@ package com.raytheon.uf.viz.gempak.cave;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.xml.bind.JAXBException;
 
 import com.raytheon.uf.common.localization.ILocalizationFile;
+import com.raytheon.uf.common.localization.ILocalizationPathObserver;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.SerializationException;
@@ -38,6 +40,7 @@ import com.raytheon.uf.viz.gempak.cave.strategy.GempakSubprocessStrategy;
 import com.raytheon.uf.viz.gempak.cave.strategy.IGempakProcessingStrategy;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
+import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
 import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
 
@@ -55,75 +58,39 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  *                                     {@link #getDataRecord(GempakDataInput)}
  * Oct 08, 2018 54483      mapeters    Moved from gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak,
  *                                     only use subprocesses if subprocess RPM installed
+ * Oct 16, 2018 54483      mapeters    Listen to localization file changes, add
+ *                                     activation/deactivation support
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakProcessingManager {
+public class GempakProcessingManager implements ILocalizationPathObserver {
 
-    private static final Object INSTANCE_LOCK = new Object();
-
-    private static GempakProcessingManager instance;
+    private static final GempakProcessingManager INSTANCE = new GempakProcessingManager();
 
     private final IUFStatusHandler statusHandler = UFStatus
             .getHandler(getClass());
 
-    private final IGempakProcessingStrategy processingStrategy;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private GempakActivationStatus status = GempakActivationStatus.INACTIVE;
+
+    private IGempakProcessingStrategy processingStrategy;
 
     /**
      * Private constructor for singleton.
      */
     private GempakProcessingManager() {
-        GempakProcessingConfig config = readConfig();
-
-        /*
-         * Use subprocess strategy if config exists and specifies it and the
-         * subprocess RPM is installed, otherwise default to same process
-         * strategy
-         */
-        boolean useSubprocessStrategy = false;
-        if (config != null && config.isRunInSubprocess()) {
-            boolean gempakRpmInstalled = new File(
-                    GempakProcessingUtil.SUBPROCESS_SCRIPT_PATH).isFile();
-            if (gempakRpmInstalled) {
-                useSubprocessStrategy = true;
-            } else {
-                statusHandler
-                        .warn("GEMPAK processing is configured to be performed in "
-                                + "subprocesses, but the GEMPAK RPM is not installed");
-            }
-        }
-
-        if (useSubprocessStrategy) {
-            int subprocessLimit = GempakProcessingUtil
-                    .validateSubprocessLimit(config.getSubprocessLimit());
-            statusHandler.info("GEMPAK processing will be performed in "
-                    + "subprocesses, with a limit of " + subprocessLimit
-                    + " concurrent subprocesses");
-            processingStrategy = new GempakSubprocessStrategy(subprocessLimit);
-        } else {
-            statusHandler.info(
-                    "GEMPAK processing will be performed in the CAVE process");
-            processingStrategy = new GempakSameProcessStrategy();
-        }
-        /*
-         * TODO listen for localization file changes?
-         */
     }
 
     /**
-     * Gets the singleton manager instance, creating it if necessary.
+     * Gets the singleton manager instance.
      *
      * @return the {@link GempakProcessingManager} singleton
      */
     public static GempakProcessingManager getInstance() {
-        synchronized (INSTANCE_LOCK) {
-            if (instance == null) {
-                instance = new GempakProcessingManager();
-            }
-            return instance;
-        }
+        return INSTANCE;
     }
 
     /**
@@ -131,13 +98,87 @@ public class GempakProcessingManager {
      *
      * @param dataInput
      *            the data to process
-     * @return the processed data record
+     * @return the processed data record (may be null)
      * @throws GempakException
      *             if an error occurs processing the data
      */
     public GempakDataRecord getDataRecord(GempakDataInput dataInput)
             throws GempakException {
-        return processingStrategy.getDataRecord(dataInput);
+        boolean active = true;
+
+        /*
+         * Only activate() if not ACTIVE already, to avoid getting write lock
+         * and decreasing concurrency unless it is necessary
+         */
+        lock.readLock().lock();
+        if (status != GempakActivationStatus.ACTIVE) {
+            lock.readLock().unlock();
+            lock.writeLock().lock();
+            active = activate();
+            /*
+             * Get read lock before releasing write lock to ensure status
+             * doesn't change before doing the data processing
+             */
+            lock.readLock().lock();
+            lock.writeLock().unlock();
+        }
+
+        try {
+            if (active) {
+                return processingStrategy.getDataRecord(dataInput);
+            }
+            return null;
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Initialize the processing strategy from the current config, shutting down
+     * the current strategy (if non-null). The caller is responsible for locking
+     * appropriately.
+     */
+    private void initProcessingStrategy() {
+        shutdownProcessingStrategy();
+        /*
+         * Use subprocess strategy if config exists and specifies it and the
+         * subprocess RPM is installed, otherwise default to same process
+         * strategy
+         */
+        GempakProcessingConfig config = readConfig();
+        IGempakProcessingStrategy newProcessingStrategy = null;
+        if (config != null && config.isRunInSubprocess()) {
+            boolean gempakRpmInstalled = new File(
+                    GempakProcessingUtil.SUBPROCESS_SCRIPT_PATH).isFile();
+            if (gempakRpmInstalled) {
+                int subprocessLimit = GempakProcessingUtil
+                        .validateSubprocessLimit(config.getSubprocessLimit());
+                try {
+                    newProcessingStrategy = new GempakSubprocessStrategy(
+                            subprocessLimit);
+                    statusHandler.info("GEMPAK processing will be performed in "
+                            + "subprocesses, with a limit of " + subprocessLimit
+                            + " concurrent subprocesses");
+                } catch (GempakConnectionException e) {
+                    statusHandler.error(
+                            "GEMPAK processing is configured to be performed in "
+                                    + "subprocesses, but an error occurred initializing them",
+                            e);
+                }
+            } else {
+                statusHandler
+                        .warn("GEMPAK processing is configured to be performed in "
+                                + "subprocesses, but the GEMPAK RPM is not installed");
+            }
+        }
+
+        if (newProcessingStrategy == null) {
+            newProcessingStrategy = new GempakSameProcessStrategy();
+            statusHandler.info(
+                    "GEMPAK processing will be performed in the CAVE process");
+        }
+
+        processingStrategy = newProcessingStrategy;
     }
 
     private GempakProcessingConfig readConfig() {
@@ -155,5 +196,133 @@ public class GempakProcessingManager {
         }
 
         return config;
+    }
+
+    @Override
+    public void fileChanged(ILocalizationFile file) {
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                lock.writeLock().lock();
+                try {
+                    /*
+                     * Only need to update for config changes if currently
+                     * active
+                     */
+                    if (status == GempakActivationStatus.ACTIVE) {
+                        initProcessingStrategy();
+                    }
+                } finally {
+                    lock.writeLock().unlock();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Attempt to activate GEMPAK processing.
+     *
+     * @return true if activation is successful, false otherwise
+     */
+    public boolean activate() {
+        lock.writeLock().lock();
+        try {
+            switch (status) {
+            case ACTIVE:
+                // Already active, nothing to do
+                break;
+            case INACTIVE:
+                PathManagerFactory.getPathManager().addLocalizationPathObserver(
+                        GempakProcessingUtil.CONFIG_PATH, this);
+                initProcessingStrategy();
+                status = GempakActivationStatus.ACTIVE;
+                break;
+            case SHUTDOWN:
+                statusHandler.warn("Attempted to perform GEMPAK processing "
+                        + "after being permanently shutdown. "
+                        + "This should only happen on CAVE shutdown.");
+            default:
+                // All options should be covered above
+                throw new IllegalArgumentException(
+                        "Unexpected GEMPAK activation status: " + status);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+        return true;
+    }
+
+    /**
+     * Shutdown GEMPAK processing, either temporarily to release idle resources
+     * or permanently on CAVE shutdown.
+     *
+     * @param permanent
+     *            true if GEMPAK processing should not be reactivated (this
+     *            should only be done on CAVE shutdown), false if it can be
+     *            reactivated when needed
+     */
+    public void shutdown(boolean permanent) {
+        lock.writeLock().lock();
+        try {
+            PathManagerFactory.getPathManager().removeLocalizationPathObserver(
+                    GempakProcessingUtil.CONFIG_PATH, this);
+            shutdownProcessingStrategy();
+            status = permanent ? GempakActivationStatus.SHUTDOWN
+                    : GempakActivationStatus.INACTIVE;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Restart GEMPAK processing, shutting down the current strategy and
+     * re-initializing a new strategy from the current configuration.
+     */
+    public void restart() {
+        lock.writeLock().lock();
+        try {
+            shutdown(false);
+            activate();
+        } finally {
+            lock.writeLock().unlock();
+        }
+
+    }
+
+    /**
+     * Shutdown the current processing strategy (if non-null).
+     */
+    private void shutdownProcessingStrategy() {
+        lock.writeLock().lock();
+        try {
+            if (processingStrategy != null) {
+                statusHandler.info("Shutting down GEMPAK processing strategy");
+                processingStrategy.shutdown();
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private static enum GempakActivationStatus {
+
+        /**
+         * Status indicating that the processing strategy is ready to process
+         * requests
+         */
+        ACTIVE,
+
+        /**
+         * Status indicating that the processing strategy is currently shutdown,
+         * but can be re-activated when needed
+         */
+        INACTIVE,
+
+        /**
+         * Status indicating that the processing strategy is shutdown and should
+         * not be re-activated (this should only occur on CAVE shutdown)
+         */
+        SHUTDOWN
     }
 }

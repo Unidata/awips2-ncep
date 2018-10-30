@@ -23,23 +23,27 @@ import java.io.IOException;
 
 import org.eclipse.equinox.app.IApplication;
 
-import com.raytheon.uf.common.status.IPerformanceStatusHandler;
+import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.application.component.IStandaloneComponent;
+import com.raytheon.uf.viz.core.localization.CAVELocalizationAdapter;
+import com.raytheon.uf.viz.core.localization.LocalizationInitializer;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.conn.IGempakConnector;
-import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
-import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.subprocess.conn.GempakClientSocketConnector;
+import com.raytheon.uf.viz.gempak.subprocess.message.handler.GempakShutdownMessageHandler;
 import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordRequestHandler;
 
 /**
  * This class is started as a subprocess from CAVE, and handles GEMPAK data
  * processing, communicating with a subprocess spawner on the CAVE side to take
- * the data to process and return the processed data record.
+ * data requests to process and return the processed data records until it is
+ * told to shutdown.
  *
  * <pre>
  *
@@ -52,6 +56,8 @@ import com.raytheon.uf.viz.gempak.subprocess.request.handler.GempakDataRecordReq
  *                                     to its own class
  * Oct 08, 2018 54483      mapeters    Moved from gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak,
  *                                     refactored to implement {@link IStandaloneComponent}
+ * Oct 16, 2018 54483      mapeters    Single subprocessor handles multiple requests until
+ *                                     receiving shutdown request, initialize localization
  *
  * </pre>
  *
@@ -62,15 +68,12 @@ public class GempakSubprocessor implements IStandaloneComponent {
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(GempakSubprocessor.class);
 
-    private static final IPerformanceStatusHandler perfLog = PerformanceStatus
-            .getHandler(GempakSubprocessor.class.getSimpleName() + ":");
-
     @Override
     public Object startComponent(String componentName) throws Exception {
-        /*
-         * TODO need to initialize localization?
-         */
         long t0 = System.currentTimeMillis();
+
+        initializeLocalization();
+
         /*
          * Connect to server socket that was opened on the CAVE side for
          * communicating with us
@@ -79,28 +82,37 @@ public class GempakSubprocessor implements IStandaloneComponent {
                 System.getenv())) {
             IGempakCommunicator communicator = connector.connect();
             /*
-             * We are expecting CAVE to send us the data processing request, so
+             * We are expecting CAVE to send us data processing requests, so
              * register the data request handler with the communicator and then
-             * tell the communicator to read the request and respond to it
+             * tell the communicator to read the requests and respond to them
+             *
+             * NOTE: these request handlers should only throw exceptions for
+             * errors that indicate an invalid subprocess (as opposed to an
+             * invalid data request, for example), as any exception will cause
+             * this subprocess to shutdown
              */
-            communicator.registerHandler(GempakDataRecordRequest.class,
+            communicator.registerRequestHandler(GempakDataRecordRequest.class,
                     new GempakDataRecordRequestHandler(communicator));
-            communicator.respond();
-        } catch (GempakConnectionException e) {
+            communicator.registerMessageHandler(GempakShutdownMessage.class,
+                    new GempakShutdownMessageHandler());
+            communicator.process();
+        } catch (GempakException e) {
             statusHandler.error(
-                    "Error connecting to CAVE from GEMPAK subprocess", e);
-        } catch (GempakCommunicationException e) {
-            statusHandler.error(
-                    "Error communicating with CAVE from GEMPAK subprocess", e);
+                    "Error performing GEMPAK data processing in subprocess", e);
         } catch (IOException e) {
             statusHandler.warn("Error closing GEMPAK connection", e);
         }
 
         long t1 = System.currentTimeMillis();
-        perfLog.logDuration(
-                "Performing GEMPAK data processing (within subprocess)",
-                t1 - t0);
+        long durationSeconds = (t1 - t0) / TimeUtil.MILLIS_PER_SECOND;
+        statusHandler.debug("GEMPAK subprocess shutting down after running for "
+                + durationSeconds + " s");
 
         return IApplication.EXIT_OK;
+    }
+
+    private void initializeLocalization() throws Exception {
+        PathManagerFactory.setAdapter(new CAVELocalizationAdapter());
+        new LocalizationInitializer(false, false).run();
     }
 }

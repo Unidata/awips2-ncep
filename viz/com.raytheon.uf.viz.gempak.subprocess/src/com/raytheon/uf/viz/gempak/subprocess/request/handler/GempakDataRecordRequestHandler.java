@@ -19,11 +19,14 @@
  **/
 package com.raytheon.uf.viz.gempak.subprocess.request.handler;
 
+import com.raytheon.uf.common.status.IPerformanceStatusHandler;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.PerformanceStatus;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.gempak.common.Dgdriv;
 import com.raytheon.uf.viz.gempak.common.comm.IGempakCommunicator;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.DgdrivException;
-import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
 import com.raytheon.uf.viz.gempak.subprocess.data.retriever.GempakSubprocessDataURIRetriever;
@@ -41,6 +44,8 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
+ * Oct 23, 2018 54483      mapeters    Don't throw data exception, add
+ *                                     performance logging
  *
  * </pre>
  *
@@ -48,6 +53,13 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  */
 public class GempakDataRecordRequestHandler
         implements IGempakRequestHandler<GempakDataRecordRequest> {
+
+    private static final IUFStatusHandler statusHandler = UFStatus
+            .getHandler(GempakDataRecordRequestHandler.class);
+
+    private static final IPerformanceStatusHandler perfLog = PerformanceStatus
+            .getHandler(
+                    GempakDataRecordRequestHandler.class.getSimpleName() + ":");
 
     private final IGempakCommunicator communicator;
 
@@ -63,21 +75,30 @@ public class GempakDataRecordRequestHandler
     }
 
     @Override
-    public GempakDataRecord handleRequest(GempakDataRecordRequest request)
-            throws GempakProcessingException {
+    public GempakDataRecord handleRequest(GempakDataRecordRequest request) {
+        long t0 = System.currentTimeMillis();
+
         Dgdriv dgdriv = new Dgdriv(request.getDataInput(),
                 new GempakSubprocessDataURIRetriever(communicator),
                 new GempakSubprocessDbDataRetriever(communicator));
+
+        GempakDataRecord rval = null;
         try {
             FloatGridData floatData = dgdriv.execute();
             if (floatData != null) {
-                return new GempakDataRecord(floatData,
+                rval = new GempakDataRecord(floatData,
                         dgdriv.getSubgSpatialObj());
             }
         } catch (DgdrivException e) {
-            throw new GempakProcessingException(
-                    "Error performing GEMPAK data processing", e);
+            statusHandler.error(
+                    "Error performing GEMPAK data processing for " + request,
+                    e);
         }
-        return null;
+
+        long t1 = System.currentTimeMillis();
+        perfLog.logDuration("Performing GEMPAK data processing for " + request,
+                t1 - t0);
+
+        return rval;
     }
 }

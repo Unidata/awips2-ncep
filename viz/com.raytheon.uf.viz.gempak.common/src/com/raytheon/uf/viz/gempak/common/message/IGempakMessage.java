@@ -16,14 +16,14 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
-package com.raytheon.uf.viz.gempak.common.request;
+ */
+package com.raytheon.uf.viz.gempak.common.message;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 
 /**
- * Interface used to denote requests that are sent between CAVE and subprocesses
- * for GEMPAK data processing. Unlike messages, requests expect responses.
+ * Interface used to denote messages that are sent between CAVE and subprocesses
+ * for GEMPAK data processing. Unlike requests, messages don't expect responses.
  *
  * <pre>
  *
@@ -31,13 +31,13 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Oct 16, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
 @DynamicSerialize
-public interface IGempakRequest {
-    // Empty, just provides consistent supertype for GEMPAK requests
+public interface IGempakMessage {
+    // Empty, just provides consistent supertype for GEMPAK messages
 }

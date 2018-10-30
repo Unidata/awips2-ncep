@@ -20,6 +20,7 @@
 package com.raytheon.uf.viz.gempak.cave;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -34,6 +35,9 @@ import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakConnectionException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
+import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataRecordRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDataURIRequest;
 import com.raytheon.uf.viz.gempak.common.request.GempakDbDataRequest;
@@ -42,8 +46,8 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
 /**
  * This class is used when GEMPAK processing is being done in subprocesses. It
  * handles the CAVE side of the processing, which includes spawning a
- * subprocess, sending it the data to process, and getting the processed data
- * back from it (after which the subprocess will terminate).
+ * subprocess, sending it the data requests to process, and getting the
+ * processed data records back from it.
  *
  * <pre>
  *
@@ -57,6 +61,8 @@ import com.raytheon.uf.viz.gempak.common.util.GempakProcessingUtil;
  * Oct 08, 2018 54483      mapeters    Moved from gov.noaa.nws.ncep.viz.rsc.ncgrid.gempak,
  *                                     subprocess script is now installed to /awips2/gempak/
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
+ * Oct 23, 2018 54483      mapeters    Single subprocess can handle multiple requests, add
+ *                                     shutdown support
  *
  * </pre>
  *
@@ -70,17 +76,46 @@ public class GempakSubprocessSpawner {
     private static final IPerformanceStatusHandler perfLog = PerformanceStatus
             .getHandler(GempakSubprocessSpawner.class.getSimpleName() + ":");
 
-    private final GempakDataInput dataInput;
+    private static final int SHUTDOWN_TIMEOUT = 3_000;
+
+    private final IGempakServer server;
+
+    private final IGempakCommunicator communicator;
+
+    private final Process subprocess;
+
+    private final Object lock = new Object();
+
+    private boolean shutdown = false;
 
     /**
-     * Create a {@link GempakSubprocessSpawner} for spawning a GEMPAK subprocess
-     * from CAVE to process the given dataInput.
+     * Create a {@link GempakSubprocessSpawner}, spawning a GEMPAK subprocess
+     * and establishing a connection with it.
      *
-     * @param dataInput
-     *            the data to process
+     * @throws GempakConnectionException
      */
-    public GempakSubprocessSpawner(GempakDataInput dataInput) {
-        this.dataInput = dataInput;
+    public GempakSubprocessSpawner() throws GempakConnectionException {
+        try {
+            server = new GempakServerSocketConnector();
+            // Start the subprocess, telling it the port to connect to
+            ProcessBuilder builder = new ProcessBuilder(
+                    GempakProcessingUtil.SUBPROCESS_SCRIPT_PATH);
+            builder.environment().putAll(server.getConnectionData());
+            subprocess = builder.start();
+
+            /*
+             * Once the subprocess connects to our server socket, set up the
+             * necessary request handlers
+             */
+            communicator = server.connect();
+            communicator.registerRequestHandler(GempakDataURIRequest.class,
+                    new GempakDataURIRequestHandler());
+            communicator.registerRequestHandler(GempakDbDataRequest.class,
+                    new GempakDbDataRequestHandler());
+        } catch (GempakConnectionException | IOException e) {
+            throw new GempakConnectionException(
+                    "Error initializing GEMPAK subprocess", e);
+        }
     }
 
     /**
@@ -89,49 +124,68 @@ public class GempakSubprocessSpawner {
      * the subprocess.
      *
      * @return the processed data
+     * @throws GempakException
      */
-    public GempakDataRecord getDataRecord() {
-        long t0 = System.currentTimeMillis();
-        Process subprocess = null;
+    public GempakDataRecord getDataRecord(GempakDataInput dataInput)
+            throws GempakException {
         GempakDataRecord data = null;
-        try (IGempakServer server = new GempakServerSocketConnector()) {
-            // Start the subprocess, telling it the port to connect to
-            ProcessBuilder builder = new ProcessBuilder(
-                    GempakProcessingUtil.SUBPROCESS_SCRIPT_PATH);
-            builder.environment().putAll(server.getConnectionData());
-            try {
-                subprocess = builder.start();
-            } catch (IOException e) {
-                statusHandler.error("Error spawning GEMPAK subprocess", e);
-                return null;
+        synchronized (lock) {
+            if (shutdown) {
+                // This is intended to never happen
+                throw new GempakShutdownException(
+                        "Attempted to perform GEMPAK data processing using shutdown subprocess spawner");
             }
-
-            /*
-             * Once the subprocess connects to our server socket, request the
-             * processed data from it
-             */
-            IGempakCommunicator communicator = server.connect();
-            communicator.registerHandler(GempakDataURIRequest.class,
-                    new GempakDataURIRequestHandler());
-            communicator.registerHandler(GempakDbDataRequest.class,
-                    new GempakDbDataRequestHandler());
+            long t0 = System.currentTimeMillis();
             data = communicator.request(new GempakDataRecordRequest(dataInput),
                     GempakDataRecord.class);
-        } catch (GempakConnectionException | GempakCommunicationException e) {
-            statusHandler.error(
-                    "Error connecting/communicating with GEMPAK subprocess", e);
-            if (subprocess != null) {
-                subprocess.destroy();
-            }
-        } catch (IOException e) {
-            statusHandler.warn("Error closing GEMPAK connection", e);
+            long t1 = System.currentTimeMillis();
+            perfLog.logDuration(
+                    "Performing GEMPAK data processing (starting from CAVE) for "
+                            + dataInput,
+                    t1 - t0);
         }
 
-        long t1 = System.currentTimeMillis();
-        perfLog.logDuration(
-                "Performing GEMPAK data processing (starting from CAVE)",
-                t1 - t0);
-
         return data;
+    }
+
+    /**
+     * Shutdown this subprocess spawner, terminating the subprocess and freeing
+     * up any other resources. Any subsequent calls to
+     * {@link #getDataRecord(GempakDataInput)} will throw a
+     * {@link GempakShutdownException}.
+     */
+    public void shutdown() {
+        synchronized (lock) {
+            if (shutdown) {
+                return;
+            }
+            shutdown = true;
+            try {
+                communicator.send(new GempakShutdownMessage());
+            } catch (GempakCommunicationException e) {
+                statusHandler.warn(
+                        "Error sending shutdown request to GEMPAK subprocess",
+                        e);
+            }
+
+            try {
+                boolean terminated = subprocess.waitFor(SHUTDOWN_TIMEOUT,
+                        TimeUnit.MILLISECONDS);
+                if (!terminated) {
+                    statusHandler.warn(
+                            "GEMPAK subprocess spawner timed out waiting for subprocess to terminate, it may not cleanly shutdown");
+                }
+            } catch (InterruptedException e) {
+                statusHandler.warn(
+                        "Thread interrupted while waiting for GEMPAK subprocess to cleanly shutdown",
+                        e);
+            }
+
+            try {
+                server.close();
+            } catch (IOException e) {
+                statusHandler.warn("Error closing GEMPAK connector", e);
+            }
+        }
     }
 }

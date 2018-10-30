@@ -21,6 +21,8 @@ package com.raytheon.uf.viz.gempak.common.data;
 
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
@@ -38,6 +40,7 @@ import com.raytheon.uf.common.time.DataTime;
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
+ * Oct 23, 2018 54483      mapeters    Add {@link #toString()}
  *
  * </pre>
  *
@@ -87,9 +90,6 @@ public class GempakDataInput {
 
     @DynamicSerializeElement
     private boolean arrowVector;
-
-    public GempakDataInput() {
-    }
 
     /**
      * @return the ensembleMember
@@ -299,5 +299,9 @@ public class GempakDataInput {
      */
     public void setArrowVector(boolean arrowVector) {
         this.arrowVector = arrowVector;
+    }
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

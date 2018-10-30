@@ -27,7 +27,9 @@ import com.raytheon.uf.common.dataplugin.grid.dataquery.GridQueryAssembler;
 import com.raytheon.uf.common.dataquery.requests.DbQueryRequest;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.common.dataquery.responses.DbQueryResponse;
+import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
@@ -54,6 +56,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
+ * Oct 23, 2018 54483      mapeters    Use {@link IPerformanceStatusHandler}
  *
  * </pre>
  *
@@ -61,8 +64,11 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  */
 public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
 
-    private static final IUFStatusHandler logger = UFStatus
+    private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(GempakCaveDataURIRetriever.class);
+
+    private static final IPerformanceStatusHandler perfLog = PerformanceStatus
+            .getHandler(GempakCaveDataURIRetriever.class.getSimpleName() + ":");
 
     private final NcgridDataCache dataCache;
 
@@ -83,23 +89,26 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         if (datauri != null) {
             if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
                 long t00 = System.currentTimeMillis();
-                logger.debug("++++ getDataURIFromAssembler for(" + parameters
-                        + ") from cache took: " + (t00 - t0));
+                perfLog.logDuration("++++ getDataURIFromAssembler for("
+                        + parameters + ") from cache", t00 - t0);
             }
             return datauri;
         }
+
         Map<String, RequestConstraint> rcMap = getRequestConstraint(
                 gempakRequest);
         if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
             long t01 = System.currentTimeMillis();
-            logger.debug("++++ getRequestConstraint for(" + parameters
-                    + ") took: " + (t01 - t0));
+            perfLog.logDuration(
+                    "++++ getRequestConstraint for(" + parameters + ")",
+                    t01 - t0);
         }
         if (rcMap == null) {
             return null;
         }
 
-        t0 = System.currentTimeMillis();
+        long t1 = System.currentTimeMillis();
+
         DbQueryRequest request = new DbQueryRequest();
         request.setConstraints(rcMap);
 
@@ -112,6 +121,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
                             + gempakRequest,
                     e);
         }
+
         PluginDataObject[] pdos = response
                 .getEntityObjects(PluginDataObject.class);
         if (pdos.length > 0) {
@@ -120,7 +130,8 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
             datauri = null;
         }
 
-        long t1 = System.currentTimeMillis();
+        long t2 = System.currentTimeMillis();
+
         if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
             String refTime = rcMap.get(GridDBConstants.REF_TIME_QUERY)
                     .getConstraintValue();
@@ -130,19 +141,24 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
             String fcstTimeg = CommonDateFormatUtil
                     .getForecastColonTimeString(fcstTime);
             if (datauri != null) {
-                logger.debug("### getDataURIFromAssembler(" + datauri + ") for("
-                        + parameters + ") reftime:" + refTime + "(" + fcstTimeg
-                        + ") took: " + (t1 - t0));
+                perfLog.logDuration("### getDataURIFromAssembler(" + datauri
+                        + ") for(" + parameters + ") reftime:" + refTime + "("
+                        + fcstTimeg + ")", t2 - t1);
             } else {
-                logger.debug("??? getDataURIFromAssembler(null) for("
+                perfLog.logDuration("??? getDataURIFromAssembler(null) for("
                         + parameters + ") reftime:" + refTime + "(" + fcstTimeg
-                        + ") took: " + (t1 - t0));
+                        + ")", t2 - t1);
             }
         }
 
         if (datauri != null) {
             dataCache.addDataURI(parameters, datauri);
         }
+
+        long t3 = System.currentTimeMillis();
+        perfLog.logDuration("Retrieving GEMPAK data URI (" + datauri
+                + ") from parameters (" + parameters + ")", t3 - t0);
+
         return datauri;
     }
 
@@ -155,7 +171,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         GridQueryAssembler qAssembler = new GridQueryAssembler("GEMPAK");
         String[] parmList = parameters.split("\\|");
         if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-            logger.debug(
+            statusHandler.debug(
                     "enter getRequestConstraint - parameters:" + parameters);
         }
         qAssembler.setDatasetId(parmList[0]);
@@ -227,8 +243,8 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
             rcMap = qAssembler.getConstraintMap();
         } catch (CommunicationException e) {
             if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-                logger.debug("getConstraintMap - CommunicationException:"
-                        + e.toString());
+                statusHandler.debug("getConstraintMap - CommunicationException",
+                        e);
             }
             return null;
         }
@@ -242,7 +258,7 @@ public class GempakCaveDataURIRetriever implements IGempakDataURIRetriever {
         rcMap.put(GridDBConstants.FORECAST_TIME_QUERY,
                 new RequestConstraint(fcstTimeInSec));
         if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-            logger.debug(
+            statusHandler.debug(
                     "exit getRequestConstraint - rcMap:" + rcMap.toString());
         }
         return rcMap;

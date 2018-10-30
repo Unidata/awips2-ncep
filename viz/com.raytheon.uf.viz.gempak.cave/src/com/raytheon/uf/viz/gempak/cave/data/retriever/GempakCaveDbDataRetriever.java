@@ -28,7 +28,9 @@ import com.raytheon.uf.common.datastorage.StorageException;
 import com.raytheon.uf.common.datastorage.records.FloatDataRecord;
 import com.raytheon.uf.common.geospatial.ISpatialObject;
 import com.raytheon.uf.common.gridcoverage.exception.GridCoverageException;
+import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.units.UnitConv;
 import com.raytheon.uf.viz.gempak.common.data.GempakDbDataResponse;
@@ -52,6 +54,7 @@ import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
  * ------------ ---------- ----------- --------------------------
  * Sep 10, 2018 54483      mapeters    Initial creation
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
+ * Oct 23, 2018 54483      mapeters    Use {@link IPerformanceStatusHandler}
  *
  * </pre>
  *
@@ -59,8 +62,11 @@ import gov.noaa.nws.ncep.viz.gempak.grid.units.GempakGridParmInfoLookup;
  */
 public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
 
-    private static final IUFStatusHandler logger = UFStatus
+    private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(GempakCaveDbDataRetriever.class);
+
+    private static final IPerformanceStatusHandler perfLog = PerformanceStatus
+            .getHandler(GempakCaveDbDataRetriever.class.getSimpleName() + ":");
 
     private final NcgridDataCache dataCache;
 
@@ -89,8 +95,8 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
             subgSpatialObj = unprocessedResponse.getSubgSpatialObj();
             if (rData == null) {
                 if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-                    logger.debug(
-                            "??? retrieveDataFromRetriever return NULL for dataURI("
+                    statusHandler
+                            .debug("??? retrieveDataFromRetriever return NULL for dataURI("
                                     + dataURI + ")");
                 }
                 return null;
@@ -98,8 +104,8 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
         } else {
             if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
                 long t00 = System.currentTimeMillis();
-                logger.debug("++++ retrieve data (nx:" + gData.getNx() + "-ny:"
-                        + gData.getNy() + ") from cache took: " + (t00 - t0));
+                perfLog.logDuration("++++ retrieve data (nx:" + gData.getNx()
+                        + "-ny:" + gData.getNy() + ") from cache", t00 - t0);
             }
             rData = gData.getData();
         }
@@ -118,14 +124,14 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
             }
             rval = new GempakDbDataResponse(rData, subgSpatialObj);
         } else {
-            logger.debug("retrieve data size(" + rDataSize
+            statusHandler.debug("retrieve data size(" + rDataSize
                     + ") mismatch with navigation nx=" + nx + " ny=" + ny);
         }
         long t2 = System.currentTimeMillis();
-        logger.debug("retrieve data took " + (t1 - t0));
-        logger.debug("return data took " + (t2 - t1));
+        perfLog.log("Retrieving GEMPAK DB data took " + (t2 - t0)
+                + " ms (retrieval=" + (t1 - t0) + ", processing=" + (t2 - t1)
+                + ")");
         return rval;
-
     }
 
     private GempakDbDataResponse retrieveDataFromRetriever(String dataURI) {
@@ -140,21 +146,25 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
         } catch (GridCoverageException e) {
             // ignore setWorldWrapColumns exception.
         }
+        String gempakParm = null;
         try {
-            String gempakParm = dataCache.getGempakParam(dataURI);
+            gempakParm = dataCache.getGempakParam(dataURI);
             if (gempakParm != null) {
                 dataRetriever
                         .setUnit(UnitConv.deserializer(GempakGridParmInfoLookup
                                 .getInstance().getParmUnit(gempakParm)));
             }
         } catch (ConversionException | ParseException e) {
-            logger.info("Problem with dataRetriever setUnit.", e);
+            statusHandler
+                    .info("Problem with dataRetriever setUnit for gempakParm: "
+                            + gempakParm, e);
             // ignore setUnit exception. use default units
         }
         long t002 = System.currentTimeMillis();
         if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-            logger.debug("***Initialize GridDataRetriever for " + dataURI
-                    + " took: " + (t002 - t001));
+            perfLog.logDuration(
+                    "***Initialize GridDataRetriever for " + dataURI,
+                    t002 - t001);
         }
         try {
             t001 = System.currentTimeMillis();
@@ -165,13 +175,15 @@ public class GempakCaveDbDataRetriever implements IGempakDbDataRetriever {
                     dataRetriever.getCoverage());
             t002 = System.currentTimeMillis();
             if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-                logger.debug("***Reading " + dataURI + " from hdf5 took: "
-                        + (t002 - t001) + ", return size:" + data.length);
+                perfLog.logDuration("***Reading " + dataURI
+                        + " from hdf5 (return size: " + data.length + ")",
+                        t002 - t001);
             }
             return rval;
         } catch (StorageException s) {
             if (NcgribLogger.getInstance().enableDiagnosticLogs()) {
-                logger.debug("???? getDataRecord --- throw StorageException");
+                statusHandler.debug(
+                        "???? getDataRecord --- throw StorageException", s);
             }
             return null;
         }

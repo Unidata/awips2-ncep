@@ -22,6 +22,7 @@ package com.raytheon.uf.viz.gempak.cave.strategy;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
 
 /**
  * Interface specifying a strategy for performing GEMPAK data processing.
@@ -34,6 +35,7 @@ import com.raytheon.uf.viz.gempak.common.exception.GempakException;
  * ------------ ---------- ----------- --------------------------
  * Sep 04, 2018 54480      mapeters    Initial creation
  * Sep 26, 2018 54483      mapeters    {@link #getDataRecord} throws {@link GempakException}
+ * Oct 16, 2018 54483      mapeters    Added {@link #shutdown()}
  *
  * </pre>
  *
@@ -54,4 +56,11 @@ public interface IGempakProcessingStrategy {
      */
     GempakDataRecord getDataRecord(GempakDataInput dataInput)
             throws GempakException;
+
+    /**
+     * Shutdown this processing strategy, releasing any necessary resources. Any
+     * subsequent calls to {@link #getDataRecord(GempakDataInput)} will throw an
+     * {@link GempakShutdownException}.
+     */
+    void shutdown();
 }

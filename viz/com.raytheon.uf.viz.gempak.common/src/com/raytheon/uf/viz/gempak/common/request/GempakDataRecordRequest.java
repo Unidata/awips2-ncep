@@ -19,6 +19,8 @@
  **/
 package com.raytheon.uf.viz.gempak.common.request;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
@@ -33,6 +35,7 @@ import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
+ * Oct 23, 2018 54483      mapeters    Add {@link #toString()}
  *
  * </pre>
  *
@@ -73,5 +76,10 @@ public class GempakDataRecordRequest implements IGempakRequest {
      */
     public void setDataInput(GempakDataInput dataInput) {
         this.dataInput = dataInput;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

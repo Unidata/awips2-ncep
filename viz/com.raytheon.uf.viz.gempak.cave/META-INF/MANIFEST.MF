@@ -6,7 +6,8 @@ Bundle-Version: 1.18.0.qualifier
 Bundle-Vendor: RAYTHEON
 Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.gempak.common,
- com.raytheon.uf.viz.ncep.grid
+ com.raytheon.uf.viz.ncep.grid,
+ org.eclipse.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.uf.common.dataplugin,
@@ -26,7 +27,11 @@ Import-Package: com.raytheon.uf.common.comm,
  com.raytheon.uf.common.units,
  com.raytheon.uf.viz.core.exception,
  com.raytheon.uf.viz.core.requests,
+ com.raytheon.viz.ui,
+ com.raytheon.viz.ui.perspectives,
+ gov.noaa.nws.ncep.viz.common.ui,
  gov.noaa.nws.ncep.viz.gempak.grid.units,
  gov.noaa.nws.ncep.viz.gempak.util,
- javax.measure.converter
+ javax.measure.converter,
+ org.slf4j
 Export-Package: com.raytheon.uf.viz.gempak.cave

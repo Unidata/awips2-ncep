@@ -19,6 +19,9 @@
  **/
 package com.raytheon.uf.viz.gempak.cave.strategy;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.PerformanceStatus;
@@ -29,6 +32,9 @@ import com.raytheon.uf.viz.gempak.common.Dgdriv;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataInput;
 import com.raytheon.uf.viz.gempak.common.data.GempakDataRecord;
 import com.raytheon.uf.viz.gempak.common.exception.DgdrivException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakProcessingException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakShutdownException;
 import com.raytheon.uf.viz.ncep.grid.FloatGridData;
 
 /**
@@ -45,6 +51,7 @@ import com.raytheon.uf.viz.ncep.grid.FloatGridData;
  * Sep 26, 2018 54483      mapeters    Pass data URI and DB data retrievers to
  *                                     Dgdriv
  * Oct 23, 2018 54476      tjensen     Change cache to singleton
+ * Oct 23, 2018 54483      mapeters    Add shutdown support
  *
  * </pre>
  *
@@ -60,28 +67,73 @@ public class GempakSameProcessStrategy implements IGempakProcessingStrategy {
 
     private static final Object LOCK = new Object();
 
+    private final ReentrantReadWriteLock shutdownLock = new ReentrantReadWriteLock();
+
+    private final AtomicInteger waitingRequestsCounter = new AtomicInteger();
+
+    private boolean shutdown = false;
+
     @Override
-    public GempakDataRecord getDataRecord(GempakDataInput dataInput) {
-        synchronized (LOCK) {
-            long t0 = System.currentTimeMillis();
-            GempakDataRecord data = null;
-            Dgdriv dgdriv = new Dgdriv(dataInput,
-                    new GempakCaveDataURIRetriever(),
-                    new GempakCaveDbDataRetriever());
-            try {
-                FloatGridData floatData = dgdriv.execute();
-                if (floatData != null) {
-                    data = new GempakDataRecord(floatData,
-                            dgdriv.getSubgSpatialObj());
-                }
-            } catch (DgdrivException e) {
-                statusHandler.error("Error performing GEMPAK data processing",
-                        e);
+    public GempakDataRecord getDataRecord(GempakDataInput dataInput)
+            throws GempakException {
+        shutdownLock.readLock().lock();
+        try {
+            if (shutdown) {
+                // This is intended to never happen
+                throw new GempakShutdownException(
+                        "Attempted to perform GEMPAK data processing using shutdown strategy");
             }
-            long t1 = System.currentTimeMillis();
-            perfLog.logDuration("Performing GEMPAK data processing in CAVE",
-                    t1 - t0);
-            return data;
+
+            statusHandler
+                    .debug("Queueing GEMPAK processing request to run in CAVE on thread "
+                            + Thread.currentThread().getName()
+                            + " (approximately " + waitingRequestsCounter.get()
+                            + " requests are currently waiting to run)");
+
+            waitingRequestsCounter.incrementAndGet();
+            synchronized (LOCK) {
+                waitingRequestsCounter.decrementAndGet();
+                long t0 = System.currentTimeMillis();
+                GempakDataRecord data = null;
+                Dgdriv dgdriv = new Dgdriv(dataInput,
+                        new GempakCaveDataURIRetriever(),
+                        new GempakCaveDbDataRetriever());
+                try {
+                    FloatGridData floatData = dgdriv.execute();
+                    if (floatData != null) {
+                        data = new GempakDataRecord(floatData,
+                                dgdriv.getSubgSpatialObj());
+                    }
+                } catch (DgdrivException e) {
+                    throw new GempakProcessingException(
+                            "Error performing GEMPAK data processing for "
+                                    + dataInput,
+                            e);
+                }
+                long t1 = System.currentTimeMillis();
+                perfLog.logDuration(
+                        "Performing GEMPAK data processing in CAVE for "
+                                + dataInput,
+                        t1 - t0);
+                return data;
+            }
+        } finally {
+            shutdownLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        shutdownLock.writeLock().lock();
+        try {
+            if (shutdown) {
+                return;
+            }
+
+            statusHandler.info("Shutting down GEMPAK processing within CAVE");
+            shutdown = true;
+        } finally {
+            shutdownLock.writeLock().unlock();
         }
     }
 }

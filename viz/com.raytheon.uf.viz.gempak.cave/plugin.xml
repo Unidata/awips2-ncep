@@ -11,4 +11,9 @@
             extensionFilter=".xml">
         </path>
     </extension>
+    <extension point="org.eclipse.ui.startup">
+        <startup
+            class="com.raytheon.uf.viz.gempak.cave.GempakActivationManager">
+        </startup>
+    </extension>
 </plugin>

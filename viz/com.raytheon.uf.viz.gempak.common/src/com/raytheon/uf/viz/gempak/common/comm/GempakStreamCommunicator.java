@@ -16,25 +16,24 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
+ */
 package com.raytheon.uf.viz.gempak.common.comm;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.raytheon.uf.common.serialization.DynamicSerializationManager;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager.SerializationType;
+import com.raytheon.uf.common.serialization.SerializationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
 import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.message.IGempakMessage;
 import com.raytheon.uf.viz.gempak.common.request.IGempakRequest;
-import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
-import com.raytheon.uf.common.serialization.SerializationException;
 
 /**
- * Handles GEMPAK requests/responses through provided input/output streams.
+ * Handles GEMPAK requests/responses and messages through provided input/output
+ * streams.
  *
  * <pre>
  *
@@ -44,12 +43,14 @@ import com.raytheon.uf.common.serialization.SerializationException;
  * ------------ ---------- ----------- --------------------------
  * Sep 05, 2018 54480      mapeters    Initial creation
  * Sep 26, 2018 54483      mapeters    Flush streams as needed
+ * Oct 16, 2018 54483      mapeters    Added {@link IGempakMessage} support, abstracted out
+ *                                     handler logic to {@link AbstractGempakCommunicator}
  *
  * </pre>
  *
  * @author mapeters
  */
-public class GempakStreamCommunicator implements IGempakCommunicator {
+public class GempakStreamCommunicator extends AbstractGempakCommunicator {
 
     private final DynamicSerializationManager manager = DynamicSerializationManager
             .getManager(SerializationType.Thrift);
@@ -57,8 +58,6 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
     private final InputStream is;
 
     private final OutputStream os;
-
-    private final Map<Class<?>, IGempakRequestHandler<? extends IGempakRequest>> handlers = new HashMap<>();
 
     /**
      * Constructor. The calling code is responsible for closing the streams when
@@ -75,29 +74,41 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
     }
 
     @Override
-    public <T> T request(IGempakRequest request, Class<T> responseType)
+    public void send(IGempakMessage request)
             throws GempakCommunicationException {
-        if (IGempakRequest.class.isAssignableFrom(responseType)) {
+        sendInternal(request);
+    }
+
+    @Override
+    public <T> T request(IGempakRequest request, Class<T> responseType)
+            throws GempakException {
+        if (IGempakRequest.class.isAssignableFrom(responseType)
+                || IGempakMessage.class.isAssignableFrom(responseType)) {
             /*
              * Sanity check to ensure we can actually know when we've received
              * the expected response
              */
             throw new GempakCommunicationException(
                     "The expected response type cannot be "
-                            + IGempakRequest.class.getSimpleName()
-                            + " (or any of its subtypes): "
+                            + IGempakRequest.class.getSimpleName() + " or "
+                            + IGempakMessage.class.getSimpleName()
+                            + " (or any of their subtypes): "
                             + responseType.getClass().getName());
         }
 
+        sendInternal(request);
         try {
-            manager.serialize(request, os);
-            os.flush();
-
             Object obj;
             while ((obj = manager.deserialize(is)) != null) {
                 if (obj instanceof IGempakRequest) {
                     // Received intermediate request, respond to it
-                    respond((IGempakRequest) obj);
+                    Object response = handleRequest((IGempakRequest) obj);
+                    sendInternal(response);
+                } else if (obj instanceof IGempakMessage) {
+                    // Received intermediate message, handle it
+                    if (!handleMessage((IGempakMessage) obj)) {
+                        break;
+                    }
                 } else if (responseType.isInstance(obj)) {
                     // Received response, return it
                     return responseType.cast(obj);
@@ -110,25 +121,36 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
             }
 
             /*
-             * Broke out of while loop by deserializing a null response, return
-             * it
+             * Broke out of while loop by deserializing a null response or
+             * receiving a message that indicated to stop processing, return
+             * null
              */
             return null;
         } catch (SerializationException e) {
             throw new GempakCommunicationException(
-                    "Serialization error occurred when processing request: "
-                            + request,
-                    e);
-        } catch (IOException e) {
-            throw new GempakCommunicationException(
-                    "Error flushing serialized request to output stream: "
-                            + request,
-                    e);
+                    "Error deserializing response for request: " + request, e);
         }
     }
 
     @Override
-    public void respond() throws GempakCommunicationException {
+    public void process() throws GempakException {
+        while (processInternal()) {
+            /*
+             * Empty loop to process individual requests/messages until one
+             * returns false to indicate to stop
+             */
+        }
+    }
+
+    /**
+     * Handle a single request/message (using the registered handlers). This
+     * method blocks until a request/message is received.
+     *
+     * @return whether or not we should continue communicating and processing
+     *         requests/messages
+     * @throws GempakCommunicationException
+     */
+    private boolean processInternal() throws GempakException {
         Object obj;
         try {
             // TODO need some sort of timeout if no request is being received?
@@ -140,58 +162,29 @@ public class GempakStreamCommunicator implements IGempakCommunicator {
 
         if (obj instanceof IGempakRequest) {
             // Received request, respond to it
-            respond((IGempakRequest) obj);
+            Object response = handleRequest((IGempakRequest) obj);
+            sendInternal(response);
+        } else if (obj instanceof IGempakMessage) {
+            // Received message, handle it
+            return handleMessage((IGempakMessage) obj);
         } else {
             // Received unexpected type
             throw new GempakCommunicationException(
                     "Received unexpected request type: "
                             + obj.getClass().getName());
         }
+
+        return true;
     }
 
-    /**
-     * Respond to the given request.
-     *
-     * @param request
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void respond(IGempakRequest request)
+    private void sendInternal(Object object)
             throws GempakCommunicationException {
-        IGempakRequestHandler handler = getHandler(request);
-        if (handler == null) {
-            throw new GempakCommunicationException(
-                    "No registered handler for request: "
-                            + request.getClass().getName());
-        }
-
-        // Process request
-        Object response;
         try {
-            response = handler.handleRequest(request);
-        } catch (GempakException e) {
-            throw new GempakCommunicationException(
-                    "Error handling request: " + request, e);
-        }
-
-        // Send back response
-        try {
-            manager.serialize(response, os);
+            manager.serialize(object, os);
             os.flush();
         } catch (SerializationException | IOException e) {
             throw new GempakCommunicationException(
-                    "Error sending response: " + response, e);
+                    "Error sending object: " + object, e);
         }
-    }
-
-    @Override
-    public <T extends IGempakRequest> void registerHandler(Class<T> requestType,
-            IGempakRequestHandler<T> handler) {
-        handlers.put(requestType, handler);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends IGempakRequest> IGempakRequestHandler<T> getHandler(
-            T request) {
-        return (IGempakRequestHandler<T>) handlers.get(request.getClass());
     }
 }

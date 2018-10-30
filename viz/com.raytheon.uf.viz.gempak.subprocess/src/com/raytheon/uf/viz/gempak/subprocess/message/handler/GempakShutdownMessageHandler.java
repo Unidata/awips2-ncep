@@ -16,14 +16,15 @@
  *
  * See the AWIPS II Master Rights File ("Master Rights File.pdf") for
  * further licensing information.
- **/
-package com.raytheon.uf.viz.gempak.common.request;
+ */
+package com.raytheon.uf.viz.gempak.subprocess.message.handler;
 
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
+import com.raytheon.uf.viz.gempak.common.message.GempakShutdownMessage;
+import com.raytheon.uf.viz.gempak.common.message.handler.IGempakMessageHandler;
 
 /**
- * Interface used to denote requests that are sent between CAVE and subprocesses
- * for GEMPAK data processing. Unlike messages, requests expect responses.
+ * Handler for processing a {@link GempakShutdownMessage} to stop GEMPAK data
+ * processing. This is done in a GEMPAK subprocess.
  *
  * <pre>
  *
@@ -31,13 +32,18 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Sep 05, 2018 54480      mapeters    Initial creation
+ * Oct 16, 2018 54483      mapeters    Initial creation
  *
  * </pre>
  *
  * @author mapeters
  */
-@DynamicSerialize
-public interface IGempakRequest {
-    // Empty, just provides consistent supertype for GEMPAK requests
+public class GempakShutdownMessageHandler
+        implements IGempakMessageHandler<GempakShutdownMessage> {
+
+    @Override
+    public boolean handleMessage(GempakShutdownMessage message) {
+        // Just indicate that we should stop GEMPAK data processing
+        return false;
+    }
 }

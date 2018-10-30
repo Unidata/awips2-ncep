@@ -20,6 +20,9 @@
 package com.raytheon.uf.viz.gempak.common.comm;
 
 import com.raytheon.uf.viz.gempak.common.exception.GempakCommunicationException;
+import com.raytheon.uf.viz.gempak.common.exception.GempakException;
+import com.raytheon.uf.viz.gempak.common.message.IGempakMessage;
+import com.raytheon.uf.viz.gempak.common.message.handler.IGempakMessageHandler;
 import com.raytheon.uf.viz.gempak.common.request.IGempakRequest;
 import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
 
@@ -33,12 +36,24 @@ import com.raytheon.uf.viz.gempak.common.request.handler.IGempakRequestHandler;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 07, 2018 54480      mapeters    Initial creation
+ * Oct 16, 2018 54483      mapeters    Add support for {@link IGempakMessage}, processing
+ *                                     multiple requests until shutdown
  *
  * </pre>
  *
  * @author mapeters
  */
 public interface IGempakCommunicator {
+
+    /**
+     * Send the given message without waiting for any response.
+     *
+     * @param message
+     * @throws GempakCommunicationException
+     *             if an error occurs sending the message
+     */
+    public void send(IGempakMessage message)
+            throws GempakCommunicationException;
 
     /**
      * Communicate the given request and wait for a response. In between the
@@ -49,18 +64,19 @@ public interface IGempakCommunicator {
      * @param responseType
      *            the expected response type
      * @return the response (may be null)
-     * @throws GempakCommunicationException
+     * @throws GempakException
      */
     public <T> T request(IGempakRequest request, Class<T> responseType)
-            throws GempakCommunicationException;
+            throws GempakException;
 
     /**
-     * Respond to a request (using the registered handlers). This method blocks
-     * until a request is received.
+     * Handle requests/messages (using the registered handlers) until a message
+     * is received that indicates to stop processing. This method blocks until
+     * processing is completed.
      *
-     * @throws GempakCommunicationException
+     * @throws GempakException
      */
-    public void respond() throws GempakCommunicationException;
+    public void process() throws GempakException;
 
     /**
      * Register a handler for the given request type.
@@ -68,6 +84,15 @@ public interface IGempakCommunicator {
      * @param requestType
      * @param handler
      */
-    public <T extends IGempakRequest> void registerHandler(Class<T> requestType,
-            IGempakRequestHandler<T> handler);
+    public <T extends IGempakRequest> void registerRequestHandler(
+            Class<T> requestType, IGempakRequestHandler<T> handler);
+
+    /**
+     * Register a handler for the given message type.
+     *
+     * @param messageType
+     * @param handler
+     */
+    public <T extends IGempakMessage> void registerMessageHandler(
+            Class<T> messageType, IGempakMessageHandler<T> handler);
 }

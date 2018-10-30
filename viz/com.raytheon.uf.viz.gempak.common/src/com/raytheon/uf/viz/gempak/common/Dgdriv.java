@@ -47,7 +47,9 @@ import com.raytheon.uf.common.gridcoverage.LatLonGridCoverage;
 import com.raytheon.uf.common.gridcoverage.MercatorGridCoverage;
 import com.raytheon.uf.common.gridcoverage.PolarStereoGridCoverage;
 import com.raytheon.uf.common.gridcoverage.exception.GridCoverageException;
+import com.raytheon.uf.common.status.IPerformanceStatusHandler;
 import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.PerformanceStatus;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -137,6 +139,7 @@ import gov.noaa.nws.ncep.viz.gempak.util.CommonDateFormatUtil;
  *                                          since they are no longer static.
  * 09/05/2018   54480       mapeters        Updates to support either running in CAVE or in subprocess
  * 09/26/2018   54483       mapeters        Extracted out data URI and DB data retrieval
+ * 10/23/2018   54483       mapeters        Use {@link IPerformanceStatusHandler}
  * </pre>
  *
  * @author tlee
@@ -147,8 +150,11 @@ public class Dgdriv {
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(Dgdriv.class);
 
-    private final Logger logger = LoggerFactory
-            .getLogger(getClass().getSimpleName() + "PerformanceLogger");
+    private static final IPerformanceStatusHandler perfLog = PerformanceStatus
+            .getHandler(Dgdriv.class.getSimpleName() + ":");
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(Dgdriv.class.getSimpleName() + "Debug");
 
     private final IGempakDataURIRetriever dataURIRetriever;
 
@@ -382,6 +388,7 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
+            long t0 = System.currentTimeMillis();
             String sep = "::";
             if (!nativeLogging) {
                 return true;
@@ -409,6 +416,9 @@ public class Dgdriv {
                         + msg.split(sep)[1];
                 logger.error("C ERROR MESSAGE " + logMessage);
             }
+            long t1 = System.currentTimeMillis();
+            perfLog.logDuration("Handling diagnostics callback for " + msg,
+                    t1 - t0);
 
             return true;
         }
@@ -474,8 +484,8 @@ public class Dgdriv {
                                 data.length);
                         gd.gem.db_returndata(data, datSize);
                     }
-                    long t2 = System.currentTimeMillis();
-                    logger.debug("retrieve and return data took " + (t2 - t0));
+                    long t1 = System.currentTimeMillis();
+                    perfLog.logDuration("Returning data for " + msg, t1 - t0);
                     return true;
                 } else {
                     errorURI = msg;
@@ -503,8 +513,9 @@ public class Dgdriv {
             }
             gd.gem.db_returnnav(navigationString);
             long t1 = System.currentTimeMillis();
-            logger.debug("return navigation  " + navigationString + " took "
-                    + (t1 - t0));
+            perfLog.logDuration(
+                    "Returning navigation " + navigationString + " for " + msg,
+                    t1 - t0);
             return true;
         }
     }
@@ -521,8 +532,9 @@ public class Dgdriv {
                 String dataURI = dataURIRetriever.getDataURI(gempakRequest);
                 gd.gem.db_returnduri(dataURI);
                 long t1 = System.currentTimeMillis();
-                logger.debug(
-                        "return dataURI " + dataURI + " took " + (t1 - t0));
+                perfLog.logDuration(
+                        "Returning data URI " + dataURI + " for " + msg,
+                        t1 - t0);
             } catch (GempakException e) {
                 statusHandler.error("Error performing GEMPAK data URI request: "
                         + gempakRequest, e);
@@ -538,10 +550,13 @@ public class Dgdriv {
 
         @Override
         public boolean callback(String msg) {
+            long t0 = System.currentTimeMillis();
             if (ncgribLogger.enableDiagnosticLogs()) {
                 logger.debug("Rcv'd new subg:" + msg);
             }
             createNewISpatialObj(msg);
+            long t1 = System.currentTimeMillis();
+            perfLog.logDuration("Returning subgrid CRS for " + msg, t1 - t0);
             return true;
         }
     }
@@ -556,8 +571,8 @@ public class Dgdriv {
                     dataForecastTimes);
             gd.gem.db_returnfhrs(cycleFcstHrsString);
             long t1 = System.currentTimeMillis();
-            logger.debug("return cycle forecast hours string "
-                    + cycleFcstHrsString + " took " + (t1 - t0));
+            perfLog.logDuration("Returning cycle forecast hours string "
+                    + cycleFcstHrsString, t1 - t0);
             return true;
         }
     }
@@ -572,8 +587,9 @@ public class Dgdriv {
             String fileNames = executeScript(msg);
             gd.gem.db_returnflnm(fileNames);
             long t1 = System.currentTimeMillis();
-            logger.debug("return file names string " + fileNames + " took "
-                    + (t1 - t0));
+            perfLog.logDuration(
+                    "Returning file names string " + fileNames + " for " + msg,
+                    t1 - t0);
             return true;
         }
     }
@@ -659,7 +675,7 @@ public class Dgdriv {
         }
 
         long t05 = System.currentTimeMillis();
-        logger.debug("init and settime took: " + (t05 - t0));
+        perfLog.logDuration("init and settime", t05 - t0);
         /*
          * Process the GDFILE input.
          */
@@ -680,7 +696,7 @@ public class Dgdriv {
         }
 
         long t06 = System.currentTimeMillis();
-        logger.debug("dgc_nfil took: " + (t06 - t05));
+        perfLog.logDuration("dgc_nfil", t06 - t05);
 
         /*
          * Process the GDATTIM input; setup the time server.
@@ -694,7 +710,7 @@ public class Dgdriv {
         }
 
         long t07 = System.currentTimeMillis();
-        logger.debug("dgc_ndtm took: " + (t07 - t06));
+        perfLog.logDuration("dgc_ndtm", t07 - t06);
 
         if (proces) {
             /*
@@ -709,14 +725,14 @@ public class Dgdriv {
              */
             gd.gem.inc_scal(scale, iscale, iscalv, iret);
             long t07b = System.currentTimeMillis();
-            logger.debug("inc_scal took: " + (t07b - t07));
+            perfLog.logDuration("inc_scal", t07b - t07);
 
             /*
              * Get the next time to process from time server.
              */
             gd.gem.dgc_ntim_(chngnv, coladd, time1, time2, gottm, iret);
             long t08 = System.currentTimeMillis();
-            logger.debug("dgc_ntim took: " + (t08 - t07b));
+            perfLog.logDuration("dgc_ntim", t08 - t07b);
 
             if (iret.getValue() != 0) {
                 gd.gem.erc_wmsg("DG", iret, "", ier);
@@ -724,7 +740,7 @@ public class Dgdriv {
             } else {
                 gd.gem.tgc_dual(time1, time2, time, iret);
                 long t08b = System.currentTimeMillis();
-                logger.debug("tgc_dual took: " + (t08b - t08));
+                perfLog.logDuration("tgc_dual", t08b - t08);
             }
         }
 
@@ -739,7 +755,7 @@ public class Dgdriv {
          */
 
         long t09 = System.currentTimeMillis();
-        logger.debug("dgc_fixa took: " + (t09 - t09a));
+        perfLog.logDuration("dgc_fixa", t09 - t09a);
 
         /*
          * Fortran wrapper used and use byte array instead of String as input!!
@@ -752,7 +768,7 @@ public class Dgdriv {
         // }
         // }
         long t10 = System.currentTimeMillis();
-        logger.debug("ggc_maps took: " + (t10 - t09));
+        perfLog.logDuration("ggc_maps", t10 - t09);
 
         /*
          * Setup the grid subset that covers the graphics area.
@@ -774,7 +790,7 @@ public class Dgdriv {
         }
 
         long t11 = System.currentTimeMillis();
-        logger.debug("dgc_subg took: " + (t11 - t10));
+        perfLog.logDuration("dgc_subg", t11 - t10);
 
         /*
          * Return grid dimension for grid diagnostic calculation.
@@ -799,7 +815,7 @@ public class Dgdriv {
         }
 
         long t012 = System.currentTimeMillis();
-        logger.debug("From gdc_nfil to dgc_grid took: " + (t012 - t06));
+        perfLog.logDuration("From dgc_nfil to dgc_grid", t012 - t06);
         /*
          * Compute the requested grid.
          */
@@ -824,7 +840,7 @@ public class Dgdriv {
             }
         }
         long t013 = System.currentTimeMillis();
-        logger.debug("dgc_grid took: " + (t013 - t012));
+        perfLog.logDuration("dgc_grid", t013 - t012);
 
         /*
          * Compute the scaling factor and scale the grid data.
@@ -869,7 +885,7 @@ public class Dgdriv {
              */
             gd.gem.dg_fall_(iret);
             long t1 = System.currentTimeMillis();
-            logger.debug("Scaling took: " + (t1 - t013));
+            perfLog.logDuration("Scaling", t1 - t013);
             return fds;
         } else {
             /*

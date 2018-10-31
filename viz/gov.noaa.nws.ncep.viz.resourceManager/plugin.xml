@@ -13,6 +13,10 @@
          </commandParameter>
       </command>
       <command
+          id="gov.noaa.nws.ncep.viz.actions.dataManager"
+          name="Data Manager">
+      </command>
+      <command
             id="gov.noaa.nws.ncep.viz.ui.newResource"
             name="New Resource">
       </command>
@@ -23,7 +27,11 @@
        <handler
             class="gov.noaa.nws.ncep.viz.resourceManager.ui.ResourceManagerAction"
             commandId="gov.noaa.nws.ncep.viz.actions.resourceManager">
-       </handler>   
+       </handler>
+       <handler
+            class="gov.noaa.nws.ncep.viz.resourceManager.ui.loadData.DataManagerAction"
+            commandId="gov.noaa.nws.ncep.viz.actions.dataManager">
+       </handler>
       <handler
             class="gov.noaa.nws.ncep.viz.resourceManager.ui.newResource.NewResourceAction"
             commandId="gov.noaa.nws.ncep.viz.ui.newResource">

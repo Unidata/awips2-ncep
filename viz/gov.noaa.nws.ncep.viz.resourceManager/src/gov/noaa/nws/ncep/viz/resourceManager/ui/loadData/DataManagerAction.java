@@ -1,4 +1,4 @@
-package gov.noaa.nws.ncep.viz.resourceManager.ui;
+package gov.noaa.nws.ncep.viz.resourceManager.ui.loadData;
 
 
 import gov.noaa.nws.ncep.viz.common.display.NcDisplayType;
@@ -34,9 +34,9 @@ import com.raytheon.uf.viz.core.exception.VizException;
  * @author 
  * @version 1
  */
-public class ResourceManagerAction extends AbstractHandler {
+public class DataManagerAction extends AbstractHandler {
 
-	static  ResourceManagerDialog id = null;
+	static  DataManagerDialog id = null;
 	
     /*
      * (non-Javadoc)
@@ -61,10 +61,10 @@ public class ResourceManagerAction extends AbstractHandler {
         	// TODO : create a user preference for the default display type.
         	// (SWPC probably doesn't want to constantly change the type every time.)        	
         	RscBundleDisplayMngr rbdMngr = new RscBundleDisplayMngr( 
-        			new NcPaneLayout(6,6), NcDisplayType.NMAP_DISPLAY );
+        			new NcPaneLayout(1,1), NcDisplayType.NMAP_DISPLAY );
 
-            id = new ResourceManagerDialog( NcDisplayMngr.getCaveShell(),
-            		                        "Resource Manager", rbdMngr, mode );    
+            id = new DataManagerDialog( NcDisplayMngr.getCaveShell(),
+            		                        "GEMPAK Data Manager", rbdMngr, mode );    
             id.open();
             id = null;
 

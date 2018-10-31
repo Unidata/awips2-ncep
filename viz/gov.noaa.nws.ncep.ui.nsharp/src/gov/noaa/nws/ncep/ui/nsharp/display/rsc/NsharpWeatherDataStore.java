@@ -52,6 +52,7 @@ import gov.noaa.nws.ncep.ui.nsharp.view.NsharpParcelDialog;
  *                                      - Update the dendritic growth layer calculations and other skewT
  *                                      updates.
  * May, 5, 2018 49896       mgamazaychikov  Fixed an NPE for muParcel (line 1140), fixed formatting
+ * Sep,18, 2018 DCS20492    mgamazaychikov  Changed call to bunkers_storm_motion method
  *
  * </pre>
  *
@@ -933,8 +934,7 @@ public class NsharpWeatherDataStore {
         // parameters computations. Therefore, should be done before other
         // computations.
         // also save storm motion wind components for PAGE 2 to use
-        bunkersStormMotionWindComp = NsharpLibXwvid.bunkers_storm_motion(soundingLys,
-                parcelMap.get(NsharpLibSndglib.PARCELTYPE_MOST_UNSTABLE));
+        bunkersStormMotionWindComp = NsharpLibXwvid.bunkers_storm_motion(soundingLys);
         // BigSharp uses bunkers' storm motion right for global storm
         // direction/speed
         smdir = bunkersStormMotionWindComp[0].getWdir();

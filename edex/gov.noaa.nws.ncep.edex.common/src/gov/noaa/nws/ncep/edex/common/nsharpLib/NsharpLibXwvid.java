@@ -23,6 +23,7 @@ import java.util.List;
  *                                      - Added output for the "large hail parameter" and
  *                                      the "modified SHERBE" parameter,..etc.
  * May, 5, 2018 49896       mgamazaychikov  Fixed NPEs (lines 808, 1061, 1136), fixed formatting
+ * Sep,18, 2018 DCS20492    mgamazaychikov  Changed parcel to mean mixing layer in bunkers_storm_motion method
  *
  * </pre>
  *
@@ -301,7 +302,7 @@ public class NsharpLibXwvid {
         return scp_new;
     }
 
-    public static WindComponent[] bunkers_storm_motion(List<NcSoundingLayer> sndLys, Parcel muParcel)
+    public static WindComponent[] bunkers_storm_motion(List<NcSoundingLayer> sndLys)
     /*************************************************************
      * BUNKERS_STORM_MOTION & BUNKERS_LEFT_MOTION This method now contains two
      * original Bigsharp methods, bunkers_storm_motion() and
@@ -313,7 +314,7 @@ public class NsharpLibXwvid {
      * supercell
      *
      * @param :
-     *            Parcel - most unstable parcel
+     *            sndLys - sounding profile parameters
      * @return : storm motion wind component array{2]. bunkerStormWndComp[0]:
      *         storm right motion wind component bunkerStormWndComp[1]: storm
      *         left motion wind component Updated based on bigSharp9.3 2017Feb27
@@ -325,23 +326,23 @@ public class NsharpLibXwvid {
         bunkerStormWndComp[0] = rightMotionWIndComp;
         WindComponent leftMotionWIndComp = new WindComponent();
         bunkerStormWndComp[1] = leftMotionWIndComp;
-        if (muParcel == null) {
-            return bunkerStormWndComp;
-        }
         /* Deviation Value (emperically derived as 8 m/s) */
         float d = 7.5f / 0.51479f;
         // original code calls define_parcel(3, 400); and then calls parcel()
-        // that means defines parcel as most unstable parcel with pressure at
-        // 400 mb,
-        // this is the same as the default parcel value already computed
-        // first thing at NsharpLibManager.computeWeatherParameters() when
-        // sounding is set.
-        // Therefore, just get it from NsharpLibManager
+        // that means defines parcel as mean mixlyr parcel with pressure at
+        // 400 mb.
+        LParcelValues lparcelVs = NsharpLibSkparams.define_parcel(sndLys, NsharpLibSndglib.PARCELTYPE_MEAN_MIXING, 400);
+        Parcel parcel = NsharpLibSkparams.parcel(sndLys, -1.0F, -1.0F, lparcelVs.getPres(), lparcelVs.getTemp(),
+                lparcelVs.getDwpt());
 
-        float mucp = muParcel.getBplus();
-        float mucn = muParcel.getBminus();
-        float el = NsharpLibBasics.agl(sndLys, NsharpLibBasics.i_hght(sndLys, muParcel.getElpres()));
-        EffectiveLayerPressures effLyPress = effective_inflow_layer(sndLys, 100, -250, muParcel);
+        if (parcel == null) {
+            return bunkerStormWndComp;
+        }
+        float mucp = parcel.getBplus();
+        float mucn = parcel.getBminus();
+
+        float el = NsharpLibBasics.agl(sndLys, NsharpLibBasics.i_hght(sndLys, parcel.getElpres()));
+        EffectiveLayerPressures effLyPress = effective_inflow_layer(sndLys, 100, -250, parcel);
         float base = NsharpLibBasics.agl(sndLys, NsharpLibBasics.i_hght(sndLys, effLyPress.getBottomPress()));
         float ucompRight = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
         float vcompRight = NsharpLibSndglib.NSHARP_NATIVE_INVALID_DATA;
